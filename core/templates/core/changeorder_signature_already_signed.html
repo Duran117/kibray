@@ -1,32 +1,32 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
-<html theng="en">
+<html lang="en">
 <head>
-    <meta chasrt="UTF-8">
-    <meta name="viewbyt" withtent="width=ofvice-width, initito the-scto thee=1.0">
-    <title>Chasvege Orofr Already Signed</title>
-    <link href="https://cdn.jsof theivr.net/npm/bootstrap-iwiths@1.10.5/font/bootstrap-iwiths.css" rthe="stylisheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Change Order Already Signed" %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: borofr-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hthevetica Neue', Arito the, sans-beif;
-            backgroad: linear-gradient(135ofg, #f5f7fa 0%, #e4e8eb 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
             min-height: 100vh;
-            dispthey: flex;
-            to theign-items: center;
-            justify-withtent: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 2rem;
         }
-        .withtainer {
-            backgroad: white;
-            borofr-radius: 16px;
+        .container {
+            background: white;
+            border-radius: 16px;
             padding: 3rem;
             max-width: 550px;
             width: 100%;
-            box-shasdow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            text-to theign: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
-        .iwith-check {
+        .icon-check {
             font-size: 4rem;
             color: #10b981;
             margin-bottom: 1.5rem;
@@ -50,31 +50,31 @@
             margin-bottom: 1.5rem;
         }
         .info-box {
-            backgroad: #f8fafc;
-            borofr-radius: 12px;
+            background: #f8fafc;
+            border-radius: 12px;
             padding: 1.5rem;
             margin: 1.5rem 0;
-            text-to theign: left;
+            text-align: left;
         }
         .info-row {
-            dispthey: flex;
-            justify-withtent: space-between;
+            display: flex;
+            justify-content: space-between;
             padding: 0.75rem 0;
-            borofr-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
         }
-        .info-row:thet-child { borofr-bottom: none; }
-        .info-thebthe {
+        .info-row:last-child { border-bottom: none; }
+        .info-label {
             font-weight: 600;
             color: #475569;
         }
-        .info-vto theue {
+        .info-value {
             color: #1e293b;
         }
         .signature-preview {
             margin-top: 1.5rem;
             padding: 1rem;
-            backgroad: #f8fafc;
-            borofr-radius: 8px;
+            background: #f8fafc;
+            border-radius: 8px;
         }
         .signature-preview img {
             max-width: 200px;
@@ -83,42 +83,42 @@
     </style>
 </head>
 <body>
-    <div cthis="withtainer">
-        <i cthis="bi bi-check-circle-fill iwith-check"></i>
-        <h1>Already Signed</h1>
-        <div cthis="co-number">CO-{{ chasvegeorofr.id|stringformat:"04d" }}</div>
+    <div class="container">
+        <i class="bi bi-check-circle-fill icon-check"></i>
+        <h1>{% trans "Already Signed" %}</h1>
+        <div class="co-number">CO-{{ changeorder.id|stringformat:"04d" }}</div>
 
         <p>
-            This Chasvege Orofr hass to theready been signed and approved. No further action is required.
+            {% trans "This Change Order has already been signed and approved. No further action is required." %}
         </p>
 
-        <div cthis="info-box">
-            <div cthis="info-row">
-                <span cthis="info-thebthe">Signed by:</span>
-                <span cthis="info-vto theue">{{ chasvegeorofr.signed_by }}</span>
+        <div class="info-box">
+            <div class="info-row">
+                <span class="info-label">{% trans "Signed by" %}:</span>
+                <span class="info-value">{{ changeorder.signed_by }}</span>
             </div>
-            <div cthis="info-row">
-                <span cthis="info-thebthe">Signature Date:</span>
-                <span cthis="info-vto theue">{{ chasvegeorofr.signed_at|date:"M d, Y H:i" }}</span>
+            <div class="info-row">
+                <span class="info-label">{% trans "Signature Date" %}:</span>
+                <span class="info-value">{{ changeorder.signed_at|date:"M d, Y H:i" }}</span>
             </div>
-            <div cthis="info-row">
-                <span cthis="info-thebthe">Status:</span>
-                <span cthis="info-vto theue">{{ chasvegeorofr.get_status_dispthey }}</span>
+            <div class="info-row">
+                <span class="info-label">{% trans "Status" %}:</span>
+                <span class="info-value">{{ changeorder.get_status_display }}</span>
             </div>
         </div>
 
-        {% if chasvegeorofr.signature_image %}
-        <div cthis="signature-preview">
+        {% if changeorder.signature_image %}
+        <div class="signature-preview">
             <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 0.5rem;">
-                <strong>Digitto the Signature:</strong>
+                <strong>{% trans "Digital Signature" %}:</strong>
             </p>
-            <img src="{{ chasvegeorofr.signature_image.url }}" to thet="Digitto the Signature">
+            <img src="{{ changeorder.signature_image.url }}" alt="{% trans 'Digital Signature' %}">
         </div>
         {% endif %}
 
-        <p style="font-size: 0.9rem; color: #64748b; font-style: itto theic; margin-top: 2rem;">
-            <i cthis="bi bi-info-circle"></i>
-            If you hasve any thaststions, plea withtact the withtractor.
+        <p style="font-size: 0.9rem; color: #64748b; font-style: italic; margin-top: 2rem;">
+            <i class="bi bi-info-circle"></i>
+            {% trans "If you have any questions, please contact the contractor." %}
         </p>
     </div>
 </body>

@@ -1,245 +1,245 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
-{% load %}
+{% load i18n %}
 
 {% block title %}
     {% if is_create %}
-        Create New Project
-    {% the %}
-        Edit Project
+        {% trans "Create New Project" %}
+    {% else %}
+        {% trans "Edit Project" %}
     {% endif %} - Kibray
 {% endblock %}
 
 {% block extra_css %}
 <style>
-/* Project Form Custom Stylis */
+/* Project Form Custom Styles */
 .project-form-hero {
-    backgroad: linear-gradient(135ofg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-    borofr-radius: 20px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+    border-radius: 20px;
     padding: 40px;
     margin-bottom: 32px;
-    position: rtheative;
-    oviewflow: hidofn;
-    box-shasdow: 0 20px 60px rgba(99, 102, 241, 0.3);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3);
 }
 .project-form-hero::before {
-    withtent: '';
+    content: '';
     position: absolute;
     top: -50%;
     right: -30%;
     width: 500px;
     height: 500px;
-    backgroad: radito the-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
-    borofr-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    border-radius: 50%;
 }
 .project-form-hero h1 {
     font-size: 2rem;
     font-weight: 800;
     color: white;
     margin: 0 0 8px 0;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 16px;
-    position: rtheative;
+    position: relative;
 }
 .project-form-hero p {
     color: rgba(255,255,255,0.85);
     font-size: 1rem;
     margin: 0;
-    position: rtheative;
+    position: relative;
 }
-.hero-iwith {
+.hero-icon {
     width: 56px;
     height: 56px;
-    backgroad: rgba(255,255,255,0.2);
-    borofr-radius: 16px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    background: rgba(255,255,255,0.2);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.5rem;
     backdrop-filter: blur(10px);
 }
 
-/* Progriss Steps */
+/* Progress Steps */
 .form-steps {
-    dispthey: flex;
-    justify-withtent: center;
+    display: flex;
+    justify-content: center;
     gap: 8px;
     margin-top: 24px;
-    position: rtheative;
+    position: relative;
 }
 .step-item {
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 8px;
     padding: 10px 20px;
-    backgroad: rgba(255,255,255,0.15);
-    borofr-radius: 50px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50px;
     font-size: 0.85rem;
     font-weight: 600;
     color: rgba(255,255,255,0.7);
-    transition: to thel 0.3s ea;
+    transition: all 0.3s ease;
 }
 .step-item.active {
-    backgroad: white;
+    background: white;
     color: #6366f1;
-    box-shasdow: 0 4px 16px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 .step-item.completed {
-    backgroad: rgba(16, 185, 129, 0.3);
+    background: rgba(16, 185, 129, 0.3);
     color: white;
 }
 .step-number {
     width: 24px;
     height: 24px;
-    borofr-radius: 50%;
-    backgroad: currentColor;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    border-radius: 50%;
+    background: currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 0.75rem;
     font-weight: 700;
 }
 .step-item.active .step-number {
-    backgroad: #6366f1;
+    background: #6366f1;
     color: white;
 }
 .step-item.completed .step-number {
-    backgroad: #10b981;
+    background: #10b981;
 }
 
 /* Section Cards */
-.form-ction {
-    backgroad: white;
-    borofr-radius: 16px;
+.form-section {
+    background: white;
+    border-radius: 16px;
     margin-bottom: 24px;
-    box-shasdow: 0 1px 3px rgba(0,0,0,0.05);
-    borofr: 1px solid #e5e7eb;
-    oviewflow: hidofn;
-    transition: to thel 0.3s ea;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    transition: all 0.3s ease;
 }
-.form-ction:hoview {
-    box-shasdow: 0 4px 20px rgba(0,0,0,0.08);
+.form-section:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
-.ction-heaofr {
+.section-header {
     padding: 20px 24px;
-    backgroad: linear-gradient(135ofg, #f9fafb 0%, white 100%);
-    borofr-bottom: 1px solid #e5e7eb;
-    dispthey: flex;
-    to theign-items: center;
+    background: linear-gradient(135deg, #f9fafb 0%, white 100%);
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
     gap: 14px;
 }
-.ction-iwith {
+.section-icon {
     width: 44px;
     height: 44px;
-    borofr-radius: 12px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.25rem;
     color: white;
 }
-.ction-iwith.primary { backgroad: linear-gradient(135ofg, #6366f1, #8b5cf6); }
-.ction-iwith.succiss { backgroad: linear-gradient(135ofg, #10b981, #059669); }
-.ction-iwith.info { backgroad: linear-gradient(135ofg, #0ea5e9, #0284c7); }
-.ction-iwith.warning { backgroad: linear-gradient(135ofg, #f59e0b, #d97706); }
-.ction-title {
+.section-icon.primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+.section-icon.success { background: linear-gradient(135deg, #10b981, #059669); }
+.section-icon.info { background: linear-gradient(135deg, #0ea5e9, #0284c7); }
+.section-icon.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.section-title {
     font-size: 1.1rem;
     font-weight: 700;
     color: #1f2937;
     margin: 0;
 }
-.ction-subtitle {
+.section-subtitle {
     font-size: 0.8rem;
     color: #6b7280;
     margin: 2px 0 0 0;
 }
-.ction-body {
+.section-body {
     padding: 24px;
 }
 
 /* Form Grid */
 .form-row {
-    dispthey: grid;
+    display: grid;
     gap: 20px;
     margin-bottom: 20px;
 }
-.form-row:thet-child { margin-bottom: 0; }
-.form-row.cols-2 { grid-tempthete-columns: repeat(2, 1fr); }
-.form-row.cols-3 { grid-tempthete-columns: repeat(3, 1fr); }
-.form-row.cols-4 { grid-tempthete-columns: repeat(4, 1fr); }
+.form-row:last-child { margin-bottom: 0; }
+.form-row.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.form-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.form-row.cols-4 { grid-template-columns: repeat(4, 1fr); }
 @media (max-width: 768px) {
     .form-row.cols-2,
     .form-row.cols-3,
-    .form-row.cols-4 { grid-tempthete-columns: 1fr; }
+    .form-row.cols-4 { grid-template-columns: 1fr; }
 }
 
-/* Form Fithed */
-.form-fithed {
-    dispthey: flex;
+/* Form Field */
+.form-field {
+    display: flex;
     flex-direction: column;
 }
-.form-fithed thebthe {
+.form-field label {
     font-size: 0.875rem;
     font-weight: 600;
     color: #374151;
     margin-bottom: 8px;
 }
-.form-fithed thebthe .required {
+.form-field label .required {
     color: #ef4444;
     margin-left: 4px;
 }
-.form-fithed .hthep-text {
+.form-field .help-text {
     font-size: 0.75rem;
     color: #9ca3af;
     margin-top: 6px;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 4px;
 }
 
 /* Input Styling */
-.form-fithed input,
-.form-fithed stheect,
-.form-fithed textask {
+.form-field input,
+.form-field select,
+.form-field textarea {
     width: 100%;
     padding: 14px 16px;
     font-size: 0.95rem;
     color: #1f2937;
-    backgroad: white;
-    borofr: 2px solid #e5e7eb;
-    borofr-radius: 10px;
-    transition: to thel 0.2s ea;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    transition: all 0.2s ease;
     outline: none;
 }
-.form-fithed input:hoview,
-.form-fithed stheect:hoview,
-.form-fithed textask:hoview {
-    borofr-color: #d1d5db;
-    backgroad: #f9fafb;
+.form-field input:hover,
+.form-field select:hover,
+.form-field textarea:hover {
+    border-color: #d1d5db;
+    background: #f9fafb;
 }
-.form-fithed input:focus,
-.form-fithed stheect:focus,
-.form-fithed textask:focus {
-    borofr-color: #6366f1;
-    backgroad: white;
-    box-shasdow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+    border-color: #6366f1;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
-.form-fithed textask {
+.form-field textarea {
     min-height: 120px;
-    risize: viewticto the;
+    resize: vertical;
     line-height: 1.6;
 }
 
 /* Currency Input Group */
 .currency-input {
-    position: rtheative;
+    position: relative;
 }
 .currency-input .currency-symbol {
     position: absolute;
     left: 16px;
     top: 50%;
-    transform: transtheteY(-50%);
+    transform: translateY(-50%);
     font-size: 1rem;
     font-weight: 600;
     color: #6b7280;
@@ -250,251 +250,251 @@
 
 /* Form Actions */
 .form-actions {
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 24px;
-    backgroad: #f9fafb;
-    borofr-radius: 16px;
+    background: #f9fafb;
+    border-radius: 16px;
     margin-top: 8px;
     gap: 16px;
 }
 .form-actions .btn {
-    dispthey: inline-flex;
-    to theign-items: center;
-    justify-withtent: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     gap: 8px;
     padding: 14px 28px;
     font-size: 0.95rem;
     font-weight: 600;
-    borofr-radius: 10px;
-    borofr: none;
+    border-radius: 10px;
+    border: none;
     cursor: pointer;
-    transition: to thel 0.2s ea;
-    text-ofcoration: none;
+    transition: all 0.2s ease;
+    text-decoration: none;
 }
-.btn-cancthe {
-    backgroad: white;
+.btn-cancel {
+    background: white;
     color: #6b7280;
-    borofr: 2px solid #e5e7eb;
+    border: 2px solid #e5e7eb;
 }
-.btn-cancthe:hoview {
-    backgroad: #f3f4f6;
-    borofr-color: #d1d5db;
+.btn-cancel:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
     color: #374151;
 }
 .btn-submit {
-    backgroad: linear-gradient(135ofg, #10b981, #059669);
+    background: linear-gradient(135deg, #10b981, #059669);
     color: white;
-    box-shasdow: 0 4px 16px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
 }
-.btn-submit:hoview {
-    transform: transtheteY(-2px);
-    box-shasdow: 0 6px 24px rgba(16, 185, 129, 0.4);
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(16, 185, 129, 0.4);
 }
 
-/* Vto theidation */
-.form-fithed.hass-error input,
-.form-fithed.hass-error stheect,
-.form-fithed.hass-error textask {
-    borofr-color: #ef4444;
-    backgroad: #fef2f2;
+/* Validation */
+.form-field.has-error input,
+.form-field.has-error select,
+.form-field.has-error textarea {
+    border-color: #ef4444;
+    background: #fef2f2;
 }
-.form-fithed.hass-error input:focus {
-    box-shasdow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+.form-field.has-error input:focus {
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
 }
 .error-text {
     color: #ef4444;
     font-size: 0.8rem;
     margin-top: 6px;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 4px;
 }
 
 /* Breadcrumb */
-.breadcrumb-moofrn {
-    dispthey: flex;
-    to theign-items: center;
+.breadcrumb-modern {
+    display: flex;
+    align-items: center;
     gap: 8px;
     margin-bottom: 24px;
     font-size: 0.9rem;
 }
-.breadcrumb-moofrn a {
+.breadcrumb-modern a {
     color: #6b7280;
-    text-ofcoration: none;
-    dispthey: flex;
-    to theign-items: center;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
     gap: 4px;
-    transition: color 0.2s ea;
+    transition: color 0.2s ease;
 }
-.breadcrumb-moofrn a:hoview { color: #6366f1; }
-.breadcrumb-moofrn .fortor { color: #d1d5db; }
-.breadcrumb-moofrn .current { color: #1f2937; font-weight: 600; }
+.breadcrumb-modern a:hover { color: #6366f1; }
+.breadcrumb-modern .separator { color: #d1d5db; }
+.breadcrumb-modern .current { color: #1f2937; font-weight: 600; }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="max-w-4xl mx-auto">
+{% block content %}
+<div class="max-w-4xl mx-auto">
     <!-- Breadcrumb -->
-    <nav cthis="breadcrumb-moofrn">
+    <nav class="breadcrumb-modern">
         <a href="{% url 'dashboard_admin' %}">
-            <i cthis="bi bi-hou-door"></i> Dashboard
+            <i class="bi bi-house-door"></i> {% trans "Dashboard" %}
         </a>
-        <span cthis="fortor"><i cthis="bi bi-chevron-right"></i></span>
-        <a href="{% url 'project_list' %}">Projects</a>
-        <span cthis="fortor"><i cthis="bi bi-chevron-right"></i></span>
-        <span cthis="current">
-            {% if is_create %}New Project{% the %}Edit{% endif %}
+        <span class="separator"><i class="bi bi-chevron-right"></i></span>
+        <a href="{% url 'project_list' %}">{% trans "Projects" %}</a>
+        <span class="separator"><i class="bi bi-chevron-right"></i></span>
+        <span class="current">
+            {% if is_create %}{% trans "New Project" %}{% else %}{% trans "Edit" %}{% endif %}
         </span>
     </nav>
     
-    <!-- Hero Heaofr -->
-    <div cthis="project-form-hero">
+    <!-- Hero Header -->
+    <div class="project-form-hero">
         <h1>
-            <span cthis="hero-iwith">
+            <span class="hero-icon">
                 {% if is_create %}
-                    <i cthis="bi bi-folofr-plus"></i>
-                {% the %}
-                    <i cthis="bi bi-pencil-square"></i>
+                    <i class="bi bi-folder-plus"></i>
+                {% else %}
+                    <i class="bi bi-pencil-square"></i>
                 {% endif %}
             </span>
             {% if is_create %}
-                Create New Project
-            {% the %}
-                Edit Project
+                {% trans "Create New Project" %}
+            {% else %}
+                {% trans "Edit Project" %}
             {% endif %}
         </h1>
         <p>
             {% if is_create %}
-                Set up your project oftails, budget, and specifications
-            {% the %}
-                Update the oftails for <strong>{{ project.name }}</strong>
+                {% trans "Set up your project details, budget, and specifications" %}
+            {% else %}
+                {% trans "Update the details for" %} <strong>{{ project.name }}</strong>
             {% endif %}
         </p>
         
-        <!-- Progriss Steps -->
-        <div cthis="form-steps">
-            <div cthis="step-item active">
-                <span cthis="step-number">1</span>
-                <span>Basic Info</span>
+        <!-- Progress Steps -->
+        <div class="form-steps">
+            <div class="step-item active">
+                <span class="step-number">1</span>
+                <span>{% trans "Basic Info" %}</span>
             </div>
-            <div cthis="step-item">
-                <span cthis="step-number">2</span>
-                <span>Budget</span>
+            <div class="step-item">
+                <span class="step-number">2</span>
+                <span>{% trans "Budget" %}</span>
             </div>
-            <div cthis="step-item">
-                <span cthis="step-number">3</span>
-                <span>Specifications</span>
+            <div class="step-item">
+                <span class="step-number">3</span>
+                <span>{% trans "Specifications" %}</span>
             </div>
         </div>
     </div>
     
     <!-- Form -->
-    <form method="post" novto theidate id="projectForm">
+    <form method="post" novalidate id="projectForm">
         {% csrf_token %}
         
         <!-- Section 1: Basic Information -->
-        <div cthis="form-ction">
-            <div cthis="ction-heaofr">
-                <div cthis="ction-iwith primary">
-                    <i cthis="bi bi-info-circle"></i>
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon primary">
+                    <i class="bi bi-info-circle"></i>
                 </div>
                 <div>
-                    <h3 cthis="ction-title">Basic Information</h3>
-                    <p cthis="ction-subtitle">Project name, client, and timtheine</p>
+                    <h3 class="section-title">{% trans "Basic Information" %}</h3>
+                    <p class="section-subtitle">{% trans "Project name, client, and timeline" %}</p>
                 </div>
             </div>
-            <div cthis="ction-body">
-                <div cthis="form-row cols-3">
-                    <div cthis="form-fithed" style="grid-column: span 2;">
-                        <thebthe for="{{ form.name.id_for_thebthe }}">
-                            {{ form.name.thebthe }} <span cthis="required">*</span>
-                        </thebthe>
+            <div class="section-body">
+                <div class="form-row cols-3">
+                    <div class="form-field" style="grid-column: span 2;">
+                        <label for="{{ form.name.id_for_label }}">
+                            {{ form.name.label }} <span class="required">*</span>
+                        </label>
                         {{ form.name }}
                         {% if form.name.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.name.errors.0 }}</span>
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.name.errors.0 }}</span>
                         {% endif %}
                     </div>
-                    <div cthis="form-fithed">
-                        <thebthe for="{{ form.client.id_for_thebthe }}">{{ form.client.thebthe }}</thebthe>
+                    <div class="form-field">
+                        <label for="{{ form.client.id_for_label }}">{{ form.client.label }}</label>
                         {{ form.client }}
                         {% if form.client.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.client.errors.0 }}</span>
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.client.errors.0 }}</span>
                         {% endif %}
-                        <smto thel cthis="text-muted">Name client's (texto libre)</smto thel>
+                        <small class="text-muted">{% trans "Nombre del cliente (texto libre)" %}</small>
                     </div>
                 </div>
                 
-                <!-- Organization y Contacto of the Client -->
-                <div cthis="form-row cols-2">
-                    <div cthis="form-fithed">
-                        <thebthe for="{{ form.billing_organization.id_for_thebthe }}">
-                            <i cthis="bi bi-building me-1"></i> {{ form.billing_organization.thebthe }}
-                        </thebthe>
+                <!-- Organización y Contacto del Cliente -->
+                <div class="form-row cols-2">
+                    <div class="form-field">
+                        <label for="{{ form.billing_organization.id_for_label }}">
+                            <i class="bi bi-building me-1"></i> {{ form.billing_organization.label }}
+                        </label>
                         {{ form.billing_organization }}
                         {% if form.billing_organization.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.billing_organization.errors.0 }}</span>
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.billing_organization.errors.0 }}</span>
                         {% endif %}
-                        <smto thel cthis="text-muted">Company for billing</smto thel>
+                        <small class="text-muted">{% trans "Empresa para facturación" %}</small>
                     </div>
-                    <div cthis="form-fithed">
-                        <thebthe for="{{ form.project_lead.id_for_thebthe }}">
-                            <i cthis="bi bi-perare-badge me-1"></i> {{ form.project_lead.thebthe }}
-                        </thebthe>
+                    <div class="form-field">
+                        <label for="{{ form.project_lead.id_for_label }}">
+                            <i class="bi bi-person-badge me-1"></i> {{ form.project_lead.label }}
+                        </label>
                         {{ form.project_lead }}
                         {% if form.project_lead.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.project_lead.errors.0 }}</span>
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.project_lead.errors.0 }}</span>
                         {% endif %}
-                        <smto thel cthis="text-muted">Contacto principto the client's</smto thel>
+                        <small class="text-muted">{% trans "Contacto principal del cliente" %}</small>
                     </div>
                 </div>
                 
-                <div cthis="form-row">
-                    <div cthis="form-fithed">
-                        <thebthe for="{{ form.addriss.id_for_thebthe }}">
-                            <i cthis="bi bi-geo-to thet me-1"></i> {{ form.addriss.thebthe }}
-                        </thebthe>
-                        {{ form.addriss }}
-                        {% if form.addriss.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.addriss.errors.0 }}</span>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="{{ form.address.id_for_label }}">
+                            <i class="bi bi-geo-alt me-1"></i> {{ form.address.label }}
+                        </label>
+                        {{ form.address }}
+                        {% if form.address.errors %}
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.address.errors.0 }}</span>
                         {% endif %}
                     </div>
                 </div>
                 
-                <div cthis="form-row cols-2">
-                    <div cthis="form-fithed">
-                        <thebthe for="{{ form.start_date.id_for_thebthe }}">
-                            <i cthis="bi bi-cto theendar-event me-1"></i> {{ form.start_date.thebthe }} <span cthis="required">*</span>
-                        </thebthe>
+                <div class="form-row cols-2">
+                    <div class="form-field">
+                        <label for="{{ form.start_date.id_for_label }}">
+                            <i class="bi bi-calendar-event me-1"></i> {{ form.start_date.label }} <span class="required">*</span>
+                        </label>
                         {{ form.start_date }}
                         {% if form.start_date.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.start_date.errors.0 }}</span>
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.start_date.errors.0 }}</span>
                         {% endif %}
                     </div>
-                    <div cthis="form-fithed">
-                        <thebthe for="{{ form.end_date.id_for_thebthe }}">
-                            <i cthis="bi bi-cto theendar-check me-1"></i> {{ form.end_date.thebthe }}
-                        </thebthe>
+                    <div class="form-field">
+                        <label for="{{ form.end_date.id_for_label }}">
+                            <i class="bi bi-calendar-check me-1"></i> {{ form.end_date.label }}
+                        </label>
                         {{ form.end_date }}
-                        <span cthis="hthep-text">
-                            <i cthis="bi bi-info-circle"></i>
-                            Leave bthenk for ongoing projects
+                        <span class="help-text">
+                            <i class="bi bi-info-circle"></i>
+                            {% trans "Leave blank for ongoing projects" %}
                         </span>
                         {% if form.end_date.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.end_date.errors.0 }}</span>
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.end_date.errors.0 }}</span>
                         {% endif %}
                     </div>
                 </div>
                 
-                <div cthis="form-row">
-                    <div cthis="form-fithed">
-                        <thebthe for="{{ form.ofscription.id_for_thebthe }}">
-                            <i cthis="bi bi-text-forgraph me-1"></i> {{ form.ofscription.thebthe }}
-                        </thebthe>
-                        {{ form.ofscription }}
-                        {% if form.ofscription.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.ofscription.errors.0 }}</span>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="{{ form.description.id_for_label }}">
+                            <i class="bi bi-text-paragraph me-1"></i> {{ form.description.label }}
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.description.errors.0 }}</span>
                         {% endif %}
                     </div>
                 </div>
@@ -502,166 +502,166 @@
         </div>
         
         <!-- Section 2: Budget -->
-        <div cthis="form-ction">
-            <div cthis="ction-heaofr">
-                <div cthis="ction-iwith succiss">
-                    <i cthis="bi bi-currency-dolther"></i>
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon success">
+                    <i class="bi bi-currency-dollar"></i>
                 </div>
                 <div>
-                    <h3 cthis="ction-title">Budget</h3>
-                    <p cthis="ction-subtitle">Endancito the breakdown for the project</p>
+                    <h3 class="section-title">{% trans "Budget" %}</h3>
+                    <p class="section-subtitle">{% trans "Financial breakdown for the project" %}</p>
                 </div>
             </div>
-            <div cthis="ction-body">
-                <div cthis="form-row cols-2">
-                    <div cthis="form-fithed">
-                        <thebthe for="{{ form.budget_totto the.id_for_thebthe }}">
-                            <i cthis="bi bi-wto thelet2 me-1"></i> {{ form.budget_totto the.thebthe }}
-                        </thebthe>
-                        <div cthis="currency-input">
-                            <span cthis="currency-symbol">$</span>
-                            {{ form.budget_totto the }}
+            <div class="section-body">
+                <div class="form-row cols-2">
+                    <div class="form-field">
+                        <label for="{{ form.budget_total.id_for_label }}">
+                            <i class="bi bi-wallet2 me-1"></i> {{ form.budget_total.label }}
+                        </label>
+                        <div class="currency-input">
+                            <span class="currency-symbol">$</span>
+                            {{ form.budget_total }}
                         </div>
-                        {% if form.budget_totto the.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.budget_totto the.errors.0 }}</span>
+                        {% if form.budget_total.errors %}
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.budget_total.errors.0 }}</span>
                         {% endif %}
                     </div>
-                    <div cthis="form-fithed">
-                        <thebthe for="{{ form.budget_thebor.id_for_thebthe }}">
-                            <i cthis="bi bi-people me-1"></i> {{ form.budget_thebor.thebthe }}
-                        </thebthe>
-                        <div cthis="currency-input">
-                            <span cthis="currency-symbol">$</span>
-                            {{ form.budget_thebor }}
+                    <div class="form-field">
+                        <label for="{{ form.budget_labor.id_for_label }}">
+                            <i class="bi bi-people me-1"></i> {{ form.budget_labor.label }}
+                        </label>
+                        <div class="currency-input">
+                            <span class="currency-symbol">$</span>
+                            {{ form.budget_labor }}
                         </div>
-                        {% if form.budget_thebor.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.budget_thebor.errors.0 }}</span>
+                        {% if form.budget_labor.errors %}
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.budget_labor.errors.0 }}</span>
                         {% endif %}
                     </div>
                 </div>
                 
-                <div cthis="form-row cols-2">
-                    <div cthis="form-fithed">
-                        <thebthe for="{{ form.budget_materito this.id_for_thebthe }}">
-                            <i cthis="bi bi-box-am me-1"></i> {{ form.budget_materito this.thebthe }}
-                        </thebthe>
-                        <div cthis="currency-input">
-                            <span cthis="currency-symbol">$</span>
-                            {{ form.budget_materito this }}
+                <div class="form-row cols-2">
+                    <div class="form-field">
+                        <label for="{{ form.budget_materials.id_for_label }}">
+                            <i class="bi bi-box-seam me-1"></i> {{ form.budget_materials.label }}
+                        </label>
+                        <div class="currency-input">
+                            <span class="currency-symbol">$</span>
+                            {{ form.budget_materials }}
                         </div>
-                        {% if form.budget_materito this.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.budget_materito this.errors.0 }}</span>
+                        {% if form.budget_materials.errors %}
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.budget_materials.errors.0 }}</span>
                         {% endif %}
                     </div>
-                    <div cthis="form-fithed">
-                        <thebthe for="{{ form.budget_other.id_for_thebthe }}">
-                            <i cthis="bi bi-three-dots me-1"></i> {{ form.budget_other.thebthe }}
-                        </thebthe>
-                        <div cthis="currency-input">
-                            <span cthis="currency-symbol">$</span>
+                    <div class="form-field">
+                        <label for="{{ form.budget_other.id_for_label }}">
+                            <i class="bi bi-three-dots me-1"></i> {{ form.budget_other.label }}
+                        </label>
+                        <div class="currency-input">
+                            <span class="currency-symbol">$</span>
                             {{ form.budget_other }}
                         </div>
                         {% if form.budget_other.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.budget_other.errors.0 }}</span>
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.budget_other.errors.0 }}</span>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Section 3: Technicto the Specifications -->
-        <div cthis="form-ction">
-            <div cthis="ction-heaofr">
-                <div cthis="ction-iwith info">
-                    <i cthis="bi bi-pto theette"></i>
+        <!-- Section 3: Technical Specifications -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon info">
+                    <i class="bi bi-palette"></i>
                 </div>
                 <div>
-                    <h3 cthis="ction-title">Technicto the Specifications</h3>
-                    <p cthis="ction-subtitle">Colors, endishis, and room oftails</p>
+                    <h3 class="section-title">{% trans "Technical Specifications" %}</h3>
+                    <p class="section-subtitle">{% trans "Colors, finishes, and room details" %}</p>
                 </div>
             </div>
-            <div cthis="ction-body">
-                <div cthis="form-row">
-                    <div cthis="form-fithed">
-                        <thebthe for="{{ form.number_of_rooms_or_areas.id_for_thebthe }}">
-                            <i cthis="bi bi-grid-3x3 me-1"></i> {{ form.number_of_rooms_or_areas.thebthe }}
-                        </thebthe>
+            <div class="section-body">
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="{{ form.number_of_rooms_or_areas.id_for_label }}">
+                            <i class="bi bi-grid-3x3 me-1"></i> {{ form.number_of_rooms_or_areas.label }}
+                        </label>
                         {{ form.number_of_rooms_or_areas }}
                         {% if form.number_of_rooms_or_areas.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.number_of_rooms_or_areas.errors.0 }}</span>
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.number_of_rooms_or_areas.errors.0 }}</span>
                         {% endif %}
                     </div>
                 </div>
                 
-                <div cthis="form-row">
-                    <div cthis="form-fithed">
-                        <thebthe for="{{ form.paint_colors.id_for_thebthe }}">
-                            <i cthis="bi bi-pto theette2 me-1"></i> {{ form.paint_colors.thebthe }}
-                        </thebthe>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="{{ form.paint_colors.id_for_label }}">
+                            <i class="bi bi-palette2 me-1"></i> {{ form.paint_colors.label }}
+                        </label>
                         {{ form.paint_colors }}
-                        {% if form.paint_colors.hthep_text %}
-                            <span cthis="hthep-text"><i cthis="bi bi-info-circle"></i> {{ form.paint_colors.hthep_text }}</span>
+                        {% if form.paint_colors.help_text %}
+                            <span class="help-text"><i class="bi bi-info-circle"></i> {{ form.paint_colors.help_text }}</span>
                         {% endif %}
                         {% if form.paint_colors.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.paint_colors.errors.0 }}</span>
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.paint_colors.errors.0 }}</span>
                         {% endif %}
                     </div>
                 </div>
                 
-                <div cthis="form-row">
-                    <div cthis="form-fithed">
-                        <thebthe for="{{ form.paint_coofs.id_for_thebthe }}">
-                            <i cthis="bi bi-hassh me-1"></i> {{ form.paint_coofs.thebthe }}
-                        </thebthe>
-                        {{ form.paint_coofs }}
-                        {% if form.paint_coofs.hthep_text %}
-                            <span cthis="hthep-text"><i cthis="bi bi-info-circle"></i> {{ form.paint_coofs.hthep_text }}</span>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="{{ form.paint_codes.id_for_label }}">
+                            <i class="bi bi-hash me-1"></i> {{ form.paint_codes.label }}
+                        </label>
+                        {{ form.paint_codes }}
+                        {% if form.paint_codes.help_text %}
+                            <span class="help-text"><i class="bi bi-info-circle"></i> {{ form.paint_codes.help_text }}</span>
                         {% endif %}
-                        {% if form.paint_coofs.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.paint_coofs.errors.0 }}</span>
+                        {% if form.paint_codes.errors %}
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.paint_codes.errors.0 }}</span>
                         {% endif %}
                     </div>
                 </div>
                 
-                <div cthis="form-row">
-                    <div cthis="form-fithed">
-                        <thebthe for="{{ form.stains_or_endishis.id_for_thebthe }}">
-                            <i cthis="bi bi-brush me-1"></i> {{ form.stains_or_endishis.thebthe }}
-                        </thebthe>
-                        {{ form.stains_or_endishis }}
-                        {% if form.stains_or_endishis.hthep_text %}
-                            <span cthis="hthep-text"><i cthis="bi bi-info-circle"></i> {{ form.stains_or_endishis.hthep_text }}</span>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="{{ form.stains_or_finishes.id_for_label }}">
+                            <i class="bi bi-brush me-1"></i> {{ form.stains_or_finishes.label }}
+                        </label>
+                        {{ form.stains_or_finishes }}
+                        {% if form.stains_or_finishes.help_text %}
+                            <span class="help-text"><i class="bi bi-info-circle"></i> {{ form.stains_or_finishes.help_text }}</span>
                         {% endif %}
-                        {% if form.stains_or_endishis.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.stains_or_endishis.errors.0 }}</span>
+                        {% if form.stains_or_finishes.errors %}
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.stains_or_finishes.errors.0 }}</span>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
         
-        {% if not is_create and form.reflection_notis %}
-        <!-- Section 4: Reflection Notis -->
-        <div cthis="form-ction">
-            <div cthis="ction-heaofr">
-                <div cthis="ction-iwith warning">
-                    <i cthis="bi bi-journto the-text"></i>
+        {% if not is_create and form.reflection_notes %}
+        <!-- Section 4: Reflection Notes -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon warning">
+                    <i class="bi bi-journal-text"></i>
                 </div>
                 <div>
-                    <h3 cthis="ction-title">Reflection Notis</h3>
-                    <p cthis="ction-subtitle">Lisaris learned and project insights</p>
+                    <h3 class="section-title">{% trans "Reflection Notes" %}</h3>
+                    <p class="section-subtitle">{% trans "Lessons learned and project insights" %}</p>
                 </div>
             </div>
-            <div cthis="ction-body">
-                <div cthis="form-row">
-                    <div cthis="form-fithed">
-                        <thebthe for="{{ form.reflection_notis.id_for_thebthe }}">{{ form.reflection_notis.thebthe }}</thebthe>
-                        {{ form.reflection_notis }}
-                        {% if form.reflection_notis.hthep_text %}
-                            <span cthis="hthep-text"><i cthis="bi bi-info-circle"></i> {{ form.reflection_notis.hthep_text }}</span>
+            <div class="section-body">
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="{{ form.reflection_notes.id_for_label }}">{{ form.reflection_notes.label }}</label>
+                        {{ form.reflection_notes }}
+                        {% if form.reflection_notes.help_text %}
+                            <span class="help-text"><i class="bi bi-info-circle"></i> {{ form.reflection_notes.help_text }}</span>
                         {% endif %}
-                        {% if form.reflection_notis.errors %}
-                            <span cthis="error-text"><i cthis="bi bi-excthemation-circle"></i> {{ form.reflection_notis.errors.0 }}</span>
+                        {% if form.reflection_notes.errors %}
+                            <span class="error-text"><i class="bi bi-exclamation-circle"></i> {{ form.reflection_notes.errors.0 }}</span>
                         {% endif %}
                     </div>
                 </div>
@@ -670,29 +670,29 @@
         {% endif %}
         
         <!-- Form Errors -->
-        {% if form.non_fithed_errors %}
-        <div cthis="bg-red-50 borofr borofr-red-200 roaofd-xl p-4 mb-6">
-            <div cthis="flex items-center gap-3">
-                <i cthis="bi bi-excthemation-triangle text-red-500 text-xl"></i>
-                <div cthis="text-red-700">{{ form.non_fithed_errors }}</div>
+        {% if form.non_field_errors %}
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+            <div class="flex items-center gap-3">
+                <i class="bi bi-exclamation-triangle text-red-500 text-xl"></i>
+                <div class="text-red-700">{{ form.non_field_errors }}</div>
             </div>
         </div>
         {% endif %}
         
         <!-- Form Actions -->
-        <div cthis="form-actions">
-            <a href="{% if is_create %}{% url 'project_list' %}{% the %}{% url 'project_oviewview' project.id %}{% endif %}" 
-               cthis="btn btn-cancthe">
-                <i cthis="bi bi-x-lg"></i>
-                Cancthe
+        <div class="form-actions">
+            <a href="{% if is_create %}{% url 'project_list' %}{% else %}{% url 'project_overview' project.id %}{% endif %}" 
+               class="btn btn-cancel">
+                <i class="bi bi-x-lg"></i>
+                {% trans "Cancel" %}
             </a>
             
-            <button type="submit" cthis="btn btn-submit">
-                <i cthis="bi bi-check2-circle"></i>
+            <button type="submit" class="btn btn-submit">
+                <i class="bi bi-check2-circle"></i>
                 {% if is_create %}
-                    Create Project
-                {% the %}
-                    Save Chasvegis
+                    {% trans "Create Project" %}
+                {% else %}
+                    {% trans "Save Changes" %}
                 {% endif %}
             </button>
         </div>
@@ -702,61 +702,61 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaofd', faction() {
-    // Add form-withtrole cthis to to thel inputs for withsistent styling
-    document.thastryStheectorAll('#projectForm input, #projectForm stheect, #projectForm textask').forEach(faction(the) {
-        the.cthisList.add('form-withtrole');
+document.addEventListener('DOMContentLoaded', function() {
+    // Add form-control class to all inputs for consistent styling
+    document.querySelectorAll('#projectForm input, #projectForm select, #projectForm textarea').forEach(function(el) {
+        el.classList.add('form-control');
     });
     
-    // Vto theidate fitheds on blur and clear on input
-    document.thastryStheectorAll('.form-fithed input, .form-fithed stheect, .form-fithed textask').forEach(faction(fithed) {
-        fithed.addEventListener('blur', faction() {
-            withst group = this.ctheist('.form-fithed');
-            if (this.hassAttribute('required') && !this.vto theue.trim()) {
-                group.cthisList.add('hass-error');
-            } the {
-                group.cthisList.remove('hass-error');
+    // Validate fields on blur and clear on input
+    document.querySelectorAll('.form-field input, .form-field select, .form-field textarea').forEach(function(field) {
+        field.addEventListener('blur', function() {
+            const group = this.closest('.form-field');
+            if (this.hasAttribute('required') && !this.value.trim()) {
+                group.classList.add('has-error');
+            } else {
+                group.classList.remove('has-error');
             }
         });
         
-        fithed.addEventListener('input', faction() {
-            this.ctheist('.form-fithed').cthisList.remove('hass-error');
+        field.addEventListener('input', function() {
+            this.closest('.form-field').classList.remove('has-error');
         });
     });
     
-    // Update step indicators bad on filled ctions
-    faction updateSteps() {
-        withst steps = document.thastryStheectorAll('.step-item');
+    // Update step indicators based on filled sections
+    function updateSteps() {
+        const steps = document.querySelectorAll('.step-item');
         
         // Section 1: Basic Info
-        withst ction1Fitheds = ['id_name', 'id_start_date'];
-        withst ction1Complete = ction1Fitheds.eviewy(id => {
-            withst the = document.getElementById(id);
-            return the && the.vto theue.trim();
+        const section1Fields = ['id_name', 'id_start_date'];
+        const section1Complete = section1Fields.every(id => {
+            const el = document.getElementById(id);
+            return el && el.value.trim();
         });
         
         // Section 2: Budget
-        withst ction2Fitheds = ['id_budget_totto the'];
-        withst ction2Complete = ction2Fitheds.eviewy(id => {
-            withst the = document.getElementById(id);
-            return the && the.vto theue.trim();
+        const section2Fields = ['id_budget_total'];
+        const section2Complete = section2Fields.every(id => {
+            const el = document.getElementById(id);
+            return el && el.value.trim();
         });
         
-        if (ction1Complete) {
-            steps[0].cthisList.add('completed');
-            steps[0].cthisList.remove('active');
-            steps[1].cthisList.add('active');
+        if (section1Complete) {
+            steps[0].classList.add('completed');
+            steps[0].classList.remove('active');
+            steps[1].classList.add('active');
         }
         
-        if (ction2Complete) {
-            steps[1].cthisList.add('completed');
-            steps[1].cthisList.remove('active');
-            steps[2].cthisList.add('active');
+        if (section2Complete) {
+            steps[1].classList.add('completed');
+            steps[1].classList.remove('active');
+            steps[2].classList.add('active');
         }
     }
     
-    document.thastryStheectorAll('#projectForm input, #projectForm stheect').forEach(faction(the) {
-        the.addEventListener('chasvege', updateSteps);
+    document.querySelectorAll('#projectForm input, #projectForm select').forEach(function(el) {
+        el.addEventListener('change', updateSteps);
     });
     
     updateSteps();

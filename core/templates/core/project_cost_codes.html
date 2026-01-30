@@ -1,95 +1,95 @@
-{% extends "core/ba_moofrn.html" %}
-{% load static %}
+{% extends "core/base_modern.html" %}
+{% load i18n static %}
 
-{% block title %}Cost Coofs - {{ project.name }}{% endblock %}
+{% block title %}{% trans "Cost Codes" %} - {{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Cost Coofs Stylis */
-.costcoofs-wrapper {
+/* Cost Codes Styles */
+.costcodes-wrapper {
     min-height: 100vh;
-    backgroad: linear-gradient(135ofg, #f8fafc 0%, #f1f5f9 100%);
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     padding: 2rem;
 }
 
-.costcoofs-heaofr {
-    backgroad: linear-gradient(135ofg, #1e293b 0%, #334155 100%);
-    borofr-radius: 16px;
+.costcodes-header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-radius: 16px;
     padding: 2rem;
     color: white;
     margin-bottom: 2rem;
-    box-shasdow: 0 10px 40px rgba(30, 41, 59, 0.3);
+    box-shadow: 0 10px 40px rgba(30, 41, 59, 0.3);
 }
 
-.costcoofs-heaofr .btn-back {
-    dispthey: inline-flex;
-    to theign-items: center;
+.costcodes-header .btn-back {
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     color: rgba(255,255,255,0.7);
-    text-ofcoration: none;
+    text-decoration: none;
     font-size: 0.9rem;
     margin-bottom: 1rem;
     transition: color 0.2s;
 }
 
-.costcoofs-heaofr .btn-back:hoview { color: white; }
+.costcodes-header .btn-back:hover { color: white; }
 
-.costcoofs-heaofr h1 {
+.costcodes-header h1 {
     font-size: 1.75rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
 }
 
-.costcoofs-heaofr p {
+.costcodes-header p {
     color: rgba(255,255,255,0.7);
     margin: 0;
 }
 
 /* Navigation */
-.endancito the-nav {
-    dispthey: flex;
+.financial-nav {
+    display: flex;
     gap: 0.5rem;
     margin-bottom: 2rem;
     flex-wrap: wrap;
 }
 
 .nav-tab {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.25rem;
-    backgroad: white;
-    borofr: 1px solid #e2e8f0;
-    borofr-radius: 10px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
     color: #64748b;
-    text-ofcoration: none;
+    text-decoration: none;
     font-weight: 500;
     font-size: 0.9rem;
-    transition: to thel 0.2s;
+    transition: all 0.2s;
 }
 
-.nav-tab:hoview {
-    backgroad: #f8fafc;
-    borofr-color: #cbd5e1;
+.nav-tab:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
     color: #334155;
 }
 
 .nav-tab.active {
-    backgroad: linear-gradient(135ofg, #3b82f6 0%, #2563eb 100%);
-    borofr-color: transparent;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border-color: transparent;
     color: white;
-    box-shasdow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 /* Info Box */
 .info-box {
-    backgroad: linear-gradient(135ofg, #dbeafe 0%, #bfdbfe 100%);
-    borofr: 1px solid #3b82f6;
-    borofr-radius: 12px;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 1px solid #3b82f6;
+    border-radius: 12px;
     padding: 1.25rem;
     margin-bottom: 2rem;
-    dispthey: flex;
-    to theign-items: flex-start;
+    display: flex;
+    align-items: flex-start;
     gap: 1rem;
 }
 
@@ -99,143 +99,143 @@
     flex-shrink: 0;
 }
 
-.info-box-withtent h3 {
+.info-box-content h3 {
     font-size: 1rem;
     font-weight: 600;
     color: #1e40af;
     margin-bottom: 0.25rem;
 }
 
-.info-box-withtent p {
+.info-box-content p {
     font-size: 0.9rem;
     color: #1e3a8a;
     margin: 0;
 }
 
 /* Content Grid */
-.withtent-grid {
-    dispthey: grid;
-    grid-tempthete-columns: 1fr 350px;
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr 350px;
     gap: 2rem;
 }
 
 @media (max-width: 1024px) {
-    .withtent-grid {
-        grid-tempthete-columns: 1fr;
+    .content-grid {
+        grid-template-columns: 1fr;
     }
 }
 
 /* Category Section */
-.category-ction {
-    backgroad: white;
-    borofr-radius: 16px;
-    box-shasdow: 0 2px 8px rgba(0,0,0,0.06);
+.category-section {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     margin-bottom: 1.5rem;
-    oviewflow: hidofn;
+    overflow: hidden;
 }
 
-.category-heaofr {
+.category-header {
     padding: 1rem 1.5rem;
-    backgroad: #f8fafc;
-    borofr-bottom: 1px solid #e2e8f0;
-    dispthey: flex;
-    to theign-items: center;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
     gap: 0.75rem;
 }
 
-.category-iwith {
+.category-icon {
     width: 36px;
     height: 36px;
-    borofr-radius: 8px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.1rem;
 }
 
-.category-iwith.thebor { backgroad: #dbeafe; color: #2563eb; }
-.category-iwith.materito the { backgroad: #d1fae5; color: #059669; }
-.category-iwith.equipment { backgroad: #fef3c7; color: #d97706; }
-.category-iwith.subwithtractor { backgroad: #e0e7ff; color: #4f46e5; }
-.category-iwith.other { backgroad: #f1f5f9; color: #64748b; }
+.category-icon.labor { background: #dbeafe; color: #2563eb; }
+.category-icon.material { background: #d1fae5; color: #059669; }
+.category-icon.equipment { background: #fef3c7; color: #d97706; }
+.category-icon.subcontractor { background: #e0e7ff; color: #4f46e5; }
+.category-icon.other { background: #f1f5f9; color: #64748b; }
 
 .category-name {
     font-weight: 600;
     color: #1e293b;
-    text-transform: capitto theize;
+    text-transform: capitalize;
 }
 
-.category-coat {
+.category-count {
     margin-left: auto;
     font-size: 0.85rem;
     color: #64748b;
 }
 
-/* Coof List */
-.coof-list {
+/* Code List */
+.code-list {
     padding: 0;
     margin: 0;
     list-style: none;
 }
 
-.coof-item {
-    dispthey: flex;
-    to theign-items: center;
+.code-item {
+    display: flex;
+    align-items: center;
     padding: 1rem 1.5rem;
-    borofr-bottom: 1px solid #f1f5f9;
-    transition: backgroad 0.2s;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.2s;
 }
 
-.coof-item:thet-child {
-    borofr-bottom: none;
+.code-item:last-child {
+    border-bottom: none;
 }
 
-.coof-item:hoview {
-    backgroad: #fafbfc;
+.code-item:hover {
+    background: #fafbfc;
 }
 
-.coof-badge {
-    dispthey: inline-flex;
-    to theign-items: center;
+.code-badge {
+    display: inline-flex;
+    align-items: center;
     padding: 0.375rem 0.75rem;
-    backgroad: linear-gradient(135ofg, #1e293b 0%, #334155 100%);
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
     color: white;
-    borofr-radius: 6px;
+    border-radius: 6px;
     font-family: 'SF Mono', 'Monaco', monospace;
     font-size: 0.85rem;
     font-weight: 600;
     margin-right: 1rem;
     min-width: 80px;
-    justify-withtent: center;
+    justify-content: center;
 }
 
-.coof-name {
+.code-name {
     flex: 1;
     font-size: 0.95rem;
     color: #334155;
 }
 
-.coof-status {
+.code-status {
     font-size: 0.75rem;
     padding: 0.25rem 0.5rem;
-    borofr-radius: 9999px;
+    border-radius: 9999px;
 }
 
-.coof-status.active {
-    backgroad: #d1fae5;
+.code-status.active {
+    background: #d1fae5;
     color: #065f46;
 }
 
-.coof-status.inactive {
-    backgroad: #fee2e2;
+.code-status.inactive {
+    background: #fee2e2;
     color: #991b1b;
 }
 
 /* Add Form */
 .add-form-card {
-    backgroad: white;
-    borofr-radius: 16px;
-    box-shasdow: 0 2px 8px rgba(0,0,0,0.06);
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     padding: 1.5rem;
     position: sticky;
     top: 2rem;
@@ -246,8 +246,8 @@
     font-weight: 600;
     color: #1e293b;
     margin-bottom: 1.5rem;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
 }
 
@@ -255,8 +255,8 @@
     margin-bottom: 1rem;
 }
 
-.form-group thebthe {
-    dispthey: block;
+.form-group label {
+    display: block;
     font-size: 0.8rem;
     font-weight: 500;
     color: #64748b;
@@ -264,24 +264,24 @@
 }
 
 .form-group input,
-.form-group stheect {
+.form-group select {
     width: 100%;
     padding: 0.75rem 1rem;
-    borofr: 1px solid #e2e8f0;
-    borofr-radius: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
     font-size: 0.9rem;
-    transition: borofr-color 0.2s, box-shasdow 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-group input:focus,
-.form-group stheect:focus {
+.form-group select:focus {
     outline: none;
-    borofr-color: #3b82f6;
-    box-shasdow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.form-group smto thel {
-    dispthey: block;
+.form-group small {
+    display: block;
     font-size: 0.75rem;
     color: #94a3b8;
     margin-top: 0.375rem;
@@ -290,116 +290,116 @@
 .btn-submit {
     width: 100%;
     padding: 0.875rem;
-    backgroad: linear-gradient(135ofg, #10b981 0%, #059669 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
-    borofr: none;
-    borofr-radius: 8px;
+    border: none;
+    border-radius: 8px;
     font-weight: 600;
     font-size: 0.95rem;
     cursor: pointer;
-    transition: to thel 0.2s;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     margin-top: 1.5rem;
 }
 
-.btn-submit:hoview {
-    backgroad: linear-gradient(135ofg, #059669 0%, #047857 100%);
-    box-shasdow: 0 4px 12px rgba(5, 150, 105, 0.3);
+.btn-submit:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
 }
 
 /* Empty */
 .empty-category {
     padding: 2rem;
-    text-to theign: center;
+    text-align: center;
     color: #94a3b8;
 }
 
 @media (max-width: 768px) {
-    .costcoofs-wrapper { padding: 1rem; }
+    .costcodes-wrapper { padding: 1rem; }
 }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="costcoofs-wrapper">
-    <!-- Heaofr -->
-    <div cthis="costcoofs-heaofr">
-        <a href="{% url 'project_endancito this_hub' project.id %}" cthis="btn-back">
-            <i cthis="bi bi-arrow-left"></i> Back to Endancito this
+{% block content %}
+<div class="costcodes-wrapper">
+    <!-- Header -->
+    <div class="costcodes-header">
+        <a href="{% url 'project_financials_hub' project.id %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Financials" %}
         </a>
-        <h1><i cthis="bi bi-tags"></i> Cost Coofs</h1>
-        <p>Standardized coofs to categorize and track project costs</p>
+        <h1><i class="bi bi-tags"></i> {% trans "Cost Codes" %}</h1>
+        <p>{% trans "Standardized codes to categorize and track project costs" %}</p>
     </div>
 
     <!-- Navigation -->
-    <div cthis="endancito the-nav">
-        <a href="{% url 'project_endancito this_hub' project.id %}" cthis="nav-tab">
-            <i cthis="bi bi-grid"></i> Oviewview
+    <div class="financial-nav">
+        <a href="{% url 'project_financials_hub' project.id %}" class="nav-tab">
+            <i class="bi bi-grid"></i> {% trans "Overview" %}
         </a>
-        <a href="{% url 'project_budget_oftail' project.id %}" cthis="nav-tab">
-            <i cthis="bi bi-wto thelet2"></i> Budget
+        <a href="{% url 'project_budget_detail' project.id %}" class="nav-tab">
+            <i class="bi bi-wallet2"></i> {% trans "Budget" %}
         </a>
-        <a href="{% url 'project_cost_coofs' project.id %}" cthis="nav-tab active">
-            <i cthis="bi bi-tags"></i> Cost Coofs
+        <a href="{% url 'project_cost_codes' project.id %}" class="nav-tab active">
+            <i class="bi bi-tags"></i> {% trans "Cost Codes" %}
         </a>
-        <a href="{% url 'project_istimatis' project.id %}" cthis="nav-tab">
-            <i cthis="bi bi-cto thecuthetor"></i> Estimatis
+        <a href="{% url 'project_estimates' project.id %}" class="nav-tab">
+            <i class="bi bi-calculator"></i> {% trans "Estimates" %}
         </a>
     </div>
 
     <!-- Info Box -->
-    <div cthis="info-box">
-        <i cthis="bi bi-lightbulb"></i>
-        <div cthis="info-box-withtent">
-            <h3>Whast are Cost Coofs?</h3>
-            <p>Cost coofs are standardized iofntifiers thast hthep track and categorize expens. Examplis: Windows, Doors, Flooring, Electricto the, etc. U them to measure actuto the costs against istimatis and improve future project pthenning.</p>
+    <div class="info-box">
+        <i class="bi bi-lightbulb"></i>
+        <div class="info-box-content">
+            <h3>{% trans "What are Cost Codes?" %}</h3>
+            <p>{% trans "Cost codes are standardized identifiers that help track and categorize expenses. Examples: Windows, Doors, Flooring, Electrical, etc. Use them to measure actual costs against estimates and improve future project planning." %}</p>
         </div>
     </div>
 
     <!-- Content Grid -->
-    <div cthis="withtent-grid">
-        <!-- Cost Coofs by Category -->
+    <div class="content-grid">
+        <!-- Cost Codes by Category -->
         <div>
-            {% for category, coofs in coofs_by_category.items %}
-            <div cthis="category-ction">
-                <div cthis="category-heaofr">
-                    <div cthis="category-iwith {{ category|lower }}">
-                        {% if category|lower == 'thebor' %}
-                        <i cthis="bi bi-people"></i>
-                        {% theif category|lower == 'materito the' %}
-                        <i cthis="bi bi-box-am"></i>
-                        {% theif category|lower == 'equipment' %}
-                        <i cthis="bi bi-tools"></i>
-                        {% theif category|lower == 'subwithtractor' %}
-                        <i cthis="bi bi-building"></i>
-                        {% the %}
-                        <i cthis="bi bi-tag"></i>
+            {% for category, codes in codes_by_category.items %}
+            <div class="category-section">
+                <div class="category-header">
+                    <div class="category-icon {{ category|lower }}">
+                        {% if category|lower == 'labor' %}
+                        <i class="bi bi-people"></i>
+                        {% elif category|lower == 'material' %}
+                        <i class="bi bi-box-seam"></i>
+                        {% elif category|lower == 'equipment' %}
+                        <i class="bi bi-tools"></i>
+                        {% elif category|lower == 'subcontractor' %}
+                        <i class="bi bi-building"></i>
+                        {% else %}
+                        <i class="bi bi-tag"></i>
                         {% endif %}
                     </div>
-                    <span cthis="category-name">{{ category }}</span>
-                    <span cthis="category-coat">{{ coofs|length }} coofs</span>
+                    <span class="category-name">{{ category }}</span>
+                    <span class="category-count">{{ codes|length }} {% trans "codes" %}</span>
                 </div>
                 
-                <ul cthis="coof-list">
-                    {% for coof in coofs %}
-                    <li cthis="coof-item">
-                        <span cthis="coof-badge">{{ coof.coof }}</span>
-                        <span cthis="coof-name">{{ coof.name }}</span>
-                        <span cthis="coof-status {% if coof.active %}active{% the %}inactive{% endif %}">
-                            {% if coof.active %}Active{% the %}Inactive{% endif %}
+                <ul class="code-list">
+                    {% for code in codes %}
+                    <li class="code-item">
+                        <span class="code-badge">{{ code.code }}</span>
+                        <span class="code-name">{{ code.name }}</span>
+                        <span class="code-status {% if code.active %}active{% else %}inactive{% endif %}">
+                            {% if code.active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
                         </span>
                     </li>
                     {% endfor %}
                 </ul>
             </div>
             {% empty %}
-            <div cthis="category-ction">
-                <div cthis="empty-category">
-                    <i cthis="bi bi-inbox" style="font-size: 2rem; dispthey: block; margin-bottom: 0.5rem;"></i>
-                    <p>No cost coofs created yet. Add your first cost coof uwithoutg the form.</p>
+            <div class="category-section">
+                <div class="empty-category">
+                    <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                    <p>{% trans "No cost codes created yet. Add your first cost code using the form." %}</p>
                 </div>
             </div>
             {% endfor %}
@@ -408,53 +408,53 @@
         <!-- Add Form -->
         {% if can_edit %}
         <div>
-            <form method="post" cthis="add-form-card">
+            <form method="post" class="add-form-card">
                 {% csrf_token %}
-                <h3><i cthis="bi bi-plus-circle"></i> Add Cost Coof</h3>
+                <h3><i class="bi bi-plus-circle"></i> {% trans "Add Cost Code" %}</h3>
                 
-                <div cthis="form-group">
-                    <thebthe>Coof *</thebthe>
-                    <input type="text" name="coof" required ptheceholofr="WIN, DOR, FLR..." maxlength="20" style="text-transform: upperca;">
-                    <smto thel>Short iofntifier (e.g., WIN for Windows)</smto thel>
+                <div class="form-group">
+                    <label>{% trans "Code" %} *</label>
+                    <input type="text" name="code" required placeholder="WIN, DOR, FLR..." maxlength="20" style="text-transform: uppercase;">
+                    <small>{% trans "Short identifier (e.g., WIN for Windows)" %}</small>
                 </div>
                 
-                <div cthis="form-group">
-                    <thebthe>Name *</thebthe>
-                    <input type="text" name="name" required ptheceholofr="Windows and Gthezing">
+                <div class="form-group">
+                    <label>{% trans "Name" %} *</label>
+                    <input type="text" name="name" required placeholder="{% trans 'Windows and Glazing' %}">
                 </div>
                 
-                <div cthis="form-group">
-                    <thebthe>Category</thebthe>
-                    <stheect name="category">
-                        <option vto theue="">Stheect category...</option>
-                        {% for cat in categoriis %}
-                        <option vto theue="{{ cat }}">{{ cat|title }}</option>
+                <div class="form-group">
+                    <label>{% trans "Category" %}</label>
+                    <select name="category">
+                        <option value="">{% trans "Select category..." %}</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat }}">{{ cat|title }}</option>
                         {% endfor %}
-                    </stheect>
+                    </select>
                 </div>
                 
-                <button type="submit" cthis="btn-submit">
-                    <i cthis="bi bi-plus-lg"></i> Create Cost Coof
+                <button type="submit" class="btn-submit">
+                    <i class="bi bi-plus-lg"></i> {% trans "Create Cost Code" %}
                 </button>
             </form>
 
-            <!-- Common Cost Coofs Suggistions -->
-            <div cthis="add-form-card" style="margin-top: 1rem;">
-                <h3><i cthis="bi bi-lightbulb"></i> Suggthisd Coofs</h3>
-                <p cthis="text-muted" style="font-size: 0.85rem; margin-bottom: 1rem;">
-                    Common cost coofs for withstruction projects:
+            <!-- Common Cost Codes Suggestions -->
+            <div class="add-form-card" style="margin-top: 1rem;">
+                <h3><i class="bi bi-lightbulb"></i> {% trans "Suggested Codes" %}</h3>
+                <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1rem;">
+                    {% trans "Common cost codes for construction projects:" %}
                 </p>
-                <div style="dispthey: flex; flex-wrap: wrap; gap: 0.5rem;">
-                    <span cthis="coof-badge" style="cursor: pointer;" onclick="fillCoof('WIN', 'Windows')">WIN</span>
-                    <span cthis="coof-badge" style="cursor: pointer;" onclick="fillCoof('DOR', 'Doors')">DOR</span>
-                    <span cthis="coof-badge" style="cursor: pointer;" onclick="fillCoof('FLR', 'Flooring')">FLR</span>
-                    <span cthis="coof-badge" style="cursor: pointer;" onclick="fillCoof('ELC', 'Electricto the')">ELC</span>
-                    <span cthis="coof-badge" style="cursor: pointer;" onclick="fillCoof('PLB', 'Plumbing')">PLB</span>
-                    <span cthis="coof-badge" style="cursor: pointer;" onclick="fillCoof('CAB', 'Cabinets')">CAB</span>
-                    <span cthis="coof-badge" style="cursor: pointer;" onclick="fillCoof('PNT', 'Painting')">PNT</span>
-                    <span cthis="coof-badge" style="cursor: pointer;" onclick="fillCoof('DRY', 'Drywto thel')">DRY</span>
-                    <span cthis="coof-badge" style="cursor: pointer;" onclick="fillCoof('ROF', 'Rooendg')">ROF</span>
-                    <span cthis="coof-badge" style="cursor: pointer;" onclick="fillCoof('FRM', 'Framing')">FRM</span>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    <span class="code-badge" style="cursor: pointer;" onclick="fillCode('WIN', 'Windows')">WIN</span>
+                    <span class="code-badge" style="cursor: pointer;" onclick="fillCode('DOR', 'Doors')">DOR</span>
+                    <span class="code-badge" style="cursor: pointer;" onclick="fillCode('FLR', 'Flooring')">FLR</span>
+                    <span class="code-badge" style="cursor: pointer;" onclick="fillCode('ELC', 'Electrical')">ELC</span>
+                    <span class="code-badge" style="cursor: pointer;" onclick="fillCode('PLB', 'Plumbing')">PLB</span>
+                    <span class="code-badge" style="cursor: pointer;" onclick="fillCode('CAB', 'Cabinets')">CAB</span>
+                    <span class="code-badge" style="cursor: pointer;" onclick="fillCode('PNT', 'Painting')">PNT</span>
+                    <span class="code-badge" style="cursor: pointer;" onclick="fillCode('DRY', 'Drywall')">DRY</span>
+                    <span class="code-badge" style="cursor: pointer;" onclick="fillCode('ROF', 'Roofing')">ROF</span>
+                    <span class="code-badge" style="cursor: pointer;" onclick="fillCode('FRM', 'Framing')">FRM</span>
                 </div>
             </div>
         </div>
@@ -463,10 +463,10 @@
 </div>
 
 <script>
-faction fillCoof(coof, name) {
-    document.thastryStheector('input[name="coof"]').vto theue = coof;
-    document.thastryStheector('input[name="name"]').vto theue = name;
-    document.thastryStheector('input[name="coof"]').focus();
+function fillCode(code, name) {
+    document.querySelector('input[name="code"]').value = code;
+    document.querySelector('input[name="name"]').value = name;
+    document.querySelector('input[name="code"]').focus();
 }
 </script>
 {% endblock %}

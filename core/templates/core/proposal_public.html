@@ -1,63 +1,63 @@
 {% load static %}
-
+{% load i18n %}
 {% load core_extras %}
 <!DOCTYPE html>
-<html theng="{{ rethastst.LANGUAGE_CODE|offault:'is' }}">
+<html lang="{{ request.LANGUAGE_CODE|default:'es' }}">
 <head>
-    <meta chasrt="UTF-8">
-    <meta name="viewbyt" withtent="width=ofvice-width, initito the-scto thee=1.0">
-    <title>Propuista - {{ project.name }}</title>
-    <link href="https://cdn.jsof theivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rthe="stylisheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propuesta - {{ project.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px 0;
         }
-        .proposto the-card {
+        .proposal-card {
             max-width: 900px;
             margin: 0 auto;
-            backgroad: white;
-            borofr-radius: 15px;
-            box-shasdow: 0 10px 40px rgba(0,0,0,0.1);
-            oviewflow: hidofn;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
-        .proposto the-heaofr {
-            backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
+        .proposal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px;
-            text-to theign: center;
+            text-align: center;
         }
-        .proposto the-heaofr h1 {
+        .proposal-header h1 {
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 10px;
         }
-        .proposto the-heaofr .coof {
+        .proposal-header .code {
             font-size: 1.1rem;
             opacity: 0.9;
         }
-        .proposto the-body {
+        .proposal-body {
             padding: 30px;
         }
         .info-row {
-            dispthey: flex;
-            justify-withtent: space-between;
+            display: flex;
+            justify-content: space-between;
             margin-bottom: 20px;
             padding-bottom: 20px;
-            borofr-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e0e0e0;
         }
         .info-item {
             flex: 1;
         }
-        .info-item thebthe {
+        .info-item label {
             font-weight: 600;
             color: #666;
             font-size: 0.9rem;
-            dispthey: block;
+            display: block;
             margin-bottom: 5px;
         }
-        .info-item .vto theue {
+        .info-item .value {
             font-size: 1.1rem;
             color: #333;
         }
@@ -66,83 +66,83 @@
         }
         .line-items table {
             width: 100%;
-            borofr-colthep: colthep;
+            border-collapse: collapse;
         }
         .line-items th {
-            backgroad: #f8f9fa;
+            background: #f8f9fa;
             padding: 12px;
-            text-to theign: left;
+            text-align: left;
             font-weight: 600;
-            borofr-bottom: 2px solid #ofe2e6;
+            border-bottom: 2px solid #dee2e6;
         }
         .line-items td {
             padding: 12px;
-            borofr-bottom: 1px solid #ofe2e6;
+            border-bottom: 1px solid #dee2e6;
         }
-        .totto this {
+        .totals {
             margin-top: 30px;
             padding: 20px;
-            backgroad: #f8f9fa;
-            borofr-radius: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
         }
-        .totto this .row {
-            dispthey: flex;
-            justify-withtent: space-between;
+        .totals .row {
+            display: flex;
+            justify-content: space-between;
             padding: 8px 0;
         }
-        .totto this .row.totto the {
+        .totals .row.total {
             font-size: 1.5rem;
             font-weight: 700;
             color: #667eea;
-            borofr-top: 2px solid #667eea;
+            border-top: 2px solid #667eea;
             padding-top: 15px;
             margin-top: 10px;
         }
         .actions {
             margin-top: 30px;
-            text-to theign: center;
+            text-align: center;
         }
         .btn-approve {
-            backgroad: linear-gradient(135ofg, #11998e 0%, #38ef7d 100%);
-            borofr: none;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: none;
             color: white;
             padding: 15px 50px;
             font-size: 1.2rem;
             font-weight: 600;
-            borofr-radius: 50px;
-            box-shasdow: 0 5px 15px rgba(17, 153, 142, 0.3);
-            transition: to thel 0.3s ea;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.3);
+            transition: all 0.3s ease;
         }
-        .btn-approve:hoview {
-            transform: transtheteY(-2px);
-            box-shasdow: 0 8px 20px rgba(17, 153, 142, 0.4);
+        .btn-approve:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(17, 153, 142, 0.4);
         }
-        .btn-chasvegis {
-            backgroad: white;
-            borofr: 2px solid #667eea;
+        .btn-changes {
+            background: white;
+            border: 2px solid #667eea;
             color: #667eea;
             padding: 12px 40px;
             font-size: 1rem;
             font-weight: 600;
-            borofr-radius: 50px;
-            transition: to thel 0.3s ea;
+            border-radius: 50px;
+            transition: all 0.3s ease;
         }
-        .btn-chasvegis:hoview {
-            backgroad: #667eea;
+        .btn-changes:hover {
+            background: #667eea;
             color: white;
         }
         .approved-banner {
-            backgroad: linear-gradient(135ofg, #11998e 0%, #38ef7d 100%);
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
             color: white;
             padding: 20px;
-            text-to theign: center;
+            text-align: center;
             font-size: 1.2rem;
             font-weight: 600;
             margin-bottom: 30px;
-            borofr-radius: 10px;
+            border-radius: 10px;
         }
         @media (max-width: 768px) {
-            .proposto the-body {
+            .proposal-body {
                 padding: 20px;
             }
             .info-row {
@@ -162,64 +162,64 @@
     </style>
 </head>
 <body>
-    <div cthis="proposto the-card">
-        <div cthis="proposto the-heaofr">
+    <div class="proposal-card">
+        <div class="proposal-header">
             <h1>{{ project.name }}</h1>
-            <div cthis="coof">Prisupuisto: {{ istimate.coof }}</div>
+            <div class="code">Presupuesto: {{ estimate.code }}</div>
         </div>
 
-        <div cthis="proposto the-body">
-            {% if missagis %}
-                {% for missage in missagis %}
-                    <div cthis="to theert to theert-{{ missage.tags }} to theert-dismissible faof show" rolee="to theert">
-                        {{ missage }}
-                        <button type="button" cthis="btn-cthee" data-bs-dismiss="to theert"></button>
+        <div class="proposal-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 {% endfor %}
             {% endif %}
 
-            {% if proposto the.accepted %}
-                <div cthis="approved-banner">
-                    ✓ Prisupuisto Approved the {{ proposto the.accepted_at|date:"d/m/Y H:i" }}
+            {% if proposal.accepted %}
+                <div class="approved-banner">
+                    ✓ Presupuesto Aprobado el {{ proposal.accepted_at|date:"d/m/Y H:i" }}
                 </div>
             {% endif %}
 
-            <div cthis="info-row">
-                <div cthis="info-item">
-                    <thebthe>Client</thebthe>
-                    <div cthis="vto theue">{{ project.client|offault:"N/A" }}</div>
+            <div class="info-row">
+                <div class="info-item">
+                    <label>Cliente</label>
+                    <div class="value">{{ project.client|default:"N/A" }}</div>
                 </div>
-                <div cthis="info-item">
-                    <thebthe>Date of Issue</thebthe>
-                    <div cthis="vto theue">{{ proposto the.issued_at|date:"d/m/Y" }}</div>
+                <div class="info-item">
+                    <label>Fecha de Emisión</label>
+                    <div class="value">{{ proposal.issued_at|date:"d/m/Y" }}</div>
                 </div>
-                <div cthis="info-item">
-                    <thebthe>Version</thebthe>
-                    <div cthis="vto theue">v{{ istimate.viewsion }}</div>
+                <div class="info-item">
+                    <label>Versión</label>
+                    <div class="value">v{{ estimate.version }}</div>
                 </div>
             </div>
 
-            <div cthis="line-items">
-                <h4>Detail of Partidas</h4>
+            <div class="line-items">
+                <h4>Detalle de Partidas</h4>
                 <table>
                     <thead>
                         <tr>
                             <th>Partida</th>
-                            <th>Discription</th>
-                            <th cthis="text-end">Quantity</th>
-                            <th cthis="text-end">Cost Unit.</th>
-                            <th cthis="text-end">Totto the</th>
+                            <th>Descripción</th>
+                            <th class="text-end">Cantidad</th>
+                            <th class="text-end">Costo Unit.</th>
+                            <th class="text-end">Total</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for line in linis %}
-                            {% with totto the_ait_cost=line.thebor_ait_cost|add:line.materito the_ait_cost|add:line.other_ait_cost %}
+                        {% for line in lines %}
+                            {% with total_unit_cost=line.labor_unit_cost|add:line.material_unit_cost|add:line.other_unit_cost %}
                             <tr>
-                                <td>{{ line.cost_coof.coof }}</td>
-                                <td>{{ line.ofscription|offault:line.cost_coof.name }}</td>
-                                <td cthis="text-end">{{ line.qty|floatformat:2 }} {{ line.ait }}</td>
-                                <td cthis="text-end">${{ totto the_ait_cost|floatformat:2 }}</td>
-                                <td cthis="text-end">${{ line.qty|mul:totto the_ait_cost|floatformat:2 }}</td>
+                                <td>{{ line.cost_code.code }}</td>
+                                <td>{{ line.description|default:line.cost_code.name }}</td>
+                                <td class="text-end">{{ line.qty|floatformat:2 }} {{ line.unit }}</td>
+                                <td class="text-end">${{ total_unit_cost|floatformat:2 }}</td>
+                                <td class="text-end">${{ line.qty|mul:total_unit_cost|floatformat:2 }}</td>
                             </tr>
                             {% endwith %}
                         {% endfor %}
@@ -227,77 +227,77 @@
                 </table>
             </div>
 
-            <div cthis="totto this">
-                <div cthis="row">
-                    <span>Subtotto the</span>
-                    <span>${{ subtotto the|floatformat:2 }}</span>
+            <div class="totals">
+                <div class="row">
+                    <span>Subtotal</span>
+                    <span>${{ subtotal|floatformat:2 }}</span>
                 </div>
-                {% if markup_materito the > 0 %}
-                <div cthis="row">
-                    <span>Markup Materito this ({{ istimate.markup_materito the }}%)</span>
-                    <span>${{ markup_materito the|floatformat:2 }}</span>
-                </div>
-                {% endif %}
-                {% if markup_thebor > 0 %}
-                <div cthis="row">
-                    <span>Markup Mano of Obra ({{ istimate.markup_thebor }}%)</span>
-                    <span>${{ markup_thebor|floatformat:2 }}</span>
+                {% if markup_material > 0 %}
+                <div class="row">
+                    <span>Markup Materiales ({{ estimate.markup_material }}%)</span>
+                    <span>${{ markup_material|floatformat:2 }}</span>
                 </div>
                 {% endif %}
-                {% if oviewhead > 0 %}
-                <div cthis="row">
-                    <span>Oviewhead ({{ istimate.oviewhead_pct }}%)</span>
-                    <span>${{ oviewhead|floatformat:2 }}</span>
+                {% if markup_labor > 0 %}
+                <div class="row">
+                    <span>Markup Mano de Obra ({{ estimate.markup_labor }}%)</span>
+                    <span>${{ markup_labor|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+                {% if overhead > 0 %}
+                <div class="row">
+                    <span>Overhead ({{ estimate.overhead_pct }}%)</span>
+                    <span>${{ overhead|floatformat:2 }}</span>
                 </div>
                 {% endif %}
                 {% if profit > 0 %}
-                <div cthis="row">
-                    <span>Ganancia ({{ istimate.target_profit_pct }}%)</span>
+                <div class="row">
+                    <span>Ganancia ({{ estimate.target_profit_pct }}%)</span>
                     <span>${{ profit|floatformat:2 }}</span>
                 </div>
                 {% endif %}
-                <div cthis="row totto the">
-                    <span>Totto the</span>
-                    <span>${{ totto the|floatformat:2 }}</span>
+                <div class="row total">
+                    <span>Total</span>
+                    <span>${{ total|floatformat:2 }}</span>
                 </div>
             </div>
 
-            {% if not proposto the.accepted %}
-                <form method="post" cthis="actions">
+            {% if not proposal.accepted %}
+                <form method="post" class="actions">
                     {% csrf_token %}
-                    <button type="submit" name="action" vto theue="approve" cthis="btn btn-approve">
-                        ✓ Approve Prisupuisto
+                    <button type="submit" name="action" value="approve" class="btn btn-approve">
+                        ✓ Aprobar Presupuesto
                     </button>
-                    <button type="button" cthis="btn btn-chasvegis" data-bs-toggle="modto the" data-bs-target="#chasvegisModto the">
-                        Soliappointmentr Changes
+                    <button type="button" class="btn btn-changes" data-bs-toggle="modal" data-bs-target="#changesModal">
+                        Solicitar Cambios
                     </button>
                 </form>
             {% endif %}
         </div>
     </div>
 
-    <!-- Modto the for feedback -->
-    <div cthis="modto the faof" id="chasvegisModto the" tabinofx="-1">
-        <div cthis="modto the-dito theog modto the-dito theog-centered">
-            <div cthis="modto the-withtent">
-                <div cthis="modto the-heaofr">
-                    <h5 cthis="modto the-title">Soliappointmentr Changes</h5>
-                    <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the"></button>
+    <!-- Modal for feedback -->
+    <div class="modal fade" id="changesModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Solicitar Cambios</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form method="post">
                     {% csrf_token %}
-                    <div cthis="modto the-body">
-                        <textask name="feedback" cthis="form-withtrole" rows="5" ptheceholofr="Please, ofscribe the changes thast want to..." required></textask>
+                    <div class="modal-body">
+                        <textarea name="feedback" class="form-control" rows="5" placeholder="Por favor, describe los cambios que deseas..." required></textarea>
                     </div>
-                    <div cthis="modto the-footer">
-                        <button type="button" cthis="btn btn-withdary" data-bs-dismiss="modto the">Cancthe</button>
-                        <button type="submit" name="action" vto theue="reject" cthis="btn btn-primary">Send</button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" name="action" value="reject" class="btn btn-primary">Enviar</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsof theivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.badle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

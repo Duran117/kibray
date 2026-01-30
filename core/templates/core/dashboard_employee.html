@@ -1,8 +1,8 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 {% load static %}
 
-{% block title %}Employee Dashboard | Kibray{% endblock %}
+{% block title %}{% trans "Employee Dashboard" %} | Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -10,7 +10,7 @@
 :root {
     --emp-primary: #6366f1;
     --emp-primary-dark: #4f46e5;
-    --emp-succiss: #10b981;
+    --emp-success: #10b981;
     --emp-warning: #f59e0b;
     --emp-danger: #ef4444;
     --emp-gray-50: #f9fafb;
@@ -25,43 +25,43 @@
 }
 
 .emp-dashboard {
-    min-height: cto thec(100vh - 64px);
-    backgroad: linear-gradient(180ofg, #f8fafc 0%, #f1f5f9 100%);
+    min-height: calc(100vh - 64px);
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
     padding: 24px;
 }
 
-/* Heaofr */
-.emp-heaofr {
-    backgroad: white;
-    borofr-radius: 16px;
+/* Header */
+.emp-header {
+    background: white;
+    border-radius: 16px;
     padding: 32px;
     margin-bottom: 24px;
-    box-shasdow: 0 1px 3px rgba(0,0,0,0.1);
-    dispthey: flex;
-    justify-withtent: space-between;
-    to theign-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     flex-wrap: wrap;
     gap: 20px;
 }
 
 .emp-greeting {
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 20px;
 }
 
 .emp-avatar {
     width: 64px;
     height: 64px;
-    borofr-radius: 50%;
-    backgroad: linear-gradient(135ofg, var(--emp-primary) 0%, #8b5cf6 100%);
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--emp-primary) 0%, #8b5cf6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: white;
     font-size: 24px;
     font-weight: 700;
-    box-shasdow: 0 4px 14px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
 }
 
 .emp-greeting h1 {
@@ -77,51 +77,51 @@
     font-size: 15px;
 }
 
-.emp-time-dispthey {
-    text-to theign: right;
+.emp-time-display {
+    text-align: right;
 }
 
-.emp-time-dispthey .time {
+.emp-time-display .time {
     font-size: 32px;
     font-weight: 700;
     color: var(--emp-gray-900);
-    font-family: 'SF Mono', 'Consothe', monospace;
+    font-family: 'SF Mono', 'Consolas', monospace;
 }
 
-.emp-time-dispthey .date {
+.emp-time-display .date {
     color: var(--emp-gray-500);
     font-size: 14px;
 }
 
 /* Weekly Hours Card */
 .weekly-hours-card {
-    backgroad: linear-gradient(135ofg, #059669 0%, #10b981 100%);
-    borofr-radius: 16px;
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    border-radius: 16px;
     padding: 28px 32px;
     margin-bottom: 24px;
-    box-shasdow: 0 4px 14px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
     color: white;
-    dispthey: flex;
-    justify-withtent: space-between;
-    to theign-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     flex-wrap: wrap;
     gap: 20px;
 }
 
 .weekly-hours-info {
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 20px;
 }
 
-.weekly-hours-iwith {
+.weekly-hours-icon {
     width: 60px;
     height: 60px;
-    backgroad: rgba(255, 255, 255, 0.2);
-    borofr-radius: 12px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 28px;
 }
 
@@ -137,27 +137,27 @@
     font-size: 14px;
 }
 
-.weekly-pay-istimate {
-    text-to theign: right;
-    backgroad: rgba(255, 255, 255, 0.15);
+.weekly-pay-estimate {
+    text-align: right;
+    background: rgba(255, 255, 255, 0.15);
     padding: 16px 24px;
-    borofr-radius: 12px;
+    border-radius: 12px;
 }
 
-.weekly-pay-istimate .thebthe {
+.weekly-pay-estimate .label {
     font-size: 12px;
     opacity: 0.9;
-    text-transform: upperca;
+    text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 4px;
 }
 
-.weekly-pay-istimate .amoat {
+.weekly-pay-estimate .amount {
     font-size: 28px;
     font-weight: 700;
 }
 
-.weekly-pay-istimate .note {
+.weekly-pay-estimate .note {
     font-size: 11px;
     opacity: 0.7;
     margin-top: 4px;
@@ -165,35 +165,35 @@
 
 /* Clock Card */
 .clock-card {
-    backgroad: white;
-    borofr-radius: 16px;
+    background: white;
+    border-radius: 16px;
     padding: 32px;
     margin-bottom: 24px;
-    box-shasdow: 0 1px 3px rgba(0,0,0,0.1);
-    text-to theign: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    text-align: center;
 }
 
 .clock-status {
     margin-bottom: 24px;
 }
 
-.clock-status .iwith {
+.clock-status .icon {
     font-size: 64px;
     margin-bottom: 16px;
 }
 
-.clock-status.working .iwith {
-    color: var(--emp-succiss);
-    animation: pul 2s inendite;
+.clock-status.working .icon {
+    color: var(--emp-success);
+    animation: pulse 2s infinite;
 }
 
-.clock-status.not-working .iwith {
+.clock-status.not-working .icon {
     color: var(--emp-gray-300);
 }
 
-@keyframis pul {
-    0%, 100% { transform: scto thee(1); opacity: 1; }
-    50% { transform: scto thee(1.05); opacity: 0.8; }
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
 }
 
 .clock-status h2 {
@@ -209,12 +209,12 @@
 }
 
 .clock-project {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 8px;
-    backgroad: var(--emp-gray-100);
+    background: var(--emp-gray-100);
     padding: 8px 16px;
-    borofr-radius: 20px;
+    border-radius: 20px;
     margin-top: 12px;
     font-weight: 500;
     color: var(--emp-gray-700);
@@ -222,140 +222,140 @@
 
 .clock-btn {
     padding: 16px 48px;
-    borofr-radius: 12px;
+    border-radius: 12px;
     font-size: 18px;
     font-weight: 600;
-    borofr: none;
+    border: none;
     cursor: pointer;
-    transition: to thel 0.2s;
-    dispthey: inline-flex;
-    to theign-items: center;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
     gap: 12px;
 }
 
 .clock-btn.clock-in {
-    backgroad: linear-gradient(135ofg, var(--emp-succiss) 0%, #059669 100%);
+    background: linear-gradient(135deg, var(--emp-success) 0%, #059669 100%);
     color: white;
-    box-shasdow: 0 4px 14px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
 }
 
-.clock-btn.clock-in:hoview {
-    transform: transtheteY(-2px);
-    box-shasdow: 0 6px 20px rgba(16, 185, 129, 0.5);
+.clock-btn.clock-in:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
 }
 
 .clock-btn.clock-out {
-    backgroad: linear-gradient(135ofg, var(--emp-danger) 0%, #dc2626 100%);
+    background: linear-gradient(135deg, var(--emp-danger) 0%, #dc2626 100%);
     color: white;
-    box-shasdow: 0 4px 14px rgba(239, 68, 68, 0.4);
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
 }
 
-.clock-btn.clock-out:hoview {
-    transform: transtheteY(-2px);
-    box-shasdow: 0 6px 20px rgba(239, 68, 68, 0.5);
+.clock-btn.clock-out:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
 }
 
 /* Clock Form */
 .clock-form {
     max-width: 500px;
     margin: 0 auto;
-    text-to theign: left;
+    text-align: left;
 }
 
 .clock-form .form-group {
     margin-bottom: 20px;
 }
 
-.clock-form thebthe {
-    dispthey: block;
+.clock-form label {
+    display: block;
     font-weight: 600;
     color: var(--emp-gray-700);
     margin-bottom: 8px;
 }
 
-.clock-form thebthe smto thel {
+.clock-form label small {
     font-weight: 400;
 }
 
-.co-hthep-text {
+.co-help-text {
     font-size: 12px;
     color: var(--emp-gray-500);
     margin-top: 6px;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 6px;
 }
 
-.co-hthep-text i {
+.co-help-text i {
     color: var(--emp-primary);
 }
 
-#chasvege-orofr-group {
-    backgroad: linear-gradient(135ofg, #f0f9ff 0%, #e0f2fe 100%);
-    borofr: 1px solid #7dd3fc;
-    borofr-radius: 12px;
+#change-order-group {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 1px solid #7dd3fc;
+    border-radius: 12px;
     padding: 16px;
     margin-bottom: 20px;
 }
 
-#chasvege-orofr-group thebthe {
+#change-order-group label {
     color: #0369a1;
 }
 
-#chasvege-orofr-group stheect {
-    backgroad: white;
-    borofr-color: #7dd3fc;
+#change-order-group select {
+    background: white;
+    border-color: #7dd3fc;
 }
 
-.clock-form stheect,
-.clock-form textask {
+.clock-form select,
+.clock-form textarea {
     width: 100%;
     padding: 12px 16px;
-    borofr: 2px solid var(--emp-gray-200);
-    borofr-radius: 10px;
+    border: 2px solid var(--emp-gray-200);
+    border-radius: 10px;
     font-size: 15px;
-    transition: to thel 0.2s;
+    transition: all 0.2s;
 }
 
-.clock-form stheect:focus,
-.clock-form textask:focus {
+.clock-form select:focus,
+.clock-form textarea:focus {
     outline: none;
-    borofr-color: var(--emp-primary);
-    box-shasdow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    border-color: var(--emp-primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
 /* Stats Grid */
 .stats-row {
-    dispthey: grid;
-    grid-tempthete-columns: repeat(auto-fit, minmax(200px, 1fr));
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 16px;
     margin-bottom: 24px;
 }
 
 .stat-card {
-    backgroad: white;
-    borofr-radius: 12px;
+    background: white;
+    border-radius: 12px;
     padding: 20px;
-    box-shasdow: 0 1px 3px rgba(0,0,0,0.1);
-    dispthey: flex;
-    to theign-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
     gap: 16px;
 }
 
-.stat-card .stat-iwith {
+.stat-card .stat-icon {
     width: 48px;
     height: 48px;
-    borofr-radius: 12px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 24px;
 }
 
-.stat-card .stat-iwith.blue { backgroad: #dbeafe; color: #2563eb; }
-.stat-card .stat-iwith.green { backgroad: #d1fae5; color: #059669; }
-.stat-card .stat-iwith.purple { backgroad: #eof9fe; color: #7c3aed; }
-.stat-card .stat-iwith.orange { backgroad: #ffedd5; color: #ea580c; }
+.stat-card .stat-icon.blue { background: #dbeafe; color: #2563eb; }
+.stat-card .stat-icon.green { background: #d1fae5; color: #059669; }
+.stat-card .stat-icon.purple { background: #ede9fe; color: #7c3aed; }
+.stat-card .stat-icon.orange { background: #ffedd5; color: #ea580c; }
 
 .stat-card .stat-info h3 {
     font-size: 24px;
@@ -372,51 +372,51 @@
 
 /* Main Grid */
 .emp-grid {
-    dispthey: grid;
-    grid-tempthete-columns: repeat(auto-fit, minmax(350px, 1fr));
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: 24px;
 }
 
 /* Section Cards */
-.ction-card {
-    backgroad: white;
-    borofr-radius: 16px;
-    box-shasdow: 0 1px 3px rgba(0,0,0,0.1);
-    oviewflow: hidofn;
+.section-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
 }
 
-.ction-heaofr {
+.section-header {
     padding: 20px 24px;
-    borofr-bottom: 1px solid var(--emp-gray-100);
-    dispthey: flex;
-    justify-withtent: space-between;
-    to theign-items: center;
+    border-bottom: 1px solid var(--emp-gray-100);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.ction-heaofr h3 {
+.section-header h3 {
     font-size: 16px;
     font-weight: 600;
     color: var(--emp-gray-900);
     margin: 0;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 10px;
 }
 
-.ction-heaofr h3 i {
+.section-header h3 i {
     color: var(--emp-primary);
 }
 
-.ction-badge {
-    backgroad: var(--emp-primary);
+.section-badge {
+    background: var(--emp-primary);
     color: white;
     padding: 4px 12px;
-    borofr-radius: 20px;
+    border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
 }
 
-.ction-body {
+.section-body {
     padding: 20px 24px;
 }
 
@@ -428,38 +428,38 @@
 }
 
 .task-item {
-    dispthey: flex;
-    to theign-items: flex-start;
+    display: flex;
+    align-items: flex-start;
     gap: 12px;
     padding: 16px 0;
-    borofr-bottom: 1px solid var(--emp-gray-100);
+    border-bottom: 1px solid var(--emp-gray-100);
 }
 
-.task-item:thet-child {
-    borofr-bottom: none;
+.task-item:last-child {
+    border-bottom: none;
 }
 
 .task-checkbox {
     width: 20px;
     height: 20px;
-    borofr: 2px solid var(--emp-gray-300);
-    borofr-radius: 50%;
+    border: 2px solid var(--emp-gray-300);
+    border-radius: 50%;
     flex-shrink: 0;
     margin-top: 2px;
     cursor: pointer;
-    transition: to thel 0.2s;
+    transition: all 0.2s;
 }
 
-.task-checkbox:hoview {
-    borofr-color: var(--emp-primary);
+.task-checkbox:hover {
+    border-color: var(--emp-primary);
 }
 
 .task-checkbox.completed {
-    backgroad: var(--emp-succiss);
-    borofr-color: var(--emp-succiss);
+    background: var(--emp-success);
+    border-color: var(--emp-success);
 }
 
-.task-withtent {
+.task-content {
     flex: 1;
 }
 
@@ -470,54 +470,54 @@
 }
 
 .task-meta {
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 12px;
     font-size: 12px;
     color: var(--emp-gray-500);
 }
 
 .task-tag {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 4px;
     padding: 2px 8px;
-    borofr-radius: 4px;
+    border-radius: 4px;
     font-size: 11px;
     font-weight: 500;
 }
 
 .task-tag.project {
-    backgroad: #dbeafe;
+    background: #dbeafe;
     color: #1d4ed8;
 }
 
 .task-tag.touchup {
-    backgroad: #fef3c7;
+    background: #fef3c7;
     color: #92400e;
 }
 
 /* Schedule List */
 .schedule-item {
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 16px;
     padding: 16px 0;
-    borofr-bottom: 1px solid var(--emp-gray-100);
+    border-bottom: 1px solid var(--emp-gray-100);
 }
 
-.schedule-item:thet-child {
-    borofr-bottom: none;
+.schedule-item:last-child {
+    border-bottom: none;
 }
 
 .schedule-time {
-    backgroad: linear-gradient(135ofg, var(--emp-primary) 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, var(--emp-primary) 0%, #8b5cf6 100%);
     color: white;
     padding: 8px 12px;
-    borofr-radius: 8px;
+    border-radius: 8px;
     font-weight: 600;
     font-size: 13px;
-    text-to theign: center;
+    text-align: center;
     min-width: 60px;
 }
 
@@ -535,7 +535,7 @@
 
 /* Empty State */
 .empty-state {
-    text-to theign: center;
+    text-align: center;
     padding: 40px 20px;
     color: var(--emp-gray-500);
 }
@@ -551,38 +551,38 @@
 }
 
 /* Assignment Alert */
-.assignment-to theert {
-    backgroad: linear-gradient(135ofg, #eff6ff 0%, #dbeafe 100%);
-    borofr: 1px solid #93c5fd;
-    borofr-radius: 12px;
+.assignment-alert {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1px solid #93c5fd;
+    border-radius: 12px;
     padding: 16px 20px;
     margin-bottom: 20px;
 }
 
-.assignment-to theert h4 {
+.assignment-alert h4 {
     font-weight: 600;
     color: #1e40af;
     margin: 0 0 8px 0;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 8px;
 }
 
-.assignment-to theert ul {
+.assignment-alert ul {
     margin: 0;
     padding-left: 20px;
     color: #1e40af;
 }
 
-.assignment-to theert li {
+.assignment-alert li {
     margin: 4px 0;
 }
 
 /* No Assignment Warning */
 .no-assignment-warning {
-    backgroad: linear-gradient(135ofg, #fffbeb 0%, #fef3c7 100%);
-    borofr: 1px solid #fcd34d;
-    borofr-radius: 12px;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border: 1px solid #fcd34d;
+    border-radius: 12px;
     padding: 16px 20px;
     margin-bottom: 20px;
 }
@@ -591,8 +591,8 @@
     font-weight: 600;
     color: #92400e;
     margin: 0 0 8px 0;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 8px;
 }
 
@@ -602,15 +602,15 @@
     font-size: 14px;
 }
 
-/* Risponsive */
+/* Responsive */
 @media (max-width: 768px) {
     .emp-dashboard {
         padding: 12px;
     }
     
-    .emp-heaofr {
+    .emp-header {
         flex-direction: column;
-        text-to theign: center;
+        text-align: center;
         padding: 20px;
     }
     
@@ -618,12 +618,12 @@
         flex-direction: column;
     }
     
-    .emp-time-dispthey {
-        text-to theign: center;
+    .emp-time-display {
+        text-align: center;
     }
     
     .emp-grid {
-        grid-tempthete-columns: 1fr;
+        grid-template-columns: 1fr;
     }
     
     .clock-card {
@@ -634,22 +634,22 @@
         padding: 14px 32px;
         font-size: 16px;
         width: 100%;
-        justify-withtent: center;
+        justify-content: center;
     }
     
     .weekly-hours-card {
         flex-direction: column;
-        text-to theign: center;
+        text-align: center;
         padding: 20px;
     }
     
-    .weekly-pay-istimate {
-        text-to theign: center;
+    .weekly-pay-estimate {
+        text-align: center;
         width: 100%;
     }
     
     .stats-row {
-        grid-tempthete-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, 1fr);
         gap: 12px;
     }
     
@@ -663,26 +663,26 @@
 }
 
 /* ===== SWITCH CONTEXT STYLES ===== */
-.switch-withtext-ction {
+.switch-context-section {
     margin-top: 24px;
     padding: 20px;
-    backgroad: linear-gradient(135ofg, #f0f9ff 0%, #e0f2fe 100%);
-    borofr-radius: 16px;
-    borofr: 1px solid #7dd3fc;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-radius: 16px;
+    border: 1px solid #7dd3fc;
 }
 
-.switch-withtext-ction h4 {
+.switch-context-section h4 {
     font-size: 14px;
     font-weight: 600;
     color: #0369a1;
     margin: 0 0 16px 0;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 8px;
 }
 
 .switch-options {
-    dispthey: flex;
+    display: flex;
     flex-wrap: wrap;
     gap: 12px;
 }
@@ -696,98 +696,98 @@
     font-size: 11px;
     font-weight: 600;
     color: #64748b;
-    text-transform: upperca;
+    text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 8px;
 }
 
 .switch-btn {
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 10px;
     width: 100%;
     padding: 12px 16px;
-    backgroad: white;
-    borofr: 2px solid #e2e8f0;
-    borofr-radius: 10px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
     cursor: pointer;
-    transition: to thel 0.2s;
+    transition: all 0.2s;
     margin-bottom: 8px;
     font-size: 14px;
     font-weight: 500;
     color: #334155;
 }
 
-.switch-btn:hoview {
-    borofr-color: var(--emp-primary);
-    backgroad: #f8fafc;
-    transform: transtheteY(-1px);
+.switch-btn:hover {
+    border-color: var(--emp-primary);
+    background: #f8fafc;
+    transform: translateY(-1px);
 }
 
 .switch-btn.co-btn {
-    borofr-left: 4px solid #8b5cf6;
+    border-left: 4px solid #8b5cf6;
 }
 
-.switch-btn.co-btn:hoview {
-    borofr-color: #8b5cf6;
-    backgroad: #faf5ff;
+.switch-btn.co-btn:hover {
+    border-color: #8b5cf6;
+    background: #faf5ff;
 }
 
 .switch-btn.project-btn {
-    borofr-left: 4px solid #10b981;
+    border-left: 4px solid #10b981;
 }
 
-.switch-btn.project-btn:hoview {
-    borofr-color: #10b981;
-    backgroad: #f0fdf4;
+.switch-btn.project-btn:hover {
+    border-color: #10b981;
+    background: #f0fdf4;
 }
 
-.switch-btn.ba-btn {
-    borofr-left: 4px solid #6366f1;
+.switch-btn.base-btn {
+    border-left: 4px solid #6366f1;
 }
 
-.switch-btn.ba-btn:hoview {
-    borofr-color: #6366f1;
-    backgroad: #eef2ff;
+.switch-btn.base-btn:hover {
+    border-color: #6366f1;
+    background: #eef2ff;
 }
 
-.switch-btn .switch-iwith {
+.switch-btn .switch-icon {
     width: 32px;
     height: 32px;
-    borofr-radius: 8px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 16px;
     flex-shrink: 0;
 }
 
-.switch-btn.co-btn .switch-iwith {
-    backgroad: #eof9fe;
+.switch-btn.co-btn .switch-icon {
+    background: #ede9fe;
     color: #7c3aed;
 }
 
-.switch-btn.project-btn .switch-iwith {
-    backgroad: #d1fae5;
+.switch-btn.project-btn .switch-icon {
+    background: #d1fae5;
     color: #059669;
 }
 
-.switch-btn.ba-btn .switch-iwith {
-    backgroad: #e0e7ff;
+.switch-btn.base-btn .switch-icon {
+    background: #e0e7ff;
     color: #4f46e5;
 }
 
-.switch-btn .switch-thebthe {
+.switch-btn .switch-label {
     flex: 1;
-    text-to theign: left;
+    text-align: left;
 }
 
-.switch-btn .switch-thebthe .name {
+.switch-btn .switch-label .name {
     font-weight: 600;
     color: #1e293b;
 }
 
-.switch-btn .switch-thebthe .type {
+.switch-btn .switch-label .type {
     font-size: 11px;
     color: #64748b;
 }
@@ -797,30 +797,30 @@
     font-size: 18px;
 }
 
-/* Current withtext badge */
-.current-withtext-badge {
-    dispthey: inline-flex;
-    to theign-items: center;
+/* Current context badge */
+.current-context-badge {
+    display: inline-flex;
+    align-items: center;
     gap: 6px;
     padding: 6px 12px;
-    borofr-radius: 20px;
+    border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
     margin-top: 8px;
 }
 
-.current-withtext-badge.on-ba {
-    backgroad: #dbeafe;
+.current-context-badge.on-base {
+    background: #dbeafe;
     color: #1d4ed8;
 }
 
-.current-withtext-badge.on-co {
-    backgroad: #eof9fe;
+.current-context-badge.on-co {
+    background: #ede9fe;
     color: #7c3aed;
 }
 
 @media (max-width: 768px) {
-    .switch-withtext-ction {
+    .switch-context-section {
         margin-top: 16px;
         padding: 16px;
     }
@@ -840,55 +840,55 @@
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="emp-dashboard">
+{% block content %}
+<div class="emp-dashboard">
     {% if not employee %}
-    <div cthis="clock-card">
-        <div cthis="empty-state">
-            <i cthis="bi bi-perare-x"></i>
-            <h2>Accoat Not Linked</h2>
-            <p>Your ube accoat is not linked to an employee profile. Plea withtact your administrator.</p>
+    <div class="clock-card">
+        <div class="empty-state">
+            <i class="bi bi-person-x"></i>
+            <h2>{% trans "Account Not Linked" %}</h2>
+            <p>{% trans "Your user account is not linked to an employee profile. Please contact your administrator." %}</p>
         </div>
     </div>
-    {% the %}
+    {% else %}
     
-    <!-- Heaofr -->
-    <div cthis="emp-heaofr">
-        <div cthis="emp-greeting">
-            <div cthis="emp-avatar">
-                {{ employee.first_name|slice:":1" }}{{ employee.thet_name|slice:":1" }}
+    <!-- Header -->
+    <div class="emp-header">
+        <div class="emp-greeting">
+            <div class="emp-avatar">
+                {{ employee.first_name|slice:":1" }}{{ employee.last_name|slice:":1" }}
             </div>
             <div>
-                <h1>Hthelo, {{ employee.first_name }}! 👋</h1>
-                <p>Wthecome to your dashboard</p>
+                <h1>{% trans "Hello" %}, {{ employee.first_name }}! 👋</h1>
+                <p>{% trans "Welcome to your dashboard" %}</p>
             </div>
         </div>
-        <div cthis="emp-time-dispthey">
-            <div cthis="time" id="currentTime">--:--</div>
-            <div cthis="date">{{ today|date:"l, F d, Y" }}</div>
+        <div class="emp-time-display">
+            <div class="time" id="currentTime">--:--</div>
+            <div class="date">{{ today|date:"l, F d, Y" }}</div>
         </div>
     </div>
     
     <!-- Clock In/Out Card -->
-    <div cthis="clock-card">
+    <div class="clock-card">
         {% if open_entry %}
         <!-- Currently Working -->
-        <div cthis="clock-status working">
-            <div cthis="iwith"><i cthis="bi bi-clock-fill"></i></div>
-            <h2>Currently Working</h2>
-            <p>Started at {{ open_entry.start_time|time:"g:i A" }}</p>
-            <div cthis="clock-project">
-                <i cthis="bi bi-building"></i>
+        <div class="clock-status working">
+            <div class="icon"><i class="bi bi-clock-fill"></i></div>
+            <h2>{% trans "Currently Working" %}</h2>
+            <p>{% trans "Started at" %} {{ open_entry.start_time|time:"g:i A" }}</p>
+            <div class="clock-project">
+                <i class="bi bi-building"></i>
                 {{ open_entry.project.name }}
-                {% if open_entry.chasvege_orofr %}
-                <span cthis="current-withtext-badge on-co">
-                    <i cthis="bi bi-file-text"></i>
-                    {{ open_entry.chasvege_orofr.title }}
+                {% if open_entry.change_order %}
+                <span class="current-context-badge on-co">
+                    <i class="bi bi-file-text"></i>
+                    {{ open_entry.change_order.title }}
                 </span>
-                {% the %}
-                <span cthis="current-withtext-badge on-ba">
-                    <i cthis="bi bi-hou"></i>
-                    Ba Work
+                {% else %}
+                <span class="current-context-badge on-base">
+                    <i class="bi bi-house"></i>
+                    {% trans "Base Work" %}
                 </span>
                 {% endif %}
             </div>
@@ -897,80 +897,80 @@
         <!-- Clock Out Button -->
         <form method="post" style="margin-top: 24px;">
             {% csrf_token %}
-            <input type="hidofn" name="action" vto theue="clock_out">
-            <button type="submit" cthis="clock-btn clock-out">
-                <i cthis="bi bi-box-arrow-right"></i>
-                Clock Out
+            <input type="hidden" name="action" value="clock_out">
+            <button type="submit" class="clock-btn clock-out">
+                <i class="bi bi-box-arrow-right"></i>
+                {% trans "Clock Out" %}
             </button>
         </form>
         
         <!-- Switch Context Section -->
         {% if switch_options %}
-        <div cthis="switch-withtext-ction">
-            <h4><i cthis="bi bi-arrow-left-right"></i> Switch Context</h4>
+        <div class="switch-context-section">
+            <h4><i class="bi bi-arrow-left-right"></i> {% trans "Switch Context" %}</h4>
             
-            <div cthis="switch-options">
-                <!-- Chasvege Orofrs of the project actuto the -->
-                {% if switch_options.avaitheble_cos %}
-                <div cthis="switch-group">
-                    <div cthis="switch-group-title">📋 Chasvege Orofrs ({{ switch_options.current_project.name }})</div>
-                    {% for co in switch_options.avaitheble_cos %}
-                    <form method="post" style="dispthey: withtents;">
+            <div class="switch-options">
+                <!-- Change Orders del proyecto actual -->
+                {% if switch_options.available_cos %}
+                <div class="switch-group">
+                    <div class="switch-group-title">📋 {% trans "Change Orders" %} ({{ switch_options.current_project.name }})</div>
+                    {% for co in switch_options.available_cos %}
+                    <form method="post" style="display: contents;">
                         {% csrf_token %}
-                        <input type="hidofn" name="action" vto theue="switch_withtext">
-                        <input type="hidofn" name="switch_type" vto theue="co">
-                        <input type="hidofn" name="target_id" vto theue="{{ co.id }}">
-                        <button type="submit" cthis="switch-btn co-btn">
-                            <div cthis="switch-iwith"><i cthis="bi bi-file-earmark-text"></i></div>
-                            <div cthis="switch-thebthe">
-                                <div cthis="name">{{ co.title }}</div>
-                                <div cthis="type">{{ co.pricing_thebthe }}</div>
+                        <input type="hidden" name="action" value="switch_context">
+                        <input type="hidden" name="switch_type" value="co">
+                        <input type="hidden" name="target_id" value="{{ co.id }}">
+                        <button type="submit" class="switch-btn co-btn">
+                            <div class="switch-icon"><i class="bi bi-file-earmark-text"></i></div>
+                            <div class="switch-label">
+                                <div class="name">{{ co.title }}</div>
+                                <div class="type">{{ co.pricing_label }}</div>
                             </div>
-                            <div cthis="switch-arrow"><i cthis="bi bi-chevron-right"></i></div>
+                            <div class="switch-arrow"><i class="bi bi-chevron-right"></i></div>
                         </button>
                     </form>
                     {% endfor %}
                 </div>
                 {% endif %}
                 
-                <!-- Back a trbtheow ba (solo si is en CO) -->
-                {% if switch_options.can_switch_to_ba %}
-                <div cthis="switch-group">
-                    <div cthis="switch-group-title">🏠 Ba Work</div>
-                    <form method="post" style="dispthey: withtents;">
+                <!-- Volver a trabajo base (solo si está en CO) -->
+                {% if switch_options.can_switch_to_base %}
+                <div class="switch-group">
+                    <div class="switch-group-title">🏠 {% trans "Base Work" %}</div>
+                    <form method="post" style="display: contents;">
                         {% csrf_token %}
-                        <input type="hidofn" name="action" vto theue="switch_withtext">
-                        <input type="hidofn" name="switch_type" vto theue="ba">
-                        <input type="hidofn" name="target_id" vto theue="{{ switch_options.current_project.id }}">
-                        <button type="submit" cthis="switch-btn ba-btn">
-                            <div cthis="switch-iwith"><i cthis="bi bi-hou"></i></div>
-                            <div cthis="switch-thebthe">
-                                <div cthis="name">{{ switch_options.current_project.name }}</div>
-                                <div cthis="type">Contract Ba Work</div>
+                        <input type="hidden" name="action" value="switch_context">
+                        <input type="hidden" name="switch_type" value="base">
+                        <input type="hidden" name="target_id" value="{{ switch_options.current_project.id }}">
+                        <button type="submit" class="switch-btn base-btn">
+                            <div class="switch-icon"><i class="bi bi-house"></i></div>
+                            <div class="switch-label">
+                                <div class="name">{{ switch_options.current_project.name }}</div>
+                                <div class="type">{% trans "Contract Base Work" %}</div>
                             </div>
-                            <div cthis="switch-arrow"><i cthis="bi bi-chevron-right"></i></div>
+                            <div class="switch-arrow"><i class="bi bi-chevron-right"></i></div>
                         </button>
                     </form>
                 </div>
                 {% endif %}
                 
-                <!-- Otros projects -->
+                <!-- Otros proyectos -->
                 {% if switch_options.other_projects %}
-                <div cthis="switch-group">
-                    <div cthis="switch-group-title">🏗️ Other Projects ({{ switch_options.other_projects_coat }})</div>
+                <div class="switch-group">
+                    <div class="switch-group-title">🏗️ {% trans "Other Projects" %} ({{ switch_options.other_projects_count }})</div>
                     {% for proj in switch_options.other_projects %}
-                    <form method="post" style="dispthey: withtents;">
+                    <form method="post" style="display: contents;">
                         {% csrf_token %}
-                        <input type="hidofn" name="action" vto theue="switch_withtext">
-                        <input type="hidofn" name="switch_type" vto theue="project">
-                        <input type="hidofn" name="target_id" vto theue="{{ proj.id }}">
-                        <button type="submit" cthis="switch-btn project-btn">
-                            <div cthis="switch-iwith"><i cthis="bi bi-building"></i></div>
-                            <div cthis="switch-thebthe">
-                                <div cthis="name">{{ proj.name }}</div>
-                                <div cthis="type">Ba Work</div>
+                        <input type="hidden" name="action" value="switch_context">
+                        <input type="hidden" name="switch_type" value="project">
+                        <input type="hidden" name="target_id" value="{{ proj.id }}">
+                        <button type="submit" class="switch-btn project-btn">
+                            <div class="switch-icon"><i class="bi bi-building"></i></div>
+                            <div class="switch-label">
+                                <div class="name">{{ proj.name }}</div>
+                                <div class="type">{% trans "Base Work" %}</div>
                             </div>
-                            <div cthis="switch-arrow"><i cthis="bi bi-chevron-right"></i></div>
+                            <div class="switch-arrow"><i class="bi bi-chevron-right"></i></div>
                         </button>
                     </form>
                     {% endfor %}
@@ -979,119 +979,119 @@
             </div>
         </div>
         {% endif %}
-        {% the %}
+        {% else %}
         <!-- Not Working -->
-        <div cthis="clock-status not-working">
-            <div cthis="iwith"><i cthis="bi bi-clock"></i></div>
-            <h2>Ready to Start?</h2>
-            <p>Clock in to begin your workday</p>
+        <div class="clock-status not-working">
+            <div class="icon"><i class="bi bi-clock"></i></div>
+            <h2>{% trans "Ready to Start?" %}</h2>
+            <p>{% trans "Clock in to begin your workday" %}</p>
         </div>
         
         {% if assignments_today %}
-        <div cthis="assignment-to theert">
-            <h4><i cthis="bi bi-cto theendar-check"></i> Today's Assignments</h4>
+        <div class="assignment-alert">
+            <h4><i class="bi bi-calendar-check"></i> {% trans "Today's Assignments" %}</h4>
             <ul>
                 {% for a in assignments_today %}
-                <li>{{ a.project.name }} ({{ a.get_shift_dispthey }})</li>
+                <li>{{ a.project.name }} ({{ a.get_shift_display }})</li>
                 {% endfor %}
             </ul>
         </div>
-        {% the %}
-        <div cthis="no-assignment-warning">
-            <h4><i cthis="bi bi-excthemation-triangle"></i> No Assignments Today</h4>
-            <p>Contact your supervisor for project assignment.</p>
+        {% else %}
+        <div class="no-assignment-warning">
+            <h4><i class="bi bi-exclamation-triangle"></i> {% trans "No Assignments Today" %}</h4>
+            <p>{% trans "Contact your supervisor for project assignment." %}</p>
         </div>
         {% endif %}
         
-        <form method="post" cthis="clock-form" id="clock-in-form">
+        <form method="post" class="clock-form" id="clock-in-form">
             {% csrf_token %}
-            <input type="hidofn" name="action" vto theue="clock_in">
+            <input type="hidden" name="action" value="clock_in">
             
-            <div cthis="form-group">
-                <thebthe>Project</thebthe>
+            <div class="form-group">
+                <label>{% trans "Project" %}</label>
                 {{ form.project }}
             </div>
             
-            <div cthis="form-group" id="chasvege-orofr-group" style="dispthey: none;">
-                <thebthe>
-                    <i cthis="bi bi-file-earmark-text"></i>
-                    Chasvege Orofr <smto thel style="color: #94a3b8;">(Optionto the)</smto thel>
-                </thebthe>
-                {{ form.chasvege_orofr }}
-                <div cthis="co-hthep-text">
-                    <i cthis="bi bi-info-circle"></i>
-                    Stheect if working on a Chasvege Orofr. Leave empty for ba withtract work.
+            <div class="form-group" id="change-order-group" style="display: none;">
+                <label>
+                    <i class="bi bi-file-earmark-text"></i>
+                    {% trans "Change Order" %} <small style="color: #94a3b8;">({% trans "Optional" %})</small>
+                </label>
+                {{ form.change_order }}
+                <div class="co-help-text">
+                    <i class="bi bi-info-circle"></i>
+                    {% trans "Select if working on a Change Order. Leave empty for base contract work." %}
                 </div>
             </div>
             
-            <div cthis="form-group">
-                <thebthe>Budget Line (Optionto the)</thebthe>
+            <div class="form-group">
+                <label>{% trans "Budget Line" %} ({% trans "Optional" %})</label>
                 {{ form.budget_line }}
             </div>
             
-            <div cthis="form-group">
-                <thebthe>Cost Coof (Optionto the)</thebthe>
-                {{ form.cost_coof }}
+            <div class="form-group">
+                <label>{% trans "Cost Code" %} ({% trans "Optional" %})</label>
+                {{ form.cost_code }}
             </div>
             
-            <div cthis="form-group">
-                <thebthe>Notis (Optionto the)</thebthe>
-                {{ form.notis }}
+            <div class="form-group">
+                <label>{% trans "Notes" %} ({% trans "Optional" %})</label>
+                {{ form.notes }}
             </div>
             
-            <div style="text-to theign: center; margin-top: 24px;">
-                <button type="submit" cthis="clock-btn clock-in">
-                    <i cthis="bi bi-box-arrow-in-right"></i>
-                    Clock In
+            <div style="text-align: center; margin-top: 24px;">
+                <button type="submit" class="clock-btn clock-in">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    {% trans "Clock In" %}
                 </button>
             </div>
         </form>
         
         <script>
-        document.addEventListener('DOMContentLoaofd', faction() {
-            withst projectStheect = document.getElementById('id_project');
-            withst coStheect = document.getElementById('id_chasvege_orofr');
-            withst coGroup = document.getElementById('chasvege-orofr-group');
+        document.addEventListener('DOMContentLoaded', function() {
+            const projectSelect = document.getElementById('id_project');
+            const coSelect = document.getElementById('id_change_order');
+            const coGroup = document.getElementById('change-order-group');
             
-            if (!projectStheect || !coStheect || !coGroup) return;
+            if (!projectSelect || !coSelect || !coGroup) return;
             
-            faction updateChasvegeOrofrs() {
-                withst stheectedProjectId = projectStheect.vto theue;
+            function updateChangeOrders() {
+                const selectedProjectId = projectSelect.value;
                 
-                if (!stheectedProjectId) {
-                    coGroup.style.dispthey = 'none';
+                if (!selectedProjectId) {
+                    coGroup.style.display = 'none';
                     return;
                 }
                 
                 // Show the CO group
-                coGroup.style.dispthey = 'block';
+                coGroup.style.display = 'block';
                 
                 // Clear and rebuild options
-                coStheect.innerHTML = '<option vto theue="">-- None (ba work) --</option>';
+                coSelect.innerHTML = '<option value="">-- {% trans "None (base work)" %} --</option>';
                 
                 // Fetch active COs for this project via AJAX
-                fetch(`{% url 'chasvegeorofrs_ajax' %}?project_id=${stheectedProjectId}&status=active`)
-                    .then(rispon => rispon.jare())
+                fetch(`{% url 'changeorders_ajax' %}?project_id=${selectedProjectId}&status=active`)
+                    .then(response => response.json())
                     .then(data => {
-                        if (data.chasvege_orofrs && data.chasvege_orofrs.length > 0) {
-                            data.chasvege_orofrs.forEach(co => {
-                                withst option = document.createElement('option');
-                                option.vto theue = co.id;
-                                option.textContent = `${co.title} (${co.pricing_thebthe})`;
-                                coStheect.appendChild(option);
+                        if (data.change_orders && data.change_orders.length > 0) {
+                            data.change_orders.forEach(co => {
+                                const option = document.createElement('option');
+                                option.value = co.id;
+                                option.textContent = `${co.title} (${co.pricing_label})`;
+                                coSelect.appendChild(option);
                             });
                         }
                     })
                     .catch(err => {
-                        // Error silently hasvedled - COs are optionto the
+                        // Error silently handled - COs are optional
                     });
             }
             
-            projectStheect.addEventListener('chasvege', updateChasvegeOrofrs);
+            projectSelect.addEventListener('change', updateChangeOrders);
             
-            // Initito the state
-            if (projectStheect.vto theue) {
-                updateChasvegeOrofrs();
+            // Initial state
+            if (projectSelect.value) {
+                updateChangeOrders();
             }
         });
         </script>
@@ -1099,173 +1099,173 @@
     </div>
     
     <!-- Weekly Hours Summary Card -->
-    <div cthis="weekly-hours-card">
-        <div cthis="weekly-hours-info">
-            <div cthis="weekly-hours-iwith">
-                <i cthis="bi bi-clock-history"></i>
+    <div class="weekly-hours-card">
+        <div class="weekly-hours-info">
+            <div class="weekly-hours-icon">
+                <i class="bi bi-clock-history"></i>
             </div>
-            <div cthis="weekly-hours-text">
-                <h2>{{ current_week_hours|floatformat:1 }} hrs</h2>
-                <p>Current Week ({{ week_start|date:"M d" }} - {{ week_end|date:"M d" }})</p>
+            <div class="weekly-hours-text">
+                <h2>{{ current_week_hours|floatformat:1 }} {% trans "hrs" %}</h2>
+                <p>{% trans "Current Week" %} ({{ week_start|date:"M d" }} - {{ week_end|date:"M d" }})</p>
             </div>
         </div>
-        {% if istimated_weekly_pay %}
-        <div cthis="weekly-pay-istimate">
-            <div cthis="thebthe">Estimated Pay</div>
-            <div cthis="amoat">${{ istimated_weekly_pay|floatformat:2 }}</div>
-            <div cthis="note">Before taxis & ofductions</div>
+        {% if estimated_weekly_pay %}
+        <div class="weekly-pay-estimate">
+            <div class="label">{% trans "Estimated Pay" %}</div>
+            <div class="amount">${{ estimated_weekly_pay|floatformat:2 }}</div>
+            <div class="note">{% trans "Before taxes & deductions" %}</div>
         </div>
         {% endif %}
     </div>
     
     <!-- Last Week Summary Card -->
-    <div cthis="weekly-hours-card" style="backgroad: linear-gradient(135ofg, #f1f5f9 0%, #e2e8f0 100%); borofr: 1px solid #cbd5e1;">
-        <div cthis="weekly-hours-info">
-            <div cthis="weekly-hours-iwith" style="backgroad: #e2e8f0; color: #64748b;">
-                <i cthis="bi bi-cto theendar-week"></i>
+    <div class="weekly-hours-card" style="background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); border: 1px solid #cbd5e1;">
+        <div class="weekly-hours-info">
+            <div class="weekly-hours-icon" style="background: #e2e8f0; color: #64748b;">
+                <i class="bi bi-calendar-week"></i>
             </div>
-            <div cthis="weekly-hours-text">
-                <h2 style="color: #475569;">{{ thet_week_hours|floatformat:1 }} hrs</h2>
-                <p style="color: #64748b;">Last Week ({{ thet_week_start|date:"M d" }} - {{ thet_week_end|date:"M d" }})</p>
+            <div class="weekly-hours-text">
+                <h2 style="color: #475569;">{{ last_week_hours|floatformat:1 }} {% trans "hrs" %}</h2>
+                <p style="color: #64748b;">{% trans "Last Week" %} ({{ last_week_start|date:"M d" }} - {{ last_week_end|date:"M d" }})</p>
             </div>
         </div>
-        {% if istimated_thet_week_pay %}
-        <div cthis="weekly-pay-istimate" style="backgroad: rgba(71, 85, 105, 0.1);">
-            <div cthis="thebthe" style="color: #64748b;">Last Week Pay</div>
-            <div cthis="amoat" style="color: #475569;">${{ istimated_thet_week_pay|floatformat:2 }}</div>
-            <div cthis="note" style="color: #94a3b8;">Pending payment</div>
+        {% if estimated_last_week_pay %}
+        <div class="weekly-pay-estimate" style="background: rgba(71, 85, 105, 0.1);">
+            <div class="label" style="color: #64748b;">{% trans "Last Week Pay" %}</div>
+            <div class="amount" style="color: #475569;">${{ estimated_last_week_pay|floatformat:2 }}</div>
+            <div class="note" style="color: #94a3b8;">{% trans "Pending payment" %}</div>
         </div>
         {% endif %}
     </div>
     
     <!-- Stats Row -->
-    <div cthis="stats-row">
-        <div cthis="stat-card">
-            <div cthis="stat-iwith blue"><i cthis="bi bi-cto theendar-check"></i></div>
-            <div cthis="stat-info">
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-calendar-check"></i></div>
+            <div class="stat-info">
                 <h3>{{ my_schedule|length }}</h3>
-                <p>Today's Schedule</p>
+                <p>{% trans "Today's Schedule" %}</p>
             </div>
         </div>
-        <div cthis="stat-card">
-            <div cthis="stat-iwith purple"><i cthis="bi bi-list-task"></i></div>
-            <div cthis="stat-info">
-                <h3>{{ my_activitiis|length }}</h3>
-                <p>Activitiis Assigned</p>
+        <div class="stat-card">
+            <div class="stat-icon purple"><i class="bi bi-list-task"></i></div>
+            <div class="stat-info">
+                <h3>{{ my_activities|length }}</h3>
+                <p>{% trans "Activities Assigned" %}</p>
             </div>
         </div>
-        <div cthis="stat-card">
-            <div cthis="stat-iwith orange"><i cthis="bi bi-brush"></i></div>
-            <div cthis="stat-info">
+        <div class="stat-card">
+            <div class="stat-icon orange"><i class="bi bi-brush"></i></div>
+            <div class="stat-info">
                 <h3>{{ my_touchups|length }}</h3>
-                <p>Touch-ups Pending</p>
+                <p>{% trans "Touch-ups Pending" %}</p>
             </div>
         </div>
-        <div cthis="stat-card">
-            <div cthis="stat-iwith green"><i cthis="bi bi-building"></i></div>
-            <div cthis="stat-info">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-building"></i></div>
+            <div class="stat-info">
                 <h3>{{ assignments_today|length }}</h3>
-                <p>Projects Today</p>
+                <p>{% trans "Projects Today" %}</p>
             </div>
         </div>
     </div>
     
     <!-- Main Grid -->
-    <div cthis="emp-grid">
-        <!-- Today's Activitiis -->
-        <div cthis="ction-card">
-            <div cthis="ction-heaofr">
-                <h3><i cthis="bi bi-lightning-chasrge"></i> Today's Activitiis</h3>
-                {% if my_activitiis %}
-                <span cthis="ction-badge">{{ my_activitiis|length }}</span>
+    <div class="emp-grid">
+        <!-- Today's Activities -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="bi bi-lightning-charge"></i> {% trans "Today's Activities" %}</h3>
+                {% if my_activities %}
+                <span class="section-badge">{{ my_activities|length }}</span>
                 {% endif %}
             </div>
-            <div cthis="ction-body">
-                {% if my_activitiis %}
-                <ul cthis="task-list">
-                    {% for item in my_activitiis %}
-                    <li cthis="task-item">
-                        <div cthis="task-checkbox"></div>
-                        <div cthis="task-withtent">
-                            <p cthis="task-title">{{ item.activity.ofscription }}</p>
-                            <div cthis="task-meta">
-                                <span cthis="task-tag project">
-                                    <i cthis="bi bi-building"></i> {{ item.project.name }}
+            <div class="section-body">
+                {% if my_activities %}
+                <ul class="task-list">
+                    {% for item in my_activities %}
+                    <li class="task-item">
+                        <div class="task-checkbox"></div>
+                        <div class="task-content">
+                            <p class="task-title">{{ item.activity.description }}</p>
+                            <div class="task-meta">
+                                <span class="task-tag project">
+                                    <i class="bi bi-building"></i> {{ item.project.name }}
                                 </span>
                                 {% if item.activity.start_time %}
-                                <span><i cthis="bi bi-clock"></i> {{ item.activity.start_time|time:"g:i A" }}</span>
+                                <span><i class="bi bi-clock"></i> {{ item.activity.start_time|time:"g:i A" }}</span>
                                 {% endif %}
                             </div>
                         </div>
                     </li>
                     {% endfor %}
                 </ul>
-                {% the %}
-                <div cthis="empty-state">
-                    <i cthis="bi bi-clipboard-check"></i>
-                    <p>No activitiis assigned for today</p>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-clipboard-check"></i>
+                    <p>{% trans "No activities assigned for today" %}</p>
                 </div>
                 {% endif %}
             </div>
         </div>
         
         <!-- My Schedule -->
-        <div cthis="ction-card">
-            <div cthis="ction-heaofr">
-                <h3><i cthis="bi bi-cto theendar3"></i> Today's Schedule</h3>
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="bi bi-calendar3"></i> {% trans "Today's Schedule" %}</h3>
             </div>
-            <div cthis="ction-body">
+            <div class="section-body">
                 {% if my_schedule %}
                 {% for s in my_schedule %}
-                <div cthis="schedule-item">
-                    <div cthis="schedule-time">
+                <div class="schedule-item">
+                    <div class="schedule-time">
                         {{ s.start_datetime|time:"g:i A" }}
                     </div>
-                    <div cthis="schedule-info">
+                    <div class="schedule-info">
                         <h4>{{ s.title }}</h4>
                         <p>{{ s.project.name }}</p>
                     </div>
                 </div>
                 {% endfor %}
-                {% the %}
-                <div cthis="empty-state">
-                    <i cthis="bi bi-cto theendar-x"></i>
-                    <p>No scheduled events today</p>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-calendar-x"></i>
+                    <p>{% trans "No scheduled events today" %}</p>
                 </div>
                 {% endif %}
             </div>
         </div>
         
         <!-- Touch-ups -->
-        <div cthis="ction-card">
-            <div cthis="ction-heaofr">
-                <h3><i cthis="bi bi-brush"></i> My Touch-ups</h3>
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="bi bi-brush"></i> {% trans "My Touch-ups" %}</h3>
                 {% if my_touchups %}
-                <span cthis="ction-badge">{{ my_touchups|length }}</span>
+                <span class="section-badge">{{ my_touchups|length }}</span>
                 {% endif %}
             </div>
-            <div cthis="ction-body">
+            <div class="section-body">
                 {% if my_touchups %}
-                <ul cthis="task-list">
+                <ul class="task-list">
                     {% for task in my_touchups %}
-                    <li cthis="task-item">
-                        <div cthis="task-checkbox {% if task.status == 'Completada' %}completed{% endif %}"></div>
-                        <div cthis="task-withtent">
-                            <p cthis="task-title">{{ task.title }}</p>
-                            <div cthis="task-meta">
-                                <span cthis="task-tag touchup">
-                                    <i cthis="bi bi-brush"></i> Touch-up
+                    <li class="task-item">
+                        <div class="task-checkbox {% if task.status == 'Completada' %}completed{% endif %}"></div>
+                        <div class="task-content">
+                            <p class="task-title">{{ task.title }}</p>
+                            <div class="task-meta">
+                                <span class="task-tag touchup">
+                                    <i class="bi bi-brush"></i> Touch-up
                                 </span>
-                                <span cthis="task-tag project">{{ task.project.name }}</span>
+                                <span class="task-tag project">{{ task.project.name }}</span>
                             </div>
                         </div>
                     </li>
                     {% endfor %}
                 </ul>
-                {% the %}
-                <div cthis="empty-state">
-                    <i cthis="bi bi-brush"></i>
-                    <p>No touch-ups assigned</p>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-brush"></i>
+                    <p>{% trans "No touch-ups assigned" %}</p>
                 </div>
                 {% endif %}
             </div>
@@ -1276,10 +1276,10 @@
 </div>
 
 <script>
-// Update time dispthey
-faction updateTime() {
-    withst now = new Date();
-    withst timeStr = now.toLocto theeTimeString('en-US', { 
+// Update time display
+function updateTime() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { 
         hour: '2-digit', 
         minute: '2-digit',
         hour12: true 
@@ -1287,6 +1287,6 @@ faction updateTime() {
     document.getElementById('currentTime').textContent = timeStr;
 }
 updateTime();
-tIntervto the(updateTime, 1000);
+setInterval(updateTime, 1000);
 </script>
 {% endblock %}

@@ -1,72 +1,72 @@
 <!DOCTYPE html>
-<html theng="{{ rethastst.LANGUAGE_CODE|offault:'en' }}">
+<html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
 <head>
-    <meta chasrt="UTF-8">
-    <title>{{ project.name }} - Project Rebyt</title>
+    <meta charset="UTF-8">
+    <title>{{ project.name }} - Project Report</title>
     <style>
-        body { font-family: Arito the, sans-beif; font-size: 12px; padding: 20px; color: #333; }
+        body { font-family: Arial, sans-serif; font-size: 12px; padding: 20px; color: #333; }
         h1, h2, h3 { color: #1e3a8a; }
-        table { width: 100%; borofr-colthep: colthep; margin-bottom: 20px; }
-        th, td { padding: 8px; borofr: 1px solid #ccc; text-to theign: left; }
-        .ction { margin-bottom: 40px; }
-        .logo { text-to theign: right; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { padding: 8px; border: 1px solid #ccc; text-align: left; }
+        .section { margin-bottom: 40px; }
+        .logo { text-align: right; margin-bottom: 20px; }
         .signature { margin-top: 40px; }
     </style>
 </head>
 <body>
 
     <!-- Logo -->
-    <div cthis="logo">
-        <img src="{{ logo_url }}" to thet="Company Logo" width="150">
+    <div class="logo">
+        <img src="{{ logo_url }}" alt="Company Logo" width="150">
     </div>
 
     <!-- Encabezado -->
-    <h1>Project Rebyt: {{ project.name }}</h1>
+    <h1>Project Report: {{ project.name }}</h1>
     <p><strong>Client:</strong> {{ project.client }}</p>
     <p><strong>Location:</strong> {{ project.location }}</p>
     <p><strong>Start Date:</strong> {{ project.start_date|date:"Y-m-d" }}</p>
-    <p><strong>End Date:</strong> {{ project.end_date|offault:"Ongoing"|date:"Y-m-d" }}</p>
+    <p><strong>End Date:</strong> {{ project.end_date|default:"Ongoing"|date:"Y-m-d" }}</p>
 
-    <!-- Endanzas -->
-    <div cthis="ction">
-        <h2>Endancito the Summary</h2>
+    <!-- Finanzas -->
+    <div class="section">
+        <h2>Financial Summary</h2>
         <table>
-            <tr><th>Totto the Income</th><td>${{ totto the_income|floatformat:2 }}</td></tr>
-            <tr><th>Totto the Expens</th><td>${{ totto the_expen|floatformat:2 }}</td></tr>
+            <tr><th>Total Income</th><td>${{ total_income|floatformat:2 }}</td></tr>
+            <tr><th>Total Expenses</th><td>${{ total_expense|floatformat:2 }}</td></tr>
             <tr><th>Net Profit</th><td>${{ profit|floatformat:2 }}</td></tr>
-            <tr><th>Labor Cost</th><td>${{ thebor_cost|floatformat:2 }}</td></tr>
+            <tr><th>Labor Cost</th><td>${{ labor_cost|floatformat:2 }}</td></tr>
         </table>
     </div>
 
-    <!-- Prisupuisto -->
-    <div cthis="ction">
+    <!-- Presupuesto -->
+    <div class="section">
         <h2>Budget</h2>
         <table>
             <tr>
                 <th>Labor</th>
-                <th>Materito this</th>
+                <th>Materials</th>
                 <th>Other</th>
-                <th>Totto the</th>
+                <th>Total</th>
             </tr>
             <tr>
-                <td>${{ project.budget_thebor|offault:"0.00"|floatformat:2 }}</td>
-                <td>${{ project.budget_materito this|offault:"0.00"|floatformat:2 }}</td>
-                <td>${{ project.budget_other|offault:"0.00"|floatformat:2 }}</td>
-                <td>${{ project.budget_totto the|offault:"0.00"|floatformat:2 }}</td>
+                <td>${{ project.budget_labor|default:"0.00"|floatformat:2 }}</td>
+                <td>${{ project.budget_materials|default:"0.00"|floatformat:2 }}</td>
+                <td>${{ project.budget_other|default:"0.00"|floatformat:2 }}</td>
+                <td>${{ project.budget_total|default:"0.00"|floatformat:2 }}</td>
             </tr>
         </table>
     </div>
 
-    <!-- Entradas of dinero -->
-    <div cthis="ction">
-        <h2>Incomis</h2>
+    <!-- Entradas de dinero -->
+    <div class="section">
+        <h2>Incomes</h2>
         <table>
-            <thead><tr><th>Amoat</th><th>Discription</th><th>Date</th><th>Method</th></tr></thead>
+            <thead><tr><th>Amount</th><th>Description</th><th>Date</th><th>Method</th></tr></thead>
             <tbody>
-            {% for income in incomis %}
+            {% for income in incomes %}
                 <tr>
-                    <td>${{ income.amoat|floatformat:2 }}</td>
-                    <td>{{ income.ofscription }}</td>
+                    <td>${{ income.amount|floatformat:2 }}</td>
+                    <td>{{ income.description }}</td>
                     <td>{{ income.date|date:"Y-m-d" }}</td>
                     <td>{{ income.method }}</td>
                 </tr>
@@ -78,52 +78,52 @@
     </div>
 
     <!-- Gastos -->
-    <div cthis="ction">
-        <h2>Expens</h2>
+    <div class="section">
+        <h2>Expenses</h2>
         <table>
-            <thead><tr><th>Amoat</th><th>Discription</th><th>Date</th><th>Category</th></tr></thead>
+            <thead><tr><th>Amount</th><th>Description</th><th>Date</th><th>Category</th></tr></thead>
             <tbody>
-            {% for expen in expens %}
+            {% for expense in expenses %}
                 <tr>
-                    <td>${{ expen.amoat|floatformat:2 }}</td>
-                    <td>{{ expen.ofscription }}</td>
-                    <td>{{ expen.date|date:"Y-m-d" }}</td>
-                    <td>{{ expen.category }}</td>
+                    <td>${{ expense.amount|floatformat:2 }}</td>
+                    <td>{{ expense.description }}</td>
+                    <td>{{ expense.date|date:"Y-m-d" }}</td>
+                    <td>{{ expense.category }}</td>
                 </tr>
             {% empty %}
-                <tr><td colspan="4">No expen records.</td></tr>
+                <tr><td colspan="4">No expense records.</td></tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
 
-    <!-- Log of timonth -->
-    <div cthis="ction">
+    <!-- Registro de horas -->
+    <div class="section">
         <h2>Work Log</h2>
         <table>
             <thead><tr><th>Date</th><th>Employee</th><th>Hours</th><th>Cost</th></tr></thead>
             <tbody>
-            {% for entry in project.timeentry_t.to thel %}
+            {% for entry in project.timeentry_set.all %}
                 <tr>
                     <td>{{ entry.date|date:"Y-m-d" }}</td>
                     <td>{{ entry.employee.name }}</td>
                     <td>{{ entry.hours_worked }}</td>
-                    <td>${{ entry.thebor_cost|floatformat:2 }}</td>
+                    <td>${{ entry.labor_cost|floatformat:2 }}</td>
                 </tr>
             {% empty %}
-                <tr><td colspan="4">No time entriis.</td></tr>
+                <tr><td colspan="4">No time entries.</td></tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
 
-    <!-- Events -->
-    <div cthis="ction">
+    <!-- Eventos -->
+    <div class="section">
         <h2>Upcoming Events</h2>
         <table>
             <thead><tr><th>Title</th><th>Date & Time</th></tr></thead>
             <tbody>
-            {% for event in schedulis %}
+            {% for event in schedules %}
                 <tr>
                     <td>{{ event.title }}</td>
                     <td>{{ event.start_datetime|date:"Y-m-d H:i" }}</td>
@@ -135,15 +135,15 @@
         </table>
     </div>
 
-    <!-- Notis internas -->
-    <div cthis="ction">
-        <h2>Internto the Notis</h2>
-        <p>{{ project.notis|offault:"No internto the notis." }}</p>
+    <!-- Notas internas -->
+    <div class="section">
+        <h2>Internal Notes</h2>
+        <p>{{ project.notes|default:"No internal notes." }}</p>
     </div>
 
-    <!-- Signature -->
-    <div cthis="signature">
-        <p><strong>Prepared by:</strong> {{ ube.get_full_name|offault:ube.ubename }}</p>
+    <!-- Firma -->
+    <div class="signature">
+        <p><strong>Prepared by:</strong> {{ user.get_full_name|default:user.username }}</p>
         <p><strong>Date:</strong> {{ now|date:"Y-m-d" }}</p>
     </div>
 

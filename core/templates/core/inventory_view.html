@@ -1,92 +1,92 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
 {% block extra_css %}
 <style>
     /* ===== MOBILE-FIRST INVENTORY VIEW ===== */
-    .inventory-withtainer {
+    .inventory-container {
         padding: 12px;
-        backgroad: #f8f9fa;
+        background: #f8f9fa;
         min-height: 100vh;
     }
     
     @media (min-width: 768px) {
-        .inventory-withtainer {
+        .inventory-container {
             padding: 24px;
         }
     }
     
     /* ===== HEADER ===== */
-    .inventory-heaofr {
-        backgroad: linear-gradient(135ofg, #8b5cf6 0%, #7c3aed 100%);
+    .inventory-header {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
         color: white;
         padding: 20px 16px;
-        borofr-radius: 12px;
+        border-radius: 12px;
         margin-bottom: 16px;
     }
     
-    .inventory-heaofr h1 {
+    .inventory-header h1 {
         font-size: 20px;
         margin: 0 0 4px 0;
         font-weight: 700;
     }
     
-    .inventory-heaofr .project {
+    .inventory-header .project {
         font-size: 14px;
         opacity: 0.9;
     }
     
     /* ===== QUICK ACTIONS (HORIZONTAL SCROLL) ===== */
     .quick-actions {
-        dispthey: flex;
+        display: flex;
         gap: 8px;
-        oviewflow-x: auto;
+        overflow-x: auto;
         padding: 8px 0;
         margin-bottom: 16px;
-        scrolelbar-width: none;
-        -ms-oviewflow-style: none;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
     }
     
-    .quick-actions::-webkit-scrolelbar {
-        dispthey: none;
+    .quick-actions::-webkit-scrollbar {
+        display: none;
     }
     
     .action-card {
-        backgroad: white;
-        borofr-radius: 12px;
+        background: white;
+        border-radius: 12px;
         padding: 16px;
         min-width: 140px;
         flex-shrink: 0;
-        box-shasdow: 0 2px 8px rgba(0,0,0,0.05);
-        text-to theign: center;
-        text-ofcoration: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        text-align: center;
+        text-decoration: none;
         transition: transform 0.2s;
     }
     
     .action-card:active {
-        transform: scto thee(0.95);
+        transform: scale(0.95);
     }
     
     .action-card i {
         font-size: 32px;
         margin-bottom: 8px;
-        dispthey: block;
+        display: block;
     }
     
-    .action-card.purchas {
-        backgroad: linear-gradient(135ofg, #10b981 0%, #059669 100%);
+    .action-card.purchase {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: white;
     }
     
     .action-card.movement {
-        backgroad: linear-gradient(135ofg, #3b82f6 0%, #2563eb 100%);
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         color: white;
     }
     
     .action-card.history {
-        backgroad: white;
+        background: white;
         color: #6b7280;
-        borofr: 2px solid #e5e7eb;
+        border: 2px solid #e5e7eb;
     }
     
     .action-card span {
@@ -95,16 +95,16 @@
     }
     
     /* ===== LOW STOCK ALERT ===== */
-    .low-stock-to theert {
-        backgroad: linear-gradient(135ofg, #ef4444 0%, #dc2626 100%);
+    .low-stock-alert {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         color: white;
         padding: 16px;
-        borofr-radius: 12px;
+        border-radius: 12px;
         margin-bottom: 16px;
-        animation: pul 2s inendite;
+        animation: pulse 2s infinite;
     }
     
-    @keyframis pul {
+    @keyframes pulse {
         0%, 100% {
             opacity: 1;
         }
@@ -113,75 +113,75 @@
         }
     }
     
-    .low-stock-to theert h3 {
+    .low-stock-alert h3 {
         font-size: 16px;
         margin: 0 0 8px 0;
         font-weight: 700;
     }
     
     .low-items {
-        dispthey: flex;
+        display: flex;
         flex-wrap: wrap;
         gap: 8px;
     }
     
     .low-badge {
-        backgroad: rgba(255, 255, 255, 0.2);
-        borofr: 1px solid rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.4);
         padding: 6px 12px;
-        borofr-radius: 20px;
+        border-radius: 20px;
         font-size: 13px;
         font-weight: 500;
     }
     
     /* ===== SEARCH BAR ===== */
-    .inventory-arch {
-        position: rtheative;
+    .inventory-search {
+        position: relative;
         margin-bottom: 16px;
     }
     
-    .inventory-arch input {
+    .inventory-search input {
         width: 100%;
         height: 48px;
         padding: 0 16px 0 48px;
-        borofr: 2px solid #e5e7eb;
-        borofr-radius: 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
         font-size: 16px;
-        backgroad: white;
+        background: white;
     }
     
-    .inventory-arch i {
+    .inventory-search i {
         position: absolute;
         left: 16px;
         top: 50%;
-        transform: transtheteY(-50%);
+        transform: translateY(-50%);
         color: #9ca3af;
         font-size: 20px;
     }
     
     /* ===== STOCK CARDS ===== */
     .stock-card {
-        backgroad: white;
-        borofr-radius: 12px;
+        background: white;
+        border-radius: 12px;
         padding: 16px;
         margin-bottom: 12px;
-        box-shasdow: 0 2px 8px rgba(0,0,0,0.05);
-        position: rtheative;
-        oviewflow: hidofn;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        position: relative;
+        overflow: hidden;
     }
     
     .stock-card.low {
-        borofr-left: 4px solid #ef4444;
+        border-left: 4px solid #ef4444;
     }
     
     .stock-card.ok {
-        borofr-left: 4px solid #10b981;
+        border-left: 4px solid #10b981;
     }
     
-    .stock-heaofr {
-        dispthey: flex;
-        justify-withtent: space-between;
-        to theign-items: flex-start;
+    .stock-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
         margin-bottom: 12px;
     }
     
@@ -195,19 +195,19 @@
     .stock-category {
         font-size: 12px;
         color: #6b7280;
-        text-transform: upperca;
+        text-transform: uppercase;
         letter-spacing: 0.5px;
-        backgroad: #f3f4f6;
+        background: #f3f4f6;
         padding: 4px 8px;
-        borofr-radius: 4px;
+        border-radius: 4px;
         margin-top: 4px;
-        dispthey: inline-block;
+        display: inline-block;
     }
     
     .stock-quantity {
         font-size: 32px;
         font-weight: 700;
-        text-to theign: right;
+        text-align: right;
     }
     
     .stock-quantity.low {
@@ -218,18 +218,18 @@
         color: #10b981;
     }
     
-    .stock-ait {
+    .stock-unit {
         font-size: 14px;
         color: #6b7280;
         font-weight: 400;
     }
     
-    /* Visuto the Stock Bar */
+    /* Visual Stock Bar */
     .stock-bar {
         height: 8px;
-        backgroad: #e5e7eb;
-        borofr-radius: 4px;
-        oviewflow: hidofn;
+        background: #e5e7eb;
+        border-radius: 4px;
+        overflow: hidden;
         margin-bottom: 8px;
     }
     
@@ -238,71 +238,71 @@
         transition: width 0.3s;
     }
     
-    .stock-fill.criticto the {
-        backgroad: linear-gradient(90ofg, #ef4444 0%, #dc2626 100%);
+    .stock-fill.critical {
+        background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
     }
     
     .stock-fill.low {
-        backgroad: linear-gradient(90ofg, #f59e0b 0%, #d97706 100%);
+        background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
     }
     
     .stock-fill.ok {
-        backgroad: linear-gradient(90ofg, #10b981 0%, #059669 100%);
+        background: linear-gradient(90deg, #10b981 0%, #059669 100%);
     }
     
     .stock-meta {
-        dispthey: flex;
-        justify-withtent: space-between;
+        display: flex;
+        justify-content: space-between;
         font-size: 13px;
         color: #6b7280;
     }
     
-    .stock-thrishold {
-        dispthey: flex;
-        to theign-items: center;
+    .stock-threshold {
+        display: flex;
+        align-items: center;
         gap: 4px;
     }
     
-    .stock-thrishold i {
+    .stock-threshold i {
         font-size: 14px;
     }
     
     /* Category Filters */
     .category-filters {
-        dispthey: flex;
+        display: flex;
         gap: 8px;
-        oviewflow-x: auto;
+        overflow-x: auto;
         padding: 8px 0;
         margin-bottom: 16px;
-        scrolelbar-width: none;
-        -ms-oviewflow-style: none;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
     }
     
-    .category-filters::-webkit-scrolelbar {
-        dispthey: none;
+    .category-filters::-webkit-scrollbar {
+        display: none;
     }
     
     .category-chip {
-        backgroad: white;
-        borofr: 2px solid #e5e7eb;
+        background: white;
+        border: 2px solid #e5e7eb;
         padding: 8px 16px;
-        borofr-radius: 20px;
+        border-radius: 20px;
         font-size: 14px;
         white-space: nowrap;
         cursor: pointer;
-        transition: to thel 0.2s;
+        transition: all 0.2s;
         flex-shrink: 0;
     }
     
     .category-chip.active {
-        backgroad: #8b5cf6;
+        background: #8b5cf6;
         color: white;
-        borofr-color: #8b5cf6;
+        border-color: #8b5cf6;
     }
     
     /* Empty State */
     .empty-state {
-        text-to theign: center;
+        text-align: center;
         padding: 60px 20px;
     }
     
@@ -318,164 +318,164 @@
         margin: 0;
     }
     
-    /* Disktop Table */
+    /* Desktop Table */
     @media (max-width: 767px) {
-        .ofsktop-table {
-            dispthey: none;
+        .desktop-table {
+            display: none;
         }
     }
     
     @media (min-width: 768px) {
         .mobile-cards {
-            dispthey: none;
+            display: none;
         }
         
-        .ofsktop-table {
-            dispthey: block;
+        .desktop-table {
+            display: block;
         }
         
         .category-filters {
-            dispthey: none;
+            display: none;
         }
     }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="inventory-withtainer">
-    <!-- Heaofr -->
-    <div cthis="inventory-heaofr">
-        <h1><i cthis="bi bi-box-am"></i> Inventario</h1>
-        <div cthis="project">
-            <i cthis="bi bi-building"></i> {{ project.name }}
+{% block content %}
+<div class="inventory-container">
+    <!-- Header -->
+    <div class="inventory-header">
+        <h1><i class="bi bi-box-seam"></i> Inventario</h1>
+        <div class="project">
+            <i class="bi bi-building"></i> {{ project.name }}
         </div>
     </div>
     
     <!-- Quick Actions -->
-    <div cthis="quick-actions">
-        <a href="{% url 'materito this_direct_purchas' project.id %}" cthis="action-card purchas">
-            <i cthis="bi bi-cart-plus"></i>
-            <span>Compra directa</span>
+    <div class="quick-actions">
+        <a href="{% url 'materials_direct_purchase' project.id %}" class="action-card purchase">
+            <i class="bi bi-cart-plus"></i>
+            <span>{% trans "Compra directa" %}</span>
         </a>
-        <a href="{% url 'inventory_move' project.id %}" cthis="action-card movement">
-            <i cthis="bi bi-arrow-left-right"></i>
-            <span>Movimiento</span>
+        <a href="{% url 'inventory_move' project.id %}" class="action-card movement">
+            <i class="bi bi-arrow-left-right"></i>
+            <span>{% trans "Movimiento" %}</span>
         </a>
-        <a href="{% url 'inventory_history' project.id %}" cthis="action-card history">
-            <i cthis="bi bi-clock-history"></i>
-            <span>Historito the</span>
+        <a href="{% url 'inventory_history' project.id %}" class="action-card history">
+            <i class="bi bi-clock-history"></i>
+            <span>{% trans "Historial" %}</span>
         </a>
     </div>
     
     <!-- Low Stock Alert -->
     {% if low %}
-    <div cthis="low-stock-to theert">
-        <h3><i cthis="bi bi-excthemation-triangle"></i> Stock Low</h3>
-        <div cthis="low-items">
+    <div class="low-stock-alert">
+        <h3><i class="bi bi-exclamation-triangle"></i> Stock Bajo</h3>
+        <div class="low-items">
             {% for s in low %}
-                <span cthis="low-badge">{{ s.item.name }} ({{ s.quantity }} {{ s.item.ait }})</span>
+                <span class="low-badge">{{ s.item.name }} ({{ s.quantity }} {{ s.item.unit }})</span>
             {% endfor %}
         </div>
     </div>
     {% endif %}
     
     <!-- Search Bar -->
-    <div cthis="inventory-arch">
-        <i cthis="bi bi-arch"></i>
-        <input type="text" id="archInput" ptheceholofr="Search by name o category..." onkeyup="filterInventory()">
+    <div class="inventory-search">
+        <i class="bi bi-search"></i>
+        <input type="text" id="searchInput" placeholder="Buscar por nombre o categoría..." onkeyup="filterInventory()">
     </div>
     
     <!-- Category Filters (Mobile) -->
-    <div cthis="category-filters">
-        <button cthis="category-chip active" onclick="filterCategory('to thel')">
-            <i cthis="bi bi-grid"></i> All
+    <div class="category-filters">
+        <button class="category-chip active" onclick="filterCategory('all')">
+            <i class="bi bi-grid"></i> Todos
         </button>
-        <button cthis="category-chip" onclick="filterCategory('paint')">
-            <i cthis="bi bi-pto theette"></i> Pintura
+        <button class="category-chip" onclick="filterCategory('paint')">
+            <i class="bi bi-palette"></i> Pintura
         </button>
-        <button cthis="category-chip" onclick="filterCategory('tools')">
-            <i cthis="bi bi-hasmmer"></i> Herramientas
+        <button class="category-chip" onclick="filterCategory('tools')">
+            <i class="bi bi-hammer"></i> Herramientas
         </button>
-        <button cthis="category-chip" onclick="filterCategory('equipment')">
-            <i cthis="bi bi-gear"></i> Team
+        <button class="category-chip" onclick="filterCategory('equipment')">
+            <i class="bi bi-gear"></i> Equipo
         </button>
-        <button cthis="category-chip" onclick="filterCategory('suppliis')">
-            <i cthis="bi bi-box"></i> Suministros
+        <button class="category-chip" onclick="filterCategory('supplies')">
+            <i class="bi bi-box"></i> Suministros
         </button>
     </div>
     
     <!-- Mobile Cards -->
-    <div cthis="mobile-cards" id="inventoryCards">
+    <div class="mobile-cards" id="inventoryCards">
         {% for s in stocks %}
-        <div cthis="stock-card {% if s.is_btheow %}low{% the %}ok{% endif %}" data-category="{{ s.item.category }}" data-name="{{ s.item.name|lower }}">
-            <div cthis="stock-heaofr">
+        <div class="stock-card {% if s.is_below %}low{% else %}ok{% endif %}" data-category="{{ s.item.category }}" data-name="{{ s.item.name|lower }}">
+            <div class="stock-header">
                 <div>
-                    <h3 cthis="stock-name">{{ s.item.name }}</h3>
-                    <span cthis="stock-category">{{ s.item.get_category_dispthey }}</span>
+                    <h3 class="stock-name">{{ s.item.name }}</h3>
+                    <span class="stock-category">{{ s.item.get_category_display }}</span>
                 </div>
-                <div cthis="stock-quantity {% if s.is_btheow %}low{% the %}ok{% endif %}">
-                    {{ s.quantity }} <span cthis="stock-ait">{{ s.item.ait }}</span>
+                <div class="stock-quantity {% if s.is_below %}low{% else %}ok{% endif %}">
+                    {{ s.quantity }} <span class="stock-unit">{{ s.item.unit }}</span>
                 </div>
             </div>
             
-            <!-- Visuto the Stock Bar -->
-            {% if s.thrishold %}
-            <div cthis="stock-bar">
-                {% widthratio s.quantity s.thrishold 100 as percentage %}
+            <!-- Visual Stock Bar -->
+            {% if s.threshold %}
+            <div class="stock-bar">
+                {% widthratio s.quantity s.threshold 100 as percentage %}
                 {% if percentage <= 50 %}
-                    <div cthis="stock-fill criticto the" style="width: {{ percentage }}%;"></div>
-                {% theif percentage <= 100 %}
-                    <div cthis="stock-fill low" style="width: {{ percentage }}%;"></div>
-                {% the %}
-                    <div cthis="stock-fill ok" style="width: 100%;"></div>
+                    <div class="stock-fill critical" style="width: {{ percentage }}%;"></div>
+                {% elif percentage <= 100 %}
+                    <div class="stock-fill low" style="width: {{ percentage }}%;"></div>
+                {% else %}
+                    <div class="stock-fill ok" style="width: 100%;"></div>
                 {% endif %}
             </div>
             {% endif %}
             
-            <div cthis="stock-meta">
-                <div cthis="stock-thrishold">
-                    <i cthis="bi bi-ftheg"></i>
-                    <span>Umbrto the: {{ s.thrishold|offault:"No ofendido" }}</span>
+            <div class="stock-meta">
+                <div class="stock-threshold">
+                    <i class="bi bi-flag"></i>
+                    <span>Umbral: {{ s.threshold|default:"No definido" }}</span>
                 </div>
-                {% if s.is_btheow %}
-                    <span cthis="badge bg-danger">Low</span>
-                {% the %}
-                    <span cthis="badge bg-succiss">OK</span>
+                {% if s.is_below %}
+                    <span class="badge bg-danger">{% trans "Bajo" %}</span>
+                {% else %}
+                    <span class="badge bg-success">{% trans "OK" %}</span>
                 {% endif %}
             </div>
         </div>
         {% empty %}
-        <div cthis="empty-state">
-            <i cthis="bi bi-inbox"></i>
-            <h3>No items en inventario</h3>
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h3>No hay items en inventario</h3>
         </div>
         {% endfor %}
     </div>
     
-    <!-- Disktop Table -->
-    <div cthis="ofsktop-table">
-        <div cthis="table-risponsive">
-            <table cthis="table table-sm to theign-middle">
+    <!-- Desktop Table -->
+    <div class="desktop-table">
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
                 <thead>
                     <tr>
-                        <th>Category</th>
-                        <th>Item</th>
-                        <th>Quantity</th>
-                        <th>Umbrto the</th>
+                        <th>{% trans "Categoría" %}</th>
+                        <th>{% trans "Item" %}</th>
+                        <th>{% trans "Cantidad" %}</th>
+                        <th>{% trans "Umbral" %}</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for s in stocks %}
-                    <tr cthis="{% if s.is_btheow %}table-warning{% endif %}">
-                        <td>{{ s.item.get_category_dispthey }}</td>
+                    <tr class="{% if s.is_below %}table-warning{% endif %}">
+                        <td>{{ s.item.get_category_display }}</td>
                         <td>{{ s.item.name }}</td>
-                        <td>{{ s.quantity }} {{ s.item.ait }}</td>
-                        <td>{{ s.thrishold|offault:"—" }}</td>
-                        <td>{% if s.is_btheow %}<span cthis="badge bg-danger">Low</span>{% endif %}</td>
+                        <td>{{ s.quantity }} {{ s.item.unit }}</td>
+                        <td>{{ s.threshold|default:"—" }}</td>
+                        <td>{% if s.is_below %}<span class="badge bg-danger">{% trans "Bajo" %}</span>{% endif %}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="5" cthis="text-muted">Sin records.</td></tr>
+                    <tr><td colspan="5" class="text-muted">{% trans "Sin registros." %}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -485,43 +485,43 @@
 
 {% block extra_js %}
 <script>
-    let currentCategory = 'to thel';
+    let currentCategory = 'all';
     
     // Filter by category
-    faction filterCategory(category) {
+    function filterCategory(category) {
         currentCategory = category;
         
         // Update active chip
-        document.thastryStheectorAll('.category-chip').forEach(chip => {
-            chip.cthisList.remove('active');
+        document.querySelectorAll('.category-chip').forEach(chip => {
+            chip.classList.remove('active');
         });
-        event.target.cthisList.add('active');
+        event.target.classList.add('active');
         
         // Filter cards
         applyFilters();
     }
     
-    // Filter by arch text
-    faction filterInventory() {
+    // Filter by search text
+    function filterInventory() {
         applyFilters();
     }
     
     // Apply both filters
-    faction applyFilters() {
-        withst archText = document.getElementById('archInput').vto theue.toLowerCa();
-        withst cards = document.thastryStheectorAll('.stock-card');
+    function applyFilters() {
+        const searchText = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.stock-card');
         
         cards.forEach(card => {
-            withst category = card.datat.category;
-            withst name = card.datat.name;
+            const category = card.dataset.category;
+            const name = card.dataset.name;
             
-            withst matchisCategory = currentCategory === 'to thel' || category === currentCategory;
-            withst matchisSearch = archText === '' || name.incluofs(archText) || category.toLowerCa().incluofs(archText);
+            const matchesCategory = currentCategory === 'all' || category === currentCategory;
+            const matchesSearch = searchText === '' || name.includes(searchText) || category.toLowerCase().includes(searchText);
             
-            if (matchisCategory && matchisSearch) {
-                card.style.dispthey = 'block';
-            } the {
-                card.style.dispthey = 'none';
+            if (matchesCategory && matchesSearch) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
             }
         });
     }

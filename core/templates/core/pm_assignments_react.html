@@ -1,6 +1,6 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
-
+{% load i18n %}
 
 {% block title %}PM Assignments{% endblock %}
 
@@ -12,11 +12,11 @@
 </style>
 {% endblock %}
 
-{% block withtent %}
+{% block content %}
 <div id="pm-assignments-root"></div>
 {% endblock %}
 
 {% block extra_js %}
-<!-- PM Assignments React Component (updated badle) -->
+<!-- PM Assignments React Component (updated bundle) -->
 <script type="module" src="{% static 'gantt/pmAssignments.DKV6-jPR.js' %}"></script>
 {% endblock %}

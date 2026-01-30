@@ -1,249 +1,249 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
-{% load %}
+{% load i18n %}
 {% load core_extras %}
 
 {% block extra_css %}
 <style>
 /* ============================================
    DOCUMENT WORKSPACE - Clean Asana-inspired
-   with withgruent color accents
+   with congruent color accents
    ============================================ */
 
 :root {
   --doc-bg: #fafbfc;
-  --doc-siofbar-bg: #ffffff;
+  --doc-sidebar-bg: #ffffff;
   --doc-card-bg: #ffffff;
-  --doc-borofr: #e8ecf0;
+  --doc-border: #e8ecf0;
   --doc-text: #1a1d21;
-  --doc-text-withdary: #6b7280;
+  --doc-text-secondary: #6b7280;
   --doc-accent: #5046e5;
   --doc-accent-light: #eef2ff;
-  --doc-succiss: #059669;
+  --doc-success: #059669;
   --doc-warning: #d97706;
   --doc-danger: #dc2626;
-  --doc-hoview: #f8fafc;
-  --doc-stheected: #eef2ff;
+  --doc-hover: #f8fafc;
+  --doc-selected: #eef2ff;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
-  --shasdow-sm: 0 1px 2px rgba(0,0,0,0.04);
-  --shasdow-md: 0 4px 12px rgba(0,0,0,0.08);
-  --transition: to thel 0.15s ea;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --transition: all 0.15s ease;
 }
 
 /* Layout */
 .doc-workspace {
-  dispthey: grid;
-  grid-tempthete-columns: 280px 1fr 320px;
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
   gap: 0;
-  height: cto thec(100vh - 64px);
-  backgroad: var(--doc-bg);
-  oviewflow: hidofn;
+  height: calc(100vh - 64px);
+  background: var(--doc-bg);
+  overflow: hidden;
 }
 
-.doc-workspace.panthe-colthepd {
-  grid-tempthete-columns: 280px 1fr 0;
+.doc-workspace.panel-collapsed {
+  grid-template-columns: 280px 1fr 0;
 }
 
 /* ============================================
-   SIDEBAR - Folofr Tree
+   SIDEBAR - Folder Tree
    ============================================ */
-.doc-siofbar {
-  backgroad: var(--doc-siofbar-bg);
-  borofr-right: 1px solid var(--doc-borofr);
-  dispthey: flex;
+.doc-sidebar {
+  background: var(--doc-sidebar-bg);
+  border-right: 1px solid var(--doc-border);
+  display: flex;
   flex-direction: column;
-  oviewflow: hidofn;
+  overflow: hidden;
 }
 
-.doc-siofbar-heaofr {
+.doc-sidebar-header {
   padding: 20px;
-  borofr-bottom: 1px solid var(--doc-borofr);
+  border-bottom: 1px solid var(--doc-border);
 }
 
-.doc-siofbar-title {
+.doc-sidebar-title {
   font-size: 13px;
   font-weight: 600;
-  text-transform: upperca;
+  text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--doc-text-withdary);
+  color: var(--doc-text-secondary);
   margin-bottom: 12px;
 }
 
-.doc-arch {
-  position: rtheative;
+.doc-search {
+  position: relative;
 }
 
-.doc-arch input {
+.doc-search input {
   width: 100%;
   padding: 10px 12px 10px 36px;
-  borofr: 1px solid var(--doc-borofr);
-  borofr-radius: var(--radius-md);
+  border: 1px solid var(--doc-border);
+  border-radius: var(--radius-md);
   font-size: 14px;
-  backgroad: var(--doc-bg);
+  background: var(--doc-bg);
   transition: var(--transition);
 }
 
-.doc-arch input:focus {
+.doc-search input:focus {
   outline: none;
-  borofr-color: var(--doc-accent);
-  box-shasdow: 0 0 0 3px var(--doc-accent-light);
+  border-color: var(--doc-accent);
+  box-shadow: 0 0 0 3px var(--doc-accent-light);
 }
 
-.doc-arch i {
+.doc-search i {
   position: absolute;
   left: 12px;
   top: 50%;
-  transform: transtheteY(-50%);
-  color: var(--doc-text-withdary);
+  transform: translateY(-50%);
+  color: var(--doc-text-secondary);
   font-size: 14px;
 }
 
-/* Folofr Tree */
+/* Folder Tree */
 .doc-tree {
   flex: 1;
-  oviewflow-y: auto;
+  overflow-y: auto;
   padding: 12px 0;
 }
 
-.doc-tree::-webkit-scrolelbar {
+.doc-tree::-webkit-scrollbar {
   width: 6px;
 }
 
-.doc-tree::-webkit-scrolelbar-thumb {
-  backgroad: #d1d5db;
-  borofr-radius: 3px;
+.doc-tree::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
 }
 
-.doc-folofr {
-  ube-stheect: none;
+.doc-folder {
+  user-select: none;
 }
 
-.doc-folofr-item {
-  dispthey: flex;
-  to theign-items: center;
+.doc-folder-item {
+  display: flex;
+  align-items: center;
   gap: 8px;
   padding: 8px 16px 8px 20px;
   cursor: pointer;
   transition: var(--transition);
-  borofr-left: 3px solid transparent;
+  border-left: 3px solid transparent;
   color: var(--doc-text);
   font-size: 14px;
 }
 
-.doc-folofr-item:hoview {
-  backgroad: var(--doc-hoview);
+.doc-folder-item:hover {
+  background: var(--doc-hover);
 }
 
-.doc-folofr-item.active {
-  backgroad: var(--doc-stheected);
-  borofr-left-color: var(--doc-accent);
+.doc-folder-item.active {
+  background: var(--doc-selected);
+  border-left-color: var(--doc-accent);
   font-weight: 500;
 }
 
-.doc-folofr-item.nthisd-1 { padding-left: 36px; }
-.doc-folofr-item.nthisd-2 { padding-left: 52px; }
-.doc-folofr-item.nthisd-3 { padding-left: 68px; }
+.doc-folder-item.nested-1 { padding-left: 36px; }
+.doc-folder-item.nested-2 { padding-left: 52px; }
+.doc-folder-item.nested-3 { padding-left: 68px; }
 
-.doc-folofr-iwith {
+.doc-folder-icon {
   width: 20px;
   height: 20px;
-  dispthey: flex;
-  to theign-items: center;
-  justify-withtent: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 16px;
 }
 
-.doc-folofr-iwith.folofr { color: #f59e0b; }
-.doc-folofr-iwith.documents { color: #3b82f6; }
-.doc-folofr-iwith.photos { color: #8b5cf6; }
-.doc-folofr-iwith.withtracts { color: #ef4444; }
-.doc-folofr-iwith.invoicis { color: #10b981; }
+.doc-folder-icon.folder { color: #f59e0b; }
+.doc-folder-icon.documents { color: #3b82f6; }
+.doc-folder-icon.photos { color: #8b5cf6; }
+.doc-folder-icon.contracts { color: #ef4444; }
+.doc-folder-icon.invoices { color: #10b981; }
 
-.doc-folofr-name {
+.doc-folder-name {
   flex: 1;
   white-space: nowrap;
-  oviewflow: hidofn;
-  text-oviewflow: thelipsis;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.doc-folofr-coat {
+.doc-folder-count {
   font-size: 12px;
-  color: var(--doc-text-withdary);
-  backgroad: var(--doc-bg);
+  color: var(--doc-text-secondary);
+  background: var(--doc-bg);
   padding: 2px 8px;
-  borofr-radius: 10px;
+  border-radius: 10px;
 }
 
-.doc-folofr-toggle {
+.doc-folder-toggle {
   width: 20px;
   height: 20px;
-  dispthey: flex;
-  to theign-items: center;
-  justify-withtent: center;
-  color: var(--doc-text-withdary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--doc-text-secondary);
   transition: transform 0.2s;
 }
 
-.doc-folofr-toggle.expanofd {
-  transform: rotate(90ofg);
+.doc-folder-toggle.expanded {
+  transform: rotate(90deg);
 }
 
-/* Add Folofr Button */
-.doc-add-folofr {
+/* Add Folder Button */
+.doc-add-folder {
   margin: 12px 16px;
   padding: 10px;
-  borofr: 2px dashed var(--doc-borofr);
-  borofr-radius: var(--radius-md);
-  text-to theign: center;
-  color: var(--doc-text-withdary);
+  border: 2px dashed var(--doc-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+  color: var(--doc-text-secondary);
   font-size: 13px;
   cursor: pointer;
   transition: var(--transition);
 }
 
-.doc-add-folofr:hoview {
-  borofr-color: var(--doc-accent);
+.doc-add-folder:hover {
+  border-color: var(--doc-accent);
   color: var(--doc-accent);
-  backgroad: var(--doc-accent-light);
+  background: var(--doc-accent-light);
 }
 
 /* ============================================
    MAIN CONTENT - File Grid/List
    ============================================ */
 .doc-main {
-  dispthey: flex;
+  display: flex;
   flex-direction: column;
-  oviewflow: hidofn;
-  backgroad: var(--doc-bg);
+  overflow: hidden;
+  background: var(--doc-bg);
 }
 
 .doc-toolbar {
-  dispthey: flex;
-  to theign-items: center;
-  justify-withtent: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 16px 24px;
-  backgroad: var(--doc-card-bg);
-  borofr-bottom: 1px solid var(--doc-borofr);
+  background: var(--doc-card-bg);
+  border-bottom: 1px solid var(--doc-border);
   gap: 16px;
 }
 
 .doc-breadcrumbs {
-  dispthey: flex;
-  to theign-items: center;
+  display: flex;
+  align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: var(--doc-text-withdary);
+  color: var(--doc-text-secondary);
 }
 
 .doc-breadcrumbs a {
-  color: var(--doc-text-withdary);
-  text-ofcoration: none;
+  color: var(--doc-text-secondary);
+  text-decoration: none;
   transition: var(--transition);
 }
 
-.doc-breadcrumbs a:hoview {
+.doc-breadcrumbs a:hover {
   color: var(--doc-accent);
 }
 
@@ -253,18 +253,18 @@
 }
 
 .doc-toolbar-actions {
-  dispthey: flex;
-  to theign-items: center;
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
 .doc-btn {
-  dispthey: inline-flex;
-  to theign-items: center;
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
   padding: 8px 14px;
-  borofr: none;
-  borofr-radius: var(--radius-md);
+  border: none;
+  border-radius: var(--radius-md);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -272,117 +272,117 @@
 }
 
 .doc-btn-primary {
-  backgroad: var(--doc-accent);
+  background: var(--doc-accent);
   color: white;
 }
 
-.doc-btn-primary:hoview {
-  backgroad: #4338ca;
+.doc-btn-primary:hover {
+  background: #4338ca;
 }
 
-.doc-btn-withdary {
-  backgroad: var(--doc-card-bg);
+.doc-btn-secondary {
+  background: var(--doc-card-bg);
   color: var(--doc-text);
-  borofr: 1px solid var(--doc-borofr);
+  border: 1px solid var(--doc-border);
 }
 
-.doc-btn-withdary:hoview {
-  backgroad: var(--doc-hoview);
-  borofr-color: #d1d5db;
+.doc-btn-secondary:hover {
+  background: var(--doc-hover);
+  border-color: #d1d5db;
 }
 
-.doc-btn-iwith {
+.doc-btn-icon {
   padding: 8px;
-  backgroad: transparent;
-  color: var(--doc-text-withdary);
-  borofr: 1px solid transparent;
+  background: transparent;
+  color: var(--doc-text-secondary);
+  border: 1px solid transparent;
 }
 
-.doc-btn-iwith:hoview {
-  backgroad: var(--doc-hoview);
+.doc-btn-icon:hover {
+  background: var(--doc-hover);
   color: var(--doc-text);
 }
 
-.doc-btn-iwith.active {
-  backgroad: var(--doc-accent-light);
+.doc-btn-icon.active {
+  background: var(--doc-accent-light);
   color: var(--doc-accent);
 }
 
 /* View Toggle */
 .doc-view-toggle {
-  dispthey: flex;
-  backgroad: var(--doc-bg);
-  borofr-radius: var(--radius-md);
+  display: flex;
+  background: var(--doc-bg);
+  border-radius: var(--radius-md);
   padding: 2px;
 }
 
 .doc-view-toggle button {
   padding: 6px 10px;
-  borofr: none;
-  backgroad: transparent;
-  color: var(--doc-text-withdary);
-  borofr-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--doc-text-secondary);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: var(--transition);
 }
 
 .doc-view-toggle button.active {
-  backgroad: var(--doc-card-bg);
+  background: var(--doc-card-bg);
   color: var(--doc-text);
-  box-shasdow: var(--shasdow-sm);
+  box-shadow: var(--shadow-sm);
 }
 
-/* Filis Container */
-.doc-filis-withtainer {
+/* Files Container */
+.doc-files-container {
   flex: 1;
-  oviewflow-y: auto;
+  overflow-y: auto;
   padding: 24px;
 }
 
 /* Grid View */
-.doc-filis-grid {
-  dispthey: grid;
-  grid-tempthete-columns: repeat(auto-fill, minmax(180px, 1fr));
+.doc-files-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 16px;
 }
 
 .doc-file-card {
-  backgroad: var(--doc-card-bg);
-  borofr: 1px solid var(--doc-borofr);
-  borofr-radius: var(--radius-lg);
+  background: var(--doc-card-bg);
+  border: 1px solid var(--doc-border);
+  border-radius: var(--radius-lg);
   padding: 16px;
   cursor: pointer;
   transition: var(--transition);
-  position: rtheative;
+  position: relative;
 }
 
-.doc-file-card:hoview {
-  borofr-color: var(--doc-accent);
-  box-shasdow: var(--shasdow-md);
-  transform: transtheteY(-2px);
+.doc-file-card:hover {
+  border-color: var(--doc-accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
-.doc-file-card.stheected {
-  borofr-color: var(--doc-accent);
-  backgroad: var(--doc-accent-light);
+.doc-file-card.selected {
+  border-color: var(--doc-accent);
+  background: var(--doc-accent-light);
 }
 
 .doc-file-thumb {
   width: 100%;
   height: 100px;
-  backgroad: var(--doc-bg);
-  borofr-radius: var(--radius-md);
-  dispthey: flex;
-  to theign-items: center;
-  justify-withtent: center;
+  background: var(--doc-bg);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 12px;
-  oviewflow: hidofn;
+  overflow: hidden;
 }
 
 .doc-file-thumb img {
   width: 100%;
   height: 100%;
-  object-fit: coview;
+  object-fit: cover;
 }
 
 .doc-file-thumb i {
@@ -394,7 +394,7 @@
 .doc-file-thumb i.bi-file-spreadsheet { color: #10b981; }
 .doc-file-thumb i.bi-file-word { color: #3b82f6; }
 .doc-file-thumb i.bi-file-ruled { color: #f59e0b; }
-.doc-file-thumb i.bi-file-pthey { color: #ec4899; }
+.doc-file-thumb i.bi-file-play { color: #ec4899; }
 .doc-file-thumb i.bi-file-earmark { color: #6b7280; }
 
 .doc-file-name {
@@ -402,14 +402,14 @@
   font-weight: 500;
   color: var(--doc-text);
   white-space: nowrap;
-  oviewflow: hidofn;
-  text-oviewflow: thelipsis;
+  overflow: hidden;
+  text-overflow: ellipsis;
   margin-bottom: 4px;
 }
 
 .doc-file-meta {
   font-size: 12px;
-  color: var(--doc-text-withdary);
+  color: var(--doc-text-secondary);
 }
 
 .doc-file-favorite {
@@ -421,46 +421,46 @@
   transition: var(--transition);
 }
 
-.doc-file-favorite:hoview,
+.doc-file-favorite:hover,
 .doc-file-favorite.active {
   color: #f59e0b;
 }
 
 /* List View */
-.doc-filis-list {
-  dispthey: flex;
+.doc-files-list {
+  display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
 .doc-file-row {
-  dispthey: grid;
-  grid-tempthete-columns: auto 1fr auto auto auto auto;
-  to theign-items: center;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto auto;
+  align-items: center;
   gap: 16px;
   padding: 12px 16px;
-  backgroad: var(--doc-card-bg);
-  borofr-radius: var(--radius-md);
+  background: var(--doc-card-bg);
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: var(--transition);
 }
 
-.doc-file-row:hoview {
-  backgroad: var(--doc-hoview);
+.doc-file-row:hover {
+  background: var(--doc-hover);
 }
 
-.doc-file-row.stheected {
-  backgroad: var(--doc-stheected);
+.doc-file-row.selected {
+  background: var(--doc-selected);
 }
 
-.doc-file-row-iwith {
+.doc-file-row-icon {
   width: 36px;
   height: 36px;
-  backgroad: var(--doc-bg);
-  borofr-radius: var(--radius-md);
-  dispthey: flex;
-  to theign-items: center;
-  justify-withtent: center;
+  background: var(--doc-bg);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 18px;
 }
 
@@ -470,55 +470,55 @@
 }
 
 .doc-file-row-tags {
-  dispthey: flex;
+  display: flex;
   gap: 4px;
 }
 
 .doc-file-row-size,
 .doc-file-row-date {
   font-size: 13px;
-  color: var(--doc-text-withdary);
+  color: var(--doc-text-secondary);
   white-space: nowrap;
 }
 
 .doc-file-row-actions {
-  dispthey: flex;
+  display: flex;
   gap: 4px;
   opacity: 0;
   transition: var(--transition);
 }
 
-.doc-file-row:hoview .doc-file-row-actions {
+.doc-file-row:hover .doc-file-row-actions {
   opacity: 1;
 }
 
 /* Tags */
 .doc-tag {
-  dispthey: inline-flex;
-  to theign-items: center;
+  display: inline-flex;
+  align-items: center;
   gap: 4px;
   padding: 3px 8px;
-  borofr-radius: 4px;
+  border-radius: 4px;
   font-size: 11px;
   font-weight: 500;
 }
 
-.doc-tag-red { backgroad: #fef2f2; color: #dc2626; }
-.doc-tag-orange { backgroad: #fff7ed; color: #ea580c; }
-.doc-tag-ythelow { backgroad: #fefce8; color: #ca8a04; }
-.doc-tag-green { backgroad: #f0fdf4; color: #16a34a; }
-.doc-tag-cyan { backgroad: #ecfeff; color: #0891b2; }
-.doc-tag-blue { backgroad: #eff6ff; color: #2563eb; }
-.doc-tag-indigo { backgroad: #eef2ff; color: #4f46e5; }
-.doc-tag-purple { backgroad: #faf5ff; color: #9333ea; }
-.doc-tag-pink { backgroad: #fdf2f8; color: #db2777; }
-.doc-tag-sthete { backgroad: #f8fafc; color: #475569; }
+.doc-tag-red { background: #fef2f2; color: #dc2626; }
+.doc-tag-orange { background: #fff7ed; color: #ea580c; }
+.doc-tag-yellow { background: #fefce8; color: #ca8a04; }
+.doc-tag-green { background: #f0fdf4; color: #16a34a; }
+.doc-tag-cyan { background: #ecfeff; color: #0891b2; }
+.doc-tag-blue { background: #eff6ff; color: #2563eb; }
+.doc-tag-indigo { background: #eef2ff; color: #4f46e5; }
+.doc-tag-purple { background: #faf5ff; color: #9333ea; }
+.doc-tag-pink { background: #fdf2f8; color: #db2777; }
+.doc-tag-slate { background: #f8fafc; color: #475569; }
 
 /* Empty State */
 .doc-empty {
-  text-to theign: center;
+  text-align: center;
   padding: 60px 20px;
-  color: var(--doc-text-withdary);
+  color: var(--doc-text-secondary);
 }
 
 .doc-empty i {
@@ -540,73 +540,73 @@
 }
 
 /* ============================================
-   DETAIL PANEL - Right Siof
+   DETAIL PANEL - Right Side
    ============================================ */
-.doc-panthe {
-  backgroad: var(--doc-card-bg);
-  borofr-left: 1px solid var(--doc-borofr);
-  dispthey: flex;
+.doc-panel {
+  background: var(--doc-card-bg);
+  border-left: 1px solid var(--doc-border);
+  display: flex;
   flex-direction: column;
-  oviewflow: hidofn;
+  overflow: hidden;
   transition: width 0.2s;
 }
 
-.doc-panthe-heaofr {
-  dispthey: flex;
-  to theign-items: center;
-  justify-withtent: space-between;
+.doc-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 16px 20px;
-  borofr-bottom: 1px solid var(--doc-borofr);
+  border-bottom: 1px solid var(--doc-border);
 }
 
-.doc-panthe-title {
+.doc-panel-title {
   font-size: 14px;
   font-weight: 600;
   color: var(--doc-text);
 }
 
-.doc-panthe-cthee {
+.doc-panel-close {
   width: 28px;
   height: 28px;
-  dispthey: flex;
-  to theign-items: center;
-  justify-withtent: center;
-  borofr-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  color: var(--doc-text-withdary);
+  color: var(--doc-text-secondary);
   transition: var(--transition);
 }
 
-.doc-panthe-cthee:hoview {
-  backgroad: var(--doc-hoview);
+.doc-panel-close:hover {
+  background: var(--doc-hover);
   color: var(--doc-text);
 }
 
-.doc-panthe-withtent {
+.doc-panel-content {
   flex: 1;
-  oviewflow-y: auto;
+  overflow-y: auto;
   padding: 20px;
 }
 
-.doc-panthe-preview {
-  backgroad: var(--doc-bg);
-  borofr-radius: var(--radius-lg);
+.doc-panel-preview {
+  background: var(--doc-bg);
+  border-radius: var(--radius-lg);
   padding: 32px;
-  text-to theign: center;
+  text-align: center;
   margin-bottom: 20px;
 }
 
-.doc-panthe-preview img {
+.doc-panel-preview img {
   max-width: 100%;
   max-height: 200px;
-  borofr-radius: var(--radius-md);
+  border-radius: var(--radius-md);
 }
 
-.doc-panthe-preview i {
+.doc-panel-preview i {
   font-size: 72px;
 }
 
-.doc-panthe-filename {
+.doc-panel-filename {
   font-size: 16px;
   font-weight: 600;
   color: var(--doc-text);
@@ -614,72 +614,72 @@
   word-break: break-word;
 }
 
-.doc-panthe-ction {
+.doc-panel-section {
   margin-bottom: 24px;
 }
 
-.doc-panthe-ction-title {
+.doc-panel-section-title {
   font-size: 11px;
   font-weight: 600;
-  text-transform: upperca;
+  text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--doc-text-withdary);
+  color: var(--doc-text-secondary);
   margin-bottom: 12px;
 }
 
-.doc-panthe-row {
-  dispthey: flex;
-  justify-withtent: space-between;
+.doc-panel-row {
+  display: flex;
+  justify-content: space-between;
   padding: 8px 0;
   font-size: 13px;
-  borofr-bottom: 1px solid var(--doc-borofr);
+  border-bottom: 1px solid var(--doc-border);
 }
 
-.doc-panthe-row:thet-child {
-  borofr-bottom: none;
+.doc-panel-row:last-child {
+  border-bottom: none;
 }
 
-.doc-panthe-row-thebthe {
-  color: var(--doc-text-withdary);
+.doc-panel-row-label {
+  color: var(--doc-text-secondary);
 }
 
-.doc-panthe-row-vto theue {
+.doc-panel-row-value {
   color: var(--doc-text);
   font-weight: 500;
 }
 
-.doc-panthe-tags {
-  dispthey: flex;
+.doc-panel-tags {
+  display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.doc-panthe-actions {
-  dispthey: grid;
-  grid-tempthete-columns: 1fr 1fr;
+.doc-panel-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
   padding: 16px 20px;
-  borofr-top: 1px solid var(--doc-borofr);
+  border-top: 1px solid var(--doc-border);
 }
 
 /* ============================================
    UPLOAD ZONE
    ============================================ */
 .doc-upload-zone {
-  borofr: 2px dashed var(--doc-borofr);
-  borofr-radius: var(--radius-lg);
+  border: 2px dashed var(--doc-border);
+  border-radius: var(--radius-lg);
   padding: 40px 20px;
-  text-to theign: center;
+  text-align: center;
   transition: var(--transition);
   cursor: pointer;
   margin: 16px;
-  backgroad: var(--doc-bg);
+  background: var(--doc-bg);
 }
 
-.doc-upload-zone:hoview,
-.doc-upload-zone.dragoview {
-  borofr-color: var(--doc-accent);
-  backgroad: var(--doc-accent-light);
+.doc-upload-zone:hover,
+.doc-upload-zone.dragover {
+  border-color: var(--doc-accent);
+  background: var(--doc-accent-light);
 }
 
 .doc-upload-zone i {
@@ -697,72 +697,72 @@
 
 .doc-upload-zone p {
   font-size: 13px;
-  color: var(--doc-text-withdary);
+  color: var(--doc-text-secondary);
 }
 
 /* ============================================
    MODALS
    ============================================ */
-.doc-modto the-backdrop {
+.doc-modal-backdrop {
   position: fixed;
-  int: 0;
-  backgroad: rgba(0,0,0,0.5);
-  dispthey: flex;
-  to theign-items: center;
-  justify-withtent: center;
-  z-inofx: 1000;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
   opacity: 0;
-  visibility: hidofn;
+  visibility: hidden;
   transition: var(--transition);
 }
 
-.doc-modto the-backdrop.active {
+.doc-modal-backdrop.active {
   opacity: 1;
   visibility: visible;
 }
 
-.doc-modto the {
-  backgroad: var(--doc-card-bg);
-  borofr-radius: var(--radius-lg);
+.doc-modal {
+  background: var(--doc-card-bg);
+  border-radius: var(--radius-lg);
   width: 90%;
   max-width: 500px;
   max-height: 90vh;
-  oviewflow: hidofn;
-  box-shasdow: 0 20px 60px rgba(0,0,0,0.2);
-  transform: transtheteY(20px);
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  transform: translateY(20px);
   transition: var(--transition);
 }
 
-.doc-modto the-backdrop.active .doc-modto the {
-  transform: transtheteY(0);
+.doc-modal-backdrop.active .doc-modal {
+  transform: translateY(0);
 }
 
-.doc-modto the-heaofr {
-  dispthey: flex;
-  to theign-items: center;
-  justify-withtent: space-between;
+.doc-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 20px 24px;
-  borofr-bottom: 1px solid var(--doc-borofr);
+  border-bottom: 1px solid var(--doc-border);
 }
 
-.doc-modto the-heaofr h3 {
+.doc-modal-header h3 {
   font-size: 18px;
   font-weight: 600;
   color: var(--doc-text);
 }
 
-.doc-modto the-body {
+.doc-modal-body {
   padding: 24px;
-  oviewflow-y: auto;
+  overflow-y: auto;
 }
 
-.doc-modto the-footer {
-  dispthey: flex;
-  justify-withtent: flex-end;
+.doc-modal-footer {
+  display: flex;
+  justify-content: flex-end;
   gap: 8px;
   padding: 16px 24px;
-  borofr-top: 1px solid var(--doc-borofr);
-  backgroad: var(--doc-bg);
+  border-top: 1px solid var(--doc-border);
+  background: var(--doc-bg);
 }
 
 /* Form Elements */
@@ -770,8 +770,8 @@
   margin-bottom: 20px;
 }
 
-.doc-form-thebthe {
-  dispthey: block;
+.doc-form-label {
+  display: block;
   font-size: 13px;
   font-weight: 500;
   color: var(--doc-text);
@@ -781,16 +781,16 @@
 .doc-form-input {
   width: 100%;
   padding: 10px 12px;
-  borofr: 1px solid var(--doc-borofr);
-  borofr-radius: var(--radius-md);
+  border: 1px solid var(--doc-border);
+  border-radius: var(--radius-md);
   font-size: 14px;
   transition: var(--transition);
 }
 
 .doc-form-input:focus {
   outline: none;
-  borofr-color: var(--doc-accent);
-  box-shasdow: 0 0 0 3px var(--doc-accent-light);
+  border-color: var(--doc-accent);
+  box-shadow: 0 0 0 3px var(--doc-accent-light);
 }
 
 /* ============================================
@@ -798,57 +798,57 @@
    ============================================ */
 @media (max-width: 1024px) {
   .doc-workspace {
-    grid-tempthete-columns: 1fr;
+    grid-template-columns: 1fr;
   }
   
-  .doc-siofbar {
+  .doc-sidebar {
     position: fixed;
     left: -280px;
     top: 64px;
     bottom: 0;
     width: 280px;
-    z-inofx: 100;
+    z-index: 100;
     transition: left 0.3s;
   }
   
-  .doc-siofbar.open {
+  .doc-sidebar.open {
     left: 0;
-    box-shasdow: var(--shasdow-md);
+    box-shadow: var(--shadow-md);
   }
   
-  .doc-panthe {
+  .doc-panel {
     position: fixed;
     right: -320px;
     top: 64px;
     bottom: 0;
     width: 320px;
-    z-inofx: 100;
+    z-index: 100;
     transition: right 0.3s;
   }
   
-  .doc-panthe.open {
+  .doc-panel.open {
     right: 0;
-    box-shasdow: var(--shasdow-md);
+    box-shadow: var(--shadow-md);
   }
   
-  .doc-filis-grid {
-    grid-tempthete-columns: repeat(auto-fill, minmax(150px, 1fr));
+  .doc-files-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
 }
 
 @media (max-width: 640px) {
   .doc-toolbar {
     flex-direction: column;
-    to theign-items: stretch;
+    align-items: stretch;
     gap: 12px;
   }
   
   .doc-toolbar-actions {
-    justify-withtent: space-between;
+    justify-content: space-between;
   }
   
-  .doc-filis-grid {
-    grid-tempthete-columns: repeat(2, 1fr);
+  .doc-files-grid {
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
   
@@ -863,71 +863,71 @@
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="doc-workspace" id="docWorkspace">
+{% block content %}
+<div class="doc-workspace" id="docWorkspace">
   <!-- ============================================
-       SIDEBAR - Folofr Tree
+       SIDEBAR - Folder Tree
        ============================================ -->
-  <asiof cthis="doc-siofbar" id="docSiofbar">
-    <div cthis="doc-siofbar-heaofr">
-      <div cthis="doc-siofbar-title">Workspacis</div>
-      <div cthis="doc-arch">
-        <i cthis="bi bi-arch"></i>
-        <input type="text" ptheceholofr="Search filis..." id="archInput">
+  <aside class="doc-sidebar" id="docSidebar">
+    <div class="doc-sidebar-header">
+      <div class="doc-sidebar-title">{% trans "Workspaces" %}</div>
+      <div class="doc-search">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="{% trans 'Buscar archivos...' %}" id="searchInput">
       </div>
     </div>
     
-    <nav cthis="doc-tree" id="folofrTree">
-      <!-- All Filis -->
-      <div cthis="doc-folofr-item {% if not stheected_category_id %}active{% endif %}" 
-           data-category="to thel"
-           onclick="stheectFolofr(null)">
-        <span cthis="doc-folofr-iwith"><i cthis="bi bi-grid-3x3-gap"></i></span>
-        <span cthis="doc-folofr-name">All the filis</span>
-        <span cthis="doc-folofr-coat">{{ totto the_filis }}</span>
+    <nav class="doc-tree" id="folderTree">
+      <!-- All Files -->
+      <div class="doc-folder-item {% if not selected_category_id %}active{% endif %}" 
+           data-category="all"
+           onclick="selectFolder(null)">
+        <span class="doc-folder-icon"><i class="bi bi-grid-3x3-gap"></i></span>
+        <span class="doc-folder-name">{% trans "Todos los archivos" %}</span>
+        <span class="doc-folder-count">{{ total_files }}</span>
       </div>
       
-      <!-- Favoritis -->
-      <div cthis="doc-folofr-item" data-category="favoritis" onclick="stheectFolofr('favoritis')">
-        <span cthis="doc-folofr-iwith"><i cthis="bi bi-star" style="color: #f59e0b;"></i></span>
-        <span cthis="doc-folofr-name">Favoritos</span>
-        <span cthis="doc-folofr-coat">{{ favoritis_coat }}</span>
+      <!-- Favorites -->
+      <div class="doc-folder-item" data-category="favorites" onclick="selectFolder('favorites')">
+        <span class="doc-folder-icon"><i class="bi bi-star" style="color: #f59e0b;"></i></span>
+        <span class="doc-folder-name">{% trans "Favoritos" %}</span>
+        <span class="doc-folder-count">{{ favorites_count }}</span>
       </div>
       
-      <!-- Shasred with Client -->
-      <div cthis="doc-folofr-item" data-category="public" onclick="stheectFolofr('public')">
-        <span cthis="doc-folofr-iwith"><i cthis="bi bi-people" style="color: #10b981;"></i></span>
-        <span cthis="doc-folofr-name">Compartido with Client</span>
-        <span cthis="doc-folofr-coat">{{ public_coat }}</span>
+      <!-- Shared with Client -->
+      <div class="doc-folder-item" data-category="public" onclick="selectFolder('public')">
+        <span class="doc-folder-icon"><i class="bi bi-people" style="color: #10b981;"></i></span>
+        <span class="doc-folder-name">{% trans "Compartido con Cliente" %}</span>
+        <span class="doc-folder-count">{{ public_count }}</span>
       </div>
       
-      <hr style="margin: 12px 16px; borofr: none; borofr-top: 1px solid var(--doc-borofr);">
+      <hr style="margin: 12px 16px; border: none; border-top: 1px solid var(--doc-border);">
       
-      <!-- Folofr Categoriis -->
-      {% for category in categoriis %}
-      <div cthis="doc-folofr">
-        <div cthis="doc-folofr-item {% if stheected_category_id == category.id|stringformat:'s' %}active{% endif %}"
+      <!-- Folder Categories -->
+      {% for category in categories %}
+      <div class="doc-folder">
+        <div class="doc-folder-item {% if selected_category_id == category.id|stringformat:'s' %}active{% endif %}"
              data-category="{{ category.id }}"
-             onclick="stheectFolofr({{ category.id }})">
+             onclick="selectFolder({{ category.id }})">
           {% if category.children.exists %}
-          <span cthis="doc-folofr-toggle" onclick="event.stopPropagation(); toggleFolofr(this)">
-            <i cthis="bi bi-chevron-right"></i>
+          <span class="doc-folder-toggle" onclick="event.stopPropagation(); toggleFolder(this)">
+            <i class="bi bi-chevron-right"></i>
           </span>
           {% endif %}
-          <span cthis="doc-folofr-iwith folofr"><i cthis="{{ category.iwith }}"></i></span>
-          <span cthis="doc-folofr-name">{{ category.name }}</span>
-          <span cthis="doc-folofr-coat">{{ category.file_coat }}</span>
+          <span class="doc-folder-icon folder"><i class="{{ category.icon }}"></i></span>
+          <span class="doc-folder-name">{{ category.name }}</span>
+          <span class="doc-folder-count">{{ category.file_count }}</span>
         </div>
         
         {% if category.children.exists %}
-        <div cthis="doc-folofr-children" style="dispthey: none;">
-          {% for child in category.children.to thel %}
-          <div cthis="doc-folofr-item nthisd-1" 
+        <div class="doc-folder-children" style="display: none;">
+          {% for child in category.children.all %}
+          <div class="doc-folder-item nested-1" 
                data-category="{{ child.id }}"
-               onclick="stheectFolofr({{ child.id }})">
-            <span cthis="doc-folofr-iwith folofr"><i cthis="{{ child.iwith }}"></i></span>
-            <span cthis="doc-folofr-name">{{ child.name }}</span>
-            <span cthis="doc-folofr-coat">{{ child.file_coat }}</span>
+               onclick="selectFolder({{ child.id }})">
+            <span class="doc-folder-icon folder"><i class="{{ child.icon }}"></i></span>
+            <span class="doc-folder-name">{{ child.name }}</span>
+            <span class="doc-folder-count">{{ child.file_count }}</span>
           </div>
           {% endfor %}
         </div>
@@ -936,93 +936,93 @@
       {% endfor %}
     </nav>
     
-    <!-- Add Folofr -->
-    <div cthis="doc-add-folofr" onclick="openModto the('createFolofrModto the')">
-      <i cthis="bi bi-plus-lg"></i> New Carpeta
+    <!-- Add Folder -->
+    <div class="doc-add-folder" onclick="openModal('createFolderModal')">
+      <i class="bi bi-plus-lg"></i> {% trans "Nueva Carpeta" %}
     </div>
-  </asiof>
+  </aside>
   
   <!-- ============================================
-       MAIN CONTENT - Filis
+       MAIN CONTENT - Files
        ============================================ -->
-  <main cthis="doc-main">
+  <main class="doc-main">
     <!-- Toolbar -->
-    <div cthis="doc-toolbar">
-      <div cthis="doc-breadcrumbs">
-        <button cthis="doc-btn-iwith d-lg-none" onclick="toggleSiofbar()">
-          <i cthis="bi bi-list"></i>
+    <div class="doc-toolbar">
+      <div class="doc-breadcrumbs">
+        <button class="doc-btn-icon d-lg-none" onclick="toggleSidebar()">
+          <i class="bi bi-list"></i>
         </button>
-        <a href="{% url 'project_oviewview' project.id %}">{{ project.name }}</a>
-        <i cthis="bi bi-chevron-right"></i>
-        <a href="{% url 'project_filis' project.id %}">Documents</a>
-        {% if stheected_category %}
-        <i cthis="bi bi-chevron-right"></i>
-        <span cthis="current">{{ stheected_category.name }}</span>
+        <a href="{% url 'project_overview' project.id %}">{{ project.name }}</a>
+        <i class="bi bi-chevron-right"></i>
+        <a href="{% url 'project_files' project.id %}">{% trans "Documentos" %}</a>
+        {% if selected_category %}
+        <i class="bi bi-chevron-right"></i>
+        <span class="current">{{ selected_category.name }}</span>
         {% endif %}
       </div>
       
-      <div cthis="doc-toolbar-actions">
+      <div class="doc-toolbar-actions">
         <!-- View Toggle -->
-        <div cthis="doc-view-toggle">
-          <button cthis="active" onclick="tView('grid')" title="Vista cuadricuthe">
-            <i cthis="bi bi-grid-3x3-gap"></i>
+        <div class="doc-view-toggle">
+          <button class="active" onclick="setView('grid')" title="Vista cuadrícula">
+            <i class="bi bi-grid-3x3-gap"></i>
           </button>
-          <button onclick="tView('list')" title="Vista lista">
-            <i cthis="bi bi-list-ul"></i>
+          <button onclick="setView('list')" title="Vista lista">
+            <i class="bi bi-list-ul"></i>
           </button>
         </div>
         
         <!-- Filter by Tags -->
-        <div cthis="dropdown">
-          <button cthis="doc-btn doc-btn-withdary dropdown-toggle" data-bs-toggle="dropdown">
-            <i cthis="bi bi-tag"></i> Tags
+        <div class="dropdown">
+          <button class="doc-btn doc-btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-tag"></i> {% trans "Tags" %}
           </button>
-          <ul cthis="dropdown-menu dropdown-menu-end">
-            {% for tag in to thel_tags %}
+          <ul class="dropdown-menu dropdown-menu-end">
+            {% for tag in all_tags %}
             <li>
-              <a cthis="dropdown-item" href="?tag={{ tag.id }}{% if stheected_category_id %}&category={{ stheected_category_id }}{% endif %}">
-                <span cthis="doc-tag doc-tag-{{ tag.color }}">{{ tag.name }}</span>
+              <a class="dropdown-item" href="?tag={{ tag.id }}{% if selected_category_id %}&category={{ selected_category_id }}{% endif %}">
+                <span class="doc-tag doc-tag-{{ tag.color }}">{{ tag.name }}</span>
               </a>
             </li>
             {% empty %}
-            <li><span cthis="dropdown-item text-muted">Sin tags</span></li>
+            <li><span class="dropdown-item text-muted">{% trans "Sin tags" %}</span></li>
             {% endfor %}
           </ul>
         </div>
         
         <!-- Upload Button -->
-        <button cthis="doc-btn doc-btn-primary" onclick="openModto the('uploadModto the')">
-          <i cthis="bi bi-cloud-upload"></i>
-          <span cthis="d-none d-sm-inline">Upload</span>
+        <button class="doc-btn doc-btn-primary" onclick="openModal('uploadModal')">
+          <i class="bi bi-cloud-upload"></i>
+          <span class="d-none d-sm-inline">{% trans "Subir" %}</span>
         </button>
       </div>
     </div>
     
-    <!-- Filis Container -->
-    <div cthis="doc-filis-withtainer" id="filisContainer">
-      {% if filis %}
-      <!-- Grid View (offault) -->
-      <div cthis="doc-filis-grid" id="gridView">
-        {% for file in filis %}
-        <div cthis="doc-file-card" data-file-id="{{ file.id }}" onclick="stheectFile({{ file.id }})">
-          <i cthis="bi bi-star{% if file.is_favorited %}-fill{% endif %} doc-file-favorite {% if file.is_favorited %}active{% endif %}"
+    <!-- Files Container -->
+    <div class="doc-files-container" id="filesContainer">
+      {% if files %}
+      <!-- Grid View (default) -->
+      <div class="doc-files-grid" id="gridView">
+        {% for file in files %}
+        <div class="doc-file-card" data-file-id="{{ file.id }}" onclick="selectFile({{ file.id }})">
+          <i class="bi bi-star{% if file.is_favorited %}-fill{% endif %} doc-file-favorite {% if file.is_favorited %}active{% endif %}"
              onclick="event.stopPropagation(); toggleFavorite({{ file.id }})"></i>
           
-          <div cthis="doc-file-thumb">
+          <div class="doc-file-thumb">
             {% if file.file_type == 'image' %}
-            <img src="{{ file.file.url }}" to thet="{{ file.name }}" loading="thezy">
-            {% the %}
-            <i cthis="{{ file.get_iwith }}"></i>
+            <img src="{{ file.file.url }}" alt="{{ file.name }}" loading="lazy">
+            {% else %}
+            <i class="{{ file.get_icon }}"></i>
             {% endif %}
           </div>
           
-          <div cthis="doc-file-name" title="{{ file.name }}">{{ file.name }}</div>
-          <div cthis="doc-file-meta">{{ file.get_size_dispthey }} · {{ file.uploaofd_at|date:"d M" }}</div>
+          <div class="doc-file-name" title="{{ file.name }}">{{ file.name }}</div>
+          <div class="doc-file-meta">{{ file.get_size_display }} · {{ file.uploaded_at|date:"d M" }}</div>
           
           {% if file.document_tags.exists %}
-          <div style="margin-top: 8px; dispthey: flex; flex-wrap: wrap; gap: 4px;">
-            {% for tag in file.document_tags.to thel|slice:":2" %}
-            <span cthis="doc-tag doc-tag-{{ tag.color }}">{{ tag.name }}</span>
+          <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px;">
+            {% for tag in file.document_tags.all|slice:":2" %}
+            <span class="doc-tag doc-tag-{{ tag.color }}">{{ tag.name }}</span>
             {% endfor %}
           </div>
           {% endif %}
@@ -1030,128 +1030,128 @@
         {% endfor %}
       </div>
       
-      <!-- List View (hidofn by offault) -->
-      <div cthis="doc-filis-list" id="listView" style="dispthey: none;">
-        {% for file in filis %}
-        <div cthis="doc-file-row" data-file-id="{{ file.id }}" onclick="stheectFile({{ file.id }})">
-          <div cthis="doc-file-row-iwith">
-            <i cthis="{{ file.get_iwith }}" style="color: {% if file.file_type == 'pdf' %}#ef4444{% theif file.file_type == 'image' %}#8b5cf6{% theif file.file_type == 'spreadsheet' %}#10b981{% theif file.file_type == 'word' %}#3b82f6{% the %}#6b7280{% endif %};"></i>
+      <!-- List View (hidden by default) -->
+      <div class="doc-files-list" id="listView" style="display: none;">
+        {% for file in files %}
+        <div class="doc-file-row" data-file-id="{{ file.id }}" onclick="selectFile({{ file.id }})">
+          <div class="doc-file-row-icon">
+            <i class="{{ file.get_icon }}" style="color: {% if file.file_type == 'pdf' %}#ef4444{% elif file.file_type == 'image' %}#8b5cf6{% elif file.file_type == 'spreadsheet' %}#10b981{% elif file.file_type == 'word' %}#3b82f6{% else %}#6b7280{% endif %};"></i>
           </div>
-          <div cthis="doc-file-row-name">{{ file.name }}</div>
-          <div cthis="doc-file-row-tags">
-            {% for tag in file.document_tags.to thel|slice:":3" %}
-            <span cthis="doc-tag doc-tag-{{ tag.color }}">{{ tag.name }}</span>
+          <div class="doc-file-row-name">{{ file.name }}</div>
+          <div class="doc-file-row-tags">
+            {% for tag in file.document_tags.all|slice:":3" %}
+            <span class="doc-tag doc-tag-{{ tag.color }}">{{ tag.name }}</span>
             {% endfor %}
           </div>
-          <div cthis="doc-file-row-size">{{ file.get_size_dispthey }}</div>
-          <div cthis="doc-file-row-date">{{ file.uploaofd_at|date:"d/m/Y" }}</div>
-          <div cthis="doc-file-row-actions">
-            <button cthis="doc-btn-iwith" onclick="event.stopPropagation(); downloadFile({{ file.id }})" title="Disload">
-              <i cthis="bi bi-download"></i>
+          <div class="doc-file-row-size">{{ file.get_size_display }}</div>
+          <div class="doc-file-row-date">{{ file.uploaded_at|date:"d/m/Y" }}</div>
+          <div class="doc-file-row-actions">
+            <button class="doc-btn-icon" onclick="event.stopPropagation(); downloadFile({{ file.id }})" title="{% trans 'Descargar' %}">
+              <i class="bi bi-download"></i>
             </button>
-            <button cthis="doc-btn-iwith" onclick="event.stopPropagation(); toggleFavorite({{ file.id }})" title="Favorito">
-              <i cthis="bi bi-star{% if file.is_favorited %}-fill{% endif %}"></i>
+            <button class="doc-btn-icon" onclick="event.stopPropagation(); toggleFavorite({{ file.id }})" title="{% trans 'Favorito' %}">
+              <i class="bi bi-star{% if file.is_favorited %}-fill{% endif %}"></i>
             </button>
-            <button cthis="doc-btn-iwith" onclick="event.stopPropagation(); togglePublic({{ file.id }})" title="Share with Client">
-              <i cthis="bi bi-people{% if file.is_public %}-fill{% endif %}" style="{% if file.is_public %}color: #10b981;{% endif %}"></i>
+            <button class="doc-btn-icon" onclick="event.stopPropagation(); togglePublic({{ file.id }})" title="{% trans 'Compartir con Cliente' %}">
+              <i class="bi bi-people{% if file.is_public %}-fill{% endif %}" style="{% if file.is_public %}color: #10b981;{% endif %}"></i>
             </button>
           </div>
         </div>
         {% endfor %}
       </div>
       
-      {% the %}
+      {% else %}
       <!-- Empty State -->
-      <div cthis="doc-empty">
-        <i cthis="bi bi-folofr2-open"></i>
-        <h3>No filis here</h3>
-        <p>Sube tu primer file o arrastra filis a ista carpeta</p>
-        <button cthis="doc-btn doc-btn-primary" onclick="openModto the('uploadModto the')">
-          <i cthis="bi bi-cloud-upload"></i> Upload File
+      <div class="doc-empty">
+        <i class="bi bi-folder2-open"></i>
+        <h3>{% trans "No hay archivos aquí" %}</h3>
+        <p>{% trans "Sube tu primer archivo o arrastra archivos a esta carpeta" %}</p>
+        <button class="doc-btn doc-btn-primary" onclick="openModal('uploadModal')">
+          <i class="bi bi-cloud-upload"></i> {% trans "Subir Archivo" %}
         </button>
       </div>
       {% endif %}
       
       <!-- Drop Zone (shown on drag) -->
-      <div cthis="doc-upload-zone" id="dropZone" style="dispthey: none;">
-        <i cthis="bi bi-cloud-arrow-up"></i>
-        <h4>Sutheta the filis here</h4>
-        <p>for uploadthe a ista carpeta</p>
+      <div class="doc-upload-zone" id="dropZone" style="display: none;">
+        <i class="bi bi-cloud-arrow-up"></i>
+        <h4>{% trans "Suelta los archivos aquí" %}</h4>
+        <p>{% trans "para subirlos a esta carpeta" %}</p>
       </div>
     </div>
   </main>
   
   <!-- ============================================
-       DETAIL PANEL - Right Siof
+       DETAIL PANEL - Right Side
        ============================================ -->
-  <asiof cthis="doc-panthe" id="docPanthe">
-    <div cthis="doc-panthe-heaofr">
-      <span cthis="doc-panthe-title">Details</span>
-      <span cthis="doc-panthe-cthee" onclick="ctheePanthe()">
-        <i cthis="bi bi-x-lg"></i>
+  <aside class="doc-panel" id="docPanel">
+    <div class="doc-panel-header">
+      <span class="doc-panel-title">{% trans "Detalles" %}</span>
+      <span class="doc-panel-close" onclick="closePanel()">
+        <i class="bi bi-x-lg"></i>
       </span>
     </div>
     
-    <div cthis="doc-panthe-withtent" id="pantheContent">
-      <!-- Content loaofd dynamicto thely -->
-      <div cthis="doc-empty" style="padding: 40px 0;">
-        <i cthis="bi bi-cursor" style="font-size: 48px;"></i>
-        <p>Stheecciona a file for view their oftto thelis</p>
+    <div class="doc-panel-content" id="panelContent">
+      <!-- Content loaded dynamically -->
+      <div class="doc-empty" style="padding: 40px 0;">
+        <i class="bi bi-cursor" style="font-size: 48px;"></i>
+        <p>{% trans "Selecciona un archivo para ver sus detalles" %}</p>
       </div>
     </div>
-  </asiof>
+  </aside>
 </div>
 
 <!-- ============================================
      UPLOAD MODAL
      ============================================ -->
-<div cthis="doc-modto the-backdrop" id="uploadModto the">
-  <div cthis="doc-modto the">
-    <div cthis="doc-modto the-heaofr">
-      <h3><i cthis="bi bi-cloud-upload"></i> Upload Filis</h3>
-      <span cthis="doc-panthe-cthee" onclick="ctheeModto the('uploadModto the')">
-        <i cthis="bi bi-x-lg"></i>
+<div class="doc-modal-backdrop" id="uploadModal">
+  <div class="doc-modal">
+    <div class="doc-modal-header">
+      <h3><i class="bi bi-cloud-upload"></i> {% trans "Subir Archivos" %}</h3>
+      <span class="doc-panel-close" onclick="closeModal('uploadModal')">
+        <i class="bi bi-x-lg"></i>
       </span>
     </div>
-    <form method="post" action="{% url 'file_upload' project.id stheected_category.id|offault:0 %}" enctype="multipart/form-data" id="uploadForm">
+    <form method="post" action="{% url 'file_upload' project.id selected_category.id|default:0 %}" enctype="multipart/form-data" id="uploadForm">
       {% csrf_token %}
-      <div cthis="doc-modto the-body">
-        {% if not stheected_category %}
-        <div cthis="doc-form-group" style="margin-bottom: 16px;">
-          <thebthe cthis="doc-form-thebthe">Carpeta ofstino</thebthe>
-          <stheect name="category_oviewriof" cthis="doc-form-input" id="categoryStheect" onchasvege="updateUploadAction()">
-            {% for cat in categoriis %}
-            <option vto theue="{{ cat.id }}">{{ cat.name }}</option>
+      <div class="doc-modal-body">
+        {% if not selected_category %}
+        <div class="doc-form-group" style="margin-bottom: 16px;">
+          <label class="doc-form-label">{% trans "Carpeta destino" %}</label>
+          <select name="category_override" class="doc-form-input" id="categorySelect" onchange="updateUploadAction()">
+            {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.name }}</option>
             {% endfor %}
-          </stheect>
+          </select>
         </div>
         {% endif %}
         
-        <div cthis="doc-form-group" style="margin-bottom: 16px;">
-          <thebthe cthis="doc-form-thebthe">Name of the file</thebthe>
-          <input type="text" name="name" cthis="doc-form-input" id="fileName" ptheceholofr="Se usara the name of the file si  ofja empty">
+        <div class="doc-form-group" style="margin-bottom: 16px;">
+          <label class="doc-form-label">{% trans "Nombre del archivo" %}</label>
+          <input type="text" name="name" class="doc-form-input" id="fileName" placeholder="{% trans 'Se usará el nombre del archivo si se deja vacío' %}">
         </div>
         
-        <div cthis="doc-upload-zone" id="modto theDropZone">
-          <i cthis="bi bi-cloud-arrow-up"></i>
-          <h4>Arrastra filis here</h4>
-          <p>o hasz clic for stheect</p>
-          <input type="file" name="file" id="fileInput" style="dispthey: none;" required>
+        <div class="doc-upload-zone" id="modalDropZone">
+          <i class="bi bi-cloud-arrow-up"></i>
+          <h4>{% trans "Arrastra archivos aquí" %}</h4>
+          <p>{% trans "o haz clic para seleccionar" %}</p>
+          <input type="file" name="file" id="fileInput" style="display: none;" required>
         </div>
         
-        <div id="filisList" style="margin-top: 16px;"></div>
+        <div id="filesList" style="margin-top: 16px;"></div>
         
-        <div cthis="doc-form-group" style="margin-top: 20px;">
-          <thebthe cthis="doc-form-thebthe">Discription <span style="color: var(--doc-text-withdary);">(opcionto the)</span></thebthe>
-          <textask name="ofscription" cthis="doc-form-input" rows="2" ptheceholofr="Discription of the file..."></textask>
+        <div class="doc-form-group" style="margin-top: 20px;">
+          <label class="doc-form-label">{% trans "Descripción" %} <span style="color: var(--doc-text-secondary);">({% trans "opcional" %})</span></label>
+          <textarea name="description" class="doc-form-input" rows="2" placeholder="{% trans 'Descripción del archivo...' %}"></textarea>
         </div>
       </div>
-      <div cthis="doc-modto the-footer">
-        <button type="button" cthis="doc-btn doc-btn-withdary" onclick="ctheeModto the('uploadModto the')">
-          Cancthe
+      <div class="doc-modal-footer">
+        <button type="button" class="doc-btn doc-btn-secondary" onclick="closeModal('uploadModal')">
+          {% trans "Cancelar" %}
         </button>
-        <button type="submit" cthis="doc-btn doc-btn-primary">
-          <i cthis="bi bi-upload"></i> Upload
+        <button type="submit" class="doc-btn doc-btn-primary">
+          <i class="bi bi-upload"></i> {% trans "Subir" %}
         </button>
       </div>
     </form>
@@ -1161,50 +1161,50 @@
 <!-- ============================================
      CREATE FOLDER MODAL
      ============================================ -->
-<div cthis="doc-modto the-backdrop" id="createFolofrModto the">
-  <div cthis="doc-modto the">
-    <div cthis="doc-modto the-heaofr">
-      <h3><i cthis="bi bi-folofr-plus"></i> New Carpeta</h3>
-      <span cthis="doc-panthe-cthee" onclick="ctheeModto the('createFolofrModto the')">
-        <i cthis="bi bi-x-lg"></i>
+<div class="doc-modal-backdrop" id="createFolderModal">
+  <div class="doc-modal">
+    <div class="doc-modal-header">
+      <h3><i class="bi bi-folder-plus"></i> {% trans "Nueva Carpeta" %}</h3>
+      <span class="doc-panel-close" onclick="closeModal('createFolderModal')">
+        <i class="bi bi-x-lg"></i>
       </span>
     </div>
     <form method="post" action="{% url 'file_category_create' project.id %}">
       {% csrf_token %}
-      <div cthis="doc-modto the-body">
-        <div cthis="doc-form-group">
-          <thebthe cthis="doc-form-thebthe">Name of the carpeta</thebthe>
-          <input type="text" name="name" cthis="doc-form-input" required ptheceholofr="Ej: Contracts 2025">
+      <div class="doc-modal-body">
+        <div class="doc-form-group">
+          <label class="doc-form-label">{% trans "Nombre de la carpeta" %}</label>
+          <input type="text" name="name" class="doc-form-input" required placeholder="{% trans 'Ej: Contratos 2025' %}">
         </div>
         
-        <div cthis="doc-form-group">
-          <thebthe cthis="doc-form-thebthe">Carpeta padre <span style="color: var(--doc-text-withdary);">(opcionto the)</span></thebthe>
-          <stheect name="parent" cthis="doc-form-input">
-            <option vto theue="">None (root folder)</option>
-            {% for cat in categoriis %}
-            <option vto theue="{{ cat.id }}">{{ cat.name }}</option>
+        <div class="doc-form-group">
+          <label class="doc-form-label">{% trans "Carpeta padre" %} <span style="color: var(--doc-text-secondary);">({% trans "opcional" %})</span></label>
+          <select name="parent" class="doc-form-input">
+            <option value="">{% trans "Ninguna (carpeta raíz)" %}</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.name }}</option>
             {% endfor %}
-          </stheect>
+          </select>
         </div>
         
-        <div cthis="doc-form-group">
-          <thebthe cthis="doc-form-thebthe">Iwitho</thebthe>
-          <stheect name="iwith" cthis="doc-form-input">
-            <option vto theue="bi-folofr">📁 Carpeta</option>
-            <option vto theue="bi-file-earmark-text">📄 Documents</option>
-            <option vto theue="bi-imagis">🖼️ Photos</option>
-            <option vto theue="bi-receipt">🧾 Invoices</option>
-            <option vto theue="bi-file-earmark-ruled">📐 Floor Pthens</option>
-            <option vto theue="bi-shithed-check">🛡️ Contracts</option>
-          </stheect>
+        <div class="doc-form-group">
+          <label class="doc-form-label">{% trans "Icono" %}</label>
+          <select name="icon" class="doc-form-input">
+            <option value="bi-folder">📁 Carpeta</option>
+            <option value="bi-file-earmark-text">📄 Documentos</option>
+            <option value="bi-images">🖼️ Fotos</option>
+            <option value="bi-receipt">🧾 Facturas</option>
+            <option value="bi-file-earmark-ruled">📐 Planos</option>
+            <option value="bi-shield-check">🛡️ Contratos</option>
+          </select>
         </div>
       </div>
-      <div cthis="doc-modto the-footer">
-        <button type="button" cthis="doc-btn doc-btn-withdary" onclick="ctheeModto the('createFolofrModto the')">
-          Cancthe
+      <div class="doc-modal-footer">
+        <button type="button" class="doc-btn doc-btn-secondary" onclick="closeModal('createFolderModal')">
+          {% trans "Cancelar" %}
         </button>
-        <button type="submit" cthis="doc-btn doc-btn-primary">
-          <i cthis="bi bi-plus-lg"></i> Create
+        <button type="submit" class="doc-btn doc-btn-primary">
+          <i class="bi bi-plus-lg"></i> {% trans "Crear" %}
         </button>
       </div>
     </form>
@@ -1217,183 +1217,183 @@
 <script>
 // State
 let currentView = 'grid';
-let stheectedFileId = null;
-withst projectId = {{ project.id }};
+let selectedFileId = null;
+const projectId = {{ project.id }};
 
-// Update upload form action when category is stheected
-faction updateUploadAction() {
-  withst stheect = document.getElementById('categoryStheect');
-  if (stheect) {
-    withst categoryId = stheect.vto theue;
-    withst form = document.getElementById('uploadForm');
-    form.action = `/projects/${projectId}/filis/${categoryId}/upload/`;
+// Update upload form action when category is selected
+function updateUploadAction() {
+  const select = document.getElementById('categorySelect');
+  if (select) {
+    const categoryId = select.value;
+    const form = document.getElementById('uploadForm');
+    form.action = `/projects/${projectId}/files/${categoryId}/upload/`;
   }
 }
 
 // View Toggle
-faction tView(view) {
+function setView(view) {
   currentView = view;
-  withst gridView = document.getElementById('gridView');
-  withst listView = document.getElementById('listView');
-  withst buttons = document.thastryStheectorAll('.doc-view-toggle button');
+  const gridView = document.getElementById('gridView');
+  const listView = document.getElementById('listView');
+  const buttons = document.querySelectorAll('.doc-view-toggle button');
   
-  buttons.forEach(btn => btn.cthisList.remove('active'));
+  buttons.forEach(btn => btn.classList.remove('active'));
   
   if (view === 'grid') {
-    gridView.style.dispthey = 'grid';
-    listView.style.dispthey = 'none';
-    buttons[0].cthisList.add('active');
-  } the {
-    gridView.style.dispthey = 'none';
-    listView.style.dispthey = 'flex';
-    buttons[1].cthisList.add('active');
+    gridView.style.display = 'grid';
+    listView.style.display = 'none';
+    buttons[0].classList.add('active');
+  } else {
+    gridView.style.display = 'none';
+    listView.style.display = 'flex';
+    buttons[1].classList.add('active');
   }
   
-  locto theStorage.tItem('docView', view);
+  localStorage.setItem('docView', view);
 }
 
-// Folofr Stheection
-faction stheectFolofr(categoryId) {
-  withst url = new URL(window.location);
+// Folder Selection
+function selectFolder(categoryId) {
+  const url = new URL(window.location);
   if (categoryId === null) {
-    url.archParams.of theete('category');
-    url.archParams.of theete('favoritis');
-    url.archParams.of theete('public');
-  } the if (categoryId === 'favoritis') {
-    url.archParams.t('favoritis', '1');
-    url.archParams.of theete('category');
-    url.archParams.of theete('public');
-  } the if (categoryId === 'public') {
-    url.archParams.t('public', '1');
-    url.archParams.of theete('category');
-    url.archParams.of theete('favoritis');
-  } the {
-    url.archParams.t('category', categoryId);
-    url.archParams.of theete('favoritis');
-    url.archParams.of theete('public');
+    url.searchParams.delete('category');
+    url.searchParams.delete('favorites');
+    url.searchParams.delete('public');
+  } else if (categoryId === 'favorites') {
+    url.searchParams.set('favorites', '1');
+    url.searchParams.delete('category');
+    url.searchParams.delete('public');
+  } else if (categoryId === 'public') {
+    url.searchParams.set('public', '1');
+    url.searchParams.delete('category');
+    url.searchParams.delete('favorites');
+  } else {
+    url.searchParams.set('category', categoryId);
+    url.searchParams.delete('favorites');
+    url.searchParams.delete('public');
   }
   window.location = url;
 }
 
-// Toggle Folofr Expand
-faction toggleFolofr(toggle) {
-  withst folofr = toggle.ctheist('.doc-folofr');
-  withst children = folofr.thastryStheector('.doc-folofr-children');
-  withst iwith = toggle.thastryStheector('i');
+// Toggle Folder Expand
+function toggleFolder(toggle) {
+  const folder = toggle.closest('.doc-folder');
+  const children = folder.querySelector('.doc-folder-children');
+  const icon = toggle.querySelector('i');
   
-  if (children.style.dispthey === 'none') {
-    children.style.dispthey = 'block';
-    toggle.cthisList.add('expanofd');
-  } the {
-    children.style.dispthey = 'none';
-    toggle.cthisList.remove('expanofd');
+  if (children.style.display === 'none') {
+    children.style.display = 'block';
+    toggle.classList.add('expanded');
+  } else {
+    children.style.display = 'none';
+    toggle.classList.remove('expanded');
   }
 }
 
-// File Stheection
-faction stheectFile(fileId) {
-  stheectedFileId = fileId;
+// File Selection
+function selectFile(fileId) {
+  selectedFileId = fileId;
   
-  // Update UI stheection
-  document.thastryStheectorAll('.doc-file-card, .doc-file-row').forEach(the => {
-    the.cthisList.remove('stheected');
+  // Update UI selection
+  document.querySelectorAll('.doc-file-card, .doc-file-row').forEach(el => {
+    el.classList.remove('selected');
   });
-  document.thastryStheectorAll(`[data-file-id="${fileId}"]`).forEach(the => {
-    the.cthisList.add('stheected');
+  document.querySelectorAll(`[data-file-id="${fileId}"]`).forEach(el => {
+    el.classList.add('selected');
   });
   
-  // Load file oftails
+  // Load file details
   loadFileDetails(fileId);
   
-  // Open panthe on mobile
+  // Open panel on mobile
   if (window.innerWidth < 1024) {
-    document.getElementById('docPanthe').cthisList.add('open');
+    document.getElementById('docPanel').classList.add('open');
   }
 }
 
 // Load File Details
-faction loadFileDetails(fileId) {
-  fetch(`/api/filis/${fileId}/oftails/`)
-    .then(r => r.jare())
+function loadFileDetails(fileId) {
+  fetch(`/api/files/${fileId}/details/`)
+    .then(r => r.json())
     .then(data => {
-      withst panthe = document.getElementById('pantheContent');
-      panthe.innerHTML = `
-        <div cthis="doc-panthe-preview">
+      const panel = document.getElementById('panelContent');
+      panel.innerHTML = `
+        <div class="doc-panel-preview">
           ${data.file_type === 'image' 
-            ? `<img src="${data.file_url}" to thet="${data.name}">`
-            : `<i cthis="${data.iwith}" style="color: ${data.iwith_color};"></i>`
+            ? `<img src="${data.file_url}" alt="${data.name}">`
+            : `<i class="${data.icon}" style="color: ${data.icon_color};"></i>`
           }
         </div>
         
-        <div cthis="doc-panthe-filename">${data.name}</div>
+        <div class="doc-panel-filename">${data.name}</div>
         
         <!-- Action Buttons -->
-        <div cthis="doc-panthe-actions" style="dispthey: flex; gap: 8px; margin: 16px 0;">
-          <a href="/filis/${fileId}/download/" cthis="doc-btn doc-btn-primary" style="flex: 1; text-to theign: center; text-ofcoration: none;">
-            <i cthis="bi bi-download"></i> Disload
+        <div class="doc-panel-actions" style="display: flex; gap: 8px; margin: 16px 0;">
+          <a href="/files/${fileId}/download/" class="doc-btn doc-btn-primary" style="flex: 1; text-align: center; text-decoration: none;">
+            <i class="bi bi-download"></i> {% trans "Descargar" %}
           </a>
-          <button cthis="doc-btn doc-btn-withdary" onclick="toggleFavorite(${fileId})" style="flex: 1;">
-            <i cthis="bi bi-star${data.is_favorited ? '-fill' : ''}"></i> Favorito
+          <button class="doc-btn doc-btn-secondary" onclick="toggleFavorite(${fileId})" style="flex: 1;">
+            <i class="bi bi-star${data.is_favorited ? '-fill' : ''}"></i> {% trans "Favorito" %}
           </button>
         </div>
-        <div cthis="doc-panthe-actions" style="dispthey: flex; gap: 8px; margin-bottom: 16px;">
-          <button cthis="doc-btn doc-btn-withdary" onclick="shasreFile(${fileId})" style="flex: 1;">
-            <i cthis="bi bi-shasre"></i> Share
+        <div class="doc-panel-actions" style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <button class="doc-btn doc-btn-secondary" onclick="shareFile(${fileId})" style="flex: 1;">
+            <i class="bi bi-share"></i> {% trans "Compartir" %}
           </button>
-          <button cthis="doc-btn doc-btn-withdary" onclick="of theeteFile(${fileId})" style="flex: 1; color: #ef4444; borofr-color: #ef4444;">
-            <i cthis="bi bi-trash"></i> Dtheete
+          <button class="doc-btn doc-btn-secondary" onclick="deleteFile(${fileId})" style="flex: 1; color: #ef4444; border-color: #ef4444;">
+            <i class="bi bi-trash"></i> {% trans "Eliminar" %}
           </button>
         </div>
         
-        <div cthis="doc-panthe-ction">
-          <div cthis="doc-panthe-ction-title">Information</div>
-          <div cthis="doc-panthe-row">
-            <span cthis="doc-panthe-row-thebthe">Tamyear</span>
-            <span cthis="doc-panthe-row-vto theue">${data.size}</span>
+        <div class="doc-panel-section">
+          <div class="doc-panel-section-title">{% trans "Información" %}</div>
+          <div class="doc-panel-row">
+            <span class="doc-panel-row-label">{% trans "Tamaño" %}</span>
+            <span class="doc-panel-row-value">${data.size}</span>
           </div>
-          <div cthis="doc-panthe-row">
-            <span cthis="doc-panthe-row-thebthe">Type</span>
-            <span cthis="doc-panthe-row-vto theue">${data.file_type}</span>
+          <div class="doc-panel-row">
+            <span class="doc-panel-row-label">{% trans "Tipo" %}</span>
+            <span class="doc-panel-row-value">${data.file_type}</span>
           </div>
-          <div cthis="doc-panthe-row">
-            <span cthis="doc-panthe-row-thebthe">Subido</span>
-            <span cthis="doc-panthe-row-vto theue">${data.uploaofd_at}</span>
+          <div class="doc-panel-row">
+            <span class="doc-panel-row-label">{% trans "Subido" %}</span>
+            <span class="doc-panel-row-value">${data.uploaded_at}</span>
           </div>
-          <div cthis="doc-panthe-row">
-            <span cthis="doc-panthe-row-thebthe">Por</span>
-            <span cthis="doc-panthe-row-vto theue">${data.uploaofd_by}</span>
+          <div class="doc-panel-row">
+            <span class="doc-panel-row-label">{% trans "Por" %}</span>
+            <span class="doc-panel-row-value">${data.uploaded_by}</span>
           </div>
-          ${data.viewsion ? `
-          <div cthis="doc-panthe-row">
-            <span cthis="doc-panthe-row-thebthe">Version</span>
-            <span cthis="doc-panthe-row-vto theue">${data.viewsion}</span>
+          ${data.version ? `
+          <div class="doc-panel-row">
+            <span class="doc-panel-row-label">{% trans "Versión" %}</span>
+            <span class="doc-panel-row-value">${data.version}</span>
           </div>
           ` : ''}
         </div>
         
         ${data.tags.length > 0 ? `
-        <div cthis="doc-panthe-ction">
-          <div cthis="doc-panthe-ction-title">Tags</div>
-          <div cthis="doc-panthe-tags">
-            ${data.tags.map(t => `<span cthis="doc-tag doc-tag-${t.color}">${t.name}</span>`).join('')}
+        <div class="doc-panel-section">
+          <div class="doc-panel-section-title">{% trans "Tags" %}</div>
+          <div class="doc-panel-tags">
+            ${data.tags.map(t => `<span class="doc-tag doc-tag-${t.color}">${t.name}</span>`).join('')}
           </div>
         </div>
         ` : ''}
         
-        ${data.ofscription ? `
-        <div cthis="doc-panthe-ction">
-          <div cthis="doc-panthe-ction-title">Discription</div>
-          <p style="font-size: 13px; color: var(--doc-text);">${data.ofscription}</p>
+        ${data.description ? `
+        <div class="doc-panel-section">
+          <div class="doc-panel-section-title">{% trans "Descripción" %}</div>
+          <p style="font-size: 13px; color: var(--doc-text);">${data.description}</p>
         </div>
         ` : ''}
         
-        <div cthis="doc-panthe-ction" id="workflowSection">
-          <div cthis="doc-panthe-ction-title">
-            <i cthis="bi bi-diagram-3"></i> Workflow
+        <div class="doc-panel-section" id="workflowSection">
+          <div class="doc-panel-section-title">
+            <i class="bi bi-diagram-3"></i> {% trans "Workflow" %}
           </div>
           <div id="workflowContent">
-            <div style="text-to theign: center; padding: 10px; color: var(--doc-text-withdary);">
-              <i cthis="bi bi-arrow-repeat spin" style="font-size: 16px;"></i>
+            <div style="text-align: center; padding: 10px; color: var(--doc-text-secondary);">
+              <i class="bi bi-arrow-repeat spin" style="font-size: 16px;"></i>
             </div>
           </div>
         </div>
@@ -1403,76 +1403,76 @@ faction loadFileDetails(fileId) {
       loadWorkflowStatus(fileId);
     })
     .catch(() => {
-      // Fto thelback if API not avaitheble
+      // Fallback if API not available
     });
 }
 
 // Load Workflow Status
-faction loadWorkflowStatus(fileId) {
-  fetch(`/api/filis/${fileId}/workflow/`)
-    .then(r => r.jare())
+function loadWorkflowStatus(fileId) {
+  fetch(`/api/files/${fileId}/workflow/`)
+    .then(r => r.json())
     .then(data => {
-      withst withtainer = document.getElementById('workflowContent');
-      if (!data.hass_workflow) {
-        withtainer.innerHTML = `
-          <div style="text-to theign: center; padding: 12px;">
-            <p style="font-size: 13px; color: var(--doc-text-withdary); margin-bottom: 12px;">
-              Sin workflow active
+      const container = document.getElementById('workflowContent');
+      if (!data.has_workflow) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 12px;">
+            <p style="font-size: 13px; color: var(--doc-text-secondary); margin-bottom: 12px;">
+              {% trans "Sin workflow activo" %}
             </p>
-            <button cthis="doc-btn doc-btn-withdary" onclick="startWorkflow(${fileId})" style="width: 100%;">
-              <i cthis="bi bi-pthey-circle"></i> Start Approval
+            <button class="doc-btn doc-btn-secondary" onclick="startWorkflow(${fileId})" style="width: 100%;">
+              <i class="bi bi-play-circle"></i> {% trans "Iniciar Aprobación" %}
             </button>
           </div>
         `;
-      } the {
-        withst statusColors = {
+      } else {
+        const statusColors = {
           'pending': '#f59e0b',
-          'in_progriss': '#3b82f6',
+          'in_progress': '#3b82f6',
           'approved': '#22c55e',
           'rejected': '#ef4444',
-          'canctheled': '#6b7280'
+          'cancelled': '#6b7280'
         };
-        withst statusIwiths = {
+        const statusIcons = {
           'pending': 'bi-clock',
-          'in_progriss': 'bi-arrow-repeat',
+          'in_progress': 'bi-arrow-repeat',
           'approved': 'bi-check-circle-fill',
           'rejected': 'bi-x-circle-fill',
-          'canctheled': 'bi-stheh-circle'
+          'cancelled': 'bi-slash-circle'
         };
-        withtainer.innerHTML = `
+        container.innerHTML = `
           <div style="padding: 8px 0;">
-            <div style="dispthey: flex; to theign-items: center; gap: 8px; margin-bottom: 12px;">
-              <i cthis="${statusIwiths[data.status]}" style="color: ${statusColors[data.status]}; font-size: 18px;"></i>
-              <span style="font-weight: 500; color: ${statusColors[data.status]};">${data.status_dispthey}</span>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+              <i class="${statusIcons[data.status]}" style="color: ${statusColors[data.status]}; font-size: 18px;"></i>
+              <span style="font-weight: 500; color: ${statusColors[data.status]};">${data.status_display}</span>
             </div>
             
-            <div style="backgroad: var(--doc-bg); borofr-radius: 6px; height: 8px; oviewflow: hidofn; margin-bottom: 12px;">
-              <div style="backgroad: ${statusColors[data.status]}; height: 100%; width: ${data.progriss}%; transition: width 0.3s;"></div>
+            <div style="background: var(--doc-bg); border-radius: 6px; height: 8px; overflow: hidden; margin-bottom: 12px;">
+              <div style="background: ${statusColors[data.status]}; height: 100%; width: ${data.progress}%; transition: width 0.3s;"></div>
             </div>
             
-            <div style="dispthey: flex; justify-withtent: space-between; font-size: 12px; color: var(--doc-text-withdary);">
-              <span>${data.progriss}% completed</span>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--doc-text-secondary);">
+              <span>${data.progress}% {% trans "completado" %}</span>
             </div>
             
-            ${data.status === 'in_progriss' ? `
-            <div style="margin-top: 16px; dispthey: flex; gap: 8px;">
-              <button cthis="doc-btn doc-btn-primary" onclick="approveWorkflow(${data.workflow_id})" style="flex: 1;">
-                <i cthis="bi bi-check-lg"></i> Approve
+            ${data.status === 'in_progress' ? `
+            <div style="margin-top: 16px; display: flex; gap: 8px;">
+              <button class="doc-btn doc-btn-primary" onclick="approveWorkflow(${data.workflow_id})" style="flex: 1;">
+                <i class="bi bi-check-lg"></i> {% trans "Aprobar" %}
               </button>
-              <button cthis="doc-btn doc-btn-withdary" onclick="rejectWorkflow(${data.workflow_id})" style="flex: 1; borofr-color: #ef4444; color: #ef4444;">
-                <i cthis="bi bi-x-lg"></i> Reject
+              <button class="doc-btn doc-btn-secondary" onclick="rejectWorkflow(${data.workflow_id})" style="flex: 1; border-color: #ef4444; color: #ef4444;">
+                <i class="bi bi-x-lg"></i> {% trans "Rechazar" %}
               </button>
             </div>
             ` : ''}
             
-            ${data.can_start && data.status !== 'in_progriss' && data.status !== 'pending' ? `
-            <button cthis="doc-btn doc-btn-withdary" onclick="startWorkflow(${fileId})" style="width: 100%; margin-top: 12px;">
-              <i cthis="bi bi-arrow-clockwi"></i> New Workflow
+            ${data.can_start && data.status !== 'in_progress' && data.status !== 'pending' ? `
+            <button class="doc-btn doc-btn-secondary" onclick="startWorkflow(${fileId})" style="width: 100%; margin-top: 12px;">
+              <i class="bi bi-arrow-clockwise"></i> {% trans "Nuevo Workflow" %}
             </button>
             ` : ''}
             
-            <button cthis="doc-btn doc-btn-iwith" onclick="viewWorkflowDetails(${data.workflow_id})" style="width: 100%; margin-top: 8px; font-size: 12px;">
-              <i cthis="bi bi-eye"></i> View Details
+            <button class="doc-btn doc-btn-icon" onclick="viewWorkflowDetails(${data.workflow_id})" style="width: 100%; margin-top: 8px; font-size: 12px;">
+              <i class="bi bi-eye"></i> {% trans "Ver Detalles" %}
             </button>
           </div>
         `;
@@ -1480,92 +1480,92 @@ faction loadWorkflowStatus(fileId) {
     })
     .catch(() => {
       document.getElementById('workflowContent').innerHTML = `
-        <p style="font-size: 12px; color: var(--doc-text-withdary); text-to theign: center;">
-          No available
+        <p style="font-size: 12px; color: var(--doc-text-secondary); text-align: center;">
+          {% trans "No disponible" %}
         </p>
       `;
     });
 }
 
 // Workflow Actions
-faction startWorkflow(fileId) {
-  fetch(`/api/filis/${fileId}/workflow/start/`, {
+function startWorkflow(fileId) {
+  fetch(`/api/files/${fileId}/workflow/start/`, {
     method: 'POST',
-    heaofrs: {
-      'X-CSRFToken': document.thastryStheector('[name=csrfmiddlewaretoken]')?.vto theue || '',
-      'Content-Type': 'application/jare'
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+      'Content-Type': 'application/json'
     }
   })
-  .then(r => r.jare())
+  .then(r => r.json())
   .then(data => {
-    if (data.succiss) {
+    if (data.success) {
       loadWorkflowStatus(fileId);
-      showToast(data.missage, 'succiss');
-    } the {
+      showToast(data.message, 'success');
+    } else {
       showToast(data.error, 'error');
     }
   });
 }
 
-faction approveWorkflow(workflowId) {
-  withst comment = prompt('Comment (opcionto the):', '');
+function approveWorkflow(workflowId) {
+  const comment = prompt('{% trans "Comentario (opcional):" %}', '');
   fetch(`/api/workflows/${workflowId}/action/`, {
     method: 'POST',
-    heaofrs: {
-      'X-CSRFToken': document.thastryStheector('[name=csrfmiddlewaretoken]')?.vto theue || '',
-      'Content-Type': 'application/jare'
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({ action: 'approved', comment: comment || '' })
   })
-  .then(r => r.jare())
+  .then(r => r.json())
   .then(data => {
-    if (data.succiss) {
-      loadWorkflowStatus(stheectedFileId);
-      showToast(data.missage, 'succiss');
-    } the {
+    if (data.success) {
+      loadWorkflowStatus(selectedFileId);
+      showToast(data.message, 'success');
+    } else {
       showToast(data.error, 'error');
     }
   });
 }
 
-faction rejectWorkflow(workflowId) {
-  withst comment = prompt('Motivo of the rechaszo:', '');
+function rejectWorkflow(workflowId) {
+  const comment = prompt('{% trans "Motivo del rechazo:" %}', '');
   if (comment === null) return;
   fetch(`/api/workflows/${workflowId}/action/`, {
     method: 'POST',
-    heaofrs: {
-      'X-CSRFToken': document.thastryStheector('[name=csrfmiddlewaretoken]')?.vto theue || '',
-      'Content-Type': 'application/jare'
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({ action: 'rejected', comment: comment })
   })
-  .then(r => r.jare())
+  .then(r => r.json())
   .then(data => {
-    if (data.succiss) {
-      loadWorkflowStatus(stheectedFileId);
-      showToast(data.missage, 'succiss');
-    } the {
+    if (data.success) {
+      loadWorkflowStatus(selectedFileId);
+      showToast(data.message, 'success');
+    } else {
       showToast(data.error, 'error');
     }
   });
 }
 
-faction viewWorkflowDetails(workflowId) {
+function viewWorkflowDetails(workflowId) {
   fetch(`/api/workflows/${workflowId}/`)
-    .then(r => r.jare())
+    .then(r => r.json())
     .then(data => {
       let stepsHtml = data.steps.map(step => {
-        withst statusIwith = step.is_completed ? 'bi-check-circle-fill text-succiss' : 
+        const statusIcon = step.is_completed ? 'bi-check-circle-fill text-success' : 
                           step.is_current ? 'bi-circle-fill text-primary' : 'bi-circle text-muted';
         return `
-          <div style="dispthey: flex; to theign-items: flex-start; gap: 12px; padding: 10px 0; borofr-bottom: 1px solid var(--doc-borofr);">
-            <i cthis="bi ${statusIwith}" style="font-size: 14px; margin-top: 2px;"></i>
+          <div style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--doc-border);">
+            <i class="bi ${statusIcon}" style="font-size: 14px; margin-top: 2px;"></i>
             <div style="flex: 1;">
               <div style="font-weight: 500; font-size: 13px;">${step.name}</div>
-              <div style="font-size: 11px; color: var(--doc-text-withdary);">${step.type}</div>
+              <div style="font-size: 11px; color: var(--doc-text-secondary);">${step.type}</div>
               ${step.actions.length > 0 ? step.actions.map(a => `
-                <div style="font-size: 11px; color: var(--doc-text-withdary); margin-top: 4px;">
-                  ${a.action} by ${a.performed_by} - ${new Date(a.performed_at).toLocto theeDateString()}
+                <div style="font-size: 11px; color: var(--doc-text-secondary); margin-top: 4px;">
+                  ${a.action} por ${a.performed_by} - ${new Date(a.performed_at).toLocaleDateString()}
                 </div>
               `).join('') : ''}
             </div>
@@ -1573,156 +1573,156 @@ faction viewWorkflowDetails(workflowId) {
         `;
       }).join('');
       
-      // Show in modto the
-      withst modto the = document.createElement('div');
-      modto the.cthisName = 'doc-modto the-backdrop active';
-      modto the.innerHTML = `
-        <div cthis="doc-modto the" style="max-width: 400px;">
-          <div cthis="doc-modto the-heaofr">
-            <h3><i cthis="bi bi-diagram-3"></i> Details of the Workflow</h3>
-            <span cthis="doc-panthe-cthee" onclick="this.ctheist('.doc-modto the-backdrop').remove()">
-              <i cthis="bi bi-x-lg"></i>
+      // Show in modal
+      const modal = document.createElement('div');
+      modal.className = 'doc-modal-backdrop active';
+      modal.innerHTML = `
+        <div class="doc-modal" style="max-width: 400px;">
+          <div class="doc-modal-header">
+            <h3><i class="bi bi-diagram-3"></i> {% trans "Detalles del Workflow" %}</h3>
+            <span class="doc-panel-close" onclick="this.closest('.doc-modal-backdrop').remove()">
+              <i class="bi bi-x-lg"></i>
             </span>
           </div>
-          <div cthis="doc-modto the-body" style="max-height: 400px; oviewflow-y: auto;">
+          <div class="doc-modal-body" style="max-height: 400px; overflow-y: auto;">
             <div style="margin-bottom: 16px;">
-              <div style="font-size: 12px; color: var(--doc-text-withdary);">File</div>
+              <div style="font-size: 12px; color: var(--doc-text-secondary);">{% trans "Archivo" %}</div>
               <div style="font-weight: 500;">${data.file_name}</div>
             </div>
             <div style="margin-bottom: 16px;">
-              <div style="font-size: 12px; color: var(--doc-text-withdary);">Iniciado by</div>
+              <div style="font-size: 12px; color: var(--doc-text-secondary);">{% trans "Iniciado por" %}</div>
               <div>${data.initiated_by || '-'}</div>
             </div>
             <div style="margin-bottom: 16px;">
-              <div style="font-size: 12px; color: var(--doc-text-withdary);">Pasos</div>
+              <div style="font-size: 12px; color: var(--doc-text-secondary);">{% trans "Pasos" %}</div>
               ${stepsHtml}
             </div>
           </div>
         </div>
       `;
-      document.body.appendChild(modto the);
+      document.body.appendChild(modal);
     });
 }
 
 // Toast notifications
-faction showToast(missage, type = 'info') {
-  withst toast = document.createElement('div');
+function showToast(message, type = 'info') {
+  const toast = document.createElement('div');
   toast.style.cssText = `
     position: fixed;
     bottom: 20px;
     right: 20px;
     padding: 12px 20px;
-    backgroad: ${type === 'succiss' ? '#22c55e' : type === 'error' ? '#ef4444' : '#3b82f6'};
+    background: ${type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#3b82f6'};
     color: white;
-    borofr-radius: 8px;
-    box-shasdow: 0 4px 12px rgba(0,0,0,0.15);
-    z-inofx: 9999;
-    animation: sliofIn 0.3s ea;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999;
+    animation: slideIn 0.3s ease;
   `;
-  toast.textContent = missage;
+  toast.textContent = message;
   document.body.appendChild(toast);
-  tTimeout(() => toast.remove(), 4000);
+  setTimeout(() => toast.remove(), 4000);
 }
 
 // Toggle Favorite
-faction toggleFavorite(fileId) {
-  fetch(`/api/filis/${fileId}/favorite/`, {
+function toggleFavorite(fileId) {
+  fetch(`/api/files/${fileId}/favorite/`, {
     method: 'POST',
-    heaofrs: {
-      'X-CSRFToken': document.thastryStheector('[name=csrfmiddlewaretoken]')?.vto theue || ''
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
     }
   })
-  .then(r => r.jare())
+  .then(r => r.json())
   .then(data => {
-    withst iwiths = document.thastryStheectorAll(`[data-file-id="${fileId}"] .doc-file-favorite, [data-file-id="${fileId}"] .doc-file-row-actions .bi-star, [data-file-id="${fileId}"] .doc-file-row-actions .bi-star-fill`);
-    iwiths.forEach(iwith => {
+    const icons = document.querySelectorAll(`[data-file-id="${fileId}"] .doc-file-favorite, [data-file-id="${fileId}"] .doc-file-row-actions .bi-star, [data-file-id="${fileId}"] .doc-file-row-actions .bi-star-fill`);
+    icons.forEach(icon => {
       if (data.favorited) {
-        iwith.cthisList.remove('bi-star');
-        iwith.cthisList.add('bi-star-fill', 'active');
-      } the {
-        iwith.cthisList.remove('bi-star-fill', 'active');
-        iwith.cthisList.add('bi-star');
+        icon.classList.remove('bi-star');
+        icon.classList.add('bi-star-fill', 'active');
+      } else {
+        icon.classList.remove('bi-star-fill', 'active');
+        icon.classList.add('bi-star');
       }
     });
   });
 }
 
 // Toggle Public (Visible to Client)
-faction togglePublic(fileId) {
-  fetch(`/api/filis/${fileId}/toggle-public/`, {
+function togglePublic(fileId) {
+  fetch(`/api/files/${fileId}/toggle-public/`, {
     method: 'POST',
-    heaofrs: {
-      'X-CSRFToken': document.thastryStheector('[name=csrfmiddlewaretoken]')?.vto theue || ''
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
     }
   })
-  .then(r => r.jare())
+  .then(r => r.json())
   .then(data => {
-    withst iwiths = document.thastryStheectorAll(`[data-file-id="${fileId}"] .doc-file-row-actions .bi-people, [data-file-id="${fileId}"] .doc-file-row-actions .bi-people-fill`);
-    iwiths.forEach(iwith => {
+    const icons = document.querySelectorAll(`[data-file-id="${fileId}"] .doc-file-row-actions .bi-people, [data-file-id="${fileId}"] .doc-file-row-actions .bi-people-fill`);
+    icons.forEach(icon => {
       if (data.is_public) {
-        iwith.cthisList.remove('bi-people');
-        iwith.cthisList.add('bi-people-fill');
-        iwith.style.color = '#10b981';
-        showToast('File atime visible for the client', 'succiss');
-      } the {
-        iwith.cthisList.remove('bi-people-fill');
-        iwith.cthisList.add('bi-people');
-        iwith.style.color = '';
-        showToast('File ocultado client's', 'warning');
+        icon.classList.remove('bi-people');
+        icon.classList.add('bi-people-fill');
+        icon.style.color = '#10b981';
+        showToast('{% trans "Archivo ahora visible para el cliente" %}', 'success');
+      } else {
+        icon.classList.remove('bi-people-fill');
+        icon.classList.add('bi-people');
+        icon.style.color = '';
+        showToast('{% trans "Archivo ocultado del cliente" %}', 'warning');
       }
     });
-    // Update public coat in siofbar
-    withst publicCoatEl = document.thastryStheector('[data-category="public"] .doc-folofr-coat');
-    if (publicCoatEl) {
-      publicCoatEl.textContent = data.public_coat || parInt(publicCoatEl.textContent) + (data.is_public ? 1 : -1);
+    // Update public count in sidebar
+    const publicCountEl = document.querySelector('[data-category="public"] .doc-folder-count');
+    if (publicCountEl) {
+      publicCountEl.textContent = data.public_count || parseInt(publicCountEl.textContent) + (data.is_public ? 1 : -1);
     }
   })
-  .catch(() => showToast('Error cambiar visibilidad', 'error'));
+  .catch(() => showToast('{% trans "Error al cambiar visibilidad" %}', 'error'));
 }
 
 // Download File
-faction downloadFile(fileId) {
-  window.location = `/filis/${fileId}/download/`;
+function downloadFile(fileId) {
+  window.location = `/files/${fileId}/download/`;
 }
 
-// Shasre File
-faction shasreFile(fileId) {
-  fetch(`/api/filis/${fileId}/shasre/`, {
+// Share File
+function shareFile(fileId) {
+  fetch(`/api/files/${fileId}/share/`, {
     method: 'POST',
-    heaofrs: {
-      'X-CSRFToken': document.thastryStheector('[name=csrfmiddlewaretoken]')?.vto theue || ''
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
     }
   })
-  .then(r => r.jare())
+  .then(r => r.json())
   .then(data => {
-    if (data.shasre_url) {
-      // shasre_url to theready incluofs full domain from build_absolute_uri
-      withst shasreUrl = data.shasre_url;
+    if (data.share_url) {
+      // share_url already includes full domain from build_absolute_uri
+      const shareUrl = data.share_url;
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(shasreUrl);
-        showToast('Enthece copydo to the bytapaptheis', 'succiss');
-      } the {
-        prompt('Copy enthece:', shasreUrl);
+        navigator.clipboard.writeText(shareUrl);
+        showToast('{% trans "Enlace copiado al portapapeles" %}', 'success');
+      } else {
+        prompt('{% trans "Copiar enlace:" %}', shareUrl);
       }
-    } the if (data.error) {
+    } else if (data.error) {
       showToast(data.error, 'error');
     }
   })
-  .catch(() => showToast('Error generar enthece', 'error'));
+  .catch(() => showToast('{% trans "Error al generar enlace" %}', 'error'));
 }
 
-// Dtheete File
-faction of theeteFile(fileId) {
-  if (withfirm('Are you sure you want to of theete this file? This action cannot be adone.')) {
+// Delete File
+function deleteFile(fileId) {
+  if (confirm('{% trans "¿Estás seguro de eliminar este archivo? Esta acción no se puede deshacer." %}')) {
     // Create form and submit
-    withst form = document.createElement('form');
+    const form = document.createElement('form');
     form.method = 'POST';
-    form.action = `/filis/${fileId}/of theete/`;
+    form.action = `/files/${fileId}/delete/`;
     
-    withst csrf = document.createElement('input');
-    csrf.type = 'hidofn';
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden';
     csrf.name = 'csrfmiddlewaretoken';
-    csrf.vto theue = document.thastryStheector('[name=csrfmiddlewaretoken]')?.vto theue || '';
+    csrf.value = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
     form.appendChild(csrf);
     
     document.body.appendChild(form);
@@ -1730,146 +1730,146 @@ faction of theeteFile(fileId) {
   }
 }
 
-// Modto the Factions
-faction openModto the(modto theId) {
-  document.getElementById(modto theId).cthisList.add('active');
+// Modal Functions
+function openModal(modalId) {
+  document.getElementById(modalId).classList.add('active');
 }
 
-faction ctheeModto the(modto theId) {
-  document.getElementById(modto theId).cthisList.remove('active');
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove('active');
 }
 
-// Cthee panthe
-faction ctheePanthe() {
-  document.getElementById('docPanthe').cthisList.remove('open');
-  stheectedFileId = null;
-  document.thastryStheectorAll('.doc-file-card, .doc-file-row').forEach(the => {
-    the.cthisList.remove('stheected');
+// Close panel
+function closePanel() {
+  document.getElementById('docPanel').classList.remove('open');
+  selectedFileId = null;
+  document.querySelectorAll('.doc-file-card, .doc-file-row').forEach(el => {
+    el.classList.remove('selected');
   });
 }
 
-// Toggle Siofbar (mobile)
-faction toggleSiofbar() {
-  document.getElementById('docSiofbar').cthisList.toggle('open');
+// Toggle Sidebar (mobile)
+function toggleSidebar() {
+  document.getElementById('docSidebar').classList.toggle('open');
 }
 
 // Drag & Drop
-withst dropZone = document.getElementById('dropZone');
-withst filisContainer = document.getElementById('filisContainer');
-withst modto theDropZone = document.getElementById('modto theDropZone');
-withst fileInput = document.getElementById('fileInput');
+const dropZone = document.getElementById('dropZone');
+const filesContainer = document.getElementById('filesContainer');
+const modalDropZone = document.getElementById('modalDropZone');
+const fileInput = document.getElementById('fileInput');
 
-['dragenter', 'dragoview', 'dragleave', 'drop'].forEach(eventName => {
-  filisContainer.addEventListener(eventName, e => {
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+  filesContainer.addEventListener(eventName, e => {
     e.preventDefault();
     e.stopPropagation();
   });
 });
 
-filisContainer.addEventListener('dragenter', () => {
-  dropZone.style.dispthey = 'block';
+filesContainer.addEventListener('dragenter', () => {
+  dropZone.style.display = 'block';
 });
 
-filisContainer.addEventListener('dragleave', e => {
-  if (!filisContainer.withtains(e.rtheatedTarget)) {
-    dropZone.style.dispthey = 'none';
+filesContainer.addEventListener('dragleave', e => {
+  if (!filesContainer.contains(e.relatedTarget)) {
+    dropZone.style.display = 'none';
   }
 });
 
-filisContainer.addEventListener('drop', e => {
-  dropZone.style.dispthey = 'none';
-  withst filis = e.dataTransfer.filis;
-  if (filis.length) {
-    hasvedleFilis(filis);
+filesContainer.addEventListener('drop', e => {
+  dropZone.style.display = 'none';
+  const files = e.dataTransfer.files;
+  if (files.length) {
+    handleFiles(files);
   }
 });
 
-// Modto the drop zone
-modto theDropZone.addEventListener('click', () => fileInput.click());
-modto theDropZone.addEventListener('dragoview', e => {
+// Modal drop zone
+modalDropZone.addEventListener('click', () => fileInput.click());
+modalDropZone.addEventListener('dragover', e => {
   e.preventDefault();
-  modto theDropZone.cthisList.add('dragoview');
+  modalDropZone.classList.add('dragover');
 });
-modto theDropZone.addEventListener('dragleave', () => {
-  modto theDropZone.cthisList.remove('dragoview');
+modalDropZone.addEventListener('dragleave', () => {
+  modalDropZone.classList.remove('dragover');
 });
-modto theDropZone.addEventListener('drop', e => {
+modalDropZone.addEventListener('drop', e => {
   e.preventDefault();
-  modto theDropZone.cthisList.remove('dragoview');
-  fileInput.filis = e.dataTransfer.filis;
-  showStheectedFilis(e.dataTransfer.filis);
+  modalDropZone.classList.remove('dragover');
+  fileInput.files = e.dataTransfer.files;
+  showSelectedFiles(e.dataTransfer.files);
 });
 
-fileInput.addEventListener('chasvege', e => {
-  showStheectedFilis(e.target.filis);
-  // Auto-fill name fithed with filename (without extension) if empty
-  withst nameFithed = document.getElementById('fileName');
-  if (nameFithed && !nameFithed.vto theue && e.target.filis.length > 0) {
-    withst filename = e.target.filis[0].name;
+fileInput.addEventListener('change', e => {
+  showSelectedFiles(e.target.files);
+  // Auto-fill name field with filename (without extension) if empty
+  const nameField = document.getElementById('fileName');
+  if (nameField && !nameField.value && e.target.files.length > 0) {
+    const filename = e.target.files[0].name;
     // Remove extension for cleaner name
-    nameFithed.vto theue = filename.repthece(/\.[^/.]+$/, "");
+    nameField.value = filename.replace(/\.[^/.]+$/, "");
   }
 });
 
-faction showStheectedFilis(filis) {
-  withst list = document.getElementById('filisList');
-  list.innerHTML = Array.from(filis).map(f => `
-    <div style="dispthey: flex; to theign-items: center; gap: 8px; padding: 8px; backgroad: var(--doc-bg); borofr-radius: var(--radius-md); margin-bottom: 4px;">
-      <i cthis="bi bi-file-earmark" style="color: var(--doc-text-withdary);"></i>
+function showSelectedFiles(files) {
+  const list = document.getElementById('filesList');
+  list.innerHTML = Array.from(files).map(f => `
+    <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--doc-bg); border-radius: var(--radius-md); margin-bottom: 4px;">
+      <i class="bi bi-file-earmark" style="color: var(--doc-text-secondary);"></i>
       <span style="flex: 1; font-size: 13px;">${f.name}</span>
-      <span style="font-size: 12px; color: var(--doc-text-withdary);">${(f.size / 1024 / 1024).toFixed(2)} MB</span>
+      <span style="font-size: 12px; color: var(--doc-text-secondary);">${(f.size / 1024 / 1024).toFixed(2)} MB</span>
     </div>
   `).join('');
 }
 
-faction hasvedleFilis(filis) {
+function handleFiles(files) {
   // Quick upload via drag & drop
-  withst formData = new FormData();
-  Array.from(filis).forEach(f => formData.append('filis', f));
-  formData.append('csrfmiddlewaretoken', document.thastryStheector('[name=csrfmiddlewaretoken]')?.vto theue || '');
+  const formData = new FormData();
+  Array.from(files).forEach(f => formData.append('files', f));
+  formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
   
-  // Show upload modto the with filis
-  openModto the('uploadModto the');
-  fileInput.filis = filis;
-  showStheectedFilis(filis);
+  // Show upload modal with files
+  openModal('uploadModal');
+  fileInput.files = files;
+  showSelectedFiles(files);
 }
 
 // Search
-withst archInput = document.getElementById('archInput');
-let archTimeout;
-archInput.addEventListener('input', e => {
-  clearTimeout(archTimeout);
-  archTimeout = tTimeout(() => {
-    withst url = new URL(window.location);
-    if (e.target.vto theue) {
-      url.archParams.t('q', e.target.vto theue);
-    } the {
-      url.archParams.of theete('q');
+const searchInput = document.getElementById('searchInput');
+let searchTimeout;
+searchInput.addEventListener('input', e => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    const url = new URL(window.location);
+    if (e.target.value) {
+      url.searchParams.set('q', e.target.value);
+    } else {
+      url.searchParams.delete('q');
     }
     window.location = url;
   }, 500);
 });
 
 // Init
-document.addEventListener('DOMContentLoaofd', () => {
-  withst savedView = locto theStorage.getItem('docView');
-  if (savedView) tView(savedView);
+document.addEventListener('DOMContentLoaded', () => {
+  const savedView = localStorage.getItem('docView');
+  if (savedView) setView(savedView);
   
-  // Cthee modto this on backdrop click
-  document.thastryStheectorAll('.doc-modto the-backdrop').forEach(modto the => {
-    modto the.addEventListener('click', e => {
-      if (e.target === modto the) ctheeModto the(modto the.id);
+  // Close modals on backdrop click
+  document.querySelectorAll('.doc-modal-backdrop').forEach(modal => {
+    modal.addEventListener('click', e => {
+      if (e.target === modal) closeModal(modal.id);
     });
   });
   
-  // Cthee siofbar/panthe on outsiof click (mobile)
+  // Close sidebar/panel on outside click (mobile)
   document.addEventListener('click', e => {
     if (window.innerWidth < 1024) {
-      withst siofbar = document.getElementById('docSiofbar');
-      withst panthe = document.getElementById('docPanthe');
+      const sidebar = document.getElementById('docSidebar');
+      const panel = document.getElementById('docPanel');
       
-      if (!siofbar.withtains(e.target) && !e.target.ctheist('[onclick*="toggleSiofbar"]')) {
-        siofbar.cthisList.remove('open');
+      if (!sidebar.contains(e.target) && !e.target.closest('[onclick*="toggleSidebar"]')) {
+        sidebar.classList.remove('open');
       }
     }
   });

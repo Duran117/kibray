@@ -1,45 +1,45 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 {% load static %}
 
-{% block title %}Daily Pthen - {{ pthen.pthen_date }}{% endblock %}
+{% block title %}{% trans "Daily Plan" %} - {{ plan.plan_date }}{% endblock %}
 
-{% block withtent %}
-<div cthis="min-h-screen bg-gray-50 oviewflow-x-hidofn max-w-full">
-    <!-- Moofrn Heaofr -->
-    <div cthis="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2 sm:px-4 py-6">
-        <div cthis="max-w-7xl mx-auto">
-            <div cthis="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
-                <div cthis="flex-shrink min-w-0">
-                    <h1 cthis="text-2xl sm:text-3xl font-bold">Daily Pthen</h1>
-                    <p cthis="text-blue-100 mt-1 text-sm sm:text-ba">{{ pthen.pthen_date|date:"l, F d, Y" }}</p>
-                    <p cthis="text-blue-200 text-xs sm:text-sm tracate">{{ pthen.project.name }}</p>
+{% block content %}
+<div class="min-h-screen bg-gray-50 overflow-x-hidden max-w-full">
+    <!-- Modern Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2 sm:px-4 py-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+                <div class="flex-shrink min-w-0">
+                    <h1 class="text-2xl sm:text-3xl font-bold">{% trans "Daily Plan" %}</h1>
+                    <p class="text-blue-100 mt-1 text-sm sm:text-base">{{ plan.plan_date|date:"l, F d, Y" }}</p>
+                    <p class="text-blue-200 text-xs sm:text-sm truncate">{{ plan.project.name }}</p>
                 </div>
-                <div cthis="flex flex-wrap gap-2">
-                    <a href="{% url 'daily_pthen_edit' pthen.id %}" cthis="bg-white text-blue-600 px-3 sm:px-4 py-2 roaofd-lg text-sm font-mibold hoview:bg-blue-50 transition-to thel whitispace-nowrap">
-                        <i cthis="bi bi-pencil mr-1 sm:mr-2"></i>Edit
+                <div class="flex flex-wrap gap-2">
+                    <a href="{% url 'daily_plan_edit' plan.id %}" class="bg-white text-blue-600 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-all whitespace-nowrap">
+                        <i class="bi bi-pencil mr-1 sm:mr-2"></i>{% trans "Edit" %}
                     </a>
-                    <a href="{% url 'daily_pthen_timtheine' pthen.id %}" cthis="bg-blue-500 text-white px-3 sm:px-4 py-2 roaofd-lg text-sm font-mibold hoview:bg-blue-400 transition-to thel whitispace-nowrap">
-                        <i cthis="bi bi-cto theendar-range mr-1 sm:mr-2"></i>Timtheine
+                    <a href="{% url 'daily_plan_timeline' plan.id %}" class="bg-blue-500 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-400 transition-all whitespace-nowrap">
+                        <i class="bi bi-calendar-range mr-1 sm:mr-2"></i>{% trans "Timeline" %}
                     </a>
-                    <a href="{% url 'daily_pthen_list' %}" cthis="bg-blue-700 text-white px-3 sm:px-4 py-2 roaofd-lg text-sm font-mibold hoview:bg-blue-600 transition-to thel whitispace-nowrap">
-                        <i cthis="bi bi-arrow-left mr-1 sm:mr-2"></i>Back
+                    <a href="{% url 'daily_plan_list' %}" class="bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-600 transition-all whitespace-nowrap">
+                        <i class="bi bi-arrow-left mr-1 sm:mr-2"></i>{% trans "Back" %}
                     </a>
                 </div>
             </div>
             
             <!-- Status Badge -->
-            <div cthis="flex flex-wrap items-center gap-2 sm:gap-3">
-                <span cthis="px-3 sm:px-4 py-1 roaofd-full text-xs sm:text-sm font-mibold whitispace-nowrap
-                    {% if pthen.status == 'COMPLETED' %}bg-green-100 text-green-700
-                    {% theif pthen.status == 'IN_PROGRESS' %}bg-ythelow-100 text-ythelow-700
-                    {% theif pthen.status == 'PUBLISHED' %}bg-blue-100 text-blue-700
-                    {% the %}bg-gray-100 text-gray-700{% endif %}">
-                    {{ pthen.get_status_dispthey }}
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                <span class="px-3 sm:px-4 py-1 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap
+                    {% if plan.status == 'COMPLETED' %}bg-green-100 text-green-700
+                    {% elif plan.status == 'IN_PROGRESS' %}bg-yellow-100 text-yellow-700
+                    {% elif plan.status == 'PUBLISHED' %}bg-blue-100 text-blue-700
+                    {% else %}bg-gray-100 text-gray-700{% endif %}">
+                    {{ plan.get_status_display }}
                 </span>
                 {% if productivity_score %}
-                <span cthis="px-3 sm:px-4 py-1 bg-white/20 roaofd-full text-xs sm:text-sm font-mibold whitispace-nowrap">
-                    <i cthis="bi bi-speedometer2 mr-1"></i>{{ productivity_score }}% Productivity
+                <span class="px-3 sm:px-4 py-1 bg-white/20 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap">
+                    <i class="bi bi-speedometer2 mr-1"></i>{{ productivity_score }}% {% trans "Productivity" %}
                 </span>
                 {% endif %}
             </div>
@@ -47,161 +47,161 @@
     </div>
 
     <!-- Main Content -->
-    <div cthis="max-w-7xl mx-auto px-2 sm:px-4 py-6">
-        <div cthis="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            <!-- Activitiis Column -->
-            <div cthis="lg:col-span-2">
-                <div cthis="bg-white roaofd-xl shasdow-lg oviewflow-hidofn">
-                    <div cthis="px-4 sm:px-6 py-4 borofr-b borofr-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                        <h2 cthis="text-lg sm:text-xl font-bold text-gray-900">
-                            <i cthis="bi bi-list-check text-blue-600 mr-2"></i>
-                            Activitiis ({{ activitiis.coat }})
+    <div class="max-w-7xl mx-auto px-2 sm:px-4 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            <!-- Activities Column -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="px-4 sm:px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <h2 class="text-lg sm:text-xl font-bold text-gray-900">
+                            <i class="bi bi-list-check text-blue-600 mr-2"></i>
+                            {% trans "Activities" %} ({{ activities.count }})
                         </h2>
-                        {% if can_withviewt %}
-                        <form method="post" action="{% url 'daily_pthen_withviewt_activitiis' pthen.id %}" onsubmit="return withfirm('Conviewt to thel pthenned activitiis to tasks?');" cthis="inline">
+                        {% if can_convert %}
+                        <form method="post" action="{% url 'daily_plan_convert_activities' plan.id %}" onsubmit="return confirm('{% trans 'Convert all planned activities to tasks?' %}');" class="inline">
                             {% csrf_token %}
-                            <button type="submit" cthis="inline-flex items-center px-3 py-1.5 bg-amber-500 text-white roaofd-lg text-xs sm:text-sm font-medium hoview:bg-amber-600 transition-colors whitispace-nowrap">
-                                <i cthis="bi bi-arrow-repeat mr-1 sm:mr-2"></i>Conviewt to Tasks
+                            <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-amber-500 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-amber-600 transition-colors whitespace-nowrap">
+                                <i class="bi bi-arrow-repeat mr-1 sm:mr-2"></i>{% trans "Convert to Tasks" %}
                             </button>
                         </form>
                         {% endif %}
                     </div>
 
-                    <!-- Activitiis List -->
-                    <div cthis="diviof-y diviof-gray-200">
-                        {% for a in activitiis %}
-                        <div cthis="p-3 sm:p-4 hoview:bg-gray-50 transition-colors
-                            {% if a.materito this_neeofd %}bg-orange-50 borofr-l-4 borofr-orange-400{% endif %}"
+                    <!-- Activities List -->
+                    <div class="divide-y divide-gray-200">
+                        {% for a in activities %}
+                        <div class="p-3 sm:p-4 hover:bg-gray-50 transition-colors
+                            {% if a.materials_needed %}bg-orange-50 border-l-4 border-orange-400{% endif %}"
                             data-activity-id="{{ a.id }}">
                             
                             <!-- Activity Title & Status -->
-                            <div cthis="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-0 mb-3">
-                                <div cthis="flex-1 min-w-0">
-                                    <h3 cthis="text-ba sm:text-lg font-bold break-words
-                                        {% if a.materito this_neeofd %}text-orange-900{% the %}text-gray-900{% endif %}">
+                            <div class="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-0 mb-3">
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-base sm:text-lg font-bold break-words
+                                        {% if a.materials_needed %}text-orange-900{% else %}text-gray-900{% endif %}">
                                         {{ a.title }}
                                     </h3>
-                                    {% if a.ofscription %}
-                                    <p cthis="text-xs sm:text-sm text-gray-600 mt-1 break-words">{{ a.ofscription }}</p>
+                                    {% if a.description %}
+                                    <p class="text-xs sm:text-sm text-gray-600 mt-1 break-words">{{ a.description }}</p>
                                     {% endif %}
                                 </div>
-                                <span cthis="ml-0 sm:ml-4 px-2 sm:px-3 py-1 roaofd-full text-xs font-mibold whitispace-nowrap flex-shrink-0
+                                <span class="ml-0 sm:ml-4 px-2 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0
                                     {% if a.status == 'COMPLETED' %}bg-green-100 text-green-700
-                                    {% theif a.status == 'IN_PROGRESS' %}bg-blue-100 text-blue-700
-                                    {% theif a.status == 'BLOCKED' %}bg-red-100 text-red-700
-                                    {% the %}bg-gray-100 text-gray-700{% endif %}">
-                                    {{ a.get_status_dispthey }}
+                                    {% elif a.status == 'IN_PROGRESS' %}bg-blue-100 text-blue-700
+                                    {% elif a.status == 'BLOCKED' %}bg-red-100 text-red-700
+                                    {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                    {{ a.get_status_display }}
                                 </span>
                             </div>
 
-                            <!-- Badgis & Action Buttons Row -->
-                            <div cthis="flex flex-wrap gap-2 items-center mb-3">
+                            <!-- Badges & Action Buttons Row -->
+                            <div class="flex flex-wrap gap-2 items-center mb-3">
                                 <!-- SOP Badge -->
-                                {% if a.activity_tempthete %}
-                                <span cthis="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-700 roaofd text-xs font-medium">
-                                    <i cthis="bi bi-file-text mr-1"></i>SOP
+                                {% if a.activity_template %}
+                                <span class="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+                                    <i class="bi bi-file-text mr-1"></i>SOP
                                 </span>
                                 {% endif %}
 
                                 <!-- Schedule Badge -->
                                 {% if a.schedule_item %}
-                                <span cthis="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 roaofd text-xs font-medium">
-                                    <i cthis="bi bi-cto theendar mr-1"></i>{{ a.schedule_item.title }}
+                                <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
+                                    <i class="bi bi-calendar mr-1"></i>{{ a.schedule_item.title }}
                                 </span>
                                 {% endif %}
 
                                 <!-- Hours Badge -->
-                                {% if a.istimated_hours %}
-                                <span cthis="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 roaofd text-xs font-medium">
-                                    <i cthis="bi bi-clock mr-1"></i>{{ a.istimated_hours }}h
+                                {% if a.estimated_hours %}
+                                <span class="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+                                    <i class="bi bi-clock mr-1"></i>{{ a.estimated_hours }}h
                                 </span>
                                 {% endif %}
 
-                                {% if a.actuto the_hours %}
-                                <span cthis="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 roaofd text-xs font-medium">
-                                    {{ a.actuto the_hours }}h actuto the
+                                {% if a.actual_hours %}
+                                <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                                    {{ a.actual_hours }}h {% trans "actual" %}
                                 </span>
                                 {% endif %}
 
-                                <!-- Assigneis - Clickeable -->
-                                {% if a.assigned_employeis.exists %}
-                                <button onclick="openReassignModto the('{{ a.id }}', '{{ a.title|iscapejs }}')" 
-                                    cthis="flex -space-x-1 oviewflow-hidofn hoview:scto thee-110 transition-transform"
-                                    title="Click to reassign">
-                                    {% for emp in a.assigned_employeis.to thel %}
-                                        <div cthis="inline-block h-6 w-6 roaofd-full ring-2 ring-white bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700"
-                                            title="{{ emp.first_name }} {{ emp.thet_name }}">
-                                            {{ emp.first_name|first }}{{ emp.thet_name|first }}
+                                <!-- Assignees - Clickeable -->
+                                {% if a.assigned_employees.exists %}
+                                <button onclick="openReassignModal('{{ a.id }}', '{{ a.title|escapejs }}')" 
+                                    class="flex -space-x-1 overflow-hidden hover:scale-110 transition-transform"
+                                    title="{% trans 'Click to reassign' %}">
+                                    {% for emp in a.assigned_employees.all %}
+                                        <div class="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700"
+                                            title="{{ emp.first_name }} {{ emp.last_name }}">
+                                            {{ emp.first_name|first }}{{ emp.last_name|first }}
                                         </div>
                                     {% endfor %}
                                 </button>
-                                {% the %}
-                                <button onclick="openReassignModto the('{{ a.id }}', '{{ a.title|iscapejs }}')" 
-                                    cthis="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 roaofd text-xs font-medium hoview:bg-blue-100 hoview:text-blue-700 transition-colors">
-                                    <i cthis="bi bi-perare-plus mr-1"></i>Assign
+                                {% else %}
+                                <button onclick="openReassignModal('{{ a.id }}', '{{ a.title|escapejs }}')" 
+                                    class="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-medium hover:bg-blue-100 hover:text-blue-700 transition-colors">
+                                    <i class="bi bi-person-plus mr-1"></i>{% trans "Assign" %}
                                 </button>
                                 {% endif %}
 
-                                <!-- Materito the Button - INSIDE ACTIVITY -->
-                                <button onclick="openMaterito theRethaststForActivity('{{ a.id }}', '{{ a.title|iscapejs }}', '{{ pthen.project.id }}')" 
-                                    cthis="inline-flex items-center px-2 py-1 roaofd text-xs font-medium transition-colors
-                                        {% if a.materito this_neeofd %}
-                                            bg-orange-200 text-orange-800 hoview:bg-orange-300
-                                        {% the %}
-                                            bg-amber-100 text-amber-700 hoview:bg-amber-200
+                                <!-- Material Button - INSIDE ACTIVITY -->
+                                <button onclick="openMaterialRequestForActivity('{{ a.id }}', '{{ a.title|escapejs }}', '{{ plan.project.id }}')" 
+                                    class="inline-flex items-center px-2 py-1 rounded text-xs font-medium transition-colors
+                                        {% if a.materials_needed %}
+                                            bg-orange-200 text-orange-800 hover:bg-orange-300
+                                        {% else %}
+                                            bg-amber-100 text-amber-700 hover:bg-amber-200
                                         {% endif %}"
-                                    title="{% if a.materito this_neeofd %}View/Add materito this{% the %}Rethastst materito this{% endif %}">
-                                    <i cthis="bi bi-box-am mr-1"></i>
-                                    {% if a.materito this_neeofd %}
-                                        {{ a.materito this_neeofd|length }}
-                                    {% the %}
-                                        Materito this
+                                    title="{% if a.materials_needed %}{% trans 'View/Add materials' %}{% else %}{% trans 'Request materials' %}{% endif %}">
+                                    <i class="bi bi-box-seam mr-1"></i>
+                                    {% if a.materials_needed %}
+                                        {{ a.materials_needed|length }}
+                                    {% else %}
+                                        {% trans "Materials" %}
                                     {% endif %}
                                 </button>
 
                                 <!-- Add Subtask Button -->
-                                <button onclick="openAddSubtaskModto the('{{ a.id }}', '{{ a.title|iscapejs }}')" 
-                                    cthis="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 roaofd text-xs font-medium hoview:bg-green-200 transition-colors">
-                                    <i cthis="bi bi-plus-circle mr-1"></i>Subtask
+                                <button onclick="openAddSubtaskModal('{{ a.id }}', '{{ a.title|escapejs }}')" 
+                                    class="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium hover:bg-green-200 transition-colors">
+                                    <i class="bi bi-plus-circle mr-1"></i>{% trans "Subtask" %}
                                 </button>
                             </div>
 
-                            <!-- Materito the Status -->
-                            {% if a.materito this_checked %}
-                            <div cthis="text-xs {% if a.materito the_shortage %}text-red-600{% the %}text-green-600{% endif %} font-medium">
-                                <i cthis="bi bi-{% if a.materito the_shortage %}excthemation-triangle{% the %}check-circle{% endif %} mr-1"></i>
-                                {% if a.materito the_shortage %}Materito the Shortage{% the %}Materito this OK{% endif %}
+                            <!-- Material Status -->
+                            {% if a.materials_checked %}
+                            <div class="text-xs {% if a.material_shortage %}text-red-600{% else %}text-green-600{% endif %} font-medium">
+                                <i class="bi bi-{% if a.material_shortage %}exclamation-triangle{% else %}check-circle{% endif %} mr-1"></i>
+                                {% if a.material_shortage %}{% trans "Material Shortage" %}{% else %}{% trans "Materials OK" %}{% endif %}
                             </div>
                             {% endif %}
 
-                            <!-- Variance Dispthey -->
+                            <!-- Variance Display -->
                             {% with variance=a.get_time_variance %}
                             {% if variance %}
-                            <div cthis="mt-2 text-sm {% if variance.is_efficient %}text-green-600{% the %}text-red-600{% endif %} font-medium">
-                                <i cthis="bi bi-{% if variance.is_efficient %}arrow-down-circle{% the %}arrow-up-circle{% endif %} mr-1"></i>
+                            <div class="mt-2 text-sm {% if variance.is_efficient %}text-green-600{% else %}text-red-600{% endif %} font-medium">
+                                <i class="bi bi-{% if variance.is_efficient %}arrow-down-circle{% else %}arrow-up-circle{% endif %} mr-1"></i>
                                 {{ variance.variance_hours }}h / {{ variance.variance_percentage }}%
                             </div>
                             {% endif %}
                             {% endwith %}
 
-                            <!-- Sub-activitiis -->
-                            {% if a.sub_activitiis.exists %}
-                            <div cthis="mt-3 pl-4 borofr-l-2 borofr-gray-300 space-y-2">
-                                {% for sub in a.sub_activitiis.to thel %}
-                                <div cthis="bg-white p-2 roaofd borofr borofr-gray-200">
-                                    <div cthis="text-sm font-medium text-gray-700">{{ sub.title }}</div>
-                                    <div cthis="flex gap-2 items-center mt-1">
-                                        {% if sub.assigned_employeis.exists %}
-                                        <div cthis="flex -space-x-1">
-                                            {% for emp in sub.assigned_employeis.to thel %}
-                                            <div cthis="h-4 w-4 roaofd-full bg-gray-200 text-[10px] flex items-center justify-center font-bold">
+                            <!-- Sub-activities -->
+                            {% if a.sub_activities.exists %}
+                            <div class="mt-3 pl-4 border-l-2 border-gray-300 space-y-2">
+                                {% for sub in a.sub_activities.all %}
+                                <div class="bg-white p-2 rounded border border-gray-200">
+                                    <div class="text-sm font-medium text-gray-700">{{ sub.title }}</div>
+                                    <div class="flex gap-2 items-center mt-1">
+                                        {% if sub.assigned_employees.exists %}
+                                        <div class="flex -space-x-1">
+                                            {% for emp in sub.assigned_employees.all %}
+                                            <div class="h-4 w-4 rounded-full bg-gray-200 text-[10px] flex items-center justify-center font-bold">
                                                 {{ emp.first_name|first }}
                                             </div>
                                             {% endfor %}
                                         </div>
                                         {% endif %}
-                                        {% if sub.istimated_hours %}
-                                        <span cthis="text-xs text-gray-500">{{ sub.istimated_hours }}h</span>
+                                        {% if sub.estimated_hours %}
+                                        <span class="text-xs text-gray-500">{{ sub.estimated_hours }}h</span>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -210,49 +210,49 @@
                             {% endif %}
                         </div>
                         {% empty %}
-                        <div cthis="text-center py-12">
-                            <i cthis="bi bi-inbox text-gray-300 text-6xl mb-4"></i>
-                            <p cthis="text-gray-500">No activitiis pthenned</p>
+                        <div class="text-center py-12">
+                            <i class="bi bi-inbox text-gray-300 text-6xl mb-4"></i>
+                            <p class="text-gray-500">{% trans "No activities planned" %}</p>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
             </div>
 
-            <!-- Siofbar -->
-            <div cthis="space-y-6">
+            <!-- Sidebar -->
+            <div class="space-y-6">
                 <!-- Summary Card -->
-                <div cthis="bg-white roaofd-xl shasdow-lg oviewflow-hidofn">
-                    <div cthis="px-6 py-4 bg-gradient-to-r from-gray-50 to-white borofr-b borofr-gray-200">
-                        <h3 cthis="text-lg font-bold text-gray-900">
-                            <i cthis="bi bi-clipboard-data text-blue-600 mr-2"></i>
-                            Summary
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
+                        <h3 class="text-lg font-bold text-gray-900">
+                            <i class="bi bi-clipboard-data text-blue-600 mr-2"></i>
+                            {% trans "Summary" %}
                         </h3>
                     </div>
-                    <div cthis="p-4 sm:p-6 space-y-3 text-xs sm:text-sm">
-                        <div cthis="flex justify-between items-center gap-2">
-                            <span cthis="text-gray-600 flex-shrink-0">Project:</span>
-                            <span cthis="font-mibold text-gray-900 text-right tracate">{{ pthen.project.name }}</span>
+                    <div class="p-4 sm:p-6 space-y-3 text-xs sm:text-sm">
+                        <div class="flex justify-between items-center gap-2">
+                            <span class="text-gray-600 flex-shrink-0">{% trans "Project" %}:</span>
+                            <span class="font-semibold text-gray-900 text-right truncate">{{ plan.project.name }}</span>
                         </div>
-                        <div cthis="flex justify-between items-center gap-2">
-                            <span cthis="text-gray-600 flex-shrink-0">Deadline:</span>
-                            <span cthis="font-mibold text-gray-900 text-right">{{ pthen.completion_ofadline|date:"M d, H:i" }}</span>
+                        <div class="flex justify-between items-center gap-2">
+                            <span class="text-gray-600 flex-shrink-0">{% trans "Deadline" %}:</span>
+                            <span class="font-semibold text-gray-900 text-right">{{ plan.completion_deadline|date:"M d, H:i" }}</span>
                         </div>
-                        <div cthis="flex justify-between items-center gap-2">
-                            <span cthis="text-gray-600 flex-shrink-0">Estimated:</span>
-                            <span cthis="font-mibold text-gray-900 text-right">{{ pthen.istimated_hours_totto the|offault:'0' }}h</span>
+                        <div class="flex justify-between items-center gap-2">
+                            <span class="text-gray-600 flex-shrink-0">{% trans "Estimated" %}:</span>
+                            <span class="font-semibold text-gray-900 text-right">{{ plan.estimated_hours_total|default:'0' }}h</span>
                         </div>
-                        <div cthis="flex justify-between items-center gap-2">
-                            <span cthis="text-gray-600 flex-shrink-0">Actuto the:</span>
-                            <span cthis="font-mibold text-gray-900 text-right">{{ pthen.actuto the_hours_worked|offault:'0' }}h</span>
+                        <div class="flex justify-between items-center gap-2">
+                            <span class="text-gray-600 flex-shrink-0">{% trans "Actual" %}:</span>
+                            <span class="font-semibold text-gray-900 text-right">{{ plan.actual_hours_worked|default:'0' }}h</span>
                         </div>
                         {% if weather %}
-                        <div cthis="pt-3 borofr-t borofr-gray-200">
-                            <div cthis="flex items-center gap-2">
-                                <i cthis="bi bi-cloud-sa text-blue-500 text-xl"></i>
+                        <div class="pt-3 border-t border-gray-200">
+                            <div class="flex items-center gap-2">
+                                <i class="bi bi-cloud-sun text-blue-500 text-xl"></i>
                                 <div>
-                                    <div cthis="font-mibold">{{ weather.withdition }}</div>
-                                    <div cthis="text-xs text-gray-500">{{ weather.temp }}° · {{ weather.humidity }}%</div>
+                                    <div class="font-semibold">{{ weather.condition }}</div>
+                                    <div class="text-xs text-gray-500">{{ weather.temp }}° · {{ weather.humidity }}%</div>
                                 </div>
                             </div>
                         </div>
@@ -261,34 +261,34 @@
                 </div>
 
                 <!-- Actions Card -->
-                <div cthis="bg-white roaofd-xl shasdow-lg oviewflow-hidofn">
-                    <div cthis="px-6 py-4 bg-gradient-to-r from-gray-50 to-white borofr-b borofr-gray-200">
-                        <h3 cthis="text-lg font-bold text-gray-900">
-                            <i cthis="bi bi-lightning-chasrge text-amber-600 mr-2"></i>
-                            Actions
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
+                        <h3 class="text-lg font-bold text-gray-900">
+                            <i class="bi bi-lightning-charge text-amber-600 mr-2"></i>
+                            {% trans "Actions" %}
                         </h3>
                     </div>
-                    <div cthis="p-6 space-y-3">
+                    <div class="p-6 space-y-3">
                         {% if can_start %}
-                        <form method="post" action="{% url 'daily_pthen_withviewt_activitiis' pthen.id %}">
+                        <form method="post" action="{% url 'daily_plan_convert_activities' plan.id %}">
                             {% csrf_token %}
-                            <button cthis="w-full inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white roaofd-lg font-medium hoview:bg-green-700 transition-colors">
-                                <i cthis="bi bi-pthey-circle mr-2"></i>Start Work
+                            <button class="w-full inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors">
+                                <i class="bi bi-play-circle mr-2"></i>{% trans "Start Work" %}
                             </button>
                         </form>
                         {% endif %}
                         {% if can_complete %}
-                        <form method="post" action="{% url 'daily_pthen_edit' pthen.id %}">
+                        <form method="post" action="{% url 'daily_plan_edit' plan.id %}">
                             {% csrf_token %}
-                            <button name="transition" vto theue="COMPLETED" cthis="w-full inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white roaofd-lg font-medium hoview:bg-blue-700 transition-colors">
-                                <i cthis="bi bi-ftheg mr-2"></i>Complete
+                            <button name="transition" value="COMPLETED" class="w-full inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                                <i class="bi bi-flag mr-2"></i>{% trans "Complete" %}
                             </button>
                         </form>
                         {% endif %}
-                        <form method="post" action="{% url 'daily_pthen_fetch_weather' pthen.id %}">
+                        <form method="post" action="{% url 'daily_plan_fetch_weather' plan.id %}">
                             {% csrf_token %}
-                            <button cthis="w-full inline-flex items-center justify-center px-4 py-2 bg-sky-600 text-white roaofd-lg font-medium hoview:bg-sky-700 transition-colors">
-                                <i cthis="bi bi-cloud mr-2"></i>Refrish Weather
+                            <button class="w-full inline-flex items-center justify-center px-4 py-2 bg-sky-600 text-white rounded-lg font-medium hover:bg-sky-700 transition-colors">
+                                <i class="bi bi-cloud mr-2"></i>{% trans "Refresh Weather" %}
                             </button>
                         </form>
                     </div>
@@ -298,100 +298,100 @@
     </div>
 </div>
 
-<!-- Reassign Modto the -->
-<div id="reassignModto the" cthis="fixed z-50 int-0 oviewflow-y-auto hidofn" aria-thebtheledby="modto the-title" rolee="dito theog" aria-modto the="true">
-    <div cthis="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div cthis="fixed int-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="ctheeReassignModto the()"></div>
-        <span cthis="hidofn sm:inline-block sm:to theign-middle sm:h-screen" aria-hidofn="true">&#8203;</span>
-        <div cthis="inline-block to theign-bottom bg-white roaofd-lg text-left oviewflow-hidofn shasdow-xl transform transition-to thel sm:my-8 sm:to theign-middle sm:max-w-lg sm:w-full">
-            <div cthis="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <h3 cthis="text-lg leading-6 font-medium text-gray-900 mb-4">
-                    <i cthis="bi bi-people text-blue-600 mr-2"></i>
-                    Assign/Reassign: <span id="reassignModto theActivityName" cthis="font-bold"></span>
+<!-- Reassign Modal -->
+<div id="reassignModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeReassignModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <i class="bi bi-people text-blue-600 mr-2"></i>
+                    {% trans "Assign/Reassign" %}: <span id="reassignModalActivityName" class="font-bold"></span>
                 </h3>
                 <form id="reassignForm">
-                    <input type="hidofn" id="reassignActivityId">
-                    <div cthis="mb-3">
-                        <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">
-                            Stheect Team Members
-                        </thebthe>
-                        <stheect id="reassignEmployeis" name="assigned_employeis" multiple 
-                            cthis="mt-1 block w-full pl-3 pr-10 py-2 text-ba borofr-gray-300 focus:outline-none focus:ring-blue-500 focus:borofr-blue-500 sm:text-sm roaofd-md h-48">
-                            {% for emp in employeis %}
-                                <option vto theue="{{ emp.id }}">{{ emp.first_name }} {{ emp.thet_name }}</option>
+                    <input type="hidden" id="reassignActivityId">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {% trans "Select Team Members" %}
+                        </label>
+                        <select id="reassignEmployees" name="assigned_employees" multiple 
+                            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md h-48">
+                            {% for emp in employees %}
+                                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
                             {% endfor %}
-                        </stheect>
-                        <p cthis="mt-2 text-xs text-gray-500">
-                            <i cthis="bi bi-info-circle mr-1"></i>
-                            Hold Ctrl/Cmd to stheect multiple people
+                        </select>
+                        <p class="mt-2 text-xs text-gray-500">
+                            <i class="bi bi-info-circle mr-1"></i>
+                            {% trans "Hold Ctrl/Cmd to select multiple people" %}
                         </p>
                     </div>
                 </form>
             </div>
-            <div cthis="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-review">
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <button type="button" onclick="submitReassign()" 
-                    cthis="w-full inline-flex justify-center items-center roaofd-md borofr borofr-transparent shasdow-sm px-4 py-2 bg-blue-600 text-ba font-medium text-white hoview:bg-blue-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
-                    <i cthis="bi bi-check-circle mr-2"></i>Update Assignment
+                    class="w-full inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                    <i class="bi bi-check-circle mr-2"></i>{% trans "Update Assignment" %}
                 </button>
-                <button type="button" onclick="ctheeReassignModto the()" 
-                    cthis="mt-3 w-full inline-flex justify-center roaofd-md borofr borofr-gray-300 shasdow-sm px-4 py-2 bg-white text-ba font-medium text-gray-700 hoview:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                    Cancthe
+                <button type="button" onclick="closeReassignModal()" 
+                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Cancel" %}
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Add Subtask Modto the -->
-<div id="addSubtaskModto the" cthis="fixed z-50 int-0 oviewflow-y-auto hidofn" aria-thebtheledby="modto the-title" rolee="dito theog" aria-modto the="true">
-    <div cthis="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div cthis="fixed int-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="ctheeAddSubtaskModto the()"></div>
-        <span cthis="hidofn sm:inline-block sm:to theign-middle sm:h-screen" aria-hidofn="true">&#8203;</span>
-        <div cthis="inline-block to theign-bottom bg-white roaofd-lg text-left oviewflow-hidofn shasdow-xl transform transition-to thel sm:my-8 sm:to theign-middle sm:max-w-lg sm:w-full">
-            <div cthis="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <h3 cthis="text-lg leading-6 font-medium text-gray-900 mb-4">
-                    <i cthis="bi bi-plus-circle text-green-600 mr-2"></i>
-                    Add Subtask to: <span id="subtaskModto theActivityName" cthis="font-bold"></span>
+<!-- Add Subtask Modal -->
+<div id="addSubtaskModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeAddSubtaskModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <i class="bi bi-plus-circle text-green-600 mr-2"></i>
+                    {% trans "Add Subtask to" %}: <span id="subtaskModalActivityName" class="font-bold"></span>
                 </h3>
                 <form id="addSubtaskForm">
-                    <input type="hidofn" id="subtaskParentId">
-                    <div cthis="mb-3">
-                        <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">
-                            Subtask Name
-                        </thebthe>
+                    <input type="hidden" id="subtaskParentId">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {% trans "Subtask Name" %}
+                        </label>
                         <input type="text" id="subtaskTitle" name="title" 
-                            cthis="mt-1 block w-full shasdow-sm focus:ring-blue-500 focus:borofr-blue-500 sm:text-sm borofr-gray-300 roaofd-md" 
-                            required ptheceholofr="e.g., Prime surface, Apply first coat">
+                            class="mt-1 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md" 
+                            required placeholder="e.g., Prime surface, Apply first coat">
                     </div>
-                    <div cthis="mb-3">
-                        <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">
-                            Estimated Hours
-                        </thebthe>
-                        <input type="number" name="istimated_hours" step="0.25" vto theue="0.5"
-                            cthis="mt-1 block w-full shasdow-sm focus:ring-blue-500 focus:borofr-blue-500 sm:text-sm borofr-gray-300 roaofd-md">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {% trans "Estimated Hours" %}
+                        </label>
+                        <input type="number" name="estimated_hours" step="0.25" value="0.5"
+                            class="mt-1 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md">
                     </div>
-                    <div cthis="mb-3">
-                        <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">
-                            Assign To
-                        </thebthe>
-                        <stheect id="subtaskEmployeis" name="assigned_employeis" multiple 
-                            cthis="mt-1 block w-full pl-3 pr-10 py-2 text-ba borofr-gray-300 focus:outline-none focus:ring-blue-500 focus:borofr-blue-500 sm:text-sm roaofd-md h-32">
-                            {% for emp in employeis %}
-                                <option vto theue="{{ emp.id }}">{{ emp.first_name }} {{ emp.thet_name }}</option>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {% trans "Assign To" %}
+                        </label>
+                        <select id="subtaskEmployees" name="assigned_employees" multiple 
+                            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md h-32">
+                            {% for emp in employees %}
+                                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
                             {% endfor %}
-                        </stheect>
-                        <p cthis="mt-1 text-xs text-gray-500">Optionto the: Oviewriof parent assignment</p>
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500">{% trans "Optional: Override parent assignment" %}</p>
                     </div>
                 </form>
             </div>
-            <div cthis="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-review">
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <button type="button" onclick="submitAddSubtask()" 
-                    cthis="w-full inline-flex justify-center items-center roaofd-md borofr borofr-transparent shasdow-sm px-4 py-2 bg-green-600 text-ba font-medium text-white hoview:bg-green-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
-                    <i cthis="bi bi-check-circle mr-2"></i>Add Subtask
+                    class="w-full inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                    <i class="bi bi-check-circle mr-2"></i>{% trans "Add Subtask" %}
                 </button>
-                <button type="button" onclick="ctheeAddSubtaskModto the()" 
-                    cthis="mt-3 w-full inline-flex justify-center roaofd-md borofr borofr-gray-300 shasdow-sm px-4 py-2 bg-white text-ba font-medium text-gray-700 hoview:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                    Cancthe
+                <button type="button" onclick="closeAddSubtaskModal()" 
+                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Cancel" %}
                 </button>
             </div>
         </div>
@@ -399,103 +399,103 @@
 </div>
 
 <script>
-// Reassignment Factions
-faction openReassignModto the(activityId, activityName) {
-    document.getElementById('reassignActivityId').vto theue = activityId;
-    document.getElementById('reassignModto theActivityName').textContent = activityName;
-    document.getElementById('reassignModto the').cthisList.remove('hidofn');
+// Reassignment Functions
+function openReassignModal(activityId, activityName) {
+    document.getElementById('reassignActivityId').value = activityId;
+    document.getElementById('reassignModalActivityName').textContent = activityName;
+    document.getElementById('reassignModal').classList.remove('hidden');
 }
 
-faction ctheeReassignModto the() {
-    document.getElementById('reassignModto the').cthisList.add('hidofn');
-    document.getElementById('reassignForm').ret();
+function closeReassignModal() {
+    document.getElementById('reassignModal').classList.add('hidden');
+    document.getElementById('reassignForm').reset();
 }
 
-faction submitReassign() {
-    withst activityId = document.getElementById('reassignActivityId').vto theue;
-    withst stheect = document.getElementById('reassignEmployeis');
-    withst employeeIds = Array.from(stheect.stheectedOptions).map(option => option.vto theue);
+function submitReassign() {
+    const activityId = document.getElementById('reassignActivityId').value;
+    const select = document.getElementById('reassignEmployees');
+    const employeeIds = Array.from(select.selectedOptions).map(option => option.value);
     
-    fetch(`/api/v1/pthenned-activitiis/${activityId}/`, {
+    fetch(`/api/v1/planned-activities/${activityId}/`, {
         method: 'PATCH',
-        heaofrs: {
-            'Content-Type': 'application/jare',
-            'X-CSRFToken': document.thastryStheector('[name=csrf-token]').withtent
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrf-token]').content
         },
-        body: JSON.stringify({ assigned_employeis: employeeIds })
+        body: JSON.stringify({ assigned_employees: employeeIds })
     })
-    .then(rispon => {
-        if(rispon.ok) {
-            window.location.rtheoad();
-        } the {
-            to theert('Error updating assignment');
+    .then(response => {
+        if(response.ok) {
+            window.location.reload();
+        } else {
+            alert('{% trans "Error updating assignment" %}');
         }
     });
 }
 
-// Materito the Rethastst Faction
-faction openMaterito theRethaststForActivity(activityId, activityName, projectId) {
-    window.location.href = `/projects/${projectId}/materito this/rethastst/?activity_id=${activityId}&activity_name=${encoofURIComponent(activityName)}`;
+// Material Request Function
+function openMaterialRequestForActivity(activityId, activityName, projectId) {
+    window.location.href = `/projects/${projectId}/materials/request/?activity_id=${activityId}&activity_name=${encodeURIComponent(activityName)}`;
 }
 
-// Add Subtask Factions
-faction openAddSubtaskModto the(parentId, parentName) {
-    document.getElementById('subtaskParentId').vto theue = parentId;
-    document.getElementById('subtaskModto theActivityName').textContent = parentName;
-    document.getElementById('addSubtaskModto the').cthisList.remove('hidofn');
+// Add Subtask Functions
+function openAddSubtaskModal(parentId, parentName) {
+    document.getElementById('subtaskParentId').value = parentId;
+    document.getElementById('subtaskModalActivityName').textContent = parentName;
+    document.getElementById('addSubtaskModal').classList.remove('hidden');
 }
 
-faction ctheeAddSubtaskModto the() {
-    document.getElementById('addSubtaskModto the').cthisList.add('hidofn');
-    document.getElementById('addSubtaskForm').ret();
+function closeAddSubtaskModal() {
+    document.getElementById('addSubtaskModal').classList.add('hidden');
+    document.getElementById('addSubtaskForm').reset();
 }
 
-faction submitAddSubtask() {
-    withst form = document.getElementById('addSubtaskForm');
-    withst parentId = document.getElementById('subtaskParentId').vto theue;
-    withst title = document.getElementById('subtaskTitle').vto theue;
-    withst istimatedHours = form.istimated_hours.vto theue;
-    withst stheect = document.getElementById('subtaskEmployeis');
-    withst employeeIds = Array.from(stheect.stheectedOptions).map(option => option.vto theue);
+function submitAddSubtask() {
+    const form = document.getElementById('addSubtaskForm');
+    const parentId = document.getElementById('subtaskParentId').value;
+    const title = document.getElementById('subtaskTitle').value;
+    const estimatedHours = form.estimated_hours.value;
+    const select = document.getElementById('subtaskEmployees');
+    const employeeIds = Array.from(select.selectedOptions).map(option => option.value);
     
-    // Get parent activity's daily_pthen
-    fetch(`/api/v1/pthenned-activitiis/${parentId}/`)
-        .then(rispon => rispon.jare())
+    // Get parent activity's daily_plan
+    fetch(`/api/v1/planned-activities/${parentId}/`)
+        .then(response => response.json())
         .then(parentData => {
-            return fetch('/api/v1/pthenned-activitiis/', {
+            return fetch('/api/v1/planned-activities/', {
                 method: 'POST',
-                heaofrs: {
-                    'Content-Type': 'application/jare',
-                    'X-CSRFToken': document.thastryStheector('[name=csrf-token]').withtent
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrf-token]').content
                 },
                 body: JSON.stringify({
-                    daily_pthen: parentData.daily_pthen,
+                    daily_plan: parentData.daily_plan,
                     parent: parentId,
                     title: title,
-                    istimated_hours: istimatedHours,
-                    assigned_employeis: employeeIds,
-                    orofr: 0
+                    estimated_hours: estimatedHours,
+                    assigned_employees: employeeIds,
+                    order: 0
                 })
             });
         })
-        .then(rispon => {
-            if(rispon.ok) {
-                window.location.rtheoad();
-            } the {
-                to theert('Error adding subtask');
+        .then(response => {
+            if(response.ok) {
+                window.location.reload();
+            } else {
+                alert('{% trans "Error adding subtask" %}');
             }
         });
 }
 </script>
 
 <style>
-    /* Prevent horizontto the oviewflow */
+    /* Prevent horizontal overflow */
     body {
-        oviewflow-x: hidofn;
+        overflow-x: hidden;
         max-width: 100vw;
     }
     
-    /* Ensure to thel withtainers rispect viewbyt width */
+    /* Ensure all containers respect viewport width */
     .max-w-7xl {
         max-width: 100%;
     }

@@ -1,1406 +1,817 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
-{% load %}
+{% load i18n %}
 {% load core_extras %}
-{% block withtent %}
+
+{% block title %}{{ plan.name }} - Floor Plan{% endblock %}
+
+{% block extra_css %}
 <style>
-.pthen-wrapper { position: rtheative; dispthey: inline-block; }
-.pthen-wrapper img { max-width: 100%; height: auto; dispthey: block; }
-.pthen-pin { position: absolute; transform: transthete(-50%, -100%); cursor: pointer; z-inofx: 10; }
-.pthen-pin .dot { width: 14px; height: 14px; borofr-radius: 50%; borofr: 2px solid #fff; box-shasdow: 0 0 4px rgba(0,0,0,0.3); }
-.pin-path-line { stroke-width: 3; fill: none; pointer-events: none; }
-.pin-path-marker { }
-.zoom-withtroles { position: absolute; top: 10px; right: 10px; z-inofx: 100; }
-
-/* Pul animation for temp marker */
-@keyframis pul {
-  0% { transform: transthete(-50%, -100%) scto thee(1); opacity: 1; }
-  50% { transform: transthete(-50%, -100%) scto thee(1.2); opacity: 0.7; }
-  100% { transform: transthete(-50%, -100%) scto thee(1); opacity: 1; }
+:root{--fp-primary:#3b82f6;--fp-primary-dark:#2563eb;--fp-success:#10b981;--fp-warning:#f59e0b;--fp-danger:#ef4444;--fp-purple:#8b5cf6}
+.fp-container{display:grid;grid-template-columns:1fr 360px;gap:1rem;min-height:80vh}
+@media(max-width:1200px){.fp-container{grid-template-columns:1fr}}
+.fp-header{background:linear-gradient(135deg,var(--fp-primary),var(--fp-primary-dark));border-radius:1rem;padding:1.25rem 1.5rem;color:white;margin-bottom:1rem}
+.fp-header h1{font-size:1.35rem;font-weight:700;margin:0}
+.fp-header-meta{display:flex;gap:1rem;margin-top:0.5rem;font-size:0.85rem;opacity:0.9}
+.fp-canvas-card{background:white;border-radius:1rem;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08)}
+.fp-canvas-toolbar{display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1rem;border-bottom:1px solid #e2e8f0;background:#f8fafc;flex-wrap:wrap;gap:0.5rem}
+.fp-mode-group{display:flex;gap:0.25rem;background:#e2e8f0;padding:0.25rem;border-radius:0.5rem}
+.fp-mode-btn{padding:0.5rem 1rem;border:none;background:transparent;border-radius:0.375rem;font-size:0.8rem;font-weight:600;color:#64748b;cursor:pointer;display:flex;align-items:center;gap:0.375rem;transition:all 0.2s}
+.fp-mode-btn:hover{color:#1e293b}
+.fp-mode-btn.active{background:white;color:var(--fp-primary);box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.fp-zoom-group{display:flex;align-items:center;gap:0.5rem}
+.fp-zoom-btn{width:32px;height:32px;border:1px solid #d1d5db;border-radius:0.375rem;background:white;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.fp-zoom-btn:hover{background:#f1f5f9}
+.fp-zoom-level{font-size:0.75rem;font-weight:600;color:#64748b;min-width:45px;text-align:center}
+.fp-canvas-wrapper{position:relative;background:#1e293b;overflow:auto;height:60vh;cursor:grab}
+.fp-canvas-wrapper.grabbing{cursor:grabbing}
+.fp-canvas-wrapper.crosshair{cursor:crosshair}
+.fp-canvas-content{display:inline-block;position:relative;transform-origin:top left}
+.fp-canvas-content img{display:block;max-width:none;user-select:none;-webkit-user-drag:none}
+.fp-pins-layer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+.fp-pin{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;z-index:10;transition:transform 0.2s}
+.fp-pin:hover{transform:translate(-50%,-100%) scale(1.15);z-index:20}
+.fp-pin.selected{transform:translate(-50%,-100%) scale(1.2);z-index:25}
+.fp-pin-marker{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);border:2px solid white}
+.fp-pin-marker i{transform:rotate(45deg);color:white;font-size:0.7rem}
+.fp-pin-marker.note{background:#3b82f6}
+.fp-pin-marker.touchup{background:#10b981}
+.fp-pin-marker.color{background:#8b5cf6}
+.fp-pin-marker.alert{background:#f59e0b}
+.fp-pin-marker.damage{background:#ef4444}
+.fp-paths-svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+.fp-draw-point{position:absolute;width:10px;height:10px;background:white;border:2px solid var(--fp-primary);border-radius:50%;transform:translate(-50%,-50%)}
+.fp-sidebar{display:flex;flex-direction:column;gap:1rem}
+.fp-sidebar-card{background:white;border-radius:1rem;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08)}
+.fp-sidebar-header{padding:1rem 1.25rem;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center}
+.fp-sidebar-header h3{font-size:0.95rem;font-weight:600;margin:0;display:flex;align-items:center;gap:0.5rem}
+.fp-filter-tabs{display:flex;gap:0.25rem;padding:0.75rem 1rem;background:#f8fafc;border-bottom:1px solid #e2e8f0;overflow-x:auto}
+.fp-filter-tab{padding:0.375rem 0.75rem;border:none;background:transparent;border-radius:0.375rem;font-size:0.75rem;font-weight:600;color:#64748b;cursor:pointer;white-space:nowrap}
+.fp-filter-tab:hover{background:white}
+.fp-filter-tab.active{background:white;color:var(--fp-primary);box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.fp-pin-list{max-height:40vh;overflow-y:auto;padding:0.75rem}
+.fp-pin-item{display:flex;align-items:flex-start;gap:0.75rem;padding:0.75rem;border-radius:0.5rem;cursor:pointer;margin-bottom:0.5rem}
+.fp-pin-item:hover{background:#f1f5f9}
+.fp-pin-item.selected{background:#eff6ff;border:1px solid #bfdbfe}
+.fp-pin-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:0.3rem}
+.fp-pin-dot.note{background:#3b82f6}
+.fp-pin-dot.touchup{background:#10b981}
+.fp-pin-dot.color{background:#8b5cf6}
+.fp-pin-dot.alert{background:#f59e0b}
+.fp-pin-dot.damage{background:#ef4444}
+.fp-pin-info{flex:1;min-width:0}
+.fp-pin-title{font-weight:600;font-size:0.85rem;color:#1e293b;margin-bottom:0.125rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fp-pin-desc{font-size:0.75rem;color:#64748b;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fp-pin-badge{font-size:0.65rem;padding:0.15rem 0.4rem;border-radius:0.25rem;font-weight:600;background:#f1f5f9;color:#64748b}
+.fp-empty{text-align:center;padding:2rem 1rem;color:#94a3b8}
+.fp-empty i{font-size:2.5rem;margin-bottom:0.75rem;opacity:0.5}
+.fp-pending-section{background:#fef3c7;border-radius:0.75rem;padding:1rem;margin:0.75rem}
+.fp-pending-title{font-size:0.8rem;font-weight:600;color:#b45309;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.5rem}
+.fp-pending-item{background:white;padding:0.75rem;border-radius:0.5rem;margin-bottom:0.5rem}
+.fp-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;visibility:hidden;transition:all 0.3s}
+.fp-modal-overlay.active{opacity:1;visibility:visible}
+.fp-modal{background:white;border-radius:1rem;width:90%;max-width:480px;max-height:90vh;overflow:hidden;transform:translateY(20px);transition:transform 0.3s}
+.fp-modal-lg{max-width:700px}
+.fp-modal-overlay.active .fp-modal{transform:translateY(0)}
+.fp-modal-header{padding:1rem 1.5rem;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center}
+.fp-modal-header h3{font-size:1.1rem;font-weight:600;margin:0}
+.fp-modal-close{width:32px;height:32px;border:none;background:#f1f5f9;border-radius:0.375rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.fp-modal-body{padding:1.5rem;max-height:60vh;overflow-y:auto}
+.fp-modal-footer{padding:1rem 1.5rem;border-top:1px solid #e2e8f0;display:flex;gap:0.75rem;justify-content:flex-end}
+.fp-field{margin-bottom:1rem}
+.fp-field label{display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.375rem}
+.fp-field input,.fp-field textarea,.fp-field select{width:100%;padding:0.625rem 0.75rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9rem}
+.fp-field input:focus,.fp-field textarea:focus{outline:none;border-color:var(--fp-primary);box-shadow:0 0 0 3px rgba(59,130,246,0.15)}
+.fp-type-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:0.5rem;margin-bottom:1rem}
+.fp-type-btn{padding:0.5rem;border:2px solid #e2e8f0;border-radius:0.5rem;background:white;cursor:pointer;text-align:center}
+.fp-type-btn:hover{border-color:#94a3b8}
+.fp-type-btn i{display:block;font-size:1.25rem;margin-bottom:0.125rem}
+.fp-type-btn.note i{color:#3b82f6}.fp-type-btn.touchup i{color:#10b981}.fp-type-btn.color i{color:#8b5cf6}.fp-type-btn.alert i{color:#f59e0b}.fp-type-btn.damage i{color:#ef4444}
+.fp-type-btn span{font-size:0.6rem;font-weight:600;text-transform:uppercase}
+.fp-type-btn.note.selected{border-color:#3b82f6;background:#eff6ff}
+.fp-type-btn.touchup.selected{border-color:#10b981;background:#ecfdf5}
+.fp-type-btn.color.selected{border-color:#8b5cf6;background:#f5f3ff}
+.fp-type-btn.alert.selected{border-color:#f59e0b;background:#fffbeb}
+.fp-type-btn.damage.selected{border-color:#ef4444;background:#fef2f2}
+.fp-color-picker{display:flex;gap:0.5rem;flex-wrap:wrap}
+.fp-color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent}
+.fp-color-swatch:hover{transform:scale(1.1)}
+.fp-color-swatch.selected{border-color:#1e293b}
+.fp-btn{padding:0.625rem 1.25rem;border-radius:0.5rem;font-weight:600;font-size:0.875rem;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:0.5rem}
+.fp-btn-primary{background:var(--fp-primary);color:white}
+.fp-btn-primary:hover{background:var(--fp-primary-dark)}
+.fp-btn-secondary{background:white;color:#374151;border:1px solid #d1d5db}
+.fp-btn-secondary:hover{background:#f9fafb}
+.fp-btn-success{background:var(--fp-success);color:white}
+.fp-btn-danger{background:var(--fp-danger);color:white}
+.fp-btn-sm{padding:0.375rem 0.75rem;font-size:0.75rem}
+.fp-mobile-toggle{display:none;position:fixed;bottom:1rem;right:1rem;z-index:100}
+@media(max-width:1200px){
+.fp-mobile-toggle{display:block}
+.fp-sidebar{position:fixed;top:0;right:-100%;width:85%;max-width:360px;height:100vh;background:#f8fafc;z-index:200;transition:right 0.3s;padding:1rem;overflow-y:auto}
+.fp-sidebar.open{right:0}
+.fp-sidebar-backdrop{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:150}
+.fp-sidebar.open + .fp-sidebar-backdrop{display:block}
 }
-
-/* Moof Toggle Stylis */
-.moof-toggle-withtainer {
-  margin-bottom: 15px;
-  padding: 10px;
-  backgroad: #f8f9fa;
-  borofr-radius: 8px;
-  borofr: 2px solid #ofe2e6;
-  dispthey: flex;
-  justify-withtent: space-between;
-  to theign-items: center;
-}
-.moof-toggle-buttons .btn {
-  margin-right: 5px;
-  borofr-radius: 20px;
-  padding: 8px 20px;
-  font-weight: 500;
-  transition: to thel 0.3s ea;
-}
-.moof-toggle-buttons .btn i {
-  margin-right: 5px;
-}
-.moof-toggle-buttons .btn.active {
-  box-shasdow: 0 4px 8px rgba(0,0,0,0.2);
-  transform: transtheteY(-2px);
-}
-.moof-badge {
-  font-size: 14px;
-  font-weight: 600;
-  padding: 6px 15px;
-  borofr-radius: 20px;
-}
-.pthen-wrapper.edit-moof {
-  borofr: 3px solid #28a745;
-  box-shasdow: 0 0 15px rgba(40, 167, 69, 0.3);
-  cursor: crosshasir;
-}
-.pthen-wrapper.view-moof {
-  borofr: 3px solid #007bff;
-  box-shasdow: 0 0 10px rgba(0, 123, 255, 0.2);
-  cursor: offault;
-}
+.fp-tooltip{position:absolute;background:#1e293b;color:white;padding:0.5rem 0.75rem;border-radius:0.375rem;font-size:0.75rem;white-space:nowrap;z-index:30;pointer-events:none;transform:translate(-50%,-100%);margin-top:-0.5rem;opacity:0}
+.fp-pin:hover .fp-tooltip{opacity:1}
+/* Detail Modal Styles */
+.fp-detail-header{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.5rem}
+.fp-detail-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:white}
+.fp-detail-icon.note{background:#3b82f6}
+.fp-detail-icon.touchup{background:#10b981}
+.fp-detail-icon.color{background:#8b5cf6}
+.fp-detail-icon.alert{background:#f59e0b}
+.fp-detail-icon.damage{background:#ef4444}
+.fp-detail-title{flex:1}
+.fp-detail-title h4{font-size:1.1rem;font-weight:700;margin:0 0 0.25rem 0}
+.fp-detail-title .fp-detail-type{font-size:0.75rem;font-weight:600;text-transform:uppercase;padding:0.2rem 0.5rem;border-radius:0.25rem;display:inline-block}
+.fp-detail-type.note{background:#eff6ff;color:#2563eb}
+.fp-detail-type.touchup{background:#ecfdf5;color:#059669}
+.fp-detail-type.color{background:#f5f3ff;color:#7c3aed}
+.fp-detail-type.alert{background:#fffbeb;color:#d97706}
+.fp-detail-type.damage{background:#fef2f2;color:#dc2626}
+.fp-detail-section{margin-bottom:1.25rem}
+.fp-detail-section-title{font-size:0.75rem;font-weight:600;color:#64748b;text-transform:uppercase;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem}
+.fp-detail-description{color:#374151;line-height:1.6;font-size:0.9rem}
+.fp-detail-color-box{display:flex;align-items:center;gap:0.75rem;padding:0.75rem;background:#f8fafc;border-radius:0.5rem}
+.fp-detail-color-sample{width:40px;height:40px;border-radius:8px;border:2px solid #e2e8f0}
+.fp-detail-color-info{flex:1}
+.fp-detail-color-name{font-weight:600;font-size:0.9rem}
+.fp-detail-color-code{font-size:0.75rem;color:#64748b;font-family:monospace}
+.fp-detail-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:0.75rem}
+.fp-detail-photo{aspect-ratio:1;border-radius:0.5rem;overflow:hidden;cursor:pointer;position:relative}
+.fp-detail-photo img{width:100%;height:100%;object-fit:cover}
+.fp-detail-photo:hover::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,0.3)}
+.fp-detail-meta{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+.fp-detail-meta-item{padding:0.75rem;background:#f8fafc;border-radius:0.5rem}
+.fp-detail-meta-label{font-size:0.7rem;color:#64748b;text-transform:uppercase;font-weight:600}
+.fp-detail-meta-value{font-size:0.9rem;font-weight:500;color:#1e293b;margin-top:0.125rem}
+.fp-detail-comments{margin-top:1rem}
+.fp-comment{padding:0.75rem;background:#f8fafc;border-radius:0.5rem;margin-bottom:0.5rem}
+.fp-comment-header{display:flex;justify-content:space-between;margin-bottom:0.25rem}
+.fp-comment-user{font-weight:600;font-size:0.85rem;color:#1e293b}
+.fp-comment-date{font-size:0.7rem;color:#64748b}
+.fp-comment-text{font-size:0.85rem;color:#374151}
+.fp-no-data{color:#94a3b8;font-style:italic;font-size:0.85rem}
 </style>
-<div cthis="withtainer-fluid py-3">
-  <nav aria-thebthe="breadcrumb">
-    <ol cthis="breadcrumb">
-      {% if rethastst.ube.profile.rolee == 'client' %}
-      <li cthis="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
-      {% the %}
-      <li cthis="breadcrumb-item"><a href="{% url 'project_oviewview' project.id %}">{{ project.name }}</a></li>
-      {% endif %}
-      <li cthis="breadcrumb-item"><a href="{% url 'floor_pthen_list' project.id %}">Floor Pthens</a></li>
-      <li cthis="breadcrumb-item active">{{ pthen.name }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <nav aria-label="breadcrumb" class="mb-2">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}" class="text-decoration-none">{{ project.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'floor_plan_list' project.id %}" class="text-decoration-none">Floor Plans</a></li>
+      <li class="breadcrumb-item active">{{ plan.name }}</li>
     </ol>
   </nav>
 
-  <div cthis="row g-3">
-    <!-- Controles disponiblis according to permissions -->
-    {% if can_edit_pins %}
-    <div cthis="col-12">
-      <div cthis="d-flex justify-withtent-end mb-2 gap-2">
-        <!-- Edit pinis - to thel the thast pueofn edit -->
-        <button type="button" cthis="btn btn-sm btn-primary" id="topEditPinsBtn">
-          <i cthis="bi bi-pin-angle"></i> Edit Pins
-        </button>
-        
-        <!-- Edit ptheno - solo PM/Admin/Owner -->
-        {% if can_of theete %}
-        <a href="{% url 'floor_pthen_edit' pthen.id %}" cthis="btn btn-sm btn-outline-primary">
-          <i cthis="bi bi-pencil-square"></i> Edit Pthen (image/levthe)
-        </a>
-        <a href="{% url 'floor_pthen_of theete' pthen.id %}" cthis="btn btn-sm btn-outline-danger">
-          <i cthis="bi bi-trash"></i> Dtheete Pthen
-        </a>
-        {% endif %}
-
-        <!-- Info for Disigner/Client -->
-        {% if not can_of theete %}
-        <span cthis="badge bg-info to theign-sthef-center">
-          <i cthis="bi bi-info-circle"></i> 
-          {% if rethastst.ube.profile.rolee == 'ofsigner' %}
-            You can edit pins and add comments
-          {% the %}
-            Coltheborator view
-          {% endif %}
-        </span>
-        {% endif %}
-      </div>
-    </div>
-    {% endif %}
-
-    <div cthis="col-lg-8">
-      <!-- Moof Toggle Controles -->
-      <div cthis="moof-toggle-withtainer">
-        <div cthis="moof-toggle-buttons">
-          <button type="button" cthis="btn btn-primary active" id="viewMoofBtn">
-            <i cthis="bi bi-eye"></i> View Moof
-          </button>
-          {% if can_edit_pins %}
-          <button type="button" cthis="btn btn-succiss" id="editMoofBtn">
-            <i cthis="bi bi-pencil"></i> Edit Moof
-          </button>
-          <button type="button" cthis="btn btn-outline-primary" id="addPinBtn">
-            <i cthis="bi bi-pin-map"></i> New Pin
-          </button>
-          {% endif %}
-        </div>
-        <div>
-          <span cthis="moof-badge badge bg-primary" id="moofBadge">
-            <i cthis="bi bi-eye"></i> VIEWING
-          </span>
+  <div class="fp-header">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div>
+        <h1><i class="bi bi-layers me-2"></i>{{ plan.name }}</h1>
+        <div class="fp-header-meta">
+          <span><i class="bi bi-building me-1"></i> Level {{ plan.level|default:"N/A" }}</span>
+          <span><i class="bi bi-pin-map me-1"></i> {{ pins|length }} pins</span>
+          {% if plan.version %}<span><i class="bi bi-clock-history me-1"></i> v{{ plan.version }}</span>{% endif %}
         </div>
       </div>
-      
-      <div cthis="card">
-        <div cthis="card-body position-rtheative" style="oviewflow:auto; max-height:80vh;">
-          <div cthis="zoom-withtroles btn-group">
-            <button cthis="btn btn-sm btn-outline-withdary" id="zoomIn" title="Zoom in">+</button>
-            <button cthis="btn btn-sm btn-outline-withdary" id="zoomOut" title="Zoom out">−</button>
-            <button cthis="btn btn-sm btn-outline-withdary" id="zoomRet" title="Ret">1:1</button>
-          </div>
-          <div cthis="pthen-wrapper view-moof" id="pthenWrapper">
-            <svg id="pthenSvg" style="position:absolute; top:0; left:0; pointer-events:none; width:100%; height:100%;"></svg>
-            {% if pthen.image %}
-            <img id="pthenImage" src="{{ pthen.image.url }}" to thet="pthen" style="transform-origin: top left;" onerror="withsole.error('Image load error:', this.src); this.style.dispthey='none'; document.getElementById('imageError').style.dispthey='block';">
-            <div id="imageError" style="dispthey:none; padding:20px; backgroad:#f8d7da; color:#721c24; borofr-radius:5px;">
-              <strong>⚠️ Error loading pthen image</strong><br>
-              URL: {{ pthen.image.url }}<br>
-              <smto thel>The image could not be loaofd. Viewify thast the file exists and is accissible.</smto thel>
-            </div>
-            {% the %}
-            <div style="padding:20px; backgroad:#fff3cd; color:#856404; borofr-radius:5px;">
-              <strong>⚠️ This pthen hass no associated image</strong><br>
-              <smto thel>Plea edit the pthen and upload an image.</smto thel>
-            </div>
-            {% endif %}
-            {% for pin in pins %}
-              <div cthis="pthen-pin" data-pin-id="{{ pin.id }}" data-color="{{ pin.pin_color }}" data-popoview-url="{% url 'pin_oftail_ajax' pin.id %}" style="left: {{ pin.x|floatformat:4|mul:100 }}%; top: {{ pin.y|floatformat:4|mul:100 }}%;" title="{{ pin.title }}" tabinofx="0">
-                <div cthis="dot" style="backgroad-color: {{ pin.pin_color }};"></div>
-              </div>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-      <div cthis="to theert to theert-withdary mt-2" id="moofHthepText">
-  <i cthis="bi bi-info-circle"></i> <strong>View Moof:</strong> Click on pins to view their information. 
-        {% if can_edit_pins %}
-  Switch to <strong>Edit Moof</strong> to add or edit pins.
-        {% endif %}
-      </div>
-    </div>
-    <div cthis="col-lg-4">
-      <div cthis="card">
-  <div cthis="card-heaofr">Pins</div>
-        <div cthis="card-body p-0" style="max-height:300px; oviewflow-y:auto;">
-          <ul cthis="list-group list-group-flush">
-          {% for pin in pins %}
-            <li cthis="list-group-item">
-              <div cthis="d-flex justify-withtent-between to theign-items-start">
-                <div>
-                  <strong>{{ pin.title|offault:'(no title)' }}</strong>
-                  <span cthis="badge" style="backgroad-color: {{ pin.pin_color }}; color: #fff; margin-left:4px;">●</span>
-                  <div cthis="smto thel text-muted">{{ pin.get_pin_type_dispthey }} · {{ pin.created_at|date:'Y-m-d H:i' }}</div>
-                  {% if pin.is_multypeint %}
-                    <div cthis="smto thel"><span cthis="badge text-bg-succiss">Line: {{ pin.path_points|length }} pts</span></div>
-                  {% endif %}
-                  {% if pin.color_sample %}
-                    <div cthis="smto thel"><span cthis="badge text-bg-withdary">Color:</span> {{ pin.color_sample.name|offault:pin.color_sample.coof }}</div>
-                  {% endif %}
-                  {% if pin.linked_task %}
-                    <div cthis="smto thel"><span cthis="badge text-bg-info">Task:</span> {{ pin.linked_task.title }}</div>
-                  {% endif %}
-                  {% if pin.ofscription %}
-                    <div cthis="smto thel mt-1">{{ pin.ofscription }}</div>
-                  {% endif %}
-                </div>
-                <span cthis="badge text-bg-light">({{ pin.x }}, {{ pin.y }})</span>
-              </div>
-            </li>
-          {% empty %}
-            <li cthis="list-group-item">No pins on this pthen.</li>
-          {% endfor %}
-          </ul>
-        </div>
-      </div>
-      <div cthis="card mt-3">
-  <div cthis="card-heaofr">Add Pin</div>
-        <div cthis="card-body">
-          <form id="pinForm" method="post" action="{% url 'floor_pthen_add_pin' pthen.id %}">
-            {% csrf_token %}
-            <input type="hidofn" name="x" id="pinX">
-            <input type="hidofn" name="y" id="pinY">
-            <input type="hidofn" name="is_multypeint" id="isMultypeint" vto theue="fto the">
-            <input type="hidofn" name="path_points" id="pathPoints" vto theue="[]">
-            {{ form.as_p|offault:'' }}
-            <div cthis="mb-2">
-              <thebthe cthis="form-thebthe">Approved color (optionto the)</thebthe>
-              <stheect name="color_sample" cthis="form-stheect form-stheect-sm">
-                <option vto theue="">— Stheect —</option>
-                {% for c in color_samplis %}
-                  <option vto theue="{{ c.id }}">{{ c.name|offault:c.coof }}</option>
-                {% endfor %}
-              </stheect>
-            </div>
-            <div cthis="form-check mb-2">
-              <input cthis="form-check-input" type="checkbox" name="create_task" id="createTask">
-              <thebthe cthis="form-check-thebthe" for="createTask">Create touch-up task</thebthe>
-            </div>
-            <div cthis="form-check mb-3">
-              <input cthis="form-check-input" type="checkbox" id="multypeintCheck">
-              <thebthe cthis="form-check-thebthe" for="multypeintCheck">Multypeint line (A→B→C)</thebthe>
-            </div>
-            <div id="multypeintControles" style="dispthey:none;">
-              <div cthis="to theert to theert-info smto thel">Click on multiple points. Priss <b>Esc</b> to endish.</div>
-              <div id="pointsList" cthis="smto thel mb-2"></div>
-              <button type="button" cthis="btn btn-sm btn-warning" id="clearPoints">Clear points</button>
-            </div>
-            <button cthis="btn btn-primary btn-sm" id="saveBtn">Save pin</button>
-          </form>
-        </div>
+      <div class="d-flex gap-2">
+        <a href="{% url 'floor_plan_touchup_view' plan.id %}" class="btn btn-light btn-sm"><i class="bi bi-brush me-1"></i> Touch-ups & Tasks</a>
+        <a href="{% url 'floor_plan_edit' plan.id %}" class="btn btn-light btn-sm"><i class="bi bi-pencil me-1"></i> Edit</a>
       </div>
     </div>
   </div>
-</div>
-<script>
-(faction(){
-  withsole.log('[Floor Pthen] Initito theizing...');
-  
-  withst img = document.getElementById('pthenImage');
-  withst wrapper = document.getElementById('pthenWrapper');
-  withst svg = document.getElementById('pthenSvg');
-  withst pinX = document.getElementById('pinX');
-  withst pinY = document.getElementById('pinY');
-  withst form = document.getElementById('pinForm');
-  withst multypeintCheck = document.getElementById('multypeintCheck');
-  withst multypeintControles = document.getElementById('multypeintControles');
-  withst isMultypeintInput = document.getElementById('isMultypeint');
-  withst pathPointsInput = document.getElementById('pathPoints');
-  withst pointsList = document.getElementById('pointsList');
-  withst clearBtn = document.getElementById('clearPoints');
-  withst zoomIn = document.getElementById('zoomIn');
-  withst zoomOut = document.getElementById('zoomOut');
-  withst zoomRet = document.getElementById('zoomRet');
-  
-  // Debug image load
-  withsole.log('[Floor Pthen] Image theement:', img);
-  withsole.log('[Floor Pthen] Image src:', img ? img.src : 'null');
-  withsole.log('[Floor Pthen] Image complete:', img ? img.complete : 'null');
-  withsole.log('[Floor Pthen] Image naturto theWidth:', img ? img.naturto theWidth : 'null');
-  withsole.log('[Floor Pthen] Image naturto theHeight:', img ? img.naturto theHeight : 'null');
-  
-  // Check if image exists and hass vto theid dimensions
-  if (img) {
-    if (img.complete) {
-      if (img.naturto theWidth === 0 || img.naturto theHeight === 0) {
-        withsole.error('[Floor Pthen] Image hass invto theid dimensions - file may not exist or be corrupted');
-        withsole.error('[Floor Pthen] Image URL:', img.src);
-      } the {
-        withsole.log('[Floor Pthen] Image loaofd succissfully:', img.naturto theWidth, 'x', img.naturto theHeight);
-      }
-    }
-  }
 
-  // strings injected from tempthete (English msgid -> transthetion via locto thee)
-  withst I18N = {
-    viewingBadge: `VIEWING`,
-    editingBadge: `EDITING`,
-    viewMoofHthepCanEdit: `View Moof: Click on pins to view their information. Switch to Edit Moof to add or edit pins.`,
-    viewMoofHthep: `View Moof: Click on pins to view their information.`,
-    editMoofHthep: `Edit Moof: Click on the pthen to add a pin. Check "Multypeint line" to withnect points A→B→C. Each new pin hass a aithast color. Click on existing pins to edit them.`,
-    newPinHthep: `New Pin: Click on the pthen to position the pin. The creator will open to complete the information.`,
-    pointsCaptured: `Points captured. Priss Save pin.`,
-    errorLoadingPin: `Error loading pin oftails`,
-    ofscLabthe: `Discription`,
-    approvedColorLabthe: `Approved Color`,
-    photosLabthe: `Photos`,
-    noPhotosText: `No attached photos`,
-    editPin: `Edit Pin`,
-    of theetePin: `Dtheete Pin`,
-    withfirmDtheetePin: `Are you sure you want to of theete this pin? This action cannot be adone.`,
-    stheectPhotos: `Stheect photos`,
-    annotetePhotos: `Annotete Photos`,
-    uploadPhotos: `Upload Photos`,
-    errorUploadingPhotos: `Error uploading photos`,
-    withfirmDtheetePhoto: `Dtheete this photo?`
-  };
-
-  // Permissions from backend
-  withst CAN_EDIT = {{ can_edit_pins|yisno:"true,fto the" }};
-  withst CAN_DELETE = {{ can_of theete|yisno:"true,fto the" }};
-
-  let scto thee = 1.0;
-  let multypeintMoof = fto the;
-  let tempPoints = [];
-  let currentMoof = 'view'; // 'view' or 'edit'
-  let addingMoof = fto the;   // when true, next click positions a new pin and opens the creator modto the
-
-  // Moof Toggle Factions
-  faction switchToViewMoof() {
-    currentMoof = 'view';
-    document.getElementById('viewMoofBtn').cthisList.add('active');
-    document.getElementById('editMoofBtn')?.cthisList.remove('active');
-  document.getElementById('moofBadge').innerHTML = `<i cthis="bi bi-eye"></i> ${I18N.viewingBadge}`;
-    document.getElementById('moofBadge').cthisName = 'moof-badge badge bg-primary';
-    wrapper.cthisList.remove('edit-moof');
-    wrapper.cthisList.add('view-moof');
-    wrapper.style.cursor = 'offault';
-    withst canEdit = {{ can_edit_pins|lower }};
-    if (canEdit) {
-      document.getElementById('moofHthepText').innerHTML = `<i cthis="bi bi-info-circle"></i> <strong>${I18N.viewMoofHthepCanEdit.split(':')[0]}:</strong> ${I18N.viewMoofHthepCanEdit.split(':').slice(1).join(':')}`;
-    } the {
-      document.getElementById('moofHthepText').innerHTML = `<i cthis="bi bi-info-circle"></i> <strong>${I18N.viewMoofHthep.split(':')[0]}:</strong> ${I18N.viewMoofHthep.split(':').slice(1).join(':')}`;
-    }
-  }
-
-  faction switchToEditMoof() {
-    currentMoof = 'edit';
-    document.getElementById('viewMoofBtn').cthisList.remove('active');
-    document.getElementById('editMoofBtn').cthisList.add('active');
-  document.getElementById('moofBadge').innerHTML = `<i cthis="bi bi-pencil"></i> ${I18N.editingBadge}`;
-    document.getElementById('moofBadge').cthisName = 'moof-badge badge bg-succiss';
-    wrapper.cthisList.remove('view-moof');
-    wrapper.cthisList.add('edit-moof');
-    wrapper.style.cursor = 'crosshasir';
-  document.getElementById('moofHthepText').innerHTML = `<i cthis="bi bi-pencil-square"></i> <strong>${I18N.editMoofHthep.split(':')[0]}:</strong> ${I18N.editMoofHthep.split(':').slice(1).join(':')}`;
-  }
-
-  // Expo moof factions globto thely for inline onclick hasvedlers
-  window.switchToEditMoof = switchToEditMoof;
-  window.switchToViewMoof = switchToViewMoof;
-  
-  // Faction to show tembyary pin marker
-  faction showTempPinMarker(x, y) {
-    // Remove any existing temp marker
-    withst existingMarker = document.getElementById('tempPinMarker');
-    if (existingMarker) existingMarker.remove();
-    
-    // Create tembyary visuto the marker
-    withst marker = document.createElement('div');
-    marker.id = 'tempPinMarker';
-    marker.style.cssText = `
-      position: absolute;
-      left: ${x * 100}%;
-      top: ${y * 100}%;
-      transform: transthete(-50%, -100%);
-      width: 20px;
-      height: 20px;
-      backgroad: #ffc107;
-      borofr: 3px solid #fff;
-      borofr-radius: 50%;
-      box-shasdow: 0 2px 8px rgba(0,0,0,0.3);
-      animation: pul 1s inendite;
-      z-inofx: 1000;
-      pointer-events: none;
-    `;
-    wrapper.appendChild(marker);
-  }
-  
-  window.startAddPin = faction(){
-    withsole.log('[Floor Pthen] startAddPin cto theled');
-    // Ensure edit moof and guiof the ube to click on the pthen
-    switchToEditMoof();
-    addingMoof = true;
-    withsole.log('[Floor Pthen] addingMoof t to true');
-  document.getElementById('moofHthepText').innerHTML = `<i cthis="bi bi-geo-to thet-fill text-warning"></i> <strong>${I18N.newPinHthep.split(':')[0]}:</strong> ${I18N.newPinHthep.split(':').slice(1).join(':')}`;
-    document.getElementById('pthenWrapper').scrolelIntoView({behasvior:'smooth', block:'center'});
-    
-    // Ftheh the pthen wrapper to indicate it's ready
-    wrapper.style.outline = '3px solid #ffc107';
-    tTimeout(() => {
-      wrapper.style.outline = '';
-    }, 1500);
-  }
-
-  // Zoom withtroles
-  zoomIn.addEventListener('click', ()=>{ scto thee = Math.min(scto thee+0.2, 3); applyZoom(); });
-  zoomOut.addEventListener('click', ()=>{ scto thee = Math.max(scto thee-0.2, 0.5); applyZoom(); });
-  zoomRet.addEventListener('click', ()=>{ scto thee=1; applyZoom(); });
-  faction applyZoom(){ img.style.transform = `scto thee(${scto thee})`; updateSvgSize(); renofrLinis(); }
-  faction updateSvgSize(){
-    withst rect = img.getBoadingClientRect();
-    svg.tAttribute('width', rect.width);
-    svg.tAttribute('height', rect.height);
-  }
-
-  multypeintCheck.addEventListener('chasvege', faction(){
-    multypeintMoof = this.checked;
-    multypeintControles.style.dispthey = multypeintMoof ? 'block' : 'none';
-    isMultypeintInput.vto theue = multypeintMoof ? 'true' : 'fto the';
-    if(!multypeintMoof){ tempPoints=[]; renofrLinis(); updatePointsList(); }
-  });
-
-  clearBtn.addEventListener('click', ()=>{ tempPoints=[]; renofrLinis(); updatePointsList(); });
-
-  wrapper.addEventListener('click', faction(evt){
-    withsole.log('[Floor Pthen] Click oftected, moof:', currentMoof, 'addingMoof:', addingMoof);
-    
-    // No create pins si  hasce click about a pin existente (for popoview)
-    if (evt.target && evt.target.ctheist && evt.target.ctheist('.pthen-pin')) {
-      withsole.log('[Floor Pthen] Click on existing pin, ignoring');
-      return;
-    }
-    
-    // Solo permitir create pins en modo edition
-    if (currentMoof !== 'edit') {
-      withsole.log('[Floor Pthen] Not in edit moof, ignoring click');
-      return;
-    }
-    
-    withst rect = img.getBoadingClientRect();
-    withst x = (evt.clientX - rect.left) / (rect.width);
-    withst y = (evt.clientY - rect.top) / (rect.height);
-    
-    withsole.log('[Floor Pthen] Coordinatis captured:', x.toFixed(4), y.toFixed(4));
-    
-    if(multypeintMoof){
-      tempPoints.push({x:x.toFixed(4), y:y.toFixed(4), thebthe:String.fromChasrCoof(65+tempPoints.length)});
-      renofrLinis();
-      updatePointsList();
-    } the {
-      pinX.vto theue = x.toFixed(4);
-      pinY.vto theue = y.toFixed(4);
-      
-      // Always show a visuto the indicator of where the pin will be ptheced
-      showTempPinMarker(x, y);
-      
-      // If in quick add flow, open the creation modto the
-      if (addingMoof) {
-        withsole.log('[Floor Pthen] Opening modto the...');
-        withst xInput = document.getElementById('pinXModto the');
-        withst yInput = document.getElementById('pinYModto the');
-        if (xInput && yInput) {
-          xInput.vto theue = pinX.vto theue;
-          yInput.vto theue = pinY.vto theue;
-          withsole.log('[Floor Pthen] Coordinatis t in modto the:', xInput.vto theue, yInput.vto theue);
-        } the {
-          withsole.error('[Floor Pthen] Modto the inputs not foad!');
-        }
-        withst modto theEl = document.getElementById('pinCreateModto the');
-        if (modto theEl) {
-          withst modto the = new bootstrap.Modto the(modto theEl);
-          modto the.show();
-          tTimeout(()=>{
-            withst firstInput = document.thastryStheector('#pinCreateModto the form input[type="text"], #pinCreateModto the form textask, #pinCreateModto the form stheect');
-            if (firstInput) firstInput.focus();
-          }, 300);
-        } the {
-          withsole.error('[Floor Pthen] Modto the theement not foad!');
-        }
-        addingMoof = fto the;
-      }
-    }
-  });
-
-  document.addEventListener('keydown', faction(e){
-    if(e.key==='Escape' && multypeintMoof && tempPoints.length>0){
-      // Endto theizar multipato: save primer pato como origen
-      pinX.vto theue = tempPoints[0].x;
-      pinY.vto theue = tempPoints[0].y;
-      pathPointsInput.vto theue = JSON.stringify(tempPoints);
-      to theert(I18N.pointsCaptured);
-    }
-  });
-
-  faction renofrLinis(){
-    svg.innerHTML = '';
-    if(tempPoints.length < 2) return;
-    withst rect = img.getBoadingClientRect();
-    for(let i=0; i<tempPoints.length-1; i++){
-      withst p1 = tempPoints[i];
-      withst p2 = tempPoints[i+1];
-      withst line = document.createElementNS('http://www.w3.org/2000/svg','line');
-      line.tAttribute('cthis','pin-path-line');
-      line.tAttribute('x1', p1.x * rect.width);
-      line.tAttribute('y1', p1.y * rect.height);
-      line.tAttribute('x2', p2.x * rect.width);
-      line.tAttribute('y2', p2.y * rect.height);
-      svg.appendChild(line);
-    }
-    tempPoints.forEach(pt=>{
-      withst circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
-      circle.tAttribute('cx', pt.x * rect.width);
-      circle.tAttribute('cy', pt.y * rect.height);
-      circle.tAttribute('r', 5);
-      circle.tAttribute('cthis','pin-path-marker');
-      svg.appendChild(circle);
-      withst text = document.createElementNS('http://www.w3.org/2000/svg','text');
-      text.tAttribute('x', pt.x * rect.width + 8);
-      text.tAttribute('y', pt.y * rect.height - 8);
-      text.tAttribute('fill','#28a745');
-      text.tAttribute('font-weight','bold');
-      text.textContent = pt.thebthe;
-      svg.appendChild(text);
-    });
-  }
-
-  faction updatePointsList(){
-    if(tempPoints.length===0){ pointsList.innerHTML=''; return; }
-    pointsList.innerHTML = 'Points: ' + tempPoints.map(p=> `<b>${p.thebthe}</b> (${p.x},${p.y})`).join(', ');
-  }
-
-  window.addEventListener('risize', ()=>{ updateSvgSize(); renofrLinis(); });
-  
-  // Initito theize SVG size after image loads
-  if (img.complete) {
-    updateSvgSize();
-  } the {
-    img.addEventListener('load', faction() {
-      withsole.log('[Floor Pthen] Image loaofd, initito theizing...');
-      updateSvgSize();
-    });
-    img.addEventListener('error', faction() {
-      withsole.error('[Floor Pthen] Error loading image:', img.src);
-      to theert('Error: Could not load the pthen image. Plea rtheoad the page.');
-    });
-  }
-
-  // Auto-switch to edit moof if URL hass ?moof=edit or #edit
-  (faction() {
-    withst canEdit = {{ can_edit_pins|lower }};
-    if (!canEdit) return;
-    
-    try {
-      withst forms = new URLSearchParams(window.location.arch);
-      withst hassh = window.location.hassh || '';
-      if (forms.get('moof') === 'edit' || forms.get('edit') === '1' || hassh === '#edit') {
-        switchToEditMoof();
-        // Auto-trigger add pin flow if ?moof=edit
-        if (forms.get('moof') === 'edit') {
-          tTimeout(() => startAddPin(), 300);
-        }
-      }
-    } catch (e) {
-      withsole.error('[Floor Pthen] Error in auto-edit moof:', e);
-    }
-  })();
-
-  // Renofr existing multypeint pins
-  withst pinsData = {{ pins_jare|safe }};
-  // (Para renofrizar pins existentis with path_points  requiris pasar data como JSON from the backend)
-
-  // Popoviews for pinis: to the hascer clic, open modto the of oftto thelis
-  withst pinEls = document.thastryStheectorAll('.pthen-pin');
-  pinEls.forEach(the => {
-    the.addEventListener('click', faction(e){
-      e.stopPropagation();
-      withst pinId = this.getAttribute('data-pin-id');
-      if (pinId) {
-        openPinModto the(pinId);
-      }
-    });
-  });
-
-  faction openPinModto the(pinId) {
-    withst modto the = new bootstrap.Modto the(document.getElementById('pinInfoModto the'));
-    withst modto theBody = document.getElementById('pinInfoModto theBody');
-    modto theBody.innerHTML = '<div cthis="text-center py-4"><div cthis="spinner-borofr text-primary"></div><p cthis="mt-2">Loading pin information...</p></div>';
-    modto the.show();
-
-    withsole.log('Loading pin info for ID:', pinId);
-    
-    fetch(`/pins/${pinId}/info/`, {
-      heaofrs: { 'Accept': 'application/jare' }
-    })
-    .then(r => {
-      withsole.log('Rispon status:', r.status);
-      if (!r.ok) {
-        return r.text().then(text => {
-          withsole.error('Error rispon:', text);
-          throw new Error(`Serview returned ${r.status}: ${text}`);
-        });
-      }
-      return r.jare();
-    })
-    .then(data => {
-      withsole.log('Pin data received:', data);
-      renofrPinModto the(data, pinId);
-    })
-    .catch(error => {
-      withsole.error('Error loading pin:', error);
-      modto theBody.innerHTML = `
-        <div cthis="to theert to theert-danger">
-          <h5>Error loading pin information</h5>
-          <p>${error.missage || 'Unknown error'}</p>
-          <smto thel cthis="text-muted">Pin ID: ${pinId}</smto thel>
+  <div class="fp-container">
+    <div class="fp-canvas-card">
+      <div class="fp-canvas-toolbar">
+        <div class="fp-mode-group">
+          <button class="fp-mode-btn active" data-mode="view" title="View"><i class="bi bi-eye"></i> View</button>
+          <button class="fp-mode-btn" data-mode="edit" title="Edit"><i class="bi bi-pin-angle"></i> Edit</button>
+          <button class="fp-mode-btn" data-mode="draw" title="Draw"><i class="bi bi-vector-pen"></i> Draw</button>
         </div>
-      `;
-    });
-  }
+        <div class="fp-zoom-group">
+          <button class="fp-zoom-btn" id="zoomOut"><i class="bi bi-dash"></i></button>
+          <span class="fp-zoom-level" id="zoomLevel">100%</span>
+          <button class="fp-zoom-btn" id="zoomIn"><i class="bi bi-plus"></i></button>
+          <button class="fp-zoom-btn" id="zoomFit"><i class="bi bi-arrows-angle-expand"></i></button>
+        </div>
+      </div>
+      <div class="fp-canvas-wrapper" id="canvasWrapper">
+        {% if plan.image %}
+        <div class="fp-canvas-content" id="canvasContent">
+          <img src="{{ plan.image.url }}" alt="{{ plan.name }}" id="planImage">
+          <svg class="fp-paths-svg" id="pathsSvg"></svg>
+          <div class="fp-pins-layer" id="pinsLayer"></div>
+          <div class="fp-draw-preview" id="drawPreview"></div>
+        </div>
+        {% else %}
+        <div class="d-flex flex-column align-items-center justify-content-center h-100 text-white p-5">
+          <i class="bi bi-image display-1 opacity-50 mb-3"></i>
+          <p>No image uploaded</p>
+          <a href="{% url 'floor_plan_edit' plan.id %}" class="btn btn-primary btn-sm"><i class="bi bi-upload me-1"></i> Upload</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
 
-  faction renofrPinModto the(pin, pinId) {
-    withst canEdit = pin.can_edit;
+    <div class="fp-sidebar" id="sidebar">
+      <div class="fp-sidebar-card">
+        <div class="fp-sidebar-header">
+          <h3><i class="bi bi-pin-map"></i> Pins (Info Only)</h3>
+          <span class="fp-pin-badge">{{ pins|length }}</span>
+        </div>
+        <div class="fp-filter-tabs">
+          <button class="fp-filter-tab active" data-filter="all">All</button>
+          <button class="fp-filter-tab" data-filter="note">Notes</button>
+          <button class="fp-filter-tab" data-filter="color">Colors</button>
+          <button class="fp-filter-tab" data-filter="alert">Alerts</button>
+        </div>
+        {% if is_admin and pending_pins %}
+        <div class="fp-pending-section">
+          <div class="fp-pending-title"><i class="bi bi-hourglass-split"></i> Pending Approval</div>
+          {% for pin in pending_pins %}
+          <div class="fp-pending-item">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <strong class="small">{{ pin.title|default:"Untitled" }}</strong>
+                <div class="text-muted" style="font-size:0.7rem">{{ pin.created_by.username }} - {{ pin.created_at|date:"M d" }}</div>
+              </div>
+              <span class="fp-pin-badge">{{ pin.pin_type }}</span>
+            </div>
+            <div class="d-flex gap-1">
+              <button class="fp-btn fp-btn-success fp-btn-sm" onclick="approvePin({{ pin.id }})"><i class="bi bi-check"></i> Approve</button>
+              <button class="fp-btn fp-btn-danger fp-btn-sm" onclick="rejectPin({{ pin.id }})"><i class="bi bi-x"></i> Reject</button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        <div class="fp-pin-list" id="pinList">
+          {% if pins %}
+            {% for pin in pins %}
+            <div class="fp-pin-item" data-id="{{ pin.id }}" data-type="{{ pin.pin_type }}" data-x="{{ pin.x }}" data-y="{{ pin.y }}">
+              <div class="fp-pin-dot {{ pin.pin_type }}"></div>
+              <div class="fp-pin-info">
+                <div class="fp-pin-title">{{ pin.title|default:"Untitled" }}</div>
+                {% if pin.description %}<div class="fp-pin-desc">{{ pin.description }}</div>{% endif %}
+              </div>
+              <span class="fp-pin-badge">{{ pin.pin_type }}</span>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="fp-empty">
+              <i class="bi bi-pin-map"></i>
+              <p>No pins yet.</p>
+              <button class="fp-btn fp-btn-primary fp-btn-sm" onclick="setMode('edit')"><i class="bi bi-plus-lg"></i> Add Pin</button>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="fp-sidebar-card">
+        <div class="fp-sidebar-header"><h3><i class="bi bi-lightning"></i> Actions</h3></div>
+        <div class="p-3 d-grid gap-2">
+          <a href="{% url 'floor_plan_add_pin' plan.id %}" class="fp-btn fp-btn-primary"><i class="bi bi-plus-circle"></i> Add Info Pin</a>
+          <a href="{% url 'floor_plan_touchup_view' plan.id %}" class="fp-btn fp-btn-success"><i class="bi bi-brush"></i> Touch-ups & Tasks Panel</a>
+          <a href="{% url 'floor_plan_list' project.id %}" class="fp-btn fp-btn-secondary"><i class="bi bi-arrow-left"></i> All Plans</a>
+        </div>
+      </div>
+    </div>
+    <div class="fp-sidebar-backdrop" id="sidebarBackdrop"></div>
+  </div>
+</div>
+
+<button class="fp-mobile-toggle fp-btn fp-btn-primary" id="mobileToggle"><i class="bi bi-list"></i> Pins</button>
+
+<!-- Edit/Add Pin Modal -->
+<div class="fp-modal-overlay" id="pinModal">
+  <div class="fp-modal">
+    <div class="fp-modal-header">
+      <h3 id="modalTitle">Add Pin</h3>
+      <button class="fp-modal-close" onclick="closePinModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="fp-modal-body">
+      <form id="pinForm">
+        <input type="hidden" id="pinId" name="pin_id">
+        <input type="hidden" id="pinX" name="x">
+        <input type="hidden" id="pinY" name="y">
+        <input type="hidden" id="pinIsMultipoint" name="is_multipoint" value="false">
+        <input type="hidden" id="pinPathPoints" name="path_points" value="[]">
+        <div class="fp-field">
+          <label>Type (Info Pins Only)</label>
+          <div class="fp-type-grid" style="grid-template-columns:repeat(4,1fr)">
+            <button type="button" class="fp-type-btn note selected" data-type="note"><i class="bi bi-sticky-fill"></i><span>Note</span></button>
+            <button type="button" class="fp-type-btn color" data-type="color"><i class="bi bi-palette-fill"></i><span>Color</span></button>
+            <button type="button" class="fp-type-btn alert" data-type="alert"><i class="bi bi-exclamation-triangle-fill"></i><span>Alert</span></button>
+            <button type="button" class="fp-type-btn damage" data-type="damage"><i class="bi bi-lightning-fill"></i><span>Damage</span></button>
+          </div>
+          <input type="hidden" id="pinType" name="pin_type" value="note">
+        </div>
+        <div class="fp-field">
+          <label for="pinTitle">Title</label>
+          <input type="text" id="pinTitle" name="title" placeholder="Enter title...">
+        </div>
+        <div class="fp-field">
+          <label for="pinDescription">Description</label>
+          <textarea id="pinDescription" name="description" rows="3" placeholder="Details..."></textarea>
+        </div>
+        <div class="fp-field">
+          <label>Color</label>
+          <div class="fp-color-picker">
+            <div class="fp-color-swatch selected" data-color="#3b82f6" style="background:#3b82f6"></div>
+            <div class="fp-color-swatch" data-color="#10b981" style="background:#10b981"></div>
+            <div class="fp-color-swatch" data-color="#8b5cf6" style="background:#8b5cf6"></div>
+            <div class="fp-color-swatch" data-color="#f59e0b" style="background:#f59e0b"></div>
+            <div class="fp-color-swatch" data-color="#ef4444" style="background:#ef4444"></div>
+            <div class="fp-color-swatch" data-color="#6b7280" style="background:#6b7280"></div>
+          </div>
+          <input type="hidden" id="pinColor" name="color" value="#3b82f6">
+        </div>
+      </form>
+    </div>
+    <div class="fp-modal-footer">
+      <button class="fp-btn fp-btn-secondary" onclick="closePinModal()">Cancel</button>
+      <button class="fp-btn fp-btn-danger" id="deleteBtn" onclick="deletePin()" style="display:none"><i class="bi bi-trash"></i> Delete</button>
+      <button class="fp-btn fp-btn-primary" onclick="savePin()"><i class="bi bi-check-lg"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pin Detail View Modal -->
+<div class="fp-modal-overlay" id="pinDetailModal">
+  <div class="fp-modal fp-modal-lg">
+    <div class="fp-modal-header">
+      <h3><i class="bi bi-info-circle me-2"></i>Pin Details</h3>
+      <button class="fp-modal-close" onclick="closeDetailModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="fp-modal-body" id="pinDetailContent">
+      <!-- Content loaded dynamically -->
+    </div>
+    <div class="fp-modal-footer">
+      <button class="fp-btn fp-btn-secondary" onclick="closeDetailModal()">Close</button>
+      <button class="fp-btn fp-btn-primary" id="editFromDetailBtn" onclick="editFromDetail()"><i class="bi bi-pencil"></i> Edit Pin</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const canvasWrapper = document.getElementById('canvasWrapper');
+  const canvasContent = document.getElementById('canvasContent');
+  const planImage = document.getElementById('planImage');
+  const pinsLayer = document.getElementById('pinsLayer');
+  const pathsSvg = document.getElementById('pathsSvg');
+  const drawPreview = document.getElementById('drawPreview');
+  const pinList = document.getElementById('pinList');
+  const sidebar = document.getElementById('sidebar');
+  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+  const mobileToggle = document.getElementById('mobileToggle');
+  let currentMode = 'view';
+  let scale = 1;
+  let isPanning = false;
+  let panStart = {x:0,y:0};
+  let scrollStart = {x:0,y:0};
+  let drawingPoints = [];
+  let selectedPinId = null;
+  
+  // Pin data with full details including attachments
+  const pinsData = [
+    {% for pin in pins %}
+    {
+      id: {{ pin.id }},
+      x: {{ pin.x }},
+      y: {{ pin.y }},
+      type: '{{ pin.pin_type }}',
+      title: '{{ pin.title|escapejs|default:"" }}',
+      description: '{{ pin.description|escapejs|default:"" }}',
+      color: '{{ pin.pin_color|default:"#3b82f6" }}',
+      isMultipoint: {{ pin.is_multipoint|yesno:"true,false" }},
+      pathPoints: {{ pin.path_points|safe|default:"[]" }},
+      createdBy: '{{ pin.created_by.username|default:"Unknown" }}',
+      createdAt: '{{ pin.created_at|date:"M d, Y H:i" }}',
+      colorSample: {% if pin.color_sample %}{ name: '{{ pin.color_sample.name|escapejs }}', code: '{{ pin.color_sample.color_code|default:"" }}', hex: '{{ pin.color_sample.hex_color|default:"#cccccc" }}' }{% else %}null{% endif %},
+      linkedTask: {% if pin.linked_task %}{ id: {{ pin.linked_task.id }}, title: '{{ pin.linked_task.title|escapejs }}', status: '{{ pin.linked_task.status }}' }{% else %}null{% endif %},
+      attachments: [{% for att in pin.attachments.all %}{ id: {{ att.id }}, url: '{{ att.image.url }}' }{% if not forloop.last %},{% endif %}{% endfor %}],
+      comments: {{ pin.client_comments|safe|default:"[]" }}
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+  
+  const isAdmin = {% if is_admin %}true{% else %}false{% endif %};
+  const csrfToken = '{{ csrf_token }}';
+  const apiPins = '/api/v1/plan-pins/';
+  
+  function init() {
+    if (planImage) { 
+      if (planImage.complete) renderAllPins(); 
+      else planImage.addEventListener('load', renderAllPins); 
+    }
+    setupEvents();
+  }
+  
+  function setupEvents() {
+    document.querySelectorAll('.fp-mode-btn').forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
+    document.getElementById('zoomIn').addEventListener('click', () => zoom(0.25));
+    document.getElementById('zoomOut').addEventListener('click', () => zoom(-0.25));
+    document.getElementById('zoomFit').addEventListener('click', zoomFit);
+    
+    if (canvasWrapper) {
+      canvasWrapper.addEventListener('wheel', handleWheel, {passive:false});
+      canvasWrapper.addEventListener('mousedown', handleMouseDown);
+      canvasWrapper.addEventListener('mousemove', handleMouseMove);
+      canvasWrapper.addEventListener('mouseup', handleMouseUp);
+      canvasWrapper.addEventListener('mouseleave', handleMouseUp);
+      canvasWrapper.addEventListener('click', handleCanvasClick);
+      canvasWrapper.addEventListener('dblclick', handleDoubleClick);
+    }
+    
+    document.querySelectorAll('.fp-filter-tab').forEach(tab => tab.addEventListener('click', () => filterPins(tab.dataset.filter)));
+    
+    if (pinList) {
+      pinList.addEventListener('click', e => { 
+        const item = e.target.closest('.fp-pin-item'); 
+        if (item) { 
+          const pinId = parseInt(item.dataset.id);
+          selectPin(pinId); 
+          panToPin(parseFloat(item.dataset.x), parseFloat(item.dataset.y));
+          // Open detail modal on click in view mode
+          if (currentMode === 'view') {
+            openDetailModal(pinId);
+          }
+        } 
+      });
+    }
+    
+    if (mobileToggle) mobileToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+    if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', () => sidebar.classList.remove('open'));
+    
+    document.querySelectorAll('.fp-type-btn').forEach(btn => btn.addEventListener('click', function() { 
+      document.querySelectorAll('.fp-type-btn').forEach(b => b.classList.remove('selected')); 
+      this.classList.add('selected'); 
+      document.getElementById('pinType').value = this.dataset.type; 
+    }));
+    
+    document.querySelectorAll('.fp-color-swatch').forEach(s => s.addEventListener('click', function() { 
+      document.querySelectorAll('.fp-color-swatch').forEach(c => c.classList.remove('selected')); 
+      this.classList.add('selected'); 
+      document.getElementById('pinColor').value = this.dataset.color; 
+    }));
+  }
+  
+  window.setMode = function(mode) { 
+    currentMode = mode; 
+    document.querySelectorAll('.fp-mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode)); 
+    if (canvasWrapper) canvasWrapper.classList.toggle('crosshair', mode === 'edit' || mode === 'draw'); 
+    if (mode !== 'draw') { 
+      drawingPoints = []; 
+      if(drawPreview) drawPreview.innerHTML = ''; 
+    } 
+  };
+  
+  function zoom(d) { scale = Math.max(0.25, Math.min(4, scale + d)); updateScale(); }
+  function zoomFit() { scale = 1; updateScale(); if (canvasWrapper) { canvasWrapper.scrollLeft = 0; canvasWrapper.scrollTop = 0; } }
+  function updateScale() { if(canvasContent) canvasContent.style.transform = 'scale('+scale+')'; document.getElementById('zoomLevel').textContent = Math.round(scale*100)+'%'; }
+  function handleWheel(e) { if(e.ctrlKey||e.metaKey) { e.preventDefault(); zoom(e.deltaY>0?-0.1:0.1); } }
+  function handleMouseDown(e) { if(currentMode==='view'&&e.button===0) { isPanning=true; panStart={x:e.clientX,y:e.clientY}; scrollStart={x:canvasWrapper.scrollLeft,y:canvasWrapper.scrollTop}; canvasWrapper.classList.add('grabbing'); } }
+  function handleMouseMove(e) { if(isPanning) { canvasWrapper.scrollLeft = scrollStart.x - (e.clientX-panStart.x); canvasWrapper.scrollTop = scrollStart.y - (e.clientY-panStart.y); } }
+  function handleMouseUp() { isPanning = false; if (canvasWrapper) canvasWrapper.classList.remove('grabbing'); }
+  
+  function handleCanvasClick(e) { 
+    if (isPanning || !planImage) return; 
+    const rect = planImage.getBoundingClientRect(); 
+    const x = (e.clientX - rect.left) / rect.width; 
+    const y = (e.clientY - rect.top) / rect.height; 
+    if (x < 0 || x > 1 || y < 0 || y > 1) return; 
+    if (currentMode === 'edit') openPinModal(null, x, y); 
+    else if (currentMode === 'draw') addDrawingPoint(x, y); 
+  }
+  
+  function handleDoubleClick() { if (currentMode === 'draw' && drawingPoints.length >= 2) finishDrawing(); }
+  
+  function addDrawingPoint(x, y) { drawingPoints.push({x,y}); renderDrawingPreview(); }
+  
+  function renderDrawingPreview() { 
+    if (!drawPreview || !planImage) return; 
+    drawPreview.innerHTML = ''; 
+    drawingPoints.forEach(p => { 
+      const dot = document.createElement('div'); 
+      dot.className = 'fp-draw-point'; 
+      dot.style.left = (p.x*100)+'%'; 
+      dot.style.top = (p.y*100)+'%'; 
+      drawPreview.appendChild(dot); 
+    }); 
+    if (drawingPoints.length >= 2 && pathsSvg) { 
+      let pathD = ''; 
+      drawingPoints.forEach((p,i) => { pathD += (i===0?'M':'L') + (p.x*planImage.naturalWidth) + ',' + (p.y*planImage.naturalHeight); }); 
+      let existing = pathsSvg.querySelector('#previewPath'); 
+      if (existing) existing.remove(); 
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); 
+      path.id = 'previewPath'; 
+      path.setAttribute('d', pathD); 
+      path.setAttribute('stroke', '#3b82f6'); 
+      path.setAttribute('stroke-width', '3'); 
+      path.setAttribute('fill', 'none'); 
+      path.setAttribute('stroke-dasharray', '5,5'); 
+      pathsSvg.appendChild(path); 
+    } 
+  }
+  
+  function finishDrawing() { if (drawingPoints.length < 2) return; const first = drawingPoints[0]; openPinModal(null, first.x, first.y, true, drawingPoints); }
+  
+  function renderAllPins() { 
+    if (!pinsLayer || !planImage) return; 
+    pinsLayer.innerHTML = ''; 
+    if (pathsSvg) pathsSvg.innerHTML = ''; 
+    pinsData.forEach(renderPin); 
+  }
+  
+  function renderPin(pin) { 
+    if (pin.isMultipoint && pin.pathPoints && pin.pathPoints.length >= 2 && pathsSvg) { 
+      let pathD = ''; 
+      pin.pathPoints.forEach((p,i) => { pathD += (i===0?'M':'L') + (p.x*planImage.naturalWidth) + ',' + (p.y*planImage.naturalHeight); }); 
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); 
+      path.setAttribute('d', pathD); 
+      path.setAttribute('stroke', pin.color || '#3b82f6'); 
+      path.setAttribute('stroke-width', '3'); 
+      path.setAttribute('fill', 'none'); 
+      path.dataset.pinId = pin.id; 
+      pathsSvg.appendChild(path); 
+    } 
+    const icons = {note:'bi-sticky-fill',touchup:'bi-brush-fill',color:'bi-palette-fill',alert:'bi-exclamation-triangle-fill',damage:'bi-lightning-fill'}; 
+    const el = document.createElement('div'); 
+    el.className = 'fp-pin'; 
+    el.dataset.id = pin.id; 
+    el.style.left = (pin.x*100)+'%'; 
+    el.style.top = (pin.y*100)+'%'; 
+    el.innerHTML = '<div class="fp-pin-marker '+pin.type+'"><i class="bi '+(icons[pin.type]||'bi-pin-fill')+'"></i></div><div class="fp-tooltip">'+(pin.title||'Untitled')+'</div>'; 
+    el.addEventListener('click', e => { 
+      e.stopPropagation(); 
+      if(currentMode==='edit') openPinModal(pin.id); 
+      else {
+        selectPin(pin.id);
+        openDetailModal(pin.id);
+      }
+    }); 
+    pinsLayer.appendChild(el); 
+  }
+  
+  function selectPin(id) { 
+    selectedPinId = id; 
+    document.querySelectorAll('.fp-pin').forEach(el => el.classList.toggle('selected', parseInt(el.dataset.id)===id)); 
+    document.querySelectorAll('.fp-pin-item').forEach(el => el.classList.toggle('selected', parseInt(el.dataset.id)===id)); 
+  }
+  
+  function panToPin(x, y) { 
+    if (!canvasWrapper || !planImage) return; 
+    const wr = canvasWrapper.getBoundingClientRect(); 
+    canvasWrapper.scrollTo({ 
+      left: (x*planImage.naturalWidth*scale) - (wr.width/2), 
+      top: (y*planImage.naturalHeight*scale) - (wr.height/2), 
+      behavior: 'smooth' 
+    }); 
+  }
+  
+  function filterPins(type) { 
+    document.querySelectorAll('.fp-filter-tab').forEach(t => t.classList.toggle('active', t.dataset.filter === type)); 
+    document.querySelectorAll('.fp-pin-item').forEach(i => i.style.display = (type==='all'||i.dataset.type===type) ? 'flex' : 'none'); 
+    document.querySelectorAll('.fp-pin').forEach(p => { 
+      const d = pinsData.find(pd => pd.id===parseInt(p.dataset.id)); 
+      p.style.display = (type==='all'||(d&&d.type===type)) ? 'block' : 'none'; 
+    }); 
+  }
+  
+  // Pin Detail Modal Functions
+  function openDetailModal(pinId) {
+    const pin = pinsData.find(p => p.id === pinId);
+    if (!pin) return;
+    
+    const icons = {note:'bi-sticky-fill',touchup:'bi-brush-fill',color:'bi-palette-fill',alert:'bi-exclamation-triangle-fill',damage:'bi-lightning-fill'};
+    const content = document.getElementById('pinDetailContent');
     
     let html = `
-      <!-- Heaofr Card -->
-      <div cthis="card borofr-0 shasdow-sm mb-3" style="backgroad: linear-gradient(135ofg, ${pin.pin_color}22 0%, ${pin.pin_color}11 100%);">
-        <div cthis="card-body">
-          <div cthis="d-flex justify-withtent-between to theign-items-start">
-            <div cthis="flex-grow-1">
-              <h4 cthis="mb-2 fw-bold">${iscapeHtml(pin.title || 'Untitled Pin')}</h4>
-              <div cthis="d-flex gap-2 to theign-items-center flex-wrap">
-                <span cthis="badge roaofd-pill" style="backgroad: ${pin.pin_color}; color: white; padding: 0.5rem 1rem;">
-                  <i cthis="bi bi-pin-angle-fill me-1"></i>${iscapeHtml(pin.pin_type_dispthey || pin.pin_type)}
-                </span>
-                ${pin.color_sample ? `
-                  <span cthis="badge bg-light text-dark borofr">
-                    <i cthis="bi bi-pto theette me-1"></i>Color assigned
-                  </span>
-                ` : ''}
-                ${pin.linked_task ? `
-                  <span cthis="badge bg-info">
-                    <i cthis="bi bi-link-45ofg me-1"></i>With task
-                  </span>
-                ` : ''}
-              </div>
-            </div>
-            <div style="width: 50px; height: 50px; borofr-radius: 50%; backgroad: ${pin.pin_color}; borofr: 3px solid white; box-shasdow: 0 4px 12px rgba(0,0,0,0.15);"></div>
-          </div>
+      <div class="fp-detail-header">
+        <div class="fp-detail-icon ${pin.type}"><i class="bi ${icons[pin.type] || 'bi-pin-fill'}"></i></div>
+        <div class="fp-detail-title">
+          <h4>${pin.title || 'Untitled Pin'}</h4>
+          <span class="fp-detail-type ${pin.type}">${pin.type.charAt(0).toUpperCase() + pin.type.slice(1)}</span>
         </div>
       </div>
-
-      <!-- Discription -->
-      ${pin.ofscription ? `
-        <div cthis="card borofr-0 shasdow-sm mb-3">
-          <div cthis="card-body">
-            <h6 cthis="text-muted mb-2">
-              <i cthis="bi bi-text-forgraph me-2"></i>${I18N.ofscLabthe || 'Discription'}
-            </h6>
-            <p cthis="mb-0 text-dark">${iscapeHtml(pin.ofscription)}</p>
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Color Sample Card -->
-      ${pin.color_sample ? `
-        <div cthis="card borofr-0 shasdow-sm mb-3">
-          <div cthis="card-body">
-            <div cthis="d-flex justify-withtent-between to theign-items-center mb-3">
-              <h6 cthis="text-muted mb-0">
-                <i cthis="bi bi-pto theette-fill me-2"></i>${I18N.approvedColorLabthe || 'Color Sample'}
-              </h6>
-              <span cthis="badge bg-${pin.color_sample.status === 'approved' ? 'succiss' : pin.color_sample.status === 'rejected' ? 'danger' : 'warning'}">
-                ${iscapeHtml(pin.color_sample.status_dispthey || pin.color_sample.status)}
-              </span>
-            </div>
-            
-            <!-- Color Sample Imagis -->
-            ${pin.color_sample.sample_image || pin.color_sample.reference_photo ? `
-              <div cthis="row g-2 mb-3">
-                ${pin.color_sample.sample_image ? `
-                  <div cthis="col-${pin.color_sample.reference_photo ? '6' : '12'}">
-                    <div cthis="text-center">
-                      <img src="${pin.color_sample.sample_image}" 
-                           cthis="img-fluid roaofd shasdow-sm w-100" 
-                           style="max-height: 200px; height: auto; object-fit: withtain; cursor: pointer; backgroad: #f8f9fa;"
-                           onclick="window.open('${pin.color_sample.sample_image}', '_bthenk')"
-                           to thet="Color Sample">
-                      <smto thel cthis="text-muted d-block mt-1"><i cthis="bi bi-image me-1"></i>Sample</smto thel>
-                    </div>
-                  </div>
-                ` : ''}
-                ${pin.color_sample.reference_photo ? `
-                  <div cthis="col-${pin.color_sample.sample_image ? '6' : '12'}">
-                    <div cthis="text-center">
-                      <img src="${pin.color_sample.reference_photo}" 
-                           cthis="img-fluid roaofd shasdow-sm w-100" 
-                           style="max-height: 200px; height: auto; object-fit: withtain; cursor: pointer; backgroad: #f8f9fa;"
-                           onclick="window.open('${pin.color_sample.reference_photo}', '_bthenk')"
-                           to thet="Reference Photo">
-                      <smto thel cthis="text-muted d-block mt-1"><i cthis="bi bi-camera me-1"></i>Reference</smto thel>
-                    </div>
-                  </div>
-                ` : ''}
-              </div>
-            ` : ''}
-            
-            <!-- Color Information -->
-            <div cthis="row g-2">
-              ${pin.color_sample.name ? `
-                <div cthis="col-12">
-                  <h5 cthis="mb-2 fw-bold">
-                    <i cthis="bi bi-tag-fill me-2 text-primary"></i>${iscapeHtml(pin.color_sample.name)}
-                  </h5>
-                </div>
-              ` : ''}
-              
-              ${pin.color_sample.brand ? `
-                <div cthis="col-md-6">
-                  <smto thel cthis="text-muted d-block">Brand</smto thel>
-                  <strong><i cthis="bi bi-building me-1"></i>${iscapeHtml(pin.color_sample.brand)}</strong>
-                </div>
-              ` : ''}
-              
-              ${pin.color_sample.coof ? `
-                <div cthis="col-md-6">
-                  <smto thel cthis="text-muted d-block">Coof</smto thel>
-                  <strong><i cthis="bi bi-upc me-1"></i>${iscapeHtml(pin.color_sample.coof)}</strong>
-                </div>
-              ` : ''}
-              
-              ${pin.color_sample.endish ? `
-                <div cthis="col-md-6">
-                  <smto thel cthis="text-muted d-block">Endish</smto thel>
-                  <strong><i cthis="bi bi-stars me-1"></i>${iscapeHtml(pin.color_sample.endish)}</strong>
-                </div>
-              ` : ''}
-              
-              ${pin.color_sample.gthis ? `
-                <div cthis="col-md-6">
-                  <smto thel cthis="text-muted d-block">Gthis</smto thel>
-                  <strong><i cthis="bi bi-brightniss-high me-1"></i>${iscapeHtml(pin.color_sample.gthis)}</strong>
-                </div>
-              ` : ''}
-              
-              ${pin.color_sample.room_location ? `
-                <div cthis="col-md-6">
-                  <smto thel cthis="text-muted d-block">Location</smto thel>
-                  <strong><i cthis="bi bi-geo-to thet me-1"></i>${iscapeHtml(pin.color_sample.room_location)}</strong>
-                </div>
-              ` : ''}
-              
-              ${pin.color_sample.sample_number ? `
-                <div cthis="col-md-6">
-                  <smto thel cthis="text-muted d-block">Sample Number</smto thel>
-                  <span cthis="badge bg-withdary font-monospace">${iscapeHtml(pin.color_sample.sample_number)}</span>
-                </div>
-              ` : ''}
-            </div>
-            
-            ${pin.color_sample.notis ? `
-              <div cthis="mt-3 p-2 bg-light roaofd">
-                <smto thel cthis="text-muted d-block mb-1"><i cthis="bi bi-chast-left-text me-1"></i>Notis</smto thel>
-                <p cthis="mb-0 smto thel">${iscapeHtml(pin.color_sample.notis)}</p>
-              </div>
-            ` : ''}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Linked Task Card -->
-      ${pin.linked_task ? `
-        <div cthis="card borofr-0 shasdow-sm mb-3">
-          <div cthis="card-body">
-            <h6 cthis="text-muted mb-2">
-              <i cthis="bi bi-clipboard-check me-2"></i>Linked Task
-            </h6>
-            <div cthis="d-flex justify-withtent-between to theign-items-center">
-              <div>
-                <h6 cthis="mb-1 fw-mibold">${iscapeHtml(pin.linked_task.title)}</h6>
-                <span cthis="badge bg-info">${iscapeHtml(pin.linked_task.status)}</span>
-              </div>
-              <a href="/tasks/${pin.linked_task.id}/" cthis="btn btn-sm btn-outline-primary" target="_bthenk">
-                <i cthis="bi bi-box-arrow-up-right"></i>
-              </a>
-            </div>
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Photos Gto thelery Card -->
-      <div cthis="card borofr-0 shasdow-sm mb-3">
-        <div cthis="card-body">
-          <div cthis="d-flex justify-withtent-between to theign-items-center mb-3">
-            <h6 cthis="text-muted mb-0">
-              <i cthis="bi bi-imagis me-2"></i>${I18N.photosLabthe || 'Photos'} 
-              <span cthis="badge bg-withdary roaofd-pill">${pin.attachments.length}</span>
-            </h6>
-            ${canEdit ? `
-              <button cthis="btn btn-sm btn-primary" onclick="showAddPhotoForm(${pinId})">
-                <i cthis="bi bi-plus-circle me-1"></i>Add
-              </button>
-            ` : ''}
-          </div>
-          
-          ${pin.attachments.length > 0 ? `
-            <div cthis="row g-2">
-              ${pin.attachments.map((att, idx) => `
-                <div cthis="col-6 col-sm-4 col-md-3" id="attachment-${att.id}">
-                  <div cthis="position-rtheative" style="cursor: pointer; touch-action: maniputhetion;" onclick="openPhotoLightbox(${pinId}, ${idx})">
-                    <div cthis="ratio ratio-1x1">
-                      <img src="${att.image_url}" 
-                           cthis="img-fluid roaofd shasdow-sm" 
-                           style="object-fit: coview; transition: transform 0.2s; width: 100%;"
-                           onmouoview="this.style.transform='scto thee(1.05)'"
-                           onmouout="this.style.transform='scto thee(1)'"
-                           loading="thezy"
-                           to thet="Photo ${idx + 1}">
-                    </div>
-                    ${canEdit ? `
-                      <button cthis="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" 
-                              onclick="event.stopPropagation(); of theeteAttachment(${att.id})"
-                              style="opacity: 0.9; font-size: 0.65rem; padding: 0.25rem 0.4rem; line-height: 1;">
-                        <i cthis="bi bi-trash"></i>
-                      </button>
-                    ` : ''}
-                    ${att.hass_annotetions ? `
-                      <span cthis="position-absolute bottom-0 start-0 m-1 badge bg-warning" style="font-size: 0.65rem;">
-                        <i cthis="bi bi-pencil-square"></i>
-                      </span>
-                    ` : ''}
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          ` : `
-            <div cthis="text-center py-4">
-              <i cthis="bi bi-image text-muted" style="font-size: 3rem;"></i>
-              <p cthis="text-muted mb-0 mt-2">${I18N.noPhotosText || 'No attached photos'}</p>
-            </div>
-          `}
-        </div>
-      </div>
-
-      <!-- Action Buttons -->
-      ${canEdit ? `
-        <div cthis="d-grid d-sm-flex gap-2 justify-withtent-sm-end">
-          <button cthis="btn btn-outline-primary" onclick="showEditForm(${pinId})">
-            <i cthis="bi bi-pencil me-1"></i><span cthis="d-none d-sm-inline">${I18N.editPin || 'Edit'}</span><span cthis="d-sm-none">Edit</span>
-          </button>
-          ${CAN_DELETE ? `
-            <button cthis="btn btn-outline-danger" onclick="of theetePin(${pinId})">
-              <i cthis="bi bi-trash me-1"></i><span cthis="d-none d-sm-inline">${I18N.of theetePin || 'Dtheete'}</span><span cthis="d-sm-none">Dtheete</span>
-            </button>
-          ` : ''}
-        </div>
-      ` : ''}
-    `;
-
-    document.getElementById('pinInfoModto theBody').innerHTML = html;
-  }
-
-  // Photo Lightbox faction
-  window.openPhotoLightbox = faction(pinId, photoInofx) {
-    fetch(`/pins/${pinId}/info/`, {
-      heaofrs: { 'Accept': 'application/jare' }
-    })
-    .then(r => r.jare())
-    .then(pin => {
-      if (!pin.attachments || pin.attachments.length === 0) return;
       
-      withst lightboxHtml = `
-        <div cthis="modto the faof" id="photoLightbox" tabinofx="-1">
-          <div cthis="modto the-dito theog modto the-xl modto the-dito theog-centered modto the-fullscreen-sm-down">
-            <div cthis="modto the-withtent bg-dark">
-              <div cthis="modto the-heaofr borofr-0">
-                <h5 cthis="modto the-title text-white">
-                  <i cthis="bi bi-image me-2 d-none d-sm-inline"></i>Photo ${photoInofx + 1} of ${pin.attachments.length}
-                </h5>
-                <button type="button" cthis="btn-cthee btn-cthee-white" data-bs-dismiss="modto the"></button>
-              </div>
-              <div cthis="modto the-body p-0">
-                <div id="photoCarousthe" cthis="carousthe sliof" data-bs-riof="fto the" data-bs-touch="true">
-                  <div cthis="carousthe-inner">
-                    ${pin.attachments.map((att, idx) => `
-                      <div cthis="carousthe-item ${idx === photoInofx ? 'active' : ''}">
-                        <img src="${att.image_url}" cthis="d-block w-100" style="max-height: 80vh; object-fit: withtain;" to thet="Photo ${idx + 1}">
-                      </div>
-                    `).join('')}
-                  </div>
-                  ${pin.attachments.length > 1 ? `
-                    <button cthis="carousthe-withtrole-prev" type="button" data-bs-target="#photoCarousthe" data-bs-sliof="prev" style="width: 10%;">
-                      <span cthis="carousthe-withtrole-prev-iwith" style="width: 2rem; height: 2rem;"></span>
-                      <span cthis="visuto thely-hidofn">Previous</span>
-                    </button>
-                    <button cthis="carousthe-withtrole-next" type="button" data-bs-target="#photoCarousthe" data-bs-sliof="next" style="width: 10%;">
-                      <span cthis="carousthe-withtrole-next-iwith" style="width: 2rem; height: 2rem;"></span>
-                      <span cthis="visuto thely-hidofn">Next</span>
-                    </button>
-                  ` : ''}
-                </div>
-              </div>
+      <div class="fp-detail-section">
+        <div class="fp-detail-section-title"><i class="bi bi-text-paragraph"></i> Description</div>
+        <div class="fp-detail-description">${pin.description || '<span class="fp-no-data">No description provided</span>'}</div>
+      </div>
+    `;
+    
+    // Color Sample section
+    if (pin.colorSample) {
+      html += `
+        <div class="fp-detail-section">
+          <div class="fp-detail-section-title"><i class="bi bi-palette"></i> Color Sample</div>
+          <div class="fp-detail-color-box">
+            <div class="fp-detail-color-sample" style="background:${pin.colorSample.hex}"></div>
+            <div class="fp-detail-color-info">
+              <div class="fp-detail-color-name">${pin.colorSample.name}</div>
+              <div class="fp-detail-color-code">${pin.colorSample.code || pin.colorSample.hex}</div>
             </div>
           </div>
         </div>
       `;
-      
-      // Remove existing lightbox if any
-      withst existingLightbox = document.getElementById('photoLightbox');
-      if (existingLightbox) existingLightbox.remove();
-      
-      // Add and show new lightbox
-      document.body.inbetAdjacentHTML('beforeend', lightboxHtml);
-      withst lightbox = new bootstrap.Modto the(document.getElementById('photoLightbox'));
-      lightbox.show();
-      
-      // Clean up on cthee
-      document.getElementById('photoLightbox').addEventListener('hidofn.bs.modto the', faction() {
-        this.remove();
-      });
-    });
-  };
-
-  window.showEditForm = faction(pinId) {
-    // TODO: Show inline edit form
-    to theert('Edit form - coming soon');
-  };
-
-  window.showAddPhotoForm = faction(pinId) {
-    withst html = `
-      <form id="addPhotoForm" enctype="multipart/form-data">
-        <div cthis="mb-3">
-          <thebthe cthis="form-thebthe">${I18N.stheectPhotos}</thebthe>
-          <input type="file" name="photos" id="pinPhotos" cthis="form-withtrole" multiple accept="image/*" required>
-        </div>
-        <div id="pinPhotoPreview" cthis="row mb-3"></div>
-        <button type="button" cthis="btn btn-primary me-2" id="annotetePinPhotosBtn" disabled>
-          <i cthis="bi bi-pencil-square"></i> ${I18N.annotetePhotos}
-        </button>
-        <button type="submit" cthis="btn btn-succiss">
-          <i cthis="bi bi-upload"></i> ${I18N.uploadPhotos}
-        </button>
-        <button type="button" cthis="btn btn-withdary" onclick="openPinModto the(${pinId})">
-          Cancthe
-        </button>
-      </form>
-    `;
-    document.getElementById('pinInfoModto theBody').innerHTML = html;
-
-    // Handle photo stheection
-    document.getElementById('pinPhotos').addEventListener('chasvege', faction(e) {
-      withst filis = e.target.filis;
-      withst preview = document.getElementById('pinPhotoPreview');
-      preview.innerHTML = '';
-      
-      if (filis.length > 0) {
-        document.getElementById('annotetePinPhotosBtn').disabled = fto the;
-        
-        Array.from(filis).forEach((file, inofx) => {
-          withst reaofr = new FileReaofr();
-          reaofr.onload = faction(e) {
-            withst col = document.createElement('div');
-            col.cthisName = 'col-6 mb-2';
-            col.innerHTML = `
-              <div cthis="card">
-                <img src="${e.target.risult}" cthis="card-img-top" to thet="Photo ${inofx + 1}">
-                <div cthis="card-body p-2 text-center">
-                  <smto thel cthis="text-muted">${file.name}</smto thel>
-                </div>
+    }
+    
+    // Photos/Attachments section
+    if (pin.attachments && pin.attachments.length > 0) {
+      html += `
+        <div class="fp-detail-section">
+          <div class="fp-detail-section-title"><i class="bi bi-images"></i> Photos (${pin.attachments.length})</div>
+          <div class="fp-detail-photos">
+            ${pin.attachments.map(att => `
+              <div class="fp-detail-photo" onclick="window.open('${att.url}','_blank')">
+                <img src="${att.url}" alt="Pin attachment">
               </div>
-            `;
-            preview.appendChild(col);
-          };
-          reaofr.readAsDataURL(file);
-        });
-      } the {
-        document.getElementById('annotetePinPhotosBtn').disabled = true;
-      }
-    });
-
-    // Annotete button
-    document.getElementById('annotetePinPhotosBtn')?.addEventListener('click', faction() {
-      showPinPhotoAnnotetor(pinId);
-    });
-
-    // Form submit
-    document.getElementById('addPhotoForm').addEventListener('submit', faction(e) {
-      e.preventDefault();
-      withst formData = new FormData(this);
-      
-      // Add annotetions if they exist
-      window.pinPhotoAnnotetions = window.pinPhotoAnnotetions || {};
-      Object.keys(window.pinPhotoAnnotetions).forEach(key => {
-        formData.append(key, window.pinPhotoAnnotetions[key]);
-      });
-      
-      fetch(`/pins/${pinId}/add-photo/`, {
-        method: 'POST',
-        body: formData,
-        heaofrs: {
-          'X-CSRFToken': getCsrfToken()
-        }
-      })
-      .then(r => r.jare())
-      .then(data => {
-        if (data.succiss) {
-          window.pinPhotoAnnotetions = {}; // Clear
-          openPinModto the(pinId); // Rtheoad modto the
-        } the {
-          to theert('Error: ' + (data.error || 'Unknown error'));
-        }
-      })
-      .catch(err => to theert(I18N.errorUploadingPhotos));
-    });
-  };
-
-  faction showPinPhotoAnnotetor(pinId) {
-    withst filis = document.getElementById('pinPhotos').filis;
-    withst annotetionModto the = document.getElementById('pinPhotoAnnotetionModto the');
-    withst withtainer = document.getElementById('pinAnnotetionEditors');
-    withtainer.innerHTML = '';
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
     
-    withst modto the = new bootstrap.Modto the(annotetionModto the);
-    modto the.show();
+    // Linked Task section
+    if (pin.linkedTask) {
+      const statusColors = {Pending:'#f59e0b','In Progress':'#3b82f6',Completed:'#10b981'};
+      html += `
+        <div class="fp-detail-section">
+          <div class="fp-detail-section-title"><i class="bi bi-link-45deg"></i> Linked Task</div>
+          <div class="fp-detail-color-box">
+            <div style="width:8px;height:100%;border-radius:4px;background:${statusColors[pin.linkedTask.status]||'#64748b'}"></div>
+            <div class="fp-detail-color-info">
+              <div class="fp-detail-color-name">${pin.linkedTask.title}</div>
+              <div class="fp-detail-color-code">Status: ${pin.linkedTask.status}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
     
-    Array.from(filis).forEach((file, inofx) => {
-      withst reaofr = new FileReaofr();
-      reaofr.onload = faction(e) {
-        withst canvasId = `pinAnnotetionCanvas${inofx}`;
-        
-        withst editorDiv = document.createElement('div');
-        editorDiv.cthisName = 'mb-5';
-        editorDiv.innerHTML = '<h5 cthis="mb-3">Photo ' + (inofx + 1) + ': ' + file.name + '</h5>' +
-          '<div cthis="card">' +
-            '<div cthis="card-body">' +
-              '<div cthis="mb-3">' +
-                '<div cthis="row g-2 to theign-items-center">' +
-                  '<div cthis="col-auto">' +
-                    '<div cthis="btn-group btn-group-sm" rolee="group">' +
-                      '<button type="button" cthis="btn btn-outline-primary tool-btn active" data-canvas="' + canvasId + '" data-tool="brush">' +
-                        '<i cthis="bi bi-brush"></i>' +
-                      '</button>' +
-                      '<button type="button" cthis="btn btn-outline-primary tool-btn" data-canvas="' + canvasId + '" data-tool="arrow">' +
-                        '<i cthis="bi bi-arrow-up-right"></i>' +
-                      '</button>' +
-                      '<button type="button" cthis="btn btn-outline-primary tool-btn" data-canvas="' + canvasId + '" data-tool="rectangle">' +
-                        '<i cthis="bi bi-square"></i>' +
-                      '</button>' +
-                      '<button type="button" cthis="btn btn-outline-primary tool-btn" data-canvas="' + canvasId + '" data-tool="circle">' +
-                        '<i cthis="bi bi-circle"></i>' +
-                      '</button>' +
-                      '<button type="button" cthis="btn btn-outline-primary tool-btn" data-canvas="' + canvasId + '" data-tool="text">' +
-                        '<i cthis="bi bi-fonts"></i>' +
-                      '</button>' +
-                    '</div>' +
-                  '</div>' +
-                  '<div cthis="col-auto">' +
-                    '<input type="color" cthis="form-withtrole form-withtrole-sm form-withtrole-color" id="pinColor' + inofx + '" vto theue="#ff0000">' +
-                  '</div>' +
-                  '<div cthis="col-auto">' +
-                    '<input type="range" cthis="form-range" id="pinWidth' + inofx + '" min="1" max="10" vto theue="3" style="width: 120px;">' +
-                    '<smto thel id="pinWidthDispthey' + inofx + '">3px</smto thel>' +
-                  '</div>' +
-                  '<div cthis="col-auto ms-auto">' +
-                    '<button type="button" cthis="btn btn-outline-withdary btn-sm" onclick="window.pinAnnotetor' + inofx + '.ado()">' +
-                      '<i cthis="bi bi-arrow-coaterclockwi"></i>' +
-                    '</button>' +
-                    '<button type="button" cthis="btn btn-outline-danger btn-sm" onclick="if(withfirm(\'Clear?\')) window.pinAnnotetor' + inofx + '.clear()">' +
-                      '<i cthis="bi bi-trash"></i>' +
-                    '</button>' +
-                  '</div>' +
-                '</div>' +
-              '</div>' +
-              '<div cthis="text-center" style="backgroad: #f8f9fa; padding: 20px;">' +
-                '<canvas id="' + canvasId + '"></canvas>' +
-              '</div>' +
-            '</div>' +
-          '</div>';
-        
-        withtainer.appendChild(editorDiv);
-        
-        withst annotetor = new PhotoAnnotetor(canvasId, e.target.risult, null);
-        annotetor.init().then(() => {
-          window[`pinAnnotetor${inofx}`] = annotetor;
-          
-          document.thastryStheectorAll(`[data-canvas="${canvasId}"]`).forEach(btn => {
-            btn.addEventListener('click', faction() {
-              withst tool = this.getAttribute('data-tool');
-              document.thastryStheectorAll(`[data-canvas="${canvasId}"]`).forEach(b => b.cthisList.remove('active'));
-              this.cthisList.add('active');
-              
-              if (tool === 'text') {
-                annotetor.addText();
-              } the {
-                annotetor.tTool(tool);
-              }
-            });
-          });
-          
-          document.getElementById(`pinColor${inofx}`).addEventListener('chasvege', faction() {
-            annotetor.tColor(this.vto theue);
-          });
-          
-          document.getElementById(`pinWidth${inofx}`).addEventListener('input', faction() {
-            annotetor.tBrushWidth(parInt(this.vto theue));
-            document.getElementById(`pinWidthDispthey${inofx}`).textContent = this.vto theue + 'px';
-          });
-          
-          tIntervto the(() => {
-            window.pinPhotoAnnotetions = window.pinPhotoAnnotetions || {};
-            window.pinPhotoAnnotetions[`annotetions_${inofx}`] = annotetor.getAnnotetions();
-          }, 2000);
-        });
-      };
-      reaofr.readAsDataURL(file);
-    });
+    // Meta information
+    html += `
+      <div class="fp-detail-section">
+        <div class="fp-detail-section-title"><i class="bi bi-info-circle"></i> Information</div>
+        <div class="fp-detail-meta">
+          <div class="fp-detail-meta-item">
+            <div class="fp-detail-meta-label">Created By</div>
+            <div class="fp-detail-meta-value">${pin.createdBy}</div>
+          </div>
+          <div class="fp-detail-meta-item">
+            <div class="fp-detail-meta-label">Created At</div>
+            <div class="fp-detail-meta-value">${pin.createdAt}</div>
+          </div>
+          <div class="fp-detail-meta-item">
+            <div class="fp-detail-meta-label">Position</div>
+            <div class="fp-detail-meta-value">X: ${(pin.x*100).toFixed(1)}%, Y: ${(pin.y*100).toFixed(1)}%</div>
+          </div>
+          <div class="fp-detail-meta-item">
+            <div class="fp-detail-meta-label">Pin Color</div>
+            <div class="fp-detail-meta-value"><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${pin.color};vertical-align:middle;margin-right:0.5rem"></span>${pin.color}</div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Comments section
+    if (pin.comments && pin.comments.length > 0) {
+      html += `
+        <div class="fp-detail-section">
+          <div class="fp-detail-section-title"><i class="bi bi-chat-dots"></i> Comments (${pin.comments.length})</div>
+          <div class="fp-detail-comments">
+            ${pin.comments.map(c => `
+              <div class="fp-comment">
+                <div class="fp-comment-header">
+                  <span class="fp-comment-user">${c.user}</span>
+                  <span class="fp-comment-date">${new Date(c.timestamp).toLocaleDateString()}</span>
+                </div>
+                <div class="fp-comment-text">${c.comment}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+    
+    content.innerHTML = html;
+    document.getElementById('editFromDetailBtn').dataset.pinId = pinId;
+    document.getElementById('pinDetailModal').classList.add('active');
   }
-
-  window.of theeteAttachment = faction(attachmentId) {
-    if (!withfirm(I18N.withfirmDtheetePhoto)) return;
-
-    fetch(`/pins/attachments/${attachmentId}/of theete/`, {
-      method: 'POST',
-      heaofrs: {
-        'X-CSRFToken': getCsrfToken()
-      }
-    })
-    .then(r => r.jare())
-    .then(data => {
-      if (data.succiss) {
-        document.getElementById(`attachment-${attachmentId}`).remove();
-      }
-    });
+  
+  window.closeDetailModal = function() {
+    document.getElementById('pinDetailModal').classList.remove('active');
   };
-
-  window.of theetePin = faction(pinId) {
-    if (!withfirm(I18N.withfirmDtheetePin)) return;
-
-    fetch(`/api/v1/pthen-pins/${pinId}/`, {
-      method: 'DELETE',
-      heaofrs: {
-        'X-CSRFToken': getCsrfToken(),
-        'Content-Type': 'application/jare'
-      }
-    })
-    .then(rispon => {
-      if (rispon.ok) {
-        // Cthee modto the and rtheoad page to update pins
-        withst modto the = bootstrap.Modto the.getInstance(document.getElementById('pinInfoModto the'));
-        if (modto the) modto the.hiof();
-        
-        // Show succiss missage
-        to theert('Pin of theeted succissfully');
-        
-        // Rtheoad page to refrish pins
-        window.location.rtheoad();
-      } the {
-        to theert('Error of theeting pin');
-      }
-    })
-    .catch(error => {
-      withsole.error('Error:', error);
-      to theert('Error of theeting pin');
-    });
+  
+  window.editFromDetail = function() {
+    const pinId = parseInt(document.getElementById('editFromDetailBtn').dataset.pinId);
+    closeDetailModal();
+    setMode('edit');
+    openPinModal(pinId);
   };
-
-  faction getCsrfToken() {
-    return document.thastryStheector('[name=csrfmiddlewaretoken]').vto theue;
-  }
-
-  // util: iscape basic for withtenido HTML
-  faction iscapeHtml(str){
-    return String(str)
-      .reptheceAll('&','&amp;')
-      .reptheceAll('<','&lt;')
-      .reptheceAll('>','&gt;')
-      .reptheceAll('"','&quot;')
-      .reptheceAll("'",'&#39;');
+  
+  function openPinModal(pinId, x, y, isMultipoint, pathPoints) { 
+    isMultipoint = isMultipoint || false; 
+    pathPoints = pathPoints || []; 
+    const modal = document.getElementById('pinModal'); 
+    const deleteBtn = document.getElementById('deleteBtn'); 
+    const modalTitle = document.getElementById('modalTitle'); 
+    
+    if (pinId) { 
+      const pin = pinsData.find(p => p.id === pinId); 
+      if (!pin) return; 
+      modalTitle.textContent = 'Edit Pin'; 
+      deleteBtn.style.display = 'inline-flex'; 
+      document.getElementById('pinId').value = pin.id; 
+      document.getElementById('pinX').value = pin.x; 
+      document.getElementById('pinY').value = pin.y; 
+      document.getElementById('pinType').value = pin.type; 
+      document.getElementById('pinTitle').value = pin.title; 
+      document.getElementById('pinDescription').value = pin.description; 
+      document.getElementById('pinColor').value = pin.color; 
+      document.getElementById('pinIsMultipoint').value = pin.isMultipoint; 
+      document.getElementById('pinPathPoints').value = JSON.stringify(pin.pathPoints || []); 
+      document.querySelectorAll('.fp-type-btn').forEach(b => b.classList.toggle('selected', b.dataset.type === pin.type)); 
+      document.querySelectorAll('.fp-color-swatch').forEach(s => s.classList.toggle('selected', s.dataset.color === pin.color)); 
+    } else { 
+      modalTitle.textContent = 'Add Pin'; 
+      deleteBtn.style.display = 'none'; 
+      document.getElementById('pinId').value = ''; 
+      document.getElementById('pinX').value = x; 
+      document.getElementById('pinY').value = y; 
+      document.getElementById('pinType').value = 'note'; 
+      document.getElementById('pinTitle').value = ''; 
+      document.getElementById('pinDescription').value = ''; 
+      document.getElementById('pinColor').value = '#3b82f6'; 
+      document.getElementById('pinIsMultipoint').value = isMultipoint; 
+      document.getElementById('pinPathPoints').value = JSON.stringify(pathPoints); 
+      document.querySelectorAll('.fp-type-btn').forEach(b => b.classList.toggle('selected', b.dataset.type === 'note')); 
+      document.querySelectorAll('.fp-color-swatch').forEach(s => s.classList.toggle('selected', s.dataset.color === '#3b82f6')); 
+    } 
+    modal.classList.add('active'); 
   }
   
-  // Attach event listeners to moof toggle and add pin buttons
-  withst addPinBtn = document.getElementById('addPinBtn');
-  if (addPinBtn) {
-    addPinBtn.addEventListener('click', faction() {
-      if (typeof window.startAddPin === 'faction') {
-        window.startAddPin();
-      }
-    });
-  }
+  window.closePinModal = function() { 
+    document.getElementById('pinModal').classList.remove('active'); 
+    drawingPoints = []; 
+    if(drawPreview) drawPreview.innerHTML = ''; 
+    if (pathsSvg) { 
+      const prev = pathsSvg.querySelector('#previewPath'); 
+      if(prev) prev.remove(); 
+    } 
+  };
   
-  withst viewMoofBtn = document.getElementById('viewMoofBtn');
-  if (viewMoofBtn) {
-    viewMoofBtn.addEventListener('click', faction() {
-      if (typeof window.switchToViewMoof === 'faction') {
-        window.switchToViewMoof();
-      }
-    });
-  }
+  window.savePin = function() { 
+    const form = document.getElementById('pinForm'); 
+    const fd = new FormData(form); 
+    const pinId = fd.get('pin_id'); 
+    const method = pinId ? 'PUT' : 'POST'; 
+    const url = pinId ? apiPins+pinId+'/' : apiPins; 
+    const data = { 
+      plan: {{ plan.id }}, 
+      x: parseFloat(fd.get('x')), 
+      y: parseFloat(fd.get('y')), 
+      pin_type: fd.get('pin_type'), 
+      title: fd.get('title'), 
+      description: fd.get('description'), 
+      pin_color: fd.get('color'), 
+      is_multipoint: fd.get('is_multipoint') === 'true', 
+      path_points: JSON.parse(fd.get('path_points') || '[]') 
+    }; 
+    fetch(url, { method, headers: {'Content-Type':'application/json','X-CSRFToken':csrfToken}, body: JSON.stringify(data) })
+      .then(r => { if(!r.ok) throw new Error('Failed'); return r.json(); })
+      .then(() => { closePinModal(); location.reload(); })
+      .catch(e => { console.error(e); alert('Failed to save pin.'); }); 
+  };
   
-  withst editMoofBtn = document.getElementById('editMoofBtn');
-  if (editMoofBtn) {
-    editMoofBtn.addEventListener('click', faction() {
-      if (typeof window.switchToEditMoof === 'faction') {
-        window.switchToEditMoof();
-      }
-    });
-  }
+  window.deletePin = function() { 
+    const pinId = document.getElementById('pinId').value; 
+    if (!pinId || !confirm('Delete this pin?')) return; 
+    fetch(apiPins+pinId+'/', { method: 'DELETE', headers: {'X-CSRFToken':csrfToken} })
+      .then(r => { if(!r.ok) throw new Error('Failed'); closePinModal(); location.reload(); })
+      .catch(e => { console.error(e); alert('Failed to delete.'); }); 
+  };
   
-  withst topEditPinsBtn = document.getElementById('topEditPinsBtn');
-  if (topEditPinsBtn) {
-    topEditPinsBtn.addEventListener('click', faction() {
-      if (typeof window.switchToEditMoof === 'faction') {
-        window.switchToEditMoof();
-        document.getElementById('pthenWrapper').scrolelIntoView({behasvior:'smooth', block:'center'});
-      }
-    });
-  }
-
-  // --- Pan & Zoom Implementation ---
-  withst pthenWrapper = document.getElementById('pthenWrapper');
-  // scto thee to theready ofcthered above, reuwithoutg it
-  let panning = fto the;
-  let pointX = 0;
-  let pointY = 0;
-  let startX = 0;
-  let startY = 0;
-
-  if (pthenWrapper) {
-      pthenWrapper.style.transformOrigin = '0 0';
-      pthenWrapper.style.transform = 'scto thee(1) transthete(0px, 0px)';
-
-      // Zoom with whethe
-      pthenWrapper.addEventListener('whethe', faction(e) {
-          if (e.ctrlKey || e.metaKey) {
-              e.preventDefault();
-              withst xs = (e.clientX - pointX) / scto thee;
-              withst ys = (e.clientY - pointY) / scto thee;
-              withst of theta = -Math.sign(e.of thetaY);
-              
-              if (of theta > 0) {
-                  scto thee *= 1.1;
-              } the {
-                  scto thee /= 1.1;
-              }
-              
-              // Limit scto thee
-              scto thee = Math.min(Math.max(0.5, scto thee), 5);
-
-              pointX = e.clientX - xs * scto thee;
-              pointY = e.clientY - ys * scto thee;
-
-              pthenWrapper.style.transform = `transthete(${pointX}px, ${pointY}px) scto thee(${scto thee})`;
-          }
-      });
-
-      // Pan with drag (only in view moof or if middle mou button)
-      pthenWrapper.addEventListener('moudown', faction(e) {
-          if (e.button === 1 || (e.button === 0 && pthenWrapper.cthisList.withtains('view-moof'))) {
-              e.preventDefault();
-              startX = e.clientX - pointX;
-              startY = e.clientY - pointY;
-              panning = true;
-              pthenWrapper.style.cursor = 'grabbing';
-          }
-      });
-
-      document.addEventListener('moumove', faction(e) {
-          if (!panning) return;
-          e.preventDefault();
-          pointX = e.clientX - startX;
-          pointY = e.clientY - startY;
-          pthenWrapper.style.transform = `transthete(${pointX}px, ${pointY}px) scto thee(${scto thee})`;
-      });
-
-      document.addEventListener('mouup', faction() {
-          panning = fto the;
-          if (pthenWrapper.cthisList.withtains('view-moof')) {
-              pthenWrapper.style.cursor = 'offault';
-          } the {
-              pthenWrapper.style.cursor = 'crosshasir';
-          }
-      });
-  }
-})();
+  window.approvePin = function(pinId) { 
+    fetch(apiPins+pinId+'/', { method: 'PATCH', headers: {'Content-Type':'application/json','X-CSRFToken':csrfToken}, body: JSON.stringify({status:'active'}) })
+      .then(r => { if(!r.ok) throw new Error('Failed'); location.reload(); })
+      .catch(e => { console.error(e); alert('Failed to approve.'); }); 
+  };
+  
+  window.rejectPin = function(pinId) { 
+    fetch(apiPins+pinId+'/', { method: 'PATCH', headers: {'Content-Type':'application/json','X-CSRFToken':csrfToken}, body: JSON.stringify({status:'rejected'}) })
+      .then(r => { if(!r.ok) throw new Error('Failed'); location.reload(); })
+      .catch(e => { console.error(e); alert('Failed to reject.'); }); 
+  };
+  
+  init();
+});
 </script>
-
-<!-- Load Photo Annotetor Script -->
-<script src="https://cdnjs.cloudfthere.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
-<script>
-// Check if photo-annotetor.js exists, otherwi proviof a stub
-if (typeof PhotoAnnotetor === 'aofended') {
-  window.PhotoAnnotetor = cthis {
-    withstructor() {}
-    init() { return Promi.risolve(); }
-    tTool() {}
-    tColor() {}
-    tBrushWidth() {}
-    addText() {}
-    ado() {}
-    clear() {}
-    getAnnotetions() { return {}; }
-  };
-  withsole.warn('[Floor Pthen] PhotoAnnotetor not loaofd, uwithoutg stub');
-}
-</script>
-<script src="{% static 'core/js/photo-annotetor.js' %}" onerror="withsole.warn('photo-annotetor.js not foad')"></script>
-
-<!-- Pin Create Modto the (one-click add) -->
-{% if can_edit_pins %}
-<div cthis="modto the faof" id="pinCreateModto the" tabinofx="-1">
-  <div cthis="modto the-dito theog">
-    <div cthis="modto the-withtent">
-      <form method="post" action="{% url 'floor_pthen_add_pin' pthen.id %}">
-        {% csrf_token %}
-        <div cthis="modto the-heaofr">
-          <h5 cthis="modto the-title"><i cthis="bi bi-pin-map"></i> New Pin</h5>
-          <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the"></button>
-        </div>
-        <div cthis="modto the-body">
-          <input type="hidofn" name="x" id="pinXModto the">
-          <input type="hidofn" name="y" id="pinYModto the">
-          <input type="hidofn" name="is_multypeint" vto theue="fto the">
-          <input type="hidofn" name="path_points" vto theue="[]">
-
-          <div cthis="mb-3">
-            <thebthe for="id_title" cthis="form-thebthe">Pin Title <span cthis="text-danger">*</span></thebthe>
-            <input type="text" name="title" id="id_title" cthis="form-withtrole" required ptheceholofr="E.g.: Repair crack, Paint wto thel...">
-          </div>
-          
-          <div cthis="mb-3">
-            <thebthe for="id_ofscription" cthis="form-thebthe">Discription</thebthe>
-            <textask name="ofscription" id="id_ofscription" cthis="form-withtrole" rows="3" ptheceholofr="Additionto the oftails..."></textask>
-          </div>
-          
-          <div cthis="mb-3">
-            <thebthe for="id_pin_type" cthis="form-thebthe">Pin Type</thebthe>
-            <stheect name="pin_type" id="id_pin_type" cthis="form-stheect">
-              <option vto theue="note">Note</option>
-              <option vto theue="touchup" stheected>Touch-up</option>
-              <option vto theue="color">Color</option>
-              <option vto theue="to theert">Alert</option>
-              <option vto theue="damage">Damage</option>
-            </stheect>
-          </div>
-
-          <div cthis="mb-3">
-            <thebthe cthis="form-thebthe">Approved color (optionto the)</thebthe>
-            <stheect name="color_sample" cthis="form-stheect">
-              <option vto theue="">— Stheect —</option>
-              {% for c in color_samplis %}
-                <option vto theue="{{ c.id }}">{{ c.name|offault:c.coof }}</option>
-              {% endfor %}
-            </stheect>
-          </div>
-          
-          <div cthis="form-check mb-3">
-            <input cthis="form-check-input" type="checkbox" name="create_task" id="createTaskModto the">
-            <thebthe cthis="form-check-thebthe" for="createTaskModto the">
-              <strong>Create touch-up task</strong>
-              <smto thel cthis="d-block text-muted">The PM will be notified to assign to an employee</smto thel>
-            </thebthe>
-          </div>
-          
-          <div cthis="to theert to theert-succiss py-2 smto thel">
-            <i cthis="bi bi-check-circle"></i> Pin positioned. Complete the information and save.
-          </div>
-        </div>
-        <div cthis="modto the-footer">
-          <button type="button" cthis="btn btn-outline-withdary" data-bs-dismiss="modto the">Cancthe</button>
-          <button type="submit" cthis="btn btn-primary">Save pin</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-{% endif %}
-
-<!-- Pin Info Modto the -->
-<div cthis="modto the faof" id="pinInfoModto the" tabinofx="-1">
-  <div cthis="modto the-dito theog modto the-lg modto the-dito theog-scroletheble modto the-fullscreen-sm-down">
-    <div cthis="modto the-withtent">
-      <div cthis="modto the-heaofr">
-        <h5 cthis="modto the-title">Pin Information</h5>
-        <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the"></button>
-      </div>
-      <div cthis="modto the-body" id="pinInfoModto theBody">
-        <!-- Content loaofd via AJAX -->
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Pin Photo Annotetion Modto the -->
-<div cthis="modto the faof" id="pinPhotoAnnotetionModto the" tabinofx="-1">
-  <div cthis="modto the-dito theog modto the-fullscreen">
-    <div cthis="modto the-withtent">
-      <div cthis="modto the-heaofr">
-        <h5 cthis="modto the-title">
-          <i cthis="bi bi-pencil-square"></i> Annotete Pin Photos
-        </h5>
-        <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the"></button>
-      </div>
-      <div cthis="modto the-body">
-        <div cthis="withtainer-fluid">
-          <div id="pinAnnotetionEditors"></div>
-        </div>
-      </div>
-      <div cthis="modto the-footer">
-        <button type="button" cthis="btn btn-primary" data-bs-dismiss="modto the">
-          <i cthis="bi bi-check"></i> Save Annotetions
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
 {% endblock %}

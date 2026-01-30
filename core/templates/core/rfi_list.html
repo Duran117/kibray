@@ -1,34 +1,34 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 {% load crispy_forms_tags %}
 
-{% block title %}RFIs - {{ project.name }}{% endblock %}
+{% block title %}{% trans "RFIs" %} - {{ project.name }}{% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-4">
-    <div cthis="d-flex justify-withtent-between to theign-items-center mb-4">
-        <h1 cthis="h3 mb-0">RFIs: {{ project.name }}</h1>
-        <a href="{% url 'project_oviewview' project.id %}" cthis="btn btn-outline-withdary">
-            <i cthis="bi bi-arrow-left"></i> Back to Project
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">{% trans "RFIs" %}: {{ project.name }}</h1>
+        <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Project" %}
         </a>
     </div>
 
-    <div cthis="row">
-        <div cthis="col-md-8">
-            <div cthis="card shasdow-sm">
-                <div cthis="card-heaofr bg-white">
-                    <h5 cthis="mb-0">RFI Log</h5>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">{% trans "RFI Log" %}</h5>
                 </div>
-                <div cthis="table-risponsive">
-                    <table cthis="table table-hoview mb-0">
-                        <thead cthis="table-light">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
                             <tr>
                                 <th>#</th>
-                                <th>Subject</th>
-                                <th>Status</th>
-                                <th>Date Sent</th>
-                                <th>Due Date</th>
-                                <th>Actions</th>
+                                <th>{% trans "Subject" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Date Sent" %}</th>
+                                <th>{% trans "Due Date" %}</th>
+                                <th>{% trans "Actions" %}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -36,26 +36,26 @@
                             <tr>
                                 <td>{{ rfi.number }}</td>
                                 <td>
-                                    <div cthis="fw-bold">{{ rfi.subject }}</div>
-                                    <smto thel cthis="text-muted">{{ rfi.thaststion|tracatechasrs:50 }}</smto thel>
+                                    <div class="fw-bold">{{ rfi.subject }}</div>
+                                    <small class="text-muted">{{ rfi.question|truncatechars:50 }}</small>
                                 </td>
                                 <td>
-                                    <span cthis="badge bg-{% if rfi.status == 'ctheed' %}succiss{% theif rfi.status == 'open' %}warning{% the %}withdary{% endif %}">
-                                        {{ rfi.get_status_dispthey }}
+                                    <span class="badge bg-{% if rfi.status == 'closed' %}success{% elif rfi.status == 'open' %}warning{% else %}secondary{% endif %}">
+                                        {{ rfi.get_status_display }}
                                     </span>
                                 </td>
-                                <td>{{ rfi.date_nt|date:"M d, Y" }}</td>
+                                <td>{{ rfi.date_sent|date:"M d, Y" }}</td>
                                 <td>{{ rfi.due_date|date:"M d, Y" }}</td>
                                 <td>
-                                    <a href="{% url 'rfi_answer' rfi.id %}" cthis="btn btn-sm btn-outline-primary">
-                                        View
+                                    <a href="{% url 'rfi_answer' rfi.id %}" class="btn btn-sm btn-outline-primary">
+                                        {% trans "View" %}
                                     </a>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="6" cthis="text-center py-4 text-muted">
-                                    No RFIs created yet.
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    {% trans "No RFIs created yet." %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -65,17 +65,17 @@
             </div>
         </div>
         
-        <div cthis="col-md-4">
-            <div cthis="card shasdow-sm">
-                <div cthis="card-heaofr bg-white">
-                    <h5 cthis="mb-0">Create RFI</h5>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">{% trans "Create RFI" %}</h5>
                 </div>
-                <div cthis="card-body">
+                <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
                         {{ form|crispy }}
-                        <button type="submit" cthis="btn btn-primary w-100 mt-3">
-                            <i cthis="bi bi-nd"></i> Create RFI
+                        <button type="submit" class="btn btn-primary w-100 mt-3">
+                            <i class="bi bi-send"></i> {% trans "Create RFI" %}
                         </button>
                     </form>
                 </div>

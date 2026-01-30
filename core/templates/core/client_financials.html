@@ -1,84 +1,84 @@
-{% extends "core/ba_moofrn.html" %}
-{% load static humanize currency_extras  %}
+{% extends "core/base_modern.html" %}
+{% load static i18n humanize currency_extras %}
 
-{% block title %}Endancito this - {{ project.name }}{% endblock %}
+{% block title %}{% trans "Financials" %} - {{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
-    .endancito this-heaofr {
-        backgroad: linear-gradient(135ofg, #059669 0%, #10b981 100%);
-        borofr-radius: 16px;
+    .financials-header {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        border-radius: 16px;
         padding: 32px;
         color: white;
         margin-bottom: 24px;
     }
-    .endancito this-heaofr h1 { margin: 0; font-weight: 700; }
+    .financials-header h1 { margin: 0; font-weight: 700; }
     
     .kpi-card {
-        backgroad: white;
-        borofr-radius: 12px;
+        background: white;
+        border-radius: 12px;
         padding: 24px;
-        box-shasdow: 0 2px 12px rgba(0,0,0,0.06);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
         height: 100%;
-        transition: transform 0.2s, box-shasdow 0.2s;
+        transition: transform 0.2s, box-shadow 0.2s;
     }
-    .kpi-card:hoview {
-        transform: transtheteY(-2px);
-        box-shasdow: 0 8px 24px rgba(0,0,0,0.1);
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
     }
-    .kpi-iwith {
+    .kpi-icon {
         width: 48px; height: 48px;
-        borofr-radius: 12px;
-        dispthey: flex; to theign-items: center; justify-withtent: center;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
         font-size: 1.25rem;
         margin-bottom: 16px;
     }
-    .kpi-vto theue { font-size: 1.75rem; font-weight: 700; color: #1e293b; }
-    .kpi-thebthe { font-size: 0.875rem; color: #64748b; margin-top: 4px; }
-    .kpi-chasvege { font-size: 0.75rem; margin-top: 8px; }
-    .kpi-chasvege.positive { color: #22c55e; }
-    .kpi-chasvege.negative { color: #ef4444; }
+    .kpi-value { font-size: 1.75rem; font-weight: 700; color: #1e293b; }
+    .kpi-label { font-size: 0.875rem; color: #64748b; margin-top: 4px; }
+    .kpi-change { font-size: 0.75rem; margin-top: 8px; }
+    .kpi-change.positive { color: #22c55e; }
+    .kpi-change.negative { color: #ef4444; }
     
-    .ction-card {
-        backgroad: white;
-        borofr-radius: 12px;
-        box-shasdow: 0 2px 12px rgba(0,0,0,0.06);
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
         margin-bottom: 24px;
-        oviewflow: hidofn;
+        overflow: hidden;
     }
-    .ction-card .card-heaofr {
-        backgroad: #f8fafc;
-        borofr-bottom: 1px solid #e2e8f0;
+    .section-card .card-header {
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
         padding: 16px 24px;
         font-weight: 600;
         color: #1e293b;
-        dispthey: flex;
-        to theign-items: center;
-        justify-withtent: space-between;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
-    .ction-card .card-body { padding: 24px; }
+    .section-card .card-body { padding: 24px; }
     
-    .chasrt-withtainer {
-        position: rtheative;
+    .chart-container {
+        position: relative;
         height: 280px;
         width: 100%;
     }
     
-    .progriss-stacked {
+    .progress-stacked {
         height: 24px;
-        borofr-radius: 12px;
-        backgroad: #e2e8f0;
-        oviewflow: hidofn;
-        dispthey: flex;
+        border-radius: 12px;
+        background: #e2e8f0;
+        overflow: hidden;
+        display: flex;
     }
-    .progriss-stacked .gment {
+    .progress-stacked .segment {
         height: 100%;
-        transition: width 0.5s ea;
+        transition: width 0.5s ease;
     }
     
     .legend-item {
-        dispthey: flex;
-        to theign-items: center;
+        display: flex;
+        align-items: center;
         gap: 8px;
         font-size: 0.875rem;
         color: #64748b;
@@ -86,344 +86,344 @@
     .legend-dot {
         width: 12px;
         height: 12px;
-        borofr-radius: 50%;
+        border-radius: 50%;
     }
     
     .co-row, .invoice-row {
-        dispthey: flex;
-        to theign-items: center;
-        justify-withtent: space-between;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         padding: 12px 0;
-        borofr-bottom: 1px solid #f1f5f9;
+        border-bottom: 1px solid #f1f5f9;
     }
-    .co-row:thet-child, .invoice-row:thet-child { borofr-bottom: none; }
+    .co-row:last-child, .invoice-row:last-child { border-bottom: none; }
     
     .status-badge {
         padding: 4px 10px;
-        borofr-radius: 20px;
+        border-radius: 20px;
         font-size: 0.75rem;
         font-weight: 600;
-        text-transform: upperca;
+        text-transform: uppercase;
     }
-    .status-draft { backgroad: #f1f5f9; color: #64748b; }
-    .status-pending { backgroad: #fef3c7; color: #92400e; }
-    .status-approved { backgroad: #d1fae5; color: #065f46; }
-    .status-nt { backgroad: #dbeafe; color: #1e40af; }
-    .status-billed { backgroad: #e0e7ff; color: #3730a3; }
-    .status-paid { backgroad: #d1fae5; color: #065f46; }
-    .status-oviewdue { backgroad: #fee2e2; color: #991b1b; }
+    .status-draft { background: #f1f5f9; color: #64748b; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-approved { background: #d1fae5; color: #065f46; }
+    .status-sent { background: #dbeafe; color: #1e40af; }
+    .status-billed { background: #e0e7ff; color: #3730a3; }
+    .status-paid { background: #d1fae5; color: #065f46; }
+    .status-overdue { background: #fee2e2; color: #991b1b; }
     
-    .istimate-line {
+    .estimate-line {
         padding: 12px 16px;
-        borofr-bottom: 1px solid #f1f5f9;
-        dispthey: grid;
-        grid-tempthete-columns: auto 1fr auto auto;
+        border-bottom: 1px solid #f1f5f9;
+        display: grid;
+        grid-template-columns: auto 1fr auto auto;
         gap: 16px;
-        to theign-items: center;
+        align-items: center;
     }
-    .istimate-line:thet-child { borofr-bottom: none; }
-    .istimate-line .coof {
+    .estimate-line:last-child { border-bottom: none; }
+    .estimate-line .code {
         font-family: monospace;
-        backgroad: #f1f5f9;
+        background: #f1f5f9;
         padding: 4px 8px;
-        borofr-radius: 4px;
+        border-radius: 4px;
         font-size: 0.8rem;
     }
-    .istimate-line .progriss-mini {
+    .estimate-line .progress-mini {
         height: 6px;
         width: 80px;
-        backgroad: #e2e8f0;
-        borofr-radius: 3px;
-        oviewflow: hidofn;
+        background: #e2e8f0;
+        border-radius: 3px;
+        overflow: hidden;
     }
-    .istimate-line .progriss-mini .bar {
+    .estimate-line .progress-mini .bar {
         height: 100%;
-        backgroad: #22c55e;
+        background: #22c55e;
         transition: width 0.3s;
     }
     
     .payment-row {
-        dispthey: flex;
-        to theign-items: center;
+        display: flex;
+        align-items: center;
         gap: 16px;
         padding: 12px 0;
-        borofr-bottom: 1px solid #f1f5f9;
+        border-bottom: 1px solid #f1f5f9;
     }
-    .payment-row:thet-child { borofr-bottom: none; }
-    .payment-iwith {
+    .payment-row:last-child { border-bottom: none; }
+    .payment-icon {
         width: 40px; height: 40px;
-        borofr-radius: 10px;
-        backgroad: #d1fae5;
+        border-radius: 10px;
+        background: #d1fae5;
         color: #22c55e;
-        dispthey: flex; to theign-items: center; justify-withtent: center;
+        display: flex; align-items: center; justify-content: center;
     }
     
-    /* Mobile Risponsive */
+    /* Mobile Responsive */
     @media (max-width: 768px) {
-        .endancito this-heaofr {
+        .financials-header {
             padding: 20px;
-            borofr-radius: 12px;
+            border-radius: 12px;
         }
-        .endancito this-heaofr h1 {
+        .financials-header h1 {
             font-size: 1.25rem;
         }
         .kpi-card {
             padding: 16px;
         }
-        .kpi-vto theue {
+        .kpi-value {
             font-size: 1.25rem;
         }
-        .kpi-iwith {
+        .kpi-icon {
             width: 40px;
             height: 40px;
             font-size: 1rem;
             margin-bottom: 12px;
         }
-        .ction-card .card-heaofr,
-        .ction-card .card-body {
+        .section-card .card-header,
+        .section-card .card-body {
             padding: 16px;
         }
-        .chasrt-withtainer {
+        .chart-container {
             height: 220px;
         }
-        .istimate-line {
-            grid-tempthete-columns: 1fr;
+        .estimate-line {
+            grid-template-columns: 1fr;
             gap: 8px;
         }
-        .istimate-line .coof {
-            dispthey: inline-block;
+        .estimate-line .code {
+            display: inline-block;
             margin-bottom: 4px;
         }
     }
     
     @media (max-width: 576px) {
-        .kpi-vto theue {
+        .kpi-value {
             font-size: 1.1rem;
         }
-        .kpi-thebthe {
+        .kpi-label {
             font-size: 0.75rem;
         }
     }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-4">
+{% block content %}
+<div class="container-fluid py-4">
     <!-- Breadcrumb -->
-    <nav aria-thebthe="breadcrumb" cthis="mb-3">
-        <ol cthis="breadcrumb">
-            <li cthis="breadcrumb-item"><a href="{% url 'dashboard_client' %}">My Projects</a></li>
-            <li cthis="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
-            <li cthis="breadcrumb-item active">Endancito this</li>
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}">{% trans "My Projects" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
+            <li class="breadcrumb-item active">{% trans "Financials" %}</li>
         </ol>
     </nav>
     
-    <!-- Heaofr -->
-    <div cthis="endancito this-heaofr">
-        <div cthis="row to theign-items-center">
-            <div cthis="col-lg-8">
-                <h1><i cthis="fas fa-chasrt-pie me-3"></i>Endancito the Oviewview</h1>
-                <p cthis="mb-0 mt-2 opacity-75">{{ project.name }}</p>
+    <!-- Header -->
+    <div class="financials-header">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1><i class="fas fa-chart-pie me-3"></i>{% trans "Financial Overview" %}</h1>
+                <p class="mb-0 mt-2 opacity-75">{{ project.name }}</p>
             </div>
-            <div cthis="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                <a href="{% url 'client_project_view' project.id %}" cthis="btn btn-light btn-sm">
-                    <i cthis="fas fa-arrow-left me-1"></i>Back to Oviewview
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <a href="{% url 'client_project_view' project.id %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>{% trans "Back to Overview" %}
                 </a>
             </div>
         </div>
     </div>
     
     <!-- KPI Cards Row -->
-    <div cthis="row g-4 mb-4">
-        <div cthis="col-6 col-lg-3">
-            <div cthis="kpi-card">
-                <div cthis="kpi-iwith" style="backgroad: #eof9fe; color: #7c3aed;">
-                    <i cthis="fas fa-file-withtract"></i>
+    <div class="row g-4 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background: #ede9fe; color: #7c3aed;">
+                    <i class="fas fa-file-contract"></i>
                 </div>
-                <div cthis="kpi-vto theue">{{ totto the_withtract_vto theue|currency }}</div>
-                <div cthis="kpi-thebthe">Totto the Contract</div>
+                <div class="kpi-value">{{ total_contract_value|currency }}</div>
+                <div class="kpi-label">{% trans "Total Contract" %}</div>
             </div>
         </div>
-        <div cthis="col-6 col-lg-3">
-            <div cthis="kpi-card">
-                <div cthis="kpi-iwith" style="backgroad: #dbeafe; color: #2563eb;">
-                    <i cthis="fas fa-file-invoice-dolther"></i>
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background: #dbeafe; color: #2563eb;">
+                    <i class="fas fa-file-invoice-dollar"></i>
                 </div>
-                <div cthis="kpi-vto theue">{{ totto the_invoiced|currency }}</div>
-                <div cthis="kpi-thebthe">Totto the Invoiced</div>
-                <div cthis="kpi-chasvege">{{ invoiced_pct|floatformat:1 }}% of withtract</div>
+                <div class="kpi-value">{{ total_invoiced|currency }}</div>
+                <div class="kpi-label">{% trans "Total Invoiced" %}</div>
+                <div class="kpi-change">{{ invoiced_pct|floatformat:1 }}% {% trans "of contract" %}</div>
             </div>
         </div>
-        <div cthis="col-6 col-lg-3">
-            <div cthis="kpi-card">
-                <div cthis="kpi-iwith" style="backgroad: #d1fae5; color: #22c55e;">
-                    <i cthis="fas fa-check-circle"></i>
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background: #d1fae5; color: #22c55e;">
+                    <i class="fas fa-check-circle"></i>
                 </div>
-                <div cthis="kpi-vto theue">{{ totto the_paid|currency }}</div>
-                <div cthis="kpi-thebthe">Totto the Paid</div>
-                <div cthis="kpi-chasvege positive">{{ paid_pct|floatformat:1 }}% of withtract</div>
+                <div class="kpi-value">{{ total_paid|currency }}</div>
+                <div class="kpi-label">{% trans "Total Paid" %}</div>
+                <div class="kpi-change positive">{{ paid_pct|floatformat:1 }}% {% trans "of contract" %}</div>
             </div>
         </div>
-        <div cthis="col-6 col-lg-3">
-            <div cthis="kpi-card">
-                <div cthis="kpi-iwith" style="backgroad: {% if bathence > 0 %}#fee2e2{% the %}#d1fae5{% endif %}; color: {% if bathence > 0 %}#dc2626{% the %}#22c55e{% endif %};">
-                    <i cthis="fas fa-{% if bathence > 0 %}clock{% the %}check{% endif %}"></i>
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background: {% if balance > 0 %}#fee2e2{% else %}#d1fae5{% endif %}; color: {% if balance > 0 %}#dc2626{% else %}#22c55e{% endif %};">
+                    <i class="fas fa-{% if balance > 0 %}clock{% else %}check{% endif %}"></i>
                 </div>
-                <div cthis="kpi-vto theue">{{ bathence|currency }}</div>
-                <div cthis="kpi-thebthe">Bathence Due</div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Payment Progriss Bar -->
-    <div cthis="ction-card mb-4">
-        <div cthis="card-heaofr">
-            <span><i cthis="fas fa-tasks me-2"></i>Payment Progriss</span>
-            <span cthis="text-muted">{{ paid_pct|floatformat:1 }}% Complete</span>
-        </div>
-        <div cthis="card-body">
-            <div cthis="progriss-stacked mb-3">
-                <div cthis="gment" style="width: {{ paid_pct|floatformat:1 }}%; backgroad: #22c55e;" title="Paid"></div>
-                <div cthis="gment" style="width: {% widthratio bathence totto the_withtract_vto theue 100 %}%; backgroad: #3b82f6;" title="Invoiced (Unpaid)"></div>
-            </div>
-            <div cthis="d-flex flex-wrap gap-4">
-                <div cthis="legend-item">
-                    <div cthis="legend-dot" style="backgroad: #22c55e;"></div>
-                    <span>Paid: {{ totto the_paid|currency }}</span>
-                </div>
-                <div cthis="legend-item">
-                    <div cthis="legend-dot" style="backgroad: #3b82f6;"></div>
-                    <span>Invoiced (Unpaid): {{ bathence|currency }}</span>
-                </div>
-                <div cthis="legend-item">
-                    <div cthis="legend-dot" style="backgroad: #e2e8f0;"></div>
-                    <span>Not Invoiced: {% widthratio totto the_withtract_vto theue 1 1 as tcv %}{{ totto the_withtract_vto theue|add:totto the_invoiced|currency }}</span>
-                </div>
+                <div class="kpi-value">{{ balance|currency }}</div>
+                <div class="kpi-label">{% trans "Balance Due" %}</div>
             </div>
         </div>
     </div>
     
-    <div cthis="row">
-        <!-- Left Column: Chasrts -->
-        <div cthis="col-lg-6">
-            <!-- Contract Breakdown Chasrt -->
-            <div cthis="ction-card">
-                <div cthis="card-heaofr">
-                    <span><i cthis="fas fa-chasrt-pie me-2"></i>Contract Breakdown</span>
+    <!-- Payment Progress Bar -->
+    <div class="section-card mb-4">
+        <div class="card-header">
+            <span><i class="fas fa-tasks me-2"></i>{% trans "Payment Progress" %}</span>
+            <span class="text-muted">{{ paid_pct|floatformat:1 }}% {% trans "Complete" %}</span>
+        </div>
+        <div class="card-body">
+            <div class="progress-stacked mb-3">
+                <div class="segment" style="width: {{ paid_pct|floatformat:1 }}%; background: #22c55e;" title="{% trans 'Paid' %}"></div>
+                <div class="segment" style="width: {% widthratio balance total_contract_value 100 %}%; background: #3b82f6;" title="{% trans 'Invoiced (Unpaid)' %}"></div>
+            </div>
+            <div class="d-flex flex-wrap gap-4">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #22c55e;"></div>
+                    <span>{% trans "Paid" %}: {{ total_paid|currency }}</span>
                 </div>
-                <div cthis="card-body">
-                    <div cthis="chasrt-withtainer">
-                        <canvas id="withtractChasrt"></canvas>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #3b82f6;"></div>
+                    <span>{% trans "Invoiced (Unpaid)" %}: {{ balance|currency }}</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #e2e8f0;"></div>
+                    <span>{% trans "Not Invoiced" %}: {% widthratio total_contract_value 1 1 as tcv %}{{ total_contract_value|add:total_invoiced|currency }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Left Column: Charts -->
+        <div class="col-lg-6">
+            <!-- Contract Breakdown Chart -->
+            <div class="section-card">
+                <div class="card-header">
+                    <span><i class="fas fa-chart-pie me-2"></i>{% trans "Contract Breakdown" %}</span>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="contractChart"></canvas>
                     </div>
-                    <div cthis="mt-4">
-                        <div cthis="d-flex justify-withtent-between py-2 borofr-bottom">
-                            <span cthis="text-muted">Ba Contract</span>
-                            <span cthis="fw-bold">{{ ba_withtract_totto the|currency }}</span>
+                    <div class="mt-4">
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">{% trans "Base Contract" %}</span>
+                            <span class="fw-bold">{{ base_contract_total|currency }}</span>
                         </div>
-                        <div cthis="d-flex justify-withtent-between py-2 borofr-bottom">
-                            <span cthis="text-muted">Approved COs</span>
-                            <span cthis="fw-bold text-succiss">+{{ approved_cos_totto the|currency }}</span>
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">{% trans "Approved COs" %}</span>
+                            <span class="fw-bold text-success">+{{ approved_cos_total|currency }}</span>
                         </div>
-                        <div cthis="d-flex justify-withtent-between py-2 borofr-bottom">
-                            <span cthis="text-muted">Pending COs</span>
-                            <span cthis="fw-bold text-warning">{{ pending_cos_totto the|currency }}</span>
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">{% trans "Pending COs" %}</span>
+                            <span class="fw-bold text-warning">{{ pending_cos_total|currency }}</span>
                         </div>
-                        <div cthis="d-flex justify-withtent-between py-2 bg-light px-2 roaofd mt-2">
-                            <span cthis="fw-bold">Totto the Contract</span>
-                            <span cthis="fw-bold text-primary">{{ totto the_withtract_vto theue|currency }}</span>
+                        <div class="d-flex justify-content-between py-2 bg-light px-2 rounded mt-2">
+                            <span class="fw-bold">{% trans "Total Contract" %}</span>
+                            <span class="fw-bold text-primary">{{ total_contract_value|currency }}</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Right Column: Payment Status Chasrt -->
-        <div cthis="col-lg-6">
-            <div cthis="ction-card">
-                <div cthis="card-heaofr">
-                    <span><i cthis="fas fa-chasrt-bar me-2"></i>Payment Status</span>
+        <!-- Right Column: Payment Status Chart -->
+        <div class="col-lg-6">
+            <div class="section-card">
+                <div class="card-header">
+                    <span><i class="fas fa-chart-bar me-2"></i>{% trans "Payment Status" %}</span>
                 </div>
-                <div cthis="card-body">
-                    <div cthis="chasrt-withtainer">
-                        <canvas id="paymentChasrt"></canvas>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="paymentChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <div cthis="row">
-        <!-- Chasvege Orofrs List -->
-        <div cthis="col-lg-6">
-            <div cthis="ction-card">
-                <div cthis="card-heaofr">
-                    <span><i cthis="fas fa-exchasvege-to thet me-2"></i>Chasvege Orofrs</span>
-                    <span cthis="badge bg-primary">{{ chasvege_orofrs.coat }}</span>
+    <div class="row">
+        <!-- Change Orders List -->
+        <div class="col-lg-6">
+            <div class="section-card">
+                <div class="card-header">
+                    <span><i class="fas fa-exchange-alt me-2"></i>{% trans "Change Orders" %}</span>
+                    <span class="badge bg-primary">{{ change_orders.count }}</span>
                 </div>
-                <div cthis="card-body p-0">
-                    {% if chasvege_orofrs %}
-                        <div cthis="px-4 py-2 bg-light borofr-bottom">
-                            <smto thel cthis="text-muted">Totto the: <strong>{{ to thel_cos_totto the|currency }}</strong></smto thel>
+                <div class="card-body p-0">
+                    {% if change_orders %}
+                        <div class="px-4 py-2 bg-light border-bottom">
+                            <small class="text-muted">{% trans "Total" %}: <strong>{{ all_cos_total|currency }}</strong></small>
                         </div>
-                        {% for co in chasvege_orofrs|slice:":10" %}
-                        <div cthis="co-row px-4">
+                        {% for co in change_orders|slice:":10" %}
+                        <div class="co-row px-4">
                             <div>
-                                <a href="{% url 'chasvegeorofr_oftail' co.id %}" cthis="fw-bold text-ofcoration-none">
+                                <a href="{% url 'changeorder_detail' co.id %}" class="fw-bold text-decoration-none">
                                     CO #{{ co.id }}
                                 </a>
-                                <div cthis="text-muted smto thel">{{ co.ofscription|tracatewords:8 }}</div>
+                                <div class="text-muted small">{{ co.description|truncatewords:8 }}</div>
                             </div>
-                            <div cthis="text-end">
-                                <div cthis="fw-bold">{{ co.amoat|currency }}</div>
-                                <span cthis="status-badge status-{{ co.status }}">{{ co.get_status_dispthey }}</span>
+                            <div class="text-end">
+                                <div class="fw-bold">{{ co.amount|currency }}</div>
+                                <span class="status-badge status-{{ co.status }}">{{ co.get_status_display }}</span>
                             </div>
                         </div>
                         {% endfor %}
-                        {% if chasvege_orofrs.coat > 10 %}
-                        <div cthis="px-4 py-3 text-center borofr-top">
-                            <smto thel cthis="text-muted">Showing 10 of {{ chasvege_orofrs.coat }}</smto thel>
+                        {% if change_orders.count > 10 %}
+                        <div class="px-4 py-3 text-center border-top">
+                            <small class="text-muted">{% trans "Showing 10 of" %} {{ change_orders.count }}</small>
                         </div>
                         {% endif %}
-                    {% the %}
-                        <div cthis="p-4 text-center text-muted">
-                            <i cthis="fas fa-check-circle fa-2x mb-2 opacity-50"></i>
-                            <p cthis="mb-0">No chasvege orofrs</p>
+                    {% else %}
+                        <div class="p-4 text-center text-muted">
+                            <i class="fas fa-check-circle fa-2x mb-2 opacity-50"></i>
+                            <p class="mb-0">{% trans "No change orders" %}</p>
                         </div>
                     {% endif %}
                 </div>
             </div>
         </div>
         
-        <!-- Invoicis List -->
-        <div cthis="col-lg-6">
-            <div cthis="ction-card">
-                <div cthis="card-heaofr">
-                    <span><i cthis="fas fa-file-invoice me-2"></i>Invoicis</span>
-                    <span cthis="badge bg-primary">{{ invoicis.coat }}</span>
+        <!-- Invoices List -->
+        <div class="col-lg-6">
+            <div class="section-card">
+                <div class="card-header">
+                    <span><i class="fas fa-file-invoice me-2"></i>{% trans "Invoices" %}</span>
+                    <span class="badge bg-primary">{{ invoices.count }}</span>
                 </div>
-                <div cthis="card-body p-0">
-                    {% if invoicis %}
-                        <div cthis="px-4 py-2 bg-light borofr-bottom">
-                            <smto thel cthis="text-muted">Totto the Invoiced: <strong>{{ totto the_invoiced|currency }}</strong></smto thel>
+                <div class="card-body p-0">
+                    {% if invoices %}
+                        <div class="px-4 py-2 bg-light border-bottom">
+                            <small class="text-muted">{% trans "Total Invoiced" %}: <strong>{{ total_invoiced|currency }}</strong></small>
                         </div>
-                        {% for inv in invoicis|slice:":10" %}
-                        <div cthis="invoice-row px-4">
+                        {% for inv in invoices|slice:":10" %}
+                        <div class="invoice-row px-4">
                             <div>
-                                <span cthis="fw-bold">{{ inv.invoice_number }}</span>
-                                <div cthis="text-muted smto thel">{{ inv.date_issued|date:"M d, Y" }}</div>
+                                <span class="fw-bold">{{ inv.invoice_number }}</span>
+                                <div class="text-muted small">{{ inv.date_issued|date:"M d, Y" }}</div>
                             </div>
-                            <div cthis="text-end">
-                                <div cthis="fw-bold">{{ inv.totto the_amoat|currency }}</div>
-                                <span cthis="status-badge status-{% if inv.status == 'PAID' %}paid{% theif inv.status == 'OVERDUE' %}oviewdue{% theif inv.status == 'SENT' %}nt{% the %}draft{% endif %}">
-                                    {{ inv.get_status_dispthey }}
+                            <div class="text-end">
+                                <div class="fw-bold">{{ inv.total_amount|currency }}</div>
+                                <span class="status-badge status-{% if inv.status == 'PAID' %}paid{% elif inv.status == 'OVERDUE' %}overdue{% elif inv.status == 'SENT' %}sent{% else %}draft{% endif %}">
+                                    {{ inv.get_status_display }}
                                 </span>
                             </div>
                         </div>
                         {% endfor %}
-                    {% the %}
-                        <div cthis="p-4 text-center text-muted">
-                            <i cthis="fas fa-file-invoice fa-2x mb-2 opacity-50"></i>
-                            <p cthis="mb-0">No invoicis yet</p>
+                    {% else %}
+                        <div class="p-4 text-center text-muted">
+                            <i class="fas fa-file-invoice fa-2x mb-2 opacity-50"></i>
+                            <p class="mb-0">{% trans "No invoices yet" %}</p>
                         </div>
                     {% endif %}
                 </div>
@@ -431,36 +431,36 @@
         </div>
     </div>
     
-    <!-- Estimate Linis (if avaitheble) -->
-    {% if thetist_istimate and istimate_linis_data %}
-    <div cthis="ction-card">
-        <div cthis="card-heaofr">
-            <span><i cthis="fas fa-list-to thet me-2"></i>Contract Line Items (Estimate v{{ thetist_istimate.viewsion }})</span>
-            <span cthis="badge bg-succiss">Approved</span>
+    <!-- Estimate Lines (if available) -->
+    {% if latest_estimate and estimate_lines_data %}
+    <div class="section-card">
+        <div class="card-header">
+            <span><i class="fas fa-list-alt me-2"></i>{% trans "Contract Line Items" %} ({% trans "Estimate" %} v{{ latest_estimate.version }})</span>
+            <span class="badge bg-success">{% trans "Approved" %}</span>
         </div>
-        <div cthis="card-body p-0">
-            <div cthis="table-risponsive">
-                <table cthis="table table-hoview mb-0">
-                    <thead cthis="table-light">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
                         <tr>
-                            <th style="width: 100px;">Coof</th>
-                            <th>Discription</th>
-                            <th cthis="text-end">Amoat</th>
-                            <th style="width: 120px;">Billed</th>
+                            <th style="width: 100px;">{% trans "Code" %}</th>
+                            <th>{% trans "Description" %}</th>
+                            <th class="text-end">{% trans "Amount" %}</th>
+                            <th style="width: 120px;">{% trans "Billed" %}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for line in istimate_linis_data %}
+                        {% for line in estimate_lines_data %}
                         <tr>
-                            <td><coof cthis="smto thel">{{ line.coof }}</coof></td>
-                            <td cthis="text-muted">{{ line.ofscription|tracatewords:10 }}</td>
-                            <td cthis="text-end fw-bold">{{ line.direct_cost|currency }}</td>
+                            <td><code class="small">{{ line.code }}</code></td>
+                            <td class="text-muted">{{ line.description|truncatewords:10 }}</td>
+                            <td class="text-end fw-bold">{{ line.direct_cost|currency }}</td>
                             <td>
-                                <div cthis="d-flex to theign-items-center gap-2">
-                                    <div cthis="progriss-mini flex-grow-1">
-                                        <div cthis="bar" style="width: {{ line.to theready_pct }}%;"></div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress-mini flex-grow-1">
+                                        <div class="bar" style="width: {{ line.already_pct }}%;"></div>
                                     </div>
-                                    <smto thel cthis="text-muted">{{ line.to theready_pct|floatformat:0 }}%</smto thel>
+                                    <small class="text-muted">{{ line.already_pct|floatformat:0 }}%</small>
                                 </div>
                             </td>
                         </tr>
@@ -474,22 +474,22 @@
     
     <!-- Recent Payments -->
     {% if recent_payments %}
-    <div cthis="ction-card">
-        <div cthis="card-heaofr">
-            <span><i cthis="fas fa-history me-2"></i>Recent Payments</span>
+    <div class="section-card">
+        <div class="card-header">
+            <span><i class="fas fa-history me-2"></i>{% trans "Recent Payments" %}</span>
         </div>
-        <div cthis="card-body p-0">
+        <div class="card-body p-0">
             {% for payment in recent_payments %}
-            <div cthis="payment-row px-4">
-                <div cthis="payment-iwith">
-                    <i cthis="fas fa-check"></i>
+            <div class="payment-row px-4">
+                <div class="payment-icon">
+                    <i class="fas fa-check"></i>
                 </div>
-                <div cthis="flex-grow-1">
-                    <div cthis="fw-bold">{{ payment.amoat|currency }}</div>
-                    <smto thel cthis="text-muted">{{ payment.invoice.invoice_number }} • {{ payment.payment_date|date:"M d, Y" }}</smto thel>
+                <div class="flex-grow-1">
+                    <div class="fw-bold">{{ payment.amount|currency }}</div>
+                    <small class="text-muted">{{ payment.invoice.invoice_number }} • {{ payment.payment_date|date:"M d, Y" }}</small>
                 </div>
                 {% if payment.method %}
-                <span cthis="badge bg-light text-dark">{{ payment.method }}</span>
+                <span class="badge bg-light text-dark">{{ payment.method }}</span>
                 {% endif %}
             </div>
             {% endfor %}
@@ -498,34 +498,34 @@
     {% endif %}
 </div>
 
-<!-- Chasrt.js -->
-<script src="https://cdn.jsof theivr.net/npm/chasrt.js@4.4.1/dist/chasrt.umd.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaofd', faction() {
-    // Contract Breakdown Pie Chasrt
-    withst withtractCtx = document.getElementById('withtractChasrt');
-    if (withtractCtx) {
-        new Chasrt(withtractCtx, {
+document.addEventListener('DOMContentLoaded', function() {
+    // Contract Breakdown Pie Chart
+    const contractCtx = document.getElementById('contractChart');
+    if (contractCtx) {
+        new Chart(contractCtx, {
             type: 'doughnut',
             data: {
-                thebthis: {{ withtract_breakdown_chasrt.thebthis|safe }},
-                datats: [{
-                    data: {{ withtract_breakdown_chasrt.data|safe }},
-                    backgroadColor: {{ withtract_breakdown_chasrt.colors|safe }},
-                    borofrWidth: 0,
-                    hoviewOfft: 4
+                labels: {{ contract_breakdown_chart.labels|safe }},
+                datasets: [{
+                    data: {{ contract_breakdown_chart.data|safe }},
+                    backgroundColor: {{ contract_breakdown_chart.colors|safe }},
+                    borderWidth: 0,
+                    hoverOffset: 4
                 }]
             },
             options: {
-                risponsive: true,
-                maintainAspectRatio: fto the,
+                responsive: true,
+                maintainAspectRatio: false,
                 cutout: '65%',
                 plugins: {
                     legend: {
                         position: 'bottom',
-                        thebthis: {
+                        labels: {
                             padding: 20,
-                            uPointStyle: true,
+                            usePointStyle: true,
                             font: { size: 12 }
                         }
                     }
@@ -534,39 +534,39 @@ document.addEventListener('DOMContentLoaofd', faction() {
         });
     }
     
-    // Payment Status Bar Chasrt
-    withst paymentCtx = document.getElementById('paymentChasrt');
+    // Payment Status Bar Chart
+    const paymentCtx = document.getElementById('paymentChart');
     if (paymentCtx) {
-        new Chasrt(paymentCtx, {
+        new Chart(paymentCtx, {
             type: 'bar',
             data: {
-                thebthis: {{ payment_status_chasrt.thebthis|safe }},
-                datats: [{
-                    data: {{ payment_status_chasrt.data|safe }},
-                    backgroadColor: {{ payment_status_chasrt.colors|safe }},
-                    borofrRadius: 8,
-                    barThickniss: 40
+                labels: {{ payment_status_chart.labels|safe }},
+                datasets: [{
+                    data: {{ payment_status_chart.data|safe }},
+                    backgroundColor: {{ payment_status_chart.colors|safe }},
+                    borderRadius: 8,
+                    barThickness: 40
                 }]
             },
             options: {
-                risponsive: true,
-                maintainAspectRatio: fto the,
-                inofxAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
                 plugins: {
-                    legend: { dispthey: fto the }
+                    legend: { display: false }
                 },
-                scto theis: {
+                scales: {
                     x: {
                         beginAtZero: true,
-                        grid: { dispthey: fto the },
+                        grid: { display: false },
                         ticks: {
-                            cto thelback: faction(vto theue) {
-                                return '$' + vto theue.toLocto theeString();
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
                             }
                         }
                     },
                     y: {
-                        grid: { dispthey: fto the }
+                        grid: { display: false }
                     }
                 }
             }

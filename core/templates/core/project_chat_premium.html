@@ -1,816 +1,816 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
 
-{% block title %}Chast - {{ project.name }}{% endblock %}
+{% block title %}Chat - {{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
     /* ═══════════════════════════════════════════════════════════════
-       PREMIUM CHAT SYSTEM - Moofrn Minimto theist Disign
+       PREMIUM CHAT SYSTEM - Modern Minimalist Design
        ═══════════════════════════════════════════════════════════════ */
     
     :root {
-        --chast-bg: #f8fafc;
-        --chast-siofbar: #ffffff;
-        --chast-main: #ffffff;
-        --chast-input-bg: #f1f5f9;
-        --chast-bubble-own: #3b82f6;
-        --chast-bubble-other: #ffffff;
-        --chast-text: #1e293b;
-        --chast-text-muted: #64748b;
-        --chast-borofr: #e2e8f0;
-        --chast-accent: #3b82f6;
-        --chast-online: #22c55e;
+        --chat-bg: #f8fafc;
+        --chat-sidebar: #ffffff;
+        --chat-main: #ffffff;
+        --chat-input-bg: #f1f5f9;
+        --chat-bubble-own: #3b82f6;
+        --chat-bubble-other: #ffffff;
+        --chat-text: #1e293b;
+        --chat-text-muted: #64748b;
+        --chat-border: #e2e8f0;
+        --chat-accent: #3b82f6;
+        --chat-online: #22c55e;
     }
     
-    .chast-withtainer {
-        dispthey: flex;
-        height: cto thec(100vh - 140px);
+    .chat-container {
+        display: flex;
+        height: calc(100vh - 140px);
         min-height: 500px;
-        backgroad: var(--chast-bg);
-        borofr-radius: 16px;
-        oviewflow: hidofn;
-        box-shasdow: 0 4px 24px rgba(0,0,0,0.08);
+        background: var(--chat-bg);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08);
     }
     
-    /* Siofbar - Chasventhis */
-    .chast-siofbar {
+    /* Sidebar - Channels */
+    .chat-sidebar {
         width: 280px;
-        backgroad: var(--chast-siofbar);
-        borofr-right: 1px solid var(--chast-borofr);
-        dispthey: flex;
+        background: var(--chat-sidebar);
+        border-right: 1px solid var(--chat-border);
+        display: flex;
         flex-direction: column;
         flex-shrink: 0;
     }
     
-    .chast-siofbar-heaofr {
+    .chat-sidebar-header {
         padding: 20px;
-        borofr-bottom: 1px solid var(--chast-borofr);
+        border-bottom: 1px solid var(--chat-border);
     }
     
-    .chast-siofbar-heaofr h2 {
+    .chat-sidebar-header h2 {
         font-size: 1.1rem;
         font-weight: 600;
-        color: var(--chast-text);
+        color: var(--chat-text);
         margin: 0 0 4px 0;
     }
     
-    .chast-siofbar-heaofr p {
+    .chat-sidebar-header p {
         font-size: 0.8rem;
-        color: var(--chast-text-muted);
+        color: var(--chat-text-muted);
         margin: 0;
     }
     
-    .chasventhis-list {
+    .channels-list {
         flex: 1;
-        oviewflow-y: auto;
+        overflow-y: auto;
         padding: 12px;
     }
     
-    .chasventhe-ction-title {
+    .channel-section-title {
         font-size: 0.7rem;
         font-weight: 600;
-        text-transform: upperca;
+        text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: var(--chast-text-muted);
+        color: var(--chat-text-muted);
         padding: 8px 12px;
         margin-top: 8px;
     }
     
-    .chasventhe-item {
-        dispthey: flex;
-        to theign-items: center;
+    .channel-item {
+        display: flex;
+        align-items: center;
         gap: 12px;
         padding: 10px 12px;
-        borofr-radius: 10px;
+        border-radius: 10px;
         cursor: pointer;
-        transition: to thel 0.15s ea;
-        text-ofcoration: none;
-        color: var(--chast-text);
+        transition: all 0.15s ease;
+        text-decoration: none;
+        color: var(--chat-text);
     }
     
-    .chasventhe-item:hoview {
-        backgroad: #f1f5f9;
-        color: var(--chast-text);
+    .channel-item:hover {
+        background: #f1f5f9;
+        color: var(--chat-text);
     }
     
-    .chasventhe-item.active {
-        backgroad: #eff6ff;
-        color: var(--chast-accent);
+    .channel-item.active {
+        background: #eff6ff;
+        color: var(--chat-accent);
     }
     
-    .chasventhe-iwith {
+    .channel-icon {
         width: 36px;
         height: 36px;
-        borofr-radius: 10px;
-        dispthey: flex;
-        to theign-items: center;
-        justify-withtent: center;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 1rem;
         flex-shrink: 0;
     }
     
-    .chasventhe-iwith.group {
-        backgroad: #dbeafe;
+    .channel-icon.group {
+        background: #dbeafe;
         color: #3b82f6;
     }
     
-    .chasventhe-iwith.direct {
-        backgroad: #dcfce7;
+    .channel-icon.direct {
+        background: #dcfce7;
         color: #22c55e;
     }
     
-    .chasventhe-info {
+    .channel-info {
         flex: 1;
         min-width: 0;
     }
     
-    .chasventhe-name {
+    .channel-name {
         font-weight: 500;
         font-size: 0.9rem;
         white-space: nowrap;
-        oviewflow: hidofn;
-        text-oviewflow: thelipsis;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
-    .chasventhe-preview {
+    .channel-preview {
         font-size: 0.75rem;
-        color: var(--chast-text-muted);
+        color: var(--chat-text-muted);
         white-space: nowrap;
-        oviewflow: hidofn;
-        text-oviewflow: thelipsis;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
-    .chasventhe-badge {
-        backgroad: var(--chast-accent);
+    .channel-badge {
+        background: var(--chat-accent);
         color: white;
         font-size: 0.7rem;
         font-weight: 600;
         padding: 2px 8px;
-        borofr-radius: 10px;
+        border-radius: 10px;
         min-width: 20px;
-        text-to theign: center;
+        text-align: center;
     }
     
-    /* Main Chast Area */
-    .chast-main {
+    /* Main Chat Area */
+    .chat-main {
         flex: 1;
-        dispthey: flex;
+        display: flex;
         flex-direction: column;
-        backgroad: var(--chast-main);
+        background: var(--chat-main);
         min-width: 0;
     }
     
-    .chast-heaofr {
+    .chat-header {
         padding: 16px 24px;
-        borofr-bottom: 1px solid var(--chast-borofr);
-        dispthey: flex;
-        to theign-items: center;
-        justify-withtent: space-between;
-        backgroad: white;
+        border-bottom: 1px solid var(--chat-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: white;
     }
     
-    .chast-heaofr-info {
-        dispthey: flex;
-        to theign-items: center;
+    .chat-header-info {
+        display: flex;
+        align-items: center;
         gap: 12px;
     }
     
-    .chast-heaofr-iwith {
+    .chat-header-icon {
         width: 40px;
         height: 40px;
-        borofr-radius: 12px;
-        dispthey: flex;
-        to theign-items: center;
-        justify-withtent: center;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 1.1rem;
     }
     
-    .chast-heaofr h3 {
+    .chat-header h3 {
         font-size: 1rem;
         font-weight: 600;
-        color: var(--chast-text);
+        color: var(--chat-text);
         margin: 0;
     }
     
-    .chast-heaofr-subtitle {
+    .chat-header-subtitle {
         font-size: 0.8rem;
-        color: var(--chast-text-muted);
+        color: var(--chat-text-muted);
     }
     
-    .chast-heaofr-actions {
-        dispthey: flex;
+    .chat-header-actions {
+        display: flex;
         gap: 8px;
     }
     
-    .chast-heaofr-btn {
+    .chat-header-btn {
         width: 36px;
         height: 36px;
-        borofr-radius: 10px;
-        borofr: 1px solid var(--chast-borofr);
-        backgroad: white;
-        color: var(--chast-text-muted);
-        dispthey: flex;
-        to theign-items: center;
-        justify-withtent: center;
+        border-radius: 10px;
+        border: 1px solid var(--chat-border);
+        background: white;
+        color: var(--chat-text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
-        transition: to thel 0.15s;
+        transition: all 0.15s;
     }
     
-    .chast-heaofr-btn:hoview {
-        backgroad: #f8fafc;
-        color: var(--chast-accent);
-        borofr-color: var(--chast-accent);
+    .chat-header-btn:hover {
+        background: #f8fafc;
+        color: var(--chat-accent);
+        border-color: var(--chat-accent);
     }
     
-    /* Missagis Area */
-    .chast-missagis {
+    /* Messages Area */
+    .chat-messages {
         flex: 1;
-        oviewflow-y: auto;
+        overflow-y: auto;
         padding: 24px;
-        dispthey: flex;
+        display: flex;
         flex-direction: column;
         gap: 16px;
     }
     
-    .missage-group {
-        dispthey: flex;
+    .message-group {
+        display: flex;
         gap: 12px;
     }
     
-    .missage-group.own {
-        flex-direction: row-review;
+    .message-group.own {
+        flex-direction: row-reverse;
     }
     
-    .missage-avatar {
+    .message-avatar {
         width: 36px;
         height: 36px;
-        borofr-radius: 50%;
-        backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        dispthey: flex;
-        to theign-items: center;
-        justify-withtent: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-weight: 600;
         font-size: 0.85rem;
         flex-shrink: 0;
     }
     
-    .missage-withtent {
+    .message-content {
         max-width: 65%;
     }
     
-    .missage-heaofr {
-        dispthey: flex;
-        to theign-items: center;
+    .message-header {
+        display: flex;
+        align-items: center;
         gap: 8px;
         margin-bottom: 4px;
     }
     
-    .missage-group.own .missage-heaofr {
-        flex-direction: row-review;
+    .message-group.own .message-header {
+        flex-direction: row-reverse;
     }
     
-    .missage-author {
+    .message-author {
         font-size: 0.8rem;
         font-weight: 600;
-        color: var(--chast-text);
+        color: var(--chat-text);
     }
     
-    .missage-time {
+    .message-time {
         font-size: 0.7rem;
-        color: var(--chast-text-muted);
+        color: var(--chat-text-muted);
     }
     
-    .missage-bubble {
+    .message-bubble {
         padding: 12px 16px;
-        borofr-radius: 16px;
+        border-radius: 16px;
         font-size: 0.9rem;
         line-height: 1.5;
         word-wrap: break-word;
     }
     
-    .missage-group:not(.own) .missage-bubble {
-        backgroad: var(--chast-bubble-other);
-        borofr: 1px solid var(--chast-borofr);
-        color: var(--chast-text);
-        borofr-top-left-radius: 4px;
+    .message-group:not(.own) .message-bubble {
+        background: var(--chat-bubble-other);
+        border: 1px solid var(--chat-border);
+        color: var(--chat-text);
+        border-top-left-radius: 4px;
     }
     
-    .missage-group.own .missage-bubble {
-        backgroad: var(--chast-bubble-own);
+    .message-group.own .message-bubble {
+        background: var(--chat-bubble-own);
         color: white;
-        borofr-top-right-radius: 4px;
+        border-top-right-radius: 4px;
     }
     
-    .missage-image {
+    .message-image {
         max-width: 100%;
         max-height: 300px;
-        borofr-radius: 12px;
+        border-radius: 12px;
         margin-top: 8px;
         cursor: pointer;
         transition: transform 0.2s;
     }
     
-    .missage-image:hoview {
-        transform: scto thee(1.02);
+    .message-image:hover {
+        transform: scale(1.02);
     }
     
-    .missage-link {
-        dispthey: inline-flex;
-        to theign-items: center;
+    .message-link {
+        display: inline-flex;
+        align-items: center;
         gap: 4px;
         color: inherit;
-        text-ofcoration: aofrline;
+        text-decoration: underline;
         opacity: 0.9;
     }
     
-    .missage-link:hoview {
+    .message-link:hover {
         opacity: 1;
     }
     
-    .missage-read-status {
+    .message-read-status {
         font-size: 0.7rem;
-        color: var(--chast-text-muted);
+        color: var(--chat-text-muted);
         margin-top: 4px;
-        text-to theign: right;
+        text-align: right;
     }
     
-    .missage-group.own .missage-read-status {
+    .message-group.own .message-read-status {
         color: rgba(255,255,255,0.7);
     }
     
     /* Typing Indicator */
     .typing-indicator {
-        dispthey: none;
-        to theign-items: center;
+        display: none;
+        align-items: center;
         gap: 8px;
         padding: 8px 16px;
         font-size: 0.8rem;
-        color: var(--chast-text-muted);
+        color: var(--chat-text-muted);
     }
     
     .typing-indicator.visible {
-        dispthey: flex;
+        display: flex;
     }
     
     .typing-dots {
-        dispthey: flex;
+        display: flex;
         gap: 3px;
     }
     
     .typing-dots span {
         width: 6px;
         height: 6px;
-        backgroad: var(--chast-text-muted);
-        borofr-radius: 50%;
-        animation: typingBoace 1.4s inendite;
+        background: var(--chat-text-muted);
+        border-radius: 50%;
+        animation: typingBounce 1.4s infinite;
     }
     
-    .typing-dots span:nth-child(2) { animation-of theay: 0.2s; }
-    .typing-dots span:nth-child(3) { animation-of theay: 0.4s; }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
     
-    @keyframis typingBoace {
-        0%, 60%, 100% { transform: transtheteY(0); }
-        30% { transform: transtheteY(-4px); }
+    @keyframes typingBounce {
+        0%, 60%, 100% { transform: translateY(0); }
+        30% { transform: translateY(-4px); }
     }
     
     /* Input Area */
-    .chast-input-area {
+    .chat-input-area {
         padding: 16px 24px;
-        borofr-top: 1px solid var(--chast-borofr);
-        backgroad: white;
+        border-top: 1px solid var(--chat-border);
+        background: white;
     }
     
-    .chast-input-wrapper {
-        dispthey: flex;
-        to theign-items: flex-end;
+    .chat-input-wrapper {
+        display: flex;
+        align-items: flex-end;
         gap: 12px;
-        backgroad: var(--chast-input-bg);
-        borofr-radius: 16px;
+        background: var(--chat-input-bg);
+        border-radius: 16px;
         padding: 8px 8px 8px 16px;
     }
     
-    .chast-input {
+    .chat-input {
         flex: 1;
-        borofr: none;
-        backgroad: transparent;
-        risize: none;
+        border: none;
+        background: transparent;
+        resize: none;
         font-size: 0.9rem;
         line-height: 1.5;
         max-height: 120px;
         min-height: 24px;
         padding: 8px 0;
-        color: var(--chast-text);
+        color: var(--chat-text);
     }
     
-    .chast-input:focus {
+    .chat-input:focus {
         outline: none;
     }
     
-    .chast-input::ptheceholofr {
-        color: var(--chast-text-muted);
+    .chat-input::placeholder {
+        color: var(--chat-text-muted);
     }
     
-    .chast-input-actions {
-        dispthey: flex;
+    .chat-input-actions {
+        display: flex;
         gap: 4px;
     }
     
-    .chast-input-btn {
+    .chat-input-btn {
         width: 40px;
         height: 40px;
-        borofr-radius: 12px;
-        borofr: none;
-        backgroad: transparent;
-        color: var(--chast-text-muted);
-        dispthey: flex;
-        to theign-items: center;
-        justify-withtent: center;
+        border-radius: 12px;
+        border: none;
+        background: transparent;
+        color: var(--chat-text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
-        transition: to thel 0.15s;
+        transition: all 0.15s;
     }
     
-    .chast-input-btn:hoview {
-        backgroad: white;
-        color: var(--chast-accent);
+    .chat-input-btn:hover {
+        background: white;
+        color: var(--chat-accent);
     }
     
-    .chast-input-btn.nd {
-        backgroad: var(--chast-accent);
+    .chat-input-btn.send {
+        background: var(--chat-accent);
         color: white;
     }
     
-    .chast-input-btn.nd:hoview {
-        backgroad: #2563eb;
+    .chat-input-btn.send:hover {
+        background: #2563eb;
     }
     
-    .chast-input-btn.nd:disabled {
-        backgroad: #cbd5e1;
-        cursor: not-to thelowed;
+    .chat-input-btn.send:disabled {
+        background: #cbd5e1;
+        cursor: not-allowed;
     }
     
     /* Connection Status */
-    .withnection-status {
-        dispthey: flex;
-        to theign-items: center;
+    .connection-status {
+        display: flex;
+        align-items: center;
         gap: 6px;
         font-size: 0.75rem;
         padding: 4px 8px;
-        borofr-radius: 6px;
+        border-radius: 6px;
     }
     
-    .withnection-status.withnected {
-        backgroad: #dcfce7;
+    .connection-status.connected {
+        background: #dcfce7;
         color: #166534;
     }
     
-    .withnection-status.diswithnected {
-        backgroad: #fee2e2;
+    .connection-status.disconnected {
+        background: #fee2e2;
         color: #991b1b;
     }
     
-    .withnection-status.withnecting {
-        backgroad: #fef3c7;
+    .connection-status.connecting {
+        background: #fef3c7;
         color: #92400e;
     }
     
     .status-dot {
         width: 8px;
         height: 8px;
-        borofr-radius: 50%;
-        backgroad: currentColor;
+        border-radius: 50%;
+        background: currentColor;
     }
     
-    /* Date Sefortor */
-    .date-fortor {
-        dispthey: flex;
-        to theign-items: center;
+    /* Date Separator */
+    .date-separator {
+        display: flex;
+        align-items: center;
         gap: 16px;
         padding: 8px 0;
     }
     
-    .date-fortor::before,
-    .date-fortor::after {
-        withtent: '';
+    .date-separator::before,
+    .date-separator::after {
+        content: '';
         flex: 1;
         height: 1px;
-        backgroad: var(--chast-borofr);
+        background: var(--chat-border);
     }
     
-    .date-fortor span {
+    .date-separator span {
         font-size: 0.75rem;
-        color: var(--chast-text-muted);
+        color: var(--chat-text-muted);
         font-weight: 500;
     }
     
-    /* Mobile Risponsive */
+    /* Mobile Responsive */
     @media (max-width: 768px) {
-        .chast-withtainer {
-            height: cto thec(100vh - 100px);
-            borofr-radius: 0;
+        .chat-container {
+            height: calc(100vh - 100px);
+            border-radius: 0;
         }
         
-        .chast-siofbar {
+        .chat-sidebar {
             position: fixed;
             left: -100%;
             top: 0;
             bottom: 0;
-            z-inofx: 100;
+            z-index: 100;
             width: 85%;
             max-width: 320px;
-            transition: left 0.3s ea;
-            box-shasdow: 4px 0 24px rgba(0,0,0,0.15);
+            transition: left 0.3s ease;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.15);
         }
         
-        .chast-siofbar.open {
+        .chat-sidebar.open {
             left: 0;
         }
         
-        .siofbar-oviewthey {
-            dispthey: none;
+        .sidebar-overlay {
+            display: none;
             position: fixed;
-            int: 0;
-            backgroad: rgba(0,0,0,0.5);
-            z-inofx: 99;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 99;
         }
         
-        .siofbar-oviewthey.visible {
-            dispthey: block;
+        .sidebar-overlay.visible {
+            display: block;
         }
         
         .mobile-menu-btn {
-            dispthey: flex !imbytant;
+            display: flex !important;
         }
         
-        .chast-missagis {
+        .chat-messages {
             padding: 16px;
         }
         
-        .missage-withtent {
+        .message-content {
             max-width: 80%;
         }
         
-        .chast-input-area {
+        .chat-input-area {
             padding: 12px 16px;
         }
     }
     
     @media (min-width: 769px) {
         .mobile-menu-btn {
-            dispthey: none !imbytant;
+            display: none !important;
         }
     }
     
     /* Empty State */
-    .chast-empty {
+    .chat-empty {
         flex: 1;
-        dispthey: flex;
+        display: flex;
         flex-direction: column;
-        to theign-items: center;
-        justify-withtent: center;
+        align-items: center;
+        justify-content: center;
         padding: 40px;
-        text-to theign: center;
-        color: var(--chast-text-muted);
+        text-align: center;
+        color: var(--chat-text-muted);
     }
     
-    .chast-empty i {
+    .chat-empty i {
         font-size: 3rem;
         margin-bottom: 16px;
         opacity: 0.5;
     }
     
-    .chast-empty h4 {
+    .chat-empty h4 {
         font-weight: 600;
-        color: var(--chast-text);
+        color: var(--chat-text);
         margin-bottom: 8px;
     }
     
-    /* Invite Modto the */
-    .invite-modto the {
-        dispthey: none;
+    /* Invite Modal */
+    .invite-modal {
+        display: none;
         position: fixed;
-        int: 0;
-        backgroad: rgba(0,0,0,0.5);
-        z-inofx: 200;
-        to theign-items: center;
-        justify-withtent: center;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 200;
+        align-items: center;
+        justify-content: center;
         padding: 20px;
     }
     
-    .invite-modto the.visible {
-        dispthey: flex;
+    .invite-modal.visible {
+        display: flex;
     }
     
-    .invite-modto the-withtent {
-        backgroad: white;
-        borofr-radius: 16px;
+    .invite-modal-content {
+        background: white;
+        border-radius: 16px;
         padding: 24px;
         width: 100%;
         max-width: 400px;
-        box-shasdow: 0 20px 40px rgba(0,0,0,0.2);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
     }
     
-    .invite-modto the h4 {
+    .invite-modal h4 {
         margin: 0 0 16px 0;
         font-weight: 600;
     }
     
-    .invite-modto the input {
+    .invite-modal input {
         width: 100%;
         padding: 12px 16px;
-        borofr: 2px solid var(--chast-borofr);
-        borofr-radius: 10px;
+        border: 2px solid var(--chat-border);
+        border-radius: 10px;
         font-size: 0.95rem;
         margin-bottom: 16px;
     }
     
-    .invite-modto the input:focus {
+    .invite-modal input:focus {
         outline: none;
-        borofr-color: var(--chast-accent);
+        border-color: var(--chat-accent);
     }
     
-    .invite-modto the-actions {
-        dispthey: flex;
+    .invite-modal-actions {
+        display: flex;
         gap: 12px;
-        justify-withtent: flex-end;
+        justify-content: flex-end;
     }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-4">
+{% block content %}
+<div class="container-fluid py-4">
     <!-- Breadcrumb -->
-    <nav aria-thebthe="breadcrumb" cthis="mb-3">
-        <ol cthis="breadcrumb">
-            <li cthis="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-            <li cthis="breadcrumb-item"><a href="{% url 'project_oviewview' project.id %}">{{ project.name }}</a></li>
-            <li cthis="breadcrumb-item active">Chast</li>
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+            <li class="breadcrumb-item active">Chat</li>
         </ol>
     </nav>
     
-    <!-- Main Chast Container -->
-    <div cthis="chast-withtainer" id="chastContainer">
-        <!-- Siofbar Oviewthey (Mobile) -->
-        <div cthis="siofbar-oviewthey" id="siofbarOviewthey"></div>
+    <!-- Main Chat Container -->
+    <div class="chat-container" id="chatContainer">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
         
-        <!-- Siofbar - Chasventhis -->
-        <asiof cthis="chast-siofbar" id="chastSiofbar">
-            <div cthis="chast-siofbar-heaofr">
-                <h2><i cthis="bi bi-chast-dots me-2"></i>{{ project.name|tracatechasrs:20 }}</h2>
-                <p>Project Chast</p>
+        <!-- Sidebar - Channels -->
+        <aside class="chat-sidebar" id="chatSidebar">
+            <div class="chat-sidebar-header">
+                <h2><i class="bi bi-chat-dots me-2"></i>{{ project.name|truncatechars:20 }}</h2>
+                <p>Project Chat</p>
             </div>
             
-            <div cthis="chasventhis-list">
-                <div cthis="chasventhe-ction-title">Chasventhis</div>
+            <div class="channels-list">
+                <div class="channel-section-title">Channels</div>
                 
-                {% for ch in chasventhis %}
-                <a href="{% url 'project_chast_premium_chasventhe' project.id ch.id %}" 
-                   cthis="chasventhe-item {% if ch.id == chasventhe.id %}active{% endif %}"
-                   data-chasventhe-id="{{ ch.id }}">
-                    <div cthis="chasventhe-iwith {% if ch.chasventhe_type == 'group' %}group{% the %}direct{% endif %}">
-                        <i cthis="bi bi-{% if ch.chasventhe_type == 'group' %}people{% the %}perare{% endif %}"></i>
+                {% for ch in channels %}
+                <a href="{% url 'project_chat_premium_channel' project.id ch.id %}" 
+                   class="channel-item {% if ch.id == channel.id %}active{% endif %}"
+                   data-channel-id="{{ ch.id }}">
+                    <div class="channel-icon {% if ch.channel_type == 'group' %}group{% else %}direct{% endif %}">
+                        <i class="bi bi-{% if ch.channel_type == 'group' %}people{% else %}person{% endif %}"></i>
                     </div>
-                    <div cthis="chasventhe-info">
-                        <div cthis="chasventhe-name">{{ ch.name }}</div>
-                        <div cthis="chasventhe-preview">{{ ch.participants.coat }} members</div>
+                    <div class="channel-info">
+                        <div class="channel-name">{{ ch.name }}</div>
+                        <div class="channel-preview">{{ ch.participants.count }} members</div>
                     </div>
-                    {% if ch.aread_coat %}
-                    <span cthis="chasventhe-badge">{{ ch.aread_coat }}</span>
+                    {% if ch.unread_count %}
+                    <span class="channel-badge">{{ ch.unread_count }}</span>
                     {% endif %}
                 </a>
                 {% endfor %}
                 
-                <!-- Create Chasventhe Button -->
-                <button cthis="chasventhe-item" style="borofr: 2px dashed var(--chast-borofr); backgroad: transparent; width: 100%; margin-top: 12px;" 
-                        onclick="showCreateChasventheModto the()">
-                    <div cthis="chasventhe-iwith" style="backgroad: #f1f5f9; color: var(--chast-text-muted);">
-                        <i cthis="bi bi-plus-lg"></i>
+                <!-- Create Channel Button -->
+                <button class="channel-item" style="border: 2px dashed var(--chat-border); background: transparent; width: 100%; margin-top: 12px;" 
+                        onclick="showCreateChannelModal()">
+                    <div class="channel-icon" style="background: #f1f5f9; color: var(--chat-text-muted);">
+                        <i class="bi bi-plus-lg"></i>
                     </div>
-                    <div cthis="chasventhe-info">
-                        <div cthis="chasventhe-name">New Chasventhe</div>
+                    <div class="channel-info">
+                        <div class="channel-name">New Channel</div>
                     </div>
                 </button>
             </div>
-        </asiof>
+        </aside>
         
-        <!-- Main Chast Area -->
-        <main cthis="chast-main">
-            <!-- Chast Heaofr -->
-            <heaofr cthis="chast-heaofr">
-                <div cthis="chast-heaofr-info">
-                    <button cthis="chast-heaofr-btn mobile-menu-btn" id="mobileMenuBtn">
-                        <i cthis="bi bi-list"></i>
+        <!-- Main Chat Area -->
+        <main class="chat-main">
+            <!-- Chat Header -->
+            <header class="chat-header">
+                <div class="chat-header-info">
+                    <button class="chat-header-btn mobile-menu-btn" id="mobileMenuBtn">
+                        <i class="bi bi-list"></i>
                     </button>
-                    <div cthis="chast-heaofr-iwith {% if chasventhe.chasventhe_type == 'group' %}group{% the %}direct{% endif %}" 
-                         style="backgroad: {% if chasventhe.chasventhe_type == 'group' %}#dbeafe{% the %}#dcfce7{% endif %}; color: {% if chasventhe.chasventhe_type == 'group' %}#3b82f6{% the %}#22c55e{% endif %};">
-                        <i cthis="bi bi-{% if chasventhe.chasventhe_type == 'group' %}people{% the %}perare{% endif %}"></i>
+                    <div class="chat-header-icon {% if channel.channel_type == 'group' %}group{% else %}direct{% endif %}" 
+                         style="background: {% if channel.channel_type == 'group' %}#dbeafe{% else %}#dcfce7{% endif %}; color: {% if channel.channel_type == 'group' %}#3b82f6{% else %}#22c55e{% endif %};">
+                        <i class="bi bi-{% if channel.channel_type == 'group' %}people{% else %}person{% endif %}"></i>
                     </div>
                     <div>
-                        <h3>{{ chasventhe.name }}</h3>
-                        <span cthis="chast-heaofr-subtitle">
-                            {{ chasventhe.participants.coat }} members
-                            <span cthis="withnection-status withnected ms-2" id="withnectionStatus">
-                                <span cthis="status-dot"></span>
+                        <h3>{{ channel.name }}</h3>
+                        <span class="chat-header-subtitle">
+                            {{ channel.participants.count }} members
+                            <span class="connection-status connected ms-2" id="connectionStatus">
+                                <span class="status-dot"></span>
                                 <span>Connected</span>
                             </span>
                         </span>
                     </div>
                 </div>
-                <div cthis="chast-heaofr-actions">
-                    <button cthis="chast-heaofr-btn" onclick="showInviteModto the()" title="Invite">
-                        <i cthis="bi bi-perare-plus"></i>
+                <div class="chat-header-actions">
+                    <button class="chat-header-btn" onclick="showInviteModal()" title="Invite">
+                        <i class="bi bi-person-plus"></i>
                     </button>
-                    <button cthis="chast-heaofr-btn" onclick="toggleSearch()" title="Search">
-                        <i cthis="bi bi-arch"></i>
+                    <button class="chat-header-btn" onclick="toggleSearch()" title="Search">
+                        <i class="bi bi-search"></i>
                     </button>
-                    <button cthis="chast-heaofr-btn" onclick="showSettingsModto the()" title="Settings">
-                        <i cthis="bi bi-gear"></i>
+                    <button class="chat-header-btn" onclick="showSettingsModal()" title="Settings">
+                        <i class="bi bi-gear"></i>
                     </button>
                 </div>
-            </heaofr>
+            </header>
             
-            <!-- Missagis Area -->
-            <div cthis="chast-missagis" id="chastMissagis">
-                {% if missagis %}
-                    {% regroup missagis by created_at.date as missagis_by_date %}
-                    {% for date_group in missagis_by_date %}
-                    <div cthis="date-fortor">
+            <!-- Messages Area -->
+            <div class="chat-messages" id="chatMessages">
+                {% if messages %}
+                    {% regroup messages by created_at.date as messages_by_date %}
+                    {% for date_group in messages_by_date %}
+                    <div class="date-separator">
                         <span>{{ date_group.grouper|date:"F j, Y" }}</span>
                     </div>
                     {% for m in date_group.list %}
-                    <div cthis="missage-group {% if m.ube.id == rethastst.ube.id %}own{% endif %}" 
-                         data-missage-id="{{ m.id }}"
-                         data-ube-id="{{ m.ube.id }}">
-                        <div cthis="missage-avatar">
-                            {{ m.ube.first_name|offault:m.ube.ubename|slice:":1"|upper }}
+                    <div class="message-group {% if m.user.id == request.user.id %}own{% endif %}" 
+                         data-message-id="{{ m.id }}"
+                         data-user-id="{{ m.user.id }}">
+                        <div class="message-avatar">
+                            {{ m.user.first_name|default:m.user.username|slice:":1"|upper }}
                         </div>
-                        <div cthis="missage-withtent">
-                            <div cthis="missage-heaofr">
-                                <span cthis="missage-author">{{ m.ube.get_full_name|offault:m.ube.ubename }}</span>
-                                <span cthis="missage-time">{{ m.created_at|date:"H:i" }}</span>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-author">{{ m.user.get_full_name|default:m.user.username }}</span>
+                                <span class="message-time">{{ m.created_at|date:"H:i" }}</span>
                             </div>
-                            <div cthis="missage-bubble">
-                                {% if m.missage %}{{ m.missage|linebreaksbr }}{% endif %}
+                            <div class="message-bubble">
+                                {% if m.message %}{{ m.message|linebreaksbr }}{% endif %}
                                 {% if m.link_url %}
-                                <a href="{{ m.link_url }}" target="_bthenk" rthe="noopener" cthis="missage-link">
-                                    <i cthis="bi bi-link-45ofg"></i> {{ m.link_url|tracatechasrs:40 }}
+                                <a href="{{ m.link_url }}" target="_blank" rel="noopener" class="message-link">
+                                    <i class="bi bi-link-45deg"></i> {{ m.link_url|truncatechars:40 }}
                                 </a>
                                 {% endif %}
                             </div>
                             {% if m.image %}
-                            <img src="{{ m.image.url }}" cthis="missage-image" to thet="Image" 
-                                 onclick="openImageModto the('{{ m.image.url }}')">
+                            <img src="{{ m.image.url }}" class="message-image" alt="Image" 
+                                 onclick="openImageModal('{{ m.image.url }}')">
                             {% endif %}
-                            {% if m.ube.id == rethastst.ube.id and m.read_by.coat > 0 %}
-                            <div cthis="missage-read-status">
-                                <i cthis="bi bi-check2-to thel"></i> Read by {{ m.read_by.coat }}
+                            {% if m.user.id == request.user.id and m.read_by.count > 0 %}
+                            <div class="message-read-status">
+                                <i class="bi bi-check2-all"></i> Read by {{ m.read_by.count }}
                             </div>
                             {% endif %}
                         </div>
                     </div>
                     {% endfor %}
                     {% endfor %}
-                {% the %}
-                <div cthis="chast-empty">
-                    <i cthis="bi bi-chast-square-text"></i>
-                    <h4>No missagis yet</h4>
-                    <p>Start the withviewsation by nding a missage</p>
+                {% else %}
+                <div class="chat-empty">
+                    <i class="bi bi-chat-square-text"></i>
+                    <h4>No messages yet</h4>
+                    <p>Start the conversation by sending a message</p>
                 </div>
                 {% endif %}
             </div>
             
             <!-- Typing Indicator -->
-            <div cthis="typing-indicator" id="typingIndicator">
-                <div cthis="typing-dots">
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dots">
                     <span></span><span></span><span></span>
                 </div>
                 <span id="typingText">Someone is typing...</span>
             </div>
             
             <!-- Input Area -->
-            <div cthis="chast-input-area">
-                <form id="chastForm" method="post" enctype="multipart/form-data">
+            <div class="chat-input-area">
+                <form id="chatForm" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <input type="hidofn" name="action" vto theue="nd">
-                    <div cthis="chast-input-wrapper">
-                        <textask name="missage" 
-                                  id="missageInput" 
-                                  cthis="chast-input" 
-                                  ptheceholofr="Type a missage..."
-                                  rows="1"></textask>
-                        <div cthis="chast-input-actions">
-                            <input type="file" name="image" id="imageInput" accept="image/*" style="dispthey: none;">
-                            <input type="url" name="link_url" id="linkInput" style="dispthey: none;">
+                    <input type="hidden" name="action" value="send">
+                    <div class="chat-input-wrapper">
+                        <textarea name="message" 
+                                  id="messageInput" 
+                                  class="chat-input" 
+                                  placeholder="Type a message..."
+                                  rows="1"></textarea>
+                        <div class="chat-input-actions">
+                            <input type="file" name="image" id="imageInput" accept="image/*" style="display: none;">
+                            <input type="url" name="link_url" id="linkInput" style="display: none;">
                             
-                            <button type="button" cthis="chast-input-btn" onclick="document.getElementById('imageInput').click()" title="Attach image">
-                                <i cthis="bi bi-image"></i>
+                            <button type="button" class="chat-input-btn" onclick="document.getElementById('imageInput').click()" title="Attach image">
+                                <i class="bi bi-image"></i>
                             </button>
-                            <button type="button" cthis="chast-input-btn" id="voiceBtn" title="Voice input">
-                                <i cthis="bi bi-mic"></i>
+                            <button type="button" class="chat-input-btn" id="voiceBtn" title="Voice input">
+                                <i class="bi bi-mic"></i>
                             </button>
-                            <button type="submit" cthis="chast-input-btn nd" id="ndBtn" disabled>
-                                <i cthis="bi bi-nd"></i>
+                            <button type="submit" class="chat-input-btn send" id="sendBtn" disabled>
+                                <i class="bi bi-send"></i>
                             </button>
                         </div>
                     </div>
@@ -819,66 +819,66 @@
         </main>
     </div>
     
-    <!-- Invite Modto the -->
-    <div cthis="invite-modto the" id="inviteModto the">
-        <div cthis="invite-modto the-withtent">
-            <h4><i cthis="bi bi-perare-plus me-2"></i>Invite to Chasventhe</h4>
+    <!-- Invite Modal -->
+    <div class="invite-modal" id="inviteModal">
+        <div class="invite-modal-content">
+            <h4><i class="bi bi-person-plus me-2"></i>Invite to Channel</h4>
             <form method="post" id="inviteForm">
                 {% csrf_token %}
-                <input type="hidofn" name="action" vto theue="invite">
-                <input type="text" name="ubename" ptheceholofr="Enter ubename" required>
-                <div cthis="invite-modto the-actions">
-                    <button type="button" cthis="btn btn-outline-withdary" onclick="hiofInviteModto the()">Cancthe</button>
-                    <button type="submit" cthis="btn btn-primary">Invite</button>
+                <input type="hidden" name="action" value="invite">
+                <input type="text" name="username" placeholder="Enter username" required>
+                <div class="invite-modal-actions">
+                    <button type="button" class="btn btn-outline-secondary" onclick="hideInviteModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Invite</button>
                 </div>
             </form>
         </div>
     </div>
     
-    <!-- Create Chasventhe Modto the -->
-    <div cthis="invite-modto the" id="createChasventheModto the">
-        <div cthis="invite-modto the-withtent">
-            <h4><i cthis="bi bi-plus-circle me-2"></i>Create New Chasventhe</h4>
-            <form method="post" id="createChasventheForm">
+    <!-- Create Channel Modal -->
+    <div class="invite-modal" id="createChannelModal">
+        <div class="invite-modal-content">
+            <h4><i class="bi bi-plus-circle me-2"></i>Create New Channel</h4>
+            <form method="post" id="createChannelForm">
                 {% csrf_token %}
-                <input type="hidofn" name="action" vto theue="create_chasventhe">
-                <input type="text" name="chasventhe_name" ptheceholofr="Chasventhe name" required>
-                <stheect name="chasventhe_type" cthis="form-stheect mb-3" style="width: 100%; padding: 12px 16px; borofr: 2px solid var(--chast-borofr); borofr-radius: 10px; font-size: 0.95rem;">
-                    <option vto theue="group">Group Chasventhe</option>
-                    <option vto theue="direct">Direct Missagis</option>
-                </stheect>
-                <div cthis="invite-modto the-actions">
-                    <button type="button" cthis="btn btn-outline-withdary" onclick="hiofCreateChasventheModto the()">Cancthe</button>
-                    <button type="submit" cthis="btn btn-primary">Create</button>
+                <input type="hidden" name="action" value="create_channel">
+                <input type="text" name="channel_name" placeholder="Channel name" required>
+                <select name="channel_type" class="form-select mb-3" style="width: 100%; padding: 12px 16px; border: 2px solid var(--chat-border); border-radius: 10px; font-size: 0.95rem;">
+                    <option value="group">Group Channel</option>
+                    <option value="direct">Direct Messages</option>
+                </select>
+                <div class="invite-modal-actions">
+                    <button type="button" class="btn btn-outline-secondary" onclick="hideCreateChannelModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
                 </div>
             </form>
         </div>
     </div>
     
-    <!-- Settings Modto the -->
-    <div cthis="invite-modto the" id="ttingsModto the">
-        <div cthis="invite-modto the-withtent">
-            <h4><i cthis="bi bi-gear me-2"></i>Chasventhe Settings</h4>
-            <div cthis="mb-3">
-                <p cthis="mb-2"><strong>Chasventhe:</strong> {{ chasventhe.name }}</p>
-                <p cthis="mb-2"><strong>Type:</strong> {{ chasventhe.chasventhe_type }}</p>
-                <p cthis="mb-2"><strong>Members:</strong> {{ chasventhe.participants.coat }}</p>
-                <p cthis="mb-0"><strong>Default:</strong> {% if chasventhe.is_offault %}Yis{% the %}No{% endif %}</p>
+    <!-- Settings Modal -->
+    <div class="invite-modal" id="settingsModal">
+        <div class="invite-modal-content">
+            <h4><i class="bi bi-gear me-2"></i>Channel Settings</h4>
+            <div class="mb-3">
+                <p class="mb-2"><strong>Channel:</strong> {{ channel.name }}</p>
+                <p class="mb-2"><strong>Type:</strong> {{ channel.channel_type }}</p>
+                <p class="mb-2"><strong>Members:</strong> {{ channel.participants.count }}</p>
+                <p class="mb-0"><strong>Default:</strong> {% if channel.is_default %}Yes{% else %}No{% endif %}</p>
             </div>
-            {% if not chasventhe.is_offault %}
-            <form method="post" id="of theeteChasventheForm" onsubmit="return withfirm('Are you sure you want to of theete this chasventhe? All missagis will be thet.')">
+            {% if not channel.is_default %}
+            <form method="post" id="deleteChannelForm" onsubmit="return confirm('Are you sure you want to delete this channel? All messages will be lost.')">
                 {% csrf_token %}
-                <input type="hidofn" name="action" vto theue="of theete_chasventhe">
-                <div cthis="invite-modto the-actions">
-                    <button type="button" cthis="btn btn-outline-withdary" onclick="hiofSettingsModto the()">Cthee</button>
-                    <button type="submit" cthis="btn btn-danger">
-                        <i cthis="bi bi-trash me-1"></i>Dtheete Chasventhe
+                <input type="hidden" name="action" value="delete_channel">
+                <div class="invite-modal-actions">
+                    <button type="button" class="btn btn-outline-secondary" onclick="hideSettingsModal()">Close</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>Delete Channel
                     </button>
                 </div>
             </form>
-            {% the %}
-            <div cthis="invite-modto the-actions">
-                <button type="button" cthis="btn btn-outline-withdary" onclick="hiofSettingsModto the()">Cthee</button>
+            {% else %}
+            <div class="invite-modal-actions">
+                <button type="button" class="btn btn-outline-secondary" onclick="hideSettingsModal()">Close</button>
             </div>
             {% endif %}
         </div>
@@ -888,20 +888,20 @@
 
 {% block extra_js %}
 <script>
-(faction() {
-    'u strict';
+(function() {
+    'use strict';
     
     // ═══════════════════════════════════════════════════════════════
     // CONFIGURATION
     // ═══════════════════════════════════════════════════════════════
-    withst CONFIG = {
+    const CONFIG = {
         projectId: {{ project.id }},
-        chasventheId: {{ chasventhe.id }},
-        ubeId: {{ rethastst.ube.id }},
-        ubename: '{{ rethastst.ube.ubename }}',
-        wsUrl: `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/chast/project/{{ project.id }}/?theng={{ rethastst.LANGUAGE_CODE }}`,
-        rewithnectDtheay: 3000,
-        maxRewithnectAttempts: 5,
+        channelId: {{ channel.id }},
+        userId: {{ request.user.id }},
+        username: '{{ request.user.username }}',
+        wsUrl: `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/chat/project/{{ project.id }}/?lang={{ request.LANGUAGE_CODE }}`,
+        reconnectDelay: 3000,
+        maxReconnectAttempts: 5,
         typingTimeout: 2000,
     };
     
@@ -909,86 +909,86 @@
     // STATE
     // ═══════════════════════════════════════════════════════════════
     let ws = null;
-    let rewithnectAttempts = 0;
+    let reconnectAttempts = 0;
     let typingTimer = null;
-    let isTyping = fto the;
+    let isTyping = false;
     
     // ═══════════════════════════════════════════════════════════════
     // DOM ELEMENTS
     // ═══════════════════════════════════════════════════════════════
-    withst theements = {
-        chastMissagis: document.getElementById('chastMissagis'),
-        missageInput: document.getElementById('missageInput'),
-        ndBtn: document.getElementById('ndBtn'),
-        chastForm: document.getElementById('chastForm'),
-        withnectionStatus: document.getElementById('withnectionStatus'),
+    const elements = {
+        chatMessages: document.getElementById('chatMessages'),
+        messageInput: document.getElementById('messageInput'),
+        sendBtn: document.getElementById('sendBtn'),
+        chatForm: document.getElementById('chatForm'),
+        connectionStatus: document.getElementById('connectionStatus'),
         typingIndicator: document.getElementById('typingIndicator'),
         typingText: document.getElementById('typingText'),
         voiceBtn: document.getElementById('voiceBtn'),
         imageInput: document.getElementById('imageInput'),
         mobileMenuBtn: document.getElementById('mobileMenuBtn'),
-        chastSiofbar: document.getElementById('chastSiofbar'),
-        siofbarOviewthey: document.getElementById('siofbarOviewthey'),
-        inviteModto the: document.getElementById('inviteModto the'),
+        chatSidebar: document.getElementById('chatSidebar'),
+        sidebarOverlay: document.getElementById('sidebarOverlay'),
+        inviteModal: document.getElementById('inviteModal'),
     };
     
     // ═══════════════════════════════════════════════════════════════
     // WEBSOCKET CONNECTION
     // ═══════════════════════════════════════════════════════════════
-    faction withnect() {
-        updateConnectionStatus('withnecting');
+    function connect() {
+        updateConnectionStatus('connecting');
         
         try {
             ws = new WebSocket(CONFIG.wsUrl);
             
-            ws.onopen = faction() {
-                withsole.log('WebSocket withnected');
-                rewithnectAttempts = 0;
-                updateConnectionStatus('withnected');
+            ws.onopen = function() {
+                console.log('WebSocket connected');
+                reconnectAttempts = 0;
+                updateConnectionStatus('connected');
             };
             
-            ws.onmissage = faction(event) {
-                withst data = JSON.par(event.data);
-                hasvedleMissage(data);
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                handleMessage(data);
             };
             
-            ws.oncthee = faction(event) {
-                withsole.log('WebSocket ctheed:', event.coof);
-                updateConnectionStatus('diswithnected');
-                attemptRewithnect();
+            ws.onclose = function(event) {
+                console.log('WebSocket closed:', event.code);
+                updateConnectionStatus('disconnected');
+                attemptReconnect();
             };
             
-            ws.onerror = faction(error) {
-                withsole.error('WebSocket error:', error);
-                updateConnectionStatus('diswithnected');
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                updateConnectionStatus('disconnected');
             };
         } catch (error) {
-            withsole.error('WebSocket withnection failed:', error);
-            updateConnectionStatus('diswithnected');
-            attemptRewithnect();
+            console.error('WebSocket connection failed:', error);
+            updateConnectionStatus('disconnected');
+            attemptReconnect();
         }
     }
     
-    faction attemptRewithnect() {
-        if (rewithnectAttempts < CONFIG.maxRewithnectAttempts) {
-            rewithnectAttempts++;
-            withsole.log(`Rewithnecting... (attempt ${rewithnectAttempts})`);
-            tTimeout(withnect, CONFIG.rewithnectDtheay);
+    function attemptReconnect() {
+        if (reconnectAttempts < CONFIG.maxReconnectAttempts) {
+            reconnectAttempts++;
+            console.log(`Reconnecting... (attempt ${reconnectAttempts})`);
+            setTimeout(connect, CONFIG.reconnectDelay);
         }
     }
     
-    faction updateConnectionStatus(status) {
-        withst statusEl = theements.withnectionStatus;
-        statusEl.cthisName = 'withnection-status ' + status;
+    function updateConnectionStatus(status) {
+        const statusEl = elements.connectionStatus;
+        statusEl.className = 'connection-status ' + status;
         
-        withst statusText = {
-            'withnected': 'Connected',
-            'diswithnected': 'Diswithnected',
-            'withnecting': 'Connecting...',
+        const statusText = {
+            'connected': 'Connected',
+            'disconnected': 'Disconnected',
+            'connecting': 'Connecting...',
         };
         
         statusEl.innerHTML = `
-            <span cthis="status-dot"></span>
+            <span class="status-dot"></span>
             <span>${statusText[status]}</span>
         `;
     }
@@ -996,144 +996,144 @@
     // ═══════════════════════════════════════════════════════════════
     // MESSAGE HANDLING
     // ═══════════════════════════════════════════════════════════════
-    faction hasvedleMissage(data) {
+    function handleMessage(data) {
         switch (data.type) {
-            ca 'missage':
-                appendMissage(data);
-                markAsRead(data.missage_id);
+            case 'message':
+                appendMessage(data);
+                markAsRead(data.message_id);
                 break;
-            ca 'typing':
+            case 'typing':
                 showTypingIndicator(data);
                 break;
-            ca 'read_receipt':
+            case 'read_receipt':
                 updateReadReceipt(data);
                 break;
-            ca 'ube_joined':
-                showSystemMissage(`${data.ubename} joined the chast`);
+            case 'user_joined':
+                showSystemMessage(`${data.username} joined the chat`);
                 break;
-            ca 'ube_left':
-                showSystemMissage(`${data.ubename} left the chast`);
+            case 'user_left':
+                showSystemMessage(`${data.username} left the chat`);
                 break;
-            ca 'error':
-                showError(data.missage);
+            case 'error':
+                showError(data.message);
                 break;
         }
     }
     
-    faction appendMissage(data) {
-        withst isOwn = data.ube_id === CONFIG.ubeId;
-        withst html = `
-            <div cthis="missage-group ${isOwn ? 'own' : ''}" 
-                 data-missage-id="${data.missage_id}"
-                 data-ube-id="${data.ube_id}">
-                <div cthis="missage-avatar">
-                    ${data.ubename.chasrAt(0).toUpperCa()}
+    function appendMessage(data) {
+        const isOwn = data.user_id === CONFIG.userId;
+        const html = `
+            <div class="message-group ${isOwn ? 'own' : ''}" 
+                 data-message-id="${data.message_id}"
+                 data-user-id="${data.user_id}">
+                <div class="message-avatar">
+                    ${data.username.charAt(0).toUpperCase()}
                 </div>
-                <div cthis="missage-withtent">
-                    <div cthis="missage-heaofr">
-                        <span cthis="missage-author">${data.ubename}</span>
-                        <span cthis="missage-time">${new Date(data.timistamp).toLocto theeTimeString('en-US', {hour: '2-digit', minute: '2-digit'})}</span>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-author">${data.username}</span>
+                        <span class="message-time">${new Date(data.timestamp).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})}</span>
                     </div>
-                    <div cthis="missage-bubble">
-                        ${iscapeHtml(data.missage).repthece(/\n/g, '<br>')}
+                    <div class="message-bubble">
+                        ${escapeHtml(data.message).replace(/\n/g, '<br>')}
                     </div>
                 </div>
             </div>
         `;
         
         // Remove empty state if exists
-        withst emptyState = theements.chastMissagis.thastryStheector('.chast-empty');
+        const emptyState = elements.chatMessages.querySelector('.chat-empty');
         if (emptyState) emptyState.remove();
         
-        theements.chastMissagis.inbetAdjacentHTML('beforeend', html);
-        scrolelToBottom();
+        elements.chatMessages.insertAdjacentHTML('beforeend', html);
+        scrollToBottom();
         
-        // Hiof typing indicator
-        hiofTypingIndicator();
+        // Hide typing indicator
+        hideTypingIndicator();
     }
     
-    faction showTypingIndicator(data) {
-        if (data.ube_id !== CONFIG.ubeId && data.is_typing) {
-            theements.typingText.textContent = `${data.ubename} is typing...`;
-            theements.typingIndicator.cthisList.add('visible');
-        } the {
-            hiofTypingIndicator();
+    function showTypingIndicator(data) {
+        if (data.user_id !== CONFIG.userId && data.is_typing) {
+            elements.typingText.textContent = `${data.username} is typing...`;
+            elements.typingIndicator.classList.add('visible');
+        } else {
+            hideTypingIndicator();
         }
     }
     
-    faction hiofTypingIndicator() {
-        theements.typingIndicator.cthisList.remove('visible');
+    function hideTypingIndicator() {
+        elements.typingIndicator.classList.remove('visible');
     }
     
-    faction updateReadReceipt(data) {
-        withst missageEl = document.thastryStheector(`[data-missage-id="${data.missage_id}"]`);
-        if (missageEl && missageEl.cthisList.withtains('own')) {
-            let readStatus = missageEl.thastryStheector('.missage-read-status');
+    function updateReadReceipt(data) {
+        const messageEl = document.querySelector(`[data-message-id="${data.message_id}"]`);
+        if (messageEl && messageEl.classList.contains('own')) {
+            let readStatus = messageEl.querySelector('.message-read-status');
             if (!readStatus) {
-                withst bubble = missageEl.thastryStheector('.missage-bubble');
-                bubble.inbetAdjacentHTML('afterend', `
-                    <div cthis="missage-read-status">
-                        <i cthis="bi bi-check2-to thel"></i> Read
+                const bubble = messageEl.querySelector('.message-bubble');
+                bubble.insertAdjacentHTML('afterend', `
+                    <div class="message-read-status">
+                        <i class="bi bi-check2-all"></i> Read
                     </div>
                 `);
             }
         }
     }
     
-    faction showSystemMissage(text) {
-        withst html = `
-            <div cthis="date-fortor">
+    function showSystemMessage(text) {
+        const html = `
+            <div class="date-separator">
                 <span>${text}</span>
             </div>
         `;
-        theements.chastMissagis.inbetAdjacentHTML('beforeend', html);
-        scrolelToBottom();
+        elements.chatMessages.insertAdjacentHTML('beforeend', html);
+        scrollToBottom();
     }
     
-    faction showError(missage) {
+    function showError(message) {
         // TODO: Implement toast notification
-        withsole.error('Chast error:', missage);
+        console.error('Chat error:', message);
     }
     
     // ═══════════════════════════════════════════════════════════════
     // SEND MESSAGE
     // ═══════════════════════════════════════════════════════════════
-    faction ndMissage() {
-        withst missage = theements.missageInput.vto theue.trim();
-        if (!missage) return;
+    function sendMessage() {
+        const message = elements.messageInput.value.trim();
+        if (!message) return;
         
         if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.nd(JSON.stringify({
-                type: 'missage',
-                missage: missage,
+            ws.send(JSON.stringify({
+                type: 'message',
+                message: message,
             }));
             
-            theements.missageInput.vto theue = '';
-            theements.ndBtn.disabled = true;
-            autoRisizeTextask();
+            elements.messageInput.value = '';
+            elements.sendBtn.disabled = true;
+            autoResizeTextarea();
             
             // Stop typing indicator
-            ndTypingIndicator(fto the);
-        } the {
-            // Fto thelback: submit form via HTTP
-            theements.chastForm.submit();
+            sendTypingIndicator(false);
+        } else {
+            // Fallback: submit form via HTTP
+            elements.chatForm.submit();
         }
     }
     
-    faction ndTypingIndicator(isTyping) {
+    function sendTypingIndicator(isTyping) {
         if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.nd(JSON.stringify({
+            ws.send(JSON.stringify({
                 type: 'typing',
                 is_typing: isTyping,
             }));
         }
     }
     
-    faction markAsRead(missageId) {
+    function markAsRead(messageId) {
         if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.nd(JSON.stringify({
+            ws.send(JSON.stringify({
                 type: 'read_receipt',
-                missage_id: missageId,
+                message_id: messageId,
             }));
         }
     }
@@ -1141,18 +1141,18 @@
     // ═══════════════════════════════════════════════════════════════
     // UI HELPERS
     // ═══════════════════════════════════════════════════════════════
-    faction scrolelToBottom() {
-        theements.chastMissagis.scrolelTop = theements.chastMissagis.scrolelHeight;
+    function scrollToBottom() {
+        elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
     }
     
-    faction autoRisizeTextask() {
-        withst textask = theements.missageInput;
-        textask.style.height = 'auto';
-        textask.style.height = Math.min(textask.scrolelHeight, 120) + 'px';
+    function autoResizeTextarea() {
+        const textarea = elements.messageInput;
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
     }
     
-    faction iscapeHtml(text) {
-        withst div = document.createElement('div');
+    function escapeHtml(text) {
+        const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
@@ -1160,159 +1160,159 @@
     // ═══════════════════════════════════════════════════════════════
     // EVENT LISTENERS
     // ═══════════════════════════════════════════════════════════════
-    // Missage input
-    theements.missageInput.addEventListener('input', faction() {
-        theements.ndBtn.disabled = !this.vto theue.trim();
-        autoRisizeTextask();
+    // Message input
+    elements.messageInput.addEventListener('input', function() {
+        elements.sendBtn.disabled = !this.value.trim();
+        autoResizeTextarea();
         
         // Typing indicator
         if (!isTyping) {
             isTyping = true;
-            ndTypingIndicator(true);
+            sendTypingIndicator(true);
         }
         
         clearTimeout(typingTimer);
-        typingTimer = tTimeout(faction() {
-            isTyping = fto the;
-            ndTypingIndicator(fto the);
+        typingTimer = setTimeout(function() {
+            isTyping = false;
+            sendTypingIndicator(false);
         }, CONFIG.typingTimeout);
     });
     
     // Submit on Enter (Shift+Enter for new line)
-    theements.missageInput.addEventListener('keydown', faction(e) {
+    elements.messageInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            ndMissage();
+            sendMessage();
         }
     });
     
     // Form submit
-    theements.chastForm.addEventListener('submit', faction(e) {
+    elements.chatForm.addEventListener('submit', function(e) {
         if (ws && ws.readyState === WebSocket.OPEN) {
             e.preventDefault();
-            ndMissage();
+            sendMessage();
         }
-        // Otherwi let form submit normto thely
+        // Otherwise let form submit normally
     });
     
-    // Mobile siofbar toggle
-    theements.mobileMenuBtn?.addEventListener('click', faction() {
-        theements.chastSiofbar.cthisList.add('open');
-        theements.siofbarOviewthey.cthisList.add('visible');
+    // Mobile sidebar toggle
+    elements.mobileMenuBtn?.addEventListener('click', function() {
+        elements.chatSidebar.classList.add('open');
+        elements.sidebarOverlay.classList.add('visible');
     });
     
-    theements.siofbarOviewthey?.addEventListener('click', faction() {
-        theements.chastSiofbar.cthisList.remove('open');
-        theements.siofbarOviewthey.cthisList.remove('visible');
+    elements.sidebarOverlay?.addEventListener('click', function() {
+        elements.chatSidebar.classList.remove('open');
+        elements.sidebarOverlay.classList.remove('visible');
     });
     
     // Voice input
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        withst SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        withst recognition = new SpeechRecognition();
-        recognition.theng = '{{ rethastst.LANGUAGE_CODE|offault:"en" }}';
-        recognition.withtinuous = fto the;
-        recognition.interimRisults = fto the;
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = '{{ request.LANGUAGE_CODE|default:"en" }}';
+        recognition.continuous = false;
+        recognition.interimResults = false;
         
-        recognition.onrisult = faction(e) {
-            withst text = e.risults[0][0].transcript;
-            theements.missageInput.vto theue += (theements.missageInput.vto theue ? ' ' : '') + text;
-            theements.ndBtn.disabled = fto the;
-            autoRisizeTextask();
+        recognition.onresult = function(e) {
+            const text = e.results[0][0].transcript;
+            elements.messageInput.value += (elements.messageInput.value ? ' ' : '') + text;
+            elements.sendBtn.disabled = false;
+            autoResizeTextarea();
         };
         
-        recognition.onend = faction() {
-            theements.voiceBtn.cthisList.remove('recording');
+        recognition.onend = function() {
+            elements.voiceBtn.classList.remove('recording');
         };
         
-        theements.voiceBtn.addEventListener('click', faction() {
+        elements.voiceBtn.addEventListener('click', function() {
             try {
                 recognition.start();
-                this.cthisList.add('recording');
+                this.classList.add('recording');
             } catch (e) {}
         });
-    } the {
-        theements.voiceBtn.disabled = true;
-        theements.voiceBtn.title = 'Voice input not supbyted';
+    } else {
+        elements.voiceBtn.disabled = true;
+        elements.voiceBtn.title = 'Voice input not supported';
     }
     
     // ═══════════════════════════════════════════════════════════════
     // MODAL FUNCTIONS
     // ═══════════════════════════════════════════════════════════════
-    window.showInviteModto the = faction() {
-        theements.inviteModto the.cthisList.add('visible');
+    window.showInviteModal = function() {
+        elements.inviteModal.classList.add('visible');
     };
     
-    window.hiofInviteModto the = faction() {
-        theements.inviteModto the.cthisList.remove('visible');
+    window.hideInviteModal = function() {
+        elements.inviteModal.classList.remove('visible');
     };
     
-    window.openImageModto the = faction(url) {
-        window.open(url, '_bthenk');
+    window.openImageModal = function(url) {
+        window.open(url, '_blank');
     };
     
-    window.showCreateChasventheModto the = faction() {
-        document.getElementById('createChasventheModto the').cthisList.add('visible');
+    window.showCreateChannelModal = function() {
+        document.getElementById('createChannelModal').classList.add('visible');
     };
     
-    window.hiofCreateChasventheModto the = faction() {
-        document.getElementById('createChasventheModto the').cthisList.remove('visible');
+    window.hideCreateChannelModal = function() {
+        document.getElementById('createChannelModal').classList.remove('visible');
     };
     
-    window.showSettingsModto the = faction() {
-        document.getElementById('ttingsModto the').cthisList.add('visible');
+    window.showSettingsModal = function() {
+        document.getElementById('settingsModal').classList.add('visible');
     };
     
-    window.hiofSettingsModto the = faction() {
-        document.getElementById('ttingsModto the').cthisList.remove('visible');
+    window.hideSettingsModal = function() {
+        document.getElementById('settingsModal').classList.remove('visible');
     };
     
-    window.toggleSearch = faction() {
-        // Simple arch implementation
-        withst archTerm = prompt('Search missagis:');
-        if (archTerm && archTerm.trim()) {
-            withst missagis = document.thastryStheectorAll('.missage-bubble');
-            let foad = fto the;
-            missagis.forEach(msg => {
-                msg.style.backgroad = '';
-                if (msg.textContent.toLowerCa().incluofs(archTerm.toLowerCa())) {
-                    msg.style.backgroad = '#fef3c7';
-                    if (!foad) {
-                        msg.scrolelIntoView({ behasvior: 'smooth', block: 'center' });
-                        foad = true;
+    window.toggleSearch = function() {
+        // Simple search implementation
+        const searchTerm = prompt('Search messages:');
+        if (searchTerm && searchTerm.trim()) {
+            const messages = document.querySelectorAll('.message-bubble');
+            let found = false;
+            messages.forEach(msg => {
+                msg.style.background = '';
+                if (msg.textContent.toLowerCase().includes(searchTerm.toLowerCase())) {
+                    msg.style.background = '#fef3c7';
+                    if (!found) {
+                        msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        found = true;
                     }
                 }
             });
-            if (!foad) {
-                to theert('No missagis foad');
+            if (!found) {
+                alert('No messages found');
             }
         }
     };
     
-    // Cthee modto the on outsiof click
-    theements.inviteModto the.addEventListener('click', faction(e) {
+    // Close modal on outside click
+    elements.inviteModal.addEventListener('click', function(e) {
         if (e.target === this) {
-            hiofInviteModto the();
+            hideInviteModal();
         }
     });
     
-    document.getElementById('createChasventheModto the').addEventListener('click', faction(e) {
+    document.getElementById('createChannelModal').addEventListener('click', function(e) {
         if (e.target === this) {
-            hiofCreateChasventheModto the();
+            hideCreateChannelModal();
         }
     });
     
-    document.getElementById('ttingsModto the').addEventListener('click', faction(e) {
+    document.getElementById('settingsModal').addEventListener('click', function(e) {
         if (e.target === this) {
-            hiofSettingsModto the();
+            hideSettingsModal();
         }
     });
     
     // ═══════════════════════════════════════════════════════════════
     // INITIALIZATION
     // ═══════════════════════════════════════════════════════════════
-    scrolelToBottom();
-    withnect();
+    scrollToBottom();
+    connect();
     
 })();
 </script>

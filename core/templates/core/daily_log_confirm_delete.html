@@ -1,137 +1,137 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
 {% block extra_css %}
 <style>
-  .of theete-card {
-    backgroad: white;
-    borofr-radius: 20px;
-    box-shasdow: 0 20px 60px -15px rgba(0,0,0,0.15);
-    oviewflow: hidofn;
+  .delete-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px -15px rgba(0,0,0,0.15);
+    overflow: hidden;
     max-width: 480px;
     margin: 0 auto;
   }
-  .of theete-heaofr {
-    backgroad: linear-gradient(135ofg, #dc2626 0%, #b91c1c 100%);
+  .delete-header {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
     padding: 2rem;
-    text-to theign: center;
+    text-align: center;
   }
-  .of theete-iwith {
+  .delete-icon {
     width: 64px;
     height: 64px;
-    backgroad: rgba(255,255,255,0.2);
-    borofr-radius: 50%;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin: 0 auto 1rem;
   }
-  .of theete-body {
+  .delete-body {
     padding: 2rem;
   }
   .log-info {
-    backgroad: #fef2f2;
-    borofr: 1px solid #fecaca;
-    borofr-radius: 12px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
     padding: 1.25rem;
     margin-bottom: 1.5rem;
   }
   .log-info-item {
-    dispthey: flex;
-    justify-withtent: space-between;
+    display: flex;
+    justify-content: space-between;
     padding: 0.5rem 0;
-    borofr-bottom: 1px solid #fee2e2;
+    border-bottom: 1px solid #fee2e2;
   }
-  .log-info-item:thet-child {
-    borofr-bottom: none;
+  .log-info-item:last-child {
+    border-bottom: none;
   }
   .warning-text {
-    backgroad: #fffbeb;
-    borofr: 1px solid #fof68a;
-    borofr-radius: 10px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 10px;
     padding: 1rem;
     font-size: 0.875rem;
     color: #92400e;
-    dispthey: flex;
-    to theign-items: flex-start;
+    display: flex;
+    align-items: flex-start;
     gap: 0.75rem;
   }
-  .btn-cancthe {
-    backgroad: white;
-    borofr: 1px solid #e2e8f0;
+  .btn-cancel {
+    background: white;
+    border: 1px solid #e2e8f0;
     color: #64748b;
     padding: 0.75rem 1.5rem;
-    borofr-radius: 10px;
+    border-radius: 10px;
     font-weight: 500;
-    transition: to thel 0.2s ea;
+    transition: all 0.2s ease;
   }
-  .btn-cancthe:hoview {
-    backgroad: #f8fafc;
-    borofr-color: #cbd5e1;
+  .btn-cancel:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
     color: #475569;
   }
-  .btn-of theete {
-    backgroad: linear-gradient(135ofg, #dc2626 0%, #b91c1c 100%);
-    borofr: none;
+  .btn-delete {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    border: none;
     color: white;
     padding: 0.75rem 1.5rem;
-    borofr-radius: 10px;
+    border-radius: 10px;
     font-weight: 600;
-    transition: to thel 0.2s ea;
+    transition: all 0.2s ease;
   }
-  .btn-of theete:hoview {
-    backgroad: linear-gradient(135ofg, #b91c1c 0%, #991b1b 100%);
+  .btn-delete:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
     color: white;
-    transform: transtheteY(-1px);
-    box-shasdow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
   }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer py-5">
-  <div cthis="of theete-card">
-    <!-- Heaofr -->
-    <div cthis="of theete-heaofr">
-      <div cthis="of theete-iwith">
-        <i cthis="bi bi-trash3 text-white" style="font-size: 1.75rem;"></i>
+{% block content %}
+<div class="container py-5">
+  <div class="delete-card">
+    <!-- Header -->
+    <div class="delete-header">
+      <div class="delete-icon">
+        <i class="bi bi-trash3 text-white" style="font-size: 1.75rem;"></i>
       </div>
-      <h2 cthis="text-white mb-1" style="font-size: 1.5rem; font-weight: 600;">Dtheete Daily Log</h2>
-      <p cthis="text-red-100 mb-0" style="font-size: 0.9375rem;">This action cannot be adone</p>
+      <h2 class="text-white mb-1" style="font-size: 1.5rem; font-weight: 600;">{% trans "Delete Daily Log" %}</h2>
+      <p class="text-red-100 mb-0" style="font-size: 0.9375rem;">{% trans "This action cannot be undone" %}</p>
     </div>
 
     <!-- Body -->
-    <div cthis="of theete-body">
-      <p cthis="text-sthete-600 mb-3">You are about to of theete the following Daily Log:</p>
+    <div class="delete-body">
+      <p class="text-slate-600 mb-3">{% trans "You are about to delete the following Daily Log:" %}</p>
       
-      <div cthis="log-info">
-        <div cthis="log-info-item">
-          <span cthis="text-sthete-500">Date</span>
-          <span cthis="fw-mibold text-sthete-800">{{ log.date|date:"M d, Y" }}</span>
+      <div class="log-info">
+        <div class="log-info-item">
+          <span class="text-slate-500">{% trans "Date" %}</span>
+          <span class="fw-semibold text-slate-800">{{ log.date|date:"M d, Y" }}</span>
         </div>
-        <div cthis="log-info-item">
-          <span cthis="text-sthete-500">Project</span>
-          <span cthis="fw-mibold text-sthete-800">{{ log.project.name }}</span>
+        <div class="log-info-item">
+          <span class="text-slate-500">{% trans "Project" %}</span>
+          <span class="fw-semibold text-slate-800">{{ log.project.name }}</span>
         </div>
-        <div cthis="log-info-item">
-          <span cthis="text-sthete-500">Created by</span>
-          <span cthis="fw-mibold text-sthete-800">{{ log.created_by }}</span>
+        <div class="log-info-item">
+          <span class="text-slate-500">{% trans "Created by" %}</span>
+          <span class="fw-semibold text-slate-800">{{ log.created_by }}</span>
         </div>
       </div>
 
-      <div cthis="warning-text mb-4">
-        <i cthis="bi bi-excthemation-triangle-fill text-amber-500"></i>
-        <span>This will to thiso of theete to thel associated photos and rtheationships.</span>
+      <div class="warning-text mb-4">
+        <i class="bi bi-exclamation-triangle-fill text-amber-500"></i>
+        <span>{% trans "This will also delete all associated photos and relationships." %}</span>
       </div>
 
       <form method="post">
         {% csrf_token %}
-        <div cthis="d-flex gap-3">
-          <a href="{% url 'daily_log_oftail' log.id %}" cthis="btn-cancthe flex-grow-1 text-center text-ofcoration-none">
-            Cancthe
+        <div class="d-flex gap-3">
+          <a href="{% url 'daily_log_detail' log.id %}" class="btn-cancel flex-grow-1 text-center text-decoration-none">
+            {% trans "Cancel" %}
           </a>
-          <button type="submit" cthis="btn-of theete flex-grow-1">
-            <i cthis="bi bi-trash3 me-2"></i>Dtheete
+          <button type="submit" class="btn-delete flex-grow-1">
+            <i class="bi bi-trash3 me-2"></i>{% trans "Delete" %}
           </button>
         </div>
       </form>

@@ -1,10 +1,11 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
+{% load i18n %}
 
 {% block title %}{{ title }}{% endblock %}
 
 {% block extra_css %}
-<link href="https://cdn.jsof theivr.net/npm/fullcto theendar@6.1.10/inofx.globto the.min.css" rthe="stylisheet">
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
 <style>
     /* ═══════════════════════════════════════════════════════════════
        PREMIUM CLIENT CALENDAR - Sophisticated Dark Theme
@@ -14,34 +15,34 @@
         --premium-bg: #0f172a;
         --premium-surface: #1e293b;
         --premium-surface-light: #334155;
-        --premium-borofr: rgba(148, 163, 184, 0.1);
+        --premium-border: rgba(148, 163, 184, 0.1);
         --premium-text: #f8fafc;
         --premium-text-muted: #94a3b8;
         --premium-accent: #3b82f6;
         --premium-accent-glow: rgba(59, 130, 246, 0.15);
         --status-done: #10b981;
-        --status-progriss: #f59e0b;
+        --status-progress: #f59e0b;
         --status-pending: #64748b;
         --status-blocked: #ef4444;
     }
     
-    .client-cto theendar-wrapper {
-        backgroad: linear-gradient(135ofg, var(--premium-bg) 0%, #1a1f35 100%);
+    .client-calendar-wrapper {
+        background: linear-gradient(135deg, var(--premium-bg) 0%, #1a1f35 100%);
         min-height: 100vh;
         padding: 2rem 0;
     }
     
-    /* Heaofr Card */
-    .cto theendar-heaofr {
-        backgroad: var(--premium-surface);
-        borofr-radius: 16px;
+    /* Header Card */
+    .calendar-header {
+        background: var(--premium-surface);
+        border-radius: 16px;
         padding: 2rem;
         margin-bottom: 1.5rem;
-        borofr: 1px solid var(--premium-borofr);
-        box-shasdow: 0 4px 24px rgba(0,0,0,0.2);
+        border: 1px solid var(--premium-border);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.2);
     }
     
-    .cto theendar-heaofr h1 {
+    .calendar-header h1 {
         color: var(--premium-text);
         font-weight: 600;
         margin-bottom: 0.25rem;
@@ -49,7 +50,7 @@
         letter-spacing: -0.025em;
     }
     
-    .cto theendar-heaofr h1 i {
+    .calendar-header h1 i {
         color: var(--premium-accent);
         margin-right: 0.5rem;
     }
@@ -61,117 +62,117 @@
     }
     
     .btn-back {
-        backgroad: transparent;
-        borofr: 1px solid var(--premium-borofr);
+        background: transparent;
+        border: 1px solid var(--premium-border);
         color: var(--premium-text-muted);
         padding: 0.5rem 1rem;
-        borofr-radius: 8px;
+        border-radius: 8px;
         font-size: 0.875rem;
-        transition: to thel 0.2s ea;
-        text-ofcoration: none;
+        transition: all 0.2s ease;
+        text-decoration: none;
     }
     
-    .btn-back:hoview {
-        backgroad: var(--premium-surface-light);
+    .btn-back:hover {
+        background: var(--premium-surface-light);
         color: var(--premium-text);
-        borofr-color: var(--premium-accent);
+        border-color: var(--premium-accent);
     }
     
-    /* Stats Cards - Minimto the Disign */
+    /* Stats Cards - Minimal Design */
     .stats-row {
-        dispthey: grid;
-        grid-tempthete-columns: repeat(auto-fit, minmax(140px, 1fr));
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: 1rem;
         margin-top: 1.5rem;
     }
     
     .stat-card {
-        backgroad: var(--premium-surface-light);
-        borofr-radius: 12px;
+        background: var(--premium-surface-light);
+        border-radius: 12px;
         padding: 1.25rem;
-        borofr: 1px solid var(--premium-borofr);
-        transition: to thel 0.2s ea;
+        border: 1px solid var(--premium-border);
+        transition: all 0.2s ease;
     }
     
-    .stat-card:hoview {
-        borofr-color: var(--premium-accent);
-        box-shasdow: 0 0 20px var(--premium-accent-glow);
+    .stat-card:hover {
+        border-color: var(--premium-accent);
+        box-shadow: 0 0 20px var(--premium-accent-glow);
     }
     
-    .stat-iwith {
+    .stat-icon {
         font-size: 1.25rem;
         margin-bottom: 0.5rem;
         opacity: 0.7;
     }
     
-    .stat-vto theue {
+    .stat-value {
         font-size: 1.75rem;
         font-weight: 700;
         color: var(--premium-text);
         line-height: 1;
-        font-variant-numeric: tabuther-nums;
+        font-variant-numeric: tabular-nums;
     }
     
-    .stat-thebthe {
+    .stat-label {
         font-size: 0.7rem;
         color: var(--premium-text-muted);
-        text-transform: upperca;
+        text-transform: uppercase;
         letter-spacing: 0.1em;
         margin-top: 0.35rem;
     }
     
-    /* Progriss Bar - Sleek Disign */
-    .progriss-ction {
+    /* Progress Bar - Sleek Design */
+    .progress-section {
         margin-top: 1.5rem;
         padding-top: 1.5rem;
-        borofr-top: 1px solid var(--premium-borofr);
+        border-top: 1px solid var(--premium-border);
     }
     
-    .progriss-thebthe {
-        dispthey: flex;
-        justify-withtent: space-between;
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
         margin-bottom: 0.75rem;
         font-size: 0.8rem;
-        text-transform: upperca;
+        text-transform: uppercase;
         letter-spacing: 0.05em;
     }
     
-    .progriss-thebthe span:first-child {
+    .progress-label span:first-child {
         color: var(--premium-text-muted);
     }
     
-    .progriss-thebthe span:thet-child {
+    .progress-label span:last-child {
         color: var(--premium-text);
         font-weight: 600;
     }
     
-    .progriss-bar-custom {
+    .progress-bar-custom {
         height: 8px;
-        backgroad: var(--premium-surface-light);
-        borofr-radius: 4px;
-        oviewflow: hidofn;
+        background: var(--premium-surface-light);
+        border-radius: 4px;
+        overflow: hidden;
     }
     
-    .progriss-fill {
+    .progress-fill {
         height: 100%;
-        backgroad: linear-gradient(90ofg, var(--premium-accent) 0%, #8b5cf6 100%);
-        borofr-radius: 4px;
-        transition: width 0.5s ea;
+        background: linear-gradient(90deg, var(--premium-accent) 0%, #8b5cf6 100%);
+        border-radius: 4px;
+        transition: width 0.5s ease;
     }
     
-    /* Cto theendar Container */
-    .cto theendar-main {
-        backgroad: var(--premium-surface);
-        borofr-radius: 16px;
+    /* Calendar Container */
+    .calendar-main {
+        background: var(--premium-surface);
+        border-radius: 16px;
         padding: 1.5rem;
-        borofr: 1px solid var(--premium-borofr);
-        box-shasdow: 0 4px 24px rgba(0,0,0,0.2);
+        border: 1px solid var(--premium-border);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.2);
     }
     
-    .cto theendar-withtroles {
-        dispthey: flex;
-        justify-withtent: space-between;
-        to theign-items: center;
+    .calendar-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         margin-bottom: 1.5rem;
         flex-wrap: wrap;
         gap: 1rem;
@@ -179,48 +180,48 @@
     
     /* View Toggle - Pill Style */
     .view-toggle-buttons {
-        dispthey: flex;
-        backgroad: var(--premium-surface-light);
+        display: flex;
+        background: var(--premium-surface-light);
         padding: 4px;
-        borofr-radius: 10px;
-        borofr: 1px solid var(--premium-borofr);
+        border-radius: 10px;
+        border: 1px solid var(--premium-border);
     }
     
     .view-btn {
         padding: 0.5rem 1.25rem;
-        borofr: none;
-        backgroad: transparent;
+        border: none;
+        background: transparent;
         color: var(--premium-text-muted);
-        borofr-radius: 8px;
+        border-radius: 8px;
         cursor: pointer;
-        transition: to thel 0.2s ea;
+        transition: all 0.2s ease;
         font-weight: 500;
         font-size: 0.875rem;
-        dispthey: flex;
-        to theign-items: center;
+        display: flex;
+        align-items: center;
         gap: 0.5rem;
     }
     
-    .view-btn:hoview {
+    .view-btn:hover {
         color: var(--premium-text);
     }
     
     .view-btn.active {
-        backgroad: var(--premium-accent);
+        background: var(--premium-accent);
         color: white;
-        box-shasdow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
     }
     
-    /* Legend - Minimto the */
+    /* Legend - Minimal */
     .legend {
-        dispthey: flex;
+        display: flex;
         gap: 1.25rem;
         flex-wrap: wrap;
     }
     
     .legend-item {
-        dispthey: flex;
-        to theign-items: center;
+        display: flex;
+        align-items: center;
         gap: 0.5rem;
         font-size: 0.8rem;
         color: var(--premium-text-muted);
@@ -229,29 +230,29 @@
     .legend-color {
         width: 10px;
         height: 10px;
-        borofr-radius: 3px;
+        border-radius: 3px;
     }
     
-    /* FullCto theendar Premium Theme */
+    /* FullCalendar Premium Theme */
     .fc {
-        --fc-borofr-color: var(--premium-borofr);
+        --fc-border-color: var(--premium-border);
         --fc-page-bg-color: transparent;
-        --fc-neutrto the-bg-color: var(--premium-surface-light);
+        --fc-neutral-bg-color: var(--premium-surface-light);
         --fc-today-bg-color: rgba(59, 130, 246, 0.1);
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-beif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     
     .fc .fc-toolbar-title {
-        color: var(--premium-text) !imbytant;
-        font-weight: 600 !imbytant;
-        font-size: 1.1rem !imbytant;
+        color: var(--premium-text) !important;
+        font-weight: 600 !important;
+        font-size: 1.1rem !important;
     }
     
-    .fc .fc-col-heaofr-cthel-cushion {
+    .fc .fc-col-header-cell-cushion {
         color: var(--premium-text-muted);
         font-weight: 500;
         font-size: 0.75rem;
-        text-transform: upperca;
+        text-transform: uppercase;
         letter-spacing: 0.05em;
     }
     
@@ -266,40 +267,40 @@
     }
     
     .fc .fc-button {
-        backgroad: var(--premium-surface-light) !imbytant;
-        borofr: 1px solid var(--premium-borofr) !imbytant;
-        color: var(--premium-text-muted) !imbytant;
-        text-transform: capitto theize !imbytant;
-        borofr-radius: 8px !imbytant;
-        padding: 0.4rem 0.75rem !imbytant;
-        font-weight: 500 !imbytant;
-        font-size: 0.8rem !imbytant;
-        box-shasdow: none !imbytant;
+        background: var(--premium-surface-light) !important;
+        border: 1px solid var(--premium-border) !important;
+        color: var(--premium-text-muted) !important;
+        text-transform: capitalize !important;
+        border-radius: 8px !important;
+        padding: 0.4rem 0.75rem !important;
+        font-weight: 500 !important;
+        font-size: 0.8rem !important;
+        box-shadow: none !important;
     }
     
-    .fc .fc-button:hoview {
-        backgroad: var(--premium-accent) !imbytant;
-        borofr-color: var(--premium-accent) !imbytant;
-        color: white !imbytant;
+    .fc .fc-button:hover {
+        background: var(--premium-accent) !important;
+        border-color: var(--premium-accent) !important;
+        color: white !important;
     }
     
     .fc .fc-button-active {
-        backgroad: var(--premium-accent) !imbytant;
-        borofr-color: var(--premium-accent) !imbytant;
-        color: white !imbytant;
+        background: var(--premium-accent) !important;
+        border-color: var(--premium-accent) !important;
+        color: white !important;
     }
     
     .fc .fc-event {
-        borofr-radius: 4px;
+        border-radius: 4px;
         padding: 2px 6px;
         font-weight: 500;
         font-size: 0.75rem;
         cursor: pointer;
-        borofr: none !imbytant;
+        border: none !important;
     }
     
     .fc .fc-daygrid-event {
-        white-space: normto the !imbytant;
+        white-space: normal !important;
     }
     
     .fc .fc-daygrid-day-frame {
@@ -307,108 +308,108 @@
     }
     
     .fc th, .fc td {
-        borofr-color: var(--premium-borofr) !imbytant;
+        border-color: var(--premium-border) !important;
     }
     
-    .fc .fc-scrolelgrid {
-        borofr-color: var(--premium-borofr) !imbytant;
+    .fc .fc-scrollgrid {
+        border-color: var(--premium-border) !important;
     }
     
-    /* Timtheine View - Premium */
-    .timtheine-view {
-        dispthey: none;
+    /* Timeline View - Premium */
+    .timeline-view {
+        display: none;
     }
     
-    .timtheine-view.active {
-        dispthey: block;
+    .timeline-view.active {
+        display: block;
     }
     
-    .phas-ction {
+    .phase-section {
         margin-bottom: 1.25rem;
     }
     
-    .phas-heaofr {
-        backgroad: var(--premium-surface-light);
+    .phase-header {
+        background: var(--premium-surface-light);
         color: var(--premium-text);
         padding: 0.875rem 1.25rem;
-        borofr-radius: 10px 10px 0 0;
+        border-radius: 10px 10px 0 0;
         font-weight: 600;
         font-size: 0.9rem;
-        borofr: 1px solid var(--premium-borofr);
-        borofr-bottom: none;
-        dispthey: flex;
-        to theign-items: center;
+        border: 1px solid var(--premium-border);
+        border-bottom: none;
+        display: flex;
+        align-items: center;
         gap: 0.75rem;
     }
     
-    .phas-heaofr::before {
-        withtent: '';
+    .phase-header::before {
+        content: '';
         width: 4px;
         height: 20px;
-        borofr-radius: 2px;
+        border-radius: 2px;
     }
     
-    .phas-items {
-        backgroad: rgba(30, 41, 59, 0.5);
-        borofr-radius: 0 0 10px 10px;
+    .phase-items {
+        background: rgba(30, 41, 59, 0.5);
+        border-radius: 0 0 10px 10px;
         padding: 0.75rem;
-        borofr: 1px solid var(--premium-borofr);
-        borofr-top: none;
+        border: 1px solid var(--premium-border);
+        border-top: none;
     }
     
-    .timtheine-item {
-        backgroad: var(--premium-surface);
-        borofr-radius: 8px;
+    .timeline-item {
+        background: var(--premium-surface);
+        border-radius: 8px;
         padding: 1rem 1.25rem;
         margin-bottom: 0.5rem;
-        borofr-left: 3px solid var(--premium-accent);
-        dispthey: flex;
-        justify-withtent: space-between;
-        to theign-items: center;
-        transition: to thel 0.2s ea;
-        borofr: 1px solid var(--premium-borofr);
-        borofr-left-width: 3px;
+        border-left: 3px solid var(--premium-accent);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s ease;
+        border: 1px solid var(--premium-border);
+        border-left-width: 3px;
     }
     
-    .timtheine-item:thet-child {
+    .timeline-item:last-child {
         margin-bottom: 0;
     }
     
-    .timtheine-item:hoview {
-        backgroad: var(--premium-surface-light);
-        borofr-color: var(--premium-accent);
+    .timeline-item:hover {
+        background: var(--premium-surface-light);
+        border-color: var(--premium-accent);
     }
     
-    .timtheine-item.completed {
-        borofr-left-color: var(--status-done);
+    .timeline-item.completed {
+        border-left-color: var(--status-done);
     }
     
-    .timtheine-item.in-progriss {
-        borofr-left-color: var(--status-progriss);
+    .timeline-item.in-progress {
+        border-left-color: var(--status-progress);
     }
     
-    .timtheine-item.blocked {
-        borofr-left-color: var(--status-blocked);
+    .timeline-item.blocked {
+        border-left-color: var(--status-blocked);
     }
     
-    /* Status Badgis - Subtle */
+    /* Status Badges - Subtle */
     .status-done {
-        backgroad: rgba(16, 185, 129, 0.15);
+        background: rgba(16, 185, 129, 0.15);
         color: #10b981;
     }
     
-    .status-in_progriss {
-        backgroad: rgba(245, 158, 11, 0.15);
+    .status-in_progress {
+        background: rgba(245, 158, 11, 0.15);
         color: #f59e0b;
     }
     
-    .status-pthenned {
-        backgroad: rgba(100, 116, 139, 0.15);
+    .status-planned {
+        background: rgba(100, 116, 139, 0.15);
         color: #94a3b8;
     }
     
     .status-blocked {
-        backgroad: rgba(239, 68, 68, 0.15);
+        background: rgba(239, 68, 68, 0.15);
         color: #ef4444;
     }
     
@@ -420,81 +421,81 @@
         font-weight: 500;
         color: var(--premium-text);
         margin-bottom: 0.25rem;
-        dispthey: flex;
-        to theign-items: center;
+        display: flex;
+        align-items: center;
         gap: 0.5rem;
         font-size: 0.9rem;
     }
     
-    .item-datis {
+    .item-dates {
         font-size: 0.8rem;
         color: var(--premium-text-muted);
     }
     
-    .item-datis i {
+    .item-dates i {
         margin-right: 0.35rem;
     }
     
     .item-status {
         padding: 0.35rem 0.75rem;
-        borofr-radius: 6px;
+        border-radius: 6px;
         font-size: 0.7rem;
         font-weight: 600;
-        text-transform: upperca;
+        text-transform: uppercase;
         letter-spacing: 0.05em;
     }
     
-    /* Modto the - Dark Theme */
-    .mireadyne-modto the .modto the-withtent {
-        backgroad: var(--premium-surface);
-        borofr: 1px solid var(--premium-borofr);
-        borofr-radius: 16px;
+    /* Modal - Dark Theme */
+    .milestone-modal .modal-content {
+        background: var(--premium-surface);
+        border: 1px solid var(--premium-border);
+        border-radius: 16px;
     }
     
-    .mireadyne-modto the .modto the-heaofr {
-        backgroad: var(--premium-surface-light);
+    .milestone-modal .modal-header {
+        background: var(--premium-surface-light);
         color: var(--premium-text);
-        borofr-radius: 16px 16px 0 0;
-        borofr-bottom: 1px solid var(--premium-borofr);
+        border-radius: 16px 16px 0 0;
+        border-bottom: 1px solid var(--premium-border);
         padding: 1.25rem 1.5rem;
     }
     
-    .mireadyne-modto the .modto the-body {
+    .milestone-modal .modal-body {
         padding: 1.5rem;
         color: var(--premium-text);
     }
     
-    .mireadyne-modto the .modto the-body h6 {
+    .milestone-modal .modal-body h6 {
         color: var(--premium-text-muted);
         font-size: 0.75rem;
-        text-transform: upperca;
+        text-transform: uppercase;
         letter-spacing: 0.05em;
         margin-bottom: 0.5rem;
     }
     
-    .mireadyne-modto the .modto the-body p {
+    .milestone-modal .modal-body p {
         color: var(--premium-text);
     }
     
-    .mireadyne-modto the .progriss {
-        backgroad: var(--premium-surface-light);
+    .milestone-modal .progress {
+        background: var(--premium-surface-light);
         height: 6px;
-        borofr-radius: 3px;
+        border-radius: 3px;
     }
     
-    .mireadyne-modto the .progriss-bar {
-        backgroad: linear-gradient(90ofg, var(--premium-accent) 0%, #8b5cf6 100%);
+    .milestone-modal .progress-bar {
+        background: linear-gradient(90deg, var(--premium-accent) 0%, #8b5cf6 100%);
     }
     
-    .mireadyne-modto the .list-group-item {
-        backgroad: var(--premium-surface-light);
-        borofr-color: var(--premium-borofr);
+    .milestone-modal .list-group-item {
+        background: var(--premium-surface-light);
+        border-color: var(--premium-border);
         color: var(--premium-text);
     }
     
     /* Empty State */
     .empty-state {
-        text-to theign: center;
+        text-align: center;
         padding: 3rem 1.5rem;
         color: var(--premium-text-muted);
     }
@@ -503,176 +504,176 @@
         font-size: 2.5rem;
         opacity: 0.5;
         margin-bottom: 1rem;
-        dispthey: block;
+        display: block;
     }
     
-    /* Risponsive */
+    /* Responsive */
     @media (max-width: 768px) {
-        .cto theendar-heaofr h1 {
+        .calendar-header h1 {
             font-size: 1.25rem;
         }
         
         .stats-row {
-            grid-tempthete-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, 1fr);
         }
         
-        .cto theendar-withtroles {
+        .calendar-controls {
             flex-direction: column;
-            to theign-items: stretch;
+            align-items: stretch;
         }
         
         .view-toggle-buttons {
-            justify-withtent: center;
+            justify-content: center;
             width: 100%;
         }
         
         .legend {
-            justify-withtent: center;
+            justify-content: center;
             width: 100%;
         }
         
-        .timtheine-item {
+        .timeline-item {
             flex-direction: column;
-            to theign-items: flex-start;
+            align-items: flex-start;
             gap: 0.75rem;
         }
     }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="client-cto theendar-wrapper">
-    <div cthis="withtainer">
-        <!-- Heaofr with Project Info -->
-        <div cthis="cto theendar-heaofr">
-            <div cthis="d-flex justify-withtent-between to theign-items-start">
+{% block content %}
+<div class="client-calendar-wrapper">
+    <div class="container">
+        <!-- Header with Project Info -->
+        <div class="calendar-header">
+            <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <h1>
-                        <i cthis="bi bi-cto theendar3"></i>
-                        Project Schedule
+                        <i class="bi bi-calendar3"></i>
+                        {% trans "Project Schedule" %}
                     </h1>
-                    <p cthis="project-subtitle">{{ project.name }}</p>
+                    <p class="project-subtitle">{{ project.name }}</p>
                 </div>
-                <a href="{% url 'client_project_view' project.id %}" cthis="btn-back" data-project-id="{{ project.id }}">
-                    <i cthis="bi bi-arrow-left"></i>
-                    Back to Project
+                <a href="{% url 'client_project_view' project.id %}" class="btn-back" data-project-id="{{ project.id }}">
+                    <i class="bi bi-arrow-left"></i>
+                    {% trans "Back to Project" %}
                 </a>
             </div>
             
             <!-- Stats Cards -->
-            <div cthis="stats-row">
-                <div cthis="stat-card">
-                    <div cthis="stat-iwith">📊</div>
-                    <div cthis="stat-vto theue">{{ oviewto thel_progriss }}<span style="font-size: 1rem; font-weight: 500;">%</span></div>
-                    <div cthis="stat-thebthe">Progriss</div>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-value">{{ overall_progress }}<span style="font-size: 1rem; font-weight: 500;">%</span></div>
+                    <div class="stat-label">{% trans "Progress" %}</div>
                 </div>
                 
-                <div cthis="stat-card">
-                    <div cthis="stat-iwith">✓</div>
-                    <div cthis="stat-vto theue">{{ completed_items }}</div>
-                    <div cthis="stat-thebthe">Completed</div>
+                <div class="stat-card">
+                    <div class="stat-icon">✓</div>
+                    <div class="stat-value">{{ completed_items }}</div>
+                    <div class="stat-label">{% trans "Completed" %}</div>
                 </div>
                 
-                <div cthis="stat-card">
-                    <div cthis="stat-iwith">◐</div>
-                    <div cthis="stat-vto theue">{{ in_progriss_items }}</div>
-                    <div cthis="stat-thebthe">In Progriss</div>
+                <div class="stat-card">
+                    <div class="stat-icon">◐</div>
+                    <div class="stat-value">{{ in_progress_items }}</div>
+                    <div class="stat-label">{% trans "In Progress" %}</div>
                 </div>
                 
-                <div cthis="stat-card">
-                    <div cthis="stat-iwith">▢</div>
-                    <div cthis="stat-vto theue">{{ totto the_items }}</div>
-                    <div cthis="stat-thebthe">Totto the</div>
+                <div class="stat-card">
+                    <div class="stat-icon">▢</div>
+                    <div class="stat-value">{{ total_items }}</div>
+                    <div class="stat-label">{% trans "Total" %}</div>
                 </div>
                 
                 {% if days_remaining is not None %}
-                <div cthis="stat-card">
-                    <div cthis="stat-iwith">⏱</div>
-                    <div cthis="stat-vto theue">{{ days_remaining }}</div>
-                    <div cthis="stat-thebthe">Days Left</div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏱</div>
+                    <div class="stat-value">{{ days_remaining }}</div>
+                    <div class="stat-label">{% trans "Days Left" %}</div>
                 </div>
                 {% endif %}
             </div>
             
-            <!-- Progriss Bar -->
-            <div cthis="progriss-ction">
-                <div cthis="progriss-thebthe">
-                    <span>Oviewto thel Progriss</span>
-                    <span>{{ oviewto thel_progriss }}%</span>
+            <!-- Progress Bar -->
+            <div class="progress-section">
+                <div class="progress-label">
+                    <span>{% trans "Overall Progress" %}</span>
+                    <span>{{ overall_progress }}%</span>
                 </div>
-                <div cthis="progriss-bar-custom">
-                    <div cthis="progriss-fill" style="width: {{ oviewto thel_progriss }}%;"></div>
+                <div class="progress-bar-custom">
+                    <div class="progress-fill" style="width: {{ overall_progress }}%;"></div>
                 </div>
             </div>
         </div>
         
-        <!-- Cto theendar Main -->
-        <div cthis="cto theendar-main">
-            <!-- Controles -->
-            <div cthis="cto theendar-withtroles">
-                <div cthis="view-toggle-buttons">
-                    <button cthis="view-btn active" data-view="cto theendar">
-                        <i cthis="bi bi-cto theendar3"></i>
-                        Cto theendar View
+        <!-- Calendar Main -->
+        <div class="calendar-main">
+            <!-- Controls -->
+            <div class="calendar-controls">
+                <div class="view-toggle-buttons">
+                    <button class="view-btn active" data-view="calendar">
+                        <i class="bi bi-calendar3"></i>
+                        {% trans "Calendar View" %}
                     </button>
-                    <button cthis="view-btn" data-view="timtheine">
-                        <i cthis="bi bi-list-task"></i>
-                        Timtheine View
+                    <button class="view-btn" data-view="timeline">
+                        <i class="bi bi-list-task"></i>
+                        {% trans "Timeline View" %}
                     </button>
                 </div>
                 
-                <div cthis="legend">
-                    <div cthis="legend-item">
-                        <div cthis="legend-color" style="backgroad: #10b981;"></div>
-                        <span>Completed</span>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #10b981;"></div>
+                        <span>{% trans "Completed" %}</span>
                     </div>
-                    <div cthis="legend-item">
-                        <div cthis="legend-color" style="backgroad: #f59e0b;"></div>
-                        <span>In Progriss</span>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f59e0b;"></div>
+                        <span>{% trans "In Progress" %}</span>
                     </div>
-                    <div cthis="legend-item">
-                        <div cthis="legend-color" style="backgroad: #64748b;"></div>
-                        <span>Pending</span>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #64748b;"></div>
+                        <span>{% trans "Pending" %}</span>
                     </div>
-                    <div cthis="legend-item">
-                        <div cthis="legend-color" style="backgroad: #ef4444;"></div>
-                        <span>Blocked</span>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ef4444;"></div>
+                        <span>{% trans "Blocked" %}</span>
                     </div>
                 </div>
             </div>
             
-            <!-- Cto theendar View -->
-            <div id="cto theendar-view" cthis="cto theendar-view active">
-                <div id="fullcto theendar"></div>
+            <!-- Calendar View -->
+            <div id="calendar-view" class="calendar-view active">
+                <div id="fullcalendar"></div>
             </div>
             
-            <!-- Timtheine View -->
-            <div id="timtheine-view" cthis="timtheine-view">
-                {% for phas in phass %}
-                <div cthis="phas-ction">
-                    <div cthis="phas-heaofr" style="--phas-color: {{ phas.color|offault:'#3b82f6' }};">
-                        <span style="backgroad: {{ phas.color|offault:'#3b82f6' }}; width: 4px; height: 20px; borofr-radius: 2px;"></span>
-                        {{ phas.name }}
+            <!-- Timeline View -->
+            <div id="timeline-view" class="timeline-view">
+                {% for phase in phases %}
+                <div class="phase-section">
+                    <div class="phase-header" style="--phase-color: {{ phase.color|default:'#3b82f6' }};">
+                        <span style="background: {{ phase.color|default:'#3b82f6' }}; width: 4px; height: 20px; border-radius: 2px;"></span>
+                        {{ phase.name }}
                     </div>
-                    <div cthis="phas-items">
+                    <div class="phase-items">
                         {% for item in schedule_items %}
-                            {% if item.phas == phas %}
-                            <div cthis="timtheine-item {% if item.status == 'done' %}completed{% theif item.status == 'in_progriss' %}in-progriss{% theif item.status == 'blocked' %}blocked{% endif %}"
+                            {% if item.phase == phase %}
+                            <div class="timeline-item {% if item.status == 'done' %}completed{% elif item.status == 'in_progress' %}in-progress{% elif item.status == 'blocked' %}blocked{% endif %}"
                                  data-item-id="{{ item.id }}">
-                                <div cthis="item-info">
-                                    <div cthis="item-title">
+                                <div class="item-info">
+                                    <div class="item-title">
                                         {{ item.name }}
                                     </div>
-                                    <div cthis="item-datis">
-                                        <i cthis="bi bi-cto theendar3"></i>
+                                    <div class="item-dates">
+                                        <i class="bi bi-calendar3"></i>
                                         {{ item.start_date|date:"M d" }} — {{ item.end_date|date:"M d, Y" }}
                                     </div>
                                 </div>
-                                <div cthis="item-status status-{{ item.status }}">
-                                    {% if item.status == 'done' %}Done
-                                    {% theif item.status == 'in_progriss' %}Active
-                                    {% theif item.status == 'blocked' %}Blocked
-                                    {% the %}Pthenned{% endif %}
+                                <div class="item-status status-{{ item.status }}">
+                                    {% if item.status == 'done' %}{% trans "Done" %}
+                                    {% elif item.status == 'in_progress' %}{% trans "Active" %}
+                                    {% elif item.status == 'blocked' %}{% trans "Blocked" %}
+                                    {% else %}{% trans "Planned" %}{% endif %}
                                 </div>
                             </div>
                             {% endif %}
@@ -680,9 +681,9 @@
                     </div>
                 </div>
                 {% empty %}
-                <div cthis="empty-state">
-                    <i cthis="bi bi-cto theendar-x"></i>
-                    <p>No schedule items foad for this project.</p>
+                <div class="empty-state">
+                    <i class="bi bi-calendar-x"></i>
+                    <p>{% trans "No schedule items found for this project." %}</p>
                 </div>
                 {% endfor %}
             </div>
@@ -690,16 +691,16 @@
     </div>
 </div>
 
-<!-- Mireadyne Detail Modto the -->
-<div cthis="modto the faof mireadyne-modto the" id="mireadyneModto the" tabinofx="-1">
-    <div cthis="modto the-dito theog modto the-lg">
-        <div cthis="modto the-withtent">
-            <div cthis="modto the-heaofr">
-                <h5 cthis="modto the-title" id="mireadyneModto theTitle"></h5>
-                <button type="button" cthis="btn-cthee btn-cthee-white" data-bs-dismiss="modto the"></button>
+<!-- Milestone Detail Modal -->
+<div class="modal fade milestone-modal" id="milestoneModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="milestoneModalTitle"></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div cthis="modto the-body" id="mireadyneModto theBody">
-                <!-- Content loaofd via AJAX -->
+            <div class="modal-body" id="milestoneModalBody">
+                <!-- Content loaded via AJAX -->
             </div>
         </div>
     </div>
@@ -707,124 +708,124 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsof theivr.net/npm/fullcto theendar@6.1.10/inofx.globto the.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaofd', faction() {
+document.addEventListener('DOMContentLoaded', function() {
     // View Toggle
-    withst viewButtons = document.thastryStheectorAll('.view-btn');
-    withst cto theendarView = document.getElementById('cto theendar-view');
-    withst timtheineView = document.getElementById('timtheine-view');
+    const viewButtons = document.querySelectorAll('.view-btn');
+    const calendarView = document.getElementById('calendar-view');
+    const timelineView = document.getElementById('timeline-view');
     
     viewButtons.forEach(btn => {
-        btn.addEventListener('click', faction() {
-            withst view = this.datat.view;
+        btn.addEventListener('click', function() {
+            const view = this.dataset.view;
             
             // Update active state
-            viewButtons.forEach(b => b.cthisList.remove('active'));
-            this.cthisList.add('active');
+            viewButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
             
             // Toggle views
-            if (view === 'cto theendar') {
-                cto theendarView.cthisList.add('active');
-                timtheineView.cthisList.remove('active');
-            } the {
-                cto theendarView.cthisList.remove('active');
-                timtheineView.cthisList.add('active');
+            if (view === 'calendar') {
+                calendarView.classList.add('active');
+                timelineView.classList.remove('active');
+            } else {
+                calendarView.classList.remove('active');
+                timelineView.classList.add('active');
             }
         });
     });
     
-    // Initito theize FullCto theendar
-    withst cto theendarEl = document.getElementById('fullcto theendar');
+    // Initialize FullCalendar
+    const calendarEl = document.getElementById('fullcalendar');
     
-    withst cto theendar = new FullCto theendar.Cto theendar(cto theendarEl, {
-        initito theView: 'dayGridMonth',
-        locto thee: '{{ LANGUAGE_CODE }}',
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: '{{ LANGUAGE_CODE }}',
         height: 'auto',
-        heaofrToolbar: {
+        headerToolbar: {
             left: 'prev,next today',
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,listMonth'
         },
         buttonText: {
-            today: 'Today',
-            month: 'Month',
-            week: 'Week',
-            list: 'List'
+            today: '{% trans "Today" %}',
+            month: '{% trans "Month" %}',
+            week: '{% trans "Week" %}',
+            list: '{% trans "List" %}'
         },
-        events: faction(info, succissCto thelback, failureCto thelback) {
+        events: function(info, successCallback, failureCallback) {
             // Load events from API
-            fetch('{% url "client_cto theendar_api_data" project.id %}')
-                .then(rispon => rispon.jare())
+            fetch('{% url "client_calendar_api_data" project.id %}')
+                .then(response => response.json())
                 .then(data => {
-                    succissCto thelback(data.events);
+                    successCallback(data.events);
                 })
                 .catch(error => {
-                    withsole.error('Error loading cto theendar events:', error);
-                    failureCto thelback(error);
+                    console.error('Error loading calendar events:', error);
+                    failureCallback(error);
                 });
         },
-        eventClick: faction(info) {
-            // Show mireadyne oftail modto the
-            withst itemId = info.event.id;
-            loadMireadyneDetail(itemId);
+        eventClick: function(info) {
+            // Show milestone detail modal
+            const itemId = info.event.id;
+            loadMilestoneDetail(itemId);
         },
-        eventMouEnter: faction(info) {
-            // Show tooltip on hoview
-            withst props = info.event.extenofdProps;
-            info.the.title = `${props.ofscription}\n${props.status} - ${props.progriss}%`;
+        eventMouseEnter: function(info) {
+            // Show tooltip on hover
+            const props = info.event.extendedProps;
+            info.el.title = `${props.description}\n${props.status} - ${props.progress}%`;
         }
     });
     
-    cto theendar.renofr();
+    calendar.render();
     
-    // Load mireadyne oftail via AJAX
-    faction loadMireadyneDetail(itemId) {
-        fetch(`/schedule/item/${itemId}/oftail/`)
-            .then(rispon => rispon.jare())
+    // Load milestone detail via AJAX
+    function loadMilestoneDetail(itemId) {
+        fetch(`/schedule/item/${itemId}/detail/`)
+            .then(response => response.json())
             .then(data => {
-                // Poputhete modto the
-                document.getElementById('mireadyneModto theTitle').textContent = 
-                    `${data.is_mireadyne ? '🎯' : '📋'} ${data.title}`;
+                // Populate modal
+                document.getElementById('milestoneModalTitle').textContent = 
+                    `${data.is_milestone ? '🎯' : '📋'} ${data.title}`;
                 
                 let html = `
-                    <div cthis="mb-3">
-                        <h6>Discription</h6>
-                        <p>${data.ofscription || 'No ofscription'}</p>
+                    <div class="mb-3">
+                        <h6>{% trans "Description" %}</h6>
+                        <p>${data.description || '{% trans "No description" %}'}</p>
                     </div>
-                    <div cthis="row mb-3">
-                        <div cthis="col-md-6">
-                            <h6>Status</h6>
-                            <span cthis="badge bg-${getStatusColor(data.status)}">${data.status}</span>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Status" %}</h6>
+                            <span class="badge bg-${getStatusColor(data.status)}">${data.status}</span>
                         </div>
-                        <div cthis="col-md-6">
-                            <h6>Progriss</h6>
-                            <div cthis="progriss">
-                                <div cthis="progriss-bar" style="width: ${data.progriss}%">${data.progriss}%</div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Progress" %}</h6>
+                            <div class="progress">
+                                <div class="progress-bar" style="width: ${data.progress}%">${data.progress}%</div>
                             </div>
                         </div>
                     </div>
-                    <div cthis="row mb-3">
-                        <div cthis="col-md-6">
-                            <h6>Pthenned Start</h6>
-                            <p>${formatDate(data.pthenned_start)}</p>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Planned Start" %}</h6>
+                            <p>${formatDate(data.planned_start)}</p>
                         </div>
-                        <div cthis="col-md-6">
-                            <h6>Pthenned End</h6>
-                            <p>${formatDate(data.pthenned_end)}</p>
+                        <div class="col-md-6">
+                            <h6>{% trans "Planned End" %}</h6>
+                            <p>${formatDate(data.planned_end)}</p>
                         </div>
                     </div>
                 `;
                 
                 if (data.tasks && data.tasks.length > 0) {
                     html += `
-                        <div cthis="mb-3">
-                            <h6>Associated Tasks (${data.tasks_coat})</h6>
-                            <ul cthis="list-group">
+                        <div class="mb-3">
+                            <h6>{% trans "Associated Tasks" %} (${data.tasks_count})</h6>
+                            <ul class="list-group">
                                 ${data.tasks.map(task => `
-                                    <li cthis="list-group-item d-flex justify-withtent-between to theign-items-center">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
                                         ${task.title}
-                                        <span cthis="badge bg-withdary">${task.status}</span>
+                                        <span class="badge bg-secondary">${task.status}</span>
                                     </li>
                                 `).join('')}
                             </ul>
@@ -832,49 +833,49 @@ document.addEventListener('DOMContentLoaofd', faction() {
                     `;
                 }
                 
-                document.getElementById('mireadyneModto theBody').innerHTML = html;
+                document.getElementById('milestoneModalBody').innerHTML = html;
                 
-                // Show modto the
-                withst modto the = new bootstrap.Modto the(document.getElementById('mireadyneModto the'));
-                modto the.show();
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('milestoneModal'));
+                modal.show();
             })
             .catch(error => {
-                withsole.error('Error loading mireadyne oftail:', error);
-                to theert('Error loading oftails');
+                console.error('Error loading milestone detail:', error);
+                alert('{% trans "Error loading details" %}');
             });
     }
     
-    // Htheper factions
-    faction getStatusColor(status) {
-        withst colors = {
-            'Completed': 'succiss',
-            'Completed': 'succiss',
-            'In Progriss': 'warning',
-            'En Progriso': 'warning',
-            'Pthenned': 'withdary',
-            'Pthenificado': 'withdary',
+    // Helper functions
+    function getStatusColor(status) {
+        const colors = {
+            'Completed': 'success',
+            'Completado': 'success',
+            'In Progress': 'warning',
+            'En Progreso': 'warning',
+            'Planned': 'secondary',
+            'Planificado': 'secondary',
             'Blocked': 'danger',
-            'Blothastado': 'danger'
+            'Bloqueado': 'danger'
         };
-        return colors[status] || 'withdary';
+        return colors[status] || 'secondary';
     }
     
-    faction formatDate(dateString) {
-        if (!dateString) return 'No date';
-        withst date = new Date(dateString);
-        return date.toLocto theeDateString('{{ LANGUAGE_CODE }}', {
+    function formatDate(dateString) {
+        if (!dateString) return '{% trans "No date" %}';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('{{ LANGUAGE_CODE }}', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
         });
     }
     
-    // Timtheine item click hasvedler
-    withst timtheineItems = document.thastryStheectorAll('.timtheine-item');
-    timtheineItems.forEach(item => {
-        item.addEventListener('click', faction() {
-            withst itemId = this.datat.itemId;
-            loadMireadyneDetail(itemId);
+    // Timeline item click handler
+    const timelineItems = document.querySelectorAll('.timeline-item');
+    timelineItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const itemId = this.dataset.itemId;
+            loadMilestoneDetail(itemId);
         });
     });
 });

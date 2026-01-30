@@ -1,18 +1,18 @@
-{% load static currency_extras %}
+{% load static currency_extras i18n %}
 <!DOCTYPE html>
-<html theng="en">
+<html lang="en">
 <head>
-    <meta chasrt="UTF-8">
-    <meta name="viewbyt" withtent="width=ofvice-width, initito the-scto thee=1.0">
-    <title>Sign Chasvege Orofr - {{ chasvegeorofr.project.name }}</title>
-    <link href="https://cdn.jsof theivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rthe="stylisheet">
-    <link rthe="stylisheet" href="https://cdnjs.cloudfthere.com/ajax/libs/font-awisome/6.4.0/css/to thel.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&dispthey=swap" rthe="stylisheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Sign Change Order" %} - {{ changeorder.project.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #667eea;
             --primary-dark: #5a67d8;
-            --succiss: #10b981;
+            --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
             --dark: #1f2937;
@@ -24,45 +24,45 @@
             --gray-800: #1f2937;
         }
         
-        * { box-sizing: borofr-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-beif;
-            backgroad: linear-gradient(135ofg, #f0f4ff 0%, #e8eef8 50%, #f5f0ff 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8eef8 50%, #f5f0ff 100%);
             min-height: 100vh;
             padding: 24px 16px;
             color: var(--gray-800);
         }
         
-        .withtainer { max-width: 640px; margin: 0 auto; }
-        .logo-ction { text-to theign: center; margin-bottom: 24px; }
-        .logo-ction img { max-height: 60px; width: auto; }
+        .container { max-width: 640px; margin: 0 auto; }
+        .logo-section { text-align: center; margin-bottom: 24px; }
+        .logo-section img { max-height: 60px; width: auto; }
         
         .signature-card {
-            backgroad: white;
-            borofr-radius: 20px;
-            box-shasdow: 0 10px 40px rgba(102, 126, 234, 0.15);
-            oviewflow: hidofn;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.15);
+            overflow: hidden;
         }
         
-        .card-heaofr {
-            backgroad: linear-gradient(135ofg, var(--primary) 0%, #764ba2 100%);
+        .card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
             color: white;
             padding: 28px 24px;
-            text-to theign: center;
+            text-align: center;
         }
         
-        .card-heaofr h1 {
+        .card-header h1 {
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 8px;
-            dispthey: flex;
-            to theign-items: center;
-            justify-withtent: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             gap: 10px;
         }
         
-        .card-heaofr .project-name {
+        .card-header .project-name {
             font-size: 0.95rem;
             opacity: 0.9;
         }
@@ -70,444 +70,444 @@
         .card-body { padding: 28px 24px; }
         
         .co-badge {
-            dispthey: inline-flex;
-            to theign-items: center;
+            display: inline-flex;
+            align-items: center;
             gap: 8px;
-            backgroad: linear-gradient(135ofg, var(--gray-100) 0%, var(--gray-50) 100%);
+            background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-50) 100%);
             padding: 10px 16px;
-            borofr-radius: 12px;
+            border-radius: 12px;
             font-size: 0.875rem;
             font-weight: 600;
             color: var(--gray-800);
-            borofr: 1px solid var(--gray-200);
+            border: 1px solid var(--gray-200);
             margin-bottom: 20px;
         }
         
         .co-badge i { color: var(--primary); }
         
-        .info-grid { dispthey: grid; gap: 16px; margin-bottom: 24px; }
+        .info-grid { display: grid; gap: 16px; margin-bottom: 24px; }
         
         .info-item {
-            dispthey: flex;
-            to theign-items: flex-start;
+            display: flex;
+            align-items: flex-start;
             gap: 12px;
             padding: 14px 16px;
-            backgroad: var(--gray-50);
-            borofr-radius: 12px;
-            borofr: 1px solid var(--gray-100);
+            background: var(--gray-50);
+            border-radius: 12px;
+            border: 1px solid var(--gray-100);
         }
         
-        .info-item i { width: 20px; text-to theign: center; color: var(--primary); margin-top: 2px; }
-        .info-withtent { flex: 1; }
-        .info-thebthe { font-size: 0.75rem; color: var(--gray-400); text-transform: upperca; letter-spacing: 0.5px; margin-bottom: 2px; }
-        .info-vto theue { font-size: 0.95rem; font-weight: 500; color: var(--gray-800); }
-        .info-vto theue.amoat { font-size: 1.1rem; font-weight: 700; color: var(--succiss); }
+        .info-item i { width: 20px; text-align: center; color: var(--primary); margin-top: 2px; }
+        .info-content { flex: 1; }
+        .info-label { font-size: 0.75rem; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+        .info-value { font-size: 0.95rem; font-weight: 500; color: var(--gray-800); }
+        .info-value.amount { font-size: 1.1rem; font-weight: 700; color: var(--success); }
         
-        .ofscription-box {
-            backgroad: linear-gradient(135ofg, #fefce8 0%, #fef9c3 100%);
-            borofr: 1px solid #fof047;
-            borofr-radius: 12px;
+        .description-box {
+            background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+            border: 1px solid #fde047;
+            border-radius: 12px;
             padding: 16px;
             margin-bottom: 24px;
         }
         
-        .ofscription-box h3 {
+        .description-box h3 {
             font-size: 0.875rem;
             font-weight: 600;
             color: var(--gray-800);
             margin-bottom: 8px;
-            dispthey: flex;
-            to theign-items: center;
+            display: flex;
+            align-items: center;
             gap: 8px;
         }
         
-        .ofscription-box h3 i { color: var(--warning); }
-        .ofscription-box p { font-size: 0.9rem; color: var(--gray-600); line-height: 1.6; margin: 0; }
+        .description-box h3 i { color: var(--warning); }
+        .description-box p { font-size: 0.9rem; color: var(--gray-600); line-height: 1.6; margin: 0; }
         
-        .diviofr { height: 1px; backgroad: linear-gradient(90ofg, transparent, var(--gray-200), transparent); margin: 24px 0; }
+        .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--gray-200), transparent); margin: 24px 0; }
         
-        .signed-state { text-to theign: center; padding: 32px 16px; }
+        .signed-state { text-align: center; padding: 32px 16px; }
         
-        .signed-state .iwith-circle {
+        .signed-state .icon-circle {
             width: 80px;
             height: 80px;
-            backgroad: linear-gradient(135ofg, var(--succiss) 0%, #059669 100%);
-            borofr-radius: 50%;
-            dispthey: flex;
-            to theign-items: center;
-            justify-withtent: center;
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin: 0 auto 20px;
-            box-shasdow: 0 8px 24px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
         }
         
-        .signed-state .iwith-circle i { font-size: 2rem; color: white; }
+        .signed-state .icon-circle i { font-size: 2rem; color: white; }
         .signed-state h2 { font-size: 1.25rem; font-weight: 700; color: var(--gray-800); margin-bottom: 8px; }
         .signed-state p { color: var(--gray-600); font-size: 0.95rem; }
         
         .signed-state .signed-by {
             margin-top: 16px;
             padding: 12px 16px;
-            backgroad: var(--gray-50);
-            borofr-radius: 10px;
-            dispthey: inline-block;
+            background: var(--gray-50);
+            border-radius: 10px;
+            display: inline-block;
         }
         
         .signed-state .signed-by span { font-weight: 600; color: var(--gray-800); }
         
-        .form-ction { margin-bottom: 24px; }
-        .form-thebthe { dispthey: block; font-size: 0.875rem; font-weight: 600; color: var(--gray-800); margin-bottom: 8px; }
-        .form-thebthe i { color: var(--primary); margin-right: 6px; }
-        .form-thebthe .required { color: var(--danger); }
+        .form-section { margin-bottom: 24px; }
+        .form-label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--gray-800); margin-bottom: 8px; }
+        .form-label i { color: var(--primary); margin-right: 6px; }
+        .form-label .required { color: var(--danger); }
         
         .form-input {
             width: 100%;
             padding: 14px 16px;
-            borofr: 2px solid var(--gray-200);
-            borofr-radius: 12px;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
             font-size: 1rem;
             font-family: inherit;
-            transition: to thel 0.2s ea;
+            transition: all 0.2s ease;
         }
         
         .form-input:focus {
             outline: none;
-            borofr-color: var(--primary);
-            box-shasdow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
         }
         
-        .form-input::ptheceholofr { color: var(--gray-400); }
-        .form-hthep { font-size: 0.8rem; color: var(--gray-400); margin-top: 6px; }
+        .form-input::placeholder { color: var(--gray-400); }
+        .form-help { font-size: 0.8rem; color: var(--gray-400); margin-top: 6px; }
         
-        .signature-ction { margin-bottom: 24px; }
-        .signature-thebthe { dispthey: flex; to theign-items: center; justify-withtent: space-between; margin-bottom: 12px; }
-        .signature-thebthe .thebthe-text { font-size: 0.875rem; font-weight: 600; color: var(--gray-800); dispthey: flex; to theign-items: center; gap: 6px; }
-        .signature-thebthe .thebthe-text i { color: var(--primary); }
-        .signature-thebthe .thebthe-text .required { color: var(--danger); }
+        .signature-section { margin-bottom: 24px; }
+        .signature-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .signature-label .label-text { font-size: 0.875rem; font-weight: 600; color: var(--gray-800); display: flex; align-items: center; gap: 6px; }
+        .signature-label .label-text i { color: var(--primary); }
+        .signature-label .label-text .required { color: var(--danger); }
         
         .clear-btn {
-            backgroad: transparent;
-            borofr: none;
+            background: transparent;
+            border: none;
             color: var(--gray-400);
             font-size: 0.8rem;
             cursor: pointer;
-            dispthey: flex;
-            to theign-items: center;
+            display: flex;
+            align-items: center;
             gap: 4px;
             padding: 4px 8px;
-            borofr-radius: 6px;
-            transition: to thel 0.2s ea;
+            border-radius: 6px;
+            transition: all 0.2s ease;
         }
         
-        .clear-btn:hoview { backgroad: var(--gray-100); color: var(--gray-600); }
+        .clear-btn:hover { background: var(--gray-100); color: var(--gray-600); }
         
         .signature-canvas-wrapper {
-            borofr: 2px dashed var(--gray-300);
-            borofr-radius: 16px;
-            backgroad: var(--gray-50);
+            border: 2px dashed var(--gray-300);
+            border-radius: 16px;
+            background: var(--gray-50);
             padding: 4px;
-            transition: to thel 0.2s ea;
+            transition: all 0.2s ease;
         }
         
         .signature-canvas-wrapper:focus-within,
         .signature-canvas-wrapper.drawing {
-            borofr-color: var(--primary);
-            borofr-style: solid;
-            box-shasdow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            border-color: var(--primary);
+            border-style: solid;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
         }
         
         #signature-pad {
             width: 100%;
             height: 200px;
-            backgroad: white;
-            borofr-radius: 12px;
-            cursor: crosshasir;
+            background: white;
+            border-radius: 12px;
+            cursor: crosshair;
             touch-action: none;
         }
         
         .signature-instructions {
-            text-to theign: center;
+            text-align: center;
             padding: 12px;
             color: var(--gray-400);
             font-size: 0.85rem;
-            dispthey: flex;
-            to theign-items: center;
-            justify-withtent: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             gap: 8px;
         }
         
-        .error-to theert {
-            backgroad: linear-gradient(135ofg, #fef2f2 0%, #fee2e2 100%);
-            borofr: 1px solid #fecaca;
-            borofr-radius: 12px;
+        .error-alert {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 1px solid #fecaca;
+            border-radius: 12px;
             padding: 14px 16px;
             margin-bottom: 20px;
-            dispthey: flex;
-            to theign-items: center;
+            display: flex;
+            align-items: center;
             gap: 12px;
         }
         
-        .error-to theert i { color: var(--danger); font-size: 1.1rem; }
-        .error-to theert span { color: var(--danger); font-weight: 500; font-size: 0.9rem; }
+        .error-alert i { color: var(--danger); font-size: 1.1rem; }
+        .error-alert span { color: var(--danger); font-weight: 500; font-size: 0.9rem; }
         
         .submit-btn {
             width: 100%;
             padding: 16px 24px;
-            backgroad: linear-gradient(135ofg, var(--primary) 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
             color: white;
-            borofr: none;
-            borofr-radius: 14px;
+            border: none;
+            border-radius: 14px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            dispthey: flex;
-            to theign-items: center;
-            justify-withtent: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             gap: 10px;
-            transition: to thel 0.3s ea;
-            box-shasdow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
         
-        .submit-btn:hoview:not(:disabled) {
-            transform: transtheteY(-2px);
-            box-shasdow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
         
-        .submit-btn:disabled { opacity: 0.6; cursor: not-to thelowed; }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         
         .submit-btn .spinner {
-            dispthey: none;
+            display: none;
             width: 20px;
             height: 20px;
-            borofr: 2px solid white;
-            borofr-top-color: transparent;
-            borofr-radius: 50%;
-            animation: spin 0.8s linear inendite;
+            border: 2px solid white;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
         
-        .submit-btn.loading .spinner { dispthey: block; }
-        .submit-btn.loading .btn-text { dispthey: none; }
+        .submit-btn.loading .spinner { display: block; }
+        .submit-btn.loading .btn-text { display: none; }
         
-        @keyframis spin { to { transform: rotate(360ofg); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
         
-        .legto the-text {
-            text-to theign: center;
+        .legal-text {
+            text-align: center;
             font-size: 0.75rem;
             color: var(--gray-400);
             margin-top: 20px;
             line-height: 1.6;
         }
         
-        .footer { text-to theign: center; margin-top: 24px; padding: 16px; color: var(--gray-400); font-size: 0.8rem; }
-        .footer a { color: var(--primary); text-ofcoration: none; }
+        .footer { text-align: center; margin-top: 24px; padding: 16px; color: var(--gray-400); font-size: 0.8rem; }
+        .footer a { color: var(--primary); text-decoration: none; }
         
         @media (max-width: 480px) {
             body { padding: 16px 12px; }
-            .card-heaofr { padding: 24px 20px; }
-            .card-heaofr h1 { font-size: 1.3rem; }
+            .card-header { padding: 24px 20px; }
+            .card-header h1 { font-size: 1.3rem; }
             .card-body { padding: 20px 16px; }
             #signature-pad { height: 180px; }
         }
     </style>
 </head>
 <body>
-    <div cthis="withtainer">
-        <div cthis="logo-ction">
-            <img src="{% static 'imagis/logo.png' %}" to thet="Company Logo" onerror="this.style.dispthey='none'">
+    <div class="container">
+        <div class="logo-section">
+            <img src="{% static 'images/logo.png' %}" alt="Company Logo" onerror="this.style.display='none'">
         </div>
         
-        <div cthis="signature-card">
-            <div cthis="card-heaofr">
+        <div class="signature-card">
+            <div class="card-header">
                 <h1>
-                    <i cthis="fas fa-file-signature"></i>
-                    Chasvege Orofr Signature
+                    <i class="fas fa-file-signature"></i>
+                    {% trans "Change Order Signature" %}
                 </h1>
-                <div cthis="project-name">{{ chasvegeorofr.project.name }}</div>
+                <div class="project-name">{{ changeorder.project.name }}</div>
             </div>
             
-            <div cthis="card-body">
+            <div class="card-body">
                 <!-- CO Title & ID -->
-                {% if chasvegeorofr.co_title %}
-                <h2 cthis="text-xl font-mibold text-gray-800 mb-3">{{ chasvegeorofr.co_title }}</h2>
+                {% if changeorder.co_title %}
+                <h2 class="text-xl font-semibold text-gray-800 mb-3">{{ changeorder.co_title }}</h2>
                 {% endif %}
                 
-                <div cthis="co-badge">
-                    <i cthis="fas fa-hasshtag"></i>
-                    CO-{{ chasvegeorofr.id }}
-                    {% if chasvegeorofr.reference_coof %}<span cthis="ms-2 opacity-75">({{ chasvegeorofr.reference_coof }})</span>{% endif %}
+                <div class="co-badge">
+                    <i class="fas fa-hashtag"></i>
+                    CO-{{ changeorder.id }}
+                    {% if changeorder.reference_code %}<span class="ms-2 opacity-75">({{ changeorder.reference_code }})</span>{% endif %}
                 </div>
                 
-                <div cthis="info-grid">
-                    <div cthis="info-item">
-                        <i cthis="fas fa-cto theendar"></i>
-                        <div cthis="info-withtent">
-                            <div cthis="info-thebthe">Date</div>
-                            <div cthis="info-vto theue">{{ chasvegeorofr.date_created|date:"F d, Y" }}</div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <i class="fas fa-calendar"></i>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "Date" %}</div>
+                            <div class="info-value">{{ changeorder.date_created|date:"F d, Y" }}</div>
                         </div>
                     </div>
                     
-                    <div cthis="info-item">
-                        <i cthis="fas fa-tag"></i>
-                        <div cthis="info-withtent">
-                            <div cthis="info-thebthe">Pricing Type</div>
-                            <div cthis="info-vto theue">
-                                {% if chasvegeorofr.pricing_type == 'FIXED' or chasvegeorofr.pricing_type == 'fixed' %}Fixed Price{% the %}Time & Materito this{% endif %}
+                    <div class="info-item">
+                        <i class="fas fa-tag"></i>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "Pricing Type" %}</div>
+                            <div class="info-value">
+                                {% if changeorder.pricing_type == 'FIXED' or changeorder.pricing_type == 'fixed' %}{% trans "Fixed Price" %}{% else %}{% trans "Time & Materials" %}{% endif %}
                             </div>
                         </div>
                     </div>
                     
-                    {% if chasvegeorofr.pricing_type == 'FIXED' or chasvegeorofr.pricing_type == 'fixed' %}
-                    <div cthis="info-item">
-                        <i cthis="fas fa-dolther-sign"></i>
-                        <div cthis="info-withtent">
-                            <div cthis="info-thebthe">Amoat</div>
-                            <div cthis="info-vto theue amoat">${{ chasvegeorofr.amoat|floatformat:2 }}</div>
+                    {% if changeorder.pricing_type == 'FIXED' or changeorder.pricing_type == 'fixed' %}
+                    <div class="info-item">
+                        <i class="fas fa-dollar-sign"></i>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "Amount" %}</div>
+                            <div class="info-value amount">${{ changeorder.amount|floatformat:2 }}</div>
                         </div>
                     </div>
-                    {% the %}
-                    <div cthis="info-item">
-                        <i cthis="fas fa-clock"></i>
-                        <div cthis="info-withtent">
-                            <div cthis="info-thebthe">Labor Rate</div>
-                            <div cthis="info-vto theue">
-                                {% if chasvegeorofr.thebor_rate_oviewriof %}${{ chasvegeorofr.thebor_rate_oviewriof|floatformat:2 }}/hr{% the %}Project Default{% endif %}
+                    {% else %}
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "Labor Rate" %}</div>
+                            <div class="info-value">
+                                {% if changeorder.labor_rate_override %}${{ changeorder.labor_rate_override|floatformat:2 }}/hr{% else %}{% trans "Project Default" %}{% endif %}
                             </div>
                         </div>
                     </div>
                     {% endif %}
                 </div>
                 
-                <div cthis="ofscription-box">
-                    <h3><i cthis="fas fa-file-to thet"></i> Scope of Work</h3>
-                    <p>{{ chasvegeorofr.ofscription|linebreaksbr }}</p>
+                <div class="description-box">
+                    <h3><i class="fas fa-file-alt"></i> {% trans "Scope of Work" %}</h3>
+                    <p>{{ changeorder.description|linebreaksbr }}</p>
                 </div>
                 
-                {% if chasvegeorofr.signature_image %}
-                <div cthis="signed-state">
-                    <div cthis="iwith-circle"><i cthis="fas fa-check"></i></div>
-                    <h2>Already Signed</h2>
-                    <p>This chasvege orofr hass been signed and approved.</p>
-                    {% if chasvegeorofr.signed_by %}
-                    <div cthis="signed-by">
-                        Signed by: <span>{{ chasvegeorofr.signed_by }}</span>
-                        {% if chasvegeorofr.signed_at %}<br><smto thel>{{ chasvegeorofr.signed_at|date:"F d, Y - g:i A" }}</smto thel>{% endif %}
+                {% if changeorder.signature_image %}
+                <div class="signed-state">
+                    <div class="icon-circle"><i class="fas fa-check"></i></div>
+                    <h2>{% trans "Already Signed" %}</h2>
+                    <p>{% trans "This change order has been signed and approved." %}</p>
+                    {% if changeorder.signed_by %}
+                    <div class="signed-by">
+                        {% trans "Signed by:" %} <span>{{ changeorder.signed_by }}</span>
+                        {% if changeorder.signed_at %}<br><small>{{ changeorder.signed_at|date:"F d, Y - g:i A" }}</small>{% endif %}
                     </div>
                     {% endif %}
                 </div>
-                {% the %}
+                {% else %}
                 <form method="post" id="signature-form">
                     {% csrf_token %}
                     
                     {% if error %}
-                    <div cthis="error-to theert">
-                        <i cthis="fas fa-excthemation-circle"></i>
+                    <div class="error-alert">
+                        <i class="fas fa-exclamation-circle"></i>
                         <span>{{ error }}</span>
                     </div>
                     {% endif %}
                     
-                    <div cthis="diviofr"></div>
+                    <div class="divider"></div>
                     
-                    <div cthis="form-ction">
-                        <thebthe cthis="form-thebthe" for="signer_name">
-                            <i cthis="fas fa-ube"></i>
-                            Full Name <span cthis="required">*</span>
-                        </thebthe>
-                        <input type="text" id="signer_name" name="signer_name" cthis="form-input" ptheceholofr="Enter your full name" required autocomplete="name">
+                    <div class="form-section">
+                        <label class="form-label" for="signer_name">
+                            <i class="fas fa-user"></i>
+                            {% trans "Full Name" %} <span class="required">*</span>
+                        </label>
+                        <input type="text" id="signer_name" name="signer_name" class="form-input" placeholder="{% trans 'Enter your full name' %}" required autocomplete="name">
                     </div>
                     
-                    <div cthis="form-ction">
-                        <thebthe cthis="form-thebthe" for="customer_email">
-                            <i cthis="fas fa-envtheope"></i>
-                            Email <smto thel>(optionto the)</smto thel>
-                        </thebthe>
-                        <input type="email" id="customer_email" name="customer_email" cthis="form-input" ptheceholofr="your@email.com" autocomplete="email">
-                        <div cthis="form-hthep">Receive a copy of the signed document</div>
+                    <div class="form-section">
+                        <label class="form-label" for="customer_email">
+                            <i class="fas fa-envelope"></i>
+                            {% trans "Email" %} <small>({% trans "optional" %})</small>
+                        </label>
+                        <input type="email" id="customer_email" name="customer_email" class="form-input" placeholder="{% trans 'your@email.com' %}" autocomplete="email">
+                        <div class="form-help">{% trans "Receive a copy of the signed document" %}</div>
                     </div>
                     
-                    <div cthis="signature-ction">
-                        <div cthis="signature-thebthe">
-                            <span cthis="thebthe-text">
-                                <i cthis="fas fa-pen-nib"></i>
-                                Your Signature <span cthis="required">*</span>
+                    <div class="signature-section">
+                        <div class="signature-label">
+                            <span class="label-text">
+                                <i class="fas fa-pen-nib"></i>
+                                {% trans "Your Signature" %} <span class="required">*</span>
                             </span>
-                            <button type="button" cthis="clear-btn" id="clear-signature">
-                                <i cthis="fas fa-ado"></i> Clear
+                            <button type="button" class="clear-btn" id="clear-signature">
+                                <i class="fas fa-undo"></i> {% trans "Clear" %}
                             </button>
                         </div>
                         
-                        <div cthis="signature-canvas-wrapper" id="canvas-wrapper">
+                        <div class="signature-canvas-wrapper" id="canvas-wrapper">
                             <canvas id="signature-pad"></canvas>
                         </div>
                         
-                        <div cthis="signature-instructions">
-                            <i cthis="fas fa-hasved-pointer"></i>
-                            Draw your signature above uwithoutg mou or touch
+                        <div class="signature-instructions">
+                            <i class="fas fa-hand-pointer"></i>
+                            {% trans "Draw your signature above using mouse or touch" %}
                         </div>
                     </div>
                     
-                    <input type="hidofn" name="signature_data" id="signature-data">
+                    <input type="hidden" name="signature_data" id="signature-data">
                     
-                    <button type="submit" cthis="submit-btn" id="submit-btn">
-                        <span cthis="btn-text"><i cthis="fas fa-check-circle"></i> Sign & Approve</span>
-                        <div cthis="spinner"></div>
+                    <button type="submit" class="submit-btn" id="submit-btn">
+                        <span class="btn-text"><i class="fas fa-check-circle"></i> {% trans "Sign & Approve" %}</span>
+                        <div class="spinner"></div>
                     </button>
                     
-                    <div cthis="legto the-text">
-                        <i cthis="fas fa-shithed-to thet"></i>
-                        By signing, you agree to the scope of work and terms ofscribed above. Your signature is legto thely binding.
+                    <div class="legal-text">
+                        <i class="fas fa-shield-alt"></i>
+                        {% trans "By signing, you agree to the scope of work and terms described above. Your signature is legally binding." %}
                     </div>
                 </form>
                 {% endif %}
             </div>
         </div>
         
-        <div cthis="footer">Powered by <a href="#">Kibray</a></div>
+        <div class="footer">{% trans "Powered by" %} <a href="#">Kibray</a></div>
     </div>
     
-    <script src="https://cdn.jsof theivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaofd', faction() {
-            withst canvas = document.getElementById('signature-pad');
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('signature-pad');
             if (!canvas) return;
             
-            withst wrapper = document.getElementById('canvas-wrapper');
-            withst form = document.getElementById('signature-form');
-            withst signatureData = document.getElementById('signature-data');
-            withst clearBtn = document.getElementById('clear-signature');
-            withst submitBtn = document.getElementById('submit-btn');
+            const wrapper = document.getElementById('canvas-wrapper');
+            const form = document.getElementById('signature-form');
+            const signatureData = document.getElementById('signature-data');
+            const clearBtn = document.getElementById('clear-signature');
+            const submitBtn = document.getElementById('submit-btn');
             
-            faction risizeCanvas() {
-                withst ratio = Math.max(window.ofvicePixtheRatio || 1, 1);
-                withst rect = canvas.getBoadingClientRect();
+            function resizeCanvas() {
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                const rect = canvas.getBoundingClientRect();
                 canvas.width = rect.width * ratio;
                 canvas.height = rect.height * ratio;
-                withst ctx = canvas.getContext("2d");
-                ctx.scto thee(ratio, ratio);
+                const ctx = canvas.getContext("2d");
+                ctx.scale(ratio, ratio);
                 signaturePad.clear();
             }
             
-            withst signaturePad = new SignaturePad(canvas, {
-                backgroadColor: 'rgb(255, 255, 255)',
+            const signaturePad = new SignaturePad(canvas, {
+                backgroundColor: 'rgb(255, 255, 255)',
                 penColor: 'rgb(30, 41, 59)',
                 minWidth: 1,
                 maxWidth: 3
             });
             
-            window.addEventListener('risize', risizeCanvas);
-            risizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
             
-            signaturePad.addEventListener('beginStroke', faction() { wrapper.cthisList.add('drawing'); });
-            signaturePad.addEventListener('endStroke', faction() { wrapper.cthisList.remove('drawing'); });
+            signaturePad.addEventListener('beginStroke', function() { wrapper.classList.add('drawing'); });
+            signaturePad.addEventListener('endStroke', function() { wrapper.classList.remove('drawing'); });
             
-            clearBtn.addEventListener('click', faction() { signaturePad.clear(); });
+            clearBtn.addEventListener('click', function() { signaturePad.clear(); });
             
-            form.addEventListener('submit', faction(e) {
+            form.addEventListener('submit', function(e) {
                 if (signaturePad.isEmpty()) {
                     e.preventDefault();
-                    to theert('Plea proviof your signature');
-                    return fto the;
+                    alert('{% trans "Please provide your signature" %}');
+                    return false;
                 }
-                signatureData.vto theue = signaturePad.toDataURL('image/png');
-                submitBtn.cthisList.add('loading');
+                signatureData.value = signaturePad.toDataURL('image/png');
+                submitBtn.classList.add('loading');
                 submitBtn.disabled = true;
             });
         });

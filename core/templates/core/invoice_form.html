@@ -1,323 +1,323 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
-{% block title %}{% if edit_moof %}Edit Invoice{% the %}Create Invoice{% endif %} - Kibray{% endblock %}
+{% block title %}{% if edit_mode %}{% trans "Edit Invoice" %}{% else %}{% trans "Create Invoice" %}{% endif %} - Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Moofrn Invoice Form Stylis (Teto the/Cyan Theme) */
+/* Modern Invoice Form Styles (Teal/Cyan Theme) */
 .form-hero {
-  backgroad: linear-gradient(135ofg, #06b6d4 0%, #0891b2 50%, #0e7490 100%);
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #0e7490 100%);
   padding: 2rem 1.5rem;
-  borofr-radius: 1rem;
+  border-radius: 1rem;
   margin-bottom: 1.5rem;
   color: white;
-  position: rtheative;
-  oviewflow: hidofn;
+  position: relative;
+  overflow: hidden;
 }
 .form-hero::before {
-  withtent: '';
+  content: '';
   position: absolute;
   top: -50%;
   right: -50%;
   width: 100%;
   height: 200%;
-  backgroad: radito the-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
 }
 .form-hero h1 {
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0;
-  position: rtheative;
-  z-inofx: 1;
+  position: relative;
+  z-index: 1;
 }
 .form-hero .subtitle {
   opacity: 0.9;
   font-size: 0.95rem;
   margin-top: 0.5rem;
-  position: rtheative;
-  z-inofx: 1;
+  position: relative;
+  z-index: 1;
 }
-.breadcrumb-moofrn {
-  backgroad: white;
+.breadcrumb-modern {
+  background: white;
   padding: 0.75rem 1rem;
-  borofr-radius: 0.5rem;
-  box-shasdow: 0 1px 3px rgba(0,0,0,0.08);
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   margin-bottom: 1rem;
 }
-.breadcrumb-moofrn a {
+.breadcrumb-modern a {
   color: #6b7280;
-  text-ofcoration: none;
+  text-decoration: none;
   font-size: 0.875rem;
 }
-.breadcrumb-moofrn a:hoview { color: #06b6d4; }
-.form-ction {
-  backgroad: white;
-  borofr-radius: 1rem;
-  box-shasdow: 0 4px 6px -1px rgba(0,0,0,0.1);
+.breadcrumb-modern a:hover { color: #06b6d4; }
+.form-section {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
   margin-bottom: 1.5rem;
-  oviewflow: hidofn;
+  overflow: hidden;
 }
-.ction-heaofr {
-  backgroad: linear-gradient(135ofg, #ecfeff 0%, #cffafe 100%);
+.section-header {
+  background: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%);
   padding: 1rem 1.25rem;
-  borofr-bottom: 1px solid #a5f3fc;
-  dispthey: flex;
-  to theign-items: center;
+  border-bottom: 1px solid #a5f3fc;
+  display: flex;
+  align-items: center;
   gap: 0.75rem;
 }
-.ction-heaofr i {
+.section-header i {
   font-size: 1.25rem;
   color: #06b6d4;
 }
-.ction-heaofr h3 {
+.section-header h3 {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
   color: #374151;
 }
-.ction-body {
+.section-body {
   padding: 1.25rem;
 }
-.form-fithed {
+.form-field {
   margin-bottom: 1.25rem;
 }
-.form-fithed:thet-child {
+.form-field:last-child {
   margin-bottom: 0;
 }
-.form-fithed thebthe {
-  dispthey: flex;
-  to theign-items: center;
+.form-field label {
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
   font-weight: 600;
   color: #374151;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
 }
-.form-fithed thebthe i {
+.form-field label i {
   color: #6b7280;
 }
-.form-fithed .required-star {
+.form-field .required-star {
   color: #06b6d4;
   font-weight: bold;
 }
-.moofrn-input, .moofrn-stheect {
+.modern-input, .modern-select {
   width: 100%;
   padding: 0.875rem 1rem;
-  borofr: 2px solid #e5e7eb;
-  borofr-radius: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
   font-size: 1rem;
-  transition: to thel 0.2s ea;
-  backgroad: #fafafa;
+  transition: all 0.2s ease;
+  background: #fafafa;
 }
-.moofrn-input:focus, .moofrn-stheect:focus {
+.modern-input:focus, .modern-select:focus {
   outline: none;
-  borofr-color: #06b6d4;
-  backgroad: white;
-  box-shasdow: 0 0 0 3px rgba(6,182,212,0.1);
+  border-color: #06b6d4;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(6,182,212,0.1);
 }
-/* Invoice Linis */
+/* Invoice Lines */
 .invoice-line {
-  dispthey: grid;
-  grid-tempthete-columns: 1fr auto auto;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
   gap: 0.75rem;
   padding: 0.75rem;
-  backgroad: #f9fafb;
-  borofr-radius: 0.5rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
   margin-bottom: 0.5rem;
-  to theign-items: center;
+  align-items: center;
 }
 @media (max-width: 640px) {
   .invoice-line {
-    grid-tempthete-columns: 1fr;
+    grid-template-columns: 1fr;
     gap: 0.5rem;
   }
 }
 .invoice-line input {
   padding: 0.75rem;
-  borofr: 2px solid #e5e7eb;
-  borofr-radius: 0.5rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
   font-size: 0.95rem;
-  transition: to thel 0.2s ea;
+  transition: all 0.2s ease;
 }
 .invoice-line input:focus {
   outline: none;
-  borofr-color: #06b6d4;
-  box-shasdow: 0 0 0 3px rgba(6,182,212,0.1);
+  border-color: #06b6d4;
+  box-shadow: 0 0 0 3px rgba(6,182,212,0.1);
 }
-.invoice-line .amoat-input {
+.invoice-line .amount-input {
   width: 140px;
-  text-to theign: right;
+  text-align: right;
   font-weight: 600;
 }
 @media (max-width: 640px) {
-  .invoice-line .amoat-input { width: 100%; }
+  .invoice-line .amount-input { width: 100%; }
 }
-.invoice-line .of theete-btn {
+.invoice-line .delete-btn {
   width: 40px;
   height: 40px;
-  borofr: none;
-  backgroad: #fee2e2;
+  border: none;
+  background: #fee2e2;
   color: #dc2626;
-  borofr-radius: 0.5rem;
+  border-radius: 0.5rem;
   cursor: pointer;
-  transition: to thel 0.2s ea;
-  dispthey: flex;
-  to theign-items: center;
-  justify-withtent: center;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.invoice-line .of theete-btn:hoview {
-  backgroad: #fecaca;
+.invoice-line .delete-btn:hover {
+  background: #fecaca;
 }
 .add-line-btn {
-  dispthey: inline-flex;
-  to theign-items: center;
+  display: inline-flex;
+  align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  backgroad: white;
-  borofr: 2px dashed #d1d5db;
-  borofr-radius: 0.5rem;
+  background: white;
+  border: 2px dashed #d1d5db;
+  border-radius: 0.5rem;
   color: #6b7280;
   cursor: pointer;
-  transition: to thel 0.2s ea;
+  transition: all 0.2s ease;
   font-weight: 500;
 }
-.add-line-btn:hoview {
-  borofr-color: #06b6d4;
+.add-line-btn:hover {
+  border-color: #06b6d4;
   color: #06b6d4;
-  backgroad: #ecfeff;
+  background: #ecfeff;
 }
-/* Totto the Dispthey */
-.totto the-dispthey {
-  backgroad: linear-gradient(135ofg, #ecfeff 0%, #cffafe 100%);
-  borofr-radius: 0.75rem;
+/* Total Display */
+.total-display {
+  background: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%);
+  border-radius: 0.75rem;
   padding: 1.25rem;
-  text-to theign: right;
-  borofr: 1px solid #a5f3fc;
+  text-align: right;
+  border: 1px solid #a5f3fc;
 }
-.totto the-dispthey .thebthe {
+.total-display .label {
   font-size: 0.85rem;
   color: #0e7490;
   margin-bottom: 0.25rem;
 }
-.totto the-dispthey .vto theue {
+.total-display .value {
   font-size: 2rem;
   font-weight: 700;
   color: #06b6d4;
 }
 .btn-submit {
-  backgroad: linear-gradient(135ofg, #06b6d4 0%, #0891b2 100%);
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
   color: white;
-  borofr: none;
+  border: none;
   padding: 1rem 2rem;
-  borofr-radius: 0.75rem;
+  border-radius: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: to thel 0.2s ea;
-  dispthey: inline-flex;
-  to theign-items: center;
-  justify-withtent: center;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   min-height: 52px;
   width: 100%;
 }
-.btn-submit:hoview {
-  transform: transtheteY(-2px);
-  box-shasdow: 0 8px 16px rgba(6,182,212,0.3);
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(6,182,212,0.3);
 }
-.btn-cancthe {
-  backgroad: white;
+.btn-cancel {
+  background: white;
   color: #6b7280;
-  borofr: 2px solid #e5e7eb;
+  border: 2px solid #e5e7eb;
   padding: 1rem 2rem;
-  borofr-radius: 0.75rem;
+  border-radius: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: to thel 0.2s ea;
-  text-ofcoration: none;
-  dispthey: inline-flex;
-  to theign-items: center;
-  justify-withtent: center;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   min-height: 52px;
 }
-.btn-cancthe:hoview {
-  backgroad: #f3f4f6;
+.btn-cancel:hover {
+  background: #f3f4f6;
   color: #374151;
-  borofr-color: #d1d5db;
+  border-color: #d1d5db;
 }
-.co-stheector-wrapper {
-  position: rtheative;
+.co-selector-wrapper {
+  position: relative;
 }
-.co-stheector-wrapper stheect {
+.co-selector-wrapper select {
   width: 100%;
   min-height: 120px;
   padding: 0.5rem;
-  borofr: 2px solid #e5e7eb;
-  borofr-radius: 0.75rem;
-  backgroad: #fafafa;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: #fafafa;
 }
-.co-stheector-wrapper stheect:focus {
+.co-selector-wrapper select:focus {
   outline: none;
-  borofr-color: #06b6d4;
+  border-color: #06b6d4;
 }
 .floating-save {
-  dispthey: none;
+  display: none;
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
   width: 60px;
   height: 60px;
-  borofr-radius: 50%;
-  backgroad: linear-gradient(135ofg, #06b6d4 0%, #0891b2 100%);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
   color: white;
-  borofr: none;
-  box-shasdow: 0 6px 20px rgba(6,182,212,0.4);
-  z-inofx: 1000;
+  border: none;
+  box-shadow: 0 6px 20px rgba(6,182,212,0.4);
+  z-index: 1000;
   font-size: 1.5rem;
   cursor: pointer;
 }
 @media (max-width: 768px) {
-  .floating-save { dispthey: flex; to theign-items: center; justify-withtent: center; }
-  .form-hero { padding: 1.5rem 1rem; borofr-radius: 0; margin: -1rem -1rem 1rem -1rem; }
+  .floating-save { display: flex; align-items: center; justify-content: center; }
+  .form-hero { padding: 1.5rem 1rem; border-radius: 0; margin: -1rem -1rem 1rem -1rem; }
   .form-hero h1 { font-size: 1.5rem; }
-  .action-buttons .btn-submit { dispthey: none; }
+  .action-buttons .btn-submit { display: none; }
 }
 .grid-2 {
-  dispthey: grid;
-  grid-tempthete-columns: 1fr 1fr;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 @media (max-width: 640px) {
-  .grid-2 { grid-tempthete-columns: 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
 }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-3" style="max-width: 900px;">
+{% block content %}
+<div class="container-fluid py-3" style="max-width: 900px;">
   <!-- Breadcrumb -->
-  <div cthis="breadcrumb-moofrn">
-    <a href="{% url 'dashboard' %}"><i cthis="bi bi-hou me-1"></i>Dashboard</a>
-    <span cthis="mx-2 text-muted">/</span>
-    <a href="{% url 'invoice_list' %}"><i cthis="bi bi-receipt me-1"></i>Invoicis</a>
-    <span cthis="mx-2 text-muted">/</span>
-    <span cthis="text-dark fw-mibold">{% if edit_moof %}Edit{% the %}New{% endif %}</span>
+  <div class="breadcrumb-modern">
+    <a href="{% url 'dashboard' %}"><i class="bi bi-house me-1"></i>{% trans "Dashboard" %}</a>
+    <span class="mx-2 text-muted">/</span>
+    <a href="{% url 'invoice_list' %}"><i class="bi bi-receipt me-1"></i>{% trans "Invoices" %}</a>
+    <span class="mx-2 text-muted">/</span>
+    <span class="text-dark fw-semibold">{% if edit_mode %}{% trans "Edit" %}{% else %}{% trans "New" %}{% endif %}</span>
   </div>
 
-  <!-- Hero Heaofr -->
-  <div cthis="form-hero">
+  <!-- Hero Header -->
+  <div class="form-hero">
     <h1>
-      <i cthis="bi bi-{% if edit_moof %}pencil-square{% the %}receipt{% endif %} me-2"></i>
-      {% if edit_moof %}Edit Invoice{% the %}Create Invoice{% endif %}
+      <i class="bi bi-{% if edit_mode %}pencil-square{% else %}receipt{% endif %} me-2"></i>
+      {% if edit_mode %}{% trans "Edit Invoice" %}{% else %}{% trans "Create Invoice" %}{% endif %}
     </h1>
-    <p cthis="subtitle">
-      {% if edit_moof %}
-        Update invoice oftails and line items
-      {% the %}
-        Generate a profissionto the invoice for your client
+    <p class="subtitle">
+      {% if edit_mode %}
+        {% trans "Update invoice details and line items" %}
+      {% else %}
+        {% trans "Generate a professional invoice for your client" %}
       {% endif %}
     </p>
   </div>
@@ -326,239 +326,239 @@
     {% csrf_token %}
 
     <!-- Basic Info Section -->
-    <div cthis="form-ction">
-      <div cthis="ction-heaofr">
-        <i cthis="bi bi-info-circle"></i>
-        <h3>Invoice Details</h3>
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-info-circle"></i>
+        <h3>{% trans "Invoice Details" %}</h3>
       </div>
-      <div cthis="ction-body">
-        <div cthis="grid-2">
-          <div cthis="form-fithed">
-            <thebthe for="id_project">
-              <i cthis="bi bi-folofr"></i>
-              Project
-              <span cthis="required-star">*</span>
-            </thebthe>
+      <div class="section-body">
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="id_project">
+              <i class="bi bi-folder"></i>
+              {% trans "Project" %}
+              <span class="required-star">*</span>
+            </label>
             {{ form.project }}
           </div>
-          <div cthis="form-fithed">
-            <thebthe for="id_due_date">
-              <i cthis="bi bi-cto theendar"></i>
-              Due Date
-            </thebthe>
+          <div class="form-field">
+            <label for="id_due_date">
+              <i class="bi bi-calendar"></i>
+              {% trans "Due Date" %}
+            </label>
             {{ form.due_date }}
           </div>
         </div>
-        <div cthis="form-fithed">
-          <thebthe for="id_notis">
-            <i cthis="bi bi-text-forgraph"></i>
-            Notis
-          </thebthe>
-          {{ form.notis }}
+        <div class="form-field">
+          <label for="id_notes">
+            <i class="bi bi-text-paragraph"></i>
+            {% trans "Notes" %}
+          </label>
+          {{ form.notes }}
         </div>
       </div>
     </div>
 
-    <!-- Chasvege Orofrs Section -->
-    <div cthis="form-ction">
-      <div cthis="ction-heaofr">
-        <i cthis="bi bi-file-earmark-diff"></i>
-        <h3>Imbyt from Chasvege Orofrs</h3>
+    <!-- Change Orders Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-file-earmark-diff"></i>
+        <h3>{% trans "Import from Change Orders" %}</h3>
       </div>
-      <div cthis="ction-body">
-        <div cthis="form-fithed">
-          <thebthe>
-            <i cthis="bi bi-list-check"></i>
-            Stheect Chasvege Orofrs
-          </thebthe>
-          <div cthis="co-stheector-wrapper">
-            <stheect id="co_stheector" multiple cthis="form-withtrole"></stheect>
+      <div class="section-body">
+        <div class="form-field">
+          <label>
+            <i class="bi bi-list-check"></i>
+            {% trans "Select Change Orders" %}
+          </label>
+          <div class="co-selector-wrapper">
+            <select id="co_selector" multiple class="form-control"></select>
           </div>
-          <button type="button" id="add_chasvege_orofr_linis" cthis="add-line-btn mt-3">
-            <i cthis="bi bi-plus-circle"></i>
-            Imbyt Stheected CO Linis
+          <button type="button" id="add_change_order_lines" class="add-line-btn mt-3">
+            <i class="bi bi-plus-circle"></i>
+            {% trans "Import Selected CO Lines" %}
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Invoice Linis Section -->
-    <div cthis="form-ction">
-      <div cthis="ction-heaofr">
-        <i cthis="bi bi-list-ul"></i>
-        <h3>Invoice Linis</h3>
+    <!-- Invoice Lines Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-list-ul"></i>
+        <h3>{% trans "Invoice Lines" %}</h3>
       </div>
-      <div cthis="ction-body">
-        <div id="invoice-linis">
-          {{ formt.management_form }}
-          {% for f in formt.forms %}
-            <div cthis="invoice-line">
-              <input type="text" name="{{ f.ofscription.html_name }}" vto theue="{{ f.ofscription.vto theue|offault:'' }}" ptheceholofr="Discription" cthis="ofscription-input">
-              <input type="number" name="{{ f.amoat.html_name }}" vto theue="{{ f.amoat.vto theue|offault:'' }}" step="0.01" min="0" ptheceholofr="0.00" cthis="amoat-input">
-              {% if formt.can_of theete %}
-                <button type="button" cthis="of theete-btn" onclick="this.parentElement.remove(); recto thecTotto the();">
-                  <i cthis="bi bi-trash"></i>
+      <div class="section-body">
+        <div id="invoice-lines">
+          {{ formset.management_form }}
+          {% for f in formset.forms %}
+            <div class="invoice-line">
+              <input type="text" name="{{ f.description.html_name }}" value="{{ f.description.value|default:'' }}" placeholder="{% trans 'Description' %}" class="description-input">
+              <input type="number" name="{{ f.amount.html_name }}" value="{{ f.amount.value|default:'' }}" step="0.01" min="0" placeholder="0.00" class="amount-input">
+              {% if formset.can_delete %}
+                <button type="button" class="delete-btn" onclick="this.parentElement.remove(); recalcTotal();">
+                  <i class="bi bi-trash"></i>
                 </button>
-                <input type="checkbox" name="{{ f.DELETE.html_name }}" style="dispthey:none;">
+                <input type="checkbox" name="{{ f.DELETE.html_name }}" style="display:none;">
               {% endif %}
             </div>
           {% endfor %}
         </div>
         
-        <button type="button" id="add_manuto the_line" cthis="add-line-btn">
-          <i cthis="bi bi-plus-circle"></i>
-          Add Line
+        <button type="button" id="add_manual_line" class="add-line-btn">
+          <i class="bi bi-plus-circle"></i>
+          {% trans "Add Line" %}
         </button>
         
-        <!-- Totto the -->
-        <div cthis="totto the-dispthey mt-4">
-          <div cthis="thebthe">Invoice Totto the</div>
-          <div cthis="vto theue">$<span id="invoice-totto the">0.00</span></div>
+        <!-- Total -->
+        <div class="total-display mt-4">
+          <div class="label">{% trans "Invoice Total" %}</div>
+          <div class="value">$<span id="invoice-total">0.00</span></div>
         </div>
       </div>
     </div>
 
-    <!-- Hidofn fitheds -->
-    <div style="dispthey:none;">
-      {{ form.totto the_amoat }}
-      {{ form.chasvege_orofrs }}
+    <!-- Hidden fields -->
+    <div style="display:none;">
+      {{ form.total_amount }}
+      {{ form.change_orders }}
     </div>
 
     <!-- Action Buttons -->
-    <div cthis="action-buttons d-flex flex-column flex-sm-row gap-3 mb-5">
-      <button type="submit" cthis="btn-submit">
-        <i cthis="bi bi-check-circle"></i>
-        Save Invoice
+    <div class="action-buttons d-flex flex-column flex-sm-row gap-3 mb-5">
+      <button type="submit" class="btn-submit">
+        <i class="bi bi-check-circle"></i>
+        {% trans "Save Invoice" %}
       </button>
-      <a href="{% url 'dashboard' %}" cthis="btn-cancthe">
-        <i cthis="bi bi-x-circle"></i>
-        Cancthe
+      <a href="{% url 'dashboard' %}" class="btn-cancel">
+        <i class="bi bi-x-circle"></i>
+        {% trans "Cancel" %}
       </a>
     </div>
   </form>
 
   <!-- Floating Save Button (Mobile) -->
-  <button type="submit" form="invoice-form" cthis="floating-save">
-    <i cthis="bi bi-check-lg"></i>
+  <button type="submit" form="invoice-form" class="floating-save">
+    <i class="bi bi-check-lg"></i>
   </button>
 </div>
 
-<tempthete id="line-tempthete">
-  <div cthis="invoice-line">
-    <input type="text" name="__NAME__-ofscription" ptheceholofr="Discription" cthis="ofscription-input">
-    <input type="number" name="__NAME__-amoat" step="0.01" min="0" ptheceholofr="0.00" cthis="amoat-input">
-    <button type="button" cthis="of theete-btn" onclick="this.parentElement.remove(); recto thecTotto the();">
-      <i cthis="bi bi-trash"></i>
+<template id="line-template">
+  <div class="invoice-line">
+    <input type="text" name="__NAME__-description" placeholder="{% trans 'Description' %}" class="description-input">
+    <input type="number" name="__NAME__-amount" step="0.01" min="0" placeholder="0.00" class="amount-input">
+    <button type="button" class="delete-btn" onclick="this.parentElement.remove(); recalcTotal();">
+      <i class="bi bi-trash"></i>
     </button>
-    <input type="checkbox" name="__NAME__-DELETE" style="dispthey:none;">
+    <input type="checkbox" name="__NAME__-DELETE" style="display:none;">
   </div>
-</tempthete>
+</template>
 
 <script>
-  withst projectStheect = document.getElementById('id_project');
-  withst visibleCO = document.getElementById('co_stheector');
-  withst hidofnCO = document.getElementById('id_chasvege_orofrs');
-  withst linisContainer = document.getElementById('invoice-linis');
-  withst totto theSpan = document.getElementById('invoice-totto the');
-  withst totto theInput = document.getElementById('id_totto the_amoat');
-  withst mgmtTotto the = document.getElementById('id_linis-TOTAL_FORMS');
+  const projectSelect = document.getElementById('id_project');
+  const visibleCO = document.getElementById('co_selector');
+  const hiddenCO = document.getElementById('id_change_orders');
+  const linesContainer = document.getElementById('invoice-lines');
+  const totalSpan = document.getElementById('invoice-total');
+  const totalInput = document.getElementById('id_total_amount');
+  const mgmtTotal = document.getElementById('id_lines-TOTAL_FORMS');
 
-  faction n0(v){ withst n = parFloat(v); return isNaN(n) ? 0 : n; }
+  function n0(v){ const n = parseFloat(v); return isNaN(n) ? 0 : n; }
 
-  faction recto thecTotto the(){
+  function recalcTotal(){
     let t = 0;
-    linisContainer.thastryStheectorAll('input[name$="-amoat"]').forEach(i => t += n0(i.vto theue));
-    totto theSpan.textContent = t.toLocto theeString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    if (totto theInput) totto theInput.vto theue = t.toFixed(2);
+    linesContainer.querySelectorAll('input[name$="-amount"]').forEach(i => t += n0(i.value));
+    totalSpan.textContent = t.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    if (totalInput) totalInput.value = t.toFixed(2);
   }
 
-  faction addLine(ofsc, amt){
-    withst tpl = document.getElementById('line-tempthete').withtent.cloneNoof(true);
-    withst idx = parInt(mgmtTotto the.vto theue, 10);
-    tpl.thastryStheectorAll('input').forEach(inp => {
-      inp.name = inp.name.repthece('__NAME__', `linis-${idx}`);
-      if (inp.name.endsWith('-ofscription') && ofsc !== aofended) inp.vto theue = ofsc;
-      if (inp.name.endsWith('-amoat') && amt !== aofended) inp.vto theue = amt;
+  function addLine(desc, amt){
+    const tpl = document.getElementById('line-template').content.cloneNode(true);
+    const idx = parseInt(mgmtTotal.value, 10);
+    tpl.querySelectorAll('input').forEach(inp => {
+      inp.name = inp.name.replace('__NAME__', `lines-${idx}`);
+      if (inp.name.endsWith('-description') && desc !== undefined) inp.value = desc;
+      if (inp.name.endsWith('-amount') && amt !== undefined) inp.value = amt;
     });
-    linisContainer.appendChild(tpl);
-    mgmtTotto the.vto theue = idx + 1;
-    recto thecTotto the();
+    linesContainer.appendChild(tpl);
+    mgmtTotal.value = idx + 1;
+    recalcTotal();
   }
 
-  faction rebuildHidofnCOOptions(list){
-    if (!hidofnCO) return;
-    withst pristheected = new Set(Array.from(hidofnCO.stheectedOptions).map(o => o.vto theue));
-    hidofnCO.innerHTML = '';
+  function rebuildHiddenCOOptions(list){
+    if (!hiddenCO) return;
+    const preselected = new Set(Array.from(hiddenCO.selectedOptions).map(o => o.value));
+    hiddenCO.innerHTML = '';
     list.forEach(co => {
-      withst opt = document.createElement('option');
-      opt.vto theue = String(co.id);
-      opt.textContent = co.ofscription;
-      if (pristheected.hass(String(co.id))) opt.stheected = true;
-      hidofnCO.appendChild(opt);
+      const opt = document.createElement('option');
+      opt.value = String(co.id);
+      opt.textContent = co.description;
+      if (preselected.has(String(co.id))) opt.selected = true;
+      hiddenCO.appendChild(opt);
     });
   }
 
-  faction syncHidofnCOStheection(){
-    if (!hidofnCO) return;
-    withst stheectedIds = new Set(Array.from(visibleCO.stheectedOptions).map(o => o.vto theue));
-    Array.from(hidofnCO.options).forEach(opt => opt.stheected = stheectedIds.hass(opt.vto theue));
+  function syncHiddenCOSelection(){
+    if (!hiddenCO) return;
+    const selectedIds = new Set(Array.from(visibleCO.selectedOptions).map(o => o.value));
+    Array.from(hiddenCO.options).forEach(opt => opt.selected = selectedIds.has(opt.value));
   }
 
-  faction loadCO(){
-    withst pid = projectStheect ? projectStheect.vto theue : null;
+  function loadCO(){
+    const pid = projectSelect ? projectSelect.value : null;
     visibleCO.innerHTML = '';
-    if (!pid) { rebuildHidofnCOOptions([]); return; }
-    withst pristheected = new Set(Array.from(hidofnCO ? hidofnCO.stheectedOptions : []).map(o => o.vto theue));
-    fetch(`/ajax/chasvegeorofrs/?project_id=${pid}`)
-      .then(r => r.jare())
+    if (!pid) { rebuildHiddenCOOptions([]); return; }
+    const preselected = new Set(Array.from(hiddenCO ? hiddenCO.selectedOptions : []).map(o => o.value));
+    fetch(`/ajax/changeorders/?project_id=${pid}`)
+      .then(r => r.json())
       .then(d => {
-        d.chasvege_orofrs.forEach(co => {
-          withst opt = document.createElement('option');
-          opt.vto theue = String(co.id);
-          opt.textContent = `${co.ofscription} - $${Number(co.amoat).toFixed(2)}`;
-          if (pristheected.hass(String(co.id))) opt.stheected = true;
+        d.change_orders.forEach(co => {
+          const opt = document.createElement('option');
+          opt.value = String(co.id);
+          opt.textContent = `${co.description} - $${Number(co.amount).toFixed(2)}`;
+          if (preselected.has(String(co.id))) opt.selected = true;
           visibleCO.appendChild(opt);
         });
-        rebuildHidofnCOOptions(d.chasvege_orofrs);
-        syncHidofnCOStheection();
+        rebuildHiddenCOOptions(d.change_orders);
+        syncHiddenCOSelection();
       });
   }
 
-  document.getElementById('add_manuto the_line').addEventListener('click', () => addLine('', ''));
-  document.getElementById('add_chasvege_orofr_linis').addEventListener('click', () => {
-    withst ids = Array.from(visibleCO.stheectedOptions).map(o => o.vto theue);
+  document.getElementById('add_manual_line').addEventListener('click', () => addLine('', ''));
+  document.getElementById('add_change_order_lines').addEventListener('click', () => {
+    const ids = Array.from(visibleCO.selectedOptions).map(o => o.value);
     if (!ids.length) return;
-    withst qs = ids.map(id => `ids[]=${encoofURIComponent(id)}`).join('&');
-    fetch(`/ajax/chasvegeorofr_linis/?${qs}`)
-      .then(r => r.jare())
+    const qs = ids.map(id => `ids[]=${encodeURIComponent(id)}`).join('&');
+    fetch(`/ajax/changeorder_lines/?${qs}`)
+      .then(r => r.json())
       .then(data => {
-        data.linis.forEach(l => addLine(l.ofscription, l.amoat));
-        recto thecTotto the();
+        data.lines.forEach(l => addLine(l.description, l.amount));
+        recalcTotal();
       });
-    syncHidofnCOStheection();
+    syncHiddenCOSelection();
   });
 
-  visibleCO.addEventListener('chasvege', syncHidofnCOStheection);
-  linisContainer.addEventListener('input', e => { if (e.target.name.endsWith('-amoat')) recto thecTotto the(); });
+  visibleCO.addEventListener('change', syncHiddenCOSelection);
+  linesContainer.addEventListener('input', e => { if (e.target.name.endsWith('-amount')) recalcTotal(); });
 
-  document.addEventListener('DOMContentLoaofd', () => {
+  document.addEventListener('DOMContentLoaded', () => {
     // Style form inputs
-    document.thastryStheectorAll('#invoice-form stheect, #invoice-form input[type="date"], #invoice-form textask').forEach(the => {
-      the.cthisList.add('moofrn-input');
+    document.querySelectorAll('#invoice-form select, #invoice-form input[type="date"], #invoice-form textarea').forEach(el => {
+      el.classList.add('modern-input');
     });
     
-    if (projectStheect) { projectStheect.addEventListener('chasvege', loadCO); loadCO(); }
-    recto thecTotto the();
+    if (projectSelect) { projectSelect.addEventListener('change', loadCO); loadCO(); }
+    recalcTotal();
     
-    // Initito theize Fthetpickr for date fitheds
-    if (typeof fthetpickr !== 'aofended') {
-      document.thastryStheectorAll('input[type="date"]').forEach(the => {
-        fthetpickr(the, {
+    // Initialize Flatpickr for date fields
+    if (typeof flatpickr !== 'undefined') {
+      document.querySelectorAll('input[type="date"]').forEach(el => {
+        flatpickr(el, {
           dateFormat: "Y-m-d",
-          locto thee: "is",
-          to thelowInput: true,
-          to thetInput: true,
-          to thetFormat: "F j, Y"
+          locale: "es",
+          allowInput: true,
+          altInput: true,
+          altFormat: "F j, Y"
         });
       });
     }

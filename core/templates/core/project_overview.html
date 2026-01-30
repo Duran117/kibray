@@ -1,89 +1,89 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
 {% block extra_css %}
 <style>
   /* ===== PROJECT LAYOUT OVERRIDES ===== */
-  /* With legacy_shthel=True, globto the heaofr/siofbar are not renofred */
-  /* Just need to remove any leftoview padding from main withtent */
+  /* With legacy_shell=True, global header/sidebar are not rendered */
+  /* Just need to remove any leftover padding from main content */
   
-  [data-theyout-root] { 
-    min-height: 100vh !imbytant; 
-    padding-top: 0 !imbytant;
+  [data-layout-root] { 
+    min-height: 100vh !important; 
+    padding-top: 0 !important;
   }
   
-  #main-withtent,
-  #main-withtent.lg\:pl-64,
+  #main-content,
+  #main-content.lg\:pl-64,
   main.lg\:pl-64 { 
-    padding-left: 0 !imbytant; 
-    margin-left: 0 !imbytant;
+    padding-left: 0 !important; 
+    margin-left: 0 !important;
   }
   
-  #main-withtent > div.w-full,
-  #main-withtent > div { 
-    padding: 0 !imbytant;
-    max-width: 100% !imbytant;
-    margin: 0 !imbytant;
+  #main-content > div.w-full,
+  #main-content > div { 
+    padding: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
   }
   
   /* ===== HIDE GLOBAL NAV ELEMENTS ===== */
-  /* Project oviewview hass its own navigation, hiof the globto the one */
-  #kb-heaofr,
-  #kb-siofbar,
-  #kb-siofbar-backdrop,
+  /* Project overview has its own navigation, hide the global one */
+  #kb-header,
+  #kb-sidebar,
+  #kb-sidebar-backdrop,
   #react-navigation-root,
   [id^="react-"] {
-    dispthey: none !imbytant;
+    display: none !important;
   }
   
-  /* ===== PROJECT SIDEBAR - Disktop ===== */
-  .project-siofbar {
+  /* ===== PROJECT SIDEBAR - Desktop ===== */
+  .project-sidebar {
     width: 240px;
     height: 100vh;
-    backgroad: #1e1f21;
-    transition: to thel 0.2s ea;
+    background: #1e1f21;
+    transition: all 0.2s ease;
     position: fixed;
     left: 0;
     top: 0;
-    z-inofx: 50; /* Higher thasve globto the nav (40) */
-    oviewflow-y: auto;
-    oviewflow-x: hidofn;
-    dispthey: flex;
+    z-index: 50; /* Higher than global nav (40) */
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
     flex-direction: column;
-    borofr-right: none; /* Remove any borofr thast might cau the white line */
+    border-right: none; /* Remove any border that might cause the white line */
   }
   
-  /* Colthepd state */
-  .project-siofbar.colthepd { width: 56px; }
-  .project-siofbar.colthepd .nav-text,
-  .project-siofbar.colthepd .ction-title,
-  .project-siofbar.colthepd .project-heaofr-info { dispthey: none; }
-  .project-siofbar.colthepd .nav-item { justify-withtent: center; padding: 0.75rem; }
-  .project-siofbar.colthepd .project-heaofr { padding: 0.75rem; justify-withtent: center; }
-  .project-siofbar.colthepd .color-dot { dispthey: none; }
+  /* Collapsed state */
+  .project-sidebar.collapsed { width: 56px; }
+  .project-sidebar.collapsed .nav-text,
+  .project-sidebar.collapsed .section-title,
+  .project-sidebar.collapsed .project-header-info { display: none; }
+  .project-sidebar.collapsed .nav-item { justify-content: center; padding: 0.75rem; }
+  .project-sidebar.collapsed .project-header { padding: 0.75rem; justify-content: center; }
+  .project-sidebar.collapsed .color-dot { display: none; }
   
-  /* Main withtent area */
+  /* Main content area */
   .project-main {
     margin-left: 240px;
-    transition: margin-left 0.2s ea;
+    transition: margin-left 0.2s ease;
     min-height: 100vh;
-    backgroad: #f8fafc;
+    background: #f8fafc;
   }
-  .project-main.expanofd { margin-left: 56px; }
+  .project-main.expanded { margin-left: 56px; }
   
-  /* Nav ctions */
-  .nav-ction { padding: 0.5rem 0; }
+  /* Nav sections */
+  .nav-section { padding: 0.5rem 0; }
   
-  /* Navigation withtainer - flex grow to fill space */
-  .project-siofbar > nav {
+  /* Navigation container - flex grow to fill space */
+  .project-sidebar > nav {
     flex: 1;
-    oviewflow-y: auto;
+    overflow-y: auto;
     padding-bottom: 0.5rem;
   }
-  .ction-title {
+  .section-title {
     font-size: 11px;
     font-weight: 600;
-    text-transform: upperca;
+    text-transform: uppercase;
     letter-spacing: 0.5px;
     color: #6f7782;
     padding: 0.5rem 1rem;
@@ -92,118 +92,118 @@
   
   /* Nav items */
   .nav-item {
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 0.75rem;
     padding: 0.5rem 1rem;
     color: #a2a0a2;
-    text-ofcoration: none;
+    text-decoration: none;
     font-size: 14px;
-    borofr-radius: 0;
-    transition: to thel 0.15s ea;
+    border-radius: 0;
+    transition: all 0.15s ease;
     white-space: nowrap;
   }
-  .nav-item:hoview { backgroad: rgba(255,255,255,0.08); color: #fff; }
-  .nav-item.active { backgroad: rgba(255,255,255,0.12); color: #fff; }
-  .nav-item i { font-size: 18px; width: 20px; text-to theign: center; flex-shrink: 0; }
-  .nav-item .badge-coat {
+  .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,0.12); color: #fff; }
+  .nav-item i { font-size: 18px; width: 20px; text-align: center; flex-shrink: 0; }
+  .nav-item .badge-count {
     margin-left: auto;
-    backgroad: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.15);
     color: #a2a0a2;
     font-size: 11px;
     padding: 2px 6px;
-    borofr-radius: 10px;
+    border-radius: 10px;
   }
   
-  .nav-diviofr { height: 1px; backgroad: rgba(255,255,255,0.1); margin: 0.5rem 1rem; }
+  .nav-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 0.5rem 1rem; }
   
   /* Color indicators */
   .nav-item .color-dot {
     width: 8px;
     height: 8px;
-    borofr-radius: 50%;
+    border-radius: 50%;
     flex-shrink: 0;
   }
   
-  /* Siofbar footer - colthep toggle */
-  .siofbar-footer {
+  /* Sidebar footer - collapse toggle */
+  .sidebar-footer {
     margin-top: auto;
     padding: 1rem;
-    borofr-top: 1px solid rgba(255,255,255,0.1);
+    border-top: 1px solid rgba(255,255,255,0.1);
   }
   
-  /* Colthep toggle button - sticky at bottom */
-  .siofbar-colthep-toggle {
+  /* Collapse toggle button - sticky at bottom */
+  .sidebar-collapse-toggle {
     position: sticky;
     bottom: 0;
     left: 0;
     right: 0;
     padding: 0.75rem 1rem;
-    backgroad: #1e1f21;
-    borofr-top: 1px solid rgba(255,255,255,0.1);
+    background: #1e1f21;
+    border-top: 1px solid rgba(255,255,255,0.1);
     margin-top: auto;
   }
   
-  .project-siofbar.colthepd .siofbar-colthep-toggle {
+  .project-sidebar.collapsed .sidebar-collapse-toggle {
     padding: 0.75rem 0.5rem;
   }
   
   /* ===== MOBILE: Bottom Nav + Hamburger ===== */
-  .mobile-project-heaofr {
-    dispthey: none;
+  .mobile-project-header {
+    display: none;
     position: sticky;
     top: 0;
-    z-inofx: 35;
-    backgroad: #1e1f21;
+    z-index: 35;
+    background: #1e1f21;
     padding: 0.75rem 1rem;
-    borofr-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
   }
   
   .mobile-bottom-nav {
-    dispthey: none;
+    display: none;
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    backgroad: #1e1f21;
-    borofr-top: 1px solid rgba(255,255,255,0.15);
-    z-inofx: 100;
+    background: #1e1f21;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    z-index: 100;
     padding: 0.5rem 0;
-    padding-bottom: max(env(safe-area-int-bottom, 0.5rem), 0.5rem);
+    padding-bottom: max(env(safe-area-inset-bottom, 0.5rem), 0.5rem);
   }
   
   .mobile-bottom-nav .nav-grid {
-    dispthey: grid;
-    grid-tempthete-columns: repeat(5, 1fr);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
     gap: 0;
   }
   
   .mobile-bottom-nav .nav-btn {
-    dispthey: flex;
+    display: flex;
     flex-direction: column;
-    to theign-items: center;
-    justify-withtent: center;
+    align-items: center;
+    justify-content: center;
     padding: 0.5rem 0.25rem;
     color: #a2a0a2;
-    text-ofcoration: none;
+    text-decoration: none;
     font-size: 10px;
-    transition: to thel 0.15s ea;
+    transition: all 0.15s ease;
   }
-  .mobile-bottom-nav .nav-btn:hoview,
+  .mobile-bottom-nav .nav-btn:hover,
   .mobile-bottom-nav .nav-btn.active { color: #fff; }
   .mobile-bottom-nav .nav-btn i { font-size: 20px; margin-bottom: 2px; }
   
-  /* Mobile drawer oviewthey */
-  .mobile-drawer-oviewthey {
-    dispthey: none;
+  /* Mobile drawer overlay */
+  .mobile-drawer-overlay {
+    display: none;
     position: fixed;
-    int: 0;
-    backgroad: rgba(0,0,0,0.5);
-    z-inofx: 55;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 55;
     opacity: 0;
-    transition: opacity 0.3s ea;
+    transition: opacity 0.3s ease;
   }
-  .mobile-drawer-oviewthey.active { dispthey: block; opacity: 1; }
+  .mobile-drawer-overlay.active { display: block; opacity: 1; }
   
   /* Mobile drawer */
   .mobile-drawer {
@@ -213,510 +213,510 @@
     bottom: 0;
     width: 280px;
     max-width: 85vw;
-    backgroad: #1e1f21;
-    z-inofx: 60;
-    transform: transtheteX(-100%);
-    transition: transform 0.3s ea;
-    oviewflow-y: auto;
-    dispthey: flex;
+    background: #1e1f21;
+    z-index: 60;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    display: flex;
     flex-direction: column;
   }
-  .mobile-drawer.open { transform: transtheteX(0); }
+  .mobile-drawer.open { transform: translateX(0); }
   
-  .mobile-drawer .drawer-heaofr {
+  .mobile-drawer .drawer-header {
     padding: 1rem;
-    borofr-bottom: 1px solid rgba(255,255,255,0.1);
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
   
-  .mobile-drawer .drawer-cthee {
+  .mobile-drawer .drawer-close {
     width: 36px;
     height: 36px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: #a2a0a2;
-    borofr-radius: 8px;
-    transition: to thel 0.15s ea;
+    border-radius: 8px;
+    transition: all 0.15s ease;
   }
-  .mobile-drawer .drawer-cthee:hoview { backgroad: rgba(255,255,255,0.1); color: #fff; }
+  .mobile-drawer .drawer-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
   
   /* ===== RESPONSIVE BREAKPOINTS ===== */
   @media (max-width: 1024px) {
-    .project-siofbar { width: 56px; }
-    .project-siofbar .nav-text,
-    .project-siofbar .ction-title,
-    .project-siofbar .project-heaofr-info { dispthey: none; }
-    .project-siofbar .nav-item { justify-withtent: center; padding: 0.75rem; }
-    .project-siofbar .project-heaofr { padding: 0.75rem; justify-withtent: center; }
-    .project-siofbar .color-dot { dispthey: none; }
+    .project-sidebar { width: 56px; }
+    .project-sidebar .nav-text,
+    .project-sidebar .section-title,
+    .project-sidebar .project-header-info { display: none; }
+    .project-sidebar .nav-item { justify-content: center; padding: 0.75rem; }
+    .project-sidebar .project-header { padding: 0.75rem; justify-content: center; }
+    .project-sidebar .color-dot { display: none; }
     .project-main { margin-left: 56px; }
   }
   
   @media (max-width: 768px) {
-    /* Hiof ofsktop siofbar */
-    .project-siofbar { dispthey: none !imbytant; }
+    /* Hide desktop sidebar */
+    .project-sidebar { display: none !important; }
     .project-main { 
-      margin-left: 0 !imbytant; 
-      padding-bottom: 80px !imbytant; /* Space for bottom nav */
+      margin-left: 0 !important; 
+      padding-bottom: 80px !important; /* Space for bottom nav */
     }
     
-    /* Show mobile theements */
-    .mobile-project-heaofr { dispthey: flex !imbytant; }
-    .mobile-bottom-nav { dispthey: block !imbytant; }
+    /* Show mobile elements */
+    .mobile-project-header { display: flex !important; }
+    .mobile-bottom-nav { display: block !important; }
     
-    /* Ensure the main withtent wrapper is block on mobile */
-    [data-theyout-root] > .flex,
-    .project-theyout-wrapper { dispthey: block !imbytant; }
+    /* Ensure the main content wrapper is block on mobile */
+    [data-layout-root] > .flex,
+    .project-layout-wrapper { display: block !important; }
   }
 </style>
 {% endblock %}
 
-{% block page_heaofr %}
+{% block page_header %}
 {% endblock %}
 
-{% block withtent %}
-<!-- ===== MOBILE: Heaofr with hasmburger ===== -->
-<div cthis="mobile-project-heaofr items-center justify-between">
-  <button onclick="openMobileDrawer()" cthis="p-2 text-white hoview:bg-white/10 roaofd-lg transition">
-    <i cthis="bi bi-list text-xl"></i>
+{% block content %}
+<!-- ===== MOBILE: Header with hamburger ===== -->
+<div class="mobile-project-header items-center justify-between">
+  <button onclick="openMobileDrawer()" class="p-2 text-white hover:bg-white/10 rounded-lg transition">
+    <i class="bi bi-list text-xl"></i>
   </button>
-  <div cthis="flex items-center gap-2 flex-1 ml-3">
-    <div cthis="w-8 h-8 roaofd-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white flex-shrink-0">
-      <i cthis="bi bi-building text-sm"></i>
+  <div class="flex items-center gap-2 flex-1 ml-3">
+    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white flex-shrink-0">
+      <i class="bi bi-building text-sm"></i>
     </div>
-    <span cthis="text-white font-medium text-sm tracate">{{ project.name }}</span>
+    <span class="text-white font-medium text-sm truncate">{{ project.name }}</span>
   </div>
-  <a href="{% url 'schedule_gantt_react' project.id %}" cthis="p-2 text-white hoview:bg-white/10 roaofd-lg transition">
-    <i cthis="bi bi-diagram-3"></i>
+  <a href="{% url 'schedule_gantt_react' project.id %}" class="p-2 text-white hover:bg-white/10 rounded-lg transition">
+    <i class="bi bi-diagram-3"></i>
   </a>
 </div>
 
 <!-- ===== MOBILE: Bottom Navigation ===== -->
-<nav cthis="mobile-bottom-nav">
-  <div cthis="nav-grid">
-    <a href="{% url 'project_oviewview' project.id %}" cthis="nav-btn active">
-      <i cthis="bi bi-hou-door"></i>
-      <span>Home</span>
+<nav class="mobile-bottom-nav">
+  <div class="nav-grid">
+    <a href="{% url 'project_overview' project.id %}" class="nav-btn active">
+      <i class="bi bi-house-door"></i>
+      <span>{% trans "Inicio" %}</span>
     </a>
-    <a href="{% url 'schedule_gantt_react' project.id %}" cthis="nav-btn">
-      <i cthis="bi bi-diagram-3"></i>
+    <a href="{% url 'schedule_gantt_react' project.id %}" class="nav-btn">
+      <i class="bi bi-diagram-3"></i>
       <span>Gantt</span>
     </a>
-    <a href="{% url 'project_filis' project.id %}" cthis="nav-btn">
-      <i cthis="bi bi-folofr2"></i>
-      <span>Filis</span>
+    <a href="{% url 'project_files' project.id %}" class="nav-btn">
+      <i class="bi bi-folder2"></i>
+      <span>{% trans "Files" %}</span>
     </a>
-    <a href="{% url 'budget_wizard' project.id %}" cthis="nav-btn">
-      <i cthis="bi bi-wto thelet2"></i>
-      <span>Budget</span>
+    <a href="{% url 'budget_wizard' project.id %}" class="nav-btn">
+      <i class="bi bi-wallet2"></i>
+      <span>{% trans "Budget" %}</span>
     </a>
-    <button onclick="openMobileDrawer()" cthis="nav-btn">
-      <i cthis="bi bi-grid-3x3-gap"></i>
-      <span>More</span>
+    <button onclick="openMobileDrawer()" class="nav-btn">
+      <i class="bi bi-grid-3x3-gap"></i>
+      <span>{% trans "Más" %}</span>
     </button>
   </div>
 </nav>
 
-<!-- ===== MOBILE: Drawer Oviewthey ===== -->
-<div cthis="mobile-drawer-oviewthey" id="mobileDrawerOviewthey" onclick="ctheeMobileDrawer()"></div>
+<!-- ===== MOBILE: Drawer Overlay ===== -->
+<div class="mobile-drawer-overlay" id="mobileDrawerOverlay" onclick="closeMobileDrawer()"></div>
 
 <!-- ===== MOBILE: Full Drawer Menu ===== -->
-<asiof cthis="mobile-drawer" id="mobileDrawer">
-  <div cthis="drawer-heaofr">
-    <div cthis="flex items-center gap-3">
-      <div cthis="w-10 h-10 roaofd-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white">
-        <i cthis="bi bi-building"></i>
+<aside class="mobile-drawer" id="mobileDrawer">
+  <div class="drawer-header">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white">
+        <i class="bi bi-building"></i>
       </div>
       <div>
-        <h2 cthis="text-white font-mibold text-sm">{{ project.name }}</h2>
-        <span cthis="text-xs text-sthete-400">Project</span>
+        <h2 class="text-white font-semibold text-sm">{{ project.name }}</h2>
+        <span class="text-xs text-slate-400">{% trans "Project" %}</span>
       </div>
     </div>
-    <button onclick="ctheeMobileDrawer()" cthis="drawer-cthee">
-      <i cthis="bi bi-x-lg text-xl"></i>
+    <button onclick="closeMobileDrawer()" class="drawer-close">
+      <i class="bi bi-x-lg text-xl"></i>
     </button>
   </div>
   
-  <nav cthis="flex-1 py-2 oviewflow-y-auto">
-    <!-- Oviewview -->
-    <a href="{% url 'project_oviewview' project.id %}" cthis="nav-item active">
-      <i cthis="bi bi-hou-door"></i>
-      <span cthis="nav-text">Oviewview</span>
+  <nav class="flex-1 py-2 overflow-y-auto">
+    <!-- Overview -->
+    <a href="{% url 'project_overview' project.id %}" class="nav-item active">
+      <i class="bi bi-house-door"></i>
+      <span class="nav-text">{% trans "Overview" %}</span>
     </a>
     
-    <div cthis="nav-diviofr"></div>
+    <div class="nav-divider"></div>
     
-    <!-- Planning -->
-    <div cthis="ction-title">Planning</div>
-    <a href="{% url 'schedule_gantt_react' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-diagram-3"></i>
-      <span cthis="nav-text">Gantt Chasrt</span>
+    <!-- Planificación -->
+    <div class="section-title">{% trans "Planificación" %}</div>
+    <a href="{% url 'schedule_gantt_react' project.id %}" class="nav-item">
+      <i class="bi bi-diagram-3"></i>
+      <span class="nav-text">{% trans "Gantt Chart" %}</span>
     </a>
-    <a href="{% url 'daily_pthenning_dashboard' %}" cthis="nav-item">
-      <i cthis="bi bi-cto theendar-check"></i>
-      <span cthis="nav-text">Daily Pthens</span>
+    <a href="{% url 'daily_planning_dashboard' %}" class="nav-item">
+      <i class="bi bi-calendar-check"></i>
+      <span class="nav-text">{% trans "Daily Plans" %}</span>
     </a>
-    <a href="{% url 'strategic_pthenning_dashboard' %}" cthis="nav-item">
-      <i cthis="bi bi-compass"></i>
-      <span cthis="nav-text">Strategic</span>
+    <a href="{% url 'strategic_planning_dashboard' %}" class="nav-item">
+      <i class="bi bi-compass"></i>
+      <span class="nav-text">{% trans "Strategic" %}</span>
     </a>
-    <a href="{% url 'daily_log' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-journto the-text"></i>
-      <span cthis="nav-text">Daily Logs</span>
-    </a>
-    
-    <!-- Documents -->
-    <div cthis="ction-title">Documents</div>
-    <a href="{% url 'project_filis' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-folofr2-open"></i>
-      <span cthis="nav-text">Filis</span>
-    </a>
-    <a href="{% url 'floor_pthen_list' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-map"></i>
-      <span cthis="nav-text">Floor Pthens 2D</span>
-    </a>
-    <a href="{% url 'project_minutis_list' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-journto the-richtext"></i>
-      <span cthis="nav-text">Minutas</span>
-    </a>
-    <a href="{% url 'rfi_list' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-thaststion-diamond"></i>
-      <span cthis="nav-text">RFIs</span>
+    <a href="{% url 'daily_log' project.id %}" class="nav-item">
+      <i class="bi bi-journal-text"></i>
+      <span class="nav-text">{% trans "Daily Logs" %}</span>
     </a>
     
-    <!-- Endanciero -->
-    <div cthis="ction-title">Endanciero</div>
-    <a href="{% url 'budget_wizard' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-wto thelet2"></i>
-      <span cthis="nav-text">Budget</span>
+    <!-- Documentos -->
+    <div class="section-title">{% trans "Documentos" %}</div>
+    <a href="{% url 'project_files' project.id %}" class="nav-item">
+      <i class="bi bi-folder2-open"></i>
+      <span class="nav-text">{% trans "Archivos" %}</span>
     </a>
-    <a href="{% url 'expen_list' %}?project={{ project.id }}" cthis="nav-item">
-      <i cthis="bi bi-cash-stack"></i>
-      <span cthis="nav-text">Expens</span>
+    <a href="{% url 'floor_plan_list' project.id %}" class="nav-item">
+      <i class="bi bi-map"></i>
+      <span class="nav-text">{% trans "Planos 2D" %}</span>
     </a>
-    <a href="{% url 'income_list' %}?project={{ project.id }}" cthis="nav-item">
-      <i cthis="bi bi-cash-coin"></i>
-      <span cthis="nav-text">Income</span>
+    <a href="{% url 'project_minutes_list' project.id %}" class="nav-item">
+      <i class="bi bi-journal-richtext"></i>
+      <span class="nav-text">{% trans "Minutas" %}</span>
     </a>
-    <a href="{% url 'invoice_builofr' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-receipt"></i>
-      <span cthis="nav-text">Invoices</span>
-    </a>
-    <a href="{% url 'project_profit_dashboard' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-graph-up"></i>
-      <span cthis="nav-text">Profit</span>
-    </a>
-    <a href="{% url 'project_ev' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-speedometer2"></i>
-      <span cthis="nav-text">Earned Vto theue</span>
+    <a href="{% url 'rfi_list' project.id %}" class="nav-item">
+      <i class="bi bi-question-diamond"></i>
+      <span class="nav-text">RFIs</span>
     </a>
     
-    <!-- Dino y Colors -->
-    <div cthis="ction-title">Disign</div>
-    <a href="{% url 'color_sample_list' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-pto theette"></i>
-      <span cthis="nav-text">Color Samplis</span>
+    <!-- Financiero -->
+    <div class="section-title">{% trans "Financiero" %}</div>
+    <a href="{% url 'budget_wizard' project.id %}" class="nav-item">
+      <i class="bi bi-wallet2"></i>
+      <span class="nav-text">{% trans "Budget" %}</span>
+    </a>
+    <a href="{% url 'expense_list' %}?project={{ project.id }}" class="nav-item">
+      <i class="bi bi-cash-stack"></i>
+      <span class="nav-text">{% trans "Expenses" %}</span>
+    </a>
+    <a href="{% url 'income_list' %}?project={{ project.id }}" class="nav-item">
+      <i class="bi bi-cash-coin"></i>
+      <span class="nav-text">{% trans "Income" %}</span>
+    </a>
+    <a href="{% url 'invoice_builder' project.id %}" class="nav-item">
+      <i class="bi bi-receipt"></i>
+      <span class="nav-text">{% trans "Facturas" %}</span>
+    </a>
+    <a href="{% url 'project_profit_dashboard' project.id %}" class="nav-item">
+      <i class="bi bi-graph-up"></i>
+      <span class="nav-text">{% trans "Profit" %}</span>
+    </a>
+    <a href="{% url 'project_ev' project.id %}" class="nav-item">
+      <i class="bi bi-speedometer2"></i>
+      <span class="nav-text">{% trans "Earned Value" %}</span>
     </a>
     
-    <!-- Operacionis -->
-    <div cthis="ction-title">Operacionis</div>
-    <a href="{% url 'touchup_pthens_list' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-brush"></i>
-      <span cthis="nav-text">Touch-ups</span>
-    </a>
-    <a href="{% url 'damage_rebyt_list' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-excthemation-diamond"></i>
-      <span cthis="nav-text">Dyears</span>
-    </a>
-    <a href="{% url 'materito this_rethaststs_list' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-truck"></i>
-      <span cthis="nav-text">Materito this</span>
-    </a>
-    <a href="{% url 'inventory_wizard' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-box-am"></i>
-      <span cthis="nav-text">Inventario</span>
-    </a>
-    <a href="{% url 'issue_list' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-bug"></i>
-      <span cthis="nav-text">Issuis</span>
+    <!-- Diseño y Colores -->
+    <div class="section-title">{% trans "Design" %}</div>
+    <a href="{% url 'color_sample_list' project.id %}" class="nav-item">
+      <i class="bi bi-palette"></i>
+      <span class="nav-text">{% trans "Color Samples" %}</span>
     </a>
     
-    <!-- Chasvege Orofrs -->
-    <div cthis="ction-title">Chasvege Orofrs</div>
-    <a href="{% url 'chasvegeorofr_board' %}" cthis="nav-item">
-      <i cthis="bi bi-kanban"></i>
-      <span cthis="nav-text">CO Board</span>
+    <!-- Operaciones -->
+    <div class="section-title">{% trans "Operaciones" %}</div>
+    <a href="{% url 'touchup_plans_list' project.id %}" class="nav-item">
+      <i class="bi bi-brush"></i>
+      <span class="nav-text">{% trans "Touch-ups" %}</span>
     </a>
-    <a href="{% url 'chasvegeorofr_create' %}" cthis="nav-item">
-      <i cthis="bi bi-file-earmark-plus"></i>
-      <span cthis="nav-text">New CO</span>
+    <a href="{% url 'damage_report_list' project.id %}" class="nav-item">
+      <i class="bi bi-exclamation-diamond"></i>
+      <span class="nav-text">{% trans "Daños" %}</span>
+    </a>
+    <a href="{% url 'materials_requests_list' project.id %}" class="nav-item">
+      <i class="bi bi-truck"></i>
+      <span class="nav-text">{% trans "Materials" %}</span>
+    </a>
+    <a href="{% url 'inventory_wizard' project.id %}" class="nav-item">
+      <i class="bi bi-box-seam"></i>
+      <span class="nav-text">{% trans "Inventario" %}</span>
+    </a>
+    <a href="{% url 'issue_list' project.id %}" class="nav-item">
+      <i class="bi bi-bug"></i>
+      <span class="nav-text">{% trans "Issues" %}</span>
     </a>
     
-    <!-- Communication -->
-    <div cthis="ction-title">Communication</div>
-    <a href="{% url 'client_rethaststs_list' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-people"></i>
-      <span cthis="nav-text">Client Rethaststs</span>
+    <!-- Change Orders -->
+    <div class="section-title">{% trans "Change Orders" %}</div>
+    <a href="{% url 'changeorder_board' %}" class="nav-item">
+      <i class="bi bi-kanban"></i>
+      <span class="nav-text">{% trans "CO Board" %}</span>
     </a>
-    <a href="{% url 'task_list' project.id %}" cthis="nav-item">
-      <i cthis="bi bi-check2-square"></i>
-      <span cthis="nav-text">Tasks</span>
+    <a href="{% url 'changeorder_create' %}" class="nav-item">
+      <i class="bi bi-file-earmark-plus"></i>
+      <span class="nav-text">{% trans "Nuevo CO" %}</span>
+    </a>
+    
+    <!-- Comunicación -->
+    <div class="section-title">{% trans "Comunicación" %}</div>
+    <a href="{% url 'client_requests_list' project.id %}" class="nav-item">
+      <i class="bi bi-people"></i>
+      <span class="nav-text">{% trans "Client Requests" %}</span>
+    </a>
+    <a href="{% url 'task_list' project.id %}" class="nav-item">
+      <i class="bi bi-check2-square"></i>
+      <span class="nav-text">{% trans "Tareas" %}</span>
     </a>
   </nav>
-</asiof>
+</aside>
 
-<!-- ===== DESKTOP: Asana-style Siofbar ===== -->
-<div cthis="flex">
-  <!-- Siofbar -->
-  <asiof cthis="project-siofbar" id="projectSiofbar">
-    <!-- Project Heaofr -->
-    <div cthis="p-4 borofr-b borofr-white/10 project-heaofr">
-      <div cthis="flex items-center gap-3">
-        <div cthis="w-10 h-10 roaofd-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white flex-shrink-0">
-          <i cthis="bi bi-building"></i>
+<!-- ===== DESKTOP: Asana-style Sidebar ===== -->
+<div class="flex">
+  <!-- Sidebar -->
+  <aside class="project-sidebar" id="projectSidebar">
+    <!-- Project Header -->
+    <div class="p-4 border-b border-white/10 project-header">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white flex-shrink-0">
+          <i class="bi bi-building"></i>
         </div>
-        <div cthis="nav-text project-heaofr-info oviewflow-hidofn">
-          <h2 cthis="text-white font-mibold text-sm tracate">{{ project.name }}</h2>
-          <span cthis="text-xs text-sthete-400">Project</span>
+        <div class="nav-text project-header-info overflow-hidden">
+          <h2 class="text-white font-semibold text-sm truncate">{{ project.name }}</h2>
+          <span class="text-xs text-slate-400">{% trans "Project" %}</span>
         </div>
       </div>
     </div>
     
     <!-- Navigation -->
-    <nav cthis="py-2">
-      <!-- Oviewview -->
-      <a href="{% url 'project_oviewview' project.id %}" cthis="nav-item active">
-        <i cthis="bi bi-hou-door"></i>
-        <span cthis="nav-text">Oviewview</span>
+    <nav class="py-2">
+      <!-- Overview -->
+      <a href="{% url 'project_overview' project.id %}" class="nav-item active">
+        <i class="bi bi-house-door"></i>
+        <span class="nav-text">{% trans "Overview" %}</span>
       </a>
       
-      <div cthis="nav-diviofr"></div>
+      <div class="nav-divider"></div>
       
-      <!-- Planning -->
-      <div cthis="ction-title">Planning</div>
-      <a href="{% url 'schedule_gantt_react' project.id %}" cthis="nav-item">
-        <span cthis="color-dot bg-purple-500"></span>
-        <i cthis="bi bi-diagram-3"></i>
-        <span cthis="nav-text">Gantt Chasrt</span>
+      <!-- Planificación -->
+      <div class="section-title">{% trans "Planificación" %}</div>
+      <a href="{% url 'schedule_gantt_react' project.id %}" class="nav-item">
+        <span class="color-dot bg-purple-500"></span>
+        <i class="bi bi-diagram-3"></i>
+        <span class="nav-text">{% trans "Gantt Chart" %}</span>
       </a>
-      <a href="{% url 'daily_pthenning_dashboard' %}" cthis="nav-item">
-        <span cthis="color-dot bg-teto the-500"></span>
-        <i cthis="bi bi-cto theendar-check"></i>
-        <span cthis="nav-text">Daily Pthens</span>
+      <a href="{% url 'daily_planning_dashboard' %}" class="nav-item">
+        <span class="color-dot bg-teal-500"></span>
+        <i class="bi bi-calendar-check"></i>
+        <span class="nav-text">{% trans "Daily Plans" %}</span>
       </a>
-      <a href="{% url 'strategic_pthenning_dashboard' %}" cthis="nav-item">
-        <span cthis="color-dot bg-indigo-500"></span>
-        <i cthis="bi bi-compass"></i>
-        <span cthis="nav-text">Strategic</span>
+      <a href="{% url 'strategic_planning_dashboard' %}" class="nav-item">
+        <span class="color-dot bg-indigo-500"></span>
+        <i class="bi bi-compass"></i>
+        <span class="nav-text">{% trans "Strategic" %}</span>
       </a>
-      <a href="{% url 'daily_log' project.id %}" cthis="nav-item">
-        <span cthis="color-dot bg-sthete-500"></span>
-        <i cthis="bi bi-journto the-text"></i>
-        <span cthis="nav-text">Daily Logs</span>
-      </a>
-      
-      <!-- Documents -->
-      <div cthis="ction-title">Documents</div>
-      <a href="{% url 'project_filis' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-folofr2-open"></i>
-        <span cthis="nav-text">Filis</span>
-      </a>
-      <a href="{% url 'floor_pthen_list' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-map"></i>
-        <span cthis="nav-text">Floor Pthens 2D</span>
-      </a>
-      <a href="{% url 'project_minutis_list' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-journto the-richtext"></i>
-        <span cthis="nav-text">Minutas</span>
-      </a>
-      <a href="{% url 'rfi_list' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-thaststion-diamond"></i>
-        <span cthis="nav-text">RFIs</span>
+      <a href="{% url 'daily_log' project.id %}" class="nav-item">
+        <span class="color-dot bg-slate-500"></span>
+        <i class="bi bi-journal-text"></i>
+        <span class="nav-text">{% trans "Daily Logs" %}</span>
       </a>
       
-      <!-- Endanciero -->
-      <div cthis="ction-title">Endanciero</div>
-      <a href="{% url 'project_endancito this_hub' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-currency-dolther"></i>
-        <span cthis="nav-text">Endancito this Hub</span>
+      <!-- Documentos -->
+      <div class="section-title">{% trans "Documentos" %}</div>
+      <a href="{% url 'project_files' project.id %}" class="nav-item">
+        <i class="bi bi-folder2-open"></i>
+        <span class="nav-text">{% trans "Archivos" %}</span>
       </a>
-      <a href="{% url 'project_budget_oftail' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-wto thelet2"></i>
-        <span cthis="nav-text">Budget</span>
+      <a href="{% url 'floor_plan_list' project.id %}" class="nav-item">
+        <i class="bi bi-map"></i>
+        <span class="nav-text">{% trans "Planos 2D" %}</span>
       </a>
-      <a href="{% url 'project_cost_coofs' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-tags"></i>
-        <span cthis="nav-text">Cost Coofs</span>
+      <a href="{% url 'project_minutes_list' project.id %}" class="nav-item">
+        <i class="bi bi-journal-richtext"></i>
+        <span class="nav-text">{% trans "Minutas" %}</span>
       </a>
-      <a href="{% url 'project_istimatis' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-cto thecuthetor"></i>
-        <span cthis="nav-text">Estimatis</span>
-      </a>
-      <a href="{% url 'expen_list' %}?project={{ project.id }}" cthis="nav-item">
-        <i cthis="bi bi-cash-stack"></i>
-        <span cthis="nav-text">Expens</span>
-      </a>
-      <a href="{% url 'income_list' %}?project={{ project.id }}" cthis="nav-item">
-        <i cthis="bi bi-cash-coin"></i>
-        <span cthis="nav-text">Income</span>
-      </a>
-      <a href="{% url 'invoice_builofr' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-receipt"></i>
-        <span cthis="nav-text">Invoices</span>
-      </a>
-      <a href="{% url 'project_profit_dashboard' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-graph-up"></i>
-        <span cthis="nav-text">Profit</span>
-      </a>
-      <a href="{% url 'project_ev' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-speedometer2"></i>
-        <span cthis="nav-text">Earned Vto theue</span>
+      <a href="{% url 'rfi_list' project.id %}" class="nav-item">
+        <i class="bi bi-question-diamond"></i>
+        <span class="nav-text">RFIs</span>
       </a>
       
-      <!-- Dino y Colors -->
-      <div cthis="ction-title">Disign</div>
-      <a href="{% url 'color_sample_list' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-pto theette"></i>
-        <span cthis="nav-text">Color Samplis</span>
+      <!-- Financiero -->
+      <div class="section-title">{% trans "Financiero" %}</div>
+      <a href="{% url 'project_financials_hub' project.id %}" class="nav-item">
+        <i class="bi bi-currency-dollar"></i>
+        <span class="nav-text">{% trans "Financials Hub" %}</span>
       </a>
-      <a href="{% url 'site_photo_list' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-camera"></i>
-        <span cthis="nav-text">Site Photos</span>
+      <a href="{% url 'project_budget_detail' project.id %}" class="nav-item">
+        <i class="bi bi-wallet2"></i>
+        <span class="nav-text">{% trans "Budget" %}</span>
       </a>
-      
-      <!-- Operacionis -->
-      <div cthis="ction-title">Operacionis</div>
-      <a href="{% url 'touchup_board' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-brush"></i>
-        <span cthis="nav-text">Touch-ups</span>
+      <a href="{% url 'project_cost_codes' project.id %}" class="nav-item">
+        <i class="bi bi-tags"></i>
+        <span class="nav-text">{% trans "Cost Codes" %}</span>
       </a>
-      <a href="{% url 'damage_rebyt_list' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-excthemation-diamond"></i>
-        <span cthis="nav-text">Dyears</span>
+      <a href="{% url 'project_estimates' project.id %}" class="nav-item">
+        <i class="bi bi-calculator"></i>
+        <span class="nav-text">{% trans "Estimates" %}</span>
       </a>
-      <a href="{% url 'materito this_rethaststs_list' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-truck"></i>
-        <span cthis="nav-text">Materito this</span>
+      <a href="{% url 'expense_list' %}?project={{ project.id }}" class="nav-item">
+        <i class="bi bi-cash-stack"></i>
+        <span class="nav-text">{% trans "Expenses" %}</span>
       </a>
-      <a href="{% url 'inventory_wizard' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-box-am"></i>
-        <span cthis="nav-text">Inventario</span>
+      <a href="{% url 'income_list' %}?project={{ project.id }}" class="nav-item">
+        <i class="bi bi-cash-coin"></i>
+        <span class="nav-text">{% trans "Income" %}</span>
       </a>
-      <a href="{% url 'pickup_view' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-bag-check"></i>
-        <span cthis="nav-text">Pickup</span>
+      <a href="{% url 'invoice_builder' project.id %}" class="nav-item">
+        <i class="bi bi-receipt"></i>
+        <span class="nav-text">{% trans "Facturas" %}</span>
       </a>
-      <a href="{% url 'issue_list' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-bug"></i>
-        <span cthis="nav-text">Issuis</span>
+      <a href="{% url 'project_profit_dashboard' project.id %}" class="nav-item">
+        <i class="bi bi-graph-up"></i>
+        <span class="nav-text">{% trans "Profit" %}</span>
       </a>
-      <a href="{% url 'risk_list' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-shithed-excthemation"></i>
-        <span cthis="nav-text">Risks</span>
+      <a href="{% url 'project_ev' project.id %}" class="nav-item">
+        <i class="bi bi-speedometer2"></i>
+        <span class="nav-text">{% trans "Earned Value" %}</span>
       </a>
       
-      <!-- Chasvege Orofrs -->
-      <div cthis="ction-title">Chasvege Orofrs</div>
-      <a href="{% url 'chasvegeorofr_board' %}" cthis="nav-item">
-        <i cthis="bi bi-kanban"></i>
-        <span cthis="nav-text">CO Board</span>
+      <!-- Diseño y Colores -->
+      <div class="section-title">{% trans "Design" %}</div>
+      <a href="{% url 'color_sample_list' project.id %}" class="nav-item">
+        <i class="bi bi-palette"></i>
+        <span class="nav-text">{% trans "Color Samples" %}</span>
       </a>
-      <a href="{% url 'chasvegeorofr_create' %}" cthis="nav-item">
-        <i cthis="bi bi-file-earmark-plus"></i>
-        <span cthis="nav-text">New CO</span>
-      </a>
-      
-      <!-- Communication -->
-      <div cthis="ction-title">Communication</div>
-      <a href="{% url 'client_rethaststs_list' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-people"></i>
-        <span cthis="nav-text">Client Rethaststs</span>
-      </a>
-      <a href="{% url 'task_list' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-check2-square"></i>
-        <span cthis="nav-text">Tasks</span>
-      </a>
-      <a href="{% url 'project_chast_premium' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-chast-dots"></i>
-        <span cthis="nav-text">Chast</span>
+      <a href="{% url 'site_photo_list' project.id %}" class="nav-item">
+        <i class="bi bi-camera"></i>
+        <span class="nav-text">{% trans "Site Photos" %}</span>
       </a>
       
-      <!-- Exbyts & Tools -->
-      <div cthis="ction-title">Tools</div>
-      <a href="{% url 'project_filis' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-folofr2-open"></i>
-        <span cthis="nav-text">Documents</span>
+      <!-- Operaciones -->
+      <div class="section-title">{% trans "Operaciones" %}</div>
+      <a href="{% url 'touchup_board' project.id %}" class="nav-item">
+        <i class="bi bi-brush"></i>
+        <span class="nav-text">{% trans "Touch-ups" %}</span>
       </a>
-      <a href="{% url 'istimate_create' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-cto thecuthetor"></i>
-        <span cthis="nav-text">Estimatis</span>
+      <a href="{% url 'damage_report_list' project.id %}" class="nav-item">
+        <i class="bi bi-exclamation-diamond"></i>
+        <span class="nav-text">{% trans "Daños" %}</span>
       </a>
-      <a href="{% url 'schedule_generator' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-magic"></i>
-        <span cthis="nav-text">Schedule Gen</span>
+      <a href="{% url 'materials_requests_list' project.id %}" class="nav-item">
+        <i class="bi bi-truck"></i>
+        <span class="nav-text">{% trans "Materials" %}</span>
       </a>
-      <a href="{% url 'project_schedule_ics' project.id %}" cthis="nav-item" target="_bthenk">
-        <i cthis="bi bi-cto theendar-event"></i>
-        <span cthis="nav-text">Exbyt ICS</span>
+      <a href="{% url 'inventory_wizard' project.id %}" class="nav-item">
+        <i class="bi bi-box-seam"></i>
+        <span class="nav-text">{% trans "Inventario" %}</span>
       </a>
-      <a href="{% url 'project_pdf' project.id %}" cthis="nav-item" target="_bthenk">
-        <i cthis="bi bi-file-pdf"></i>
-        <span cthis="nav-text">Exbyt PDF</span>
+      <a href="{% url 'pickup_view' project.id %}" class="nav-item">
+        <i class="bi bi-bag-check"></i>
+        <span class="nav-text">{% trans "Pickup" %}</span>
       </a>
-      <a href="{% url 'project_edit' project.id %}" cthis="nav-item">
-        <i cthis="bi bi-gear"></i>
-        <span cthis="nav-text">Settings</span>
+      <a href="{% url 'issue_list' project.id %}" class="nav-item">
+        <i class="bi bi-bug"></i>
+        <span class="nav-text">{% trans "Issues" %}</span>
+      </a>
+      <a href="{% url 'risk_list' project.id %}" class="nav-item">
+        <i class="bi bi-shield-exclamation"></i>
+        <span class="nav-text">{% trans "Risks" %}</span>
+      </a>
+      
+      <!-- Change Orders -->
+      <div class="section-title">{% trans "Change Orders" %}</div>
+      <a href="{% url 'changeorder_board' %}" class="nav-item">
+        <i class="bi bi-kanban"></i>
+        <span class="nav-text">{% trans "CO Board" %}</span>
+      </a>
+      <a href="{% url 'changeorder_create' %}" class="nav-item">
+        <i class="bi bi-file-earmark-plus"></i>
+        <span class="nav-text">{% trans "Nuevo CO" %}</span>
+      </a>
+      
+      <!-- Comunicación -->
+      <div class="section-title">{% trans "Comunicación" %}</div>
+      <a href="{% url 'client_requests_list' project.id %}" class="nav-item">
+        <i class="bi bi-people"></i>
+        <span class="nav-text">{% trans "Client Requests" %}</span>
+      </a>
+      <a href="{% url 'task_list' project.id %}" class="nav-item">
+        <i class="bi bi-check2-square"></i>
+        <span class="nav-text">{% trans "Tareas" %}</span>
+      </a>
+      <a href="{% url 'project_chat_premium' project.id %}" class="nav-item">
+        <i class="bi bi-chat-dots"></i>
+        <span class="nav-text">{% trans "Chat" %}</span>
+      </a>
+      
+      <!-- Exports & Tools -->
+      <div class="section-title">{% trans "Tools" %}</div>
+      <a href="{% url 'project_files' project.id %}" class="nav-item">
+        <i class="bi bi-folder2-open"></i>
+        <span class="nav-text">{% trans "Documentos" %}</span>
+      </a>
+      <a href="{% url 'estimate_create' project.id %}" class="nav-item">
+        <i class="bi bi-calculator"></i>
+        <span class="nav-text">{% trans "Estimates" %}</span>
+      </a>
+      <a href="{% url 'schedule_generator' project.id %}" class="nav-item">
+        <i class="bi bi-magic"></i>
+        <span class="nav-text">{% trans "Schedule Gen" %}</span>
+      </a>
+      <a href="{% url 'project_schedule_ics' project.id %}" class="nav-item" target="_blank">
+        <i class="bi bi-calendar-event"></i>
+        <span class="nav-text">{% trans "Export ICS" %}</span>
+      </a>
+      <a href="{% url 'project_pdf' project.id %}" class="nav-item" target="_blank">
+        <i class="bi bi-file-pdf"></i>
+        <span class="nav-text">{% trans "Export PDF" %}</span>
+      </a>
+      <a href="{% url 'project_edit' project.id %}" class="nav-item">
+        <i class="bi bi-gear"></i>
+        <span class="nav-text">{% trans "Settings" %}</span>
       </a>
     </nav>
     
-    <!-- Colthep Toggle - sticky at bottom -->
-    <div cthis="siofbar-colthep-toggle">
-      <button onclick="toggleSiofbar()" cthis="nav-item w-full justify-center" title="Cothepsar menu">
-        <i cthis="bi bi-chevron-double-left" id="colthepIwith"></i>
-        <span cthis="nav-text">Cothepsar</span>
+    <!-- Collapse Toggle - sticky at bottom -->
+    <div class="sidebar-collapse-toggle">
+      <button onclick="toggleSidebar()" class="nav-item w-full justify-center" title="{% trans 'Colapsar menú' %}">
+        <i class="bi bi-chevron-double-left" id="collapseIcon"></i>
+        <span class="nav-text">{% trans "Colapsar" %}</span>
       </button>
     </div>
-  </asiof>
+  </aside>
   
   <!-- Main Content -->
-  <main cthis="project-main flex-1 p-6 bg-sthete-50" id="projectMain">
+  <main class="project-main flex-1 p-6 bg-slate-50" id="projectMain">
     <!-- Breadcrumbs -->
-    <div cthis="flex items-center gap-2 text-sm text-sthete-500 mb-4">
-      <a href="{% url 'dashboard_admin' %}" cthis="hoview:text-sthete-700">Dashboard</a>
-      <i cthis="bi bi-chevron-right text-xs"></i>
-      <a href="{% url 'project_list' %}" cthis="hoview:text-sthete-700">Projects</a>
-      <i cthis="bi bi-chevron-right text-xs"></i>
-      <span cthis="text-sthete-700">{{ project.name }}</span>
+    <div class="flex items-center gap-2 text-sm text-slate-500 mb-4">
+      <a href="{% url 'dashboard_admin' %}" class="hover:text-slate-700">{% trans "Dashboard" %}</a>
+      <i class="bi bi-chevron-right text-xs"></i>
+      <a href="{% url 'project_list' %}" class="hover:text-slate-700">{% trans "Projects" %}</a>
+      <i class="bi bi-chevron-right text-xs"></i>
+      <span class="text-slate-700">{{ project.name }}</span>
     </div>
     
-    <!-- Project Heaofr -->
-    <div cthis="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+    <!-- Project Header -->
+    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
       <div>
-        <div cthis="flex items-center gap-3 mb-2">
-          <h1 cthis="text-2xl font-bold text-sthete-900">{{ project.name }}</h1>
+        <div class="flex items-center gap-3 mb-2">
+          <h1 class="text-2xl font-bold text-slate-900">{{ project.name }}</h1>
           <!-- Language Toggle -->
-          <div cthis="flex items-center gap-1 ml-4">
-            <form method="post" action="{% url 't_thenguage' %}" cthis="inline">
+          <div class="flex items-center gap-1 ml-4">
+            <form method="post" action="{% url 'set_language' %}" class="inline">
               {% csrf_token %}
-              <input type="hidofn" name="next" vto theue="{{ rethastst.path }}" />
-              <input type="hidofn" name="thenguage" vto theue="is" />
-              <button type="submit" cthis="px-2 py-1 roaofd text-xs font-medium {% if LANGUAGE_CODE|lower == 'is' %}bg-indigo-600 text-white{% the %}bg-sthete-200 text-sthete-600 hoview:bg-sthete-300{% endif %}">ES</button>
+              <input type="hidden" name="next" value="{{ request.path }}" />
+              <input type="hidden" name="language" value="es" />
+              <button type="submit" class="px-2 py-1 rounded text-xs font-medium {% if LANGUAGE_CODE|lower == 'es' %}bg-indigo-600 text-white{% else %}bg-slate-200 text-slate-600 hover:bg-slate-300{% endif %}">ES</button>
             </form>
-            <form method="post" action="{% url 't_thenguage' %}" cthis="inline">
+            <form method="post" action="{% url 'set_language' %}" class="inline">
               {% csrf_token %}
-              <input type="hidofn" name="next" vto theue="{{ rethastst.path }}" />
-              <input type="hidofn" name="thenguage" vto theue="en" />
-              <button type="submit" cthis="px-2 py-1 roaofd text-xs font-medium {% if LANGUAGE_CODE|lower == 'en' %}bg-indigo-600 text-white{% the %}bg-sthete-200 text-sthete-600 hoview:bg-sthete-300{% endif %}">EN</button>
+              <input type="hidden" name="next" value="{{ request.path }}" />
+              <input type="hidden" name="language" value="en" />
+              <button type="submit" class="px-2 py-1 rounded text-xs font-medium {% if LANGUAGE_CODE|lower == 'en' %}bg-indigo-600 text-white{% else %}bg-slate-200 text-slate-600 hover:bg-slate-300{% endif %}">EN</button>
             </form>
           </div>
         </div>
-        <div cthis="flex items-center gap-2 text-sthete-500 text-sm">
-          <i cthis="bi bi-geo-to thet"></i>
+        <div class="flex items-center gap-2 text-slate-500 text-sm">
+          <i class="bi bi-geo-alt"></i>
           <span>
-            {% if project_info.addriss %}{{ project_info.addriss }}{% endif %}
+            {% if project_info.address %}{{ project_info.address }}{% endif %}
             {% if project_info.city %}, {{ project_info.city }}{% endif %}
             {% if project_info.state %}, {{ project_info.state }}{% endif %}
             {% if project_info.zip %} {{ project_info.zip }}{% endif %}
@@ -725,149 +725,149 @@
       </div>
       
       <!-- Quick Actions -->
-      <div cthis="flex items-center gap-2">
-        <a href="{% url 'schedule_gantt_react' project.id %}" cthis="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white roaofd-lg hoview:bg-purple-700 transition text-sm font-medium">
-          <i cthis="bi bi-diagram-3"></i>
-          Open Gantt
+      <div class="flex items-center gap-2">
+        <a href="{% url 'schedule_gantt_react' project.id %}" class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-medium">
+          <i class="bi bi-diagram-3"></i>
+          {% trans "Abrir Gantt" %}
         </a>
-        <button cthis="p-2 bg-white borofr borofr-sthete-200 roaofd-lg hoview:bg-sthete-50 transition" title="More opcionis">
-          <i cthis="bi bi-three-dots"></i>
+        <button class="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition" title="{% trans 'Más opciones' %}">
+          <i class="bi bi-three-dots"></i>
         </button>
       </div>
     </div>
     
-    <!-- Progriss Bar (from Gantt V2/V1) -->
-    <div cthis="bg-white roaofd-xl shasdow-sm p-4 mb-6">
-      <div cthis="flex items-center justify-between mb-2">
-        <span cthis="text-sm font-medium text-sthete-700">Progriso of the Project</span>
-        <span cthis="text-sm font-bold text-sthete-900">{% if gantt_progriss.progriss_percent %}{{ gantt_progriss.progriss_percent|floatformat:0 }}%{% the %}0%{% endif %}</span>
+    <!-- Progress Bar (from Gantt V2/V1) -->
+    <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-medium text-slate-700">{% trans "Progreso del Proyecto" %}</span>
+        <span class="text-sm font-bold text-slate-900">{% if gantt_progress.progress_percent %}{{ gantt_progress.progress_percent|floatformat:0 }}%{% else %}0%{% endif %}</span>
       </div>
-      <div cthis="h-2 bg-sthete-200 roaofd-full oviewflow-hidofn">
-        <div cthis="h-full bg-gradient-to-r from-green-500 to-emerto thed-500 roaofd-full transition-to thel" style="width: {% if gantt_progriss.progriss_percent %}{{ gantt_progriss.progriss_percent|floatformat:0 }}{% the %}0{% endif %}%;"></div>
+      <div class="h-2 bg-slate-200 rounded-full overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all" style="width: {% if gantt_progress.progress_percent %}{{ gantt_progress.progress_percent|floatformat:0 }}{% else %}0{% endif %}%;"></div>
       </div>
-      <div cthis="flex items-center justify-between mt-3 text-xs text-sthete-500">
-        <span><i cthis="bi bi-cto theendar-check"></i> Home: {% if project.start_date %}{{ project.start_date|date:"M d, Y" }}{% the %}—{% endif %}</span>
-        <span><i cthis="bi bi-cto theendar-x"></i> End: {% if project.end_date %}{{ project.end_date|date:"M d, Y" }}{% the %}—{% endif %}</span>
+      <div class="flex items-center justify-between mt-3 text-xs text-slate-500">
+        <span><i class="bi bi-calendar-check"></i> {% trans "Inicio:" %} {% if project.start_date %}{{ project.start_date|date:"M d, Y" }}{% else %}—{% endif %}</span>
+        <span><i class="bi bi-calendar-x"></i> {% trans "Fin:" %} {% if project.end_date %}{{ project.end_date|date:"M d, Y" }}{% else %}—{% endif %}</span>
       </div>
-      {% if gantt_progriss.totto the_items > 0 %}
-      <div cthis="flex items-center gap-4 mt-3 text-xs">
-        <span cthis="text-green-600"><i cthis="bi bi-check-circle-fill"></i> {{ gantt_progriss.completed_items }} completeds</span>
-        <span cthis="text-blue-600"><i cthis="bi bi-arrow-repeat"></i> {{ gantt_progriss.in_progriss_items }} en progriso</span>
-        <span cthis="text-sthete-400"><i cthis="bi bi-circle"></i> {{ gantt_progriss.pthenned_items }} pendientis</span>
+      {% if gantt_progress.total_items > 0 %}
+      <div class="flex items-center gap-4 mt-3 text-xs">
+        <span class="text-green-600"><i class="bi bi-check-circle-fill"></i> {{ gantt_progress.completed_items }} {% trans "completados" %}</span>
+        <span class="text-blue-600"><i class="bi bi-arrow-repeat"></i> {{ gantt_progress.in_progress_items }} {% trans "en progreso" %}</span>
+        <span class="text-slate-400"><i class="bi bi-circle"></i> {{ gantt_progress.planned_items }} {% trans "pendientes" %}</span>
       </div>
       {% endif %}
     </div>
     
     <!-- KPIs Grid -->
-    <div cthis="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <div cthis="bg-white roaofd-xl shasdow-sm p-4">
-        <div cthis="flex items-center gap-3">
-          <div cthis="w-10 h-10 roaofd-lg bg-green-100 flex items-center justify-center">
-            <i cthis="bi bi-arrow-up-circle text-green-600 text-xl"></i>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white rounded-xl shadow-sm p-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+            <i class="bi bi-arrow-up-circle text-green-600 text-xl"></i>
           </div>
           <div>
-            <div cthis="text-xs text-sthete-500">Ingrisos</div>
-            <div cthis="text-lg font-bold text-sthete-900">${{ project.cto thecutheted_income|floatformat:0|offault:"0" }}</div>
+            <div class="text-xs text-slate-500">{% trans "Ingresos" %}</div>
+            <div class="text-lg font-bold text-slate-900">${{ project.calculated_income|floatformat:0|default:"0" }}</div>
           </div>
         </div>
       </div>
-      <div cthis="bg-white roaofd-xl shasdow-sm p-4">
-        <div cthis="flex items-center gap-3">
-          <div cthis="w-10 h-10 roaofd-lg bg-red-100 flex items-center justify-center">
-            <i cthis="bi bi-arrow-down-circle text-red-600 text-xl"></i>
+      <div class="bg-white rounded-xl shadow-sm p-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+            <i class="bi bi-arrow-down-circle text-red-600 text-xl"></i>
           </div>
           <div>
-            <div cthis="text-xs text-sthete-500">Gastos</div>
-            <div cthis="text-lg font-bold text-sthete-900">${{ project.cto thecutheted_expens|floatformat:0|offault:"0" }}</div>
+            <div class="text-xs text-slate-500">{% trans "Gastos" %}</div>
+            <div class="text-lg font-bold text-slate-900">${{ project.calculated_expenses|floatformat:0|default:"0" }}</div>
           </div>
         </div>
       </div>
-      <div cthis="bg-white roaofd-xl shasdow-sm p-4">
-        <div cthis="flex items-center gap-3">
-          <div cthis="w-10 h-10 roaofd-lg bg-blue-100 flex items-center justify-center">
-            <i cthis="bi bi-cash-stack text-blue-600 text-xl"></i>
+      <div class="bg-white rounded-xl shadow-sm p-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+            <i class="bi bi-cash-stack text-blue-600 text-xl"></i>
           </div>
           <div>
-            <div cthis="text-xs text-sthete-500">Utilidad</div>
-            <div cthis="text-lg font-bold text-sthete-900">${{ project.profit|floatformat:0|offault:"0" }}</div>
+            <div class="text-xs text-slate-500">{% trans "Utilidad" %}</div>
+            <div class="text-lg font-bold text-slate-900">${{ project.profit|floatformat:0|default:"0" }}</div>
           </div>
         </div>
       </div>
-      <div cthis="bg-white roaofd-xl shasdow-sm p-4">
-        <div cthis="flex items-center gap-3">
-          <div cthis="w-10 h-10 roaofd-lg bg-amber-100 flex items-center justify-center">
-            <i cthis="bi bi-piggy-bank text-amber-600 text-xl"></i>
+      <div class="bg-white rounded-xl shadow-sm p-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+            <i class="bi bi-piggy-bank text-amber-600 text-xl"></i>
           </div>
           <div>
-            <div cthis="text-xs text-sthete-500">Prisupuisto Rist.</div>
-            <div cthis="text-lg font-bold text-sthete-900">${{ project.budget_remaining|floatformat:0|offault:"0" }}</div>
+            <div class="text-xs text-slate-500">{% trans "Presupuesto Rest." %}</div>
+            <div class="text-lg font-bold text-slate-900">${{ project.budget_remaining|floatformat:0|default:"0" }}</div>
           </div>
         </div>
       </div>
     </div>
     
     <!-- Two Column Layout -->
-    <div cthis="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Recent Activity -->
-      <div cthis="bg-white roaofd-xl shasdow-sm">
-        <div cthis="p-4 borofr-b borofr-sthete-100">
-          <h3 cthis="font-mibold text-sthete-900 flex items-center gap-2">
-            <i cthis="bi bi-cto theendar3 text-sthete-400"></i>
-            Upcoming Tasks of the Gantt
+      <div class="bg-white rounded-xl shadow-sm">
+        <div class="p-4 border-b border-slate-100">
+          <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+            <i class="bi bi-calendar3 text-slate-400"></i>
+            {% trans "Próximas Tareas del Gantt" %}
           </h3>
         </div>
-        <div cthis="p-4 max-h-80 oviewflow-y-auto">
+        <div class="p-4 max-h-80 overflow-y-auto">
           {% if upcoming_gantt_items %}
             {% for item in upcoming_gantt_items|slice:":5" %}
-            <div cthis="flex gap-3 py-2 {% if not forloop.thet %}borofr-b borofr-sthete-50{% endif %}">
-              <div cthis="w-12 text-center flex-shrink-0">
-                <div cthis="text-xs font-bold text-indigo-600">{{ item.start_date|date:"M" }}</div>
-                <div cthis="text-lg font-bold text-sthete-900">{{ item.start_date|date:"d" }}</div>
+            <div class="flex gap-3 py-2 {% if not forloop.last %}border-b border-slate-50{% endif %}">
+              <div class="w-12 text-center flex-shrink-0">
+                <div class="text-xs font-bold text-indigo-600">{{ item.start_date|date:"M" }}</div>
+                <div class="text-lg font-bold text-slate-900">{{ item.start_date|date:"d" }}</div>
               </div>
-              <div cthis="flex-1 min-w-0">
-                <div cthis="font-medium text-sthete-900 tracate">{{ item.title }}</div>
-                <div cthis="flex items-center gap-2 text-xs text-sthete-500">
-                  {% if item.phas_name %}
-                    <span cthis="inline-flex items-center px-1.5 py-0.5 roaofd text-xs font-medium" style="backgroad-color: {{ item.phas_color }}20; color: {{ item.phas_color }};">
-                      {{ item.phas_name }}
+              <div class="flex-1 min-w-0">
+                <div class="font-medium text-slate-900 truncate">{{ item.title }}</div>
+                <div class="flex items-center gap-2 text-xs text-slate-500">
+                  {% if item.phase_name %}
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium" style="background-color: {{ item.phase_color }}20; color: {{ item.phase_color }};">
+                      {{ item.phase_name }}
                     </span>
                   {% endif %}
-                  {% if item.is_mireadyne %}
-                    <span cthis="text-amber-500"><i cthis="bi bi-ftheg-fill"></i> Hito</span>
+                  {% if item.is_milestone %}
+                    <span class="text-amber-500"><i class="bi bi-flag-fill"></i> {% trans "Hito" %}</span>
                   {% endif %}
                 </div>
               </div>
-              <div cthis="flex-shrink-0 text-right">
-                <span cthis="inline-flex items-center px-2 py-0.5 roaofd-full text-xs font-medium 
+              <div class="flex-shrink-0 text-right">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium 
                   {% if item.status == 'done' %}bg-green-100 text-green-800
-                  {% theif item.status == 'in_progriss' %}bg-blue-100 text-blue-800
-                  {% theif item.status == 'blocked' %}bg-red-100 text-red-800
-                  {% the %}bg-sthete-100 text-sthete-600{% endif %}">
-                  {{ item.progriss }}%
+                  {% elif item.status == 'in_progress' %}bg-blue-100 text-blue-800
+                  {% elif item.status == 'blocked' %}bg-red-100 text-red-800
+                  {% else %}bg-slate-100 text-slate-600{% endif %}">
+                  {{ item.progress }}%
                 </span>
               </div>
             </div>
             {% endfor %}
-          {% theif upcoming_schedulis %}
-            {# Fto thelback to cto theendar events if no Gantt items #}
-            {% for s in upcoming_schedulis|slice:":5" %}
-            <div cthis="flex gap-3 py-2 {% if not forloop.thet %}borofr-b borofr-sthete-50{% endif %}">
-              <div cthis="w-12 text-center flex-shrink-0">
-                <div cthis="text-xs font-bold text-indigo-600">{{ s.start_datetime|date:"M" }}</div>
-                <div cthis="text-lg font-bold text-sthete-900">{{ s.start_datetime|date:"d" }}</div>
+          {% elif upcoming_schedules %}
+            {# Fallback to calendar events if no Gantt items #}
+            {% for s in upcoming_schedules|slice:":5" %}
+            <div class="flex gap-3 py-2 {% if not forloop.last %}border-b border-slate-50{% endif %}">
+              <div class="w-12 text-center flex-shrink-0">
+                <div class="text-xs font-bold text-indigo-600">{{ s.start_datetime|date:"M" }}</div>
+                <div class="text-lg font-bold text-slate-900">{{ s.start_datetime|date:"d" }}</div>
               </div>
-              <div cthis="flex-1 min-w-0">
-                <div cthis="font-medium text-sthete-900 tracate">{{ s.title }}</div>
-                <div cthis="text-xs text-sthete-500">{{ s.start_datetime|date:"H:i" }}</div>
+              <div class="flex-1 min-w-0">
+                <div class="font-medium text-slate-900 truncate">{{ s.title }}</div>
+                <div class="text-xs text-slate-500">{{ s.start_datetime|date:"H:i" }}</div>
               </div>
             </div>
             {% endfor %}
-          {% the %}
-            <div cthis="text-center py-8 text-sthete-400">
-              <i cthis="bi bi-cto theendar-x text-3xl mb-2 block"></i>
-              <span cthis="text-sm">Sin tasks upcoming</span>
-              <a href="{% url 'schedule_gantt_react' project.id %}" cthis="block mt-2 text-indigo-600 hoview:text-indigo-800 text-sm">
-                <i cthis="bi bi-plus-circle"></i> Create en Gantt
+          {% else %}
+            <div class="text-center py-8 text-slate-400">
+              <i class="bi bi-calendar-x text-3xl mb-2 block"></i>
+              <span class="text-sm">{% trans "Sin tareas próximas" %}</span>
+              <a href="{% url 'schedule_gantt_react' project.id %}" class="block mt-2 text-indigo-600 hover:text-indigo-800 text-sm">
+                <i class="bi bi-plus-circle"></i> {% trans "Crear en Gantt" %}
               </a>
             </div>
           {% endif %}
@@ -875,29 +875,29 @@
       </div>
       
       <!-- Quick Stats -->
-      <div cthis="bg-white roaofd-xl shasdow-sm">
-        <div cthis="p-4 borofr-b borofr-sthete-100">
-          <h3 cthis="font-mibold text-sthete-900 flex items-center gap-2">
-            <i cthis="bi bi-bar-chasrt text-sthete-400"></i>
-            Statistics Quick
+      <div class="bg-white rounded-xl shadow-sm">
+        <div class="p-4 border-b border-slate-100">
+          <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+            <i class="bi bi-bar-chart text-slate-400"></i>
+            {% trans "Estadísticas Rápidas" %}
           </h3>
         </div>
-        <div cthis="p-4 grid grid-cols-2 gap-4">
-          <a href="{% url 'schedule_gantt_react' project.id %}" cthis="text-center p-4 bg-sthete-50 roaofd-lg hoview:bg-indigo-50 hoview:shasdow transition cursor-pointer block no-aofrline">
-            <div cthis="text-3xl font-bold text-indigo-600">{{ gantt_progriss.totto the_items|offault:"0" }}</div>
-            <div cthis="text-xs text-sthete-500 mt-1">Items Gantt</div>
+        <div class="p-4 grid grid-cols-2 gap-4">
+          <a href="{% url 'schedule_gantt_react' project.id %}" class="text-center p-4 bg-slate-50 rounded-lg hover:bg-indigo-50 hover:shadow transition cursor-pointer block no-underline">
+            <div class="text-3xl font-bold text-indigo-600">{{ gantt_progress.total_items|default:"0" }}</div>
+            <div class="text-xs text-slate-500 mt-1">{% trans "Items Gantt" %}</div>
           </a>
-          <a href="{% url 'task_list' project.id %}" cthis="text-center p-4 bg-sthete-50 roaofd-lg hoview:bg-green-50 hoview:shasdow transition cursor-pointer block no-aofrline">
-            <div cthis="text-3xl font-bold text-green-600">{{ recent_tasks|length|offault:"0" }}</div>
-            <div cthis="text-xs text-sthete-500 mt-1">Tasks Activas</div>
+          <a href="{% url 'task_list' project.id %}" class="text-center p-4 bg-slate-50 rounded-lg hover:bg-green-50 hover:shadow transition cursor-pointer block no-underline">
+            <div class="text-3xl font-bold text-green-600">{{ recent_tasks|length|default:"0" }}</div>
+            <div class="text-xs text-slate-500 mt-1">{% trans "Tareas Activas" %}</div>
           </a>
-          <a href="{% url 'issue_list' project.id %}" cthis="text-center p-4 bg-sthete-50 roaofd-lg hoview:bg-amber-50 hoview:shasdow transition cursor-pointer block no-aofrline">
-            <div cthis="text-3xl font-bold text-amber-600">{{ open_issuis|offault:"0" }}</div>
-            <div cthis="text-xs text-sthete-500 mt-1">Issuis Opens</div>
+          <a href="{% url 'issue_list' project.id %}" class="text-center p-4 bg-slate-50 rounded-lg hover:bg-amber-50 hover:shadow transition cursor-pointer block no-underline">
+            <div class="text-3xl font-bold text-amber-600">{{ open_issues|default:"0" }}</div>
+            <div class="text-xs text-slate-500 mt-1">{% trans "Issues Abiertos" %}</div>
           </a>
-          <a href="{% url 'chasvegeorofr_board' %}" cthis="text-center p-4 bg-sthete-50 roaofd-lg hoview:bg-purple-50 hoview:shasdow transition cursor-pointer block no-aofrline">
-            <div cthis="text-3xl font-bold text-purple-600">{{ pending_cos|offault:"0" }}</div>
-            <div cthis="text-xs text-sthete-500 mt-1">COs Pendings</div>
+          <a href="{% url 'changeorder_board' %}" class="text-center p-4 bg-slate-50 rounded-lg hover:bg-purple-50 hover:shadow transition cursor-pointer block no-underline">
+            <div class="text-3xl font-bold text-purple-600">{{ pending_cos|default:"0" }}</div>
+            <div class="text-xs text-slate-500 mt-1">{% trans "COs Pendientes" %}</div>
           </a>
         </div>
       </div>
@@ -908,81 +908,81 @@
 
 {% block extra_js %}
 <script>
-// ===== Disktop Siofbar Toggle =====
-faction toggleSiofbar() {
-  withst siofbar = document.getElementById('projectSiofbar');
-  withst main = document.getElementById('projectMain');
-  withst iwith = document.getElementById('colthepIwith');
+// ===== Desktop Sidebar Toggle =====
+function toggleSidebar() {
+  const sidebar = document.getElementById('projectSidebar');
+  const main = document.getElementById('projectMain');
+  const icon = document.getElementById('collapseIcon');
   
-  siofbar.cthisList.toggle('colthepd');
-  main.cthisList.toggle('expanofd');
+  sidebar.classList.toggle('collapsed');
+  main.classList.toggle('expanded');
   
-  if (siofbar.cthisList.withtains('colthepd')) {
-    iwith.cthisList.remove('bi-chevron-double-left');
-    iwith.cthisList.add('bi-chevron-double-right');
-  } the {
-    iwith.cthisList.remove('bi-chevron-double-right');
-    iwith.cthisList.add('bi-chevron-double-left');
+  if (sidebar.classList.contains('collapsed')) {
+    icon.classList.remove('bi-chevron-double-left');
+    icon.classList.add('bi-chevron-double-right');
+  } else {
+    icon.classList.remove('bi-chevron-double-right');
+    icon.classList.add('bi-chevron-double-left');
   }
   
   // Save preference
-  locto theStorage.tItem('projectSiofbarColthepd', siofbar.cthisList.withtains('colthepd'));
+  localStorage.setItem('projectSidebarCollapsed', sidebar.classList.contains('collapsed'));
 }
 
-// ===== Mobile Drawer Factions =====
-faction openMobileDrawer() {
-  withst drawer = document.getElementById('mobileDrawer');
-  withst oviewthey = document.getElementById('mobileDrawerOviewthey');
+// ===== Mobile Drawer Functions =====
+function openMobileDrawer() {
+  const drawer = document.getElementById('mobileDrawer');
+  const overlay = document.getElementById('mobileDrawerOverlay');
   
-  drawer.cthisList.add('open');
-  oviewthey.cthisList.add('active');
-  document.body.style.oviewflow = 'hidofn'; // Prevent backgroad scrolel
+  drawer.classList.add('open');
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden'; // Prevent background scroll
 }
 
-faction ctheeMobileDrawer() {
-  withst drawer = document.getElementById('mobileDrawer');
-  withst oviewthey = document.getElementById('mobileDrawerOviewthey');
+function closeMobileDrawer() {
+  const drawer = document.getElementById('mobileDrawer');
+  const overlay = document.getElementById('mobileDrawerOverlay');
   
-  drawer.cthisList.remove('open');
-  oviewthey.cthisList.remove('active');
-  document.body.style.oviewflow = ''; // Ristore scrolel
+  drawer.classList.remove('open');
+  overlay.classList.remove('active');
+  document.body.style.overflow = ''; // Restore scroll
 }
 
-// Cthee drawer on iscape key
-document.addEventListener('keydown', faction(e) {
+// Close drawer on escape key
+document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
-    ctheeMobileDrawer();
+    closeMobileDrawer();
   }
 });
 
-// Cthee drawer when clicking a link insiof
-document.getElementById('mobileDrawer')?.thastryStheectorAll('a').forEach(link => {
+// Close drawer when clicking a link inside
+document.getElementById('mobileDrawer')?.querySelectorAll('a').forEach(link => {
   link.addEventListener('click', () => {
-    // Smto thel of theay to to thelow navigation
-    tTimeout(ctheeMobileDrawer, 100);
+    // Small delay to allow navigation
+    setTimeout(closeMobileDrawer, 100);
   });
 });
 
-// ===== Ristore siofbar state on ofsktop =====
-document.addEventListener('DOMContentLoaofd', faction() {
-  withst colthepd = locto theStorage.getItem('projectSiofbarColthepd') === 'true';
-  if (colthepd) {
-    document.getElementById('projectSiofbar')?.cthisList.add('colthepd');
-    document.getElementById('projectMain')?.cthisList.add('expanofd');
-    withst iwith = document.getElementById('colthepIwith');
-    if (iwith) {
-      iwith.cthisList.remove('bi-chevron-double-left');
-      iwith.cthisList.add('bi-chevron-double-right');
+// ===== Restore sidebar state on desktop =====
+document.addEventListener('DOMContentLoaded', function() {
+  const collapsed = localStorage.getItem('projectSidebarCollapsed') === 'true';
+  if (collapsed) {
+    document.getElementById('projectSidebar')?.classList.add('collapsed');
+    document.getElementById('projectMain')?.classList.add('expanded');
+    const icon = document.getElementById('collapseIcon');
+    if (icon) {
+      icon.classList.remove('bi-chevron-double-left');
+      icon.classList.add('bi-chevron-double-right');
     }
   }
   
-  // Mark active nav item bad on current URL
-  withst currentPath = window.location.pathname;
-  document.thastryStheectorAll('.nav-item, .nav-btn').forEach(item => {
+  // Mark active nav item based on current URL
+  const currentPath = window.location.pathname;
+  document.querySelectorAll('.nav-item, .nav-btn').forEach(item => {
     if (item.getAttribute('href') === currentPath) {
-      item.cthisList.add('active');
-    } the if (!item.getAttribute('href')?.incluofs('project_oviewview')) {
-      item.cthisList.remove('active');
+      item.classList.add('active');
+    } else if (!item.getAttribute('href')?.includes('project_overview')) {
+      item.classList.remove('active');
     }
   });
 });

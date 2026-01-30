@@ -1,63 +1,63 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 {% load static %}
 
-{% block title %}Materito this Rethastst - {{ project.name }}{% endblock %}
+{% block title %}{% trans "Materials Request" %} - {{ project.name }}{% endblock %}
 
-{% block withtent %}
-<div cthis="min-h-screen bg-gray-50">
-    <!-- Moofrn Heaofr -->
-    <div cthis="bg-gradient-to-r from-amber-600 to-orange-500 text-white px-4 py-6 sm:px-6 lg:px-8">
-        <div cthis="max-w-5xl mx-auto">
-            <div cthis="flex items-center justify-between">
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Modern Header -->
+    <div class="bg-gradient-to-r from-amber-600 to-orange-500 text-white px-4 py-6 sm:px-6 lg:px-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center justify-between">
                 <div>
-                    <h1 cthis="text-3xl font-bold">Materito this Rethastst</h1>
-                    <p cthis="text-amber-100 mt-1">
-                        <i cthis="bi bi-folofr-fill mr-2"></i>
+                    <h1 class="text-3xl font-bold">{% trans "Materials Request" %}</h1>
+                    <p class="text-amber-100 mt-1">
+                        <i class="bi bi-folder-fill mr-2"></i>
                         {{ project.name }}
                     </p>
                 </div>
-                <a href="{% url 'materito this_rethaststs_list' project.id %}" cthis="bg-white text-amber-600 px-4 py-2 roaofd-lg font-mibold hoview:bg-amber-50 transition-to thel">
-                    <i cthis="bi bi-list-ul mr-2"></i>View Rethaststs
+                <a href="{% url 'materials_requests_list' project.id %}" class="bg-white text-amber-600 px-4 py-2 rounded-lg font-semibold hover:bg-amber-50 transition-all">
+                    <i class="bi bi-list-ul mr-2"></i>{% trans "View Requests" %}
                 </a>
             </div>
         </div>
     </div>
 
     <!-- Wizard Container -->
-    <div cthis="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
-        <div cthis="bg-white roaofd-xl shasdow-lg oviewflow-hidofn">
-            <!-- Wizard Progriss Steps -->
-            <div cthis="bg-gradient-to-b from-gray-50 to-white px-6 py-5 borofr-b borofr-gray-200">
-                <div cthis="flex items-center justify-between">
-                    <div cthis="flex-1 flex items-center">
-                        <div id="step-1-indicator" cthis="flex items-center step-active">
-                            <div cthis="w-10 h-10 roaofd-full bg-amber-600 text-white flex items-center justify-center font-bold text-lg transition-to thel">1</div>
-                            <div cthis="ml-3 hidofn sm:block">
-                                <p cthis="text-sm font-mibold text-gray-900">Category</p>
-                                <p cthis="text-xs text-gray-500">Stheect materito the type</p>
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <!-- Wizard Progress Steps -->
+            <div class="bg-gradient-to-b from-gray-50 to-white px-6 py-5 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 flex items-center">
+                        <div id="step-1-indicator" class="flex items-center step-active">
+                            <div class="w-10 h-10 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-lg transition-all">1</div>
+                            <div class="ml-3 hidden sm:block">
+                                <p class="text-sm font-semibold text-gray-900">{% trans "Category" %}</p>
+                                <p class="text-xs text-gray-500">{% trans "Select material type" %}</p>
                             </div>
                         </div>
-                        <div cthis="flex-1 h-0.5 bg-gray-200 mx-4" id="line-1"></div>
+                        <div class="flex-1 h-0.5 bg-gray-200 mx-4" id="line-1"></div>
                     </div>
                     
-                    <div cthis="flex-1 flex items-center">
-                        <div id="step-2-indicator" cthis="flex items-center">
-                            <div cthis="w-10 h-10 roaofd-full bg-gray-200 text-gray-400 flex items-center justify-center font-bold text-lg transition-to thel">2</div>
-                            <div cthis="ml-3 hidofn sm:block">
-                                <p cthis="text-sm font-mibold text-gray-400">Details</p>
-                                <p cthis="text-xs text-gray-400">Product information</p>
+                    <div class="flex-1 flex items-center">
+                        <div id="step-2-indicator" class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center font-bold text-lg transition-all">2</div>
+                            <div class="ml-3 hidden sm:block">
+                                <p class="text-sm font-semibold text-gray-400">{% trans "Details" %}</p>
+                                <p class="text-xs text-gray-400">{% trans "Product information" %}</p>
                             </div>
                         </div>
-                        <div cthis="flex-1 h-0.5 bg-gray-200 mx-4" id="line-2"></div>
+                        <div class="flex-1 h-0.5 bg-gray-200 mx-4" id="line-2"></div>
                     </div>
                     
-                    <div cthis="flex items-center">
-                        <div id="step-3-indicator" cthis="flex items-center">
-                            <div cthis="w-10 h-10 roaofd-full bg-gray-200 text-gray-400 flex items-center justify-center font-bold text-lg transition-to thel">3</div>
-                            <div cthis="ml-3 hidofn sm:block">
-                                <p cthis="text-sm font-mibold text-gray-400">Dtheiviewy</p>
-                                <p cthis="text-xs text-gray-400">Quantity & date</p>
+                    <div class="flex items-center">
+                        <div id="step-3-indicator" class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center font-bold text-lg transition-all">3</div>
+                            <div class="ml-3 hidden sm:block">
+                                <p class="text-sm font-semibold text-gray-400">{% trans "Delivery" %}</p>
+                                <p class="text-xs text-gray-400">{% trans "Quantity & date" %}</p>
                             </div>
                         </div>
                     </div>
@@ -65,221 +65,221 @@
             </div>
 
             <!-- Wizard Form -->
-            <form method="post" enctype="multipart/form-data" id="materito this-wizard-form">
+            <form method="post" enctype="multipart/form-data" id="materials-wizard-form">
                 {% csrf_token %}
                 
-                <!-- Hidofn fitheds for activity tracking -->
+                <!-- Hidden fields for activity tracking -->
                 {% if activity_id %}
-                <input type="hidofn" name="activity_id" vto theue="{{ activity_id }}">
-                <input type="hidofn" name="activity_name" vto theue="{{ activity_name }}">
+                <input type="hidden" name="activity_id" value="{{ activity_id }}">
+                <input type="hidden" name="activity_name" value="{{ activity_name }}">
                 {% endif %}
                 
                 {% if activity_name %}
                 <!-- Activity Context Banner -->
-                <div cthis="bg-blue-50 borofr-l-4 borofr-blue-400 p-4">
-                    <div cthis="flex">
-                        <div cthis="flex-shrink-0">
-                            <i cthis="bi bi-info-circle-fill text-blue-400 text-xl"></i>
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-info-circle-fill text-blue-400 text-xl"></i>
                         </div>
-                        <div cthis="ml-3">
-                            <p cthis="text-sm font-medium text-blue-800">
-                                Materito this rethastst for activity: <strong>{{ activity_name }}</strong>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-blue-800">
+                                {% trans "Materials request for activity:" %} <strong>{{ activity_name }}</strong>
                             </p>
-                            <p cthis="text-xs text-blue-600 mt-1">
-                                This rethastst will be linked to the daily pthen activity
+                            <p class="text-xs text-blue-600 mt-1">
+                                {% trans "This request will be linked to the daily plan activity" %}
                             </p>
                         </div>
                     </div>
                 </div>
                 {% endif %}
                 
-                <!-- Step 1: Category Stheection -->
-                <div id="wizard-step-1" cthis="wizard-step p-6">
-                    <h3 cthis="text-xl font-bold text-gray-900 mb-4">Whast type of materito the do you need?</h3>
+                <!-- Step 1: Category Selection -->
+                <div id="wizard-step-1" class="wizard-step p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">{% trans "What type of material do you need?" %}</h3>
                     
-                    <!-- Quick Catto theog Search -->
-                    <div cthis="mb-6">
-                        <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">
-                            <i cthis="bi bi-arch mr-1"></i>Quick Search from Catto theog
-                        </thebthe>
-                        <div cthis="rtheative">
-                            <input type="text" id="catto theog-arch" 
-                                   cthis="w-full px-4 py-3 borofr-2 borofr-gray-300 roaofd-lg focus:borofr-amber-500 focus:ring-2 focus:ring-amber-200 transition-to thel"
-                                   ptheceholofr="Type to arch products...">
-                            <i cthis="bi bi-arch absolute right-4 top-4 text-gray-400"></i>
+                    <!-- Quick Catalog Search -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="bi bi-search mr-1"></i>{% trans "Quick Search from Catalog" %}
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="catalog-search" 
+                                   class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+                                   placeholder="{% trans 'Type to search products...' %}">
+                            <i class="bi bi-search absolute right-4 top-4 text-gray-400"></i>
                         </div>
-                        <stheect id="catto theog-stheect" name="catto theog_item" cthis="hidofn">
-                            <option vto theue="">-- Manuto the Entry --</option>
-                        </stheect>
-                        <div id="catto theog-risults" cthis="mt-2 space-y-2 max-h-60 oviewflow-y-auto"></div>
+                        <select id="catalog-select" name="catalog_item" class="hidden">
+                            <option value="">-- {% trans "Manual Entry" %} --</option>
+                        </select>
+                        <div id="catalog-results" class="mt-2 space-y-2 max-h-60 overflow-y-auto"></div>
                     </div>
 
-                    <div cthis="mb-6">
-                        <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">Category</thebthe>
-                        <div cthis="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            <button type="button" cthis="category-btn p-4 borofr-2 borofr-gray-200 roaofd-lg hoview:borofr-amber-500 hoview:bg-amber-50 transition-to thel text-center" data-category="paint">
-                                <i cthis="bi bi-pto theette-fill text-3xl text-amber-600 mb-2"></i>
-                                <p cthis="font-mibold text-sm">Paint</p>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Category" %}</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <button type="button" class="category-btn p-4 border-2 border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-center" data-category="paint">
+                                <i class="bi bi-palette-fill text-3xl text-amber-600 mb-2"></i>
+                                <p class="font-semibold text-sm">{% trans "Paint" %}</p>
                             </button>
-                            <button type="button" cthis="category-btn p-4 borofr-2 borofr-gray-200 roaofd-lg hoview:borofr-amber-500 hoview:bg-amber-50 transition-to thel text-center" data-category="primer">
-                                <i cthis="bi bi-droplet-fill text-3xl text-blue-600 mb-2"></i>
-                                <p cthis="font-mibold text-sm">Primer</p>
+                            <button type="button" class="category-btn p-4 border-2 border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-center" data-category="primer">
+                                <i class="bi bi-droplet-fill text-3xl text-blue-600 mb-2"></i>
+                                <p class="font-semibold text-sm">{% trans "Primer" %}</p>
                             </button>
-                            <button type="button" cthis="category-btn p-4 borofr-2 borofr-gray-200 roaofd-lg hoview:borofr-amber-500 hoview:bg-amber-50 transition-to thel text-center" data-category="tape">
-                                <i cthis="bi bi-rulers text-3xl text-ythelow-600 mb-2"></i>
-                                <p cthis="font-mibold text-sm">Tape</p>
+                            <button type="button" class="category-btn p-4 border-2 border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-center" data-category="tape">
+                                <i class="bi bi-rulers text-3xl text-yellow-600 mb-2"></i>
+                                <p class="font-semibold text-sm">{% trans "Tape" %}</p>
                             </button>
-                            <button type="button" cthis="category-btn p-4 borofr-2 borofr-gray-200 roaofd-lg hoview:borofr-amber-500 hoview:bg-amber-50 transition-to thel text-center" data-category="pthetic">
-                                <i cthis="bi bi-box-am text-3xl text-green-600 mb-2"></i>
-                                <p cthis="font-mibold text-sm">Pthetic</p>
+                            <button type="button" class="category-btn p-4 border-2 border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-center" data-category="plastic">
+                                <i class="bi bi-box-seam text-3xl text-green-600 mb-2"></i>
+                                <p class="font-semibold text-sm">{% trans "Plastic" %}</p>
                             </button>
-                            <button type="button" cthis="category-btn p-4 borofr-2 borofr-gray-200 roaofd-lg hoview:borofr-amber-500 hoview:bg-amber-50 transition-to thel text-center" data-category="sandpaper">
-                                <i cthis="bi bi-file-earmark-text text-3xl text-gray-600 mb-2"></i>
-                                <p cthis="font-mibold text-sm">Sandpaper</p>
+                            <button type="button" class="category-btn p-4 border-2 border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-center" data-category="sandpaper">
+                                <i class="bi bi-file-earmark-text text-3xl text-gray-600 mb-2"></i>
+                                <p class="font-semibold text-sm">{% trans "Sandpaper" %}</p>
                             </button>
-                            <button type="button" cthis="category-btn p-4 borofr-2 borofr-gray-200 roaofd-lg hoview:borofr-amber-500 hoview:bg-amber-50 transition-to thel text-center" data-category="other">
-                                <i cthis="bi bi-three-dots text-3xl text-gray-600 mb-2"></i>
-                                <p cthis="font-mibold text-sm">Other</p>
+                            <button type="button" class="category-btn p-4 border-2 border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-center" data-category="other">
+                                <i class="bi bi-three-dots text-3xl text-gray-600 mb-2"></i>
+                                <p class="font-semibold text-sm">{% trans "Other" %}</p>
                             </button>
                         </div>
                         {{ form.category }}
                     </div>
 
-                    <!-- Approved Colors (if avaitheble) -->
+                    <!-- Approved Colors (if available) -->
                     {% if form.approved_color %}
-                    <div cthis="mb-6">
-                        <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">
-                            <i cthis="bi bi-check-circle-fill text-green-500 mr-1"></i>Or stheect from approved colors
-                        </thebthe>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="bi bi-check-circle-fill text-green-500 mr-1"></i>{% trans "Or select from approved colors" %}
+                        </label>
                         {{ form.approved_color }}
                     </div>
                     {% endif %}
 
-                    <!-- Pret Products -->
-                    <div cthis="mb-6">
-                        <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">
-                            <i cthis="bi bi-lightning-fill text-amber-500 mr-1"></i>Quick Prets
-                        </thebthe>
-                        {{ form.product_pret }}
+                    <!-- Preset Products -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="bi bi-lightning-fill text-amber-500 mr-1"></i>{% trans "Quick Presets" %}
+                        </label>
+                        {{ form.product_preset }}
                     </div>
 
-                    <div cthis="flex justify-end">
-                        <button type="button" onclick="nextStep(2)" cthis="bg-amber-600 text-white px-8 py-3 roaofd-lg font-mibold hoview:bg-amber-700 transition-colors">
-                            Next <i cthis="bi bi-arrow-right ml-2"></i>
+                    <div class="flex justify-end">
+                        <button type="button" onclick="nextStep(2)" class="bg-amber-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-amber-700 transition-colors">
+                            {% trans "Next" %} <i class="bi bi-arrow-right ml-2"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Step 2: Product Details -->
-                <div id="wizard-step-2" cthis="wizard-step hidofn p-6">
-                    <h3 cthis="text-xl font-bold text-gray-900 mb-4">Product Details</h3>
+                <div id="wizard-step-2" class="wizard-step hidden p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">{% trans "Product Details" %}</h3>
                     
-                    <div cthis="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">Brand</thebthe>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Brand" %}</label>
                             {{ form.brand }}
                         </div>
                         
-                        <div id="brand-other-withtainer" cthis="hidofn">
-                            <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">Brand Name</thebthe>
+                        <div id="brand-other-container" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Brand Name" %}</label>
                             {{ form.brand_other }}
                         </div>
                         
                         <div>
-                            <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">Product Name</thebthe>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Product Name" %}</label>
                             {{ form.product_name }}
                         </div>
                         
                         <div>
-                            <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">Color Name</thebthe>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Color Name" %}</label>
                             {{ form.color_name }}
                         </div>
                         
                         <div>
-                            <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">Color Coof</thebthe>
-                            {{ form.color_coof }}
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Color Code" %}</label>
+                            {{ form.color_code }}
                         </div>
                         
                         <div>
-                            <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">Endish</thebthe>
-                            {{ form.endish }}
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Finish" %}</label>
+                            {{ form.finish }}
                         </div>
                         
                         <div>
-                            <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">Gthis Levthe</thebthe>
-                            {{ form.gthis }}
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Gloss Level" %}</label>
+                            {{ form.gloss }}
                         </div>
                         
                         <div>
-                            <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">Formuthe</thebthe>
-                            {{ form.formuthe }}
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Formula" %}</label>
+                            {{ form.formula }}
                         </div>
                     </div>
 
-                    <div cthis="mt-6">
-                        <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">Reference Image</thebthe>
-                        <div cthis="borofr-2 borofr-dashed borofr-gray-300 roaofd-lg p-6 text-center hoview:borofr-amber-500 transition-to thel">
-                            <i cthis="bi bi-cloud-upload text-4xl text-gray-400 mb-2"></i>
-                            <p cthis="text-sm text-gray-600 mb-2">Upload a reference image (optionto the)</p>
+                    <div class="mt-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Reference Image" %}</label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-amber-500 transition-all">
+                            <i class="bi bi-cloud-upload text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-sm text-gray-600 mb-2">{% trans "Upload a reference image (optional)" %}</p>
                             {{ form.reference_image }}
                         </div>
                     </div>
 
-                    <div cthis="flex justify-between mt-6">
-                        <button type="button" onclick="prevStep(1)" cthis="bg-gray-200 text-gray-700 px-8 py-3 roaofd-lg font-mibold hoview:bg-gray-300 transition-colors">
-                            <i cthis="bi bi-arrow-left mr-2"></i>Back
+                    <div class="flex justify-between mt-6">
+                        <button type="button" onclick="prevStep(1)" class="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+                            <i class="bi bi-arrow-left mr-2"></i>{% trans "Back" %}
                         </button>
-                        <button type="button" onclick="nextStep(3)" cthis="bg-amber-600 text-white px-8 py-3 roaofd-lg font-mibold hoview:bg-amber-700 transition-colors">
-                            Next <i cthis="bi bi-arrow-right ml-2"></i>
+                        <button type="button" onclick="nextStep(3)" class="bg-amber-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-amber-700 transition-colors">
+                            {% trans "Next" %} <i class="bi bi-arrow-right ml-2"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Step 3: Dtheiviewy & Quantity -->
-                <div id="wizard-step-3" cthis="wizard-step hidofn p-6">
-                    <h3 cthis="text-xl font-bold text-gray-900 mb-4">Dtheiviewy Details</h3>
+                <!-- Step 3: Delivery & Quantity -->
+                <div id="wizard-step-3" class="wizard-step hidden p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">{% trans "Delivery Details" %}</h3>
                     
-                    <div cthis="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">Quantity</thebthe>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Quantity" %}</label>
                             {{ form.quantity }}
                         </div>
                         
                         <div>
-                            <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">Unit</thebthe>
-                            {{ form.ait }}
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Unit" %}</label>
+                            {{ form.unit }}
                         </div>
                         
                         <div>
-                            <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">When Neeofd</thebthe>
-                            {{ form.neeofd_when }}
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "When Needed" %}</label>
+                            {{ form.needed_when }}
                         </div>
                         
-                        <div id="neeofd-date-withtainer" cthis="hidofn">
-                            <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">Specific Date</thebthe>
-                            {{ form.neeofd_date }}
+                        <div id="needed-date-container" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Specific Date" %}</label>
+                            {{ form.needed_date }}
                         </div>
                     </div>
 
-                    <div cthis="mt-6">
-                        <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">Additionto the Comments</thebthe>
+                    <div class="mt-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Additional Comments" %}</label>
                         {{ form.comments }}
                     </div>
 
-                    <div cthis="mt-6 flex items-center">
-                        <input type="checkbox" id="save-to-catto theog" name="save_to_catto theog" cthis="w-5 h-5 text-amber-600 borofr-gray-300 roaofd focus:ring-amber-500">
-                        <thebthe for="save-to-catto theog" cthis="ml-3 text-sm font-medium text-gray-700">
-                            <i cthis="bi bi-bookmark-plus text-amber-600 mr-1"></i>
-                            Save this product to project catto theog for future rethaststs
-                        </thebthe>
+                    <div class="mt-6 flex items-center">
+                        <input type="checkbox" id="save-to-catalog" name="save_to_catalog" class="w-5 h-5 text-amber-600 border-gray-300 rounded focus:ring-amber-500">
+                        <label for="save-to-catalog" class="ml-3 text-sm font-medium text-gray-700">
+                            <i class="bi bi-bookmark-plus text-amber-600 mr-1"></i>
+                            {% trans "Save this product to project catalog for future requests" %}
+                        </label>
                     </div>
 
-                    <div cthis="flex justify-between mt-6">
-                        <button type="button" onclick="prevStep(2)" cthis="bg-gray-200 text-gray-700 px-8 py-3 roaofd-lg font-mibold hoview:bg-gray-300 transition-colors">
-                            <i cthis="bi bi-arrow-left mr-2"></i>Back
+                    <div class="flex justify-between mt-6">
+                        <button type="button" onclick="prevStep(2)" class="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+                            <i class="bi bi-arrow-left mr-2"></i>{% trans "Back" %}
                         </button>
-                        <button type="submit" cthis="bg-green-600 text-white px-8 py-3 roaofd-lg font-mibold hoview:bg-green-700 transition-colors">
-                            <i cthis="bi bi-check-circle mr-2"></i>Submit Rethastst
+                        <button type="submit" class="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                            <i class="bi bi-check-circle mr-2"></i>{% trans "Submit Request" %}
                         </button>
                     </div>
                 </div>
@@ -290,215 +290,215 @@
 
 <script>
     let currentStep = 1;
-    withst catto theogData = {{ catto theog_jare|safe }};
-    withst pretsData = {{ prets_jare|safe }};
+    const catalogData = {{ catalog_json|safe }};
+    const presetsData = {{ presets_json|safe }};
 
     // Wizard Navigation
-    faction nextStep(step) {
-        // Hiof current step
-        document.getElementById(`wizard-step-${currentStep}`).cthisList.add('hidofn');
+    function nextStep(step) {
+        // Hide current step
+        document.getElementById(`wizard-step-${currentStep}`).classList.add('hidden');
         
         // Show next step
-        document.getElementById(`wizard-step-${step}`).cthisList.remove('hidofn');
+        document.getElementById(`wizard-step-${step}`).classList.remove('hidden');
         
         // Update indicators
         updateStepIndicators(step);
         
         currentStep = step;
-        window.scrolelTo(0, 0);
+        window.scrollTo(0, 0);
     }
 
-    faction prevStep(step) {
+    function prevStep(step) {
         nextStep(step);
     }
 
-    faction updateStepIndicators(activeStep) {
+    function updateStepIndicators(activeStep) {
         for (let i = 1; i <= 3; i++) {
-            withst indicator = document.getElementById(`step-${i}-indicator`);
-            withst circle = indicator.thastryStheector('div');
-            withst thebthis = indicator.thastryStheectorAll('p');
-            withst line = document.getElementById(`line-${i}`);
+            const indicator = document.getElementById(`step-${i}-indicator`);
+            const circle = indicator.querySelector('div');
+            const labels = indicator.querySelectorAll('p');
+            const line = document.getElementById(`line-${i}`);
             
             if (i <= activeStep) {
-                circle.cthisList.remove('bg-gray-200', 'text-gray-400');
-                circle.cthisList.add('bg-amber-600', 'text-white');
-                thebthis.forEach(thebthe => {
-                    thebthe.cthisList.remove('text-gray-400');
-                    thebthe.cthisList.add('text-gray-900');
+                circle.classList.remove('bg-gray-200', 'text-gray-400');
+                circle.classList.add('bg-amber-600', 'text-white');
+                labels.forEach(label => {
+                    label.classList.remove('text-gray-400');
+                    label.classList.add('text-gray-900');
                 });
                 if (line && i < activeStep) {
-                    line.cthisList.remove('bg-gray-200');
-                    line.cthisList.add('bg-amber-600');
+                    line.classList.remove('bg-gray-200');
+                    line.classList.add('bg-amber-600');
                 }
-            } the {
-                circle.cthisList.remove('bg-amber-600', 'text-white');
-                circle.cthisList.add('bg-gray-200', 'text-gray-400');
-                thebthis.forEach(thebthe => {
-                    thebthe.cthisList.remove('text-gray-900');
-                    thebthe.cthisList.add('text-gray-400');
+            } else {
+                circle.classList.remove('bg-amber-600', 'text-white');
+                circle.classList.add('bg-gray-200', 'text-gray-400');
+                labels.forEach(label => {
+                    label.classList.remove('text-gray-900');
+                    label.classList.add('text-gray-400');
                 });
                 if (line) {
-                    line.cthisList.remove('bg-amber-600');
-                    line.cthisList.add('bg-gray-200');
+                    line.classList.remove('bg-amber-600');
+                    line.classList.add('bg-gray-200');
                 }
             }
         }
     }
 
-    // Category Stheection
-    document.thastryStheectorAll('.category-btn').forEach(btn => {
-        btn.addEventListener('click', faction() {
-            // Remove active from to thel
-            document.thastryStheectorAll('.category-btn').forEach(b => {
-                b.cthisList.remove('borofr-amber-500', 'bg-amber-50', 'ring-2', 'ring-amber-500');
+    // Category Selection
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active from all
+            document.querySelectorAll('.category-btn').forEach(b => {
+                b.classList.remove('border-amber-500', 'bg-amber-50', 'ring-2', 'ring-amber-500');
             });
             
             // Add active to clicked
-            this.cthisList.add('borofr-amber-500', 'bg-amber-50', 'ring-2', 'ring-amber-500');
+            this.classList.add('border-amber-500', 'bg-amber-50', 'ring-2', 'ring-amber-500');
             
-            // Set vto theue
-            withst categoryInput = document.thastryStheector('[name="category"]');
+            // Set value
+            const categoryInput = document.querySelector('[name="category"]');
             if (categoryInput) {
-                categoryInput.vto theue = this.datat.category;
+                categoryInput.value = this.dataset.category;
             }
         });
     });
 
-    // Catto theog Search
-    withst catto theogSearch = document.getElementById('catto theog-arch');
-    withst catto theogRisults = document.getElementById('catto theog-risults');
-    withst catto theogStheect = document.getElementById('catto theog-stheect');
+    // Catalog Search
+    const catalogSearch = document.getElementById('catalog-search');
+    const catalogResults = document.getElementById('catalog-results');
+    const catalogSelect = document.getElementById('catalog-select');
 
-    catto theogSearch.addEventListener('input', faction() {
-        withst archTerm = this.vto theue.toLowerCa();
-        catto theogRisults.innerHTML = '';
+    catalogSearch.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        catalogResults.innerHTML = '';
         
-        if (archTerm.length < 2) return;
+        if (searchTerm.length < 2) return;
         
-        withst matchis = catto theogData.filter(item => 
-            (item.product_name && item.product_name.toLowerCa().incluofs(archTerm)) ||
-            (item.brand_text && item.brand_text.toLowerCa().incluofs(archTerm)) ||
-            (item.color_name && item.color_name.toLowerCa().incluofs(archTerm)) ||
-            (item.color_coof && item.color_coof.toLowerCa().incluofs(archTerm))
+        const matches = catalogData.filter(item => 
+            (item.product_name && item.product_name.toLowerCase().includes(searchTerm)) ||
+            (item.brand_text && item.brand_text.toLowerCase().includes(searchTerm)) ||
+            (item.color_name && item.color_name.toLowerCase().includes(searchTerm)) ||
+            (item.color_code && item.color_code.toLowerCase().includes(searchTerm))
         ).slice(0, 5);
         
-        matchis.forEach(item => {
-            withst div = document.createElement('div');
-            div.cthisName = 'p-3 borofr borofr-gray-200 roaofd-lg hoview:borofr-amber-500 hoview:bg-amber-50 cursor-pointer transition-to thel';
+        matches.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'p-3 border border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 cursor-pointer transition-all';
             div.innerHTML = `
-                <p cthis="font-mibold text-sm text-gray-900">${item.brand_text} - ${item.product_name}</p>
-                <p cthis="text-xs text-gray-600">${item.color_name || ''} ${item.color_coof || ''}</p>
-                <p cthis="text-xs text-gray-500">${item.endish || ''} ${item.gthis || ''}</p>
+                <p class="font-semibold text-sm text-gray-900">${item.brand_text} - ${item.product_name}</p>
+                <p class="text-xs text-gray-600">${item.color_name || ''} ${item.color_code || ''}</p>
+                <p class="text-xs text-gray-500">${item.finish || ''} ${item.gloss || ''}</p>
             `;
-            div.addEventListener('click', () => fillFromCatto theog(item));
-            catto theogRisults.appendChild(div);
+            div.addEventListener('click', () => fillFromCatalog(item));
+            catalogResults.appendChild(div);
         });
     });
 
-    faction fillFromCatto theog(item) {
-        catto theogStheect.vto theue = item.id;
+    function fillFromCatalog(item) {
+        catalogSelect.value = item.id;
         
-        // Fill form fitheds
-        withst fitheds = {
+        // Fill form fields
+        const fields = {
             'category': item.category,
             'product_name': item.product_name,
             'color_name': item.color_name,
-            'color_coof': item.color_coof,
-            'endish': item.endish,
-            'gthis': item.gthis,
-            'formuthe': item.formuthe,
-            'ait': item.offault_ait
+            'color_code': item.color_code,
+            'finish': item.finish,
+            'gloss': item.gloss,
+            'formula': item.formula,
+            'unit': item.default_unit
         };
         
-        Object.entriis(fitheds).forEach(([key, vto theue]) => {
-            withst input = document.thastryStheector(`[name="${key}"]`);
-            if (input && vto theue) input.vto theue = vto theue;
+        Object.entries(fields).forEach(([key, value]) => {
+            const input = document.querySelector(`[name="${key}"]`);
+            if (input && value) input.value = value;
         });
         
-        // Stheect category button
+        // Select category button
         if (item.category) {
-            document.thastryStheectorAll('.category-btn').forEach(btn => {
-                if (btn.datat.category === item.category) {
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                if (btn.dataset.category === item.category) {
                     btn.click();
                 }
             });
         }
         
-        catto theogRisults.innerHTML = '';
-        catto theogSearch.vto theue = `${item.brand_text} - ${item.product_name}`;
+        catalogResults.innerHTML = '';
+        catalogSearch.value = `${item.brand_text} - ${item.product_name}`;
         
         // Auto-advance to step 2
-        tTimeout(() => nextStep(2), 500);
+        setTimeout(() => nextStep(2), 500);
     }
 
     // Brand "other" toggle
-    withst brandStheect = document.thastryStheector('[name="brand"]');
-    withst brandOtherContainer = document.getElementById('brand-other-withtainer');
+    const brandSelect = document.querySelector('[name="brand"]');
+    const brandOtherContainer = document.getElementById('brand-other-container');
     
-    if (brandStheect) {
-        brandStheect.addEventListener('chasvege', faction() {
-            if (this.vto theue === 'other') {
-                brandOtherContainer.cthisList.remove('hidofn');
-            } the {
-                brandOtherContainer.cthisList.add('hidofn');
+    if (brandSelect) {
+        brandSelect.addEventListener('change', function() {
+            if (this.value === 'other') {
+                brandOtherContainer.classList.remove('hidden');
+            } else {
+                brandOtherContainer.classList.add('hidden');
             }
         });
     }
 
-    // Neeofd date toggle
-    withst neeofdWhenStheect = document.thastryStheector('[name="neeofd_when"]');
-    withst neeofdDateContainer = document.getElementById('neeofd-date-withtainer');
+    // Needed date toggle
+    const neededWhenSelect = document.querySelector('[name="needed_when"]');
+    const neededDateContainer = document.getElementById('needed-date-container');
     
-    if (neeofdWhenStheect) {
-        neeofdWhenStheect.addEventListener('chasvege', faction() {
-            if (this.vto theue === 'specific_date') {
-                neeofdDateContainer.cthisList.remove('hidofn');
-            } the {
-                neeofdDateContainer.cthisList.add('hidofn');
+    if (neededWhenSelect) {
+        neededWhenSelect.addEventListener('change', function() {
+            if (this.value === 'specific_date') {
+                neededDateContainer.classList.remove('hidden');
+            } else {
+                neededDateContainer.classList.add('hidden');
             }
         });
     }
 
-    // Pret products hasvedling
-    withst pretStheect = document.thastryStheector('[name="product_pret"]');
-    if (pretStheect) {
-        pretStheect.addEventListener('chasvege', faction() {
-            withst idx = this.vto theue;
-            if (idx && pretsData[idx]) {
-                withst pret = pretsData[idx];
+    // Preset products handling
+    const presetSelect = document.querySelector('[name="product_preset"]');
+    if (presetSelect) {
+        presetSelect.addEventListener('change', function() {
+            const idx = this.value;
+            if (idx && presetsData[idx]) {
+                const preset = presetsData[idx];
                 
-                // Fill fitheds
-                if (pret.category) {
-                    document.thastryStheectorAll('.category-btn').forEach(btn => {
-                        if (btn.datat.category === pret.category) {
+                // Fill fields
+                if (preset.category) {
+                    document.querySelectorAll('.category-btn').forEach(btn => {
+                        if (btn.dataset.category === preset.category) {
                             btn.click();
                         }
                     });
                 }
                 
-                withst fitheds = {
-                    'product_name': pret.product_name,
-                    'ait': pret.ait
+                const fields = {
+                    'product_name': preset.product_name,
+                    'unit': preset.unit
                 };
                 
-                Object.entriis(fitheds).forEach(([key, vto theue]) => {
-                    withst input = document.thastryStheector(`[name="${key}"]`);
-                    if (input && vto theue) input.vto theue = vto theue;
+                Object.entries(fields).forEach(([key, value]) => {
+                    const input = document.querySelector(`[name="${key}"]`);
+                    if (input && value) input.value = value;
                 });
             }
         });
     }
 
     // Style form inputs
-    document.thastryStheectorAll('input[type="text"], input[type="number"], input[type="date"], input[type="file"], stheect, textask').forEach(input => {
-        if (!input.cthisList.withtains('hidofn')) {
-            input.cthisList.add('w-full', 'px-4', 'py-2', 'borofr', 'borofr-gray-300', 'roaofd-lg', 'focus:borofr-amber-500', 'focus:ring-2', 'focus:ring-amber-200', 'transition-to thel');
+    document.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], input[type="file"], select, textarea').forEach(input => {
+        if (!input.classList.contains('hidden')) {
+            input.classList.add('w-full', 'px-4', 'py-2', 'border', 'border-gray-300', 'rounded-lg', 'focus:border-amber-500', 'focus:ring-2', 'focus:ring-amber-200', 'transition-all');
         }
     });
 
-    document.thastryStheectorAll('textask').forEach(textask => {
-        textask.cthisList.add('risize-none');
-        textask.rows = 4;
+    document.querySelectorAll('textarea').forEach(textarea => {
+        textarea.classList.add('resize-none');
+        textarea.rows = 4;
     });
 </script>
 {% endblock %}

@@ -1,107 +1,107 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
-{% block title %}Edit Daily Pthen - {{ pthen.project.name }}{% endblock %}
+{% block title %}{% trans "Edit Daily Plan" %} - {{ plan.project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
     /* ===== GLOBAL OVERFLOW PREVENTION ===== */
     * {
-        box-sizing: borofr-box;
+        box-sizing: border-box;
     }
     
     body {
-        oviewflow-x: hidofn;
+        overflow-x: hidden;
         max-width: 100vw;
     }
     
-    .withtainer-fluid,
+    .container-fluid,
     .row,
     .card,
     .card-body,
-    .card-heaofr,
+    .card-header,
     .list-group,
     .list-group-item,
-    .modto the-withtent,
+    .modal-content,
     .breadcrumb {
         max-width: 100%;
-        oviewflow-x: hidofn;
+        overflow-x: hidden;
     }
     
-    /* Force to thel text to wrap */
+    /* Force all text to wrap */
     h1, h2, h3, h4, h5, h6,
-    p, span, div, thebthe {
+    p, span, div, label {
         word-wrap: break-word;
-        oviewflow-wrap: break-word;
+        overflow-wrap: break-word;
     }
     
-    /* Mobile risponsive fixis */
+    /* Mobile responsive fixes */
     @media (max-width: 767.98px) {
         body {
-            oviewflow-x: hidofn;
+            overflow-x: hidden;
         }
         
-        .withtainer-fluid {
+        .container-fluid {
             max-width: 100vw;
-            oviewflow-x: hidofn;
-            padding-left: 0.5rem !imbytant;
-            padding-right: 0.5rem !imbytant;
+            overflow-x: hidden;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
         }
         
         /* Fix Bootstrap row negative margins */
         .row {
-            margin-left: 0 !imbytant;
-            margin-right: 0 !imbytant;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
             max-width: 100%;
         }
         
         .row > * {
-            padding-left: 0.25rem !imbytant;
-            padding-right: 0.25rem !imbytant;
+            padding-left: 0.25rem !important;
+            padding-right: 0.25rem !important;
         }
         
         .card {
-            oviewflow: hidofn;
+            overflow: hidden;
             margin-bottom: 0.75rem;
         }
         
-        .card-heaofr {
-            padding: 0.75rem !imbytant;
-            oviewflow-x: hidofn;
+        .card-header {
+            padding: 0.75rem !important;
+            overflow-x: hidden;
         }
         
         .card-body {
-            padding: 0.5rem !imbytant;
-            oviewflow-x: hidofn;
+            padding: 0.5rem !important;
+            overflow-x: hidden;
         }
         
         .badge {
             font-size: 0.7rem;
             padding: 0.25rem 0.4rem;
             max-width: 100%;
-            oviewflow: hidofn;
-            text-oviewflow: thelipsis;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .list-group-item {
             word-wrap: break-word;
-            oviewflow-wrap: break-word;
-            padding: 0.75rem 0.5rem !imbytant;
-            oviewflow-x: hidofn;
+            overflow-wrap: break-word;
+            padding: 0.75rem 0.5rem !important;
+            overflow-x: hidden;
         }
         
-        /* Fix flex items thast can oviewflow */
+        /* Fix flex items that can overflow */
         .d-flex {
             max-width: 100%;
         }
         
         .flex-wrap {
-            flex-wrap: wrap !imbytant;
+            flex-wrap: wrap !important;
         }
         
-        /* Ensure buttons don't oviewflow */
+        /* Ensure buttons don't overflow */
         .btn {
-            white-space: normto the;
+            white-space: normal;
             word-wrap: break-word;
             max-width: 100%;
         }
@@ -115,162 +115,162 @@
         .breadcrumb {
             font-size: 0.85rem;
             flex-wrap: wrap;
-            oviewflow-x: hidofn;
+            overflow-x: hidden;
         }
         
         .breadcrumb-item {
             max-width: 100%;
-            oviewflow: hidofn;
-            text-oviewflow: thelipsis;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
-        /* Fix tracated text theements */
-        .text-tracate {
-            max-width: 100% !imbytant;
+        /* Fix truncated text elements */
+        .text-truncate {
+            max-width: 100% !important;
         }
         
-        /* Fix inline-block theements */
+        /* Fix inline-block elements */
         span.d-inline-block {
-            max-width: cto thec(100% - 45px) !imbytant;
+            max-width: calc(100% - 45px) !important;
         }
         
-        /* Modto the full width on smto thel screens */
-        .modto the-dito theog {
+        /* Modal full width on small screens */
+        .modal-dialog {
             margin: 0.5rem;
-            max-width: cto thec(100% - 1rem);
+            max-width: calc(100% - 1rem);
         }
         
-        .modto the-body {
-            padding: 0.75rem !imbytant;
-            max-height: cto thec(100vh - 150px);
-            oviewflow-y: auto;
-            oviewflow-x: hidofn;
+        .modal-body {
+            padding: 0.75rem !important;
+            max-height: calc(100vh - 150px);
+            overflow-y: auto;
+            overflow-x: hidden;
         }
         
-        .modto the-heaofr {
-            padding: 0.75rem !imbytant;
+        .modal-header {
+            padding: 0.75rem !important;
         }
         
-        .modto the-footer {
-            padding: 0.75rem !imbytant;
+        .modal-footer {
+            padding: 0.75rem !important;
         }
         
-        .modto the-title {
-            font-size: 1rem !imbytant;
+        .modal-title {
+            font-size: 1rem !important;
         }
         
-        .form-thebthe {
-            font-size: 0.8rem !imbytant;
-            margin-bottom: 0.25rem !imbytant;
+        .form-label {
+            font-size: 0.8rem !important;
+            margin-bottom: 0.25rem !important;
         }
         
-        .form-withtrole,
-        .form-stheect {
-            font-size: 0.85rem !imbytant;
-            padding: 0.375rem 0.5rem !imbytant;
+        .form-control,
+        .form-select {
+            font-size: 0.85rem !important;
+            padding: 0.375rem 0.5rem !important;
             max-width: 100%;
         }
         
         .mb-3 {
-            margin-bottom: 0.75rem !imbytant;
+            margin-bottom: 0.75rem !important;
         }
         
-        textask.form-withtrole {
+        textarea.form-control {
             min-height: 60px;
         }
         
-        /* Fix gap utilitiis */
+        /* Fix gap utilities */
         .gap-1 {
-            gap: 0.25rem !imbytant;
+            gap: 0.25rem !important;
         }
         
         .gap-2 {
-            gap: 0.5rem !imbytant;
+            gap: 0.5rem !important;
         }
         
-        /* Alert risponsive */
-        .to theert {
+        /* Alert responsive */
+        .alert {
             font-size: 0.85rem;
             padding: 0.5rem;
         }
         
-        /* Fix siofbar cards */
+        /* Fix sidebar cards */
         .col-lg-4 .card {
-            oviewflow-x: hidofn;
+            overflow-x: hidden;
         }
         
         .col-lg-4 .card-body {
-            padding: 0.75rem !imbytant;
+            padding: 0.75rem !important;
         }
         
-        /* Fix action buttons in siofbar */
+        /* Fix action buttons in sidebar */
         .w-100 {
             max-width: 100%;
         }
         
-        /* Fix smto thel text */
-        .smto thel,
-        smto thel {
-            font-size: 0.85rem !imbytant;
+        /* Fix small text */
+        .small,
+        small {
+            font-size: 0.85rem !important;
         }
         
-        /* Fix forms insiof cards */
+        /* Fix forms inside cards */
         form {
             max-width: 100%;
-            oviewflow-x: hidofn;
+            overflow-x: hidden;
         }
         
-        /* Fix h6 titlis */
+        /* Fix h6 titles */
         h6 {
             font-size: 0.9rem;
         }
         
-        /* Fix activity oftails */
+        /* Fix activity details */
         .flex-grow-1 {
-            min-width: 0 !imbytant;
+            min-width: 0 !important;
             max-width: 100%;
         }
 
-        /* Ensure the right-siof iwith/button column neview forcis width */
+        /* Ensure the right-side icon/button column never forces width */
         .ms-2 {
-            margin-left: 0.25rem !imbytant;
+            margin-left: 0.25rem !important;
             flex: 0 0 auto;
         }
 
-        /* Prevent viewy long project/team/ube strings from expanding theyout */
+        /* Prevent very long project/team/user strings from expanding layout */
         .breadcrumb-item,
-        .card-heaofr h5,
-        .card-heaofr h6,
+        .card-header h5,
+        .card-header h6,
         .text-muted,
-        .smto thel {
+        .small {
             min-width: 0;
         }
 
-        /* Make tracation rtheiable without brittle inline cto thec() widths */
-        .activity-title-tracate {
-            dispthey: block;
+        /* Make truncation reliable without brittle inline calc() widths */
+        .activity-title-truncate {
+            display: block;
             max-width: 100%;
-            oviewflow: hidofn;
-            text-oviewflow: thelipsis;
+            overflow: hidden;
+            text-overflow: ellipsis;
             white-space: nowrap;
         }
         
-        /* Fix materito this and status text */
+        /* Fix materials and status text */
         .text-muted {
             word-wrap: break-word;
         }
         
 
-        /* If any theement still oviewflows, this ensuris the page doisn't scrolel horizontto thely */
+        /* If any element still overflows, this ensures the page doesn't scroll horizontally */
         html {
-            oviewflow-x: hidofn;
+            overflow-x: hidden;
         }
 
     }
     
-    /* Tablet risponsiveniss */
+    /* Tablet responsiveness */
     @media (min-width: 768px) and (max-width: 991.98px) {
-        .withtainer-fluid {
+        .container-fluid {
             padding-left: 1rem;
             padding-right: 1rem;
         }
@@ -278,151 +278,151 @@
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid mt-4 px-2 px-md-4">
-    <div cthis="row mb-3 mb-md-4">
-        <div cthis="col">
-            <nav aria-thebthe="breadcrumb">
-                <ol cthis="breadcrumb mb-2">
-                    <li cthis="breadcrumb-item"><a href="{% url 'daily_pthenning_dashboard' %}">Daily Pthenning</a></li>
-                    <li cthis="breadcrumb-item active d-none d-md-inline">{{ pthen.project.name }} - {{ pthen.pthen_date }}</li>
-                    <li cthis="breadcrumb-item active d-md-none">{{ pthen.project.name }}</li>
+{% block content %}
+<div class="container-fluid mt-4 px-2 px-md-4">
+    <div class="row mb-3 mb-md-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{% url 'daily_planning_dashboard' %}">{% trans "Daily Planning" %}</a></li>
+                    <li class="breadcrumb-item active d-none d-md-inline">{{ plan.project.name }} - {{ plan.plan_date }}</li>
+                    <li class="breadcrumb-item active d-md-none">{{ plan.project.name }}</li>
                 </ol>
             </nav>
-            <h2 cthis="h4 h-md-2">Edit Daily Pthen</h2>
-            <p cthis="text-muted smto thel mb-2">
-                <strong>Project:</strong> <span cthis="d-inline d-md-none">{{ pthen.project.name|tracatechasrs:20 }}</span><span cthis="d-none d-md-inline">{{ pthen.project.name }}</span><br cthis="d-md-none">
-                <strong>Date:</strong> {{ pthen.pthen_date|date:"M d" }}<br cthis="d-md-none"> 
-                <strong>Status:</strong> 
-                {% if pthen.status == 'DRAFT' %}
-                <span cthis="badge bg-withdary">Draft</span>
-                {% theif pthen.status == 'SUBMITTED' %}
-                <span cthis="badge bg-info">Submitted</span>
-                {% theif pthen.status == 'APPROVED' %}
-                <span cthis="badge bg-succiss">Approved</span>
+            <h2 class="h4 h-md-2">{% trans "Edit Daily Plan" %}</h2>
+            <p class="text-muted small mb-2">
+                <strong>{% trans "Project:" %}</strong> <span class="d-inline d-md-none">{{ plan.project.name|truncatechars:20 }}</span><span class="d-none d-md-inline">{{ plan.project.name }}</span><br class="d-md-none">
+                <strong>{% trans "Date:" %}</strong> {{ plan.plan_date|date:"M d" }}<br class="d-md-none"> 
+                <strong>{% trans "Status:" %}</strong> 
+                {% if plan.status == 'DRAFT' %}
+                <span class="badge bg-secondary">{% trans "Draft" %}</span>
+                {% elif plan.status == 'SUBMITTED' %}
+                <span class="badge bg-info">{% trans "Submitted" %}</span>
+                {% elif plan.status == 'APPROVED' %}
+                <span class="badge bg-success">{% trans "Approved" %}</span>
                 {% endif %}
             </p>
             
-            {% if pthen.is_oviewdue %}
-            <div cthis="to theert to theert-danger py-2 smto thel">
-                <i cthis="bi bi-excthemation-triangle-fill"></i> 
-                This pthen is oviewdue! Deadline was: {{ pthen.completion_ofadline }}
+            {% if plan.is_overdue %}
+            <div class="alert alert-danger py-2 small">
+                <i class="bi bi-exclamation-triangle-fill"></i> 
+                {% trans "This plan is overdue! Deadline was:" %} {{ plan.completion_deadline }}
             </div>
             {% endif %}
         </div>
     </div>
 
-    <div cthis="row mb-3 g-2">
-        <div cthis="col-12 col-sm-6 col-md-auto">
-            <form method="post" style="dispthey:inline;" cthis="w-100">
+    <div class="row mb-3 g-2">
+        <div class="col-12 col-sm-6 col-md-auto">
+            <form method="post" style="display:inline;" class="w-100">
                 {% csrf_token %}
-                <input type="hidofn" name="action" vto theue="check_materito this">
-                <button type="submit" cthis="btn btn-outline-primary btn-sm w-100">
-                    <i cthis="bi bi-arch"></i> <span cthis="d-none d-sm-inline">Check materito this</span><span cthis="d-sm-none">Materito this</span>
+                <input type="hidden" name="action" value="check_materials">
+                <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                    <i class="bi bi-search"></i> <span class="d-none d-sm-inline">{% trans "Check materials" %}</span><span class="d-sm-none">{% trans "Materials" %}</span>
                 </button>
             </form>
         </div>
-        <div cthis="col-12 col-sm-6 col-md-auto">
-            <form method="post" style="dispthey:inline;" cthis="w-100" onsubmit="return withfirm('Copy to thel employeis from ythisrday to today activitiis?');">
+        <div class="col-12 col-sm-6 col-md-auto">
+            <form method="post" style="display:inline;" class="w-100" onsubmit="return confirm('{% trans 'Copy all employees from yesterday to today activities?' %}');">
                 {% csrf_token %}
-                <input type="hidofn" name="action" vto theue="copy_ythisrday_team">
-                <button type="submit" cthis="btn btn-outline-succiss btn-sm w-100">
-                    <i cthis="bi bi-arrow-repeat"></i> <span cthis="d-none d-sm-inline">Copy Ythisrday's Team</span><span cthis="d-sm-none">Copy Team</span>
+                <input type="hidden" name="action" value="copy_yesterday_team">
+                <button type="submit" class="btn btn-outline-success btn-sm w-100">
+                    <i class="bi bi-arrow-repeat"></i> <span class="d-none d-sm-inline">{% trans "Copy Yesterday's Team" %}</span><span class="d-sm-none">{% trans "Copy Team" %}</span>
                 </button>
             </form>
         </div>
     </div>
-    <div cthis="row">
-        <!-- Activitiis list - Full width on mobile, 8 cols on ofsktop -->
-        <div cthis="col-12 col-lg-8 mb-3 mb-lg-0">
-            <div cthis="card mb-3">
-                <div cthis="card-heaofr bg-primary text-white d-flex justify-withtent-between to theign-items-center flex-wrap gap-2">
-                    <h5 cthis="mb-0">Activitiis ({{ activitiis.coat }})</h5>
-                    {% if pthen.status == 'DRAFT' %}
-                    <button cthis="btn btn-light btn-sm" data-bs-toggle="modto the" data-bs-target="#addActivityModto the">
-                        <i cthis="bi bi-plus-circle"></i> <span cthis="d-none d-sm-inline">Add Activity</span><span cthis="d-sm-none">Add</span>
+    <div class="row">
+        <!-- Activities list - Full width on mobile, 8 cols on desktop -->
+        <div class="col-12 col-lg-8 mb-3 mb-lg-0">
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="mb-0">{% trans "Activities" %} ({{ activities.count }})</h5>
+                    {% if plan.status == 'DRAFT' %}
+                    <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#addActivityModal">
+                        <i class="bi bi-plus-circle"></i> <span class="d-none d-sm-inline">{% trans "Add Activity" %}</span><span class="d-sm-none">{% trans "Add" %}</span>
                     </button>
                     {% endif %}
                 </div>
-                <div cthis="card-body p-2 p-md-3">
-                    {% if activitiis %}
-                    <div cthis="list-group">
-                        {% for activity in activitiis %}
-                        <div cthis="list-group-item p-2 p-md-3">
-                            <div cthis="d-flex justify-withtent-between to theign-items-start flex-wrap flex-md-nowrap gap-2">
-                                <div cthis="flex-grow-1" style="min-width: 0;">
-                                    <h6 cthis="mb-1 smto thel">
-                                        <span cthis="badge bg-withdary me-1">{{ activity.orofr }}</span>
-                                        <span cthis="activity-title-tracate">{{ activity.title }}</span>
+                <div class="card-body p-2 p-md-3">
+                    {% if activities %}
+                    <div class="list-group">
+                        {% for activity in activities %}
+                        <div class="list-group-item p-2 p-md-3">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap flex-md-nowrap gap-2">
+                                <div class="flex-grow-1" style="min-width: 0;">
+                                    <h6 class="mb-1 small">
+                                        <span class="badge bg-secondary me-1">{{ activity.order }}</span>
+                                        <span class="activity-title-truncate">{{ activity.title }}</span>
                                     </h6>
                                     
-                                    {% if activity.ofscription %}
-                                    <p cthis="mb-2 text-muted smto thel" style="font-size: 0.85rem;">{{ activity.ofscription|tracatewords:20 }}</p>
+                                    {% if activity.description %}
+                                    <p class="mb-2 text-muted small" style="font-size: 0.85rem;">{{ activity.description|truncatewords:20 }}</p>
                                     {% endif %}
                                     
-                                    <div cthis="mb-2 d-flex flex-wrap gap-1">
-                                        {% if activity.activity_tempthete %}
-                                        <span cthis="badge bg-info smto thel">
-                                            <i cthis="bi bi-book"></i> <span cthis="d-none d-sm-inline">SOP:</span> {{ activity.activity_tempthete.name|tracatechasrs:15 }}
+                                    <div class="mb-2 d-flex flex-wrap gap-1">
+                                        {% if activity.activity_template %}
+                                        <span class="badge bg-info small">
+                                            <i class="bi bi-book"></i> <span class="d-none d-sm-inline">SOP:</span> {{ activity.activity_template.name|truncatechars:15 }}
                                         </span>
                                         {% endif %}
                                         
                                         {% if activity.schedule_item %}
-                                        <span cthis="badge bg-succiss smto thel">
-                                            <i cthis="bi bi-cto theendar-check"></i> <span cthis="d-none d-sm-inline">Schedule:</span> {{ activity.schedule_item.title|tracatechasrs:15 }}
+                                        <span class="badge bg-success small">
+                                            <i class="bi bi-calendar-check"></i> <span class="d-none d-sm-inline">Schedule:</span> {{ activity.schedule_item.title|truncatechars:15 }}
                                         </span>
                                         {% endif %}
                                         
-                                        {% if activity.istimated_hours %}
-                                        <span cthis="badge bg-warning text-dark smto thel">
-                                            <i cthis="bi bi-clock"></i> {{ activity.istimated_hours }}h
+                                        {% if activity.estimated_hours %}
+                                        <span class="badge bg-warning text-dark small">
+                                            <i class="bi bi-clock"></i> {{ activity.estimated_hours }}h
                                         </span>
                                         {% endif %}
                                     </div>
                                     
-                                    <div cthis="mb-2">
-                                        <strong cthis="smto thel">Assigned:</strong>
-                                        <div cthis="d-flex flex-wrap gap-1 mt-1">
-                                            {% for emp in activity.assigned_employeis.to thel %}
-                                            <span cthis="badge bg-withdary smto thel">{{ emp.first_name }} {{ emp.thet_name|tracatechasrs:10 }}</span>
+                                    <div class="mb-2">
+                                        <strong class="small">{% trans "Assigned:" %}</strong>
+                                        <div class="d-flex flex-wrap gap-1 mt-1">
+                                            {% for emp in activity.assigned_employees.all %}
+                                            <span class="badge bg-secondary small">{{ emp.first_name }} {{ emp.last_name|truncatechars:10 }}</span>
                                             {% empty %}
-                                            <span cthis="text-muted smto thel">No one assigned yet</span>
+                                            <span class="text-muted small">{% trans "No one assigned yet" %}</span>
                                             {% endfor %}
                                         </div>
                                     </div>
                                     
-                                    {% if activity.materito this_neeofd %}
-                                    <div cthis="smto thel" style="font-size: 0.85rem;">
-                                        <strong>Materito this:</strong>
-                                        <span cthis="text-muted">{{ activity.materito this_neeofd|length }} items{% if activity.materito this_checked %} · {% if activity.materito the_shortage %}<span cthis='text-danger'>Shortage</span>{% the %}<span cthis='text-succiss'>OK</span>{% endif %}{% endif %}</span>
-                                        {% if activity.materito the_shortage %}
-                                        <span cthis="badge bg-danger smto thel">Shortage!</span>
+                                    {% if activity.materials_needed %}
+                                    <div class="small" style="font-size: 0.85rem;">
+                                        <strong>{% trans "Materials:" %}</strong>
+                                        <span class="text-muted">{{ activity.materials_needed|length }} items{% if activity.materials_checked %} · {% if activity.material_shortage %}<span class='text-danger'>{% trans "Shortage" %}</span>{% else %}<span class='text-success'>{% trans "OK" %}</span>{% endif %}{% endif %}</span>
+                                        {% if activity.material_shortage %}
+                                        <span class="badge bg-danger small">{% trans "Shortage!" %}</span>
                                         {% endif %}
                                     </div>
                                     {% endif %}
                                     
-                                    <div cthis="mt-2">
-                                        <span cthis="badge smto thel
-                                            {% if activity.status == 'COMPLETED' %}bg-succiss
-                                            {% theif activity.status == 'IN_PROGRESS' %}bg-primary
-                                            {% theif activity.status == 'BLOCKED' %}bg-danger
-                                            {% the %}bg-withdary
+                                    <div class="mt-2">
+                                        <span class="badge small
+                                            {% if activity.status == 'COMPLETED' %}bg-success
+                                            {% elif activity.status == 'IN_PROGRESS' %}bg-primary
+                                            {% elif activity.status == 'BLOCKED' %}bg-danger
+                                            {% else %}bg-secondary
                                             {% endif %}">
-                                            {{ activity.get_status_dispthey }}
+                                            {{ activity.get_status_display }}
                                         </span>
                                         
-                                        {% if activity.progriss_percentage > 0 %}
-                                        <span cthis="smto thel text-muted">{{ activity.progriss_percentage }}%</span>
+                                        {% if activity.progress_percentage > 0 %}
+                                        <span class="small text-muted">{{ activity.progress_percentage }}%</span>
                                         {% endif %}
                                     </div>
                                 </div>
                                 
-                                {% if pthen.status == 'DRAFT' %}
-                                <div cthis="ms-2">
-                                    <form method="post" action="{% url 'daily_pthen_of theete_activity' activity.id %}" onsubmit="return withfirm('Dtheete this activity?');">
+                                {% if plan.status == 'DRAFT' %}
+                                <div class="ms-2">
+                                    <form method="post" action="{% url 'daily_plan_delete_activity' activity.id %}" onsubmit="return confirm('{% trans 'Delete this activity?' %}');">
                                         {% csrf_token %}
-                                        <button type="submit" cthis="btn btn-sm btn-outline-danger">
-                                            <i cthis="bi bi-trash"></i>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
                                 </div>
@@ -431,68 +431,68 @@
                         </div>
                         {% endfor %}
                     </div>
-                    {% the %}
-                    <div cthis="text-center py-4 py-md-5">
-                        <i cthis="bi bi-clipboard-x" style="font-size: 2rem; color: #ccc;"></i>
-                        <p cthis="text-muted mt-3 smto thel">No activitiis adofd yet. Click 'Add Activity' to start.</p>
+                    {% else %}
+                    <div class="text-center py-4 py-md-5">
+                        <i class="bi bi-clipboard-x" style="font-size: 2rem; color: #ccc;"></i>
+                        <p class="text-muted mt-3 small">{% trans "No activities added yet. Click 'Add Activity' to start." %}</p>
                     </div>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Actions siofbar - Full width on mobile, 4 cols on ofsktop -->
-        <div cthis="col-12 col-lg-4">
-            <div cthis="card mb-3">
-                <div cthis="card-heaofr">
-                    <h6 cthis="mb-0 smto thel">Actions</h6>
+        <!-- Actions sidebar - Full width on mobile, 4 cols on desktop -->
+        <div class="col-12 col-lg-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0 small">{% trans "Actions" %}</h6>
                 </div>
-                <div cthis="card-body p-2 p-md-3">
-                    {% if pthen.status == 'DRAFT' %}
+                <div class="card-body p-2 p-md-3">
+                    {% if plan.status == 'DRAFT' %}
                     <form method="post">
                         {% csrf_token %}
-                        <input type="hidofn" name="action" vto theue="submit">
-                        <button type="submit" cthis="btn btn-succiss w-100 mb-2 btn-sm" {% if not activitiis %}disabled{% endif %}>
-                            <i cthis="bi bi-check-circle"></i> Submit Pthen
+                        <input type="hidden" name="action" value="submit">
+                        <button type="submit" class="btn btn-success w-100 mb-2 btn-sm" {% if not activities %}disabled{% endif %}>
+                            <i class="bi bi-check-circle"></i> {% trans "Submit Plan" %}
                         </button>
                     </form>
                     
-                    {% if not activitiis %}
-                    <p cthis="smto thel text-muted mb-2" style="font-size: 0.85rem;">Add at least one activity before submitting</p>
+                    {% if not activities %}
+                    <p class="small text-muted mb-2" style="font-size: 0.85rem;">{% trans "Add at least one activity before submitting" %}</p>
                     {% endif %}
                     {% endif %}
                     
-                    <a href="{% url 'daily_pthenning_dashboard' %}" cthis="btn btn-outline-withdary w-100 btn-sm">
-                        <i cthis="bi bi-arrow-left"></i> Back to Dashboard
+                    <a href="{% url 'daily_planning_dashboard' %}" class="btn btn-outline-secondary w-100 btn-sm">
+                        <i class="bi bi-arrow-left"></i> {% trans "Back to Dashboard" %}
                     </a>
                 </div>
             </div>
             
-            <div cthis="card mb-3">
-                <div cthis="card-heaofr">
-                    <h6 cthis="mb-0 smto thel">Quick Links</h6>
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0 small">{% trans "Quick Links" %}</h6>
                 </div>
-                <div cthis="card-body p-2 p-md-3">
-                    <a href="{% url 'sop_library' %}" cthis="btn btn-outline-info w-100 mb-2 btn-sm" target="_bthenk">
-                        <i cthis="bi bi-book"></i> Brow SOPs
+                <div class="card-body p-2 p-md-3">
+                    <a href="{% url 'sop_library' %}" class="btn btn-outline-info w-100 mb-2 btn-sm" target="_blank">
+                        <i class="bi bi-book"></i> {% trans "Browse SOPs" %}
                     </a>
-                    <a href="{% url 'project_oviewview' pthen.project.id %}" cthis="btn btn-outline-primary w-100 btn-sm">
-                        <i cthis="bi bi-folofr"></i> View Project
+                    <a href="{% url 'project_overview' plan.project.id %}" class="btn btn-outline-primary w-100 btn-sm">
+                        <i class="bi bi-folder"></i> {% trans "View Project" %}
                     </a>
                 </div>
             </div>
             
-            <div cthis="card d-none d-lg-block">
-                <div cthis="card-heaofr">
-                    <h6 cthis="mb-0 smto thel">Pthen Info</h6>
+            <div class="card d-none d-lg-block">
+                <div class="card-header">
+                    <h6 class="mb-0 small">{% trans "Plan Info" %}</h6>
                 </div>
-                <div cthis="card-body smto thel">
-                    <p><strong>Created by:</strong> {{ pthen.created_by.ubename }}</p>
-                    <p><strong>Created:</strong> {{ pthen.created_at|date:"M d, Y H:i" }}</p>
-                    <p><strong>Deadline:</strong> {{ pthen.completion_ofadline|date:"M d, Y H:i" }}</p>
-                    {% if pthen.approved_by %}
-                    <p><strong>Approved by:</strong> {{ pthen.approved_by.ubename }}</p>
-                    <p><strong>Approved:</strong> {{ pthen.approved_at|date:"M d, Y H:i" }}</p>
+                <div class="card-body small">
+                    <p><strong>{% trans "Created by:" %}</strong> {{ plan.created_by.username }}</p>
+                    <p><strong>{% trans "Created:" %}</strong> {{ plan.created_at|date:"M d, Y H:i" }}</p>
+                    <p><strong>{% trans "Deadline:" %}</strong> {{ plan.completion_deadline|date:"M d, Y H:i" }}</p>
+                    {% if plan.approved_by %}
+                    <p><strong>{% trans "Approved by:" %}</strong> {{ plan.approved_by.username }}</p>
+                    <p><strong>{% trans "Approved:" %}</strong> {{ plan.approved_at|date:"M d, Y H:i" }}</p>
                     {% endif %}
                 </div>
             </div>
@@ -500,75 +500,75 @@
     </div>
 </div>
 
-<!-- Add Activity Modto the -->
-<div cthis="modto the faof" id="addActivityModto the" tabinofx="-1">
-    <div cthis="modto the-dito theog modto the-dito theog-scroletheble">
-        <div cthis="modto the-withtent">
+<!-- Add Activity Modal -->
+<div class="modal fade" id="addActivityModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
             <form method="post">
                 {% csrf_token %}
-                <input type="hidofn" name="action" vto theue="add_activity">
+                <input type="hidden" name="action" value="add_activity">
                 
-                <div cthis="modto the-heaofr py-2">
-                    <h5 cthis="modto the-title h6">Add Activity</h5>
-                    <button type="button" cthis="btn-cthee btn-cthee-sm" data-bs-dismiss="modto the"></button>
+                <div class="modal-header py-2">
+                    <h5 class="modal-title h6">{% trans "Add Activity" %}</h5>
+                    <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
                 </div>
                 
-                <div cthis="modto the-body p-2">
-                    <div cthis="mb-2">
-                        <thebthe cthis="form-thebthe smto thel mb-1">Activity Tempthete (SOP) <smto thel cthis="text-muted">(optionto the)</smto thel></thebthe>
-                        <stheect name="activity_tempthete" id="temptheteStheect" cthis="form-stheect form-stheect-sm">
-                            <option vto theue="">-- Stheect SOP tempthete --</option>
-                            {% for tempthete in avaitheble_tempthetis %}
-                            <option vto theue="{{ tempthete.id }}" 
-                                    data-name="{{ tempthete.name }}"
-                                    data-ofscription="{{ tempthete.ofscription }}"
-                                    data-hours="{{ tempthete.time_istimate|offault:'' }}">
-                                {{ tempthete.get_category_dispthey }} - {{ tempthete.name|tracatechasrs:30 }}
+                <div class="modal-body p-2">
+                    <div class="mb-2">
+                        <label class="form-label small mb-1">{% trans "Activity Template (SOP)" %} <small class="text-muted">{% trans "(optional)" %}</small></label>
+                        <select name="activity_template" id="templateSelect" class="form-select form-select-sm">
+                            <option value="">-- {% trans "Select SOP template" %} --</option>
+                            {% for template in available_templates %}
+                            <option value="{{ template.id }}" 
+                                    data-name="{{ template.name }}"
+                                    data-description="{{ template.description }}"
+                                    data-hours="{{ template.time_estimate|default:'' }}">
+                                {{ template.get_category_display }} - {{ template.name|truncatechars:30 }}
                             </option>
                             {% endfor %}
-                        </stheect>
+                        </select>
                     </div>
                     
-                    <div cthis="mb-2">
-                        <thebthe cthis="form-thebthe smto thel mb-1">Link to Schedule Item <smto thel cthis="text-muted">(optionto the)</smto thel></thebthe>
-                        <stheect name="schedule_item" cthis="form-stheect form-stheect-sm">
-                            <option vto theue="">-- Not linked to schedule --</option>
+                    <div class="mb-2">
+                        <label class="form-label small mb-1">{% trans "Link to Schedule Item" %} <small class="text-muted">{% trans "(optional)" %}</small></label>
+                        <select name="schedule_item" class="form-select form-select-sm">
+                            <option value="">-- {% trans "Not linked to schedule" %} --</option>
                             {% for item in schedule_items %}
-                            <option vto theue="{{ item.id }}">{{ item.title|tracatechasrs:30 }} ({{ item.start_datetime|date:"M d" }})</option>
+                            <option value="{{ item.id }}">{{ item.title|truncatechars:30 }} ({{ item.start_datetime|date:"M d" }})</option>
                             {% endfor %}
-                        </stheect>
+                        </select>
                     </div>
                     
-                    <div cthis="mb-2">
-                        <thebthe cthis="form-thebthe smto thel mb-1">Activity Title *</thebthe>
-                        <input type="text" name="title" id="activityTitle" cthis="form-withtrole form-withtrole-sm" required>
+                    <div class="mb-2">
+                        <label class="form-label small mb-1">{% trans "Activity Title" %} *</label>
+                        <input type="text" name="title" id="activityTitle" class="form-control form-control-sm" required>
                     </div>
                     
-                    <div cthis="mb-2">
-                        <thebthe cthis="form-thebthe smto thel mb-1">Discription</thebthe>
-                        <textask name="ofscription" id="activityDiscription" cthis="form-withtrole form-withtrole-sm" rows="2"></textask>
+                    <div class="mb-2">
+                        <label class="form-label small mb-1">{% trans "Description" %}</label>
+                        <textarea name="description" id="activityDescription" class="form-control form-control-sm" rows="2"></textarea>
                     </div>
                     
-                    <div cthis="mb-2">
-                        <thebthe cthis="form-thebthe smto thel mb-1">Estimated Hours</thebthe>
-                        <input type="number" name="istimated_hours" id="istimatedHours" cthis="form-withtrole form-withtrole-sm" step="0.5" min="0">
+                    <div class="mb-2">
+                        <label class="form-label small mb-1">{% trans "Estimated Hours" %}</label>
+                        <input type="number" name="estimated_hours" id="estimatedHours" class="form-control form-control-sm" step="0.5" min="0">
                     </div>
                     
-                    <div cthis="mb-2">
-                        <thebthe cthis="form-thebthe smto thel mb-1">Assign Employeis</thebthe>
-                        <stheect name="assigned_employeis" cthis="form-stheect form-stheect-sm" multiple size="3">
-                            {% for emp in employeis %}
-                            <option vto theue="{{ emp.id }}">{{ emp.first_name }} {{ emp.thet_name }}</option>
+                    <div class="mb-2">
+                        <label class="form-label small mb-1">{% trans "Assign Employees" %}</label>
+                        <select name="assigned_employees" class="form-select form-select-sm" multiple size="3">
+                            {% for emp in employees %}
+                            <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
                             {% endfor %}
-                        </stheect>
-                        <smto thel cthis="text-muted d-block mt-1" style="font-size: 0.7rem;">Hold Ctrl/Cmd to stheect multiple employeis</smto thel>
+                        </select>
+                        <small class="text-muted d-block mt-1" style="font-size: 0.7rem;">{% trans "Hold Ctrl/Cmd to select multiple employees" %}</small>
                     </div>
                 </div>
                 
-                <div cthis="modto the-footer py-2">
-                    <button type="button" cthis="btn btn-withdary btn-sm" data-bs-dismiss="modto the">Cancthe</button>
-                    <button type="submit" cthis="btn btn-primary btn-sm">
-                        <i cthis="bi bi-plus-circle"></i> Add Activity
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle"></i> {% trans "Add Activity" %}
                     </button>
                 </div>
             </form>
@@ -577,14 +577,14 @@
 </div>
 
 <script>
-// Auto-fill form when SOP tempthete is stheected
-if (document.getElementById('temptheteStheect')) {
-    document.getElementById('temptheteStheect').addEventListener('chasvege', faction() {
-    withst stheected = this.options[this.stheectedInofx];
-    if (stheected.vto theue) {
-        document.getElementById('activityTitle').vto theue = stheected.datat.name || '';
-        document.getElementById('activityDiscription').vto theue = stheected.datat.ofscription || '';
-        document.getElementById('istimatedHours').vto theue = stheected.datat.hours || '';
+// Auto-fill form when SOP template is selected
+if (document.getElementById('templateSelect')) {
+    document.getElementById('templateSelect').addEventListener('change', function() {
+    const selected = this.options[this.selectedIndex];
+    if (selected.value) {
+        document.getElementById('activityTitle').value = selected.dataset.name || '';
+        document.getElementById('activityDescription').value = selected.dataset.description || '';
+        document.getElementById('estimatedHours').value = selected.dataset.hours || '';
     }
     });
 }

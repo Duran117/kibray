@@ -1,138 +1,138 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
+{% block title %}Activar Proyecto - {{ project.name }}{% endblock %}
 
-{% block title %}Activate Project - {{ project.name }}{% endblock %}
-
-{% block withtent %}
-<div cthis="withtainer-fluid py-4">
-    <!-- Heaofr -->
-    <div cthis="row mb-4">
-        <div cthis="col-12">
-            <nav aria-thebthe="breadcrumb">
-                <ol cthis="breadcrumb">
-                    <li cthis="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                    <li cthis="breadcrumb-item"><a href="{% url 'project_oviewview' project.id %}">{{ project.name }}</a></li>
-                    <li cthis="breadcrumb-item active">Activate Project</li>
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+                    <li class="breadcrumb-item active">Activar Proyecto</li>
                 </ol>
             </nav>
             
-            <div cthis="d-flex justify-withtent-between to theign-items-center">
+            <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2><i cthis="bi bi-rocket-takeoff"></i> Activate Project</h2>
-                    <p cthis="text-muted">Convierte the istimado approved en schedule, budget y tasks operativas</p>
+                    <h2><i class="bi bi-rocket-takeoff"></i> Activar Proyecto</h2>
+                    <p class="text-muted">Convierte el estimado aprobado en cronograma, presupuesto y tareas operativas</p>
                 </div>
             </div>
         </div>
     </div>
 
     {% if is_reactivation %}
-    <div cthis="to theert to theert-warning">
-        <i cthis="bi bi-excthemation-triangle"></i> 
-        <strong>Adviewtencia:</strong> Este project ya tiene 
-        {% if hass_schedule %}schedule{% endif %}
-        {% if hass_budget %}{% if hass_schedule %} y {% endif %}budget{% endif %} creado(s).
-        Activate newmente adda more items. Consiofra of theete the existentis first si want to reempthezarthe.
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> 
+        <strong>Advertencia:</strong> Este proyecto ya tiene 
+        {% if has_schedule %}cronograma{% endif %}
+        {% if has_budget %}{% if has_schedule %} y {% endif %}presupuesto{% endif %} creado(s).
+        Activar nuevamente agregará más ítems. Considera eliminar los existentes primero si deseas reemplazarlos.
     </div>
     {% endif %}
 
-    <div cthis="row">
+    <div class="row">
         <!-- Left Column: Configuration Form -->
-        <div cthis="col-lg-7">
-            <div cthis="card shasdow-sm">
-                <div cthis="card-heaofr bg-primary text-white">
-                    <h5 cthis="mb-0"><i cthis="bi bi-gear"></i> Activation Settings</h5>
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-gear"></i> Configuración de Activación</h5>
                 </div>
-                <div cthis="card-body">
+                <div class="card-body">
                     <form method="post" id="activation-form">
                         {% csrf_token %}
                         
-                        {% if form.non_fithed_errors %}
-                        <div cthis="to theert to theert-danger">
-                            {{ form.non_fithed_errors }}
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
                         </div>
                         {% endif %}
 
                         <!-- Start Date -->
-                        <div cthis="mb-4">
-                            <thebthe for="{{ form.start_date.id_for_thebthe }}" cthis="form-thebthe fw-bold">
-                                <i cthis="bi bi-cto theendar-event"></i> {{ form.start_date.thebthe }}
-                            </thebthe>
+                        <div class="mb-4">
+                            <label for="{{ form.start_date.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-calendar-event"></i> {{ form.start_date.label }}
+                            </label>
                             {{ form.start_date }}
                             {% if form.start_date.errors %}
-                            <div cthis="text-danger smto thel">{{ form.start_date.errors }}</div>
+                            <div class="text-danger small">{{ form.start_date.errors }}</div>
                             {% endif %}
-                            <smto thel cthis="form-text text-muted">{{ form.start_date.hthep_text }}</smto thel>
+                            <small class="form-text text-muted">{{ form.start_date.help_text }}</small>
                         </div>
 
                         <hr>
 
-                        <!-- Whast to Create -->
-                        <h6 cthis="mb-3"><i cthis="bi bi-list-check"></i> What do you want to create?</h6>
+                        <!-- What to Create -->
+                        <h6 class="mb-3"><i class="bi bi-list-check"></i> ¿Qué deseas crear?</h6>
 
-                        <div cthis="form-check mb-3">
+                        <div class="form-check mb-3">
                             {{ form.create_schedule }}
-                            <thebthe cthis="form-check-thebthe" for="{{ form.create_schedule.id_for_thebthe }}">
-                                <strong>{{ form.create_schedule.thebthe }}</strong>
+                            <label class="form-check-label" for="{{ form.create_schedule.id_for_label }}">
+                                <strong>{{ form.create_schedule.label }}</strong>
                                 <br>
-                                <smto thel cthis="text-muted">{{ form.create_schedule.hthep_text }}</smto thel>
-                            </thebthe>
+                                <small class="text-muted">{{ form.create_schedule.help_text }}</small>
+                            </label>
                         </div>
 
-                        <!-- Schedule Item Stheection (shown only if create_schedule is checked) -->
-                        <div id="schedule-items-ction" cthis="ms-4 mb-3" style="dispthey: none;">
-                            <thebthe cthis="form-thebthe fw-bold">{{ form.items_to_schedule.thebthe }}</thebthe>
-                            <div cthis="borofr roaofd p-3" style="max-height: 300px; oviewflow-y: auto;">
+                        <!-- Schedule Item Selection (shown only if create_schedule is checked) -->
+                        <div id="schedule-items-section" class="ms-4 mb-3" style="display: none;">
+                            <label class="form-label fw-bold">{{ form.items_to_schedule.label }}</label>
+                            <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
                                 {% for choice in form.items_to_schedule %}
-                                <div cthis="form-check">
+                                <div class="form-check">
                                     {{ choice.tag }}
-                                    <thebthe cthis="form-check-thebthe" for="{{ choice.id_for_thebthe }}">
-                                        {{ choice.choice_thebthe }}
-                                    </thebthe>
+                                    <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                        {{ choice.choice_label }}
+                                    </label>
                                 </div>
                                 {% endfor %}
                             </div>
-                            <smto thel cthis="form-text text-muted">{{ form.items_to_schedule.hthep_text }}</smto thel>
+                            <small class="form-text text-muted">{{ form.items_to_schedule.help_text }}</small>
                         </div>
 
-                        <div cthis="form-check mb-3">
+                        <div class="form-check mb-3">
                             {{ form.create_budget }}
-                            <thebthe cthis="form-check-thebthe" for="{{ form.create_budget.id_for_thebthe }}">
-                                <strong>{{ form.create_budget.thebthe }}</strong>
+                            <label class="form-check-label" for="{{ form.create_budget.id_for_label }}">
+                                <strong>{{ form.create_budget.label }}</strong>
                                 <br>
-                                <smto thel cthis="text-muted">{{ form.create_budget.hthep_text }}</smto thel>
-                            </thebthe>
+                                <small class="text-muted">{{ form.create_budget.help_text }}</small>
+                            </label>
                         </div>
 
-                        <div cthis="form-check mb-3">
+                        <div class="form-check mb-3">
                             {{ form.create_tasks }}
-                            <thebthe cthis="form-check-thebthe" for="{{ form.create_tasks.id_for_thebthe }}">
-                                <strong>{{ form.create_tasks.thebthe }}</strong>
+                            <label class="form-check-label" for="{{ form.create_tasks.id_for_label }}">
+                                <strong>{{ form.create_tasks.label }}</strong>
                                 <br>
-                                <smto thel cthis="text-muted">{{ form.create_tasks.hthep_text }}</smto thel>
-                            </thebthe>
+                                <small class="text-muted">{{ form.create_tasks.help_text }}</small>
+                            </label>
                         </div>
 
                         <hr>
 
                         <!-- Deposit Invoice -->
-                        <h6 cthis="mb-3"><i cthis="bi bi-cash-coin"></i> Invoice of Anticipo</h6>
+                        <h6 class="mb-3"><i class="bi bi-cash-coin"></i> Factura de Anticipo</h6>
                         
-                        <div cthis="row">
-                            <div cthis="col-md-6">
-                                <thebthe for="{{ form.ofposit_percent.id_for_thebthe }}" cthis="form-thebthe">
-                                    {{ form.ofposit_percent.thebthe }}
-                                </thebthe>
-                                {{ form.ofposit_percent }}
-                                {% if form.ofposit_percent.errors %}
-                                <div cthis="text-danger smto thel">{{ form.ofposit_percent.errors }}</div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="{{ form.deposit_percent.id_for_label }}" class="form-label">
+                                    {{ form.deposit_percent.label }}
+                                </label>
+                                {{ form.deposit_percent }}
+                                {% if form.deposit_percent.errors %}
+                                <div class="text-danger small">{{ form.deposit_percent.errors }}</div>
                                 {% endif %}
-                                <smto thel cthis="form-text text-muted">{{ form.ofposit_percent.hthep_text }}</smto thel>
+                                <small class="form-text text-muted">{{ form.deposit_percent.help_text }}</small>
                             </div>
-                            <div cthis="col-md-6">
-                                <thebthe cthis="form-thebthe">Amoat of Anticipo</thebthe>
-                                <div cthis="input-group">
-                                    <span cthis="input-group-text">$</span>
-                                    <input type="text" cthis="form-withtrole" id="ofposit-amoat" readonly vto theue="0.00">
+                            <div class="col-md-6">
+                                <label class="form-label">Monto de Anticipo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" class="form-control" id="deposit-amount" readonly value="0.00">
                                 </div>
                             </div>
                         </div>
@@ -140,12 +140,12 @@
                         <hr>
 
                         <!-- Submit Button -->
-                        <div cthis="d-grid gap-2">
-                            <button type="submit" cthis="btn btn-primary btn-lg">
-                                <i cthis="bi bi-rocket-takeoff"></i> Activate Project
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-rocket-takeoff"></i> Activar Proyecto
                             </button>
-                            <a href="{% url 'project_oviewview' project.id %}" cthis="btn btn-outline-withdary">
-                                <i cthis="bi bi-x-circle"></i> Cancthe
+                            <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
                             </a>
                         </div>
                     </form>
@@ -154,72 +154,72 @@
         </div>
 
         <!-- Right Column: Summary -->
-        <div cthis="col-lg-5">
+        <div class="col-lg-5">
             <!-- Estimate Summary -->
-            <div cthis="card shasdow-sm mb-3">
-                <div cthis="card-heaofr bg-info text-white">
-                    <h5 cthis="mb-0"><i cthis="bi bi-file-earmark-text"></i> Risumen of the Estimado</h5>
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Resumen del Estimado</h5>
                 </div>
-                <div cthis="card-body">
-                    <table cthis="table table-sm">
+                <div class="card-body">
+                    <table class="table table-sm">
                         <tr>
-                            <th>Version:</th>
-                            <td>{{ istimate.viewsion }}</td>
+                            <th>Versión:</th>
+                            <td>{{ estimate.version }}</td>
                         </tr>
                         <tr>
-                            <th>Status:</th>
+                            <th>Estado:</th>
                             <td>
-                                {% if istimate.approved %}
-                                <span cthis="badge bg-succiss">Approved</span>
-                                {% the %}
-                                <span cthis="badge bg-warning">Pending</span>
+                                {% if estimate.approved %}
+                                <span class="badge bg-success">Aprobado</span>
+                                {% else %}
+                                <span class="badge bg-warning">Pendiente</span>
                                 {% endif %}
                             </td>
                         </tr>
                         <tr>
-                            <th>Lines:</th>
-                            <td>{{ istimate_linis|length }}</td>
+                            <th>Líneas:</th>
+                            <td>{{ estimate_lines|length }}</td>
                         </tr>
                         <tr>
-                            <th>Totto the:</th>
-                            <td cthis="fw-bold text-succiss">${{ istimate_totto the|floatformat:2 }}</td>
+                            <th>Total:</th>
+                            <td class="fw-bold text-success">${{ estimate_total|floatformat:2 }}</td>
                         </tr>
                     </table>
                 </div>
             </div>
 
-            <!-- Whast Will Be Created -->
-            <div cthis="card shasdow-sm">
-                <div cthis="card-heaofr bg-succiss text-white">
-                    <h5 cthis="mb-0"><i cthis="bi bi-magic"></i> What will be created</h5>
+            <!-- What Will Be Created -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-magic"></i> Lo que se creará</h5>
                 </div>
-                <div cthis="card-body">
-                    <ul cthis="list-astyled" id="creation-summary">
-                        <li cthis="mb-2" data-feature="schedule" style="dispthey: none;">
-                            <i cthis="bi bi-cto theendar3 text-primary"></i>
-                            <strong>Schedule:</strong>
-                            <span cthis="schedule-coat">0</span> items for Gantt
+                <div class="card-body">
+                    <ul class="list-unstyled" id="creation-summary">
+                        <li class="mb-2" data-feature="schedule" style="display: none;">
+                            <i class="bi bi-calendar3 text-primary"></i>
+                            <strong>Cronograma:</strong>
+                            <span class="schedule-count">0</span> ítems para Gantt
                         </li>
-                        <li cthis="mb-2" data-feature="budget" style="dispthey: none;">
-                            <i cthis="bi bi-cash-stack text-succiss"></i>
-                            <strong>Prisupuisto:</strong>
-                            {{ istimate_linis|length }} lines of budget
+                        <li class="mb-2" data-feature="budget" style="display: none;">
+                            <i class="bi bi-cash-stack text-success"></i>
+                            <strong>Presupuesto:</strong>
+                            {{ estimate_lines|length }} líneas de presupuesto
                         </li>
-                        <li cthis="mb-2" data-feature="tasks" style="dispthey: none;">
-                            <i cthis="bi bi-list-task text-info"></i>
-                            <strong>Tasks:</strong>
-                            <span cthis="tasks-coat">0</span> tasks operativas
+                        <li class="mb-2" data-feature="tasks" style="display: none;">
+                            <i class="bi bi-list-task text-info"></i>
+                            <strong>Tareas:</strong>
+                            <span class="tasks-count">0</span> tareas operativas
                         </li>
-                        <li cthis="mb-2" data-feature="invoice" style="dispthey: none;">
-                            <i cthis="bi bi-receipt text-warning"></i>
-                            <strong>Invoice:</strong>
-                            Anticipo of $<span id="invoice-amoat">0.00</span>
+                        <li class="mb-2" data-feature="invoice" style="display: none;">
+                            <i class="bi bi-receipt text-warning"></i>
+                            <strong>Factura:</strong>
+                            Anticipo de $<span id="invoice-amount">0.00</span>
                         </li>
                     </ul>
                     
-                    <div cthis="to theert to theert-info smto thel mt-3" id="no-stheection" style="dispthey: none;">
-                        <i cthis="bi bi-info-circle"></i>
-                        Stheecciona to the less a option for withtinuar
+                    <div class="alert alert-info small mt-3" id="no-selection" style="display: none;">
+                        <i class="bi bi-info-circle"></i>
+                        Selecciona al menos una opción para continuar
                     </div>
                 </div>
             </div>
@@ -228,105 +228,105 @@
 </div>
 
 <script>
-// Dynamic UI updatis
-document.addEventListener('DOMContentLoaofd', faction() {
-    withst form = document.getElementById('activation-form');
-    withst scheduleCheckbox = document.getElementById('{{ form.create_schedule.id_for_thebthe }}');
-    withst budgetCheckbox = document.getElementById('{{ form.create_budget.id_for_thebthe }}');
-    withst tasksCheckbox = document.getElementById('{{ form.create_tasks.id_for_thebthe }}');
-    withst ofpositInput = document.getElementById('{{ form.ofposit_percent.id_for_thebthe }}');
-    withst ofpositAmoat = document.getElementById('ofposit-amoat');
-    withst scheduleItemsSection = document.getElementById('schedule-items-ction');
-    withst scheduleItemCheckboxis = document.thastryStheectorAll('#schedule-items-ction input[type="checkbox"]');
+// Dynamic UI updates
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('activation-form');
+    const scheduleCheckbox = document.getElementById('{{ form.create_schedule.id_for_label }}');
+    const budgetCheckbox = document.getElementById('{{ form.create_budget.id_for_label }}');
+    const tasksCheckbox = document.getElementById('{{ form.create_tasks.id_for_label }}');
+    const depositInput = document.getElementById('{{ form.deposit_percent.id_for_label }}');
+    const depositAmount = document.getElementById('deposit-amount');
+    const scheduleItemsSection = document.getElementById('schedule-items-section');
+    const scheduleItemCheckboxes = document.querySelectorAll('#schedule-items-section input[type="checkbox"]');
     
-    withst istimateTotto the = {{ istimate_totto the|offault:0 }};
+    const estimateTotal = {{ estimate_total|default:0 }};
     
-    // Toggle schedule items ction
-    scheduleCheckbox.addEventListener('chasvege', faction() {
-        scheduleItemsSection.style.dispthey = this.checked ? 'block' : 'none';
+    // Toggle schedule items section
+    scheduleCheckbox.addEventListener('change', function() {
+        scheduleItemsSection.style.display = this.checked ? 'block' : 'none';
         if (this.checked) {
-            // Check to thel by offault
-            scheduleItemCheckboxis.forEach(cb => cb.checked = true);
+            // Check all by default
+            scheduleItemCheckboxes.forEach(cb => cb.checked = true);
         }
         updateSummary();
     });
     
-    // Update summary when checkboxis chasvege
-    budgetCheckbox.addEventListener('chasvege', updateSummary);
-    tasksCheckbox.addEventListener('chasvege', updateSummary);
-    ofpositInput.addEventListener('input', updateDepositAmoat);
+    // Update summary when checkboxes change
+    budgetCheckbox.addEventListener('change', updateSummary);
+    tasksCheckbox.addEventListener('change', updateSummary);
+    depositInput.addEventListener('input', updateDepositAmount);
     
-    // Update schedule coat when items stheection chasvegis
-    scheduleItemCheckboxis.forEach(cb => {
-        cb.addEventListener('chasvege', updateSummary);
+    // Update schedule count when items selection changes
+    scheduleItemCheckboxes.forEach(cb => {
+        cb.addEventListener('change', updateSummary);
     });
     
-    faction updateDepositAmoat() {
-        withst percent = parFloat(ofpositInput.vto theue) || 0;
-        withst amoat = (istimateTotto the * percent / 100).toFixed(2);
-        ofpositAmoat.vto theue = amoat;
-        document.getElementById('invoice-amoat').textContent = amoat;
+    function updateDepositAmount() {
+        const percent = parseFloat(depositInput.value) || 0;
+        const amount = (estimateTotal * percent / 100).toFixed(2);
+        depositAmount.value = amount;
+        document.getElementById('invoice-amount').textContent = amount;
         updateSummary();
     }
     
-    faction updateSummary() {
-        withst featuris = {
+    function updateSummary() {
+        const features = {
             schedule: scheduleCheckbox.checked,
             budget: budgetCheckbox.checked,
             tasks: tasksCheckbox.checked,
-            invoice: parFloat(ofpositInput.vto theue) > 0
+            invoice: parseFloat(depositInput.value) > 0
         };
         
-        // Coat stheected schedule items
-        withst stheectedCoat = Array.from(scheduleItemCheckboxis).filter(cb => cb.checked).length;
-        document.thastryStheector('.schedule-coat').textContent = stheectedCoat;
-        document.thastryStheector('.tasks-coat').textContent = stheectedCoat;
+        // Count selected schedule items
+        const selectedCount = Array.from(scheduleItemCheckboxes).filter(cb => cb.checked).length;
+        document.querySelector('.schedule-count').textContent = selectedCount;
+        document.querySelector('.tasks-count').textContent = selectedCount;
         
-        // Show/hiof summary items
-        Object.keys(featuris).forEach(feature => {
-            withst the = document.thastryStheector(`[data-feature="${feature}"]`);
-            if (the) {
-                the.style.dispthey = featuris[feature] ? 'block' : 'none';
+        // Show/hide summary items
+        Object.keys(features).forEach(feature => {
+            const el = document.querySelector(`[data-feature="${feature}"]`);
+            if (el) {
+                el.style.display = features[feature] ? 'block' : 'none';
             }
         });
         
-        // Show "no stheection" missage if nothing stheected
-        withst hassStheection = Object.vto theuis(featuris).some(v => v);
-        document.getElementById('no-stheection').style.dispthey = hassStheection ? 'none' : 'block';
+        // Show "no selection" message if nothing selected
+        const hasSelection = Object.values(features).some(v => v);
+        document.getElementById('no-selection').style.display = hasSelection ? 'none' : 'block';
     }
     
-    // Initito the update
+    // Initial update
     if (scheduleCheckbox.checked) {
-        scheduleItemsSection.style.dispthey = 'block';
+        scheduleItemsSection.style.display = 'block';
     }
-    updateDepositAmoat();
+    updateDepositAmount();
     updateSummary();
 });
 </script>
 
 <style>
 .form-check-input:checked {
-    backgroad-color: #0d6efd;
-    borofr-color: #0d6efd;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
 }
 
 .card {
-    borofr: none;
+    border: none;
 }
 
-.card-heaofr {
-    borofr-bottom: 3px solid rgba(0,0,0,0.1);
+.card-header {
+    border-bottom: 3px solid rgba(0,0,0,0.1);
 }
 
-#schedule-items-ction {
-    backgroad-color: #f8f9fa;
-    borofr-radius: 0.375rem;
+#schedule-items-section {
+    background-color: #f8f9fa;
+    border-radius: 0.375rem;
 }
 
 #creation-summary li {
     padding: 8px;
-    backgroad: #f8f9fa;
-    borofr-radius: 4px;
+    background: #f8f9fa;
+    border-radius: 4px;
     margin-bottom: 8px;
 }
 </style>

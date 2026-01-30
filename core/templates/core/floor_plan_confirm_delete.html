@@ -1,40 +1,162 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load static %}
+{% load i18n %}
 
-{% block withtent %}
-<div cthis="withtainer py-4">
-  <nav aria-thebthe="breadcrumb" cthis="mb-3">
-    <ol cthis="breadcrumb">
-      <li cthis="breadcrumb-item"><a href="{% url 'project_oviewview' project.id %}">{{ project.name }}</a></li>
-      <li cthis="breadcrumb-item"><a href="{% url 'floor_pthen_list' project.id %}">Floor Pthens</a></li>
-      <li cthis="breadcrumb-item active">Dtheete Pthen</li>
-    </ol>
-  </nav>
+{% block title %}{% trans "Delete Floor Plan" %} - {{ plan.name }}{% endblock %}
 
-  <div cthis="card borofr-0 shasdow-sm">
-    <div cthis="card-body p-4">
-      <div cthis="text-center mb-3">
-        <i cthis="bi bi-excthemation-triangle text-danger" style="font-size:3rem;"></i>
-      </div>
-      <h3 cthis="text-center mb-3">Are you sure you want to of theete this pthen?</h3>
-      <div cthis="to theert to theert-warning">
-        <i cthis="bi bi-info-circle"></i>
-        This action cannot be adone. All pins associated with this pthen will to thiso be of theeted.
-      </div>
-      <div cthis="mb-3">
-        <p cthis="mb-1"><strong>Pthen:</strong> {{ pthen.name }}</p>
-        <p cthis="mb-0"><strong>Levthe:</strong> {{ pthen.levthe }} {% if pthen.levthe_iofntifier %}({{ pthen.levthe_iofntifier }}){% endif %}</p>
-      </div>
-      <form method="post" cthis="d-flex gap-2 justify-withtent-end">
-        {% csrf_token %}
-        <a href="{% url 'floor_pthen_oftail' pthen.id %}" cthis="btn btn-outline-withdary">
-          Cancthe
-        </a>
-        <button type="submit" cthis="btn btn-danger">
-          <i cthis="bi bi-trash"></i> Dtheete
-        </button>
-      </form>
+{% block extra_css %}
+<style>
+:root {
+  --fp-danger: #dc2626;
+  --fp-bg: #f8fafc;
+  --fp-card-bg: #ffffff;
+  --fp-border: #e2e8f0;
+  --fp-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --fp-radius: 12px;
+}
+
+.fp-delete-container {
+  max-width: 500px;
+  margin: 4rem auto;
+  padding: 2rem;
+}
+
+.fp-delete-card {
+  background: var(--fp-card-bg);
+  border-radius: var(--fp-radius);
+  box-shadow: var(--fp-shadow);
+  padding: 2rem;
+  text-align: center;
+}
+
+.fp-delete-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.fp-delete-icon i {
+  font-size: 2.5rem;
+  color: var(--fp-danger);
+}
+
+.fp-delete-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+}
+
+.fp-delete-text {
+  color: #64748b;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.fp-delete-plan-name {
+  font-weight: 600;
+  color: #1e293b;
+  background: var(--fp-bg);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.fp-delete-warning {
+  background: rgba(220, 38, 38, 0.05);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  color: var(--fp-danger);
+  font-size: 0.875rem;
+}
+
+.fp-delete-warning i {
+  margin-right: 0.5rem;
+}
+
+.fp-delete-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.fp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  border: none;
+}
+
+.fp-btn-cancel {
+  background: var(--fp-bg);
+  color: #64748b;
+  border: 1px solid var(--fp-border);
+}
+
+.fp-btn-cancel:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.fp-btn-danger {
+  background: var(--fp-danger);
+  color: white;
+}
+
+.fp-btn-danger:hover {
+  background: #b91c1c;
+  color: white;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fp-delete-container">
+  <div class="fp-delete-card">
+    <div class="fp-delete-icon">
+      <i class="bi bi-exclamation-triangle"></i>
     </div>
+    
+    <h1 class="fp-delete-title">{% trans "Delete Floor Plan?" %}</h1>
+    <p class="fp-delete-text">{% trans "You are about to permanently delete this floor plan and all associated pins." %}</p>
+    
+    <div class="fp-delete-plan-name">
+      <i class="bi bi-map me-2"></i>{{ plan.name }}
+    </div>
+    
+    {% if plan.pins.count > 0 %}
+    <div class="fp-delete-warning">
+      <i class="bi bi-exclamation-circle"></i>
+      {% blocktrans with count=plan.pins.count %}This will also delete {{ count }} pin(s) attached to this plan.{% endblocktrans %}
+    </div>
+    {% endif %}
+    
+    <form method="post">
+      {% csrf_token %}
+      <div class="fp-delete-actions">
+        <a href="{% url 'floor_plan_detail' plan.id %}" class="fp-btn fp-btn-cancel">
+          <i class="bi bi-x-lg"></i>
+          {% trans "Cancel" %}
+        </a>
+        <button type="submit" class="fp-btn fp-btn-danger">
+          <i class="bi bi-trash"></i>
+          {% trans "Delete Plan" %}
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 {% endblock %}

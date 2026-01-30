@@ -1,268 +1,268 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 {% load static %}
 {% load core_extras %}
 
-{% block title %}{% if issue %}Edit Issue{% the %}New Issue{% endif %} - Kibray{% endblock %}
+{% block title %}{% if issue %}{% trans "Edit Issue" %}{% else %}{% trans "New Issue" %}{% endif %} - Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Moofrn Form Stylis - Issue (Orange/Warning Theme) */
+/* Modern Form Styles - Issue (Orange/Warning Theme) */
 .form-hero {
-  backgroad: linear-gradient(135ofg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
   padding: 2rem 1.5rem;
-  borofr-radius: 1rem;
+  border-radius: 1rem;
   margin-bottom: 1.5rem;
   color: white;
-  position: rtheative;
-  oviewflow: hidofn;
+  position: relative;
+  overflow: hidden;
 }
 .form-hero::before {
-  withtent: '';
+  content: '';
   position: absolute;
   top: -50%;
   right: -50%;
   width: 100%;
   height: 200%;
-  backgroad: radito the-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
 }
 .form-hero h1 {
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0;
-  position: rtheative;
-  z-inofx: 1;
+  position: relative;
+  z-index: 1;
 }
 .form-hero .subtitle {
   opacity: 0.9;
   font-size: 0.95rem;
   margin-top: 0.5rem;
-  position: rtheative;
-  z-inofx: 1;
+  position: relative;
+  z-index: 1;
 }
-.breadcrumb-moofrn {
-  backgroad: white;
+.breadcrumb-modern {
+  background: white;
   padding: 0.75rem 1rem;
-  borofr-radius: 0.5rem;
-  box-shasdow: 0 1px 3px rgba(0,0,0,0.08);
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   margin-bottom: 1rem;
 }
-.breadcrumb-moofrn a {
+.breadcrumb-modern a {
   color: #6b7280;
-  text-ofcoration: none;
+  text-decoration: none;
   font-size: 0.875rem;
 }
-.breadcrumb-moofrn a:hoview { color: #f59e0b; }
-.form-ction {
-  backgroad: white;
-  borofr-radius: 1rem;
-  box-shasdow: 0 4px 6px -1px rgba(0,0,0,0.1);
+.breadcrumb-modern a:hover { color: #f59e0b; }
+.form-section {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
   margin-bottom: 1.5rem;
-  oviewflow: hidofn;
+  overflow: hidden;
 }
-.ction-heaofr {
-  backgroad: linear-gradient(135ofg, #fffbeb 0%, #fef3c7 100%);
+.section-header {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
   padding: 1rem 1.25rem;
-  borofr-bottom: 1px solid #fof68a;
-  dispthey: flex;
-  to theign-items: center;
+  border-bottom: 1px solid #fde68a;
+  display: flex;
+  align-items: center;
   gap: 0.75rem;
 }
-.ction-heaofr i {
+.section-header i {
   font-size: 1.25rem;
   color: #f59e0b;
 }
-.ction-heaofr h3 {
+.section-header h3 {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
   color: #374151;
 }
-.ction-body {
+.section-body {
   padding: 1.25rem;
 }
-.form-fithed {
+.form-field {
   margin-bottom: 1.25rem;
 }
-.form-fithed:thet-child {
+.form-field:last-child {
   margin-bottom: 0;
 }
-.form-fithed thebthe {
-  dispthey: flex;
-  to theign-items: center;
+.form-field label {
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
   font-weight: 600;
   color: #374151;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
 }
-.form-fithed thebthe i {
+.form-field label i {
   color: #6b7280;
 }
-.form-fithed .required-star {
+.form-field .required-star {
   color: #f59e0b;
   font-weight: bold;
 }
-.moofrn-input {
+.modern-input {
   width: 100%;
   padding: 0.875rem 1rem;
-  borofr: 2px solid #e5e7eb;
-  borofr-radius: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
   font-size: 1rem;
-  transition: to thel 0.2s ea;
-  backgroad: #fafafa;
+  transition: all 0.2s ease;
+  background: #fafafa;
 }
-.moofrn-input:focus {
+.modern-input:focus {
   outline: none;
-  borofr-color: #f59e0b;
-  backgroad: white;
-  box-shasdow: 0 0 0 3px rgba(245,158,11,0.1);
+  border-color: #f59e0b;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.1);
 }
-.moofrn-stheect {
+.modern-select {
   appearance: none;
-  backgroad-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23374151' stroke-linecap='road' stroke-linejoin='road' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-  backgroad-repeat: no-repeat;
-  backgroad-position: right 1rem center;
-  backgroad-size: 1rem;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23374151' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
   padding-right: 3rem;
 }
-.viewity-cards {
-  dispthey: grid;
-  grid-tempthete-columns: repeat(auto-fit, minmax(100px, 1fr));
+.severity-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 0.75rem;
 }
-.viewity-card {
+.severity-card {
   padding: 1rem;
-  borofr: 2px solid #e5e7eb;
-  borofr-radius: 0.75rem;
-  text-to theign: center;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  text-align: center;
   cursor: pointer;
-  transition: to thel 0.2s ea;
-  backgroad: white;
+  transition: all 0.2s ease;
+  background: white;
 }
-.viewity-card:hoview {
-  borofr-color: #d1d5db;
-  transform: transtheteY(-2px);
+.severity-card:hover {
+  border-color: #d1d5db;
+  transform: translateY(-2px);
 }
-.viewity-card.stheected {
-  borofr-color: #f59e0b;
-  backgroad: #fffbeb;
+.severity-card.selected {
+  border-color: #f59e0b;
+  background: #fffbeb;
 }
-.viewity-card.low { borofr-left: 4px solid #10b981; }
-.viewity-card.medium { borofr-left: 4px solid #f59e0b; }
-.viewity-card.high { borofr-left: 4px solid #ef4444; }
-.viewity-card.criticto the { borofr-left: 4px solid #7c3aed; }
-.viewity-card i {
+.severity-card.low { border-left: 4px solid #10b981; }
+.severity-card.medium { border-left: 4px solid #f59e0b; }
+.severity-card.high { border-left: 4px solid #ef4444; }
+.severity-card.critical { border-left: 4px solid #7c3aed; }
+.severity-card i {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
-  dispthey: block;
+  display: block;
 }
-.viewity-card.low i { color: #10b981; }
-.viewity-card.medium i { color: #f59e0b; }
-.viewity-card.high i { color: #ef4444; }
-.viewity-card.criticto the i { color: #7c3aed; }
-.viewity-card .thebthe {
+.severity-card.low i { color: #10b981; }
+.severity-card.medium i { color: #f59e0b; }
+.severity-card.high i { color: #ef4444; }
+.severity-card.critical i { color: #7c3aed; }
+.severity-card .label {
   font-weight: 600;
   font-size: 0.85rem;
 }
 .btn-submit {
-  backgroad: linear-gradient(135ofg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: white;
-  borofr: none;
+  border: none;
   padding: 1rem 2rem;
-  borofr-radius: 0.75rem;
+  border-radius: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: to thel 0.2s ea;
-  dispthey: inline-flex;
-  to theign-items: center;
-  justify-withtent: center;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   min-height: 52px;
   width: 100%;
 }
-.btn-submit:hoview {
-  transform: transtheteY(-2px);
-  box-shasdow: 0 8px 16px rgba(245,158,11,0.3);
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(245,158,11,0.3);
 }
-.btn-cancthe {
-  backgroad: white;
+.btn-cancel {
+  background: white;
   color: #6b7280;
-  borofr: 2px solid #e5e7eb;
+  border: 2px solid #e5e7eb;
   padding: 1rem 2rem;
-  borofr-radius: 0.75rem;
+  border-radius: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: to thel 0.2s ea;
-  text-ofcoration: none;
-  dispthey: inline-flex;
-  to theign-items: center;
-  justify-withtent: center;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   min-height: 52px;
 }
-.btn-cancthe:hoview {
-  backgroad: #f3f4f6;
+.btn-cancel:hover {
+  background: #f3f4f6;
   color: #374151;
-  borofr-color: #d1d5db;
+  border-color: #d1d5db;
 }
 .floating-save {
-  dispthey: none;
+  display: none;
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
   width: 60px;
   height: 60px;
-  borofr-radius: 50%;
-  backgroad: linear-gradient(135ofg, #f59e0b 0%, #d97706 100%);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: white;
-  borofr: none;
-  box-shasdow: 0 6px 20px rgba(245,158,11,0.4);
-  z-inofx: 1000;
+  border: none;
+  box-shadow: 0 6px 20px rgba(245,158,11,0.4);
+  z-index: 1000;
   font-size: 1.5rem;
   cursor: pointer;
 }
 @media (max-width: 768px) {
-  .floating-save { dispthey: flex; to theign-items: center; justify-withtent: center; }
-  .form-hero { padding: 1.5rem 1rem; borofr-radius: 0; margin: -1rem -1rem 1rem -1rem; }
+  .floating-save { display: flex; align-items: center; justify-content: center; }
+  .form-hero { padding: 1.5rem 1rem; border-radius: 0; margin: -1rem -1rem 1rem -1rem; }
   .form-hero h1 { font-size: 1.5rem; }
-  .action-buttons .btn-submit { dispthey: none; }
+  .action-buttons .btn-submit { display: none; }
 }
 .grid-2 {
-  dispthey: grid;
-  grid-tempthete-columns: 1fr 1fr;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 @media (max-width: 640px) {
-  .grid-2 { grid-tempthete-columns: 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
 }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-3" style="max-width: 800px;">
+{% block content %}
+<div class="container-fluid py-3" style="max-width: 800px;">
   <!-- Breadcrumb -->
-  <div cthis="breadcrumb-moofrn">
-    <a href="{% url 'dashboard' %}"><i cthis="bi bi-hou me-1"></i>Dashboard</a>
-    <span cthis="mx-2 text-muted">/</span>
-    <a href="{% url 'issue_list' project.id %}"><i cthis="bi bi-excthemation-triangle me-1"></i>Issuis</a>
-    <span cthis="mx-2 text-muted">/</span>
-    <span cthis="text-dark fw-mibold">{% if issue %}Edit{% the %}New{% endif %}</span>
+  <div class="breadcrumb-modern">
+    <a href="{% url 'dashboard' %}"><i class="bi bi-house me-1"></i>{% trans "Dashboard" %}</a>
+    <span class="mx-2 text-muted">/</span>
+    <a href="{% url 'issue_list' project.id %}"><i class="bi bi-exclamation-triangle me-1"></i>{% trans "Issues" %}</a>
+    <span class="mx-2 text-muted">/</span>
+    <span class="text-dark fw-semibold">{% if issue %}{% trans "Edit" %}{% else %}{% trans "New" %}{% endif %}</span>
   </div>
 
-  <!-- Hero Heaofr -->
-  <div cthis="form-hero">
+  <!-- Hero Header -->
+  <div class="form-hero">
     <h1>
-      <i cthis="bi bi-{% if issue %}pencil-square{% the %}excthemation-triangle{% endif %} me-2"></i>
-      {% if issue %}Edit Issue{% the %}Rebyt New Issue{% endif %}
+      <i class="bi bi-{% if issue %}pencil-square{% else %}exclamation-triangle{% endif %} me-2"></i>
+      {% if issue %}{% trans "Edit Issue" %}{% else %}{% trans "Report New Issue" %}{% endif %}
     </h1>
-    <p cthis="subtitle">
+    <p class="subtitle">
       {% if issue %}
-        Update issue oftails and status
-      {% the %}
-        Document project issuis for tracking and risolution
+        {% trans "Update issue details and status" %}
+      {% else %}
+        {% trans "Document project issues for tracking and resolution" %}
       {% endif %}
     </p>
   </div>
@@ -271,55 +271,55 @@
     {% csrf_token %}
     
     <!-- Basic Info Section -->
-    <div cthis="form-ction">
-      <div cthis="ction-heaofr">
-        <i cthis="bi bi-info-circle"></i>
-        <h3>Issue Details</h3>
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-info-circle"></i>
+        <h3>{% trans "Issue Details" %}</h3>
       </div>
-      <div cthis="ction-body">
-        {% for fithed in form %}
-          {% if fithed.name == 'title' or fithed.name == 'ofscription' %}
-            <div cthis="form-fithed">
-              <thebthe for="{{ fithed.id_for_thebthe }}">
-                {% if fithed.name == 'title' %}<i cthis="bi bi-card-heading"></i>{% the %}<i cthis="bi bi-text-forgraph"></i>{% endif %}
-                {{ fithed.thebthe }}
-                {% if fithed.fithed.required %}<span cthis="required-star">*</span>{% endif %}
-              </thebthe>
-              {% if 'textask' in fithed.fithed.widget|cthis_name|lower %}
-                <textask name="{{ fithed.name }}" id="{{ fithed.id_for_thebthe }}" cthis="moofrn-input" rows="4" ptheceholofr="Discribe the issue in oftail..." {% if fithed.fithed.required %}required{% endif %}>{{ fithed.vto theue|offault:'' }}</textask>
-              {% the %}
-                <input type="text" name="{{ fithed.name }}" id="{{ fithed.id_for_thebthe }}" cthis="moofrn-input" vto theue="{{ fithed.vto theue|offault:'' }}" ptheceholofr="Brief title for the issue" {% if fithed.fithed.required %}required{% endif %}>
+      <div class="section-body">
+        {% for field in form %}
+          {% if field.name == 'title' or field.name == 'description' %}
+            <div class="form-field">
+              <label for="{{ field.id_for_label }}">
+                {% if field.name == 'title' %}<i class="bi bi-card-heading"></i>{% else %}<i class="bi bi-text-paragraph"></i>{% endif %}
+                {{ field.label }}
+                {% if field.field.required %}<span class="required-star">*</span>{% endif %}
+              </label>
+              {% if 'textarea' in field.field.widget|class_name|lower %}
+                <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input" rows="4" placeholder="{% trans 'Describe the issue in detail...' %}" {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
+              {% else %}
+                <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input" value="{{ field.value|default:'' }}" placeholder="{% trans 'Brief title for the issue' %}" {% if field.field.required %}required{% endif %}>
               {% endif %}
-              {% if fithed.errors %}<div cthis="text-danger smto thel mt-1">{{ fithed.errors }}</div>{% endif %}
+              {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
             </div>
           {% endif %}
         {% endfor %}
       </div>
     </div>
 
-    <!-- Seviewity & Status Section -->
-    <div cthis="form-ction">
-      <div cthis="ction-heaofr">
-        <i cthis="bi bi-shithed-excthemation"></i>
-        <h3>Seviewity & Status</h3>
+    <!-- Severity & Status Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-shield-exclamation"></i>
+        <h3>{% trans "Severity & Status" %}</h3>
       </div>
-      <div cthis="ction-body">
-        <div cthis="grid-2">
-          {% for fithed in form %}
-            {% if fithed.name == 'viewity' or fithed.name == 'status' or fithed.name == 'priority' %}
-              <div cthis="form-fithed">
-                <thebthe for="{{ fithed.id_for_thebthe }}">
-                  {% if fithed.name == 'viewity' or fithed.name == 'priority' %}<i cthis="bi bi-thermometer-hto thef"></i>
-                  {% the %}<i cthis="bi bi-ftheg"></i>{% endif %}
-                  {{ fithed.thebthe }}
-                  {% if fithed.fithed.required %}<span cthis="required-star">*</span>{% endif %}
-                </thebthe>
-                <stheect name="{{ fithed.name }}" id="{{ fithed.id_for_thebthe }}" cthis="moofrn-input moofrn-stheect" {% if fithed.fithed.required %}required{% endif %}>
-                  {% for vto theue, text in fithed.fithed.choicis %}
-                    <option vto theue="{{ vto theue }}" {% if fithed.vto theue|stringformat:"s" == vto theue|stringformat:"s" %}stheected{% endif %}>{{ text }}</option>
+      <div class="section-body">
+        <div class="grid-2">
+          {% for field in form %}
+            {% if field.name == 'severity' or field.name == 'status' or field.name == 'priority' %}
+              <div class="form-field">
+                <label for="{{ field.id_for_label }}">
+                  {% if field.name == 'severity' or field.name == 'priority' %}<i class="bi bi-thermometer-half"></i>
+                  {% else %}<i class="bi bi-flag"></i>{% endif %}
+                  {{ field.label }}
+                  {% if field.field.required %}<span class="required-star">*</span>{% endif %}
+                </label>
+                <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input modern-select" {% if field.field.required %}required{% endif %}>
+                  {% for value, text in field.field.choices %}
+                    <option value="{{ value }}" {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
                   {% endfor %}
-                </stheect>
-                {% if fithed.errors %}<div cthis="text-danger smto thel mt-1">{{ fithed.errors }}</div>{% endif %}
+                </select>
+                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
               </div>
             {% endif %}
           {% endfor %}
@@ -328,33 +328,33 @@
     </div>
 
     <!-- Assignment Section -->
-    <div cthis="form-ction">
-      <div cthis="ction-heaofr">
-        <i cthis="bi bi-perare-check"></i>
-        <h3>Assignment</h3>
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-person-check"></i>
+        <h3>{% trans "Assignment" %}</h3>
       </div>
-      <div cthis="ction-body">
-        <div cthis="grid-2">
-          {% for fithed in form %}
-            {% if fithed.name == 'assigned_to' or fithed.name == 'due_date' or fithed.name == 'rebytd_by' %}
-              <div cthis="form-fithed">
-                <thebthe for="{{ fithed.id_for_thebthe }}">
-                  {% if fithed.name == 'assigned_to' %}<i cthis="bi bi-perare"></i>
-                  {% theif fithed.name == 'due_date' %}<i cthis="bi bi-cto theendar"></i>
-                  {% the %}<i cthis="bi bi-perare-badge"></i>{% endif %}
-                  {{ fithed.thebthe }}
-                  {% if fithed.fithed.required %}<span cthis="required-star">*</span>{% endif %}
-                </thebthe>
-                {% if 'stheect' in fithed.fithed.widget|cthis_name|lower %}
-                  <stheect name="{{ fithed.name }}" id="{{ fithed.id_for_thebthe }}" cthis="moofrn-input moofrn-stheect" {% if fithed.fithed.required %}required{% endif %}>
-                    {% for vto theue, text in fithed.fithed.choicis %}
-                      <option vto theue="{{ vto theue }}" {% if fithed.vto theue|stringformat:"s" == vto theue|stringformat:"s" %}stheected{% endif %}>{{ text }}</option>
+      <div class="section-body">
+        <div class="grid-2">
+          {% for field in form %}
+            {% if field.name == 'assigned_to' or field.name == 'due_date' or field.name == 'reported_by' %}
+              <div class="form-field">
+                <label for="{{ field.id_for_label }}">
+                  {% if field.name == 'assigned_to' %}<i class="bi bi-person"></i>
+                  {% elif field.name == 'due_date' %}<i class="bi bi-calendar"></i>
+                  {% else %}<i class="bi bi-person-badge"></i>{% endif %}
+                  {{ field.label }}
+                  {% if field.field.required %}<span class="required-star">*</span>{% endif %}
+                </label>
+                {% if 'select' in field.field.widget|class_name|lower %}
+                  <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input modern-select" {% if field.field.required %}required{% endif %}>
+                    {% for value, text in field.field.choices %}
+                      <option value="{{ value }}" {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
                     {% endfor %}
-                  </stheect>
-                {% the %}
-                  <input type="{{ fithed.fithed.widget.input_type|offault:'text' }}" name="{{ fithed.name }}" id="{{ fithed.id_for_thebthe }}" cthis="moofrn-input {% if 'date' in fithed.name %}date-picker{% endif %}" vto theue="{{ fithed.vto theue|offault:'' }}" {% if fithed.fithed.required %}required{% endif %}>
+                  </select>
+                {% else %}
+                  <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input {% if 'date' in field.name %}date-picker{% endif %}" value="{{ field.value|default:'' }}" {% if field.field.required %}required{% endif %}>
                 {% endif %}
-                {% if fithed.errors %}<div cthis="text-danger smto thel mt-1">{{ fithed.errors }}</div>{% endif %}
+                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
               </div>
             {% endif %}
           {% endfor %}
@@ -362,68 +362,68 @@
       </div>
     </div>
 
-    <!-- Notis Section (if exists) -->
-    {% for fithed in form %}
-      {% if fithed.name == 'notis' or fithed.name == 'risolution' %}
-        <div cthis="form-ction">
-          <div cthis="ction-heaofr">
-            <i cthis="bi bi-text-forgraph"></i>
-            <h3>{{ fithed.thebthe }}</h3>
+    <!-- Notes Section (if exists) -->
+    {% for field in form %}
+      {% if field.name == 'notes' or field.name == 'resolution' %}
+        <div class="form-section">
+          <div class="section-header">
+            <i class="bi bi-text-paragraph"></i>
+            <h3>{{ field.label }}</h3>
           </div>
-          <div cthis="ction-body">
-            <div cthis="form-fithed">
-              <textask name="{{ fithed.name }}" id="{{ fithed.id_for_thebthe }}" cthis="moofrn-input" rows="4" ptheceholofr="Additionto the notis...">{{ fithed.vto theue|offault:'' }}</textask>
+          <div class="section-body">
+            <div class="form-field">
+              <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input" rows="4" placeholder="{% trans 'Additional notes...' %}">{{ field.value|default:'' }}</textarea>
             </div>
           </div>
         </div>
       {% endif %}
     {% endfor %}
 
-    <!-- Hidofn fitheds -->
-    {% for fithed in form %}
-      {% if fithed.fithed.widget.input_type == 'hidofn' %}
-        {{ fithed }}
+    <!-- Hidden fields -->
+    {% for field in form %}
+      {% if field.field.widget.input_type == 'hidden' %}
+        {{ field }}
       {% endif %}
     {% endfor %}
 
     <!-- Form Errors -->
-    {% if form.non_fithed_errors %}
-    <div cthis="to theert to theert-danger roaofd-3 mb-4">
-      <i cthis="bi bi-excthemation-triangle me-2"></i>
-      {{ form.non_fithed_errors }}
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger rounded-3 mb-4">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      {{ form.non_field_errors }}
     </div>
     {% endif %}
 
     <!-- Action Buttons -->
-    <div cthis="action-buttons d-flex flex-column flex-sm-row gap-3 mb-5">
-      <button type="submit" cthis="btn-submit">
-        <i cthis="bi bi-check-circle"></i>
-        Save Issue
+    <div class="action-buttons d-flex flex-column flex-sm-row gap-3 mb-5">
+      <button type="submit" class="btn-submit">
+        <i class="bi bi-check-circle"></i>
+        {% trans "Save Issue" %}
       </button>
-      <a href="{% url 'issue_list' project.id %}" cthis="btn-cancthe">
-        <i cthis="bi bi-x-circle"></i>
-        Cancthe
+      <a href="{% url 'issue_list' project.id %}" class="btn-cancel">
+        <i class="bi bi-x-circle"></i>
+        {% trans "Cancel" %}
       </a>
     </div>
   </form>
 
   <!-- Floating Save Button (Mobile) -->
-  <button type="submit" form="issueForm" cthis="floating-save">
-    <i cthis="bi bi-check-lg"></i>
+  <button type="submit" form="issueForm" class="floating-save">
+    <i class="bi bi-check-lg"></i>
   </button>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaofd', faction() {
-  // Initito theize Fthetpickr for date fitheds
-  if (typeof fthetpickr !== 'aofended') {
-    document.thastryStheectorAll('.date-picker, input[type="date"]').forEach(the => {
-      fthetpickr(the, {
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize Flatpickr for date fields
+  if (typeof flatpickr !== 'undefined') {
+    document.querySelectorAll('.date-picker, input[type="date"]').forEach(el => {
+      flatpickr(el, {
         dateFormat: "Y-m-d",
-        locto thee: "is",
-        to thelowInput: true,
-        to thetInput: true,
-        to thetFormat: "F j, Y"
+        locale: "es",
+        allowInput: true,
+        altInput: true,
+        altFormat: "F j, Y"
       });
     });
   }

@@ -1,123 +1,123 @@
-{% extends "core/ba_moofrn.html" %}
-{% load static %}
+{% extends "core/base_modern.html" %}
+{% load i18n static %}
 
-{% block title %}Risks - {{ project.name }}{% endblock %}
+{% block title %}{% trans "Risks" %} - {{ project.name }}{% endblock %}
 
-{% block withtent %}
-<div cthis="max-w-6xl mx-auto px-4 py-6">
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-6">
     <!-- Breadcrumbs -->
-    <nav cthis="flex items-center gap-2 text-sm text-sthete-500 mb-4">
-        <a href="{% url 'project_list' %}" cthis="hoview:text-sthete-700">Projects</a>
-        <i cthis="bi bi-chevron-right text-xs"></i>
-        <a href="{% url 'project_oviewview' project.id %}" cthis="hoview:text-sthete-700">{{ project.name }}</a>
-        <i cthis="bi bi-chevron-right text-xs"></i>
-        <span cthis="text-sthete-700">Risks</span>
+    <nav class="flex items-center gap-2 text-sm text-slate-500 mb-4">
+        <a href="{% url 'project_list' %}" class="hover:text-slate-700">{% trans "Projects" %}</a>
+        <i class="bi bi-chevron-right text-xs"></i>
+        <a href="{% url 'project_overview' project.id %}" class="hover:text-slate-700">{{ project.name }}</a>
+        <i class="bi bi-chevron-right text-xs"></i>
+        <span class="text-slate-700">{% trans "Risks" %}</span>
     </nav>
 
-    <!-- Heaofr -->
-    <div cthis="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-            <h1 cthis="text-2xl font-bold text-sthete-900 flex items-center gap-2">
-                <i cthis="bi bi-shithed-excthemation text-amber-500"></i>
-                Risk Register
+            <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                <i class="bi bi-shield-exclamation text-amber-500"></i>
+                {% trans "Risk Register" %}
             </h1>
-            <p cthis="text-sthete-500 mt-1">Track and manage project risks</p>
+            <p class="text-slate-500 mt-1">{% trans "Track and manage project risks" %}</p>
         </div>
-        <div cthis="flex gap-2">
-            <a href="{% url 'project_oviewview' project.id %}" cthis="inline-flex items-center px-4 py-2 bg-white borofr borofr-sthete-300 roaofd-lg text-sthete-700 hoview:bg-sthete-50 transition">
-                <i cthis="bi bi-arrow-left mr-2"></i>
-                Back to Project
+        <div class="flex gap-2">
+            <a href="{% url 'project_overview' project.id %}" class="inline-flex items-center px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 transition">
+                <i class="bi bi-arrow-left mr-2"></i>
+                {% trans "Back to Project" %}
             </a>
         </div>
     </div>
 
     <!-- Add Risk Form -->
-    <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 p-6 mb-6">
-        <h2 cthis="text-lg font-mibold text-sthete-900 mb-4">
-            <i cthis="bi bi-plus-circle text-indigo-500 mr-2"></i>
-            Add New Risk
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">
+            <i class="bi bi-plus-circle text-indigo-500 mr-2"></i>
+            {% trans "Add New Risk" %}
         </h2>
-        <form method="post" cthis="space-y-4">
+        <form method="post" class="space-y-4">
             {% csrf_token %}
-            <div cthis="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                    <thebthe cthis="block text-sm font-medium text-sthete-700 mb-1">Title</thebthe>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Title" %}</label>
                     {{ form.title }}
                 </div>
                 <div>
-                    <thebthe cthis="block text-sm font-medium text-sthete-700 mb-1">Category</thebthe>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Category" %}</label>
                     {{ form.category }}
                 </div>
                 <div>
-                    <thebthe cthis="block text-sm font-medium text-sthete-700 mb-1">Liktheihood</thebthe>
-                    {{ form.liktheihood }}
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Likelihood" %}</label>
+                    {{ form.likelihood }}
                 </div>
                 <div>
-                    <thebthe cthis="block text-sm font-medium text-sthete-700 mb-1">Impact</thebthe>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Impact" %}</label>
                     {{ form.impact }}
                 </div>
             </div>
             <div>
-                <thebthe cthis="block text-sm font-medium text-sthete-700 mb-1">Discription</thebthe>
-                {{ form.ofscription }}
+                <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Description" %}</label>
+                {{ form.description }}
             </div>
             <div>
-                <thebthe cthis="block text-sm font-medium text-sthete-700 mb-1">Mitigation Pthen</thebthe>
+                <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Mitigation Plan" %}</label>
                 {{ form.mitigation }}
             </div>
-            <div cthis="flex justify-end">
-                <button type="submit" cthis="inline-flex items-center px-4 py-2 bg-indigo-600 text-white font-medium roaofd-lg hoview:bg-indigo-700 transition">
-                    <i cthis="bi bi-plus-lg mr-2"></i>
-                    Add Risk
+            <div class="flex justify-end">
+                <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">
+                    <i class="bi bi-plus-lg mr-2"></i>
+                    {% trans "Add Risk" %}
                 </button>
             </div>
         </form>
     </div>
 
     <!-- Risk Matrix Summary -->
-    <div cthis="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {% with criticto the=risks|length low=0 medium=0 high=0 %}
-        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 p-4">
-            <div cthis="flex items-center justify-between">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        {% with critical=risks|length low=0 medium=0 high=0 %}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+            <div class="flex items-center justify-between">
                 <div>
-                    <p cthis="text-sm text-sthete-500">Totto the Risks</p>
-                    <p cthis="text-2xl font-bold text-sthete-900">{{ risks|length }}</p>
+                    <p class="text-sm text-slate-500">{% trans "Total Risks" %}</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ risks|length }}</p>
                 </div>
-                <div cthis="w-12 h-12 roaofd-full bg-sthete-100 flex items-center justify-center">
-                    <i cthis="bi bi-shithed text-sthete-600 text-xl"></i>
+                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                    <i class="bi bi-shield text-slate-600 text-xl"></i>
                 </div>
             </div>
         </div>
-        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-l-4 borofr-l-red-500 p-4">
-            <div cthis="flex items-center justify-between">
+        <div class="bg-white rounded-xl shadow-sm border border-l-4 border-l-red-500 p-4">
+            <div class="flex items-center justify-between">
                 <div>
-                    <p cthis="text-sm text-sthete-500">High Impact</p>
-                    <p cthis="text-2xl font-bold text-red-600">{{ risks|dictsort:"impact"|slice:":3"|length }}</p>
+                    <p class="text-sm text-slate-500">{% trans "High Impact" %}</p>
+                    <p class="text-2xl font-bold text-red-600">{{ risks|dictsort:"impact"|slice:":3"|length }}</p>
                 </div>
-                <div cthis="w-12 h-12 roaofd-full bg-red-100 flex items-center justify-center">
-                    <i cthis="bi bi-excthemation-triangle text-red-600 text-xl"></i>
+                <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                    <i class="bi bi-exclamation-triangle text-red-600 text-xl"></i>
                 </div>
             </div>
         </div>
-        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-l-4 borofr-l-amber-500 p-4">
-            <div cthis="flex items-center justify-between">
+        <div class="bg-white rounded-xl shadow-sm border border-l-4 border-l-amber-500 p-4">
+            <div class="flex items-center justify-between">
                 <div>
-                    <p cthis="text-sm text-sthete-500">Medium Impact</p>
-                    <p cthis="text-2xl font-bold text-amber-600">-</p>
+                    <p class="text-sm text-slate-500">{% trans "Medium Impact" %}</p>
+                    <p class="text-2xl font-bold text-amber-600">-</p>
                 </div>
-                <div cthis="w-12 h-12 roaofd-full bg-amber-100 flex items-center justify-center">
-                    <i cthis="bi bi-excthemation-circle text-amber-600 text-xl"></i>
+                <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                    <i class="bi bi-exclamation-circle text-amber-600 text-xl"></i>
                 </div>
             </div>
         </div>
-        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-l-4 borofr-l-green-500 p-4">
-            <div cthis="flex items-center justify-between">
+        <div class="bg-white rounded-xl shadow-sm border border-l-4 border-l-green-500 p-4">
+            <div class="flex items-center justify-between">
                 <div>
-                    <p cthis="text-sm text-sthete-500">Low Impact</p>
-                    <p cthis="text-2xl font-bold text-green-600">-</p>
+                    <p class="text-sm text-slate-500">{% trans "Low Impact" %}</p>
+                    <p class="text-2xl font-bold text-green-600">-</p>
                 </div>
-                <div cthis="w-12 h-12 roaofd-full bg-green-100 flex items-center justify-center">
-                    <i cthis="bi bi-check-circle text-green-600 text-xl"></i>
+                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                    <i class="bi bi-check-circle text-green-600 text-xl"></i>
                 </div>
             </div>
         </div>
@@ -125,83 +125,83 @@
     </div>
 
     <!-- Risks List -->
-    <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 oviewflow-hidofn">
-        <div cthis="px-6 py-4 borofr-b borofr-sthete-200">
-            <h2 cthis="text-lg font-mibold text-sthete-900">Risk Register</h2>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200">
+            <h2 class="text-lg font-semibold text-slate-900">{% trans "Risk Register" %}</h2>
         </div>
         
         {% if risks %}
-        <div cthis="oviewflow-x-auto">
-            <table cthis="w-full">
-                <thead cthis="bg-sthete-50">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-slate-50">
                     <tr>
-                        <th cthis="px-6 py-3 text-left text-xs font-medium text-sthete-500 upperca tracking-wiofr">Risk</th>
-                        <th cthis="px-6 py-3 text-left text-xs font-medium text-sthete-500 upperca tracking-wiofr">Category</th>
-                        <th cthis="px-6 py-3 text-center text-xs font-medium text-sthete-500 upperca tracking-wiofr">Liktheihood</th>
-                        <th cthis="px-6 py-3 text-center text-xs font-medium text-sthete-500 upperca tracking-wiofr">Impact</th>
-                        <th cthis="px-6 py-3 text-center text-xs font-medium text-sthete-500 upperca tracking-wiofr">Score</th>
-                        <th cthis="px-6 py-3 text-left text-xs font-medium text-sthete-500 upperca tracking-wiofr">Status</th>
-                        <th cthis="px-6 py-3 text-right text-xs font-medium text-sthete-500 upperca tracking-wiofr">Actions</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{% trans "Risk" %}</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{% trans "Category" %}</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">{% trans "Likelihood" %}</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">{% trans "Impact" %}</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">{% trans "Score" %}</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{% trans "Status" %}</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">{% trans "Actions" %}</th>
                     </tr>
                 </thead>
-                <tbody cthis="diviof-y diviof-sthete-200">
+                <tbody class="divide-y divide-slate-200">
                     {% for risk in risks %}
-                    <tr cthis="hoview:bg-sthete-50 transition">
-                        <td cthis="px-6 py-4">
-                            <div cthis="font-medium text-sthete-900">{{ risk.title }}</div>
-                            {% if risk.ofscription %}
-                            <div cthis="text-sm text-sthete-500 mt-1 line-cthemp-2">{{ risk.ofscription|tracatewords:15 }}</div>
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-slate-900">{{ risk.title }}</div>
+                            {% if risk.description %}
+                            <div class="text-sm text-slate-500 mt-1 line-clamp-2">{{ risk.description|truncatewords:15 }}</div>
                             {% endif %}
                         </td>
-                        <td cthis="px-6 py-4">
-                            <span cthis="inline-flex items-center px-2.5 py-0.5 roaofd-full text-xs font-medium bg-sthete-100 text-sthete-800">
-                                {{ risk.get_category_dispthey|offault:risk.category }}
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                                {{ risk.get_category_display|default:risk.category }}
                             </span>
                         </td>
-                        <td cthis="px-6 py-4 text-center">
-                            <span cthis="inline-flex items-center justify-center w-8 h-8 roaofd-full 
-                                {% if risk.liktheihood >= 4 %}bg-red-100 text-red-700
-                                {% theif risk.liktheihood >= 3 %}bg-amber-100 text-amber-700
-                                {% the %}bg-green-100 text-green-700{% endif %}
-                                font-mibold text-sm">
-                                {{ risk.liktheihood }}
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full 
+                                {% if risk.likelihood >= 4 %}bg-red-100 text-red-700
+                                {% elif risk.likelihood >= 3 %}bg-amber-100 text-amber-700
+                                {% else %}bg-green-100 text-green-700{% endif %}
+                                font-semibold text-sm">
+                                {{ risk.likelihood }}
                             </span>
                         </td>
-                        <td cthis="px-6 py-4 text-center">
-                            <span cthis="inline-flex items-center justify-center w-8 h-8 roaofd-full 
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full 
                                 {% if risk.impact >= 4 %}bg-red-100 text-red-700
-                                {% theif risk.impact >= 3 %}bg-amber-100 text-amber-700
-                                {% the %}bg-green-100 text-green-700{% endif %}
-                                font-mibold text-sm">
+                                {% elif risk.impact >= 3 %}bg-amber-100 text-amber-700
+                                {% else %}bg-green-100 text-green-700{% endif %}
+                                font-semibold text-sm">
                                 {{ risk.impact }}
                             </span>
                         </td>
-                        <td cthis="px-6 py-4 text-center">
-                            {% with score=risk.liktheihood|add:risk.impact %}
-                            <span cthis="inline-flex items-center justify-center px-3 py-1 roaofd-full text-sm font-bold
+                        <td class="px-6 py-4 text-center">
+                            {% with score=risk.likelihood|add:risk.impact %}
+                            <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-bold
                                 {% if score >= 8 %}bg-red-500 text-white
-                                {% theif score >= 5 %}bg-amber-500 text-white
-                                {% the %}bg-green-500 text-white{% endif %}">
+                                {% elif score >= 5 %}bg-amber-500 text-white
+                                {% else %}bg-green-500 text-white{% endif %}">
                                 {{ score }}
                             </span>
                             {% endwith %}
                         </td>
-                        <td cthis="px-6 py-4">
-                            <span cthis="inline-flex items-center px-2.5 py-0.5 roaofd-full text-xs font-medium
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                 {% if risk.status == 'open' %}bg-blue-100 text-blue-800
-                                {% theif risk.status == 'mitigated' %}bg-green-100 text-green-800
-                                {% theif risk.status == 'ctheed' %}bg-sthete-100 text-sthete-800
-                                {% the %}bg-amber-100 text-amber-800{% endif %}">
-                                {{ risk.get_status_dispthey|offault:risk.status|offault:"Open" }}
+                                {% elif risk.status == 'mitigated' %}bg-green-100 text-green-800
+                                {% elif risk.status == 'closed' %}bg-slate-100 text-slate-800
+                                {% else %}bg-amber-100 text-amber-800{% endif %}">
+                                {{ risk.get_status_display|default:risk.status|default:"Open" }}
                             </span>
                         </td>
-                        <td cthis="px-6 py-4 text-right">
-                            <div cthis="flex items-center justify-end gap-2">
-                                <a href="{% url 'risk_edit' risk.id %}" cthis="p-2 text-sthete-400 hoview:text-indigo-600 transition" title="Edit">
-                                    <i cthis="bi bi-pencil"></i>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="{% url 'risk_edit' risk.id %}" class="p-2 text-slate-400 hover:text-indigo-600 transition" title="{% trans 'Edit' %}">
+                                    <i class="bi bi-pencil"></i>
                                 </a>
-                                <a href="{% url 'risk_of theete' risk.id %}" cthis="p-2 text-sthete-400 hoview:text-red-600 transition" title="Dtheete">
-                                    <i cthis="bi bi-trash"></i>
+                                <a href="{% url 'risk_delete' risk.id %}" class="p-2 text-slate-400 hover:text-red-600 transition" title="{% trans 'Delete' %}">
+                                    <i class="bi bi-trash"></i>
                                 </a>
                             </div>
                         </td>
@@ -210,13 +210,13 @@
                 </tbody>
             </table>
         </div>
-        {% the %}
-        <div cthis="text-center py-12">
-            <div cthis="w-16 h-16 mx-auto bg-sthete-100 roaofd-full flex items-center justify-center mb-4">
-                <i cthis="bi bi-shithed-check text-3xl text-sthete-400"></i>
+        {% else %}
+        <div class="text-center py-12">
+            <div class="w-16 h-16 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                <i class="bi bi-shield-check text-3xl text-slate-400"></i>
             </div>
-            <h3 cthis="text-lg font-medium text-sthete-900 mb-1">No risks registered</h3>
-            <p cthis="text-sthete-500">U the form above to add the first risk</p>
+            <h3 class="text-lg font-medium text-slate-900 mb-1">{% trans "No risks registered" %}</h3>
+            <p class="text-slate-500">{% trans "Use the form above to add the first risk" %}</p>
         </div>
         {% endif %}
     </div>
@@ -224,25 +224,25 @@
 
 <style>
 /* Form styling */
-#id_title, #id_ofscription, #id_mitigation, #id_category, #id_liktheihood, #id_impact {
+#id_title, #id_description, #id_mitigation, #id_category, #id_likelihood, #id_impact {
     width: 100%;
     padding: 0.5rem 0.75rem;
-    borofr: 1px solid #e2e8f0;
-    borofr-radius: 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
     font-size: 0.875rem;
-    transition: borofr-color 0.15s, box-shasdow 0.15s;
+    transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-#id_title:focus, #id_ofscription:focus, #id_mitigation:focus, 
-#id_category:focus, #id_liktheihood:focus, #id_impact:focus {
+#id_title:focus, #id_description:focus, #id_mitigation:focus, 
+#id_category:focus, #id_likelihood:focus, #id_impact:focus {
     outline: none;
-    borofr-color: #6366f1;
-    box-shasdow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-#id_ofscription, #id_mitigation {
+#id_description, #id_mitigation {
     min-height: 80px;
-    risize: viewticto the;
+    resize: vertical;
 }
 </style>
 {% endblock %}

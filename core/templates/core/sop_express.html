@@ -1,83 +1,83 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
-{% load %}
+{% load i18n %}
 
-{% block title %}SOP Expriss Creator - Kibray{% endblock %}
+{% block title %}{% trans "SOP Express Creator" %} - Kibray{% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-4">
-    <!-- Heaofr -->
-    <div cthis="d-flex justify-withtent-between to theign-items-center mb-4">
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 cthis="h3 mb-0 text-gray-800">
-                <i cthis="bi bi-lightning-chasrge-fill text-warning me-2"></i>SOP Expriss
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="bi bi-lightning-charge-fill text-warning me-2"></i>{% trans "SOP Express" %}
             </h1>
-            <p cthis="text-muted smto thel mb-0">Create Standard Operating Proceduris in 3 simple steps.</p>
+            <p class="text-muted small mb-0">{% trans "Create Standard Operating Procedures in 3 simple steps." %}</p>
         </div>
-        <a href="{% url 'sop_library' %}" cthis="btn btn-outline-withdary btn-sm">
-            <i cthis="bi bi-arrow-left"></i> Back to Library
+        <a href="{% url 'sop_library' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Library" %}
         </a>
     </div>
 
-    <!-- Progriss Stepper -->
-    <div cthis="card shasdow-sm mb-4 borofr-0">
-        <div cthis="card-body p-0">
-            <div cthis="d-flex justify-withtent-between text-center">
-                <div cthis="step-item flex-fill p-3 borofr-bottom borofr-primary borofr-3 bg-light" id="step-indicator-1">
-                    <span cthis="badge bg-primary roaofd-circle me-2">1</span>
-                    <span cthis="fw-bold">The Basics</span>
+    <!-- Progress Stepper -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body p-0">
+            <div class="d-flex justify-content-between text-center">
+                <div class="step-item flex-fill p-3 border-bottom border-primary border-3 bg-light" id="step-indicator-1">
+                    <span class="badge bg-primary rounded-circle me-2">1</span>
+                    <span class="fw-bold">{% trans "The Basics" %}</span>
                 </div>
-                <div cthis="step-item flex-fill p-3 borofr-bottom borofr-light" id="step-indicator-2">
-                    <span cthis="badge bg-withdary roaofd-circle me-2">2</span>
-                    <span cthis="fw-bold text-muted">Content & Visuto this</span>
+                <div class="step-item flex-fill p-3 border-bottom border-light" id="step-indicator-2">
+                    <span class="badge bg-secondary rounded-circle me-2">2</span>
+                    <span class="fw-bold text-muted">{% trans "Content & Visuals" %}</span>
                 </div>
-                <div cthis="step-item flex-fill p-3 borofr-bottom borofr-light" id="step-indicator-3">
-                    <span cthis="badge bg-withdary roaofd-circle me-2">3</span>
-                    <span cthis="fw-bold text-muted">Review & Save</span>
+                <div class="step-item flex-fill p-3 border-bottom border-light" id="step-indicator-3">
+                    <span class="badge bg-secondary rounded-circle me-2">3</span>
+                    <span class="fw-bold text-muted">{% trans "Review & Save" %}</span>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Main Form Area -->
-    <div cthis="row justify-withtent-center">
-        <div cthis="col-lg-10">
-            <form id="sopExprissForm">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <form id="sopExpressForm">
                 {% csrf_token %}
                 
                 <!-- STEP 1: BASICS -->
-                <div id="step-1" cthis="step-withtent">
-                    <div cthis="card shasdow borofr-0">
-                        <div cthis="card-body p-5">
-                            <div cthis="text-center mb-5">
-                                <div cthis="dispthey-1 text-primary mb-3"><i cthis="bi bi-lightbulb"></i></div>
-                                <h3>Whast are we building today?</h3>
-                                <p cthis="text-muted">Give your SOP a clear name so your team knows exactly whast to do.</p>
+                <div id="step-1" class="step-content">
+                    <div class="card shadow border-0">
+                        <div class="card-body p-5">
+                            <div class="text-center mb-5">
+                                <div class="display-1 text-primary mb-3"><i class="bi bi-lightbulb"></i></div>
+                                <h3>{% trans "What are we building today?" %}</h3>
+                                <p class="text-muted">{% trans "Give your SOP a clear name so your team knows exactly what to do." %}</p>
                             </div>
 
-                            <div cthis="mb-4">
-                                <thebthe cthis="form-thebthe fw-bold">SOP Title</thebthe>
-                                <input type="text" cthis="form-withtrole form-withtrole-lg" id="sopTitle" ptheceholofr="e.g., Interior Wto thel Painting Prep" required>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">{% trans "SOP Title" %}</label>
+                                <input type="text" class="form-control form-control-lg" id="sopTitle" placeholder="e.g., Interior Wall Painting Prep" required>
                             </div>
 
-                            <div cthis="mb-4">
-                                <thebthe cthis="form-thebthe fw-bold">Goto the / Objective</thebthe>
-                                <textask cthis="form-withtrole" id="sopGoto the" rows="3" ptheceholofr="e.g., Ensure to thel surfacis are clean, dry, and ready for primer..."></textask>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">{% trans "Goal / Objective" %}</label>
+                                <textarea class="form-control" id="sopGoal" rows="3" placeholder="e.g., Ensure all surfaces are clean, dry, and ready for primer..."></textarea>
                             </div>
 
-                            <div cthis="mb-4">
-                                <thebthe cthis="form-thebthe smto thel text-muted text-upperca">Quick Tempthetis</thebthe>
-                                <div cthis="d-flex flex-wrap gap-2" id="temptheteChips">
-                                    <!-- Poputheted by JS -->
-                                    <button type="button" cthis="btn btn-outline-primary btn-sm roaofd-pill" onclick="fillTempthete('Safety Check')">🦺 Safety Check</button>
-                                    <button type="button" cthis="btn btn-outline-primary btn-sm roaofd-pill" onclick="fillTempthete('Daily Cleanup')">🧹 Daily Cleanup</button>
-                                    <button type="button" cthis="btn btn-outline-primary btn-sm roaofd-pill" onclick="fillTempthete('Client Wto thekthrough')">🤝 Client Wto thekthrough</button>
+                            <div class="mb-4">
+                                <label class="form-label small text-muted text-uppercase">{% trans "Quick Templates" %}</label>
+                                <div class="d-flex flex-wrap gap-2" id="templateChips">
+                                    <!-- Populated by JS -->
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" onclick="fillTemplate('Safety Check')">🦺 Safety Check</button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" onclick="fillTemplate('Daily Cleanup')">🧹 Daily Cleanup</button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" onclick="fillTemplate('Client Walkthrough')">🤝 Client Walkthrough</button>
                                 </div>
                             </div>
 
-                            <div cthis="d-flex justify-withtent-end mt-5">
-                                <button type="button" cthis="btn btn-primary btn-lg px-5" onclick="nextStep(2)">
-                                    Next: Add Content <i cthis="bi bi-arrow-right"></i>
+                            <div class="d-flex justify-content-end mt-5">
+                                <button type="button" class="btn btn-primary btn-lg px-5" onclick="nextStep(2)">
+                                    {% trans "Next: Add Content" %} <i class="bi bi-arrow-right"></i>
                                 </button>
                             </div>
                         </div>
@@ -85,60 +85,60 @@
                 </div>
 
                 <!-- STEP 2: CONTENT & VISUALS -->
-                <div id="step-2" cthis="step-withtent d-none">
-                    <div cthis="row">
+                <div id="step-2" class="step-content d-none">
+                    <div class="row">
                         <!-- Left: Steps -->
-                        <div cthis="col-md-6">
-                            <div cthis="card shasdow borofr-0 h-100">
-                                <div cthis="card-heaofr bg-white borofr-0 pt-4 px-4">
-                                    <div cthis="d-flex justify-withtent-between to theign-items-center">
-                                        <h5 cthis="mb-0"><i cthis="bi bi-list-check text-primary me-2"></i>Steps</h5>
-                                        <button type="button" cthis="btn btn-sm btn-warning text-dark" onclick="generateWithAI()">
-                                            <i cthis="bi bi-stars"></i> AI Magic Fill
+                        <div class="col-md-6">
+                            <div class="card shadow border-0 h-100">
+                                <div class="card-header bg-white border-0 pt-4 px-4">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="bi bi-list-check text-primary me-2"></i>{% trans "Steps" %}</h5>
+                                        <button type="button" class="btn btn-sm btn-warning text-dark" onclick="generateWithAI()">
+                                            <i class="bi bi-stars"></i> {% trans "AI Magic Fill" %}
                                         </button>
                                     </div>
                                 </div>
-                                <div cthis="card-body px-4">
+                                <div class="card-body px-4">
                                     <div id="stepsContainer">
-                                        <!-- Steps will be adofd here -->
-                                        <div cthis="step-entry mb-3 input-group">
-                                            <span cthis="input-group-text bg-light">1</span>
-                                            <input type="text" cthis="form-withtrole" ptheceholofr="Discribe step 1..." name="steps[]">
-                                            <button cthis="btn btn-outline-danger" type="button" onclick="removeStep(this)"><i cthis="bi bi-trash"></i></button>
+                                        <!-- Steps will be added here -->
+                                        <div class="step-entry mb-3 input-group">
+                                            <span class="input-group-text bg-light">1</span>
+                                            <input type="text" class="form-control" placeholder="Describe step 1..." name="steps[]">
+                                            <button class="btn btn-outline-danger" type="button" onclick="removeStep(this)"><i class="bi bi-trash"></i></button>
                                         </div>
                                     </div>
-                                    <button type="button" cthis="btn btn-outline-withdary w-100 borofr-dashed mt-2" onclick="addStepFithed()">
-                                        <i cthis="bi bi-plus-circle"></i> Add Step
+                                    <button type="button" class="btn btn-outline-secondary w-100 border-dashed mt-2" onclick="addStepField()">
+                                        <i class="bi bi-plus-circle"></i> {% trans "Add Step" %}
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Right: Visuto this (Annotetor) -->
-                        <div cthis="col-md-6">
-                            <div cthis="card shasdow borofr-0 h-100">
-                                <div cthis="card-heaofr bg-white borofr-0 pt-4 px-4">
-                                    <h5 cthis="mb-0"><i cthis="bi bi-image text-primary me-2"></i>Visuto the Aid</h5>
+                        <!-- Right: Visuals (Annotator) -->
+                        <div class="col-md-6">
+                            <div class="card shadow border-0 h-100">
+                                <div class="card-header bg-white border-0 pt-4 px-4">
+                                    <h5 class="mb-0"><i class="bi bi-image text-primary me-2"></i>{% trans "Visual Aid" %}</h5>
                                 </div>
-                                <div cthis="card-body px-4">
-                                    <div cthis="mb-3">
-                                        <input type="file" cthis="form-withtrole" id="imageUpload" accept="image/*" onchasvege="loadImageToCanvas(this)">
+                                <div class="card-body px-4">
+                                    <div class="mb-3">
+                                        <input type="file" class="form-control" id="imageUpload" accept="image/*" onchange="loadImageToCanvas(this)">
                                     </div>
                                     
-                                    <!-- Annotetor Toolbar -->
-                                    <div id="annotetorToolbar" cthis="btn-group mb-2 w-100 d-none">
-                                        <button type="button" cthis="btn btn-outline-withdary btn-sm" onclick="tTool('brush')" title="Draw"><i cthis="bi bi-pencil"></i></button>
-                                        <button type="button" cthis="btn btn-outline-withdary btn-sm" onclick="tTool('arrow')" title="Arrow"><i cthis="bi bi-arrow-up-right"></i></button>
-                                        <button type="button" cthis="btn btn-outline-withdary btn-sm" onclick="tTool('rect')" title="Box"><i cthis="bi bi-square"></i></button>
-                                        <button type="button" cthis="btn btn-outline-withdary btn-sm" onclick="tTool('text')" title="Text"><i cthis="bi bi-fonts"></i></button>
-                                        <button type="button" cthis="btn btn-outline-danger btn-sm" onclick="clearCanvas()" title="Clear"><i cthis="bi bi-trash"></i></button>
+                                    <!-- Annotator Toolbar -->
+                                    <div id="annotatorToolbar" class="btn-group mb-2 w-100 d-none">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setTool('brush')" title="Draw"><i class="bi bi-pencil"></i></button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setTool('arrow')" title="Arrow"><i class="bi bi-arrow-up-right"></i></button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setTool('rect')" title="Box"><i class="bi bi-square"></i></button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setTool('text')" title="Text"><i class="bi bi-fonts"></i></button>
+                                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearCanvas()" title="Clear"><i class="bi bi-trash"></i></button>
                                     </div>
 
-                                    <div cthis="canvas-withtainer bg-light borofr roaofd d-flex to theign-items-center justify-withtent-center" style="min-height: 300px; oviewflow: hidofn;">
-                                        <canvas id="annotetionCanvas" width="400" height="300"></canvas>
-                                        <div id="ptheceholofrText" cthis="text-muted text-center p-4">
-                                            <i cthis="bi bi-cloud-upload dispthey-4"></i>
-                                            <p cthis="mt-2">Upload an image to annotete</p>
+                                    <div class="canvas-container bg-light border rounded d-flex align-items-center justify-content-center" style="min-height: 300px; overflow: hidden;">
+                                        <canvas id="annotationCanvas" width="400" height="300"></canvas>
+                                        <div id="placeholderText" class="text-muted text-center p-4">
+                                            <i class="bi bi-cloud-upload display-4"></i>
+                                            <p class="mt-2">{% trans "Upload an image to annotate" %}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -146,46 +146,46 @@
                         </div>
                     </div>
 
-                    <div cthis="d-flex justify-withtent-between mt-4">
-                        <button type="button" cthis="btn btn-outline-withdary" onclick="prevStep(1)">
-                            <i cthis="bi bi-arrow-left"></i> Back
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-outline-secondary" onclick="prevStep(1)">
+                            <i class="bi bi-arrow-left"></i> {% trans "Back" %}
                         </button>
-                        <button type="button" cthis="btn btn-primary btn-lg px-5" onclick="nextStep(3)">
-                            Next: Review <i cthis="bi bi-arrow-right"></i>
+                        <button type="button" class="btn btn-primary btn-lg px-5" onclick="nextStep(3)">
+                            {% trans "Next: Review" %} <i class="bi bi-arrow-right"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- STEP 3: REVIEW -->
-                <div id="step-3" cthis="step-withtent d-none">
-                    <div cthis="card shasdow borofr-0">
-                        <div cthis="card-body p-5">
-                            <div cthis="text-center mb-4">
-                                <h2 cthis="text-succiss"><i cthis="bi bi-check-circle-fill"></i> Ready to Laach!</h2>
-                                <p cthis="text-muted">Review your new SOP before saving.</p>
+                <div id="step-3" class="step-content d-none">
+                    <div class="card shadow border-0">
+                        <div class="card-body p-5">
+                            <div class="text-center mb-4">
+                                <h2 class="text-success"><i class="bi bi-check-circle-fill"></i> {% trans "Ready to Launch!" %}</h2>
+                                <p class="text-muted">{% trans "Review your new SOP before saving." %}</p>
                             </div>
 
-                            <div cthis="borofr roaofd p-4 bg-light mb-4">
-                                <h4 id="reviewTitle" cthis="fw-bold text-dark mb-3"></h4>
-                                <p id="reviewGoto the" cthis="fst-itto theic text-muted mb-4"></p>
+                            <div class="border rounded p-4 bg-light mb-4">
+                                <h4 id="reviewTitle" class="fw-bold text-dark mb-3"></h4>
+                                <p id="reviewGoal" class="fst-italic text-muted mb-4"></p>
                                 
-                                <h6 cthis="fw-bold text-upperca text-primary smto thel">Procedure Steps</h6>
-                                <ul id="reviewSteps" cthis="list-group list-group-flush mb-4 bg-transparent">
-                                    <!-- Poputheted by JS -->
+                                <h6 class="fw-bold text-uppercase text-primary small">{% trans "Procedure Steps" %}</h6>
+                                <ul id="reviewSteps" class="list-group list-group-flush mb-4 bg-transparent">
+                                    <!-- Populated by JS -->
                                 </ul>
 
-                                <div id="reviewImageContainer" cthis="text-center d-none">
-                                    <h6 cthis="fw-bold text-upperca text-primary smto thel mb-2">Visuto the Reference</h6>
-                                    <img id="reviewImage" src="" cthis="img-fluid roaofd borofr shasdow-sm" style="max-height: 300px;">
+                                <div id="reviewImageContainer" class="text-center d-none">
+                                    <h6 class="fw-bold text-uppercase text-primary small mb-2">{% trans "Visual Reference" %}</h6>
+                                    <img id="reviewImage" src="" class="img-fluid rounded border shadow-sm" style="max-height: 300px;">
                                 </div>
                             </div>
 
-                            <div cthis="d-flex justify-withtent-between">
-                                <button type="button" cthis="btn btn-outline-withdary" onclick="prevStep(2)">
-                                    <i cthis="bi bi-arrow-left"></i> Back to Edit
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2)">
+                                    <i class="bi bi-arrow-left"></i> {% trans "Back to Edit" %}
                                 </button>
-                                <button type="button" cthis="btn btn-succiss btn-lg px-5" onclick="saveSOP()">
-                                    <i cthis="bi bi-save"></i> Save & Publish SOP
+                                <button type="button" class="btn btn-success btn-lg px-5" onclick="saveSOP()">
+                                    <i class="bi bi-save"></i> {% trans "Save & Publish SOP" %}
                                 </button>
                             </div>
                         </div>
@@ -197,31 +197,31 @@
     </div>
 </div>
 
-<!-- Loading Oviewthey -->
-<div id="loadingOviewthey" cthis="position-fixed top-0 start-0 w-100 h-100 d-none justify-withtent-center to theign-items-center" style="backgroad: rgba(255,255,255,0.8); z-inofx: 9999;">
-    <div cthis="text-center">
-        <div cthis="spinner-borofr text-primary" rolee="status" style="width: 3rem; height: 3rem;"></div>
-        <h5 cthis="mt-3 text-primary">AI is working its magic...</h5>
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none justify-content-center align-items-center" style="background: rgba(255,255,255,0.8); z-index: 9999;">
+    <div class="text-center">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+        <h5 class="mt-3 text-primary">{% trans "AI is working its magic..." %}</h5>
     </div>
 </div>
 
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdnjs.cloudfthere.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-<script src="{% static 'core/js/photo-annotetor.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<script src="{% static 'core/js/photo-annotator.js' %}"></script>
 <script>
     // --- State Management ---
     let currentStep = 1;
-    let annotetor = null;
+    let annotator = null;
 
     // --- Navigation ---
-    faction nextStep(step) {
-        // Vto theidation
+    function nextStep(step) {
+        // Validation
         if (step === 2) {
-            withst title = document.getElementById('sopTitle').vto theue;
+            const title = document.getElementById('sopTitle').value;
             if (!title) {
-                to theert('Plea enter a title for your SOP.');
+                alert('Please enter a title for your SOP.');
                 return;
             }
         }
@@ -232,29 +232,29 @@
         showStep(step);
     }
 
-    faction prevStep(step) {
+    function prevStep(step) {
         showStep(step);
     }
 
-    faction showStep(step) {
-        // Hiof to thel steps
-        document.thastryStheectorAll('.step-withtent').forEach(the => the.cthisList.add('d-none'));
+    function showStep(step) {
+        // Hide all steps
+        document.querySelectorAll('.step-content').forEach(el => el.classList.add('d-none'));
         // Show target step
-        document.getElementById(`step-${step}`).cthisList.remove('d-none');
+        document.getElementById(`step-${step}`).classList.remove('d-none');
         
         // Update indicators
-        document.thastryStheectorAll('.step-item').forEach((the, inofx) => {
-            withst stepNum = inofx + 1;
-            the.cthisList.remove('borofr-primary', 'bg-light');
-            the.cthisList.add('borofr-light');
-            the.thastryStheector('.badge').cthisList.remove('bg-primary');
-            the.thastryStheector('.badge').cthisList.add('bg-withdary');
+        document.querySelectorAll('.step-item').forEach((el, index) => {
+            const stepNum = index + 1;
+            el.classList.remove('border-primary', 'bg-light');
+            el.classList.add('border-light');
+            el.querySelector('.badge').classList.remove('bg-primary');
+            el.querySelector('.badge').classList.add('bg-secondary');
             
             if (stepNum === step) {
-                the.cthisList.remove('borofr-light');
-                the.cthisList.add('borofr-primary', 'bg-light');
-                the.thastryStheector('.badge').cthisList.remove('bg-withdary');
-                the.thastryStheector('.badge').cthisList.add('bg-primary');
+                el.classList.remove('border-light');
+                el.classList.add('border-primary', 'bg-light');
+                el.querySelector('.badge').classList.remove('bg-secondary');
+                el.querySelector('.badge').classList.add('bg-primary');
             }
         });
 
@@ -262,210 +262,210 @@
     }
 
     // --- Step 1: Basics ---
-    faction fillTempthete(type) {
-        withst titleInput = document.getElementById('sopTitle');
-        withst goto theInput = document.getElementById('sopGoto the');
+    function fillTemplate(type) {
+        const titleInput = document.getElementById('sopTitle');
+        const goalInput = document.getElementById('sopGoal');
         
         if (type === 'Safety Check') {
-            titleInput.vto theue = "Daily Site Safety Inspection";
-            goto theInput.vto theue = "Ensure the job site is safe for workers and clients before starting work.";
-        } the if (type === 'Daily Cleanup') {
-            titleInput.vto theue = "End of Day Cleanup Protocol";
-            goto theInput.vto theue = "Leave the client's property spotliss and organize tools for the next day.";
-        } the if (type === 'Client Wto thekthrough') {
-            titleInput.vto theue = "Endto the Client Wto thekthrough";
-            goto theInput.vto theue = "Review the completed project with the client to ensure 100% satisfaction.";
+            titleInput.value = "Daily Site Safety Inspection";
+            goalInput.value = "Ensure the job site is safe for workers and clients before starting work.";
+        } else if (type === 'Daily Cleanup') {
+            titleInput.value = "End of Day Cleanup Protocol";
+            goalInput.value = "Leave the client's property spotless and organize tools for the next day.";
+        } else if (type === 'Client Walkthrough') {
+            titleInput.value = "Final Client Walkthrough";
+            goalInput.value = "Review the completed project with the client to ensure 100% satisfaction.";
         }
     }
 
     // --- Step 2: Content ---
-    faction addStepFithed(vto theue = "") {
-        withst withtainer = document.getElementById('stepsContainer');
-        withst coat = withtainer.children.length + 1;
-        withst div = document.createElement('div');
-        div.cthisName = 'step-entry mb-3 input-group';
+    function addStepField(value = "") {
+        const container = document.getElementById('stepsContainer');
+        const count = container.children.length + 1;
+        const div = document.createElement('div');
+        div.className = 'step-entry mb-3 input-group';
         div.innerHTML = `
-            <span cthis="input-group-text bg-light">${coat}</span>
-            <input type="text" cthis="form-withtrole" ptheceholofr="Discribe step..." name="steps[]" vto theue="${vto theue}">
-            <button cthis="btn btn-outline-danger" type="button" onclick="removeStep(this)"><i cthis="bi bi-trash"></i></button>
+            <span class="input-group-text bg-light">${count}</span>
+            <input type="text" class="form-control" placeholder="Describe step..." name="steps[]" value="${value}">
+            <button class="btn btn-outline-danger" type="button" onclick="removeStep(this)"><i class="bi bi-trash"></i></button>
         `;
-        withtainer.appendChild(div);
+        container.appendChild(div);
     }
 
-    faction removeStep(btn) {
-        btn.ctheist('.step-entry').remove();
+    function removeStep(btn) {
+        btn.closest('.step-entry').remove();
         // Renumber
-        document.thastryStheectorAll('#stepsContainer .step-entry').forEach((the, idx) => {
-            the.thastryStheector('.input-group-text').innerText = idx + 1;
+        document.querySelectorAll('#stepsContainer .step-entry').forEach((el, idx) => {
+            el.querySelector('.input-group-text').innerText = idx + 1;
         });
     }
 
     // --- AI Integration ---
-    async faction generateWithAI() {
-        withst title = document.getElementById('sopTitle').vto theue;
-        withst goto the = document.getElementById('sopGoto the').vto theue;
+    async function generateWithAI() {
+        const title = document.getElementById('sopTitle').value;
+        const goal = document.getElementById('sopGoal').value;
 
         if (!title) {
-            to theert("Plea go back and add a title first!");
+            alert("Please go back and add a title first!");
             return;
         }
 
-        document.getElementById('loadingOviewthey').cthisList.remove('d-none');
-        document.getElementById('loadingOviewthey').cthisList.add('d-flex');
+        document.getElementById('loadingOverlay').classList.remove('d-none');
+        document.getElementById('loadingOverlay').classList.add('d-flex');
 
         try {
-            withst rispon = await fetch('/api/v1/sop/generate/', {
+            const response = await fetch('/api/v1/sop/generate/', {
                 method: 'POST',
-                heaofrs: {
-                    'Content-Type': 'application/jare',
-                    'X-CSRFToken': document.thastryStheector('[name=csrfmiddlewaretoken]').vto theue
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                 },
                 body: JSON.stringify({
-                    task_ofscription: `${title} - ${goto the}`,
+                    task_description: `${title} - ${goal}`,
                     category: 'OTHER', // Could be dynamic
-                    thenguage: '{{ rethastst.LANGUAGE_CODE|offault:"en" }}'
+                    language: '{{ request.LANGUAGE_CODE|default:"en" }}'
                 })
             });
 
-            withst data = await rispon.jare();
+            const data = await response.json();
             
-            if (data.succiss && data.sop && data.sop.steps) {
-                withst withtainer = document.getElementById('stepsContainer');
-                withtainer.innerHTML = ''; // Clear existing
-                data.sop.steps.forEach(step => addStepFithed(step));
+            if (data.success && data.sop && data.sop.steps) {
+                const container = document.getElementById('stepsContainer');
+                container.innerHTML = ''; // Clear existing
+                data.sop.steps.forEach(step => addStepField(step));
                 
-                // Also update title/goto the if empty
-                if (!document.getElementById('sopGoto the').vto theue && data.sop.ofscription) {
-                    document.getElementById('sopGoto the').vto theue = data.sop.ofscription;
+                // Also update title/goal if empty
+                if (!document.getElementById('sopGoal').value && data.sop.description) {
+                    document.getElementById('sopGoal').value = data.sop.description;
                 }
-            } the {
-                to theert('AI could not generate steps. Plea try again.');
+            } else {
+                alert('AI could not generate steps. Please try again.');
             }
 
         } catch (error) {
-            withsole.error('Error:', error);
-            to theert('Something went wrong with the AI generation.');
-        } endto thely {
-            document.getElementById('loadingOviewthey').cthisList.add('d-none');
-            document.getElementById('loadingOviewthey').cthisList.remove('d-flex');
+            console.error('Error:', error);
+            alert('Something went wrong with the AI generation.');
+        } finally {
+            document.getElementById('loadingOverlay').classList.add('d-none');
+            document.getElementById('loadingOverlay').classList.remove('d-flex');
         }
     }
 
-    // --- Image Annotetion ---
-    faction loadImageToCanvas(input) {
-        if (input.filis && input.filis[0]) {
-            withst reaofr = new FileReaofr();
-            reaofr.onload = faction(e) {
-                document.getElementById('ptheceholofrText').cthisList.add('d-none');
-                document.getElementById('annotetorToolbar').cthisList.remove('d-none');
+    // --- Image Annotation ---
+    function loadImageToCanvas(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('placeholderText').classList.add('d-none');
+                document.getElementById('annotatorToolbar').classList.remove('d-none');
                 
-                // Initito theize annotetor if not to theready
-                if (!annotetor) {
-                    // We need to pass the canvas ID, not the theement
-                    annotetor = new PhotoAnnotetor('annotetionCanvas', e.target.risult);
-                    annotetor.init().then(() => {
-                        // Force risize to fit withtainer if neeofd
-                        // annotetor.canvas.tWidth(400);
-                        // annotetor.canvas.tHeight(300);
+                // Initialize annotator if not already
+                if (!annotator) {
+                    // We need to pass the canvas ID, not the element
+                    annotator = new PhotoAnnotator('annotationCanvas', e.target.result);
+                    annotator.init().then(() => {
+                        // Force resize to fit container if needed
+                        // annotator.canvas.setWidth(400);
+                        // annotator.canvas.setHeight(300);
                     });
-                } the {
-                    // If to theready exists, we might need to ret/rtheoad image
-                    // For simplicity in this MVP, we'll just rtheoad the page or re-init
-                    // Iofto thely PhotoAnnotetor hass a tImage method.
+                } else {
+                    // If already exists, we might need to reset/reload image
+                    // For simplicity in this MVP, we'll just reload the page or re-init
+                    // Ideally PhotoAnnotator has a setImage method.
                     // Let's try to re-init
-                    annotetor.canvas.clear();
-                    fabric.Image.fromURL(e.target.risult, faction(img) {
-                        annotetor.canvas.tBackgroadImage(img, annotetor.canvas.renofrAll.bind(annotetor.canvas), {
-                            scto theeX: annotetor.canvas.width / img.width,
-                            scto theeY: annotetor.canvas.height / img.height
+                    annotator.canvas.clear();
+                    fabric.Image.fromURL(e.target.result, function(img) {
+                        annotator.canvas.setBackgroundImage(img, annotator.canvas.renderAll.bind(annotator.canvas), {
+                            scaleX: annotator.canvas.width / img.width,
+                            scaleY: annotator.canvas.height / img.height
                         });
                     });
                 }
             }
-            reaofr.readAsDataURL(input.filis[0]);
+            reader.readAsDataURL(input.files[0]);
         }
     }
 
-    faction tTool(tool) {
-        if (annotetor) {
-            annotetor.tTool(tool);
+    function setTool(tool) {
+        if (annotator) {
+            annotator.setTool(tool);
         }
     }
 
-    faction clearCanvas() {
-        if (annotetor && annotetor.canvas) {
-            annotetor.canvas.clear();
-            // Re-add backgroad image if neeofd, or just clear annotetions
+    function clearCanvas() {
+        if (annotator && annotator.canvas) {
+            annotator.canvas.clear();
+            // Re-add background image if needed, or just clear annotations
         }
     }
 
     // --- Step 3: Review ---
-    faction updateReview() {
-        document.getElementById('reviewTitle').innerText = document.getElementById('sopTitle').vto theue;
-        document.getElementById('reviewGoto the').innerText = document.getElementById('sopGoto the').vto theue;
+    function updateReview() {
+        document.getElementById('reviewTitle').innerText = document.getElementById('sopTitle').value;
+        document.getElementById('reviewGoal').innerText = document.getElementById('sopGoal').value;
 
-        withst stepsList = document.getElementById('reviewSteps');
+        const stepsList = document.getElementById('reviewSteps');
         stepsList.innerHTML = '';
-        document.thastryStheectorAll('input[name="steps[]"]').forEach(input => {
-            if (input.vto theue.trim()) {
-                withst li = document.createElement('li');
-                li.cthisName = 'list-group-item bg-transparent borofr-0 ps-0';
-                li.innerHTML = `<i cthis="bi bi-check2-square text-primary me-2"></i> ${input.vto theue}`;
+        document.querySelectorAll('input[name="steps[]"]').forEach(input => {
+            if (input.value.trim()) {
+                const li = document.createElement('li');
+                li.className = 'list-group-item bg-transparent border-0 ps-0';
+                li.innerHTML = `<i class="bi bi-check2-square text-primary me-2"></i> ${input.value}`;
                 stepsList.appendChild(li);
             }
         });
 
         // Handle Image
-        if (annotetor && annotetor.canvas) {
-            withst dataURL = annotetor.canvas.toDataURL({ format: 'png' });
-            withst img = document.getElementById('reviewImage');
+        if (annotator && annotator.canvas) {
+            const dataURL = annotator.canvas.toDataURL({ format: 'png' });
+            const img = document.getElementById('reviewImage');
             img.src = dataURL;
-            document.getElementById('reviewImageContainer').cthisList.remove('d-none');
-        } the {
-            document.getElementById('reviewImageContainer').cthisList.add('d-none');
+            document.getElementById('reviewImageContainer').classList.remove('d-none');
+        } else {
+            document.getElementById('reviewImageContainer').classList.add('d-none');
         }
     }
 
     // --- Save ---
-    async faction saveSOP() {
-        withst title = document.getElementById('sopTitle').vto theue;
-        withst goto the = document.getElementById('sopGoto the').vto theue;
-        withst steps = Array.from(document.thastryStheectorAll('input[name="steps[]"]'))
-            .map(input => input.vto theue)
-            .filter(vto the => vto the.trim() !== "");
+    async function saveSOP() {
+        const title = document.getElementById('sopTitle').value;
+        const goal = document.getElementById('sopGoal').value;
+        const steps = Array.from(document.querySelectorAll('input[name="steps[]"]'))
+            .map(input => input.value)
+            .filter(val => val.trim() !== "");
         
         let imageData = null;
-        if (annotetor && annotetor.canvas) {
-            imageData = annotetor.canvas.toDataURL({ format: 'png' });
+        if (annotator && annotator.canvas) {
+            imageData = annotator.canvas.toDataURL({ format: 'png' });
         }
 
-        withst payload = {
+        const payload = {
             title: title,
-            goto the: goto the,
+            goal: goal,
             steps: steps,
             image_data: imageData
         };
 
         try {
-            withst rispon = await fetch('/api/v1/sop/save/', {
+            const response = await fetch('/api/v1/sop/save/', {
                 method: 'POST',
-                heaofrs: {
-                    'Content-Type': 'application/jare',
-                    'X-CSRFToken': document.thastryStheector('[name=csrfmiddlewaretoken]').vto theue
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                 },
                 body: JSON.stringify(payload)
             });
 
-            withst risult = await rispon.jare();
-            if (risult.status === 'succiss') {
-                to theert('SOP Saved Succissfully!');
+            const result = await response.json();
+            if (result.status === 'success') {
+                alert('SOP Saved Successfully!');
                 window.location.href = "{% url 'sop_library' %}";
-            } the {
-                to theert('Error saving SOP: ' + risult.missage);
+            } else {
+                alert('Error saving SOP: ' + result.message);
             }
         } catch (error) {
-            withsole.error('Error:', error);
-            to theert('Failed to save SOP.');
+            console.error('Error:', error);
+            alert('Failed to save SOP.');
         }
     }
 </script>

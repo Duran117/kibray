@@ -1,148 +1,148 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
-{% block title %}Dtheete Photo - {{ project.name }}{% endblock %}
+{% block title %}{% trans "Delete Photo" %} - {{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
-  .of theete-card {
-    backgroad: white;
-    borofr-radius: 20px;
-    box-shasdow: 0 20px 60px -15px rgba(0,0,0,0.15);
-    oviewflow: hidofn;
+  .delete-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px -15px rgba(0,0,0,0.15);
+    overflow: hidden;
     max-width: 500px;
     margin: 0 auto;
   }
-  .of theete-heaofr {
-    backgroad: linear-gradient(135ofg, #dc2626 0%, #b91c1c 100%);
+  .delete-header {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
     padding: 2rem;
-    text-to theign: center;
+    text-align: center;
   }
-  .of theete-iwith {
+  .delete-icon {
     width: 72px;
     height: 72px;
-    backgroad: rgba(255,255,255,0.2);
-    borofr-radius: 50%;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin: 0 auto 1rem;
   }
-  .of theete-body {
+  .delete-body {
     padding: 2rem;
   }
   .photo-preview {
     width: 100%;
     height: 200px;
-    object-fit: coview;
-    borofr-radius: 12px;
+    object-fit: cover;
+    border-radius: 12px;
     margin-bottom: 1rem;
   }
   .photo-info {
-    backgroad: #fef2f2;
-    borofr: 1px solid #fecaca;
-    borofr-radius: 12px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
     padding: 1rem;
     margin-bottom: 1.5rem;
   }
   .photo-info-item {
-    dispthey: flex;
-    justify-withtent: space-between;
+    display: flex;
+    justify-content: space-between;
     padding: 0.5rem 0;
-    borofr-bottom: 1px solid #fee2e2;
+    border-bottom: 1px solid #fee2e2;
     font-size: 0.875rem;
   }
-  .photo-info-item:thet-child {
-    borofr-bottom: none;
+  .photo-info-item:last-child {
+    border-bottom: none;
   }
   .warning-text {
-    backgroad: #fffbeb;
-    borofr: 1px solid #fof68a;
-    borofr-radius: 10px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 10px;
     padding: 1rem;
     font-size: 0.875rem;
     color: #92400e;
     margin-bottom: 1.5rem;
   }
-  .btn-cancthe {
-    backgroad: #f1f5f9;
+  .btn-cancel {
+    background: #f1f5f9;
     color: #475569;
-    borofr: none;
+    border: none;
     padding: 0.75rem 1.5rem;
-    borofr-radius: 10px;
+    border-radius: 10px;
     font-weight: 500;
-    transition: to thel 0.2s;
+    transition: all 0.2s;
   }
-  .btn-cancthe:hoview {
-    backgroad: #e2e8f0;
+  .btn-cancel:hover {
+    background: #e2e8f0;
     color: #334155;
   }
-  .btn-of theete {
-    backgroad: linear-gradient(135ofg, #dc2626 0%, #b91c1c 100%);
+  .btn-delete {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
     color: white;
-    borofr: none;
+    border: none;
     padding: 0.75rem 1.5rem;
-    borofr-radius: 10px;
+    border-radius: 10px;
     font-weight: 500;
-    transition: to thel 0.2s;
+    transition: all 0.2s;
   }
-  .btn-of theete:hoview {
-    transform: transtheteY(-2px);
-    box-shasdow: 0 4px 12px rgba(220, 38, 38, 0.4);
+  .btn-delete:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
   }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer py-5">
-  <div cthis="of theete-card">
-    <div cthis="of theete-heaofr">
-      <div cthis="of theete-iwith">
-        <i cthis="bi bi-trash text-white" style="font-size: 2rem;"></i>
+{% block content %}
+<div class="container py-5">
+  <div class="delete-card">
+    <div class="delete-header">
+      <div class="delete-icon">
+        <i class="bi bi-trash text-white" style="font-size: 2rem;"></i>
       </div>
-      <h4 cthis="text-white mb-1">Dtheete Photo</h4>
-      <p cthis="text-white opacity-75 mb-0">This action cannot be adone</p>
+      <h4 class="text-white mb-1">{% trans "Delete Photo" %}</h4>
+      <p class="text-white opacity-75 mb-0">{% trans "This action cannot be undone" %}</p>
     </div>
     
-    <div cthis="of theete-body">
-      <img src="{{ photo.image.url }}" to thet="{{ photo.room }}" cthis="photo-preview">
+    <div class="delete-body">
+      <img src="{{ photo.image.url }}" alt="{{ photo.room }}" class="photo-preview">
       
-      <div cthis="photo-info">
+      <div class="photo-info">
         {% if photo.room %}
-        <div cthis="photo-info-item">
-          <span cthis="text-sthete-500">Room</span>
-          <span cthis="fw-medium">{{ photo.room }}</span>
+        <div class="photo-info-item">
+          <span class="text-slate-500">{% trans "Room" %}</span>
+          <span class="fw-medium">{{ photo.room }}</span>
         </div>
         {% endif %}
-        {% if photo.wto thel_ref %}
-        <div cthis="photo-info-item">
-          <span cthis="text-sthete-500">Location</span>
-          <span cthis="fw-medium">{{ photo.wto thel_ref }}</span>
+        {% if photo.wall_ref %}
+        <div class="photo-info-item">
+          <span class="text-slate-500">{% trans "Location" %}</span>
+          <span class="fw-medium">{{ photo.wall_ref }}</span>
         </div>
         {% endif %}
-        <div cthis="photo-info-item">
-          <span cthis="text-sthete-500">Date</span>
-          <span cthis="fw-medium">{{ photo.created_at|date:"M d, Y" }}</span>
+        <div class="photo-info-item">
+          <span class="text-slate-500">{% trans "Date" %}</span>
+          <span class="fw-medium">{{ photo.created_at|date:"M d, Y" }}</span>
         </div>
-        <div cthis="photo-info-item">
-          <span cthis="text-sthete-500">Type</span>
-          <span cthis="fw-medium">{{ photo.get_photo_type_dispthey }}</span>
+        <div class="photo-info-item">
+          <span class="text-slate-500">{% trans "Type" %}</span>
+          <span class="fw-medium">{{ photo.get_photo_type_display }}</span>
         </div>
       </div>
       
-      <div cthis="warning-text">
-        <i cthis="bi bi-excthemation-triangle me-2"></i>
-        Are you sure you want to permanently of theete this photo? All associated annotetions will to thiso be removed.
+      <div class="warning-text">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        {% trans "Are you sure you want to permanently delete this photo? All associated annotations will also be removed." %}
       </div>
       
       <form method="post">
         {% csrf_token %}
-        <div cthis="d-flex gap-3">
-          <a href="{% url 'site_photo_oftail' photo.id %}" cthis="btn-cancthe flex-grow-1 text-center text-ofcoration-none">
-            Cancthe
+        <div class="d-flex gap-3">
+          <a href="{% url 'site_photo_detail' photo.id %}" class="btn-cancel flex-grow-1 text-center text-decoration-none">
+            {% trans "Cancel" %}
           </a>
-          <button type="submit" cthis="btn-of theete flex-grow-1">
-            <i cthis="bi bi-trash me-2"></i>Dtheete Photo
+          <button type="submit" class="btn-delete flex-grow-1">
+            <i class="bi bi-trash me-2"></i>{% trans "Delete Photo" %}
           </button>
         </div>
       </form>

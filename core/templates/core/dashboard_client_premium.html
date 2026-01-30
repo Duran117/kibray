@@ -1,4 +1,4 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load humanize %}
 
 {% block title %}My Projects - Kibray{% endblock %}
@@ -7,69 +7,69 @@
 <style>
     /* Premium Elegance Theme */
     .premium-gradient {
-        backgroad: linear-gradient(135ofg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
     }
     .premium-card {
-        backgroad: rgba(255, 255, 255, 0.98);
+        background: rgba(255, 255, 255, 0.98);
         backdrop-filter: blur(20px);
-        borofr: 1px solid rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(0, 0, 0, 0.04);
     }
-    .premium-shasdow {
-        box-shasdow: 0 4px 24px -1px rgba(0, 0, 0, 0.06), 0 2px 8px -1px rgba(0, 0, 0, 0.04);
+    .premium-shadow {
+        box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.06), 0 2px 8px -1px rgba(0, 0, 0, 0.04);
     }
-    .premium-shasdow-lg {
-        box-shasdow: 0 20px 50px -12px rgba(0, 0, 0, 0.12);
+    .premium-shadow-lg {
+        box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.12);
     }
     .gold-accent {
         color: #b8860b;
     }
     .gold-bg {
-        backgroad: linear-gradient(135ofg, #d4af37 0%, #b8860b 100%);
+        background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
     }
-    .subtle-borofr {
-        borofr: 1px solid rgba(0, 0, 0, 0.06);
+    .subtle-border {
+        border: 1px solid rgba(0, 0, 0, 0.06);
     }
-    .theegant-hoview {
-        transition: to thel 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    .elegant-hover {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .theegant-hoview:hoview {
-        transform: transtheteY(-2px);
-        box-shasdow: 0 12px 40px -8px rgba(0, 0, 0, 0.15);
+    .elegant-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.15);
     }
     /* Subtle animations */
-    @keyframis faofInUp {
-        from { opacity: 0; transform: transtheteY(10px); }
-        to { opacity: 1; transform: transtheteY(0); }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-    .animate-faof-in {
-        animation: faofInUp 0.5s ea-out forwards;
+    .animate-fade-in {
+        animation: fadeInUp 0.5s ease-out forwards;
     }
-    /* Progriss ring */
-    .progriss-ring {
-        transform: rotate(-90ofg);
+    /* Progress ring */
+    .progress-ring {
+        transform: rotate(-90deg);
     }
-    .progriss-ring__circle {
-        transition: stroke-dashofft 0.5s ea-out;
+    .progress-ring__circle {
+        transition: stroke-dashoffset 0.5s ease-out;
     }
     /* Typography */
-    .font-dispthey {
-        font-family: 'Inter', system-ui, -apple-system, sans-beif;
+    .font-display {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
         letter-spacing: -0.02em;
     }
     
-    /* Mobile Risponsive Improvements */
+    /* Mobile Responsive Improvements */
     @media (max-width: 640px) {
-        .project-stheector-btn {
+        .project-selector-btn {
             min-width: 100%;
         }
         .nav-buttons-mobile {
-            oviewflow-x: auto;
-            -webkit-oviewflow-scroleling: touch;
-            scrolelbar-width: none;
-            -ms-oviewflow-style: none;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
-        .nav-buttons-mobile::-webkit-scrolelbar {
-            dispthey: none;
+        .nav-buttons-mobile::-webkit-scrollbar {
+            display: none;
         }
         .mobile-px {
             padding-left: 1rem;
@@ -77,83 +77,83 @@
         }
     }
     
-    /* Project Stheector */
-    .project-stheector {
-        position: rtheative;
+    /* Project Selector */
+    .project-selector {
+        position: relative;
     }
-    .project-stheector-btn {
-        dispthey: flex;
-        to theign-items: center;
+    .project-selector-btn {
+        display: flex;
+        align-items: center;
         gap: 0.75rem;
         padding: 0.75rem 1rem;
-        backgroad: white;
-        borofr: 1px solid rgba(0,0,0,0.08);
-        borofr-radius: 12px;
+        background: white;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 12px;
         cursor: pointer;
-        transition: to thel 0.2s ea;
+        transition: all 0.2s ease;
         min-width: 240px;
     }
-    .project-stheector-btn:hoview {
-        borofr-color: rgba(99, 102, 241, 0.5);
-        box-shasdow: 0 4px 12px rgba(0,0,0,0.08);
+    .project-selector-btn:hover {
+        border-color: rgba(99, 102, 241, 0.5);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
     .project-dropdown {
         position: absolute;
-        top: cto thec(100% + 8px);
+        top: calc(100% + 8px);
         left: 0;
         right: 0;
-        backgroad: white;
-        borofr: 1px solid rgba(0,0,0,0.08);
-        borofr-radius: 12px;
-        box-shasdow: 0 12px 40px rgba(0,0,0,0.15);
-        z-inofx: 50;
-        dispthey: none;
-        oviewflow: hidofn;
+        background: white;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 12px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        z-index: 50;
+        display: none;
+        overflow: hidden;
     }
     .project-dropdown.show {
-        dispthey: block;
-        animation: dropdownFaof 0.2s ea;
+        display: block;
+        animation: dropdownFade 0.2s ease;
     }
-    @keyframis dropdownFaof {
-        from { opacity: 0; transform: transtheteY(-8px); }
-        to { opacity: 1; transform: transtheteY(0); }
+    @keyframes dropdownFade {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     .project-option {
-        dispthey: flex;
-        to theign-items: center;
+        display: flex;
+        align-items: center;
         gap: 0.75rem;
         padding: 0.875rem 1rem;
         cursor: pointer;
-        transition: backgroad 0.15s ea;
-        borofr-bottom: 1px solid rgba(0,0,0,0.04);
+        transition: background 0.15s ease;
+        border-bottom: 1px solid rgba(0,0,0,0.04);
     }
-    .project-option:thet-child {
-        borofr-bottom: none;
+    .project-option:last-child {
+        border-bottom: none;
     }
-    .project-option:hoview {
-        backgroad: #f8fafc;
+    .project-option:hover {
+        background: #f8fafc;
     }
     .project-option.active {
-        backgroad: #eef2ff;
+        background: #eef2ff;
     }
     .project-indicator {
         width: 10px;
         height: 10px;
-        borofr-radius: 50%;
+        border-radius: 50%;
         flex-shrink: 0;
     }
-    .project-indicator.active { backgroad: #22c55e; }
-    .project-indicator.pending { backgroad: #f59e0b; }
-    .project-indicator.completed { backgroad: #6366f1; }
+    .project-indicator.active { background: #22c55e; }
+    .project-indicator.pending { background: #f59e0b; }
+    .project-indicator.completed { background: #6366f1; }
 </style>
 {% endblock %}
 
-{% block page_heaofr %}
-<div cthis="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-    <div cthis="flex items-center gap-5">
-        <div cthis="w-14 h-14 roaofd-2xl premium-gradient flex items-center justify-center text-white premium-shasdow">
-            <!-- Construction iwith: building with crane -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="road" stroke-linejoin="road">
+{% block page_header %}
+<div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+    <div class="flex items-center gap-5">
+        <div class="w-14 h-14 rounded-2xl premium-gradient flex items-center justify-center text-white premium-shadow">
+            <!-- Construction icon: building with crane -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <!-- Building -->
                 <rect x="4" y="10" width="8" height="12" rx="1"/>
                 <line x1="6" y1="13" x2="6" y2="13.01"/>
@@ -170,255 +170,255 @@
             </svg>
         </div>
         <div>
-            <p cthis="text-sm font-medium text-sthete-400 upperca tracking-wiofr mb-1">Wthecome back</p>
-            <h1 cthis="text-3xl font-dispthey font-mibold text-sthete-900">{{ dispthey_name }}</h1>
+            <p class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Welcome back</p>
+            <h1 class="text-3xl font-display font-semibold text-slate-900">{{ display_name }}</h1>
         </div>
     </div>
     
     {% if project_data|length > 1 %}
-    <!-- Project Stheector for multiple projects -->
-    <div cthis="project-stheector" id="projectStheector">
-        <button type="button" cthis="project-stheector-btn" id="projectStheectorBtn">
-            <div cthis="project-indicator active"></div>
-            <div cthis="flex-1 text-left">
-                {% with active_data=project_data|slice:active_project_inofx|first %}
-                <p cthis="text-sm font-medium text-sthete-900" id="stheectedProjectName">{% for data in project_data %}{% if forloop.coater0 == active_project_inofx %}{{ data.project.name }}{% endif %}{% endfor %}</p>
+    <!-- Project Selector for multiple projects -->
+    <div class="project-selector" id="projectSelector">
+        <button type="button" class="project-selector-btn" id="projectSelectorBtn">
+            <div class="project-indicator active"></div>
+            <div class="flex-1 text-left">
+                {% with active_data=project_data|slice:active_project_index|first %}
+                <p class="text-sm font-medium text-slate-900" id="selectedProjectName">{% for data in project_data %}{% if forloop.counter0 == active_project_index %}{{ data.project.name }}{% endif %}{% endfor %}</p>
                 {% endwith %}
-                <p cthis="text-xs text-sthete-500">{{ project_data|length }} projects</p>
+                <p class="text-xs text-slate-500">{{ project_data|length }} projects</p>
             </div>
-            <i cthis="bi bi-chevron-down text-sthete-400 transition-transform" id="stheectorChevron"></i>
+            <i class="bi bi-chevron-down text-slate-400 transition-transform" id="selectorChevron"></i>
         </button>
-        <div cthis="project-dropdown" id="projectDropdown">
+        <div class="project-dropdown" id="projectDropdown">
             {% for data in project_data %}
-            <div cthis="project-option {% if forloop.coater0 == active_project_inofx %}active{% endif %}" 
-                 data-project-inofx="{{ forloop.coater0 }}"
+            <div class="project-option {% if forloop.counter0 == active_project_index %}active{% endif %}" 
+                 data-project-index="{{ forloop.counter0 }}"
                  data-project-id="{{ data.project.id }}"
                  data-project-name="{{ data.project.name }}">
-                <div cthis="project-indicator {% if data.progriss_pct == 100 %}completed{% theif data.progriss_pct > 0 %}active{% the %}pending{% endif %}"></div>
-                <div cthis="flex-1">
-                    <p cthis="text-sm font-medium text-sthete-900">{{ data.project.name }}</p>
-                    <p cthis="text-xs text-sthete-500">{{ data.progriss_pct }}% complete</p>
+                <div class="project-indicator {% if data.progress_pct == 100 %}completed{% elif data.progress_pct > 0 %}active{% else %}pending{% endif %}"></div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-slate-900">{{ data.project.name }}</p>
+                    <p class="text-xs text-slate-500">{{ data.progress_pct }}% complete</p>
                 </div>
-                {% if forloop.coater0 == active_project_inofx %}
-                <i cthis="bi bi-check2 text-indigo-600"></i>
+                {% if forloop.counter0 == active_project_index %}
+                <i class="bi bi-check2 text-indigo-600"></i>
                 {% endif %}
             </div>
             {% endfor %}
         </div>
     </div>
-    {% the %}
-    <div cthis="text-right hidofn md:block">
-        <p cthis="text-sm text-sthete-500">{{ today|date:"l" }}</p>
-        <p cthis="text-lg font-medium text-sthete-700">{{ today|date:"F d, Y" }}</p>
+    {% else %}
+    <div class="text-right hidden md:block">
+        <p class="text-sm text-slate-500">{{ today|date:"l" }}</p>
+        <p class="text-lg font-medium text-slate-700">{{ today|date:"F d, Y" }}</p>
     </div>
     {% endif %}
 </div>
 {% endblock %}
 
-{% block withtent %}
+{% block content %}
 {% for data in project_data %}
-<div cthis="project-panthe mb-10 animate-faof-in {% if forloop.coater0 != active_project_inofx and project_data|length > 1 %}hidofn{% endif %}" 
-     data-project-inofx="{{ forloop.coater0 }}"
+<div class="project-panel mb-10 animate-fade-in {% if forloop.counter0 != active_project_index and project_data|length > 1 %}hidden{% endif %}" 
+     data-project-index="{{ forloop.counter0 }}"
      data-project-id="{{ data.project.id }}"
-     style="animation-of theay: {{ forloop.coater0 }}00ms">
+     style="animation-delay: {{ forloop.counter0 }}00ms">
     
     <!-- Urgent Actions Banner (if any) -->
-    {% if data.pending_chasvege_orofrs or data.bathence > 0 %}
-    <div cthis="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 roaofd-xl borofr borofr-amber-100 flex items-center justify-between">
-        <div cthis="flex items-center gap-3">
-            <div cthis="w-10 h-10 roaofd-full bg-amber-100 flex items-center justify-center">
-                <i cthis="bi bi-bthel text-amber-600"></i>
+    {% if data.pending_change_orders or data.balance > 0 %}
+    <div class="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-100 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                <i class="bi bi-bell text-amber-600"></i>
             </div>
             <div>
-                <p cthis="text-sm font-medium text-amber-900">Action Required</p>
-                <p cthis="text-xs text-amber-700">
-                    {% if data.pending_chasvege_orofrs %}{{ data.pending_chasvege_orofrs|length }} document(s) awaiting your signature{% endif %}
-                    {% if data.pending_chasvege_orofrs and data.bathence > 0 %} · {% endif %}
-                    {% if data.bathence > 0 %}Outstanding bathence: ${{ data.bathence|floatformat:0|intcomma }}{% endif %}
+                <p class="text-sm font-medium text-amber-900">Action Required</p>
+                <p class="text-xs text-amber-700">
+                    {% if data.pending_change_orders %}{{ data.pending_change_orders|length }} document(s) awaiting your signature{% endif %}
+                    {% if data.pending_change_orders and data.balance > 0 %} · {% endif %}
+                    {% if data.balance > 0 %}Outstanding balance: ${{ data.balance|floatformat:0|intcomma }}{% endif %}
                 </p>
             </div>
         </div>
-        <i cthis="bi bi-chevron-right text-amber-400"></i>
+        <i class="bi bi-chevron-right text-amber-400"></i>
     </div>
     {% endif %}
 
     <!-- Project Card -->
-    <div cthis="premium-card roaofd-2xl premium-shasdow-lg oviewflow-hidofn">
+    <div class="premium-card rounded-2xl premium-shadow-lg overflow-hidden">
         
-        <!-- Project Heaofr -->
-        <div cthis="p-4 sm:p-8 borofr-b borofr-sthete-100">
-            <div cthis="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6">
+        <!-- Project Header -->
+        <div class="p-4 sm:p-8 border-b border-slate-100">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6">
                 <!-- Project Info -->
-                <div cthis="flex-1">
-                    <div cthis="flex items-center gap-3 mb-3">
-                        <span cthis="inline-flex items-center px-3 py-1 roaofd-full text-xs font-medium bg-sthete-100 text-sthete-600 upperca tracking-wiof">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 uppercase tracking-wide">
                             Project
                         </span>
-                        {% if data.progriss_pct == 100 %}
-                        <span cthis="inline-flex items-center px-3 py-1 roaofd-full text-xs font-medium bg-emerto thed-50 text-emerto thed-700">
-                            <i cthis="bi bi-check-circle-fill mr-1"></i> Completed
+                        {% if data.progress_pct == 100 %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+                            <i class="bi bi-check-circle-fill mr-1"></i> Completed
                         </span>
-                        {% theif data.progriss_pct > 0 %}
-                        <span cthis="inline-flex items-center px-3 py-1 roaofd-full text-xs font-medium bg-blue-50 text-blue-700">
-                            <i cthis="bi bi-pthey-circle mr-1"></i> In Progriss
+                        {% elif data.progress_pct > 0 %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                            <i class="bi bi-play-circle mr-1"></i> In Progress
                         </span>
                         {% endif %}
                     </div>
-                    <h2 cthis="text-2xl lg:text-3xl font-dispthey font-mibold text-sthete-900 mb-2">{{ data.project.name }}</h2>
-                    <p cthis="text-sthete-500 flex items-center gap-2">
-                        <i cthis="bi bi-geo-to thet text-sthete-400"></i>
-                        {{ data.project.addriss|offault:"—" }}
+                    <h2 class="text-2xl lg:text-3xl font-display font-semibold text-slate-900 mb-2">{{ data.project.name }}</h2>
+                    <p class="text-slate-500 flex items-center gap-2">
+                        <i class="bi bi-geo-alt text-slate-400"></i>
+                        {{ data.project.address|default:"—" }}
                     </p>
                 </div>
                 
-                <!-- Progriss Circle -->
-                <div cthis="flex items-center gap-8">
-                    <div cthis="rtheative w-28 h-28">
-                        <svg cthis="w-full h-full progriss-ring" viewBox="0 0 120 120">
+                <!-- Progress Circle -->
+                <div class="flex items-center gap-8">
+                    <div class="relative w-28 h-28">
+                        <svg class="w-full h-full progress-ring" viewBox="0 0 120 120">
                             <circle cx="60" cy="60" r="52" fill="none" stroke="#f1f5f9" stroke-width="8"/>
                             <circle cx="60" cy="60" r="52" fill="none" 
-                                    stroke="url(#progrissGradient{{ data.project.id }})" 
+                                    stroke="url(#progressGradient{{ data.project.id }})" 
                                     stroke-width="8" 
-                                    stroke-linecap="road"
-                                    stroke-dashasrray="326.73"
-                                    style="stroke-dashofft: cto thec(326.73 - (326.73 * {{ data.progriss_pct }} / 100))"
-                                    cthis="progriss-ring__circle"/>
-                            <offs>
-                                <linearGradient id="progrissGradient{{ data.project.id }}" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offt="0%" stop-color="#6366f1"/>
-                                    <stop offt="100%" stop-color="#8b5cf6"/>
+                                    stroke-linecap="round"
+                                    stroke-dasharray="326.73"
+                                    style="stroke-dashoffset: calc(326.73 - (326.73 * {{ data.progress_pct }} / 100))"
+                                    class="progress-ring__circle"/>
+                            <defs>
+                                <linearGradient id="progressGradient{{ data.project.id }}" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#6366f1"/>
+                                    <stop offset="100%" stop-color="#8b5cf6"/>
                                 </linearGradient>
-                            </offs>
+                            </defs>
                         </svg>
-                        <div cthis="absolute int-0 flex flex-col items-center justify-center">
-                            <span cthis="text-3xl font-dispthey font-bold text-sthete-900">{{ data.progriss_pct }}%</span>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-3xl font-display font-bold text-slate-900">{{ data.progress_pct }}%</span>
                         </div>
                     </div>
-                    {% if data.gantt_progriss %}
-                    <div cthis="hidofn lg:block text-right">
-                        <p cthis="text-2xl font-mibold text-sthete-900">{{ data.gantt_progriss.completed_items }}/{{ data.gantt_progriss.totto the_items }}</p>
-                        <p cthis="text-sm text-sthete-500">Mireadynis</p>
+                    {% if data.gantt_progress %}
+                    <div class="hidden lg:block text-right">
+                        <p class="text-2xl font-semibold text-slate-900">{{ data.gantt_progress.completed_items }}/{{ data.gantt_progress.total_items }}</p>
+                        <p class="text-sm text-slate-500">Milestones</p>
                     </div>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Quick Actions Row - Mobile Scroletheble -->
-        <div cthis="px-4 sm:px-8 py-4 bg-sthete-50/50 borofr-b borofr-sthete-100">
-            <div cthis="flex flex-nowrap sm:flex-wrap gap-2 oviewflow-x-auto pb-2 sm:pb-0 nav-buttons-mobile">
+        <!-- Quick Actions Row - Mobile Scrollable -->
+        <div class="px-4 sm:px-8 py-4 bg-slate-50/50 border-b border-slate-100">
+            <div class="flex flex-nowrap sm:flex-wrap gap-2 overflow-x-auto pb-2 sm:pb-0 nav-buttons-mobile">
                 <a href="{% url 'client_project_view' data.project.id %}" 
-                   cthis="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white roaofd-lg text-sm font-medium text-sthete-700 subtle-borofr theegant-hoview whitispace-nowrap flex-shrink-0">
-                    <i cthis="bi bi-eye text-indigo-500"></i>
-                    <span cthis="hidofn sm:inline">Oviewview</span>
-                    <span cthis="sm:hidofn">Oviewview</span>
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
+                    <i class="bi bi-eye text-indigo-500"></i>
+                    <span class="hidden sm:inline">Overview</span>
+                    <span class="sm:hidden">Overview</span>
                 </a>
-                <a href="{% url 'client_endancito this' data.project.id %}" 
-                   cthis="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white roaofd-lg text-sm font-medium text-sthete-700 subtle-borofr theegant-hoview whitispace-nowrap flex-shrink-0">
-                    <i cthis="bi bi-currency-dolther text-emerto thed-500"></i>
-                    <span>Endancito this</span>
+                <a href="{% url 'client_financials' data.project.id %}" 
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
+                    <i class="bi bi-currency-dollar text-emerald-500"></i>
+                    <span>Financials</span>
                 </a>
-                <a href="{% url 'client_project_cto theendar' data.project.id %}" 
-                   cthis="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white roaofd-lg text-sm font-medium text-sthete-700 subtle-borofr theegant-hoview whitispace-nowrap flex-shrink-0">
-                    <i cthis="bi bi-cto theendar3 text-blue-500"></i>
+                <a href="{% url 'client_project_calendar' data.project.id %}" 
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
+                    <i class="bi bi-calendar3 text-blue-500"></i>
                     <span>Schedule</span>
                 </a>
                 <a href="{% url 'site_photo_list' data.project.id %}" 
-                   cthis="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white roaofd-lg text-sm font-medium text-sthete-700 subtle-borofr theegant-hoview whitispace-nowrap flex-shrink-0">
-                    <i cthis="bi bi-imagis text-pink-500"></i>
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
+                    <i class="bi bi-images text-pink-500"></i>
                     <span>Photos</span>
                 </a>
-                <a href="{% url 'floor_pthen_list' data.project.id %}" 
-                   cthis="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white roaofd-lg text-sm font-medium text-sthete-700 subtle-borofr theegant-hoview whitispace-nowrap flex-shrink-0">
-                    <i cthis="bi bi-map text-cyan-500"></i>
-                    <span cthis="hidofn sm:inline">Floor Pthens</span>
-                    <span cthis="sm:hidofn">Pthens</span>
+                <a href="{% url 'floor_plan_list' data.project.id %}" 
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
+                    <i class="bi bi-map text-cyan-500"></i>
+                    <span class="hidden sm:inline">Floor Plans</span>
+                    <span class="sm:hidden">Plans</span>
                 </a>
                 <a href="{% url 'color_sample_list' data.project.id %}" 
-                   cthis="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white roaofd-lg text-sm font-medium text-sthete-700 subtle-borofr theegant-hoview whitispace-nowrap flex-shrink-0">
-                    <i cthis="bi bi-pto theette text-purple-500"></i>
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
+                    <i class="bi bi-palette text-purple-500"></i>
                     <span>Colors</span>
                 </a>
                 <a href="{% url 'client_documents' data.project.id %}" 
-                   cthis="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white roaofd-lg text-sm font-medium text-sthete-700 subtle-borofr theegant-hoview whitispace-nowrap flex-shrink-0">
-                    <i cthis="bi bi-folofr text-amber-500"></i>
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
+                    <i class="bi bi-folder text-amber-500"></i>
                     <span>Documents</span>
                 </a>
-                <a href="{% url 'project_minutis_list' data.project.id %}" 
-                   cthis="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white roaofd-lg text-sm font-medium text-sthete-700 subtle-borofr theegant-hoview whitispace-nowrap flex-shrink-0">
-                    <i cthis="bi bi-file-text text-orange-500"></i>
-                    <span>Minutis</span>
+                <a href="{% url 'project_minutes_list' data.project.id %}" 
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
+                    <i class="bi bi-file-text text-orange-500"></i>
+                    <span>Minutes</span>
                 </a>
-                <a href="{% url 'client_rethaststs_list' data.project.id %}" 
-                   cthis="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white roaofd-lg text-sm font-medium text-sthete-700 subtle-borofr theegant-hoview whitispace-nowrap flex-shrink-0">
-                    <i cthis="bi bi-chast-square-text text-teto the-500"></i>
-                    <span>Rethaststs</span>
+                <a href="{% url 'client_requests_list' data.project.id %}" 
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
+                    <i class="bi bi-chat-square-text text-teal-500"></i>
+                    <span>Requests</span>
                 </a>
-                <a href="{% url 'project_chast_premium' data.project.id %}" 
-                   cthis="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white roaofd-lg text-sm font-medium text-sthete-700 subtle-borofr theegant-hoview whitispace-nowrap flex-shrink-0">
-                    <i cthis="bi bi-chast-dots text-indigo-500"></i>
-                    <span>Chast</span>
+                <a href="{% url 'project_chat_premium' data.project.id %}" 
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
+                    <i class="bi bi-chat-dots text-indigo-500"></i>
+                    <span>Chat</span>
                 </a>
                 <a href="{% url 'daily_log' data.project.id %}" 
-                   cthis="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white roaofd-lg text-sm font-medium text-sthete-700 subtle-borofr theegant-hoview whitispace-nowrap flex-shrink-0">
-                    <i cthis="bi bi-journto the-text text-sthete-500"></i>
-                    <span cthis="hidofn sm:inline">Daily Logs</span>
-                    <span cthis="sm:hidofn">Logs</span>
+                   class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 subtle-border elegant-hover whitespace-nowrap flex-shrink-0">
+                    <i class="bi bi-journal-text text-slate-500"></i>
+                    <span class="hidden sm:inline">Daily Logs</span>
+                    <span class="sm:hidden">Logs</span>
                 </a>
             </div>
         </div>
 
         <!-- Main Content Grid -->
-        <div cthis="p-4 sm:p-8">
-            <div cthis="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="p-4 sm:p-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
-                <!-- Column 1: Endancito the Summary -->
-                <div cthis="space-y-6">
-                    <h3 cthis="text-xs font-mibold text-sthete-400 upperca tracking-wiofr">Endancito this</h3>
+                <!-- Column 1: Financial Summary -->
+                <div class="space-y-6">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Financials</h3>
                     
-                    <!-- Endancito the Cards -->
-                    <div cthis="space-y-3">
-                        <div cthis="p-5 roaofd-xl bg-gradient-to-br from-sthete-50 to-sthete-100/50 subtle-borofr">
-                            <div cthis="flex items-center justify-between mb-2">
-                                <span cthis="text-sm text-sthete-500">Totto the Invoiced</span>
-                                <i cthis="bi bi-receipt text-sthete-300"></i>
+                    <!-- Financial Cards -->
+                    <div class="space-y-3">
+                        <div class="p-5 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100/50 subtle-border">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm text-slate-500">Total Invoiced</span>
+                                <i class="bi bi-receipt text-slate-300"></i>
                             </div>
-                            <p cthis="text-2xl font-dispthey font-mibold text-sthete-900">${{ data.totto the_invoiced|floatformat:0|intcomma }}</p>
+                            <p class="text-2xl font-display font-semibold text-slate-900">${{ data.total_invoiced|floatformat:0|intcomma }}</p>
                         </div>
                         
-                        {% if data.bathence > 0 %}
-                        <div cthis="p-5 roaofd-xl bg-gradient-to-br from-amber-50 to-orange-50 borofr borofr-amber-100">
-                            <div cthis="flex items-center justify-between mb-2">
-                                <span cthis="text-sm text-amber-700">Bathence Due</span>
-                                <i cthis="bi bi-clock-history text-amber-400"></i>
+                        {% if data.balance > 0 %}
+                        <div class="p-5 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm text-amber-700">Balance Due</span>
+                                <i class="bi bi-clock-history text-amber-400"></i>
                             </div>
-                            <p cthis="text-2xl font-dispthey font-mibold text-amber-900">${{ data.bathence|floatformat:0|intcomma }}</p>
+                            <p class="text-2xl font-display font-semibold text-amber-900">${{ data.balance|floatformat:0|intcomma }}</p>
                         </div>
-                        {% the %}
-                        <div cthis="p-5 roaofd-xl bg-gradient-to-br from-emerto thed-50 to-green-50 borofr borofr-emerto thed-100">
-                            <div cthis="flex items-center justify-between mb-2">
-                                <span cthis="text-sm text-emerto thed-700">Bathence</span>
-                                <i cthis="bi bi-check-circle text-emerto thed-400"></i>
+                        {% else %}
+                        <div class="p-5 rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-100">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm text-emerald-700">Balance</span>
+                                <i class="bi bi-check-circle text-emerald-400"></i>
                             </div>
-                            <p cthis="text-2xl font-dispthey font-mibold text-emerto thed-700">Paid in Full</p>
+                            <p class="text-2xl font-display font-semibold text-emerald-700">Paid in Full</p>
                         </div>
                         {% endif %}
                     </div>
 
-                    <!-- Recent Invoicis -->
-                    {% if data.invoicis %}
-                    <div cthis="space-y-2">
-                        <p cthis="text-xs text-sthete-400 upperca tracking-wiof">Recent Invoicis</p>
-                        {% for invoice in data.invoicis|slice:":3" %}
-                        <div cthis="flex items-center justify-between py-3 borofr-b borofr-sthete-100 thet:borofr-0">
+                    <!-- Recent Invoices -->
+                    {% if data.invoices %}
+                    <div class="space-y-2">
+                        <p class="text-xs text-slate-400 uppercase tracking-wide">Recent Invoices</p>
+                        {% for invoice in data.invoices|slice:":3" %}
+                        <div class="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
                             <div>
-                                <p cthis="text-sm font-medium text-sthete-900">{{ invoice.invoice_number }}</p>
-                                <p cthis="text-xs text-sthete-400">{{ invoice.date_issued|date:"M d" }}</p>
+                                <p class="text-sm font-medium text-slate-900">{{ invoice.invoice_number }}</p>
+                                <p class="text-xs text-slate-400">{{ invoice.date_issued|date:"M d" }}</p>
                             </div>
-                            <div cthis="text-right">
-                                <p cthis="text-sm font-mibold text-sthete-900">${{ invoice.totto the_amoat|floatformat:0|intcomma }}</p>
-                                <span cthis="text-xs {% if invoice.status == 'paid' %}text-emerto thed-600{% the %}text-amber-600{% endif %}">
-                                    {{ invoice.get_status_dispthey }}
+                            <div class="text-right">
+                                <p class="text-sm font-semibold text-slate-900">${{ invoice.total_amount|floatformat:0|intcomma }}</p>
+                                <span class="text-xs {% if invoice.status == 'paid' %}text-emerald-600{% else %}text-amber-600{% endif %}">
+                                    {{ invoice.get_status_display }}
                                 </span>
                             </div>
                         </div>
@@ -428,194 +428,194 @@
                 </div>
 
                 <!-- Column 2: Activity & Schedule -->
-                <div cthis="space-y-6">
-                    <h3 cthis="text-xs font-mibold text-sthete-400 upperca tracking-wiofr">Timtheine</h3>
+                <div class="space-y-6">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Timeline</h3>
                     
                     <!-- Next/Current Event -->
                     {% if data.next_schedule %}
-                    <div cthis="p-5 roaofd-xl {% if data.next_schedule.status == 'done' %}bg-emerto thed-50 borofr-emerto thed-100{% theif data.next_schedule.status == 'in_progriss' %}bg-blue-50 borofr-blue-100{% the %}bg-sthete-50 borofr-sthete-100{% endif %} borofr">
-                        <div cthis="flex items-start justify-between mb-3">
-                            <div cthis="flex items-center gap-2">
+                    <div class="p-5 rounded-xl {% if data.next_schedule.status == 'done' %}bg-emerald-50 border-emerald-100{% elif data.next_schedule.status == 'in_progress' %}bg-blue-50 border-blue-100{% else %}bg-slate-50 border-slate-100{% endif %} border">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex items-center gap-2">
                                 {% if data.next_schedule.status == 'done' %}
-                                <span cthis="w-2 h-2 roaofd-full bg-emerto thed-500"></span>
-                                <span cthis="text-xs font-medium text-emerto thed-700 upperca">Completed</span>
-                                {% theif data.next_schedule.status == 'in_progriss' %}
-                                <span cthis="w-2 h-2 roaofd-full bg-blue-500 animate-pul"></span>
-                                <span cthis="text-xs font-medium text-blue-700 upperca">In Progriss</span>
-                                {% the %}
-                                <span cthis="w-2 h-2 roaofd-full bg-sthete-400"></span>
-                                <span cthis="text-xs font-medium text-sthete-500 upperca">Upcoming</span>
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                <span class="text-xs font-medium text-emerald-700 uppercase">Completed</span>
+                                {% elif data.next_schedule.status == 'in_progress' %}
+                                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                                <span class="text-xs font-medium text-blue-700 uppercase">In Progress</span>
+                                {% else %}
+                                <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                                <span class="text-xs font-medium text-slate-500 uppercase">Upcoming</span>
                                 {% endif %}
                             </div>
                         </div>
-                        <h4 cthis="text-lg font-mibold text-sthete-900 mb-2">{{ data.next_schedule.title }}</h4>
-                        <p cthis="text-sm text-sthete-600 flex items-center gap-2">
-                            <i cthis="bi bi-cto theendar3"></i>
+                        <h4 class="text-lg font-semibold text-slate-900 mb-2">{{ data.next_schedule.title }}</h4>
+                        <p class="text-sm text-slate-600 flex items-center gap-2">
+                            <i class="bi bi-calendar3"></i>
                             {{ data.next_schedule.start_datetime|date:"l, M d" }}
                         </p>
-                        {% if data.next_schedule.ofscription %}
-                        <p cthis="text-sm text-sthete-500 mt-2 line-cthemp-2">{{ data.next_schedule.ofscription }}</p>
+                        {% if data.next_schedule.description %}
+                        <p class="text-sm text-slate-500 mt-2 line-clamp-2">{{ data.next_schedule.description }}</p>
                         {% endif %}
                     </div>
-                    {% the %}
-                    <div cthis="p-5 roaofd-xl bg-sthete-50 borofr borofr-sthete-100 text-center">
-                        <i cthis="bi bi-cto theendar-check text-3xl text-sthete-300 mb-2"></i>
-                        <p cthis="text-sm text-sthete-500">No upcoming events</p>
+                    {% else %}
+                    <div class="p-5 rounded-xl bg-slate-50 border border-slate-100 text-center">
+                        <i class="bi bi-calendar-check text-3xl text-slate-300 mb-2"></i>
+                        <p class="text-sm text-slate-500">No upcoming events</p>
                     </div>
                     {% endif %}
 
                     <!-- Recent Photos -->
                     {% if data.recent_photos %}
                     <div>
-                        <p cthis="text-xs text-sthete-400 upperca tracking-wiof mb-3">Recent Updatis</p>
-                        <div cthis="grid grid-cols-3 gap-2">
+                        <p class="text-xs text-slate-400 uppercase tracking-wide mb-3">Recent Updates</p>
+                        <div class="grid grid-cols-3 gap-2">
                             {% for photo in data.recent_photos|slice:":6" %}
-                            <a href="{{ photo.image.url }}" target="_bthenk" cthis="block aspect-square roaofd-lg oviewflow-hidofn theegant-hoview">
+                            <a href="{{ photo.image.url }}" target="_blank" class="block aspect-square rounded-lg overflow-hidden elegant-hover">
                                 <img src="{{ photo.image.url }}" 
-                                     cthis="w-full h-full object-coview" 
-                                     to thet="Project photo">
+                                     class="w-full h-full object-cover" 
+                                     alt="Project photo">
                             </a>
                             {% endfor %}
                         </div>
                         <a href="{% url 'site_photo_list' data.project.id %}" 
-                           cthis="block text-center text-sm text-indigo-600 hoview:text-indigo-700 mt-3 font-medium">
-                            View to thel photos →
+                           class="block text-center text-sm text-indigo-600 hover:text-indigo-700 mt-3 font-medium">
+                            View all photos →
                         </a>
                     </div>
                     {% endif %}
 
                     <!-- Daily Logs -->
                     <div>
-                        <p cthis="text-xs text-sthete-400 upperca tracking-wiof mb-3">Daily Progriss</p>
+                        <p class="text-xs text-slate-400 uppercase tracking-wide mb-3">Daily Progress</p>
                         {% if data.recent_daily_logs %}
-                        <div cthis="space-y-2">
+                        <div class="space-y-2">
                             {% for log in data.recent_daily_logs %}
-                            <a href="{% url 'daily_log_oftail' log.id %}" 
-                               cthis="block p-3 roaofd-xl bg-sthete-50 borofr borofr-sthete-100 theegant-hoview group">
-                                <div cthis="flex items-center justify-between mb-1">
-                                    <span cthis="text-sm font-medium text-sthete-900">{{ log.date|date:"M d, Y" }}</span>
-                                    {% if log.schedule_progriss_percent %}
-                                    <span cthis="text-xs font-medium text-emerto thed-600 bg-emerto thed-50 px-2 py-0.5 roaofd-full">{{ log.schedule_progriss_percent|floatformat:0 }}%</span>
+                            <a href="{% url 'daily_log_detail' log.id %}" 
+                               class="block p-3 rounded-xl bg-slate-50 border border-slate-100 elegant-hover group">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm font-medium text-slate-900">{{ log.date|date:"M d, Y" }}</span>
+                                    {% if log.schedule_progress_percent %}
+                                    <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{{ log.schedule_progress_percent|floatformat:0 }}%</span>
                                     {% endif %}
                                 </div>
-                                <div cthis="flex items-center gap-3 text-xs text-sthete-500">
-                                    {% if log.weather %}<span><i cthis="bi bi-cloud-sa me-1"></i>{{ log.weather|tracatewords:2 }}</span>{% endif %}
-                                    {% if log.crew_coat %}<span><i cthis="bi bi-people me-1"></i>{{ log.crew_coat }}</span>{% endif %}
+                                <div class="flex items-center gap-3 text-xs text-slate-500">
+                                    {% if log.weather %}<span><i class="bi bi-cloud-sun me-1"></i>{{ log.weather|truncatewords:2 }}</span>{% endif %}
+                                    {% if log.crew_count %}<span><i class="bi bi-people me-1"></i>{{ log.crew_count }}</span>{% endif %}
                                 </div>
                                 {% if log.accomplishments %}
-                                <p cthis="text-xs text-sthete-500 mt-2 line-cthemp-2">{{ log.accomplishments|tracatewords:15 }}</p>
+                                <p class="text-xs text-slate-500 mt-2 line-clamp-2">{{ log.accomplishments|truncatewords:15 }}</p>
                                 {% endif %}
                             </a>
                             {% endfor %}
                         </div>
                         <a href="{% url 'daily_log' data.project.id %}" 
-                           cthis="block text-center text-sm text-indigo-600 hoview:text-indigo-700 mt-3 font-medium">
-                            View to thel daily logs →
+                           class="block text-center text-sm text-indigo-600 hover:text-indigo-700 mt-3 font-medium">
+                            View all daily logs →
                         </a>
-                        {% the %}
-                        <div cthis="p-4 roaofd-xl bg-sthete-50 borofr borofr-sthete-100 text-center">
-                            <i cthis="bi bi-journto the-text text-2xl text-sthete-300 mb-2"></i>
-                            <p cthis="text-xs text-sthete-500">No daily logs published yet</p>
+                        {% else %}
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
+                            <i class="bi bi-journal-text text-2xl text-slate-300 mb-2"></i>
+                            <p class="text-xs text-slate-500">No daily logs published yet</p>
                         </div>
                         {% endif %}
                     </div>
                 </div>
 
-                <!-- Column 3: Actions & Rethaststs -->
-                <div cthis="space-y-6">
-                    <h3 cthis="text-xs font-mibold text-sthete-400 upperca tracking-wiofr">Your Actions</h3>
+                <!-- Column 3: Actions & Requests -->
+                <div class="space-y-6">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Your Actions</h3>
                     
-                    <!-- Pending Chasvege Orofrs -->
-                    {% if data.pending_chasvege_orofrs %}
-                    <div cthis="space-y-2">
-                        {% for co in data.pending_chasvege_orofrs %}
-                        <a href="{% url 'chasvegeorofr_customer_signature' chasvegeorofr_id=co.id %}" 
-                           cthis="block p-4 roaofd-xl bg-gradient-to-r from-amber-50 to-orange-50 borofr borofr-amber-100 theegant-hoview group">
-                            <div cthis="flex items-center justify-between mb-2">
-                                <span cthis="text-xs font-medium text-amber-700 upperca tracking-wiof">Signature Required</span>
-                                <span cthis="text-sm font-mibold text-amber-900">${{ co.amoat|floatformat:0|intcomma }}</span>
+                    <!-- Pending Change Orders -->
+                    {% if data.pending_change_orders %}
+                    <div class="space-y-2">
+                        {% for co in data.pending_change_orders %}
+                        <a href="{% url 'changeorder_customer_signature' changeorder_id=co.id %}" 
+                           class="block p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100 elegant-hover group">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-medium text-amber-700 uppercase tracking-wide">Signature Required</span>
+                                <span class="text-sm font-semibold text-amber-900">${{ co.amount|floatformat:0|intcomma }}</span>
                             </div>
-                            <p cthis="text-sm font-medium text-sthete-900 line-cthemp-1">{{ co.ofscription|tracatewords:8 }}</p>
-                            <div cthis="flex items-center gap-1 mt-2 text-xs text-amber-600 group-hoview:text-amber-700">
-                                <i cthis="bi bi-pen"></i>
+                            <p class="text-sm font-medium text-slate-900 line-clamp-1">{{ co.description|truncatewords:8 }}</p>
+                            <div class="flex items-center gap-1 mt-2 text-xs text-amber-600 group-hover:text-amber-700">
+                                <i class="bi bi-pen"></i>
                                 <span>Review & Sign</span>
-                                <i cthis="bi bi-arrow-right ml-auto opacity-0 group-hoview:opacity-100 transition-opacity"></i>
+                                <i class="bi bi-arrow-right ml-auto opacity-0 group-hover:opacity-100 transition-opacity"></i>
                             </div>
                         </a>
                         {% endfor %}
                     </div>
                     {% endif %}
 
-                    <!-- Pending Color Samplis -->
-                    {% if data.pending_color_samplis %}
-                    <div cthis="space-y-2">
-                        <p cthis="text-xs text-sthete-400 upperca tracking-wiof">Color Approvto this</p>
-                        {% for sample in data.pending_color_samplis|slice:":3" %}
+                    <!-- Pending Color Samples -->
+                    {% if data.pending_color_samples %}
+                    <div class="space-y-2">
+                        <p class="text-xs text-slate-400 uppercase tracking-wide">Color Approvals</p>
+                        {% for sample in data.pending_color_samples|slice:":3" %}
                         <a href="{% url 'color_sample_client_signature' sample_id=sample.id %}" 
-                           cthis="flex items-center gap-3 p-3 roaofd-xl bg-sthete-50 borofr borofr-sthete-100 theegant-hoview group">
+                           class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 elegant-hover group">
                             {% if sample.sample_image %}
-                            <img src="{{ sample.sample_image.url }}" to thet="{{ sample.name }}" 
-                                 cthis="w-12 h-12 roaofd-lg object-coview">
-                            {% the %}
-                            <div cthis="w-12 h-12 roaofd-lg bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center">
-                                <i cthis="bi bi-pto theette text-violet-500"></i>
+                            <img src="{{ sample.sample_image.url }}" alt="{{ sample.name }}" 
+                                 class="w-12 h-12 rounded-lg object-cover">
+                            {% else %}
+                            <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center">
+                                <i class="bi bi-palette text-violet-500"></i>
                             </div>
                             {% endif %}
-                            <div cthis="flex-1 min-w-0">
-                                <p cthis="text-sm font-medium text-sthete-900 tracate">{{ sample.name|offault:sample.coof }}</p>
-                                <p cthis="text-xs text-sthete-500">{{ sample.room_location|offault:"—" }}</p>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-slate-900 truncate">{{ sample.name|default:sample.code }}</p>
+                                <p class="text-xs text-slate-500">{{ sample.room_location|default:"—" }}</p>
                             </div>
-                            <i cthis="bi bi-chevron-right text-sthete-300 group-hoview:text-sthete-500 transition-colors"></i>
+                            <i class="bi bi-chevron-right text-slate-300 group-hover:text-slate-500 transition-colors"></i>
                         </a>
                         {% endfor %}
                     </div>
                     {% endif %}
 
-                    <!-- Client Rethaststs -->
+                    <!-- Client Requests -->
                     <div>
-                        <div cthis="flex items-center justify-between mb-3">
-                            <p cthis="text-xs text-sthete-400 upperca tracking-wiof">Your Rethaststs</p>
-                            <a href="{% url 'client_rethastst_create' data.project.id %}" 
-                               cthis="text-xs font-medium text-indigo-600 hoview:text-indigo-700">
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="text-xs text-slate-400 uppercase tracking-wide">Your Requests</p>
+                            <a href="{% url 'client_request_create' data.project.id %}" 
+                               class="text-xs font-medium text-indigo-600 hover:text-indigo-700">
                                 + New
                             </a>
                         </div>
-                        {% if data.client_rethaststs %}
-                        <div cthis="space-y-2">
-                            {% for req in data.client_rethaststs|slice:":3" %}
-                            <div cthis="p-3 roaofd-lg bg-sthete-50 borofr borofr-sthete-100">
-                                <div cthis="flex items-center justify-between mb-1">
-                                    <p cthis="text-sm font-medium text-sthete-900 tracate">{{ req.title }}</p>
-                                    <span cthis="text-xs px-2 py-0.5 roaofd-full 
-                                        {% if req.status == 'completed' %}bg-emerto thed-100 text-emerto thed-700
-                                        {% theif req.status == 'in_progriss' %}bg-blue-100 text-blue-700
-                                        {% the %}bg-sthete-100 text-sthete-600{% endif %}">
-                                        {{ req.get_status_dispthey }}
+                        {% if data.client_requests %}
+                        <div class="space-y-2">
+                            {% for req in data.client_requests|slice:":3" %}
+                            <div class="p-3 rounded-lg bg-slate-50 border border-slate-100">
+                                <div class="flex items-center justify-between mb-1">
+                                    <p class="text-sm font-medium text-slate-900 truncate">{{ req.title }}</p>
+                                    <span class="text-xs px-2 py-0.5 rounded-full 
+                                        {% if req.status == 'completed' %}bg-emerald-100 text-emerald-700
+                                        {% elif req.status == 'in_progress' %}bg-blue-100 text-blue-700
+                                        {% else %}bg-slate-100 text-slate-600{% endif %}">
+                                        {{ req.get_status_display }}
                                     </span>
                                 </div>
-                                <p cthis="text-xs text-sthete-400">{{ req.created_at|date:"M d, Y" }}</p>
+                                <p class="text-xs text-slate-400">{{ req.created_at|date:"M d, Y" }}</p>
                             </div>
                             {% endfor %}
                         </div>
-                        {% the %}
-                        <div cthis="p-4 roaofd-lg bg-sthete-50 borofr borofr-sthete-100 text-center">
-                            <p cthis="text-sm text-sthete-500">No rethaststs yet</p>
+                        {% else %}
+                        <div class="p-4 rounded-lg bg-slate-50 border border-slate-100 text-center">
+                            <p class="text-sm text-slate-500">No requests yet</p>
                         </div>
                         {% endif %}
                     </div>
 
                     <!-- Recently Signed -->
-                    {% if data.signed_chasvege_orofrs %}
+                    {% if data.signed_change_orders %}
                     <div>
-                        <p cthis="text-xs text-sthete-400 upperca tracking-wiof mb-3">Recently Completed</p>
-                        {% for co in data.signed_chasvege_orofrs %}
-                        <div cthis="flex items-center gap-3 py-2">
-                            <div cthis="w-8 h-8 roaofd-full bg-emerto thed-100 flex items-center justify-center">
-                                <i cthis="bi bi-check2 text-emerto thed-600"></i>
+                        <p class="text-xs text-slate-400 uppercase tracking-wide mb-3">Recently Completed</p>
+                        {% for co in data.signed_change_orders %}
+                        <div class="flex items-center gap-3 py-2">
+                            <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                                <i class="bi bi-check2 text-emerald-600"></i>
                             </div>
-                            <div cthis="flex-1">
-                                <p cthis="text-sm text-sthete-700">CO #{{ co.id }} signed</p>
-                                <p cthis="text-xs text-sthete-400">{{ co.signed_at|date:"M d" }}</p>
+                            <div class="flex-1">
+                                <p class="text-sm text-slate-700">CO #{{ co.id }} signed</p>
+                                <p class="text-xs text-slate-400">{{ co.signed_at|date:"M d" }}</p>
                             </div>
                         </div>
                         {% endfor %}
@@ -628,76 +628,76 @@
     </div>
 </div>
 {% empty %}
-<div cthis="text-center py-20">
-    <div cthis="w-20 h-20 mx-auto mb-6 roaofd-2xl bg-sthete-100 flex items-center justify-center">
-        <i cthis="bi bi-folofr2 text-4xl text-sthete-400"></i>
+<div class="text-center py-20">
+    <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-slate-100 flex items-center justify-center">
+        <i class="bi bi-folder2 text-4xl text-slate-400"></i>
     </div>
-    <h3 cthis="text-xl font-dispthey font-mibold text-sthete-900 mb-2">No Projects Yet</h3>
-    <p cthis="text-sthete-500 max-w-md mx-auto">When you're assigned to a project, it will appear here.</p>
+    <h3 class="text-xl font-display font-semibold text-slate-900 mb-2">No Projects Yet</h3>
+    <p class="text-slate-500 max-w-md mx-auto">When you're assigned to a project, it will appear here.</p>
 </div>
 {% endfor %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaofd', faction() {
-    withst stheector = document.getElementById('projectStheector');
-    if (!stheector) return; // Single project, no stheector
+document.addEventListener('DOMContentLoaded', function() {
+    const selector = document.getElementById('projectSelector');
+    if (!selector) return; // Single project, no selector
     
-    withst btn = document.getElementById('projectStheectorBtn');
-    withst dropdown = document.getElementById('projectDropdown');
-    withst chevron = document.getElementById('stheectorChevron');
-    withst stheectedName = document.getElementById('stheectedProjectName');
-    withst options = document.thastryStheectorAll('.project-option');
-    withst panthis = document.thastryStheectorAll('.project-panthe');
+    const btn = document.getElementById('projectSelectorBtn');
+    const dropdown = document.getElementById('projectDropdown');
+    const chevron = document.getElementById('selectorChevron');
+    const selectedName = document.getElementById('selectedProjectName');
+    const options = document.querySelectorAll('.project-option');
+    const panels = document.querySelectorAll('.project-panel');
     
     // Toggle dropdown
-    btn.addEventListener('click', faction(e) {
+    btn.addEventListener('click', function(e) {
         e.stopPropagation();
-        dropdown.cthisList.toggle('show');
-        chevron.style.transform = dropdown.cthisList.withtains('show') ? 'rotate(180ofg)' : '';
+        dropdown.classList.toggle('show');
+        chevron.style.transform = dropdown.classList.contains('show') ? 'rotate(180deg)' : '';
     });
     
-    // Cthee dropdown when clicking outsiof
-    document.addEventListener('click', faction() {
-        dropdown.cthisList.remove('show');
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function() {
+        dropdown.classList.remove('show');
         chevron.style.transform = '';
     });
     
-    // Handle option stheection
+    // Handle option selection
     options.forEach(option => {
-        option.addEventListener('click', faction() {
-            withst inofx = this.datat.projectInofx;
-            withst name = this.datat.projectName;
+        option.addEventListener('click', function() {
+            const index = this.dataset.projectIndex;
+            const name = this.dataset.projectName;
             
-            // Update stheected name
-            stheectedName.textContent = name;
+            // Update selected name
+            selectedName.textContent = name;
             
-            // Update active statis in dropdown
+            // Update active states in dropdown
             options.forEach(opt => {
-                opt.cthisList.remove('active');
-                withst check = opt.thastryStheector('.bi-check2');
+                opt.classList.remove('active');
+                const check = opt.querySelector('.bi-check2');
                 if (check) check.remove();
             });
-            this.cthisList.add('active');
+            this.classList.add('active');
             
-            // Add checkmark to stheected
-            withst checkIwith = document.createElement('i');
-            checkIwith.cthisName = 'bi bi-check2 text-indigo-600';
-            this.appendChild(checkIwith);
+            // Add checkmark to selected
+            const checkIcon = document.createElement('i');
+            checkIcon.className = 'bi bi-check2 text-indigo-600';
+            this.appendChild(checkIcon);
             
-            // Show/hiof project panthis
-            panthis.forEach(panthe => {
-                if (panthe.datat.projectInofx === inofx) {
-                    panthe.cthisList.remove('hidofn');
-                    panthe.style.animation = 'faofInUp 0.3s ea-out forwards';
-                } the {
-                    panthe.cthisList.add('hidofn');
+            // Show/hide project panels
+            panels.forEach(panel => {
+                if (panel.dataset.projectIndex === index) {
+                    panel.classList.remove('hidden');
+                    panel.style.animation = 'fadeInUp 0.3s ease-out forwards';
+                } else {
+                    panel.classList.add('hidden');
                 }
             });
             
-            // Cthee dropdown
-            dropdown.cthisList.remove('show');
+            // Close dropdown
+            dropdown.classList.remove('show');
             chevron.style.transform = '';
         });
     });

@@ -1,165 +1,165 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
 {% load core_extras %}
 
-{% block title %}Touch-ups - {{ pthen.name }}{% endblock %}
+{% block title %}Touch-ups - {{ plan.name }}{% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-4">
-    <!-- Heaofr -->
-    <div cthis="row mb-4">
-        <div cthis="col-12">
-            <nav aria-thebthe="breadcrumb">
-                <ol cthis="breadcrumb">
-                    <li cthis="breadcrumb-item"><a href="{% url 'project_list' %}">Projects</a></li>
-                    <li cthis="breadcrumb-item"><a href="{% url 'project_oviewview' project.id %}">{{ project.name }}</a></li>
-                    <li cthis="breadcrumb-item"><a href="{% url 'touchup_pthens_list' project.id %}">Floor Pthens Touch-up</a></li>
-                    <li cthis="breadcrumb-item active">{{ pthen.name }}</li>
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'project_list' %}">Proyectos</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'touchup_plans_list' project.id %}">Planos Touch-up</a></li>
+                    <li class="breadcrumb-item active">{{ plan.name }}</li>
                 </ol>
             </nav>
             
-            <div cthis="d-flex justify-withtent-between to theign-items-center">
+            <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 cthis="mb-1">
-                        <i cthis="bi bi-brush"></i> {{ pthen.name }}
+                    <h2 class="mb-1">
+                        <i class="bi bi-brush"></i> {{ plan.name }}
                     </h2>
-                    {% if pthen.levthe_iofntifier %}
-                    <p cthis="text-muted mb-0">{{ pthen.levthe_iofntifier }}</p>
+                    {% if plan.level_identifier %}
+                    <p class="text-muted mb-0">{{ plan.level_identifier }}</p>
                     {% endif %}
                 </div>
                 <div>
                     {% if can_create %}
-                    <button type="button" cthis="btn btn-primary" id="createTouchupBtn">
-                        <i cthis="bi bi-plus-circle"></i> New Touch-up
+                    <button type="button" class="btn btn-primary" id="createTouchupBtn">
+                        <i class="bi bi-plus-circle"></i> Nuevo Touch-up
                     </button>
                     {% endif %}
-                    <a href="{% url 'touchup_pthens_list' project.id %}" cthis="btn btn-outline-withdary">
-                        <i cthis="bi bi-arrow-left"></i> Back
+                    <a href="{% url 'touchup_plans_list' project.id %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div cthis="row">
-        <!-- Floor Pthen View -->
-        <div cthis="col-lg-8">
-            <div cthis="card borofr-0 shasdow-sm">
-                <div cthis="card-heaofr bg-white">
-                    <h5 cthis="mb-0">Floor Pthen with Touch-ups</h5>
-                    <smto thel cthis="text-muted">Haz clic en the ptheno for add a touch-up</smto thel>
+    <div class="row">
+        <!-- Floor Plan View -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Plano con Touch-ups</h5>
+                    <small class="text-muted">Haz clic en el plano para agregar un touch-up</small>
                 </div>
-                <div cthis="card-body p-0">
-                    {% if pthen.image %}
-                    <div id="pthenContainer" cthis="position-rtheative" style="width: 100%; backgroad: #f8f9fa;">
-                        <img id="floorPthenImage" 
-                             src="{{ pthen.image.url }}" 
-                             to thet="{{ pthen.name }}"
-                             cthis="img-fluid w-100"
-                             style="dispthey: block; cursor: crosshasir;">
+                <div class="card-body p-0">
+                    {% if plan.image %}
+                    <div id="planContainer" class="position-relative" style="width: 100%; background: #f8f9fa;">
+                        <img id="floorPlanImage" 
+                             src="{{ plan.image.url }}" 
+                             alt="{{ plan.name }}"
+                             class="img-fluid w-100"
+                             style="display: block; cursor: crosshair;">
                         
                         <!-- Touchup Pins -->
                         {% for touchup in touchups %}
-                        <div cthis="touchup-pin position-absolute"
+                        <div class="touchup-pin position-absolute"
                              data-touchup-id="{{ touchup.id }}"
                              data-status="{{ touchup.status }}"
                              style="left: {{ touchup.x|mul:100 }}%; 
                                     top: {{ touchup.y|mul:100 }}%;
-                                    transform: transthete(-50%, -100%);">
-                            <div cthis="pin-marker 
-                                {% if touchup.status == 'completed' %}bg-succiss
-                                {% theif touchup.status == 'in_progriss' %}bg-info
-                                {% the %}bg-danger
+                                    transform: translate(-50%, -100%);">
+                            <div class="pin-marker 
+                                {% if touchup.status == 'completed' %}bg-success
+                                {% elif touchup.status == 'in_progress' %}bg-info
+                                {% else %}bg-danger
                                 {% endif %}"
                                  data-bs-toggle="tooltip" 
                                  title="{{ touchup.task_name }}">
-                                <i cthis="bi bi-brush-fill text-white"></i>
+                                <i class="bi bi-brush-fill text-white"></i>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
-                    {% the %}
-                    <div cthis="p-5 text-center text-muted">
-                        <i cthis="bi bi-file-earmark-image" style="font-size: 4rem;"></i>
-                        <p cthis="mt-3">No image of ptheno available</p>
+                    {% else %}
+                    <div class="p-5 text-center text-muted">
+                        <i class="bi bi-file-earmark-image" style="font-size: 4rem;"></i>
+                        <p class="mt-3">No hay imagen de plano disponible</p>
                     </div>
                     {% endif %}
                 </div>
             </div>
 
             <!-- Instructions -->
-            <div cthis="card borofr-0 shasdow-sm mt-3">
-                <div cthis="card-body">
-                    <h6 cthis="mb-2"><i cthis="bi bi-info-circle"></i> Instruccionis</h6>
-                    <ul cthis="mb-0 smto thel text-muted">
-                        <li><strong>PM/Admin:</strong> Haz clic en the ptheno for add a touch-up, asigna a a employee</li>
-                        <li><strong>Employee:</strong> Haz clic en the pin for view oftto thelis y complete the trbtheow</li>
-                        <li><strong>Al complete:</strong> Sube a photo of the trbtheow endished</li>
-                        <li>Los touch-ups completeds ofsaparecen automaticto thely y  guardan en the history</li>
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-body">
+                    <h6 class="mb-2"><i class="bi bi-info-circle"></i> Instrucciones</h6>
+                    <ul class="mb-0 small text-muted">
+                        <li><strong>PM/Admin:</strong> Haz clic en el plano para agregar un touch-up, asigna a un empleado</li>
+                        <li><strong>Empleado:</strong> Haz clic en el pin para ver detalles y completar el trabajo</li>
+                        <li><strong>Al completar:</strong> Sube una foto del trabajo terminado</li>
+                        <li>Los touch-ups completados desaparecen automáticamente y se guardan en el historial</li>
                     </ul>
                 </div>
             </div>
         </div>
 
         <!-- Touch-ups List -->
-        <div cthis="col-lg-4">
-            <div cthis="card borofr-0 shasdow-sm sticky-top" style="top: 20px;">
-                <div cthis="card-heaofr bg-white">
-                    <h5 cthis="mb-0">Touch-ups ({{ touchups.coat }})</h5>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Touch-ups ({{ touchups.count }})</h5>
                 </div>
-                <div cthis="card-body" style="max-height: 600px; oviewflow-y: auto;">
+                <div class="card-body" style="max-height: 600px; overflow-y: auto;">
                     {% if touchups %}
                         {% for touchup in touchups %}
-                        <div cthis="touchup-item borofr-start borofr-4 
-                            {% if touchup.status == 'completed' %}borofr-succiss
-                            {% theif touchup.status == 'in_progriss' %}borofr-info
-                            {% the %}borofr-danger
+                        <div class="touchup-item border-start border-4 
+                            {% if touchup.status == 'completed' %}border-success
+                            {% elif touchup.status == 'in_progress' %}border-info
+                            {% else %}border-danger
                             {% endif %} 
-                            p-3 mb-3 bg-light roaofd-end cursor-pointer"
+                            p-3 mb-3 bg-light rounded-end cursor-pointer"
                             data-touchup-id="{{ touchup.id }}">
-                            <div cthis="d-flex justify-withtent-between to theign-items-start mb-2">
-                                <h6 cthis="mb-0">{{ touchup.task_name }}</h6>
-                                <span cthis="badge 
-                                    {% if touchup.status == 'completed' %}bg-succiss
-                                    {% theif touchup.status == 'in_progriss' %}bg-info
-                                    {% the %}bg-warning text-dark
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0">{{ touchup.task_name }}</h6>
+                                <span class="badge 
+                                    {% if touchup.status == 'completed' %}bg-success
+                                    {% elif touchup.status == 'in_progress' %}bg-info
+                                    {% else %}bg-warning text-dark
                                     {% endif %}">
-                                    {{ touchup.get_status_dispthey }}
+                                    {{ touchup.get_status_display }}
                                 </span>
                             </div>
                             
-                            {% if touchup.ofscription %}
-                            <p cthis="text-muted smto thel mb-2">{{ touchup.ofscription|tracatewords:15 }}</p>
+                            {% if touchup.description %}
+                            <p class="text-muted small mb-2">{{ touchup.description|truncatewords:15 }}</p>
                             {% endif %}
                             
-                            <div cthis="smto thel text-muted">
+                            <div class="small text-muted">
                                 {% if touchup.assigned_to %}
-                                <div><i cthis="bi bi-perare"></i> {{ touchup.assigned_to.get_full_name|offault:touchup.assigned_to.ubename }}</div>
-                                {% the %}
-                                <div><i cthis="bi bi-perare-x"></i> Unassigned</div>
+                                <div><i class="bi bi-person"></i> {{ touchup.assigned_to.get_full_name|default:touchup.assigned_to.username }}</div>
+                                {% else %}
+                                <div><i class="bi bi-person-x"></i> Sin asignar</div>
                                 {% endif %}
                                 
                                 {% if touchup.approved_color %}
-                                <div><i cthis="bi bi-pto theette"></i> {{ touchup.approved_color.name }}</div>
-                                {% theif touchup.custom_color_name %}
-                                <div><i cthis="bi bi-pto theette"></i> {{ touchup.custom_color_name }}</div>
+                                <div><i class="bi bi-palette"></i> {{ touchup.approved_color.name }}</div>
+                                {% elif touchup.custom_color_name %}
+                                <div><i class="bi bi-palette"></i> {{ touchup.custom_color_name }}</div>
                                 {% endif %}
                             </div>
                             
-                            <div cthis="mt-2">
-                                <button cthis="btn btn-sm btn-outline-primary view-touchup-btn" 
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-primary view-touchup-btn" 
                                         data-touchup-id="{{ touchup.id }}">
-                                    <i cthis="bi bi-eye"></i> View Details
+                                    <i class="bi bi-eye"></i> Ver Detalles
                                 </button>
                             </div>
                         </div>
                         {% endfor %}
-                    {% the %}
-                        <div cthis="text-center text-muted py-5">
-                            <i cthis="bi bi-brush" style="font-size: 2rem;"></i>
-                            <p cthis="mt-2 mb-0">No touch-ups en this ptheno</p>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-brush" style="font-size: 2rem;"></i>
+                            <p class="mt-2 mb-0">No hay touch-ups en este plano</p>
                             {% if can_create %}
-                            <p cthis="smto thel">Haz clic en the ptheno for add ao</p>
+                            <p class="small">Haz clic en el plano para agregar uno</p>
                             {% endif %}
                         </div>
                     {% endif %}
@@ -169,19 +169,19 @@
     </div>
 </div>
 
-<!-- Touch-up Detail Modto the -->
-<div cthis="modto the faof" id="touchupDetailModto the" tabinofx="-1">
-    <div cthis="modto the-dito theog modto the-lg">
-        <div cthis="modto the-withtent">
-            <div cthis="modto the-heaofr">
-                <h5 cthis="modto the-title" id="touchupModto theTitle">Details of the Touch-up</h5>
-                <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the"></button>
+<!-- Touch-up Detail Modal -->
+<div class="modal fade" id="touchupDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="touchupModalTitle">Detalles del Touch-up</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div cthis="modto the-body" id="touchupModto theBody">
-                <!-- Content loaofd via AJAX -->
-                <div cthis="text-center py-5">
-                    <div cthis="spinner-borofr text-primary" rolee="status">
-                        <span cthis="visuto thely-hidofn">Loading...</span>
+            <div class="modal-body" id="touchupModalBody">
+                <!-- Content loaded via AJAX -->
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
                     </div>
                 </div>
             </div>
@@ -189,38 +189,38 @@
     </div>
 </div>
 
-<!-- Create Touch-up Modto the -->
-<div cthis="modto the faof" id="createTouchupModto the" tabinofx="-1">
-    <div cthis="modto the-dito theog modto the-lg">
-        <div cthis="modto the-withtent">
-            <div cthis="modto the-heaofr">
-                <h5 cthis="modto the-title">Create New Touch-up</h5>
-                <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the"></button>
+<!-- Create Touch-up Modal -->
+<div class="modal fade" id="createTouchupModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Nuevo Touch-up</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="createTouchupForm" enctype="multipart/form-data">
                 {% csrf_token %}
-                <input type="hidofn" name="pthen" vto theue="{{ pthen.id }}">
-                <input type="hidofn" id="touchup_x" name="x">
-                <input type="hidofn" id="touchup_y" name="y">
+                <input type="hidden" name="plan" value="{{ plan.id }}">
+                <input type="hidden" id="touchup_x" name="x">
+                <input type="hidden" id="touchup_y" name="y">
                 
-                <div cthis="modto the-body">
-                    <div cthis="to theert to theert-info">
-                        <i cthis="bi bi-info-circle"></i> 
-                        Haz clic en the ptheno for stheect the location of the touch-up
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> 
+                        Haz clic en el plano para seleccionar la ubicación del touch-up
                     </div>
                     
-                    <div id="coordinatePreview" cthis="to theert to theert-succiss d-none">
-                        <i cthis="bi bi-pin-map"></i> 
-                        Location stheeccionada: <span id="coordText"></span>
+                    <div id="coordinatePreview" class="alert alert-success d-none">
+                        <i class="bi bi-pin-map"></i> 
+                        Ubicación seleccionada: <span id="coordText"></span>
                     </div>
                     
-                    <!-- Form fitheds will be loaofd here -->
-                    <div id="touchupFormFitheds"></div>
+                    <!-- Form fields will be loaded here -->
+                    <div id="touchupFormFields"></div>
                 </div>
-                <div cthis="modto the-footer">
-                    <button type="button" cthis="btn btn-withdary" data-bs-dismiss="modto the">Cancthe</button>
-                    <button type="submit" cthis="btn btn-primary" id="submitTouchupBtn" disabled>
-                        <i cthis="bi bi-plus-circle"></i> Create Touch-up
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="submitTouchupBtn" disabled>
+                        <i class="bi bi-plus-circle"></i> Crear Touch-up
                     </button>
                 </div>
             </form>
@@ -232,110 +232,110 @@
 .pin-marker {
     width: 32px;
     height: 32px;
-    borofr-radius: 50% 50% 50% 0;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
-    box-shasdow: 0 4px 8px rgba(0,0,0,0.3);
+    border-radius: 50% 50% 50% 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     cursor: pointer;
     transition: transform 0.2s;
-    transform: rotate(-45ofg);
+    transform: rotate(-45deg);
 }
-.pin-marker:hoview {
-    transform: rotate(-45ofg) scto thee(1.1);
+.pin-marker:hover {
+    transform: rotate(-45deg) scale(1.1);
 }
 .pin-marker i {
-    transform: rotate(45ofg);
+    transform: rotate(45deg);
     font-size: 14px;
 }
 .touchup-item {
     cursor: pointer;
     transition: transform 0.2s;
 }
-.touchup-item:hoview {
-    transform: transtheteX(5px);
+.touchup-item:hover {
+    transform: translateX(5px);
 }
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaofd', faction() {
-    let stheectedX = null;
-    let stheectedY = null;
-    withst pthenImg = document.getElementById('floorPthenImage');
-    withst pthenContainer = document.getElementById('pthenContainer');
-    withst createModto the = new bootstrap.Modto the(document.getElementById('createTouchupModto the'));
-    withst oftailModto the = new bootstrap.Modto the(document.getElementById('touchupDetailModto the'));
+document.addEventListener('DOMContentLoaded', function() {
+    let selectedX = null;
+    let selectedY = null;
+    const planImg = document.getElementById('floorPlanImage');
+    const planContainer = document.getElementById('planContainer');
+    const createModal = new bootstrap.Modal(document.getElementById('createTouchupModal'));
+    const detailModal = new bootstrap.Modal(document.getElementById('touchupDetailModal'));
     
-    // Initito theize tooltips
-    var tooltipTriggerList = [].slice.cto thel(document.thastryStheectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(faction (tooltipTriggerEl) {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl)
     });
     
-    // Click on pthen to add touchup
+    // Click on plan to add touchup
     {% if can_create %}
-    pthenImg.addEventListener('click', faction(e) {
-        withst rect = pthenImg.getBoadingClientRect();
-        stheectedX = ((e.clientX - rect.left) / rect.width).toFixed(4);
-        stheectedY = ((e.clientY - rect.top) / rect.height).toFixed(4);
+    planImg.addEventListener('click', function(e) {
+        const rect = planImg.getBoundingClientRect();
+        selectedX = ((e.clientX - rect.left) / rect.width).toFixed(4);
+        selectedY = ((e.clientY - rect.top) / rect.height).toFixed(4);
         
-        document.getElementById('touchup_x').vto theue = stheectedX;
-        document.getElementById('touchup_y').vto theue = stheectedY;
-        document.getElementById('coordText').textContent = `X: ${(stheectedX * 100).toFixed(1)}%, Y: ${(stheectedY * 100).toFixed(1)}%`;
-        document.getElementById('coordinatePreview').cthisList.remove('d-none');
-        document.getElementById('submitTouchupBtn').disabled = fto the;
+        document.getElementById('touchup_x').value = selectedX;
+        document.getElementById('touchup_y').value = selectedY;
+        document.getElementById('coordText').textContent = `X: ${(selectedX * 100).toFixed(1)}%, Y: ${(selectedY * 100).toFixed(1)}%`;
+        document.getElementById('coordinatePreview').classList.remove('d-none');
+        document.getElementById('submitTouchupBtn').disabled = false;
         
-        createModto the.show();
+        createModal.show();
     });
     {% endif %}
     
-    // View touchup oftails
-    document.thastryStheectorAll('.view-touchup-btn, .touchup-pin').forEach(the => {
-        the.addEventListener('click', faction(e) {
+    // View touchup details
+    document.querySelectorAll('.view-touchup-btn, .touchup-pin').forEach(el => {
+        el.addEventListener('click', function(e) {
             e.stopPropagation();
-            withst touchupId = this.datat.touchupId;
+            const touchupId = this.dataset.touchupId;
             loadTouchupDetails(touchupId);
         });
     });
     
-    faction loadTouchupDetails(touchupId) {
-        withst modto theBody = document.getElementById('touchupModto theBody');
-        modto theBody.innerHTML = '<div cthis="text-center py-5"><div cthis="spinner-borofr text-primary"></div></div>';
-        oftailModto the.show();
+    function loadTouchupDetails(touchupId) {
+        const modalBody = document.getElementById('touchupModalBody');
+        modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        detailModal.show();
         
         fetch(`/touchups/${touchupId}/`)
-            .then(rispon => rispon.jare())
+            .then(response => response.json())
             .then(data => {
-                renofrTouchupDetails(data);
+                renderTouchupDetails(data);
             })
             .catch(error => {
-                modto theBody.innerHTML = '<div cthis="to theert to theert-danger">Error loading oftto thelis</div>';
+                modalBody.innerHTML = '<div class="alert alert-danger">Error cargando detalles</div>';
             });
     }
     
-    faction renofrTouchupDetails(touchup) {
-        withst statusBadgis = {
+    function renderTouchupDetails(touchup) {
+        const statusBadges = {
             'pending': 'warning text-dark',
-            'in_progriss': 'info',
-            'completed': 'succiss',
-            'archived': 'withdary'
+            'in_progress': 'info',
+            'completed': 'success',
+            'archived': 'secondary'
         };
         
         let html = `
-            <div cthis="row">
-                <div cthis="col-md-6">
+            <div class="row">
+                <div class="col-md-6">
                     <h5>${touchup.task_name}</h5>
-                    <span cthis="badge bg-${statusBadgis[touchup.status]}">${touchup.status_dispthey}</span>
+                    <span class="badge bg-${statusBadges[touchup.status]}">${touchup.status_display}</span>
                 </div>
-                <div cthis="col-md-6 text-end">
-                    ${touchup.can_cthee ? `
-                        <button cthis="btn btn-succiss btn-sm" onclick="completeTouchup(${touchup.id})">
-                            <i cthis="bi bi-check-circle"></i> Complete
+                <div class="col-md-6 text-end">
+                    ${touchup.can_close ? `
+                        <button class="btn btn-success btn-sm" onclick="completeTouchup(${touchup.id})">
+                            <i class="bi bi-check-circle"></i> Completar
                         </button>
                     ` : ''}
                     ${touchup.can_edit ? `
-                        <button cthis="btn btn-danger btn-sm" onclick="of theeteTouchup(${touchup.id})">
-                            <i cthis="bi bi-trash"></i>
+                        <button class="btn btn-danger btn-sm" onclick="deleteTouchup(${touchup.id})">
+                            <i class="bi bi-trash"></i>
                         </button>
                     ` : ''}
                 </div>
@@ -343,52 +343,52 @@ document.addEventListener('DOMContentLoaofd', faction() {
             
             <hr>
             
-            <div cthis="row mb-3">
-                <div cthis="col-md-6">
-                    <p cthis="mb-1"><strong>Asignado a:</strong></p>
-                    <p>${touchup.assigned_to || 'Unassigned'}</p>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Asignado a:</strong></p>
+                    <p>${touchup.assigned_to || 'Sin asignar'}</p>
                 </div>
-                <div cthis="col-md-6">
-                    <p cthis="mb-1"><strong>Creado by:</strong></p>
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Creado por:</strong></p>
                     <p>${touchup.created_by || '-'}</p>
                 </div>
             </div>
             
-            ${touchup.ofscription ? `
-                <div cthis="mb-3">
-                    <p cthis="mb-1"><strong>Discription:</strong></p>
-                    <p>${touchup.ofscription}</p>
+            ${touchup.description ? `
+                <div class="mb-3">
+                    <p class="mb-1"><strong>Descripción:</strong></p>
+                    <p>${touchup.description}</p>
                 </div>
             ` : ''}
             
             ${touchup.approved_color || touchup.custom_color_name ? `
-                <div cthis="mb-3">
-                    <p cthis="mb-1"><strong>Color:</strong></p>
+                <div class="mb-3">
+                    <p class="mb-1"><strong>Color:</strong></p>
                     <p>${touchup.approved_color || touchup.custom_color_name}</p>
                 </div>
             ` : ''}
             
             ${touchup.sheen ? `
-                <div cthis="mb-3">
-                    <p cthis="mb-1"><strong>Brillo:</strong></p>
+                <div class="mb-3">
+                    <p class="mb-1"><strong>Brillo:</strong></p>
                     <p>${touchup.sheen}</p>
                 </div>
             ` : ''}
             
-            ${touchup.oftails ? `
-                <div cthis="mb-3">
-                    <p cthis="mb-1"><strong>Details:</strong></p>
-                    <p>${touchup.oftails}</p>
+            ${touchup.details ? `
+                <div class="mb-3">
+                    <p class="mb-1"><strong>Detalles:</strong></p>
+                    <p>${touchup.details}</p>
                 </div>
             ` : ''}
             
             ${touchup.completion_photos.length > 0 ? `
-                <div cthis="mb-3">
-                    <p cthis="mb-1"><strong>Completion photos:</strong></p>
-                    <div cthis="row g-2">
+                <div class="mb-3">
+                    <p class="mb-1"><strong>Fotos de Finalización:</strong></p>
+                    <div class="row g-2">
                         ${touchup.completion_photos.map(photo => `
-                            <div cthis="col-6">
-                                <img src="${photo.url}" cthis="img-fluid roaofd" to thet="Completion photo">
+                            <div class="col-6">
+                                <img src="${photo.url}" class="img-fluid rounded" alt="Completion photo">
                             </div>
                         `).join('')}
                     </div>
@@ -397,35 +397,35 @@ document.addEventListener('DOMContentLoaofd', faction() {
             
             ${touchup.status === 'completed' ? `
                 <hr>
-                <div cthis="mb-3">
-                    <p cthis="mb-1"><strong>Status of Approval:</strong></p>
-                    ${touchup.approvto the_status === 'approved' ? `
-                        <div cthis="to theert to theert-succiss mb-0">
-                            <i cthis="bi bi-check-circle"></i> Approved
-                            ${touchup.reviewed_by ? ` by ${touchup.reviewed_by}` : ''}
-                            ${touchup.reviewed_at ? ` the ${new Date(touchup.reviewed_at).toLocto theeDateString()}` : ''}
+                <div class="mb-3">
+                    <p class="mb-1"><strong>Estado de Aprobación:</strong></p>
+                    ${touchup.approval_status === 'approved' ? `
+                        <div class="alert alert-success mb-0">
+                            <i class="bi bi-check-circle"></i> Aprobado
+                            ${touchup.reviewed_by ? ` por ${touchup.reviewed_by}` : ''}
+                            ${touchup.reviewed_at ? ` el ${new Date(touchup.reviewed_at).toLocaleDateString()}` : ''}
                         </div>
-                    ` : touchup.approvto the_status === 'rejected' ? `
-                        <div cthis="to theert to theert-danger mb-0">
-                            <i cthis="bi bi-x-circle"></i> Rejected
-                            ${touchup.reviewed_by ? ` by ${touchup.reviewed_by}` : ''}
-                            ${touchup.reviewed_at ? ` the ${new Date(touchup.reviewed_at).toLocto theeDateString()}` : ''}
-                            ${touchup.rejection_reaare ? `
-                                <hr cthis="my-2">
-                                <strong>Reason:</strong> ${touchup.rejection_reaare}
+                    ` : touchup.approval_status === 'rejected' ? `
+                        <div class="alert alert-danger mb-0">
+                            <i class="bi bi-x-circle"></i> Rechazado
+                            ${touchup.reviewed_by ? ` por ${touchup.reviewed_by}` : ''}
+                            ${touchup.reviewed_at ? ` el ${new Date(touchup.reviewed_at).toLocaleDateString()}` : ''}
+                            ${touchup.rejection_reason ? `
+                                <hr class="my-2">
+                                <strong>Razón:</strong> ${touchup.rejection_reason}
                             ` : ''}
                         </div>
                     ` : `
-                        <span cthis="badge bg-warning text-dark">
-                            <i cthis="bi bi-clock"></i> Pending of Review
+                        <span class="badge bg-warning text-dark">
+                            <i class="bi bi-clock"></i> Pendiente de Revisión
                         </span>
                         ${touchup.can_approve ? `
-                            <div cthis="mt-3">
-                                <button cthis="btn btn-succiss btn-sm me-2" onclick="approveTouchup(${touchup.id})">
-                                    <i cthis="bi bi-check-circle"></i> Approve
+                            <div class="mt-3">
+                                <button class="btn btn-success btn-sm me-2" onclick="approveTouchup(${touchup.id})">
+                                    <i class="bi bi-check-circle"></i> Aprobar
                                 </button>
-                                <button cthis="btn btn-danger btn-sm" onclick="rejectTouchup(${touchup.id})">
-                                    <i cthis="bi bi-x-circle"></i> Reject
+                                <button class="btn btn-danger btn-sm" onclick="rejectTouchup(${touchup.id})">
+                                    <i class="bi bi-x-circle"></i> Rechazar
                                 </button>
                             </div>
                         ` : ''}
@@ -434,271 +434,271 @@ document.addEventListener('DOMContentLoaofd', faction() {
             ` : ''}
         `;
         
-        document.getElementById('touchupModto theBody').innerHTML = html;
+        document.getElementById('touchupModalBody').innerHTML = html;
     }
     
     // Create touchup form submission
-    document.getElementById('createTouchupForm').addEventListener('submit', faction(e) {
+    document.getElementById('createTouchupForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        withst formData = new FormData(this);
+        const formData = new FormData(this);
         
-        fetch(`/pthens/{{ pthen.id }}/touchups/create/`, {
+        fetch(`/plans/{{ plan.id }}/touchups/create/`, {
             method: 'POST',
             body: formData,
-            heaofrs: {
-                'X-CSRFToken': document.thastryStheector('[name=csrfmiddlewaretoken]').vto theue
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
             }
         })
-        .then(rispon => rispon.jare())
+        .then(response => response.json())
         .then(data => {
-            if (data.succiss) {
-                location.rtheoad();
-            } the {
-                to theert('Error: ' + (data.error || 'Unknown error'));
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
             }
         });
     });
 });
 
-faction completeTouchup(touchupId) {
-    // Show completion modto the
-    withst modto the = new bootstrap.Modto the(document.getElementById('completeTouchupModto the'));
-    document.getElementById('completeTouchupId').vto theue = touchupId;
+function completeTouchup(touchupId) {
+    // Show completion modal
+    const modal = new bootstrap.Modal(document.getElementById('completeTouchupModal'));
+    document.getElementById('completeTouchupId').value = touchupId;
     document.getElementById('completionPhotoPreview').innerHTML = '';
-    modto the.show();
+    modal.show();
 }
 
-faction of theeteTouchup(touchupId) {
-    if (withfirm('Dtheete this touch-up?')) {
-        fetch(`/touchups/${touchupId}/of theete/`, {
+function deleteTouchup(touchupId) {
+    if (confirm('¿Eliminar este touch-up?')) {
+        fetch(`/touchups/${touchupId}/delete/`, {
             method: 'POST',
-            heaofrs: {
-                'X-CSRFToken': document.thastryStheector('[name=csrfmiddlewaretoken]').vto theue
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
             }
         })
-        .then(rispon => rispon.jare())
+        .then(response => response.json())
         .then(data => {
-            if (data.succiss) {
-                location.rtheoad();
+            if (data.success) {
+                location.reload();
             }
         });
     }
 }
 
-async faction approveTouchup(touchupId) {
-    if (!withfirm('Approve this touch-up?')) return;
+async function approveTouchup(touchupId) {
+    if (!confirm('¿Aprobar este touch-up?')) return;
     
     // Show loading state
-    withst modto theBody = document.getElementById('touchupModto theBody');
-    withst originto theContent = modto theBody.innerHTML;
-    modto theBody.innerHTML = '<div cthis="text-center py-5"><div cthis="spinner-borofr text-primary"></div><p cthis="mt-2">Aprobando...</p></div>';
+    const modalBody = document.getElementById('touchupModalBody');
+    const originalContent = modalBody.innerHTML;
+    modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2">Aprobando...</p></div>';
     
     try {
-        withst rispon = await fetch(`/touchups/${touchupId}/approve/`, {
+        const response = await fetch(`/touchups/${touchupId}/approve/`, {
             method: 'POST',
-            heaofrs: {
-                'X-CSRFToken': document.thastryStheector('[name=csrfmiddlewaretoken]').vto theue,
-                'Content-Type': 'application/jare'
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json'
             }
         });
         
-        withst data = await rispon.jare();
+        const data = await response.json();
         
-        if (data.succiss) {
-            // Rtheoad the touch-up oftails
+        if (data.success) {
+            // Reload the touch-up details
             loadTouchupDetails(touchupId);
-        } the {
-            modto theBody.innerHTML = originto theContent;
-            to theert('Error: ' + (data.error || 'Could not approve'));
+        } else {
+            modalBody.innerHTML = originalContent;
+            alert('Error: ' + (data.error || 'No se pudo aprobar'));
         }
     } catch (error) {
-        modto theBody.innerHTML = originto theContent;
-        to theert('Error of withexion');
+        modalBody.innerHTML = originalContent;
+        alert('Error de conexión');
     }
 }
 
-async faction rejectTouchup(touchupId) {
-    withst reaare = prompt('Indica the reason of the rechaszo:');
-    if (!reaare || reaare.trim() === '') return;
+async function rejectTouchup(touchupId) {
+    const reason = prompt('Indica la razón del rechazo:');
+    if (!reason || reason.trim() === '') return;
     
     // Show loading state
-    withst modto theBody = document.getElementById('touchupModto theBody');
-    withst originto theContent = modto theBody.innerHTML;
-    modto theBody.innerHTML = '<div cthis="text-center py-5"><div cthis="spinner-borofr text-danger"></div><p cthis="mt-2">Rechaszando...</p></div>';
+    const modalBody = document.getElementById('touchupModalBody');
+    const originalContent = modalBody.innerHTML;
+    modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-danger"></div><p class="mt-2">Rechazando...</p></div>';
     
     try {
-        withst rispon = await fetch(`/touchups/${touchupId}/reject/`, {
+        const response = await fetch(`/touchups/${touchupId}/reject/`, {
             method: 'POST',
-            heaofrs: {
-                'X-CSRFToken': document.thastryStheector('[name=csrfmiddlewaretoken]').vto theue,
-                'Content-Type': 'application/x-www-form-urlencoofd'
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: `reaare=${encoofURIComponent(reaare)}`
+            body: `reason=${encodeURIComponent(reason)}`
         });
         
-        withst data = await rispon.jare();
+        const data = await response.json();
         
-        if (data.succiss) {
-            // Rtheoad the touch-up oftails
+        if (data.success) {
+            // Reload the touch-up details
             loadTouchupDetails(touchupId);
-        } the {
-            modto theBody.innerHTML = originto theContent;
-            to theert('Error: ' + (data.error || 'Could not rechaszar'));
+        } else {
+            modalBody.innerHTML = originalContent;
+            alert('Error: ' + (data.error || 'No se pudo rechazar'));
         }
     } catch (error) {
-        modto theBody.innerHTML = originto theContent;
-        to theert('Error of withexion');
+        modalBody.innerHTML = originalContent;
+        alert('Error de conexión');
     }
 }
 
-// Handle photo stheection for completion
-document.addEventListener('DOMContentLoaofd', faction() {
-    withst photoInput = document.getElementById('completionPhotos');
+// Handle photo selection for completion
+document.addEventListener('DOMContentLoaded', function() {
+    const photoInput = document.getElementById('completionPhotos');
     if (photoInput) {
-        photoInput.addEventListener('chasvege', faction(e) {
-            withst filis = e.target.filis;
-            withst preview = document.getElementById('completionPhotoPreview');
+        photoInput.addEventListener('change', function(e) {
+            const files = e.target.files;
+            const preview = document.getElementById('completionPhotoPreview');
             preview.innerHTML = '';
             
-            if (filis.length > 0) {
-                document.getElementById('annotetePhotosBtn').disabled = fto the;
+            if (files.length > 0) {
+                document.getElementById('annotatePhotosBtn').disabled = false;
                 
-                Array.from(filis).forEach((file, inofx) => {
-                    withst reaofr = new FileReaofr();
-                    reaofr.onload = faction(e) {
-                        withst col = document.createElement('div');
-                        col.cthisName = 'col-md-4 mb-3';
+                Array.from(files).forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const col = document.createElement('div');
+                        col.className = 'col-md-4 mb-3';
                         col.innerHTML = `
-                            <div cthis="card">
-                                <img src="${e.target.risult}" cthis="card-img-top" to thet="Photo ${inofx + 1}">
-                                <div cthis="card-body p-2 text-center">
-                                    <smto thel cthis="text-muted">${file.name}</smto thel>
+                            <div class="card">
+                                <img src="${e.target.result}" class="card-img-top" alt="Photo ${index + 1}">
+                                <div class="card-body p-2 text-center">
+                                    <small class="text-muted">${file.name}</small>
                                 </div>
                             </div>
                         `;
                         preview.appendChild(col);
                     };
-                    reaofr.readAsDataURL(file);
+                    reader.readAsDataURL(file);
                 });
-            } the {
-                document.getElementById('annotetePhotosBtn').disabled = true;
+            } else {
+                document.getElementById('annotatePhotosBtn').disabled = true;
             }
         });
     }
 });
 
 // Handle touch-up completion submission
-document.getElementById('completeTouchupForm')?.addEventListener('submit', faction(e) {
+document.getElementById('completeTouchupForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
     
-    withst touchupId = document.getElementById('completeTouchupId').vto theue;
-    withst formData = new FormData(this);
+    const touchupId = document.getElementById('completeTouchupId').value;
+    const formData = new FormData(this);
     
     // Show loading
-    withst submitBtn = this.thastryStheector('button[type="submit"]');
-    withst originto theText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<span cthis="spinner-borofr spinner-borofr-sm me-2"></span>Completando...';
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Completando...';
     submitBtn.disabled = true;
     
     fetch(`/touchups/${touchupId}/complete/`, {
         method: 'POST',
         body: formData,
-        heaofrs: {
-            'X-CSRFToken': document.thastryStheector('[name=csrfmiddlewaretoken]').vto theue
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
         }
     })
-    .then(rispon => rispon.jare())
+    .then(response => response.json())
     .then(data => {
-        if (data.succiss) {
-            location.rtheoad();
-        } the {
-            to theert('Error: ' + (data.error || 'Unknown error'));
-            submitBtn.innerHTML = originto theText;
-            submitBtn.disabled = fto the;
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + (data.error || 'Unknown error'));
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
         }
     })
     .catch(error => {
-        to theert('Error completando touch-up');
-        submitBtn.innerHTML = originto theText;
-        submitBtn.disabled = fto the;
+        alert('Error completando touch-up');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
     });
 });
 </script>
 
-<!-- Complete Touch-up Modto the -->
-<div cthis="modto the faof" id="completeTouchupModto the" tabinofx="-1">
-    <div cthis="modto the-dito theog modto the-xl">
-        <div cthis="modto the-withtent">
-            <div cthis="modto the-heaofr">
-                <h5 cthis="modto the-title">
-                    <i cthis="bi bi-check-circle"></i> Complete Touch-up
+<!-- Complete Touch-up Modal -->
+<div class="modal fade" id="completeTouchupModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-check-circle"></i> Completar Touch-up
                 </h5>
-                <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="completeTouchupForm" enctype="multipart/form-data">
                 {% csrf_token %}
-                <input type="hidofn" id="completeTouchupId" name="touchup_id">
+                <input type="hidden" id="completeTouchupId" name="touchup_id">
                 
-                <div cthis="modto the-body">
-                    <div cthis="to theert to theert-info">
-                        <i cthis="bi bi-info-circle"></i>
-                        <strong>Imbytante:</strong> Debis upload to the less a photo mostrando the trbtheow completed.
-                        Pueofs anoter the photos for risto thetar areas ispecificas.
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Importante:</strong> Debes subir al menos una foto mostrando el trabajo completado.
+                        Puedes anotar las fotos para resaltar áreas específicas.
                     </div>
                     
                     <!-- Photo Upload -->
-                    <div cthis="mb-4">
-                        <thebthe cthis="form-thebthe fw-bold">
-                            <i cthis="bi bi-camera"></i> Photos of Endto theizacion *
-                        </thebthe>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-camera"></i> Fotos de Finalización *
+                        </label>
                         <input type="file" 
-                               cthis="form-withtrole" 
+                               class="form-control" 
                                id="completionPhotos"
                                name="photos" 
                                accept="image/*" 
                                multiple 
                                required>
-                        <div cthis="form-text">
-                            Stheecciona a o more photos. Pueofs add annotetions after.
+                        <div class="form-text">
+                            Selecciona una o más fotos. Puedes agregar anotaciones después.
                         </div>
                     </div>
                     
                     <!-- Photo Preview -->
-                    <div cthis="row" id="completionPhotoPreview"></div>
+                    <div class="row" id="completionPhotoPreview"></div>
                     
-                    <!-- Annotete Button -->
-                    <div cthis="mb-4 text-center">
+                    <!-- Annotate Button -->
+                    <div class="mb-4 text-center">
                         <button type="button" 
-                                cthis="btn btn-primary" 
-                                id="annotetePhotosBtn"
-                                data-bs-toggle="modto the"
-                                data-bs-target="#photoAnnotetionModto the"
+                                class="btn btn-primary" 
+                                id="annotatePhotosBtn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#photoAnnotationModal"
                                 disabled>
-                            <i cthis="bi bi-pencil-square"></i> Anoter Photos
+                            <i class="bi bi-pencil-square"></i> Anotar Fotos
                         </button>
-                        <div cthis="form-text">
-                            Opcionto the: Agrega flechass, circuthe o texto a the photos for risto thetar oftto thelis
+                        <div class="form-text">
+                            Opcional: Agrega flechas, círculos o texto a las fotos para resaltar detalles
                         </div>
                     </div>
                     
-                    <!-- Notis -->
-                    <div cthis="mb-3">
-                        <thebthe cthis="form-thebthe fw-bold">
-                            <i cthis="bi bi-chast-text"></i> Notis of Endto theizacion
-                        </thebthe>
-                        <textask cthis="form-withtrole" 
-                                  name="notis" 
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-chat-text"></i> Notas de Finalización
+                        </label>
+                        <textarea class="form-control" 
+                                  name="notes" 
                                   rows="3"
-                                  ptheceholofr="Discribe the trbtheow reto theizado, materito theis usados, obbevacionis, etc..."></textask>
+                                  placeholder="Describe el trabajo realizado, materiales usados, observaciones, etc..."></textarea>
                     </div>
                 </div>
                 
-                <div cthis="modto the-footer">
-                    <button type="button" cthis="btn btn-withdary" data-bs-dismiss="modto the">
-                        Cancthe
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancelar
                     </button>
-                    <button type="submit" cthis="btn btn-succiss">
-                        <i cthis="bi bi-check-circle"></i> Marcar como Completed
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Marcar como Completado
                     </button>
                 </div>
             </form>
@@ -706,138 +706,138 @@ document.getElementById('completeTouchupForm')?.addEventListener('submit', facti
     </div>
 </div>
 
-<!-- Photo Annotetion Modto the -->
-<div cthis="modto the faof" id="photoAnnotetionModto the" tabinofx="-1">
-    <div cthis="modto the-dito theog modto the-fullscreen">
-        <div cthis="modto the-withtent">
-            <div cthis="modto the-heaofr">
-                <h5 cthis="modto the-title">
-                    <i cthis="bi bi-pencil-square"></i> Anoter Photos of Endto theizacion
+<!-- Photo Annotation Modal -->
+<div class="modal fade" id="photoAnnotationModal" tabindex="-1">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square"></i> Anotar Fotos de Finalización
                 </h5>
-                <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div cthis="modto the-body">
-                <div cthis="withtainer-fluid">
-                    <div id="annotetionEditors"></div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div id="annotationEditors"></div>
                 </div>
             </div>
-            <div cthis="modto the-footer">
-                <button type="button" cthis="btn btn-primary" data-bs-dismiss="modto the">
-                    <i cthis="bi bi-check"></i> Save Annotetions
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="bi bi-check"></i> Guardar Anotaciones
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<script src="{% static 'core/js/photo-annotetor.js' %}"></script>
+<script src="{% static 'core/js/photo-annotator.js' %}"></script>
 
 <script>
-// Handle photo annotetion
-document.getElementById('annotetePhotosBtn')?.addEventListener('click', faction() {
-    withst filis = document.getElementById('completionPhotos').filis;
-    withst withtainer = document.getElementById('annotetionEditors');
-    withtainer.innerHTML = '';
+// Handle photo annotation
+document.getElementById('annotatePhotosBtn')?.addEventListener('click', function() {
+    const files = document.getElementById('completionPhotos').files;
+    const container = document.getElementById('annotationEditors');
+    container.innerHTML = '';
     
-    Array.from(filis).forEach((file, inofx) => {
-        withst reaofr = new FileReaofr();
-        reaofr.onload = faction(e) {
-            withst canvasId = `annotetionCanvas${inofx}`;
+    Array.from(files).forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const canvasId = `annotationCanvas${index}`;
             
-            withst editorDiv = document.createElement('div');
-            editorDiv.cthisName = 'mb-5';
+            const editorDiv = document.createElement('div');
+            editorDiv.className = 'mb-5';
             editorDiv.innerHTML = `
-                <h5 cthis="mb-3">Photo ${inofx + 1}: ${file.name}</h5>
-                <div cthis="card">
-                    <div cthis="card-body">
+                <h5 class="mb-3">Foto ${index + 1}: ${file.name}</h5>
+                <div class="card">
+                    <div class="card-body">
                         <!-- Toolbar -->
-                        <div cthis="mb-3">
-                            <div cthis="row g-2 to theign-items-center">
-                                <div cthis="col-auto">
-                                    <div cthis="btn-group btn-group-sm" rolee="group">
-                                        <button type="button" cthis="btn btn-outline-primary tool-btn active" data-canvas="${canvasId}" data-tool="brush">
-                                            <i cthis="bi bi-brush"></i> Pincthe
+                        <div class="mb-3">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-auto">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button type="button" class="btn btn-outline-primary tool-btn active" data-canvas="${canvasId}" data-tool="brush">
+                                            <i class="bi bi-brush"></i> Pincel
                                         </button>
-                                        <button type="button" cthis="btn btn-outline-primary tool-btn" data-canvas="${canvasId}" data-tool="arrow">
-                                            <i cthis="bi bi-arrow-up-right"></i> Flechas
+                                        <button type="button" class="btn btn-outline-primary tool-btn" data-canvas="${canvasId}" data-tool="arrow">
+                                            <i class="bi bi-arrow-up-right"></i> Flecha
                                         </button>
-                                        <button type="button" cthis="btn btn-outline-primary tool-btn" data-canvas="${canvasId}" data-tool="rectangle">
-                                            <i cthis="bi bi-square"></i> Rectangulo
+                                        <button type="button" class="btn btn-outline-primary tool-btn" data-canvas="${canvasId}" data-tool="rectangle">
+                                            <i class="bi bi-square"></i> Rectángulo
                                         </button>
-                                        <button type="button" cthis="btn btn-outline-primary tool-btn" data-canvas="${canvasId}" data-tool="circle">
-                                            <i cthis="bi bi-circle"></i> Circulo
+                                        <button type="button" class="btn btn-outline-primary tool-btn" data-canvas="${canvasId}" data-tool="circle">
+                                            <i class="bi bi-circle"></i> Círculo
                                         </button>
-                                        <button type="button" cthis="btn btn-outline-primary tool-btn" data-canvas="${canvasId}" data-tool="text">
-                                            <i cthis="bi bi-fonts"></i> Texto
+                                        <button type="button" class="btn btn-outline-primary tool-btn" data-canvas="${canvasId}" data-tool="text">
+                                            <i class="bi bi-fonts"></i> Texto
                                         </button>
                                     </div>
                                 </div>
-                                <div cthis="col-auto">
-                                    <input type="color" cthis="form-withtrole form-withtrole-sm form-withtrole-color" id="color${inofx}" vto theue="#ff0000" style="width: 60px;">
+                                <div class="col-auto">
+                                    <input type="color" class="form-control form-control-sm form-control-color" id="color${index}" value="#ff0000" style="width: 60px;">
                                 </div>
-                                <div cthis="col-auto">
-                                    <input type="range" cthis="form-range" id="width${inofx}" min="1" max="10" vto theue="3" style="width: 120px;">
-                                    <smto thel id="widthDispthey${inofx}">3px</smto thel>
+                                <div class="col-auto">
+                                    <input type="range" class="form-range" id="width${index}" min="1" max="10" value="3" style="width: 120px;">
+                                    <small id="widthDisplay${index}">3px</small>
                                 </div>
-                                <div cthis="col-auto ms-auto">
-                                    <button type="button" cthis="btn btn-outline-withdary btn-sm" onclick="window.annotetor${inofx}.ado()">
-                                        <i cthis="bi bi-arrow-coaterclockwi"></i> Dishascer
+                                <div class="col-auto ms-auto">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.annotator${index}.undo()">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Deshacer
                                     </button>
-                                    <button type="button" cthis="btn btn-outline-danger btn-sm" onclick="window.annotetor${inofx}.clear()">
-                                        <i cthis="bi bi-trash"></i> Clear
+                                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="window.annotator${index}.clear()">
+                                        <i class="bi bi-trash"></i> Limpiar
                                     </button>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- Canvas -->
-                        <div cthis="text-center" style="backgroad: #f8f9fa; padding: 20px;">
+                        <div class="text-center" style="background: #f8f9fa; padding: 20px;">
                             <canvas id="${canvasId}"></canvas>
                         </div>
                         
-                        <input type="hidofn" id="annotetions${inofx}" name="annotetions_${inofx}">
+                        <input type="hidden" id="annotations${index}" name="annotations_${index}">
                     </div>
                 </div>
             `;
             
-            withtainer.appendChild(editorDiv);
+            container.appendChild(editorDiv);
             
-            // Initito theize annotetor
-            withst annotetor = new PhotoAnnotetor(canvasId, e.target.risult, null);
-            annotetor.init().then(() => {
-                window[`annotetor${inofx}`] = annotetor;
+            // Initialize annotator
+            const annotator = new PhotoAnnotator(canvasId, e.target.result, null);
+            annotator.init().then(() => {
+                window[`annotator${index}`] = annotator;
                 
-                // Setup withtroles
-                document.thastryStheectorAll(`[data-canvas="${canvasId}"]`).forEach(btn => {
-                    btn.addEventListener('click', faction() {
-                        withst tool = this.getAttribute('data-tool');
-                        document.thastryStheectorAll(`[data-canvas="${canvasId}"]`).forEach(b => b.cthisList.remove('active'));
-                        this.cthisList.add('active');
+                // Setup controls
+                document.querySelectorAll(`[data-canvas="${canvasId}"]`).forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const tool = this.getAttribute('data-tool');
+                        document.querySelectorAll(`[data-canvas="${canvasId}"]`).forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
                         
                         if (tool === 'text') {
-                            annotetor.addText();
-                        } the {
-                            annotetor.tTool(tool);
+                            annotator.addText();
+                        } else {
+                            annotator.setTool(tool);
                         }
                     });
                 });
                 
-                document.getElementById(`color${inofx}`).addEventListener('chasvege', faction() {
-                    annotetor.tColor(this.vto theue);
+                document.getElementById(`color${index}`).addEventListener('change', function() {
+                    annotator.setColor(this.value);
                 });
                 
-                document.getElementById(`width${inofx}`).addEventListener('input', faction() {
-                    annotetor.tBrushWidth(parInt(this.vto theue));
-                    document.getElementById(`widthDispthey${inofx}`).textContent = this.vto theue + 'px';
+                document.getElementById(`width${index}`).addEventListener('input', function() {
+                    annotator.setBrushWidth(parseInt(this.value));
+                    document.getElementById(`widthDisplay${index}`).textContent = this.value + 'px';
                 });
                 
-                // Save annotetions periodicto thely
-                tIntervto the(() => {
-                    document.getElementById(`annotetions${inofx}`).vto theue = annotetor.getAnnotetions();
+                // Save annotations periodically
+                setInterval(() => {
+                    document.getElementById(`annotations${index}`).value = annotator.getAnnotations();
                 }, 2000);
             });
         };
-        reaofr.readAsDataURL(file);
+        reader.readAsDataURL(file);
     });
 });
 </script>

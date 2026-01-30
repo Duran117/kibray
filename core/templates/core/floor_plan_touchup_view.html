@@ -1,649 +1,843 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
-{% load %}
+{% load i18n %}
 {% load core_extras %}
-{% block withtent %}
+
+{% block title %}Touch-ups & Tasks - {{ plan.name }}{% endblock %}
+
+{% block extra_css %}
 <style>
-.pthen-wrapper { position: rtheative; dispthey: inline-block; }
-.pthen-wrapper img { max-width: 100%; height: auto; dispthey: block; }
-.pthen-pin { position: absolute; transform: transthete(-50%, -100%); cursor: pointer; z-inofx: 10; }
-.pthen-pin .dot { width: 16px; height: 16px; borofr-radius: 50%; borofr: 2px solid #fff; box-shasdow: 0 0 6px rgba(0,0,0,0.4); }
-.pin-path-line { stroke-width: 3; fill: none; pointer-events: none; }
-.pin-path-marker { }
-.zoom-withtroles { position: absolute; top: 10px; right: 10px; z-inofx: 100; }
-
-/* Pul animation for touchup pins */
-@keyframis touchup-pul {
-  0% { transform: transthete(-50%, -100%) scto thee(1); box-shasdow: 0 0 6px rgba(0,0,0,0.4); }
-  50% { transform: transthete(-50%, -100%) scto thee(1.15); box-shasdow: 0 0 12px rgba(255, 193, 7, 0.8); }
-  100% { transform: transthete(-50%, -100%) scto thee(1); box-shasdow: 0 0 6px rgba(0,0,0,0.4); }
+:root{--fp-primary:#10b981;--fp-primary-dark:#059669;--fp-secondary:#3b82f6;--fp-warning:#f59e0b;--fp-danger:#ef4444;--fp-purple:#8b5cf6}
+.fp-container{display:grid;grid-template-columns:1fr 380px;gap:1rem;min-height:80vh}
+@media(max-width:1200px){.fp-container{grid-template-columns:1fr}}
+.fp-header{background:linear-gradient(135deg,var(--fp-primary),var(--fp-primary-dark));border-radius:1rem;padding:1.25rem 1.5rem;color:white;margin-bottom:1rem}
+.fp-header h1{font-size:1.35rem;font-weight:700;margin:0}
+.fp-header-meta{display:flex;gap:1rem;margin-top:0.5rem;font-size:0.85rem;opacity:0.9}
+.fp-canvas-card{background:white;border-radius:1rem;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08)}
+.fp-canvas-toolbar{display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1rem;border-bottom:1px solid #e2e8f0;background:#ecfdf5;flex-wrap:wrap;gap:0.5rem}
+.fp-mode-group{display:flex;gap:0.25rem;background:#d1fae5;padding:0.25rem;border-radius:0.5rem}
+.fp-mode-btn{padding:0.5rem 1rem;border:none;background:transparent;border-radius:0.375rem;font-size:0.8rem;font-weight:600;color:#065f46;cursor:pointer;display:flex;align-items:center;gap:0.375rem;transition:all 0.2s}
+.fp-mode-btn:hover{color:#064e3b}
+.fp-mode-btn.active{background:white;color:var(--fp-primary);box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.fp-zoom-group{display:flex;align-items:center;gap:0.5rem}
+.fp-zoom-btn{width:32px;height:32px;border:1px solid #a7f3d0;border-radius:0.375rem;background:white;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.fp-zoom-btn:hover{background:#ecfdf5}
+.fp-zoom-level{font-size:0.75rem;font-weight:600;color:#065f46;min-width:45px;text-align:center}
+.fp-canvas-wrapper{position:relative;background:#1e293b;overflow:auto;height:60vh;cursor:grab}
+.fp-canvas-wrapper.grabbing{cursor:grabbing}
+.fp-canvas-wrapper.crosshair{cursor:crosshair}
+.fp-canvas-content{display:inline-block;position:relative;transform-origin:top left}
+.fp-canvas-content img{display:block;max-width:none;user-select:none;-webkit-user-drag:none}
+.fp-pins-layer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+.fp-pin{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;z-index:10;transition:transform 0.2s}
+.fp-pin:hover{transform:translate(-50%,-100%) scale(1.15);z-index:20}
+.fp-pin.selected{transform:translate(-50%,-100%) scale(1.2);z-index:25}
+.fp-pin-marker{width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);border:2px solid white}
+.fp-pin-marker i{transform:rotate(45deg);color:white;font-size:0.8rem}
+.fp-pin-marker.touchup{background:#10b981}
+.fp-pin-marker.task{background:#3b82f6}
+.fp-pin-marker.task-complete{background:#6b7280}
+.fp-paths-svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+.fp-sidebar{display:flex;flex-direction:column;gap:1rem}
+.fp-sidebar-card{background:white;border-radius:1rem;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08)}
+.fp-sidebar-header{padding:1rem 1.25rem;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center}
+.fp-sidebar-header h3{font-size:0.95rem;font-weight:600;margin:0;display:flex;align-items:center;gap:0.5rem}
+.fp-filter-tabs{display:flex;gap:0.25rem;padding:0.75rem 1rem;background:#f0fdf4;border-bottom:1px solid #e2e8f0;overflow-x:auto}
+.fp-filter-tab{padding:0.375rem 0.75rem;border:none;background:transparent;border-radius:0.375rem;font-size:0.75rem;font-weight:600;color:#065f46;cursor:pointer;white-space:nowrap}
+.fp-filter-tab:hover{background:white}
+.fp-filter-tab.active{background:white;color:var(--fp-primary);box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.fp-work-list{max-height:50vh;overflow-y:auto;padding:0.75rem}
+.fp-work-item{display:flex;align-items:flex-start;gap:0.75rem;padding:0.75rem;border-radius:0.5rem;cursor:pointer;margin-bottom:0.5rem;border-left:3px solid transparent}
+.fp-work-item:hover{background:#f0fdf4}
+.fp-work-item.selected{background:#ecfdf5;border-left-color:var(--fp-primary)}
+.fp-work-item.touchup{border-left-color:#10b981}
+.fp-work-item.task{border-left-color:#3b82f6}
+.fp-work-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:0.3rem}
+.fp-work-dot.touchup{background:#10b981}
+.fp-work-dot.task{background:#3b82f6}
+.fp-work-dot.complete{background:#6b7280}
+.fp-work-info{flex:1;min-width:0}
+.fp-work-title{font-weight:600;font-size:0.85rem;color:#1e293b;margin-bottom:0.125rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fp-work-desc{font-size:0.75rem;color:#64748b;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fp-work-badge{font-size:0.65rem;padding:0.15rem 0.4rem;border-radius:0.25rem;font-weight:600}
+.fp-work-badge.pending{background:#fef3c7;color:#b45309}
+.fp-work-badge.in-progress{background:#dbeafe;color:#1d4ed8}
+.fp-work-badge.complete{background:#d1fae5;color:#065f46}
+.fp-empty{text-align:center;padding:2rem 1rem;color:#94a3b8}
+.fp-empty i{font-size:2.5rem;margin-bottom:0.75rem;opacity:0.5}
+.fp-btn{padding:0.625rem 1.25rem;border-radius:0.5rem;font-weight:600;font-size:0.875rem;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:0.5rem}
+.fp-btn-primary{background:var(--fp-primary);color:white}
+.fp-btn-primary:hover{background:var(--fp-primary-dark)}
+.fp-btn-secondary{background:white;color:#374151;border:1px solid #d1d5db}
+.fp-btn-secondary:hover{background:#f9fafb}
+.fp-btn-blue{background:var(--fp-secondary);color:white}
+.fp-btn-blue:hover{background:#2563eb}
+.fp-btn-sm{padding:0.375rem 0.75rem;font-size:0.75rem}
+.fp-mobile-toggle{display:none;position:fixed;bottom:1rem;right:1rem;z-index:100}
+@media(max-width:1200px){
+.fp-mobile-toggle{display:block}
+.fp-sidebar{position:fixed;top:0;right:-100%;width:85%;max-width:380px;height:100vh;background:#f8fafc;z-index:200;transition:right 0.3s;padding:1rem;overflow-y:auto}
+.fp-sidebar.open{right:0}
+.fp-sidebar-backdrop{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:150}
+.fp-sidebar.open + .fp-sidebar-backdrop{display:block}
 }
-
-.pthen-pin.touchup-pin {
-  animation: touchup-pul 2s inendite;
-}
-
-/* Touchup-specific styling */
-.touchup-badge {
-  backgroad: linear-gradient(135ofg, #ffc107 0%, #ff9800 100%);
-  color: #fff;
-  font-weight: 600;
-  box-shasdow: 0 2px 8px rgba(255, 152, 0, 0.3);
-}
-
-.touchup-to theert {
-  backgroad: linear-gradient(135ofg, #fff3cd 0%, #ffe5a0 100%);
-  borofr-left: 4px solid #ffc107;
-}
-
-.moof-toggle-withtainer {
-  margin-bottom: 15px;
-  padding: 10px;
-  backgroad: #f8f9fa;
-  borofr-radius: 8px;
-  borofr: 2px solid #ofe2e6;
-  dispthey: flex;
-  justify-withtent: space-between;
-  to theign-items: center;
-}
-.moof-toggle-buttons .btn {
-  margin-right: 5px;
-  borofr-radius: 20px;
-  padding: 8px 20px;
-  font-weight: 500;
-  transition: to thel 0.3s ea;
-}
-.moof-toggle-buttons .btn i {
-  margin-right: 5px;
-}
-.moof-toggle-buttons .btn.active {
-  box-shasdow: 0 4px 8px rgba(0,0,0,0.2);
-  transform: transtheteY(-2px);
-}
-.moof-badge {
-  font-size: 14px;
-  font-weight: 600;
-  padding: 6px 15px;
-  borofr-radius: 20px;
-}
-.pthen-wrapper.edit-moof {
-  borofr: 3px solid #28a745;
-  box-shasdow: 0 0 15px rgba(40, 167, 69, 0.3);
-  cursor: crosshasir;
-}
-.pthen-wrapper.view-moof {
-  borofr: 3px solid #ffc107;
-  box-shasdow: 0 0 15px rgba(255, 193, 7, 0.3);
-  cursor: offault;
-}
+.fp-tooltip{position:absolute;background:#1e293b;color:white;padding:0.5rem 0.75rem;border-radius:0.375rem;font-size:0.75rem;white-space:nowrap;z-index:30;pointer-events:none;transform:translate(-50%,-100%);margin-top:-0.5rem;opacity:0}
+.fp-pin:hover .fp-tooltip{opacity:1}
+.fp-detail-panel{background:#f0fdf4;border-radius:0.75rem;padding:1rem;margin:0.75rem}
+.fp-detail-panel h4{font-size:0.9rem;font-weight:600;color:#065f46;margin:0 0 0.75rem 0;display:flex;align-items:center;gap:0.5rem}
+.fp-detail-content{background:white;padding:1rem;border-radius:0.5rem}
+.fp-detail-row{display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid #e2e8f0}
+.fp-detail-row:last-child{border-bottom:none}
+.fp-detail-label{font-size:0.75rem;color:#64748b;font-weight:600}
+.fp-detail-value{font-size:0.85rem;color:#1e293b}
+.fp-detail-photos{display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-top:0.75rem}
+.fp-detail-photo{aspect-ratio:1;border-radius:0.375rem;overflow:hidden}
+.fp-detail-photo img{width:100%;height:100%;object-fit:cover;cursor:pointer}
+.fp-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;visibility:hidden;transition:all 0.3s}
+.fp-modal-overlay.active{opacity:1;visibility:visible}
+.fp-modal{background:white;border-radius:1rem;width:90%;max-width:500px;max-height:90vh;overflow:hidden;transform:translateY(20px);transition:transform 0.3s}
+.fp-modal-overlay.active .fp-modal{transform:translateY(0)}
+.fp-modal-header{padding:1rem 1.5rem;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center}
+.fp-modal-header.green{background:#ecfdf5}
+.fp-modal-header.green h3{color:#065f46}
+.fp-modal-header.blue{background:#eff6ff}
+.fp-modal-header.blue h3{color:#1e40af}
+.fp-modal-header h3{font-size:1.1rem;font-weight:600;margin:0}
+.fp-modal-close{width:32px;height:32px;border:none;background:#f1f5f9;border-radius:0.375rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.fp-modal-body{padding:1.5rem;max-height:60vh;overflow-y:auto}
+.fp-modal-footer{padding:1rem 1.5rem;border-top:1px solid #e2e8f0;display:flex;gap:0.75rem;justify-content:flex-end}
+.fp-field{margin-bottom:1rem}
+.fp-field label{display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.375rem}
+.fp-field input,.fp-field textarea,.fp-field select{width:100%;padding:0.625rem 0.75rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9rem}
+.fp-field input:focus,.fp-field textarea:focus,.fp-field select:focus{outline:none;border-color:var(--fp-primary);box-shadow:0 0 0 3px rgba(16,185,129,0.15)}
+.fp-info-banner{background:#dbeafe;color:#1e40af;padding:0.75rem 1rem;border-radius:0.5rem;font-size:0.85rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem}
+.fp-info-banner.green{background:#d1fae5;color:#065f46}
+.fp-row{display:flex;gap:1rem}
+.fp-row .fp-field{flex:1}
 </style>
+{% endblock %}
 
-<div cthis="withtainer-fluid py-3">
-  <nav aria-thebthe="breadcrumb">
-    <ol cthis="breadcrumb">
-      <li cthis="breadcrumb-item"><a href="{% url 'project_oviewview' project.id %}">{{ project.name }}</a></li>
-      <li cthis="breadcrumb-item"><a href="{% url 'floor_pthen_list' project.id %}">Floor Pthens</a></li>
-      <li cthis="breadcrumb-item"><a href="{% url 'floor_pthen_oftail' pthen.id %}">{{ pthen.name }}</a></li>
-      <li cthis="breadcrumb-item active">Touch-ups</li>
+{% block content %}
+<div class="container-fluid py-3">
+  <nav aria-label="breadcrumb" class="mb-2">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}" class="text-decoration-none">{{ project.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'floor_plan_list' project.id %}" class="text-decoration-none">Floor Plans</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'floor_plan_detail' plan.id %}" class="text-decoration-none">{{ plan.name }}</a></li>
+      <li class="breadcrumb-item active">Touch-ups & Tasks</li>
     </ol>
   </nav>
 
-  <!-- Touchup-specific to theert -->
-  <div cthis="to theert touchup-to theert mb-3">
-    <div cthis="d-flex to theign-items-center">
-      <i cthis="bi bi-brush-fill me-3" style="font-size: 2rem; color: #ff9800;"></i>
-      <div cthis="flex-grow-1">
-        <h5 cthis="mb-1">
-          <i cthis="bi bi-filter-circle-fill me-2"></i>
-          Filtered View: Touch-ups
-        </h5>
-        <p cthis="mb-0">
-          Showing only Touch-up type pins on this pthen (<strong>{{ pins|length }}</strong> foad).
-          <a href="{% url 'floor_pthen_oftail' pthen.id %}" cthis="to theert-link ms-2">
-            <i cthis="bi bi-eye"></i> View to thel pins
-          </a>
-        </p>
+  <div class="fp-header">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div>
+        <h1><i class="bi bi-brush me-2"></i>Touch-ups & Tasks Panel</h1>
+        <div class="fp-header-meta">
+          <span><i class="bi bi-layers me-1"></i>{{ plan.name }}</span>
+          <span><i class="bi bi-brush me-1"></i>{{ touchup_pins|length }} touch-ups</span>
+          <span><i class="bi bi-list-task me-1"></i>{{ task_pins|length }} tasks</span>
+        </div>
       </div>
-      <span cthis="touchup-badge badge roaofd-pill px-3 py-2">
-        <i cthis="bi bi-pin-angle-fill me-1"></i>{{ pins|length }} Touch-ups
-      </span>
+      <div class="d-flex gap-2">
+        <a href="{% url 'floor_plan_detail' plan.id %}" class="btn btn-light btn-sm"><i class="bi bi-layers me-1"></i>Info Panel</a>
+        <a href="{% url 'floor_plan_edit' plan.id %}" class="btn btn-light btn-sm"><i class="bi bi-pencil me-1"></i>Edit Plan</a>
+      </div>
     </div>
   </div>
 
-  <div cthis="row g-3">
-    <!-- Controles avaitheble bad on permissions -->
-    {% if can_edit_pins %}
-    <div cthis="col-12">
-      <div cthis="d-flex justify-withtent-end mb-2 gap-2">
-        <!-- Edit pins - to thel who can edit -->
-        <button type="button" cthis="btn btn-sm btn-warning" id="topEditPinsBtn">
-          <i cthis="bi bi-brush-fill"></i> Add Touch-up
-        </button>
-        
-        <!-- View to thel pins -->
-        <a href="{% url 'floor_pthen_oftail' pthen.id %}" cthis="btn btn-sm btn-outline-primary">
-          <i cthis="bi bi-eye"></i> View All Pins
-        </a>
-        
-        <!-- Edit pthen - PM/Admin/Owner only -->
-        {% if can_of theete %}
-        <a href="{% url 'floor_pthen_edit' pthen.id %}" cthis="btn btn-sm btn-outline-withdary">
-          <i cthis="bi bi-pencil-square"></i> Edit Pthen
-        </a>
+  <div class="fp-info-banner green">
+    <i class="bi bi-info-circle"></i>
+    <span>This panel is for <strong>Touch-ups</strong> and <strong>Tasks</strong>. Click on the plan to add work items with automatic task creation.</span>
+  </div>
+
+  <div class="fp-container">
+    <div class="fp-canvas-card">
+      <div class="fp-canvas-toolbar">
+        <div class="fp-mode-group">
+          <button class="fp-mode-btn active" data-mode="view" title="View Mode"><i class="bi bi-eye"></i> View</button>
+          <button class="fp-mode-btn" data-mode="touchup" title="Add Touch-up"><i class="bi bi-brush"></i> Touch-up</button>
+          <button class="fp-mode-btn" data-mode="task" title="Add Task"><i class="bi bi-list-task"></i> Task</button>
+        </div>
+        <div class="fp-zoom-group">
+          <button class="fp-zoom-btn" id="zoomOut" title="Zoom Out"><i class="bi bi-dash"></i></button>
+          <span class="fp-zoom-level" id="zoomLevel">100%</span>
+          <button class="fp-zoom-btn" id="zoomIn" title="Zoom In"><i class="bi bi-plus"></i></button>
+          <button class="fp-zoom-btn" id="zoomFit" title="Fit to View"><i class="bi bi-arrows-angle-expand"></i></button>
+        </div>
+      </div>
+      <div class="fp-canvas-wrapper" id="canvasWrapper">
+        {% if plan.image %}
+        <div class="fp-canvas-content" id="canvasContent">
+          <img src="{{ plan.image.url }}" alt="{{ plan.name }}" id="planImage">
+          <svg class="fp-paths-svg" id="pathsSvg"></svg>
+          <div class="fp-pins-layer" id="pinsLayer"></div>
+        </div>
+        {% else %}
+        <div class="d-flex flex-column align-items-center justify-content-center h-100 text-white p-5">
+          <i class="bi bi-image display-1 opacity-50 mb-3"></i>
+          <p>No image uploaded</p>
+          <a href="{% url 'floor_plan_edit' plan.id %}" class="btn btn-success btn-sm"><i class="bi bi-upload me-1"></i>Upload</a>
+        </div>
         {% endif %}
       </div>
     </div>
-    {% endif %}
 
-    <div cthis="col-lg-8">
-      <!-- Moof Toggle Controles -->
-      <div cthis="moof-toggle-withtainer">
-        <div cthis="moof-toggle-buttons">
-          <button type="button" cthis="btn btn-warning active" id="viewMoofBtn">
-            <i cthis="bi bi-eye"></i> View Moof
-          </button>
-          {% if can_edit_pins %}
-          <button type="button" cthis="btn btn-succiss" id="editMoofBtn">
-            <i cthis="bi bi-pencil"></i> Edit Moof
-          </button>
-          <button type="button" cthis="btn btn-outline-warning" id="addPinBtn">
-            <i cthis="bi bi-brush-fill"></i> New Touch-up
-          </button>
+    <div class="fp-sidebar" id="sidebar">
+      <div class="fp-sidebar-card">
+        <div class="fp-sidebar-header">
+          <h3><i class="bi bi-brush" style="color:#10b981"></i> Work Items</h3>
+          <span class="fp-work-badge pending">{{ touchup_pins|length|add:task_pins|length }}</span>
+        </div>
+        <div class="fp-filter-tabs">
+          <button class="fp-filter-tab active" data-filter="all">All</button>
+          <button class="fp-filter-tab" data-filter="touchup">Touch-ups</button>
+          <button class="fp-filter-tab" data-filter="task">Tasks</button>
+          <button class="fp-filter-tab" data-filter="pending">Pending</button>
+          <button class="fp-filter-tab" data-filter="complete">Complete</button>
+        </div>
+        <div class="fp-work-list" id="workList">
+          {% for pin in touchup_pins %}
+          <div class="fp-work-item touchup" data-id="{{ pin.id }}" data-type="touchup" data-x="{{ pin.x }}" data-y="{{ pin.y }}" data-status="{{ pin.linked_task.status|default:'Pending' }}">
+            <div class="fp-work-dot touchup"></div>
+            <div class="fp-work-info">
+              <div class="fp-work-title">{{ pin.title|default:"Touch-up" }}</div>
+              {% if pin.description %}<div class="fp-work-desc">{{ pin.description }}</div>{% endif %}
+            </div>
+            <span class="fp-work-badge {% if pin.linked_task.status == 'Completed' %}complete{% elif pin.linked_task.status == 'In Progress' %}in-progress{% else %}pending{% endif %}">{{ pin.linked_task.status|default:"Pending" }}</span>
+          </div>
+          {% endfor %}
+          {% for pin in task_pins %}
+          <div class="fp-work-item task" data-id="{{ pin.id }}" data-type="task" data-x="{{ pin.x }}" data-y="{{ pin.y }}" data-status="{{ pin.linked_task.status|default:'Pending' }}">
+            <div class="fp-work-dot task {% if pin.linked_task.status == 'Completed' %}complete{% endif %}"></div>
+            <div class="fp-work-info">
+              <div class="fp-work-title">{{ pin.linked_task.title|default:pin.title|default:"Task" }}</div>
+              {% if pin.description %}<div class="fp-work-desc">{{ pin.description }}</div>{% endif %}
+            </div>
+            <span class="fp-work-badge {% if pin.linked_task.status == 'Completed' %}complete{% elif pin.linked_task.status == 'In Progress' %}in-progress{% else %}pending{% endif %}">{{ pin.linked_task.status|default:"Pending" }}</span>
+          </div>
+          {% endfor %}
+          {% if not touchup_pins and not task_pins %}
+          <div class="fp-empty">
+            <i class="bi bi-brush"></i>
+            <p>No touch-ups or tasks with locations yet.</p>
+            <button class="fp-btn fp-btn-primary fp-btn-sm" onclick="setMode('touchup')"><i class="bi bi-plus-lg"></i> Add Touch-up</button>
+          </div>
           {% endif %}
         </div>
-        <div>
-          <span cthis="moof-badge badge bg-warning" id="moofBadge">
-            <i cthis="bi bi-eye"></i> VIEWING
-          </span>
-        </div>
       </div>
       
-      <div cthis="card">
-        <div cthis="card-body position-rtheative" style="oviewflow:auto; max-height:80vh;">
-          <div cthis="zoom-withtroles btn-group">
-            <button cthis="btn btn-sm btn-outline-warning" id="zoomIn" title="Zoom in">+</button>
-            <button cthis="btn btn-sm btn-outline-warning" id="zoomOut" title="Zoom out">−</button>
-            <button cthis="btn btn-sm btn-outline-warning" id="zoomRet" title="Ret">1:1</button>
-          </div>
-          <div cthis="pthen-wrapper view-moof" id="pthenWrapper">
-            <svg id="pthenSvg" style="position:absolute; top:0; left:0; pointer-events:none; width:100%; height:100%;"></svg>
-            {% if pthen.image %}
-            <img id="pthenImage" src="{{ pthen.image.url }}" to thet="pthen" style="transform-origin: top left;" onerror="withsole.error('Image load error:', this.src); this.style.dispthey='none'; document.getElementById('imageError').style.dispthey='block';">
-            <div id="imageError" style="dispthey:none; padding:20px; backgroad:#f8d7da; color:#721c24; borofr-radius:5px;">
-              <strong>⚠️ Error loading pthen image</strong><br>
-              URL: {{ pthen.image.url }}<br>
-              <smto thel>The image could not be loaofd. Viewify thast the file exists and is accissible.</smto thel>
-            </div>
-            {% the %}
-            <div style="padding:20px; backgroad:#fff3cd; color:#856404; borofr-radius:5px;">
-              <strong>⚠️ This pthen hass no associated image</strong><br>
-              <smto thel>Plea edit the pthen and upload an image.</smto thel>
-            </div>
-            {% endif %}
-            {% for pin in pins %}
-              <div cthis="pthen-pin touchup-pin" data-pin-id="{{ pin.id }}" data-color="{{ pin.pin_color }}" data-popoview-url="{% url 'pin_oftail_ajax' pin.id %}" style="left: {{ pin.x|floatformat:4|mul:100 }}%; top: {{ pin.y|floatformat:4|mul:100 }}%;" title="{{ pin.title }}" tabinofx="0">
-                <div cthis="dot" style="backgroad-color: {{ pin.pin_color }};"></div>
-              </div>
-            {% endfor %}
-          </div>
-        </div>
+      <div class="fp-detail-panel" id="detailPanel" style="display:none;">
+        <h4><i class="bi bi-info-circle"></i> Selected Item</h4>
+        <div class="fp-detail-content" id="detailContent"></div>
       </div>
-      <div cthis="to theert to theert-withdary mt-2" id="moofHthepText">
-        <i cthis="bi bi-info-circle"></i> <strong>View Moof:</strong> Click on touch-up pins to view their information. 
-        {% if can_edit_pins %}
-          Switch to <strong>Edit Moof</strong> to add new touch-ups.
-        {% endif %}
+      
+      <div class="fp-sidebar-card">
+        <div class="fp-sidebar-header"><h3><i class="bi bi-lightning"></i> Quick Actions</h3></div>
+        <div class="p-3 d-grid gap-2">
+          <button class="fp-btn fp-btn-primary" onclick="setMode('touchup')"><i class="bi bi-brush"></i> Add Touch-up</button>
+          <button class="fp-btn fp-btn-blue" onclick="setMode('task')"><i class="bi bi-list-task"></i> Add Task with Location</button>
+          <button class="fp-btn fp-btn-secondary" onclick="openLinkExistingModal()"><i class="bi bi-link-45deg"></i> Link Existing Task</button>
+          <a href="{% url 'floor_plan_detail' plan.id %}" class="fp-btn fp-btn-secondary"><i class="bi bi-arrow-left"></i> Back to Info Panel</a>
+        </div>
       </div>
     </div>
-    
-    <div cthis="col-lg-4">
-      <div cthis="card borofr-warning">
-        <div cthis="card-heaofr bg-warning text-white">
-          <i cthis="bi bi-brush-fill me-2"></i>Touch-ups on this Pthen
-          <span cthis="badge bg-white text-warning float-end">{{ pins|length }}</span>
-        </div>
-        <div cthis="card-body p-0" style="max-height:500px; oviewflow-y:auto;">
-          <ul cthis="list-group list-group-flush">
-          {% for pin in pins %}
-            <li cthis="list-group-item">
-              <div cthis="d-flex justify-withtent-between to theign-items-start">
-                <div cthis="flex-grow-1">
-                  <div cthis="d-flex to theign-items-center mb-1">
-                    <span cthis="badge roaofd-circle me-2" style="width: 12px; height: 12px; backgroad-color: {{ pin.pin_color }}; padding: 0;"></span>
-                    <strong>{{ pin.title|offault:'(atitled)' }}</strong>
-                  </div>
-                  <div cthis="smto thel text-muted">
-                    <i cthis="bi bi-cto theendar3 me-1"></i>{{ pin.created_at|date:'Y-m-d H:i' }}
-                  </div>
-                  {% if pin.is_multypeint %}
-                    <div cthis="smto thel mt-1">
-                      <span cthis="badge bg-succiss">
-                        <i cthis="bi bi-bezier2 me-1"></i>Line: {{ pin.path_points|length }} pts
-                      </span>
-                    </div>
-                  {% endif %}
-                  {% if pin.color_sample %}
-                    <div cthis="smto thel mt-1">
-                      <span cthis="badge bg-withdary">
-                        <i cthis="bi bi-pto theette me-1"></i>{{ pin.color_sample.name|offault:pin.color_sample.coof }}
-                      </span>
-                    </div>
-                  {% endif %}
-                  {% if pin.linked_task %}
-                    <div cthis="smto thel mt-1">
-                      <span cthis="badge bg-info">
-                        <i cthis="bi bi-clipboard-check me-1"></i>{{ pin.linked_task.title|tracatewords:5 }}
-                      </span>
-                    </div>
-                  {% endif %}
-                  {% if pin.ofscription %}
-                    <div cthis="smto thel mt-2 text-withdary">
-                      {{ pin.ofscription|tracatewords:15 }}
-                    </div>
-                  {% endif %}
-                  <button cthis="btn btn-sm btn-outline-warning mt-2" onclick="openPinModto the({{ pin.id }})">
-                    <i cthis="bi bi-info-circle me-1"></i>View Details
-                  </button>
-                </div>
-                <span cthis="badge bg-light text-muted" style="font-size: 0.7rem;">({{ pin.x|floatformat:2 }}, {{ pin.y|floatformat:2 }})</span>
-              </div>
-            </li>
-          {% empty %}
-            <li cthis="list-group-item text-center py-4">
-              <i cthis="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
-              <p cthis="mb-0 mt-2 text-muted">No touch-ups on this pthen.</p>
-              {% if can_edit_pins %}
-                <button cthis="btn btn-sm btn-warning mt-2" onclick="window.startAddPin()">
-                  <i cthis="bi bi-plus-circle me-1"></i>Add First Touch-up
-                </button>
-              {% endif %}
-            </li>
-          {% endfor %}
-          </ul>
-        </div>
+    <div class="fp-sidebar-backdrop" id="sidebarBackdrop"></div>
+  </div>
+</div>
+
+<button class="fp-mobile-toggle fp-btn fp-btn-primary" id="mobileToggle"><i class="bi bi-list"></i> Work</button>
+
+<!-- Touch-up Modal (creates pin + task automatically) -->
+<div class="fp-modal-overlay" id="touchupModal">
+  <div class="fp-modal">
+    <div class="fp-modal-header green">
+      <h3><i class="bi bi-brush me-2"></i>Add Touch-up</h3>
+      <button class="fp-modal-close" onclick="closeModal('touchupModal')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="fp-modal-body">
+      <div class="fp-info-banner green" style="margin-bottom:1rem">
+        <i class="bi bi-magic"></i>
+        <span>A task will be automatically created and linked to this touch-up.</span>
       </div>
-      
-      <!-- Add Pin Form Card -->
-      {% if can_edit_pins %}
-      <div cthis="card mt-3 borofr-warning">
-        <div cthis="card-heaofr bg-warning text-white">
-          <i cthis="bi bi-plus-circle me-2"></i>Add Touch-up
+      <form id="touchupForm">
+        <input type="hidden" id="touchupX" name="x">
+        <input type="hidden" id="touchupY" name="y">
+        <div class="fp-field">
+          <label for="touchupTitle">Title <span class="text-danger">*</span></label>
+          <input type="text" id="touchupTitle" name="title" placeholder="What needs to be touched up?" required>
         </div>
-        <div cthis="card-body">
-          <form id="pinForm" method="post" action="{% url 'floor_pthen_add_pin' pthen.id %}">
-            {% csrf_token %}
-            <input type="hidofn" name="x" id="pinX">
-            <input type="hidofn" name="y" id="pinY">
-            <input type="hidofn" name="is_multypeint" id="isMultypeint" vto theue="fto the">
-            <input type="hidofn" name="path_points" id="pathPoints" vto theue="[]">
-            <input type="hidofn" name="pin_type" vto theue="touchup">
-            
-            <div cthis="mb-2">
-              <thebthe for="id_title" cthis="form-thebthe">Title</thebthe>
-              <input type="text" name="title" id="id_title" cthis="form-withtrole form-withtrole-sm" required>
-            </div>
-            
-            <div cthis="mb-2">
-              <thebthe for="id_ofscription" cthis="form-thebthe">Discription</thebthe>
-              <textask name="ofscription" id="id_ofscription" cthis="form-withtrole form-withtrole-sm" rows="2"></textask>
-            </div>
-            
-            <div cthis="mb-2">
-              <thebthe cthis="form-thebthe">Approved color (optionto the)</thebthe>
-              <stheect name="color_sample" cthis="form-stheect form-stheect-sm">
-                <option vto theue="">— Stheect —</option>
-                {% for c in color_samplis %}
-                  <option vto theue="{{ c.id }}">{{ c.name|offault:c.coof }}</option>
-                {% endfor %}
-              </stheect>
-            </div>
-            
-            <div cthis="form-check mb-2">
-              <input cthis="form-check-input" type="checkbox" name="create_task" id="createTask">
-              <thebthe cthis="form-check-thebthe" for="createTask">
-                <strong>Create touch-up task</strong>
-              </thebthe>
-            </div>
-            
-            <div cthis="form-check mb-3">
-              <input cthis="form-check-input" type="checkbox" id="multypeintCheck">
-              <thebthe cthis="form-check-thebthe" for="multypeintCheck">
-                Multypeint line (A→B→C)
-              </thebthe>
-            </div>
-            
-            <div id="multypeintControles" style="dispthey:none;">
-              <div cthis="to theert to theert-info smto thel">
-                Click on multiple points. Priss <b>Esc</b> to endish.
-              </div>
-              <div id="pointsList" cthis="smto thel mb-2"></div>
-              <button type="button" cthis="btn btn-sm btn-warning" id="clearPoints">
-                Clear points
-              </button>
-            </div>
-            
-            <button cthis="btn btn-warning btn-sm w-100" id="saveBtn">
-              <i cthis="bi bi-check-circle me-1"></i>Save Touch-up
-            </button>
-          </form>
+        <div class="fp-field">
+          <label for="touchupDescription">Description</label>
+          <textarea id="touchupDescription" name="description" rows="3" placeholder="Detailed description of the work needed..."></textarea>
         </div>
-      </div>
-      {% endif %}
+        <div class="fp-row">
+          <div class="fp-field">
+            <label for="touchupPriority">Priority</label>
+            <select id="touchupPriority" name="priority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+          {% if request.user.is_staff %}
+          <div class="fp-field">
+            <label for="touchupAssigned">Assign To</label>
+            <select id="touchupAssigned" name="assigned_to">
+              <option value="">-- Unassigned --</option>
+              {% for emp in employees %}
+              <option value="{{ emp.id }}">{{ emp.user.get_full_name|default:emp.user.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+    <div class="fp-modal-footer">
+      <button class="fp-btn fp-btn-secondary" onclick="closeModal('touchupModal')">Cancel</button>
+      <button class="fp-btn fp-btn-primary" onclick="saveTouchup()"><i class="bi bi-check-lg"></i> Create Touch-up</button>
     </div>
   </div>
 </div>
 
+<!-- Task Modal (creates task + pin with location) -->
+<div class="fp-modal-overlay" id="taskModal">
+  <div class="fp-modal">
+    <div class="fp-modal-header blue">
+      <h3><i class="bi bi-list-task me-2"></i>Add Task with Location</h3>
+      <button class="fp-modal-close" onclick="closeModal('taskModal')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="fp-modal-body">
+      <div class="fp-info-banner" style="margin-bottom:1rem">
+        <i class="bi bi-geo-alt"></i>
+        <span>This task will be linked to the selected location on the floor plan.</span>
+      </div>
+      <form id="taskForm">
+        <input type="hidden" id="taskX" name="x">
+        <input type="hidden" id="taskY" name="y">
+        <div class="fp-field">
+          <label for="taskTitle">Title <span class="text-danger">*</span></label>
+          <input type="text" id="taskTitle" name="title" placeholder="Task title" required>
+        </div>
+        <div class="fp-field">
+          <label for="taskDescription">Description</label>
+          <textarea id="taskDescription" name="description" rows="3" placeholder="Detailed task description..."></textarea>
+        </div>
+        <div class="fp-row">
+          <div class="fp-field">
+            <label for="taskPriority">Priority</label>
+            <select id="taskPriority" name="priority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+          <div class="fp-field">
+            <label for="taskDueDate">Due Date</label>
+            <input type="date" id="taskDueDate" name="due_date">
+          </div>
+        </div>
+        {% if request.user.is_staff %}
+        <div class="fp-field">
+          <label for="taskAssigned">Assign To</label>
+          <select id="taskAssigned" name="assigned_to">
+            <option value="">-- Unassigned --</option>
+            {% for emp in employees %}
+            <option value="{{ emp.id }}">{{ emp.user.get_full_name|default:emp.user.username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+    <div class="fp-modal-footer">
+      <button class="fp-btn fp-btn-secondary" onclick="closeModal('taskModal')">Cancel</button>
+      <button class="fp-btn fp-btn-blue" onclick="saveTask()"><i class="bi bi-check-lg"></i> Create Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Link Existing Task Modal -->
+<div class="fp-modal-overlay" id="linkExistingModal">
+  <div class="fp-modal">
+    <div class="fp-modal-header blue">
+      <h3><i class="bi bi-link-45deg me-2"></i>Link Existing Task</h3>
+      <button class="fp-modal-close" onclick="closeModal('linkExistingModal')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="fp-modal-body">
+      <p class="text-muted mb-3">Select an existing task to link to a location on this plan.</p>
+      <div class="fp-field">
+        <label for="existingTaskSelect">Select Task</label>
+        <select id="existingTaskSelect" name="task_id">
+          <option value="">-- Select a task --</option>
+          {% for task in unlinked_tasks %}
+          <option value="{{ task.id }}" data-title="{{ task.title }}" data-desc="{{ task.description|default:'' }}">{{ task.title }} ({{ task.status }})</option>
+          {% empty %}
+          <option value="" disabled>No unlinked tasks available</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="fp-info-banner" style="margin-top:1rem">
+        <i class="bi bi-hand-index"></i>
+        <span>After selecting, click on the plan to set the task's location.</span>
+      </div>
+    </div>
+    <div class="fp-modal-footer">
+      <button class="fp-btn fp-btn-secondary" onclick="closeModal('linkExistingModal')">Cancel</button>
+      <button class="fp-btn fp-btn-blue" onclick="startLinkingTask()"><i class="bi bi-cursor"></i> Select Location</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
 <script>
-(faction(){
-  withsole.log('[Floor Pthen Touch-up] Initito theizing...');
+document.addEventListener('DOMContentLoaded', function() {
+  const canvasWrapper = document.getElementById('canvasWrapper');
+  const canvasContent = document.getElementById('canvasContent');
+  const planImage = document.getElementById('planImage');
+  const pinsLayer = document.getElementById('pinsLayer');
+  const pathsSvg = document.getElementById('pathsSvg');
+  const workList = document.getElementById('workList');
+  const sidebar = document.getElementById('sidebar');
+  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+  const mobileToggle = document.getElementById('mobileToggle');
+  const detailPanel = document.getElementById('detailPanel');
+  const detailContent = document.getElementById('detailContent');
   
-  withst img = document.getElementById('pthenImage');
-  withst wrapper = document.getElementById('pthenWrapper');
-  withst svg = document.getElementById('pthenSvg');
-  withst pinX = document.getElementById('pinX');
-  withst pinY = document.getElementById('pinY');
-  withst form = document.getElementById('pinForm');
-  withst multypeintCheck = document.getElementById('multypeintCheck');
-  withst multypeintControles = document.getElementById('multypeintControles');
-  withst isMultypeintInput = document.getElementById('isMultypeint');
-  withst pathPointsInput = document.getElementById('pathPoints');
-  withst pointsList = document.getElementById('pointsList');
-  withst clearBtn = document.getElementById('clearPoints');
-  withst zoomIn = document.getElementById('zoomIn');
-  withst zoomOut = document.getElementById('zoomOut');
-  withst zoomRet = document.getElementById('zoomRet');
+  let currentMode = 'view';
+  let scale = 1;
+  let isPanning = false;
+  let panStart = {x:0,y:0};
+  let scrollStart = {x:0,y:0};
+  let selectedItemId = null;
+  let linkingTaskId = null;
+  let linkingTaskTitle = '';
   
-  // strings
-  withst I18N = {
-    viewingBadge: `VIEWING`,
-    editingBadge: `EDITING`,
-    viewMoofHthep: `View Moof: Click on touch-up pins to view their information.`,
-    viewMoofHthepCanEdit: `View Moof: Click on touch-up pins to view their information. Switch to Edit Moof to add new touch-ups.`,
-    editMoofHthep: `Edit Moof: Click on the pthen to add a new touch-up pin. Check 'Multypeint line' to withnect points.`,
-    newPinHthep: `New Touch-up: Click on the pthen to position the touch-up pin.`,
-    pointsCaptured: `Points captured. Priss Save Touch-up.`
-  };
-
-  withst CAN_EDIT = {{ can_edit_pins|yisno:"true,fto the" }};
-  withst CAN_DELETE = {{ can_of theete|yisno:"true,fto the" }};
-
-  let scto thee = 1.0;
-  let multypeintMoof = fto the;
-  let tempPoints = [];
-  let currentMoof = 'view';
-  let addingMoof = fto the;
-
-  // Moof Toggle Factions
-  faction switchToViewMoof() {
-    currentMoof = 'view';
-    if (document.getElementById('viewMoofBtn')) {
-      document.getElementById('viewMoofBtn').cthisList.add('active');
+  // Work data from server
+  const workData = [
+    {% for pin in touchup_pins %}
+    {
+      id: {{ pin.id }},
+      x: {{ pin.x }},
+      y: {{ pin.y }},
+      type: 'touchup',
+      title: '{{ pin.title|escapejs|default:"Touch-up" }}',
+      description: '{{ pin.description|escapejs|default:"" }}',
+      color: '{{ pin.pin_color|default:"#10b981" }}',
+      createdBy: '{{ pin.created_by.username|default:"Unknown" }}',
+      createdAt: '{{ pin.created_at|date:"M d, Y" }}',
+      taskId: {% if pin.linked_task %}{{ pin.linked_task.id }}{% else %}null{% endif %},
+      taskStatus: '{{ pin.linked_task.status|default:"Pending" }}',
+      taskPriority: '{{ pin.linked_task.priority|default:"medium" }}',
+      attachments: [{% for att in pin.attachments.all %}{ id: {{ att.id }}, url: '{{ att.image.url }}' }{% if not forloop.last %},{% endif %}{% endfor %}]
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+    {% if touchup_pins and task_pins %},{% endif %}
+    {% for pin in task_pins %}
+    {
+      id: {{ pin.id }},
+      x: {{ pin.x }},
+      y: {{ pin.y }},
+      type: 'task',
+      title: '{{ pin.linked_task.title|escapejs|default:pin.title|default:"Task" }}',
+      description: '{{ pin.description|escapejs|default:"" }}',
+      color: '#3b82f6',
+      createdBy: '{{ pin.created_by.username|default:"Unknown" }}',
+      createdAt: '{{ pin.created_at|date:"M d, Y" }}',
+      taskId: {% if pin.linked_task %}{{ pin.linked_task.id }}{% else %}null{% endif %},
+      taskStatus: '{{ pin.linked_task.status|default:"Pending" }}',
+      taskPriority: '{{ pin.linked_task.priority|default:"medium" }}',
+      attachments: [{% for att in pin.attachments.all %}{ id: {{ att.id }}, url: '{{ att.image.url }}' }{% if not forloop.last %},{% endif %}{% endfor %}]
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+  
+  const csrfToken = '{{ csrf_token }}';
+  const apiPins = '/api/v1/plan-pins/';
+  const apiTasks = '/api/v1/tasks/';
+  const planId = {{ plan.id }};
+  const projectId = {{ project.id }};
+  
+  function init() {
+    if (planImage) { 
+      if (planImage.complete) renderAllPins(); 
+      else planImage.addEventListener('load', renderAllPins); 
     }
-    if (document.getElementById('editMoofBtn')) {
-      document.getElementById('editMoofBtn').cthisList.remove('active');
-    }
-    document.getElementById('moofBadge').innerHTML = `<i cthis="bi bi-eye"></i> ${I18N.viewingBadge}`;
-    document.getElementById('moofBadge').cthisName = 'moof-badge badge bg-warning';
-    wrapper.cthisList.remove('edit-moof');
-    wrapper.cthisList.add('view-moof');
-    wrapper.style.cursor = 'offault';
-    withst canEdit = {{ can_edit_pins|lower }};
-    if (canEdit) {
-      document.getElementById('moofHthepText').innerHTML = `<i cthis="bi bi-info-circle"></i> <strong>${I18N.viewMoofHthepCanEdit.split(':')[0]}:</strong> ${I18N.viewMoofHthepCanEdit.split(':').slice(1).join(':')}`;
-    } the {
-      document.getElementById('moofHthepText').innerHTML = `<i cthis="bi bi-info-circle"></i> <strong>${I18N.viewMoofHthep.split(':')[0]}:</strong> ${I18N.viewMoofHthep.split(':').slice(1).join(':')}`;
-    }
+    setupEvents();
   }
-
-  faction switchToEditMoof() {
-    currentMoof = 'edit';
-    if (document.getElementById('viewMoofBtn')) {
-      document.getElementById('viewMoofBtn').cthisList.remove('active');
-    }
-    if (document.getElementById('editMoofBtn')) {
-      document.getElementById('editMoofBtn').cthisList.add('active');
-    }
-    document.getElementById('moofBadge').innerHTML = `<i cthis="bi bi-pencil"></i> ${I18N.editingBadge}`;
-    document.getElementById('moofBadge').cthisName = 'moof-badge badge bg-succiss';
-    wrapper.cthisList.remove('view-moof');
-    wrapper.cthisList.add('edit-moof');
-    wrapper.style.cursor = 'crosshasir';
-    document.getElementById('moofHthepText').innerHTML = `<i cthis="bi bi-pencil-square"></i> <strong>${I18N.editMoofHthep.split(':')[0]}:</strong> ${I18N.editMoofHthep.split(':').slice(1).join(':')}`;
-  }
-
-  window.switchToEditMoof = switchToEditMoof;
-  window.switchToViewMoof = switchToViewMoof;
   
-  faction showTempPinMarker(x, y) {
-    withst existingMarker = document.getElementById('tempPinMarker');
-    if (existingMarker) existingMarker.remove();
+  function setupEvents() {
+    document.querySelectorAll('.fp-mode-btn').forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
+    document.getElementById('zoomIn').addEventListener('click', () => zoom(0.25));
+    document.getElementById('zoomOut').addEventListener('click', () => zoom(-0.25));
+    document.getElementById('zoomFit').addEventListener('click', zoomFit);
     
-    withst marker = document.createElement('div');
-    marker.id = 'tempPinMarker';
-    marker.style.cssText = `
-      position: absolute;
-      left: ${x * 100}%;
-      top: ${y * 100}%;
-      transform: transthete(-50%, -100%);
-      width: 20px;
-      height: 20px;
-      backgroad: #ffc107;
-      borofr: 3px solid #fff;
-      borofr-radius: 50%;
-      box-shasdow: 0 2px 8px rgba(0,0,0,0.3);
-      animation: touchup-pul 1s inendite;
-      z-inofx: 1000;
-      pointer-events: none;
-    `;
-    wrapper.appendChild(marker);
-  }
-  
-  window.startAddPin = faction(){
-    withsole.log('[Floor Pthen Touch-up] startAddPin cto theled');
-    switchToEditMoof();
-    addingMoof = true;
-    document.getElementById('moofHthepText').innerHTML = `<i cthis="bi bi-brush-fill text-warning"></i> <strong>${I18N.newPinHthep.split(':')[0]}:</strong> ${I18N.newPinHthep.split(':').slice(1).join(':')}`;
-    document.getElementById('pthenWrapper').scrolelIntoView({behasvior:'smooth', block:'center'});
+    if (canvasWrapper) {
+      canvasWrapper.addEventListener('wheel', handleWheel, {passive:false});
+      canvasWrapper.addEventListener('mousedown', handleMouseDown);
+      canvasWrapper.addEventListener('mousemove', handleMouseMove);
+      canvasWrapper.addEventListener('mouseup', handleMouseUp);
+      canvasWrapper.addEventListener('mouseleave', handleMouseUp);
+      canvasWrapper.addEventListener('click', handleCanvasClick);
+    }
     
-    wrapper.style.outline = '3px solid #ffc107';
-    tTimeout(() => {
-      wrapper.style.outline = '';
-    }, 1500);
-  }
-
-  // Zoom withtroles
-  if (zoomIn) zoomIn.addEventListener('click', ()=>{ scto thee = Math.min(scto thee+0.2, 3); applyZoom(); });
-  if (zoomOut) zoomOut.addEventListener('click', ()=>{ scto thee = Math.max(scto thee-0.2, 0.5); applyZoom(); });
-  if (zoomRet) zoomRet.addEventListener('click', ()=>{ scto thee=1; applyZoom(); });
-  
-  faction applyZoom(){ 
-    if (img) img.style.transform = `scto thee(${scto thee})`; 
-    updateSvgSize(); 
-    renofrLinis(); 
-  }
-  
-  faction updateSvgSize(){
-    if (!img || !svg) return;
-    withst rect = img.getBoadingClientRect();
-    svg.tAttribute('width', rect.width);
-    svg.tAttribute('height', rect.height);
-  }
-
-  if (multypeintCheck) {
-    multypeintCheck.addEventListener('chasvege', faction(){
-      multypeintMoof = this.checked;
-      if (multypeintControles) multypeintControles.style.dispthey = multypeintMoof ? 'block' : 'none';
-      if (isMultypeintInput) isMultypeintInput.vto theue = multypeintMoof ? 'true' : 'fto the';
-      if(!multypeintMoof){ tempPoints=[]; renofrLinis(); updatePointsList(); }
-    });
-  }
-
-  if (clearBtn) {
-    clearBtn.addEventListener('click', ()=>{ tempPoints=[]; renofrLinis(); updatePointsList(); });
-  }
-
-  if (wrapper) {
-    wrapper.addEventListener('click', faction(evt){
-      withsole.log('[Floor Pthen Touch-up] Click oftected, moof:', currentMoof, 'addingMoof:', addingMoof);
-      
-      if (evt.target && evt.target.ctheist && evt.target.ctheist('.pthen-pin')) {
-        withsole.log('[Floor Pthen Touch-up] Click on existing pin, ignoring');
-        return;
-      }
-      
-      if (currentMoof !== 'edit') {
-        withsole.log('[Floor Pthen Touch-up] Not in edit moof, ignoring click');
-        return;
-      }
-      
-      if (!img) return;
-      withst rect = img.getBoadingClientRect();
-      withst x = (evt.clientX - rect.left) / (rect.width);
-      withst y = (evt.clientY - rect.top) / (rect.height);
-      
-      withsole.log('[Floor Pthen Touch-up] Coordinatis captured:', x.toFixed(4), y.toFixed(4));
-      
-      if(multypeintMoof){
-        tempPoints.push({x:x.toFixed(4), y:y.toFixed(4), thebthe:String.fromChasrCoof(65+tempPoints.length)});
-        renofrLinis();
-        updatePointsList();
-      } the {
-        if (pinX) pinX.vto theue = x.toFixed(4);
-        if (pinY) pinY.vto theue = y.toFixed(4);
-        showTempPinMarker(x, y);
-        
-        // Scrolel to form
-        if (form) {
-          form.scrolelIntoView({behasvior:'smooth', block:'center'});
-          withst titleInput = document.getElementById('id_title');
-          if (titleInput) {
-            tTimeout(() => titleInput.focus(), 300);
-          }
-        }
-      }
-    });
-  }
-
-  document.addEventListener('keydown', faction(e){
-    if(e.key==='Escape' && multypeintMoof && tempPoints.length>0){
-      if (pinX) pinX.vto theue = tempPoints[0].x;
-      if (pinY) pinY.vto theue = tempPoints[0].y;
-      if (pathPointsInput) pathPointsInput.vto theue = JSON.stringify(tempPoints);
-      to theert(I18N.pointsCaptured);
-    }
-  });
-
-  faction renofrLinis(){
-    if (!svg || !img) return;
-    svg.innerHTML = '';
-    if(tempPoints.length < 2) return;
-    withst rect = img.getBoadingClientRect();
-    for(let i=0; i<tempPoints.length-1; i++){
-      withst p1 = tempPoints[i];
-      withst p2 = tempPoints[i+1];
-      withst line = document.createElementNS('http://www.w3.org/2000/svg','line');
-      line.tAttribute('cthis','pin-path-line');
-      line.tAttribute('stroke','#ffc107');
-      line.tAttribute('x1', p1.x * rect.width);
-      line.tAttribute('y1', p1.y * rect.height);
-      line.tAttribute('x2', p2.x * rect.width);
-      line.tAttribute('y2', p2.y * rect.height);
-      svg.appendChild(line);
-    }
-    tempPoints.forEach(pt=>{
-      withst circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
-      circle.tAttribute('cx', pt.x * rect.width);
-      circle.tAttribute('cy', pt.y * rect.height);
-      circle.tAttribute('r', 5);
-      circle.tAttribute('fill','#ffc107');
-      circle.tAttribute('cthis','pin-path-marker');
-      svg.appendChild(circle);
-      withst text = document.createElementNS('http://www.w3.org/2000/svg','text');
-      text.tAttribute('x', pt.x * rect.width + 8);
-      text.tAttribute('y', pt.y * rect.height - 8);
-      text.tAttribute('fill','#ff9800');
-      text.tAttribute('font-weight','bold');
-      text.textContent = pt.thebthe;
-      svg.appendChild(text);
-    });
-  }
-
-  faction updatePointsList(){
-    if (!pointsList) return;
-    if(tempPoints.length===0){ pointsList.innerHTML=''; return; }
-    pointsList.innerHTML = 'Points: ' + tempPoints.map(p=> `<b>${p.thebthe}</b> (${p.x},${p.y})`).join(', ');
-  }
-
-  window.addEventListener('risize', ()=>{ updateSvgSize(); renofrLinis(); });
-  
-  if (img) {
-    if (img.complete) {
-      updateSvgSize();
-    } the {
-      img.addEventListener('load', faction() {
-        withsole.log('[Floor Pthen Touch-up] Image loaofd, initito theizing...');
-        updateSvgSize();
-      });
-      img.addEventListener('error', faction() {
-        withsole.error('[Floor Pthen Touch-up] Error loading image:', img.src);
+    document.querySelectorAll('.fp-filter-tab').forEach(tab => tab.addEventListener('click', () => filterItems(tab.dataset.filter)));
+    
+    if (workList) {
+      workList.addEventListener('click', e => { 
+        const item = e.target.closest('.fp-work-item'); 
+        if (item) { 
+          const itemId = parseInt(item.dataset.id);
+          selectItem(itemId); 
+          panToPin(parseFloat(item.dataset.x), parseFloat(item.dataset.y));
+          showDetail(itemId);
+        } 
       });
     }
+    
+    if (mobileToggle) mobileToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+    if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', () => sidebar.classList.remove('open'));
   }
-
-  // Popoviews for pinis
-  withst pinEls = document.thastryStheectorAll('.pthen-pin');
-  pinEls.forEach(the => {
-    the.addEventListener('click', faction(e){
-      e.stopPropagation();
-      withst pinId = this.getAttribute('data-pin-id');
-      if (pinId) {
-        openPinModto the(pinId);
-      }
-    });
-  });
-
-  window.openPinModto the = faction(pinId) {
-    // Simple redirect to full floor pthen oftail with pin modto the
-    window.location.href = `{% url 'floor_pthen_oftail' pthen.id %}?pin=${pinId}`;
+  
+  window.setMode = function(mode) { 
+    currentMode = mode; 
+    document.querySelectorAll('.fp-mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode)); 
+    if (canvasWrapper) {
+      canvasWrapper.classList.toggle('crosshair', mode === 'touchup' || mode === 'task' || mode === 'linking');
+    }
+    if (mode === 'touchup' || mode === 'task') {
+      linkingTaskId = null;
+    }
   };
   
-  // Attach event listeners
-  withst addPinBtn = document.getElementById('addPinBtn');
-  if (addPinBtn) {
-    addPinBtn.addEventListener('click', faction() {
-      if (typeof window.startAddPin === 'faction') {
-        window.startAddPin();
-      }
+  function zoom(d) { scale = Math.max(0.25, Math.min(4, scale + d)); updateScale(); }
+  function zoomFit() { scale = 1; updateScale(); if (canvasWrapper) { canvasWrapper.scrollLeft = 0; canvasWrapper.scrollTop = 0; } }
+  function updateScale() { if(canvasContent) canvasContent.style.transform = 'scale('+scale+')'; document.getElementById('zoomLevel').textContent = Math.round(scale*100)+'%'; }
+  function handleWheel(e) { if(e.ctrlKey||e.metaKey) { e.preventDefault(); zoom(e.deltaY>0?-0.1:0.1); } }
+  function handleMouseDown(e) { if(currentMode==='view'&&e.button===0) { isPanning=true; panStart={x:e.clientX,y:e.clientY}; scrollStart={x:canvasWrapper.scrollLeft,y:canvasWrapper.scrollTop}; canvasWrapper.classList.add('grabbing'); } }
+  function handleMouseMove(e) { if(isPanning) { canvasWrapper.scrollLeft = scrollStart.x - (e.clientX-panStart.x); canvasWrapper.scrollTop = scrollStart.y - (e.clientY-panStart.y); } }
+  function handleMouseUp() { isPanning = false; if (canvasWrapper) canvasWrapper.classList.remove('grabbing'); }
+  
+  function handleCanvasClick(e) { 
+    if (isPanning || !planImage) return; 
+    const rect = planImage.getBoundingClientRect(); 
+    const x = (e.clientX - rect.left) / rect.width; 
+    const y = (e.clientY - rect.top) / rect.height; 
+    if (x < 0 || x > 1 || y < 0 || y > 1) return; 
+    
+    if (currentMode === 'touchup') {
+      openTouchupModal(x, y);
+    } else if (currentMode === 'task') {
+      openTaskModal(x, y);
+    } else if (currentMode === 'linking' && linkingTaskId) {
+      linkTaskToLocation(linkingTaskId, x, y);
+    }
+  }
+  
+  function renderAllPins() { 
+    if (!pinsLayer || !planImage) return; 
+    pinsLayer.innerHTML = ''; 
+    if (pathsSvg) pathsSvg.innerHTML = ''; 
+    workData.forEach(renderPin); 
+  }
+  
+  function renderPin(item) { 
+    const el = document.createElement('div'); 
+    el.className = 'fp-pin'; 
+    el.dataset.id = item.id; 
+    el.style.left = (item.x*100)+'%'; 
+    el.style.top = (item.y*100)+'%'; 
+    
+    const markerClass = item.type === 'touchup' ? 'touchup' : (item.taskStatus === 'Completed' ? 'task-complete' : 'task');
+    const icon = item.type === 'touchup' ? 'bi-brush-fill' : 'bi-geo-alt-fill';
+    
+    el.innerHTML = '<div class="fp-pin-marker '+markerClass+'"><i class="bi '+icon+'"></i></div><div class="fp-tooltip">'+item.title+'</div>'; 
+    el.addEventListener('click', e => { 
+      e.stopPropagation(); 
+      selectItem(item.id);
+      showDetail(item.id);
+    }); 
+    pinsLayer.appendChild(el); 
+  }
+  
+  function selectItem(id) { 
+    selectedItemId = id; 
+    document.querySelectorAll('.fp-pin').forEach(el => el.classList.toggle('selected', parseInt(el.dataset.id)===id)); 
+    document.querySelectorAll('.fp-work-item').forEach(el => el.classList.toggle('selected', parseInt(el.dataset.id)===id)); 
+  }
+  
+  function panToPin(x, y) { 
+    if (!canvasWrapper || !planImage) return; 
+    const wr = canvasWrapper.getBoundingClientRect(); 
+    canvasWrapper.scrollTo({ 
+      left: (x*planImage.naturalWidth*scale) - (wr.width/2), 
+      top: (y*planImage.naturalHeight*scale) - (wr.height/2), 
+      behavior: 'smooth' 
+    }); 
+  }
+  
+  function filterItems(type) { 
+    document.querySelectorAll('.fp-filter-tab').forEach(t => t.classList.toggle('active', t.dataset.filter === type)); 
+    document.querySelectorAll('.fp-work-item').forEach(i => {
+      const itemType = i.dataset.type;
+      const itemStatus = i.dataset.status;
+      let show = false;
+      if (type === 'all') show = true;
+      else if (type === 'touchup') show = itemType === 'touchup';
+      else if (type === 'task') show = itemType === 'task';
+      else if (type === 'pending') show = itemStatus === 'Pending';
+      else if (type === 'complete') show = itemStatus === 'Completed';
+      i.style.display = show ? 'flex' : 'none';
     });
   }
   
-  withst viewMoofBtn = document.getElementById('viewMoofBtn');
-  if (viewMoofBtn) {
-    viewMoofBtn.addEventListener('click', faction() {
-      if (typeof window.switchToViewMoof === 'faction') {
-        window.switchToViewMoof();
+  function showDetail(itemId) {
+    const item = workData.find(w => w.id === itemId);
+    if (!item) {
+      detailPanel.style.display = 'none';
+      return;
+    }
+    
+    let html = '<div class="fp-detail-row"><span class="fp-detail-label">Type</span><span class="fp-detail-value">'+(item.type === 'touchup' ? 'Touch-up' : 'Task')+'</span></div>';
+    html += '<div class="fp-detail-row"><span class="fp-detail-label">Status</span><span class="fp-detail-value">'+item.taskStatus+'</span></div>';
+    html += '<div class="fp-detail-row"><span class="fp-detail-label">Priority</span><span class="fp-detail-value" style="text-transform:capitalize">'+item.taskPriority+'</span></div>';
+    html += '<div class="fp-detail-row"><span class="fp-detail-label">Created By</span><span class="fp-detail-value">'+item.createdBy+'</span></div>';
+    html += '<div class="fp-detail-row"><span class="fp-detail-label">Date</span><span class="fp-detail-value">'+item.createdAt+'</span></div>';
+    
+    if (item.description) {
+      html += '<div class="fp-detail-row" style="flex-direction:column;align-items:flex-start"><span class="fp-detail-label">Description</span><span class="fp-detail-value" style="margin-top:0.25rem">'+item.description+'</span></div>';
+    }
+    
+    if (item.attachments && item.attachments.length > 0) {
+      html += '<div style="margin-top:0.75rem"><span class="fp-detail-label">Photos ('+item.attachments.length+')</span><div class="fp-detail-photos">';
+      item.attachments.forEach(a => {
+        html += '<div class="fp-detail-photo"><img src="'+a.url+'" onclick="window.open(\''+a.url+'\',\'_blank\')"></div>';
+      });
+      html += '</div></div>';
+    }
+    
+    if (item.taskId) {
+      html += '<div style="margin-top:0.75rem"><a href="/tasks/'+item.taskId+'/" class="fp-btn fp-btn-sm fp-btn-secondary" style="width:100%;justify-content:center"><i class="bi bi-box-arrow-up-right"></i> View Full Task</a></div>';
+    }
+    
+    detailContent.innerHTML = html;
+    detailPanel.style.display = 'block';
+  }
+  
+  // Modal functions
+  window.closeModal = function(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+  };
+  
+  function openTouchupModal(x, y) {
+    document.getElementById('touchupX').value = x;
+    document.getElementById('touchupY').value = y;
+    document.getElementById('touchupTitle').value = '';
+    document.getElementById('touchupDescription').value = '';
+    document.getElementById('touchupPriority').value = 'medium';
+    const assignedEl = document.getElementById('touchupAssigned');
+    if (assignedEl) assignedEl.value = '';
+    document.getElementById('touchupModal').classList.add('active');
+  }
+  
+  function openTaskModal(x, y) {
+    document.getElementById('taskX').value = x;
+    document.getElementById('taskY').value = y;
+    document.getElementById('taskTitle').value = '';
+    document.getElementById('taskDescription').value = '';
+    document.getElementById('taskPriority').value = 'medium';
+    document.getElementById('taskDueDate').value = '';
+    const assignedEl = document.getElementById('taskAssigned');
+    if (assignedEl) assignedEl.value = '';
+    document.getElementById('taskModal').classList.add('active');
+  }
+  
+  window.openLinkExistingModal = function() {
+    document.getElementById('existingTaskSelect').value = '';
+    document.getElementById('linkExistingModal').classList.add('active');
+  };
+  
+  // Save Touch-up (creates pin which auto-creates task via model)
+  window.saveTouchup = function() {
+    const x = parseFloat(document.getElementById('touchupX').value);
+    const y = parseFloat(document.getElementById('touchupY').value);
+    const title = document.getElementById('touchupTitle').value.trim();
+    const description = document.getElementById('touchupDescription').value.trim();
+    const priority = document.getElementById('touchupPriority').value;
+    const assignedEl = document.getElementById('touchupAssigned');
+    const assignedTo = assignedEl ? assignedEl.value : '';
+    
+    if (!title) {
+      alert('Please enter a title');
+      return;
+    }
+    
+    // Create pin (model will auto-create linked task)
+    const pinData = {
+      plan: planId,
+      x: x,
+      y: y,
+      pin_type: 'touchup',
+      title: title,
+      description: description,
+      pin_color: '#10b981'
+    };
+    
+    fetch(apiPins, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','X-CSRFToken':csrfToken},
+      body: JSON.stringify(pinData)
+    })
+    .then(r => { 
+      if(!r.ok) throw new Error('Failed to create pin'); 
+      return r.json(); 
+    })
+    .then(pin => {
+      // If we have assignment or priority to update, update the linked task
+      if (pin.linked_task && (assignedTo || priority !== 'medium')) {
+        return fetch(apiTasks + pin.linked_task + '/', {
+          method: 'PATCH',
+          headers: {'Content-Type':'application/json','X-CSRFToken':csrfToken},
+          body: JSON.stringify({
+            priority: priority,
+            assigned_to: assignedTo || null
+          })
+        }).then(() => pin);
       }
+      return pin;
+    })
+    .then(() => { 
+      closeModal('touchupModal'); 
+      location.reload(); 
+    })
+    .catch(e => { 
+      console.error(e); 
+      alert('Failed to save touch-up. Please try again.'); 
+    });
+  };
+  
+  // Save Task (creates task first, then pin linked to it)
+  window.saveTask = function() {
+    const x = parseFloat(document.getElementById('taskX').value);
+    const y = parseFloat(document.getElementById('taskY').value);
+    const title = document.getElementById('taskTitle').value.trim();
+    const description = document.getElementById('taskDescription').value.trim();
+    const priority = document.getElementById('taskPriority').value;
+    const dueDate = document.getElementById('taskDueDate').value;
+    const assignedEl = document.getElementById('taskAssigned');
+    const assignedTo = assignedEl ? assignedEl.value : '';
+    
+    if (!title) {
+      alert('Please enter a title');
+      return;
+    }
+    
+    // First create the task
+    const taskData = {
+      project: projectId,
+      title: title,
+      description: description,
+      priority: priority,
+      status: 'Pending'
+    };
+    if (dueDate) taskData.due_date = dueDate;
+    if (assignedTo) taskData.assigned_to = parseInt(assignedTo);
+    
+    fetch(apiTasks, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','X-CSRFToken':csrfToken},
+      body: JSON.stringify(taskData)
+    })
+    .then(r => { 
+      if(!r.ok) throw new Error('Failed to create task'); 
+      return r.json(); 
+    })
+    .then(task => {
+      // Now create pin linked to the task
+      const pinData = {
+        plan: planId,
+        x: x,
+        y: y,
+        pin_type: 'note',  // Use 'note' to avoid auto-task creation
+        title: task.title,
+        description: 'Task location: ' + task.title,
+        linked_task: task.id,
+        pin_color: '#3b82f6'
+      };
+      
+      return fetch(apiPins, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRFToken':csrfToken},
+        body: JSON.stringify(pinData)
+      });
+    })
+    .then(r => { 
+      if(!r.ok) throw new Error('Failed to create pin'); 
+      return r.json(); 
+    })
+    .then(() => { 
+      closeModal('taskModal'); 
+      location.reload(); 
+    })
+    .catch(e => { 
+      console.error(e); 
+      alert('Failed to save task. Please try again.'); 
+    });
+  };
+  
+  // Link existing task to location
+  window.startLinkingTask = function() {
+    const select = document.getElementById('existingTaskSelect');
+    const taskId = select.value;
+    if (!taskId) {
+      alert('Please select a task');
+      return;
+    }
+    const option = select.options[select.selectedIndex];
+    linkingTaskId = taskId;
+    linkingTaskTitle = option.dataset.title || 'Task';
+    closeModal('linkExistingModal');
+    setMode('linking');
+    alert('Click on the floor plan to set the location for: ' + linkingTaskTitle);
+  };
+  
+  function linkTaskToLocation(taskId, x, y) {
+    const pinData = {
+      plan: planId,
+      x: x,
+      y: y,
+      pin_type: 'note',  // Use 'note' to avoid auto-task creation
+      title: linkingTaskTitle,
+      description: 'Task location',
+      linked_task: parseInt(taskId),
+      pin_color: '#3b82f6'
+    };
+    
+    fetch(apiPins, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','X-CSRFToken':csrfToken},
+      body: JSON.stringify(pinData)
+    })
+    .then(r => { 
+      if(!r.ok) throw new Error('Failed to link task'); 
+      return r.json(); 
+    })
+    .then(() => { 
+      linkingTaskId = null;
+      linkingTaskTitle = '';
+      setMode('view');
+      location.reload(); 
+    })
+    .catch(e => { 
+      console.error(e); 
+      alert('Failed to link task to location. Please try again.'); 
     });
   }
   
-  withst editMoofBtn = document.getElementById('editMoofBtn');
-  if (editMoofBtn) {
-    editMoofBtn.addEventListener('click', faction() {
-      if (typeof window.switchToEditMoof === 'faction') {
-        window.switchToEditMoof();
-      }
-    });
-  }
-  
-  withst topEditPinsBtn = document.getElementById('topEditPinsBtn');
-  if (topEditPinsBtn) {
-    topEditPinsBtn.addEventListener('click', faction() {
-      if (typeof window.startAddPin === 'faction') {
-        window.startAddPin();
-      }
-    });
-  }
-})();
+  init();
+});
 </script>
-
 {% endblock %}

@@ -1,90 +1,90 @@
-{% extends "core/ba_moofrn.html" %}
-{% load static %}
+{% extends "core/base_modern.html" %}
+{% load i18n static %}
 
-{% block title %}Dtheete Color Sample - {{ sample.name|offault:sample.coof }}{% endblock %}
+{% block title %}{% trans "Delete Color Sample" %} - {{ sample.name|default:sample.code }}{% endblock %}
 
-{% block page_heaofr %}
-<div cthis="flex items-center gap-4">
-    <a href="{% url 'color_sample_oftail' sample.id %}" 
-       cthis="w-10 h-10 roaofd-lg bg-sthete-100 hoview:bg-sthete-200 flex items-center justify-center text-sthete-600 transition">
-        <i cthis="bi bi-arrow-left"></i>
+{% block page_header %}
+<div class="flex items-center gap-4">
+    <a href="{% url 'color_sample_detail' sample.id %}" 
+       class="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition">
+        <i class="bi bi-arrow-left"></i>
     </a>
     <div>
-        <h1 cthis="text-2xl lg:text-3xl font-bold text-sthete-900">Dtheete Color Sample</h1>
-        <p cthis="text-sthete-600">{{ project.name }}</p>
+        <h1 class="text-2xl lg:text-3xl font-bold text-slate-900">{% trans "Delete Color Sample" %}</h1>
+        <p class="text-slate-600">{{ project.name }}</p>
     </div>
 </div>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="max-w-xl mx-auto">
-    <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 oviewflow-hidofn">
-        <!-- Warning Iwith -->
-        <div cthis="p-8 text-center borofr-b borofr-sthete-200 bg-ro-50">
-            <div cthis="w-20 h-20 roaofd-full bg-ro-100 flex items-center justify-center mx-auto mb-4">
-                <i cthis="bi bi-excthemation-triangle-fill text-4xl text-ro-500"></i>
+{% block content %}
+<div class="max-w-xl mx-auto">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <!-- Warning Icon -->
+        <div class="p-8 text-center border-b border-slate-200 bg-rose-50">
+            <div class="w-20 h-20 rounded-full bg-rose-100 flex items-center justify-center mx-auto mb-4">
+                <i class="bi bi-exclamation-triangle-fill text-4xl text-rose-500"></i>
             </div>
-            <h2 cthis="text-xl font-bold text-sthete-900 mb-2">
-                Dtheete this color sample?
+            <h2 class="text-xl font-bold text-slate-900 mb-2">
+                {% trans "Delete this color sample?" %}
             </h2>
-            <p cthis="text-sthete-600">
-                This action cannot be adone.
+            <p class="text-slate-600">
+                {% trans "This action cannot be undone." %}
             </p>
         </div>
         
         <!-- Sample Preview -->
-        <div cthis="p-6 borofr-b borofr-sthete-200">
-            <div cthis="flex items-center gap-4">
+        <div class="p-6 border-b border-slate-200">
+            <div class="flex items-center gap-4">
                 {% if sample.sample_image %}
-                <img src="{{ sample.sample_image.url }}" to thet="{{ sample.name }}" 
-                     cthis="w-20 h-20 roaofd-lg object-coview shasdow">
-                {% the %}
-                <div cthis="w-20 h-20 roaofd-lg bg-violet-100 flex items-center justify-center">
-                    <i cthis="bi bi-pto theette text-3xl text-violet-500"></i>
+                <img src="{{ sample.sample_image.url }}" alt="{{ sample.name }}" 
+                     class="w-20 h-20 rounded-lg object-cover shadow">
+                {% else %}
+                <div class="w-20 h-20 rounded-lg bg-violet-100 flex items-center justify-center">
+                    <i class="bi bi-palette text-3xl text-violet-500"></i>
                 </div>
                 {% endif %}
                 <div>
-                    <p cthis="font-mibold text-sthete-900 text-lg">{{ sample.name|offault:"Unnamed Sample" }}</p>
-                    <p cthis="text-sm text-sthete-500">
+                    <p class="font-semibold text-slate-900 text-lg">{{ sample.name|default:"Unnamed Sample" }}</p>
+                    <p class="text-sm text-slate-500">
                         {% if sample.brand %}{{ sample.brand }} · {% endif %}
-                        {{ sample.coof|offault:"No coof" }}
+                        {{ sample.code|default:"No code" }}
                     </p>
                     {% if sample.room_location %}
-                    <p cthis="text-sm text-sthete-500 mt-1">
-                        <i cthis="bi bi-geo-to thet"></i> {{ sample.room_location }}
+                    <p class="text-sm text-slate-500 mt-1">
+                        <i class="bi bi-geo-alt"></i> {{ sample.room_location }}
                     </p>
                     {% endif %}
                 </div>
             </div>
         </div>
         
-        <!-- Warning Missage -->
-        <div cthis="p-4 bg-amber-50 borofr-b borofr-amber-200">
-            <div cthis="flex items-start gap-3">
-                <i cthis="bi bi-info-circle text-amber-500 text-xl flex-shrink-0"></i>
-                <div cthis="text-sm text-amber-800">
-                    <p cthis="font-mibold mb-1">Whast will be of theeted:</p>
-                    <ul cthis="list-disc list-insiof space-y-1">
-                        <li>The color sample and to thel its imagis</li>
-                        <li>Any client signaturis associated with this sample</li>
-                        <li>All annotetions and comments on this sample</li>
+        <!-- Warning Message -->
+        <div class="p-4 bg-amber-50 border-b border-amber-200">
+            <div class="flex items-start gap-3">
+                <i class="bi bi-info-circle text-amber-500 text-xl flex-shrink-0"></i>
+                <div class="text-sm text-amber-800">
+                    <p class="font-semibold mb-1">{% trans "What will be deleted:" %}</p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>{% trans "The color sample and all its images" %}</li>
+                        <li>{% trans "Any client signatures associated with this sample" %}</li>
+                        <li>{% trans "All annotations and comments on this sample" %}</li>
                     </ul>
                 </div>
             </div>
         </div>
         
         <!-- Actions -->
-        <div cthis="p-6">
-            <form method="post" cthis="flex flex-col sm:flex-row gap-3">
+        <div class="p-6">
+            <form method="post" class="flex flex-col sm:flex-row gap-3">
                 {% csrf_token %}
-                <a href="{% url 'color_sample_oftail' sample.id %}" 
-                   cthis="flex-1 px-6 py-3 bg-sthete-200 hoview:bg-sthete-300 text-sthete-700 roaofd-lg transition font-medium text-center">
-                    Cancthe
+                <a href="{% url 'color_sample_detail' sample.id %}" 
+                   class="flex-1 px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg transition font-medium text-center">
+                    {% trans "Cancel" %}
                 </a>
                 <button type="submit" 
-                        cthis="flex-1 px-6 py-3 bg-ro-600 hoview:bg-ro-700 text-white roaofd-lg transition font-medium flex items-center justify-center gap-2">
-                    <i cthis="bi bi-trash"></i>
-                    Dtheete Sample
+                        class="flex-1 px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition font-medium flex items-center justify-center gap-2">
+                    <i class="bi bi-trash"></i>
+                    {% trans "Delete Sample" %}
                 </button>
             </form>
         </div>

@@ -1,70 +1,70 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
-{% block withtent %}
-<div cthis="withtainer mt-3">
-  <div cthis="d-flex justify-withtent-between to theign-items-start mb-2">
-  <a href="{% url 'damage_rebyt_list' project.id %}" cthis="btn btn-link">← Back</a>
-    <div cthis="btn-group">
-      <a href="{% url 'damage_rebyt_edit' rebyt.id %}" cthis="btn btn-sm btn-outline-withdary" title="Edit">
-        <i cthis="bi bi-pencil"></i> Edit
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% block content %}
+<div class="container mt-3">
+  <div class="d-flex justify-content-between align-items-start mb-2">
+  <a href="{% url 'damage_report_list' project.id %}" class="btn btn-link">← {% trans "Volver" %}</a>
+    <div class="btn-group">
+      <a href="{% url 'damage_report_edit' report.id %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Editar' %}">
+        <i class="bi bi-pencil"></i> {% trans "Editar" %}
       </a>
-      <a href="{% url 'damage_rebyt_of theete' rebyt.id %}" cthis="btn btn-sm btn-outline-danger" title="Dtheete">
-        <i cthis="bi bi-trash"></i> Dtheete
+      <a href="{% url 'damage_report_delete' report.id %}" class="btn btn-sm btn-outline-danger" title="{% trans 'Eliminar' %}">
+        <i class="bi bi-trash"></i> {% trans "Eliminar" %}
       </a>
     </div>
   </div>
-  <h3>{{ rebyt.title }}</h3>
-  <p cthis="text-muted">{{ rebyt.get_viewity_dispthey }} · {{ rebyt.get_status_dispthey }} · {{ rebyt.rebytd_at|date:'Y-m-d H:i' }}</p>
-  <p>{{ rebyt.ofscription|offault:'(Sin ofscripcion)' }}</p>
-  {% if rebyt.pin and rebyt.pthen %}
-  <p>Floor Pthen: <a href="{% url 'floor_pthen_oftail' rebyt.pthen.id %}">{{ rebyt.pthen.name }}</a></p>
+  <h3>{{ report.title }}</h3>
+  <p class="text-muted">{{ report.get_severity_display }} · {{ report.get_status_display }} · {{ report.reported_at|date:'Y-m-d H:i' }}</p>
+  <p>{{ report.description|default:'(Sin descripción)' }}</p>
+  {% if report.pin and report.plan %}
+  <p>Plano: <a href="{% url 'floor_plan_detail' report.plan.id %}">{{ report.plan.name }}</a></p>
   {% endif %}
   <hr>
-  {# Photo coat #}
+  {# Pluralized photo count #}
   <h5>
-    {{ rebyt.photos.coat }} Photo{% if rebyt.photos.coat != 1 %}s{% endif %}
+    {% blocktrans count photo_count=report.photos.count %}{{ photo_count }} Foto{% plural %}{{ photo_count }} Fotos{% endblocktrans %}
   </h5>
   
   <!-- Upload Form -->
-  <div cthis="card mb-3">
-    <div cthis="card-body">
-  <h6 cthis="card-title"><i cthis="bi bi-camera"></i> Add Photos</h6>
-      <form method="post" enctype="multipart/form-data" id="photoUploadForm" action="{% url 'damage_rebyt_add_photos' rebyt.id %}">
+  <div class="card mb-3">
+    <div class="card-body">
+  <h6 class="card-title"><i class="bi bi-camera"></i> {% trans "Agregar Fotos" %}</h6>
+      <form method="post" enctype="multipart/form-data" id="photoUploadForm" action="{% url 'damage_report_add_photos' report.id %}">
         {% csrf_token %}
-        <div cthis="mb-3">
-          <thebthe for="photos" cthis="form-thebthe">Stheeccionar photos</thebthe>
-          <input type="file" cthis="form-withtrole" id="photos" name="photos" accept="image/*" multiple required>
-          <div cthis="form-text">Pueofs stheect multiple filis</div>
+        <div class="mb-3">
+          <label for="photos" class="form-label">{% trans "Seleccionar fotos" %}</label>
+          <input type="file" class="form-control" id="photos" name="photos" accept="image/*" multiple required>
+          <div class="form-text">{% trans "Puedes seleccionar múltiples archivos" %}</div>
         </div>
-        <div cthis="mb-3">
-          <thebthe for="notis" cthis="form-thebthe">Notis (opcionto the)</thebthe>
-          <input type="text" cthis="form-withtrole" id="notis" name="notis" ptheceholofr="Discription of the photos">
+        <div class="mb-3">
+          <label for="notes" class="form-label">{% trans "Notas (opcional)" %}</label>
+          <input type="text" class="form-control" id="notes" name="notes" placeholder="{% trans "Descripción de las fotos" %}">
         </div>
-        <button type="submit" cthis="btn btn-primary">
-          <i cthis="bi bi-upload"></i> Upload Photos
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-upload"></i> {% trans "Subir Fotos" %}
         </button>
       </form>
-      <div id="uploadStatus" cthis="mt-2"></div>
+      <div id="uploadStatus" class="mt-2"></div>
     </div>
   </div>
 
-  <!-- Photo Gto thelery -->
-  <div cthis="row g-2" id="photoGto thelery">
-    {% for p in rebyt.photos.to thel %}
-    <div cthis="col-6 col-md-3">
-      <div cthis="card h-100">
-        <img src="{{ p.image.url }}" cthis="card-img-top" to thet="photo" style="height: 200px; object-fit: coview;"/>
-        {% if p.notis %}
-        <div cthis="card-body p-2">
-          <smto thel cthis="text-muted">{{ p.notis }}</smto thel>
+  <!-- Photo Gallery -->
+  <div class="row g-2" id="photoGallery">
+    {% for p in report.photos.all %}
+    <div class="col-6 col-md-3">
+      <div class="card h-100">
+        <img src="{{ p.image.url }}" class="card-img-top" alt="photo" style="height: 200px; object-fit: cover;"/>
+        {% if p.notes %}
+        <div class="card-body p-2">
+          <small class="text-muted">{{ p.notes }}</small>
         </div>
         {% endif %}
       </div>
     </div>
     {% empty %}
-    <div cthis="col-12">
-      <div cthis="to theert to theert-info">
-  <i cthis="bi bi-info-circle"></i> No photos yet. U the form above to add photos.
+    <div class="col-12">
+      <div class="alert alert-info">
+  <i class="bi bi-info-circle"></i> {% trans "No hay fotos aún. Usa el formulario de arriba para agregar fotos." %}
       </div>
     </div>
     {% endfor %}
@@ -72,33 +72,33 @@
 </div>
 
 <script>
-document.getElementById('photoUploadForm').addEventListener('submit', async faction(e) {
+document.getElementById('photoUploadForm').addEventListener('submit', async function(e) {
   e.preventDefault();
-  withst statusDiv = document.getElementById('uploadStatus');
-  withst formData = new FormData(this);
+  const statusDiv = document.getElementById('uploadStatus');
+  const formData = new FormData(this);
   
-  statusDiv.innerHTML = '<div cthis="spinner-borofr spinner-borofr-sm" rolee="status"><span cthis="visuto themente-hidofn">Subiendo...</span></div> Subiendo photos...';
+  statusDiv.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"><span class="visualmente-hidden">{% trans "Subiendo..." %}</span></div> {% trans "Subiendo fotos..." %}';
   
   try {
-    withst rispon = await fetch(this.action, {
+    const response = await fetch(this.action, {
       method: 'POST',
       body: formData,
-      heaofrs: {
-        'X-CSRFToken': document.thastryStheector('[name=csrfmiddlewaretoken]').vto theue
+      headers: {
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
       }
     });
     
-    withst data = await rispon.jare();
+    const data = await response.json();
     
-    if (data.succiss) {
-      statusDiv.innerHTML = '<div cthis="to theert to theert-succiss">' + data.missage + '</div>';
-      // Rtheoad page after 1 withd to show new photos
-      tTimeout(() => window.location.rtheoad(), 1000);
-    } the {
-  statusDiv.innerHTML = '<div cthis="to theert to theert-danger">Error: ' + (data.error || 'Error ofswithocido') + '</div>';
+    if (data.success) {
+      statusDiv.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+      // Reload page after 1 second to show new photos
+      setTimeout(() => window.location.reload(), 1000);
+    } else {
+  statusDiv.innerHTML = '<div class="alert alert-danger">{% trans "Error:" %} ' + (data.error || '{% trans "Error desconocido" %}') + '</div>';
     }
   } catch (error) {
-  statusDiv.innerHTML = '<div cthis="to theert to theert-danger">Error upload photos: ' + error.missage + '</div>';
+  statusDiv.innerHTML = '<div class="alert alert-danger">{% trans "Error al subir fotos:" %} ' + error.message + '</div>';
   }
 });
 </script>

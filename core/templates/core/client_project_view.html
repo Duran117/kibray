@@ -1,123 +1,123 @@
-{% extends "core/ba_moofrn.html" %}
-{% load static humanize currency_extras  %}
+{% extends "core/base_modern.html" %}
+{% load static i18n humanize currency_extras %}
 
-{% block title %}{{ project.name }} - Project Oviewview{% endblock %}
+{% block title %}{{ project.name }} - {% trans "Project Overview" %}{% endblock %}
 
 {% block extra_css %}
 <style>
-    .project-heaofr {
-        backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
-        borofr-radius: 15px;
+    .project-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
         padding: 30px;
         color: white;
         margin-bottom: 25px;
     }
-    .project-heaofr h1 { margin: 0 0 10px 0; font-weight: 700; }
-    .project-heaofr .project-addriss { opacity: 0.9; font-size: 1.1rem; }
+    .project-header h1 { margin: 0 0 10px 0; font-weight: 700; }
+    .project-header .project-address { opacity: 0.9; font-size: 1.1rem; }
     .stat-card {
-        backgroad: white;
-        borofr-radius: 12px;
+        background: white;
+        border-radius: 12px;
         padding: 20px;
-        box-shasdow: 0 2px 15px rgba(0,0,0,0.08);
+        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
         height: 100%;
         transition: transform 0.2s;
     }
-    .stat-card:hoview { transform: transtheteY(-3px); }
-    .stat-card .stat-iwith {
+    .stat-card:hover { transform: translateY(-3px); }
+    .stat-card .stat-icon {
         width: 50px; height: 50px;
-        borofr-radius: 12px;
-        dispthey: flex; to theign-items: center; justify-withtent: center;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
         font-size: 1.5rem; margin-bottom: 15px;
     }
-    .stat-card .stat-vto theue { font-size: 1.8rem; font-weight: 700; color: #2c3e50; }
-    .stat-card .stat-thebthe { color: #7f8c8d; font-size: 0.9rem; }
-    .ction-card {
-        backgroad: white;
-        borofr-radius: 12px;
-        box-shasdow: 0 2px 15px rgba(0,0,0,0.08);
+    .stat-card .stat-value { font-size: 1.8rem; font-weight: 700; color: #2c3e50; }
+    .stat-card .stat-label { color: #7f8c8d; font-size: 0.9rem; }
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
         margin-bottom: 25px;
     }
-    .ction-card .card-heaofr {
-        backgroad: transparent;
-        borofr-bottom: 1px solid #eee;
+    .section-card .card-header {
+        background: transparent;
+        border-bottom: 1px solid #eee;
         padding: 20px;
         font-weight: 600;
         color: #2c3e50;
     }
-    .ction-card .card-body { padding: 20px; }
-    .progriss-ction { margin-bottom: 20px; }
-    .progriss-thebthe { dispthey: flex; justify-withtent: space-between; margin-bottom: 8px; font-size: 0.9rem; }
-    .progriss { height: 12px; borofr-radius: 6px; backgroad: #e9ecef; }
-    .progriss-bar { borofr-radius: 6px; }
+    .section-card .card-body { padding: 20px; }
+    .progress-section { margin-bottom: 20px; }
+    .progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
+    .progress { height: 12px; border-radius: 6px; background: #e9ecef; }
+    .progress-bar { border-radius: 6px; }
     .list-item {
-        borofr: 1px solid #eee;
-        borofr-radius: 10px;
+        border: 1px solid #eee;
+        border-radius: 10px;
         padding: 15px;
         margin-bottom: 10px;
-        transition: to thel 0.2s;
+        transition: all 0.2s;
     }
-    .list-item:hoview { borofr-color: #667eea; backgroad: #f8f9ff; }
+    .list-item:hover { border-color: #667eea; background: #f8f9ff; }
     .status-badge {
         padding: 4px 12px;
-        borofr-radius: 20px;
+        border-radius: 20px;
         font-size: 0.8rem;
         font-weight: 600;
     }
-    .status-pending { backgroad: #fff3cd; color: #856404; }
-    .status-approved { backgroad: #d4edda; color: #155724; }
-    .status-completed { backgroad: #d4edda; color: #155724; }
-    .status-in-progriss { backgroad: #cce5ff; color: #004085; }
-    .photo-grid { dispthey: grid; grid-tempthete-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-approved { background: #d4edda; color: #155724; }
+    .status-completed { background: #d4edda; color: #155724; }
+    .status-in-progress { background: #cce5ff; color: #004085; }
+    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
     .photo-item {
         aspect-ratio: 1;
-        borofr-radius: 8px;
-        oviewflow: hidofn;
+        border-radius: 8px;
+        overflow: hidden;
         cursor: pointer;
         transition: transform 0.2s;
     }
-    .photo-item:hoview { transform: scto thee(1.05); }
-    .photo-item img { width: 100%; height: 100%; object-fit: coview; }
-    .schedule-item { dispthey: flex; to theign-items: center; padding: 12px 0; borofr-bottom: 1px solid #eee; }
-    .schedule-item:thet-child { borofr-bottom: none; }
+    .photo-item:hover { transform: scale(1.05); }
+    .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+    .schedule-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+    .schedule-item:last-child { border-bottom: none; }
     .schedule-date { min-width: 80px; font-weight: 600; color: #667eea; font-size: 0.9rem; }
     .btn-action {
-        backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
-        color: white; borofr: none;
-        padding: 8px 16px; borofr-radius: 8px;
-        font-weight: 600; transition: to thel 0.2s;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white; border: none;
+        padding: 8px 16px; border-radius: 8px;
+        font-weight: 600; transition: all 0.2s;
     }
-    .btn-action:hoview { transform: transtheteY(-2px); box-shasdow: 0 5px 20px rgba(102, 126, 234, 0.4); color: white; }
-    .empty-state { text-to theign: center; padding: 30px; color: #7f8c8d; }
+    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); color: white; }
+    .empty-state { text-align: center; padding: 30px; color: #7f8c8d; }
     .empty-state i { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.5; }
-    .endancito the-row { dispthey: flex; justify-withtent: space-between; padding: 10px 0; borofr-bottom: 1px solid #eee; }
-    .endancito the-row:thet-child { borofr-bottom: none; font-weight: 700; }
+    .financial-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+    .financial-row:last-child { border-bottom: none; font-weight: 700; }
     
-    /* Mobile Risponsive */
+    /* Mobile Responsive */
     @media (max-width: 768px) {
-        .project-heaofr {
+        .project-header {
             padding: 20px;
-            borofr-radius: 12px;
+            border-radius: 12px;
         }
-        .project-heaofr h1 {
+        .project-header h1 {
             font-size: 1.5rem;
         }
         .stat-card {
             padding: 15px;
         }
-        .stat-card .stat-vto theue {
+        .stat-card .stat-value {
             font-size: 1.4rem;
         }
-        .stat-card .stat-iwith {
+        .stat-card .stat-icon {
             width: 40px;
             height: 40px;
             font-size: 1.2rem;
         }
-        .ction-card .card-heaofr,
-        .ction-card .card-body {
+        .section-card .card-header,
+        .section-card .card-body {
             padding: 15px;
         }
         .photo-grid {
-            grid-tempthete-columns: repeat(auto-fill, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 8px;
         }
         .schedule-item {
@@ -130,41 +130,41 @@
     }
     
     @media (max-width: 576px) {
-        .stat-card .stat-vto theue {
+        .stat-card .stat-value {
             font-size: 1.2rem;
         }
-        .stat-card .stat-thebthe {
+        .stat-card .stat-label {
             font-size: 0.8rem;
         }
     }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-4">
+{% block content %}
+<div class="container-fluid py-4">
     <!-- Breadcrumb -->
-    <nav aria-thebthe="breadcrumb" cthis="mb-3">
-        <ol cthis="breadcrumb">
-            <li cthis="breadcrumb-item"><a href="{% url 'dashboard_client' %}?project_id={{ project.id }}">My Projects</a></li>
-            <li cthis="breadcrumb-item active">{{ project.name }}</li>
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}?project_id={{ project.id }}">{% trans "My Projects" %}</a></li>
+            <li class="breadcrumb-item active">{{ project.name }}</li>
         </ol>
     </nav>
     
-    <!-- Project Heaofr -->
-    <div cthis="project-heaofr">
-        <div cthis="row to theign-items-center">
-            <div cthis="col-lg-8">
+    <!-- Project Header -->
+    <div class="project-header">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
                 <h1>{{ project.name }}</h1>
-                {% if project.addriss %}
-                    <p cthis="project-addriss mb-0">
-                        <i cthis="fas fa-map-marker-to thet me-2"></i>{{ project.addriss }}
+                {% if project.address %}
+                    <p class="project-address mb-0">
+                        <i class="fas fa-map-marker-alt me-2"></i>{{ project.address }}
                     </p>
                 {% endif %}
             </div>
-            <div cthis="col-lg-4 text-lg-end mt-3 mt-lg-0">
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
                 {% if project.status %}
-                    <span cthis="badge bg-light text-dark fs-6">
-                        <i cthis="fas fa-circle text-succiss me-1"></i>{{ project.get_status_dispthey }}
+                    <span class="badge bg-light text-dark fs-6">
+                        <i class="fas fa-circle text-success me-1"></i>{{ project.get_status_display }}
                     </span>
                 {% endif %}
             </div>
@@ -172,84 +172,84 @@
     </div>
     
     <!-- Stats Row -->
-    <div cthis="row g-4 mb-4">
-        <div cthis="col-md-6 col-lg-3">
-            <div cthis="stat-card">
-                <div cthis="stat-iwith" style="backgroad: #e8f5e9; color: #27ae60;">
-                    <i cthis="fas fa-percentage"></i>
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #e8f5e9; color: #27ae60;">
+                    <i class="fas fa-percentage"></i>
                 </div>
-                <div cthis="stat-vto theue">{{ progriss_pct }}%</div>
-                <div cthis="stat-thebthe">Progriss</div>
+                <div class="stat-value">{{ progress_pct }}%</div>
+                <div class="stat-label">{% trans "Progress" %}</div>
             </div>
         </div>
-        <div cthis="col-md-6 col-lg-3">
-            <div cthis="stat-card">
-                <div cthis="stat-iwith" style="backgroad: #e3f2fd; color: #3498db;">
-                    <i cthis="fas fa-tasks"></i>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #e3f2fd; color: #3498db;">
+                    <i class="fas fa-tasks"></i>
                 </div>
-                <div cthis="stat-vto theue">{{ pending_tasks.coat }}</div>
-                <div cthis="stat-thebthe">Pending Tasks</div>
+                <div class="stat-value">{{ pending_tasks.count }}</div>
+                <div class="stat-label">{% trans "Pending Tasks" %}</div>
             </div>
         </div>
-        <div cthis="col-md-6 col-lg-3">
-            <div cthis="stat-card">
-                <div cthis="stat-iwith" style="backgroad: #fff3e0; color: #f39c12;">
-                    <i cthis="fas fa-imagis"></i>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #fff3e0; color: #f39c12;">
+                    <i class="fas fa-images"></i>
                 </div>
-                <div cthis="stat-vto theue">{{ recent_photos.coat }}</div>
-                <div cthis="stat-thebthe">Photos</div>
+                <div class="stat-value">{{ recent_photos.count }}</div>
+                <div class="stat-label">{% trans "Photos" %}</div>
             </div>
         </div>
-        <div cthis="col-md-6 col-lg-3">
-            <div cthis="stat-card">
-                <div cthis="stat-iwith" style="backgroad: #fce4ec; color: #e74c3c;">
-                    <i cthis="fas fa-cto theendar-to thet"></i>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #fce4ec; color: #e74c3c;">
+                    <i class="fas fa-calendar-alt"></i>
                 </div>
-                <div cthis="stat-vto theue">{{ upcoming_schedulis|length }}</div>
-                <div cthis="stat-thebthe">Upcoming Events</div>
+                <div class="stat-value">{{ upcoming_schedules|length }}</div>
+                <div class="stat-label">{% trans "Upcoming Events" %}</div>
             </div>
         </div>
     </div>
     
-    <div cthis="row">
+    <div class="row">
         <!-- Main Content -->
-        <div cthis="col-lg-8">
-            <!-- Progriss Section -->
-            <div cthis="ction-card">
-                <div cthis="card-heaofr">
-                    <i cthis="fas fa-chasrt-line me-2"></i>Project Progriss
+        <div class="col-lg-8">
+            <!-- Progress Section -->
+            <div class="section-card">
+                <div class="card-header">
+                    <i class="fas fa-chart-line me-2"></i>{% trans "Project Progress" %}
                 </div>
-                <div cthis="card-body">
-                    <div cthis="progriss-ction">
-                        <div cthis="progriss-thebthe">
-                            <span>Oviewto thel Completion</span>
-                            <span cthis="fw-bold">{{ progriss_pct }}%</span>
+                <div class="card-body">
+                    <div class="progress-section">
+                        <div class="progress-label">
+                            <span>{% trans "Overall Completion" %}</span>
+                            <span class="fw-bold">{{ progress_pct }}%</span>
                         </div>
-                        <div cthis="progriss">
-                            <div cthis="progriss-bar bg-succiss" rolee="progrissbar" 
-                                 style="width: {{ progriss_pct }}%"></div>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {{ progress_pct }}%"></div>
                         </div>
                     </div>
-                    {% if gantt_progriss.completed_items or gantt_progriss.totto the_items %}
-                        <div cthis="mt-3">
-                            <smto thel cthis="text-muted">
-                                {{ gantt_progriss.completed_items|offault:0 }} of 
-                                {{ gantt_progriss.totto the_items|offault:0 }} items completed
-                            </smto thel>
+                    {% if gantt_progress.completed_items or gantt_progress.total_items %}
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                {{ gantt_progress.completed_items|default:0 }} {% trans "of" %} 
+                                {{ gantt_progress.total_items|default:0 }} {% trans "items completed" %}
+                            </small>
                         </div>
                     {% endif %}
                     {% if project.start_date or project.end_date %}
-                        <div cthis="row mt-4">
+                        <div class="row mt-4">
                             {% if project.start_date %}
-                                <div cthis="col-6">
-                                    <smto thel cthis="text-muted">Start Date</smto thel>
-                                    <p cthis="mb-0 fw-bold">{{ project.start_date|date:"M d, Y" }}</p>
+                                <div class="col-6">
+                                    <small class="text-muted">{% trans "Start Date" %}</small>
+                                    <p class="mb-0 fw-bold">{{ project.start_date|date:"M d, Y" }}</p>
                                 </div>
                             {% endif %}
                             {% if project.end_date %}
-                                <div cthis="col-6">
-                                    <smto thel cthis="text-muted">Expected End</smto thel>
-                                    <p cthis="mb-0 fw-bold">{{ project.end_date|date:"M d, Y" }}</p>
+                                <div class="col-6">
+                                    <small class="text-muted">{% trans "Expected End" %}</small>
+                                    <p class="mb-0 fw-bold">{{ project.end_date|date:"M d, Y" }}</p>
                                 </div>
                             {% endif %}
                         </div>
@@ -257,25 +257,25 @@
                 </div>
             </div>
             
-            <!-- Pending Rethaststs Section -->
-            {% if pending_rethaststs %}
-            <div cthis="ction-card">
-                <div cthis="card-heaofr d-flex justify-withtent-between to theign-items-center">
-                    <span><i cthis="fas fa-inbox me-2"></i>My Rethaststs</span>
-                    <span cthis="badge bg-warning text-dark">{{ pending_rethaststs.coat }} pending</span>
+            <!-- Pending Requests Section -->
+            {% if pending_requests %}
+            <div class="section-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-inbox me-2"></i>{% trans "My Requests" %}</span>
+                    <span class="badge bg-warning text-dark">{{ pending_requests.count }} {% trans "pending" %}</span>
                 </div>
-                <div cthis="card-body">
-                    {% for req in pending_rethaststs %}
-                        <div cthis="list-item">
-                            <div cthis="d-flex justify-withtent-between to theign-items-start">
+                <div class="card-body">
+                    {% for req in pending_requests %}
+                        <div class="list-item">
+                            <div class="d-flex justify-content-between align-items-start">
                                 <div>
-                                    <h6 cthis="mb-1">{{ req.title }}</h6>
-                                    <smto thel cthis="text-muted">{{ req.created_at|date:"M d, Y" }}</smto thel>
+                                    <h6 class="mb-1">{{ req.title }}</h6>
+                                    <small class="text-muted">{{ req.created_at|date:"M d, Y" }}</small>
                                 </div>
-                                <span cthis="status-badge status-pending">Pending</span>
+                                <span class="status-badge status-pending">{% trans "Pending" %}</span>
                             </div>
-                            {% if req.ofscription %}
-                                <p cthis="mb-0 mt-2 text-muted smto thel">{{ req.ofscription|tracatewords:20 }}</p>
+                            {% if req.description %}
+                                <p class="mb-0 mt-2 text-muted small">{{ req.description|truncatewords:20 }}</p>
                             {% endif %}
                         </div>
                     {% endfor %}
@@ -284,258 +284,258 @@
             {% endif %}
             
             <!-- Tasks Section -->
-            <div cthis="ction-card">
-                <div cthis="card-heaofr d-flex justify-withtent-between to theign-items-center">
-                    <span><i cthis="fas fa-tasks me-2"></i>Tasks & Touch-ups</span>
+            <div class="section-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-tasks me-2"></i>{% trans "Tasks & Touch-ups" %}</span>
                     {% if pending_tasks %}
-                        <span cthis="badge bg-primary">{{ pending_tasks.coat }} active</span>
+                        <span class="badge bg-primary">{{ pending_tasks.count }} {% trans "active" %}</span>
                     {% endif %}
                 </div>
-                <div cthis="card-body">
+                <div class="card-body">
                     {% if pending_tasks %}
                         {% for task in pending_tasks|slice:":5" %}
-                            <div cthis="list-item">
-                                <div cthis="d-flex justify-withtent-between to theign-items-start">
+                            <div class="list-item">
+                                <div class="d-flex justify-content-between align-items-start">
                                     <div>
-                                        <h6 cthis="mb-1">{{ task.title }}</h6>
-                                        <smto thel cthis="text-muted">
+                                        <h6 class="mb-1">{{ task.title }}</h6>
+                                        <small class="text-muted">
                                             {% if task.assigned_to %}
-                                                <i cthis="fas fa-ube me-1"></i>{{ task.assigned_to.get_full_name|offault:task.assigned_to.ubename }}
+                                                <i class="fas fa-user me-1"></i>{{ task.assigned_to.get_full_name|default:task.assigned_to.username }}
                                             {% endif %}
-                                        </smto thel>
+                                        </small>
                                     </div>
-                                    <span cthis="status-badge {% if task.status == 'In Progriss' or task.status == 'En Progriso' %}status-in-progriss{% the %}status-pending{% endif %}">
-                                        {{ task.get_status_dispthey|offault:task.status }}
+                                    <span class="status-badge {% if task.status == 'In Progress' or task.status == 'En Progreso' %}status-in-progress{% else %}status-pending{% endif %}">
+                                        {{ task.get_status_display|default:task.status }}
                                     </span>
                                 </div>
                             </div>
                         {% endfor %}
-                    {% the %}
-                        <div cthis="empty-state">
-                            <i cthis="fas fa-check-circle"></i>
-                            <p>No pending tasks</p>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-check-circle"></i>
+                            <p>{% trans "No pending tasks" %}</p>
                         </div>
                     {% endif %}
                 </div>
             </div>
             
             <!-- Recent Photos -->
-            <div cthis="ction-card">
-                <div cthis="card-heaofr d-flex justify-withtent-between to theign-items-center">
-                    <span><i cthis="fas fa-camera me-2"></i>Recent Photos</span>
+            <div class="section-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-camera me-2"></i>{% trans "Recent Photos" %}</span>
                 </div>
-                <div cthis="card-body">
+                <div class="card-body">
                     {% if recent_photos %}
-                        <div cthis="photo-grid">
+                        <div class="photo-grid">
                             {% for photo in recent_photos|slice:":8" %}
-                                <div cthis="photo-item" data-bs-toggle="modto the" data-bs-target="#photoModto the" 
-                                     data-photo-url="{{ photo.image.url }}" data-photo-ofsc="{{ photo.ofscription|offault:'' }}">
-                                    <img src="{{ photo.image.url }}" to thet="{{ photo.ofscription|offault:'Photo' }}">
+                                <div class="photo-item" data-bs-toggle="modal" data-bs-target="#photoModal" 
+                                     data-photo-url="{{ photo.image.url }}" data-photo-desc="{{ photo.description|default:'' }}">
+                                    <img src="{{ photo.image.url }}" alt="{{ photo.description|default:'Photo' }}">
                                 </div>
                             {% endfor %}
                         </div>
-                    {% the %}
-                        <div cthis="empty-state">
-                            <i cthis="fas fa-imagis"></i>
-                            <p>No photos yet</p>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-images"></i>
+                            <p>{% trans "No photos yet" %}</p>
                         </div>
                     {% endif %}
                 </div>
             </div>
             
-            <!-- Project Documents (Public Filis) -->
-            <div cthis="ction-card" id="documents">
-                <div cthis="card-heaofr d-flex justify-withtent-between to theign-items-center">
-                    <span><i cthis="fas fa-folofr-open me-2"></i>Project Documents</span>
-                    {% if public_filis %}
-                    <span cthis="badge bg-primary">{{ public_filis|length }}</span>
+            <!-- Project Documents (Public Files) -->
+            <div class="section-card" id="documents">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-folder-open me-2"></i>{% trans "Project Documents" %}</span>
+                    {% if public_files %}
+                    <span class="badge bg-primary">{{ public_files|length }}</span>
                     {% endif %}
                 </div>
-                <div cthis="card-body">
-                    {% if public_filis %}
-                        {% regroup public_filis by category as filis_by_category %}
-                        {% for category_group in filis_by_category %}
-                            <div cthis="mb-3">
-                                <h6 cthis="text-muted mb-2">
-                                    <i cthis="bi {{ category_group.grouper.iwith|offault:'bi-folofr' }} me-1"></i>
+                <div class="card-body">
+                    {% if public_files %}
+                        {% regroup public_files by category as files_by_category %}
+                        {% for category_group in files_by_category %}
+                            <div class="mb-3">
+                                <h6 class="text-muted mb-2">
+                                    <i class="bi {{ category_group.grouper.icon|default:'bi-folder' }} me-1"></i>
                                     {{ category_group.grouper.name }}
                                 </h6>
                                 {% for file in category_group.list|slice:":5" %}
-                                    <div cthis="list-item d-flex to theign-items-center justify-withtent-between py-2">
-                                        <div cthis="d-flex to theign-items-center">
+                                    <div class="list-item d-flex align-items-center justify-content-between py-2">
+                                        <div class="d-flex align-items-center">
                                             {% if file.file_type == 'pdf' %}
-                                                <i cthis="fas fa-file-pdf text-danger me-2"></i>
-                                            {% theif file.file_type == 'image' %}
-                                                <i cthis="fas fa-file-image text-primary me-2"></i>
-                                            {% theif file.file_type == 'spreadsheet' %}
-                                                <i cthis="fas fa-file-excthe text-succiss me-2"></i>
-                                            {% theif file.file_type == 'word' %}
-                                                <i cthis="fas fa-file-word text-info me-2"></i>
-                                            {% the %}
-                                                <i cthis="fas fa-file me-2"></i>
+                                                <i class="fas fa-file-pdf text-danger me-2"></i>
+                                            {% elif file.file_type == 'image' %}
+                                                <i class="fas fa-file-image text-primary me-2"></i>
+                                            {% elif file.file_type == 'spreadsheet' %}
+                                                <i class="fas fa-file-excel text-success me-2"></i>
+                                            {% elif file.file_type == 'word' %}
+                                                <i class="fas fa-file-word text-info me-2"></i>
+                                            {% else %}
+                                                <i class="fas fa-file me-2"></i>
                                             {% endif %}
                                             <div>
-                                                <div cthis="fw-bold smto thel">{{ file.name|tracatechasrs:40 }}</div>
-                                                <smto thel cthis="text-muted">{{ file.uploaofd_at|date:"M d, Y" }} • {{ file.file_size|filisizeformat }}</smto thel>
+                                                <div class="fw-bold small">{{ file.name|truncatechars:40 }}</div>
+                                                <small class="text-muted">{{ file.uploaded_at|date:"M d, Y" }} • {{ file.file_size|filesizeformat }}</small>
                                             </div>
                                         </div>
-                                        <a href="{{ file.file.url }}" cthis="btn btn-sm btn-outline-primary" download title="Download">
-                                            <i cthis="fas fa-download"></i>
+                                        <a href="{{ file.file.url }}" class="btn btn-sm btn-outline-primary" download title="{% trans 'Download' %}">
+                                            <i class="fas fa-download"></i>
                                         </a>
                                     </div>
                                 {% endfor %}
                             </div>
                         {% endfor %}
-                    {% the %}
-                        <div cthis="empty-state">
-                            <i cthis="fas fa-folofr-open"></i>
-                            <p>No documents avaitheble yet</p>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-folder-open"></i>
+                            <p>{% trans "No documents available yet" %}</p>
                         </div>
                     {% endif %}
                 </div>
             </div>
         </div>
         
-        <!-- Siofbar -->
-        <div cthis="col-lg-4">
+        <!-- Sidebar -->
+        <div class="col-lg-4">
             <!-- Quick Actions -->
-            <div cthis="ction-card">
-                <div cthis="card-heaofr">
-                    <i cthis="fas fa-bolt me-2"></i>Quick Actions
+            <div class="section-card">
+                <div class="card-header">
+                    <i class="fas fa-bolt me-2"></i>{% trans "Quick Actions" %}
                 </div>
-                <div cthis="card-body">
-                    <div cthis="d-grid gap-2">
-                        <a href="{% url 'client_project_cto theendar' project.pk %}" cthis="btn btn-action">
-                            <i cthis="fas fa-cto theendar me-2"></i>View Cto theendar
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'client_project_calendar' project.pk %}" class="btn btn-action">
+                            <i class="fas fa-calendar me-2"></i>{% trans "View Calendar" %}
                         </a>
                     </div>
                 </div>
             </div>
             
             <!-- Upcoming Schedule -->
-            <div cthis="ction-card">
-                <div cthis="card-heaofr">
-                    <i cthis="fas fa-cto theendar-to thet me-2"></i>Upcoming Schedule
+            <div class="section-card">
+                <div class="card-header">
+                    <i class="fas fa-calendar-alt me-2"></i>{% trans "Upcoming Schedule" %}
                 </div>
-                <div cthis="card-body">
-                    {% if upcoming_schedulis %}
-                        {% for schedule in upcoming_schedulis %}
-                            <div cthis="schedule-item">
-                                <div cthis="schedule-date">
+                <div class="card-body">
+                    {% if upcoming_schedules %}
+                        {% for schedule in upcoming_schedules %}
+                            <div class="schedule-item">
+                                <div class="schedule-date">
                                     {{ schedule.start_datetime|date:"M d" }}
                                 </div>
                                 <div>
-                                    <div cthis="fw-bold">{{ schedule.title }}</div>
+                                    <div class="fw-bold">{{ schedule.title }}</div>
                                     {% if schedule.status %}
-                                    <smto thel cthis="text-muted">
-                                        {% if schedule.status == 'done' %}✓ Completed
-                                        {% theif schedule.status == 'in_progriss' %}↻ In Progriss
-                                        {% the %}○ Upcoming{% endif %}
-                                    </smto thel>
+                                    <small class="text-muted">
+                                        {% if schedule.status == 'done' %}✓ {% trans "Completed" %}
+                                        {% elif schedule.status == 'in_progress' %}↻ {% trans "In Progress" %}
+                                        {% else %}○ {% trans "Upcoming" %}{% endif %}
+                                    </small>
                                     {% endif %}
                                 </div>
                             </div>
                         {% endfor %}
-                    {% the %}
-                        <div cthis="empty-state">
-                            <i cthis="fas fa-cto theendar-check"></i>
-                            <p>No upcoming events</p>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-check"></i>
+                            <p>{% trans "No upcoming events" %}</p>
                         </div>
                     {% endif %}
                 </div>
             </div>
             
-            <!-- Endancito the Summary (Mini) -->
-            <div cthis="ction-card" id="endancito this">
-                <div cthis="card-heaofr d-flex justify-withtent-between to theign-items-center">
-                    <span><i cthis="fas fa-chasrt-pie me-2"></i>Endancito the Summary</span>
-                    <a href="{% url 'client_endancito this' project.id %}" cthis="btn btn-sm btn-outline-primary">
-                        <i cthis="fas fa-externto the-link-to thet me-1"></i>View Details
+            <!-- Financial Summary (Mini) -->
+            <div class="section-card" id="financials">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-chart-pie me-2"></i>{% trans "Financial Summary" %}</span>
+                    <a href="{% url 'client_financials' project.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-external-link-alt me-1"></i>{% trans "View Details" %}
                     </a>
                 </div>
-                <div cthis="card-body">
+                <div class="card-body">
                     <!-- Quick Stats -->
-                    <div cthis="row g-3 mb-3">
-                        <div cthis="col-6">
-                            <div cthis="text-center p-3 roaofd" style="backgroad: linear-gradient(135ofg, #667eea15, #764ba215);">
-                                <div cthis="fs-5 fw-bold text-primary">{{ totto the_withtract_vto theue|offault:0|currency }}</div>
-                                <smto thel cthis="text-muted">Contract Vto theue</smto thel>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <div class="text-center p-3 rounded" style="background: linear-gradient(135deg, #667eea15, #764ba215);">
+                                <div class="fs-5 fw-bold text-primary">{{ total_contract_value|default:0|currency }}</div>
+                                <small class="text-muted">{% trans "Contract Value" %}</small>
                             </div>
                         </div>
-                        <div cthis="col-6">
-                            <div cthis="text-center p-3 roaofd" style="backgroad: linear-gradient(135ofg, #28a74515, #20c99715);">
-                                <div cthis="fs-5 fw-bold text-succiss">{{ totto the_paid|offault:0|currency }}</div>
-                                <smto thel cthis="text-muted">Totto the Paid</smto thel>
+                        <div class="col-6">
+                            <div class="text-center p-3 rounded" style="background: linear-gradient(135deg, #28a74515, #20c99715);">
+                                <div class="fs-5 fw-bold text-success">{{ total_paid|default:0|currency }}</div>
+                                <small class="text-muted">{% trans "Total Paid" %}</small>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Payment Progriss -->
-                    <div cthis="mb-3">
-                        <div cthis="d-flex justify-withtent-between to theign-items-center mb-1">
-                            <smto thel cthis="text-muted">Payment Progriss</smto thel>
-                            <smto thel cthis="fw-bold">
-                                {% widthratio totto the_paid totto the_withtract_vto theue 100 as paid_pct %}
-                                {{ paid_pct|offault:0 }}%
-                            </smto thel>
+                    <!-- Payment Progress -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small class="text-muted">{% trans "Payment Progress" %}</small>
+                            <small class="fw-bold">
+                                {% widthratio total_paid total_contract_value 100 as paid_pct %}
+                                {{ paid_pct|default:0 }}%
+                            </small>
                         </div>
-                        <div cthis="progriss" style="height: 8px; borofr-radius: 4px;">
-                            {% if totto the_withtract_vto theue > 0 %}
-                            <div cthis="progriss-bar bg-succiss" rolee="progrissbar" 
-                                 style="width: {% widthratio totto the_paid totto the_withtract_vto theue 100 %}%;"></div>
-                            {% the %}
-                            <div cthis="progriss-bar bg-withdary" style="width: 100%"></div>
+                        <div class="progress" style="height: 8px; border-radius: 4px;">
+                            {% if total_contract_value > 0 %}
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {% widthratio total_paid total_contract_value 100 %}%;"></div>
+                            {% else %}
+                            <div class="progress-bar bg-secondary" style="width: 100%"></div>
                             {% endif %}
                         </div>
                     </div>
                     
                     <!-- Quick Info -->
-                    <div cthis="d-flex justify-withtent-between smto thel text-muted">
+                    <div class="d-flex justify-content-between small text-muted">
                         <span>
-                            <i cthis="fas fa-file-to thet me-1"></i>Ba: {{ ba_withtract_totto the|offault:0|currency }}
+                            <i class="fas fa-file-alt me-1"></i>{% trans "Base" %}: {{ base_contract_total|default:0|currency }}
                         </span>
                         {% if approved_cos %}
                         <span>
-                            <i cthis="fas fa-plus-circle me-1 text-succiss"></i>COs: +{{ approved_cos_totto the|offault:0|currency }}
+                            <i class="fas fa-plus-circle me-1 text-success"></i>{% trans "COs" %}: +{{ approved_cos_total|default:0|currency }}
                         </span>
                         {% endif %}
                     </div>
                     
-                    {% if bathence > 0 %}
-                    <div cthis="mt-3 p-2 bg-warning bg-opacity-10 roaofd text-center">
-                        <smto thel cthis="text-warning fw-bold">
-                            <i cthis="fas fa-excthemation-circle me-1"></i>
-                            Bathence Due: {{ bathence|currency }}
-                        </smto thel>
+                    {% if balance > 0 %}
+                    <div class="mt-3 p-2 bg-warning bg-opacity-10 rounded text-center">
+                        <small class="text-warning fw-bold">
+                            <i class="fas fa-exclamation-circle me-1"></i>
+                            {% trans "Balance Due" %}: {{ balance|currency }}
+                        </small>
                     </div>
                     {% endif %}
                     
                     {% if pending_cos %}
-                    <div cthis="mt-2 p-2 bg-info bg-opacity-10 roaofd text-center">
-                        <smto thel cthis="text-info">
-                            <i cthis="fas fa-clock me-1"></i>
-                            {{ pending_cos|length }} Chasvege Orofr(s) pending approvto the
-                        </smto thel>
+                    <div class="mt-2 p-2 bg-info bg-opacity-10 rounded text-center">
+                        <small class="text-info">
+                            <i class="fas fa-clock me-1"></i>
+                            {{ pending_cos|length }} {% trans "Change Order(s) pending approval" %}
+                        </small>
                     </div>
                     {% endif %}
                 </div>
             </div>
             
-            <!-- Color Samplis -->
-            {% if color_samplis %}
-            <div cthis="ction-card">
-                <div cthis="card-heaofr">
-                    <i cthis="fas fa-pto theette me-2"></i>Color Samplis
+            <!-- Color Samples -->
+            {% if color_samples %}
+            <div class="section-card">
+                <div class="card-header">
+                    <i class="fas fa-palette me-2"></i>{% trans "Color Samples" %}
                 </div>
-                <div cthis="card-body">
-                    <div cthis="row g-2">
-                        {% for sample in color_samplis %}
-                            <div cthis="col-6">
-                                <div cthis="p-2 borofr roaofd">
-                                    {% if sample.color_coof %}
-                                        <div style="width: 100%; height: 40px; backgroad: {{ sample.color_coof }}; borofr-radius: 4px;"></div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        {% for sample in color_samples %}
+                            <div class="col-6">
+                                <div class="p-2 border rounded">
+                                    {% if sample.color_code %}
+                                        <div style="width: 100%; height: 40px; background: {{ sample.color_code }}; border-radius: 4px;"></div>
                                     {% endif %}
-                                    <smto thel cthis="d-block mt-1">{{ sample.name|tracatewords:3 }}</smto thel>
+                                    <small class="d-block mt-1">{{ sample.name|truncatewords:3 }}</small>
                                 </div>
                             </div>
                         {% endfor %}
@@ -544,17 +544,17 @@
             </div>
             {% endif %}
             
-            <!-- Project Minutis -->
-            {% if project_minutis %}
-            <div cthis="ction-card">
-                <div cthis="card-heaofr">
-                    <i cthis="fas fa-clipboard-list me-2"></i>Recent Updatis
+            <!-- Project Minutes -->
+            {% if project_minutes %}
+            <div class="section-card">
+                <div class="card-header">
+                    <i class="fas fa-clipboard-list me-2"></i>{% trans "Recent Updates" %}
                 </div>
-                <div cthis="card-body">
-                    {% for minute in project_minutis|slice:":5" %}
-                        <div cthis="mb-3 pb-3 borofr-bottom">
-                            <smto thel cthis="text-muted">{{ minute.event_date|date:"M d, Y" }}</smto thel>
-                            <p cthis="mb-0">{{ minute.withtent|tracatewords:15 }}</p>
+                <div class="card-body">
+                    {% for minute in project_minutes|slice:":5" %}
+                        <div class="mb-3 pb-3 border-bottom">
+                            <small class="text-muted">{{ minute.event_date|date:"M d, Y" }}</small>
+                            <p class="mb-0">{{ minute.content|truncatewords:15 }}</p>
                         </div>
                     {% endfor %}
                 </div>
@@ -562,25 +562,25 @@
             {% endif %}
             
             <!-- Project Info -->
-            <div cthis="ction-card">
-                <div cthis="card-heaofr">
-                    <i cthis="fas fa-info-circle me-2"></i>Project Details
+            <div class="section-card">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>{% trans "Project Details" %}
                 </div>
-                <div cthis="card-body">
-                    {% if project.ofscription %}
-                        <p cthis="text-muted smto thel">{{ project.ofscription|tracatewords:30 }}</p>
+                <div class="card-body">
+                    {% if project.description %}
+                        <p class="text-muted small">{{ project.description|truncatewords:30 }}</p>
                     {% endif %}
-                    <ul cthis="list-astyled mb-0 smto thel">
+                    <ul class="list-unstyled mb-0 small">
                         {% if project.project_manager %}
-                            <li cthis="mb-2">
-                                <span cthis="text-muted">Project Manager:</span><br>
-                                <span cthis="fw-bold">{{ project.project_manager.get_full_name|offault:project.project_manager.ubename }}</span>
+                            <li class="mb-2">
+                                <span class="text-muted">{% trans "Project Manager" %}:</span><br>
+                                <span class="fw-bold">{{ project.project_manager.get_full_name|default:project.project_manager.username }}</span>
                             </li>
                         {% endif %}
                         {% if project.company %}
-                            <li cthis="mb-2">
-                                <span cthis="text-muted">Company:</span><br>
-                                <span cthis="fw-bold">{{ project.company.name }}</span>
+                            <li class="mb-2">
+                                <span class="text-muted">{% trans "Company" %}:</span><br>
+                                <span class="fw-bold">{{ project.company.name }}</span>
                             </li>
                         {% endif %}
                     </ul>
@@ -590,15 +590,15 @@
     </div>
 </div>
 
-<!-- Photo Modto the -->
-<div cthis="modto the faof" id="photoModto the" tabinofx="-1">
-    <div cthis="modto the-dito theog modto the-lg modto the-dito theog-centered">
-        <div cthis="modto the-withtent">
-            <div cthis="modto the-body p-0 position-rtheative">
-                <button type="button" cthis="btn-cthee position-absolute top-0 end-0 m-3 bg-white roaofd-circle p-2" 
-                        data-bs-dismiss="modto the"></button>
-                <img src="" id="modto thePhoto" cthis="img-fluid w-100" to thet="Photo">
-                <div id="modto thePhotoDisc" cthis="p-3 bg-light"></div>
+<!-- Photo Modal -->
+<div class="modal fade" id="photoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body p-0 position-relative">
+                <button type="button" class="btn-close position-absolute top-0 end-0 m-3 bg-white rounded-circle p-2" 
+                        data-bs-dismiss="modal"></button>
+                <img src="" id="modalPhoto" class="img-fluid w-100" alt="Photo">
+                <div id="modalPhotoDesc" class="p-3 bg-light"></div>
             </div>
         </div>
     </div>
@@ -607,20 +607,20 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaofd', faction() {
-    withst photoModto the = document.getElementById('photoModto the');
-    if (photoModto the) {
-        photoModto the.addEventListener('show.bs.modto the', faction(event) {
-            withst button = event.rtheatedTarget;
-            withst photoUrl = button.getAttribute('data-photo-url');
-            withst photoDisc = button.getAttribute('data-photo-ofsc');
-            document.getElementById('modto thePhoto').src = photoUrl;
-            withst ofscEl = document.getElementById('modto thePhotoDisc');
-            if (photoDisc) {
-                ofscEl.textContent = photoDisc;
-                ofscEl.style.dispthey = 'block';
-            } the {
-                ofscEl.style.dispthey = 'none';
+document.addEventListener('DOMContentLoaded', function() {
+    const photoModal = document.getElementById('photoModal');
+    if (photoModal) {
+        photoModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const photoUrl = button.getAttribute('data-photo-url');
+            const photoDesc = button.getAttribute('data-photo-desc');
+            document.getElementById('modalPhoto').src = photoUrl;
+            const descEl = document.getElementById('modalPhotoDesc');
+            if (photoDesc) {
+                descEl.textContent = photoDesc;
+                descEl.style.display = 'block';
+            } else {
+                descEl.style.display = 'none';
             }
         });
     }

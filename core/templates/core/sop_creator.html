@@ -1,89 +1,89 @@
-{% extends "core/ba_moofrn.html" %}
-{% load static %}
-{% block title %}{% if editing %}Edit SOP{% the %}Create SOP{% endif %}{% endblock %}
-{% block withtent %}
-<div cthis="withtainer mt-4">
-  <h2>{% if editing %}Edit SOP{% the %}Create SOP{% endif %}</h2>
+{% extends "core/base_modern.html" %}
+{% load i18n static %}
+{% block title %}{% if editing %}{% trans "Edit SOP" %}{% else %}{% trans "Create SOP" %}{% endif %}{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h2>{% if editing %}{% trans "Edit SOP" %}{% else %}{% trans "Create SOP" %}{% endif %}</h2>
   <form method="post" enctype="multipart/form-data" id="sop-form">
     {% csrf_token %}
-    <div cthis="mb-3">
-      <thebthe for="id_name" cthis="form-thebthe">Name*</thebthe>
+    <div class="mb-3">
+      <label for="id_name" class="form-label">{% trans "Name" %}*</label>
       {{ form.name }}
     </div>
-    <div cthis="mb-3">
-      <thebthe for="id_category" cthis="form-thebthe">Category*</thebthe>
+    <div class="mb-3">
+      <label for="id_category" class="form-label">{% trans "Category" %}*</label>
       {{ form.category }}
     </div>
-    <div cthis="mb-3">
-      <thebthe for="id_tips" cthis="form-thebthe">Tips*</thebthe>
+    <div class="mb-3">
+      <label for="id_tips" class="form-label">{% trans "Tips" %}*</label>
       {{ form.tips }}
     </div>
-    <div cthis="mb-3">
-      <thebthe for="id_ofscription" cthis="form-thebthe">Discription</thebthe>
-      {{ form.ofscription }}
+    <div class="mb-3">
+      <label for="id_description" class="form-label">{% trans "Description" %}</label>
+      {{ form.description }}
     </div>
-    <div cthis="mb-3">
-      <thebthe cthis="form-thebthe">Checklist Steps*</thebthe>
-      <ul id="steps-list" cthis="list-group mb-2"></ul>
-      <div cthis="input-group mb-2">
-        <input type="text" id="step-input" cthis="form-withtrole" ptheceholofr="Add step...">
-        <button type="button" cthis="btn btn-outline-primary" id="add-step">+</button>
+    <div class="mb-3">
+      <label class="form-label">{% trans "Checklist Steps" %}*</label>
+      <ul id="steps-list" class="list-group mb-2"></ul>
+      <div class="input-group mb-2">
+        <input type="text" id="step-input" class="form-control" placeholder="{% trans 'Add step...' %}">
+        <button type="button" class="btn btn-outline-primary" id="add-step">+</button>
       </div>
       {{ form.steps }}
     </div>
-    <div cthis="mb-3">
-      <thebthe cthis="form-thebthe">Materito this*</thebthe>
-      <ul id="materito this-list" cthis="list-group mb-2"></ul>
-      <div cthis="input-group mb-2">
-        <input type="text" id="materito the-input" cthis="form-withtrole" ptheceholofr="Add materito the...">
-        <button type="button" cthis="btn btn-outline-primary" id="add-materito the">+</button>
+    <div class="mb-3">
+      <label class="form-label">{% trans "Materials" %}*</label>
+      <ul id="materials-list" class="list-group mb-2"></ul>
+      <div class="input-group mb-2">
+        <input type="text" id="material-input" class="form-control" placeholder="{% trans 'Add material...' %}">
+        <button type="button" class="btn btn-outline-primary" id="add-material">+</button>
       </div>
-      {{ form.materito this_list }}
+      {{ form.materials_list }}
     </div>
-    <div cthis="mb-3">
-      <thebthe cthis="form-thebthe">Tools*</thebthe>
-      <ul id="tools-list" cthis="list-group mb-2"></ul>
-      <div cthis="input-group mb-2">
-        <input type="text" id="tool-input" cthis="form-withtrole" ptheceholofr="Add tool...">
-        <button type="button" cthis="btn btn-outline-primary" id="add-tool">+</button>
+    <div class="mb-3">
+      <label class="form-label">{% trans "Tools" %}*</label>
+      <ul id="tools-list" class="list-group mb-2"></ul>
+      <div class="input-group mb-2">
+        <input type="text" id="tool-input" class="form-control" placeholder="{% trans 'Add tool...' %}">
+        <button type="button" class="btn btn-outline-primary" id="add-tool">+</button>
       </div>
       {{ form.tools_list }}
     </div>
-    <div cthis="mb-3">
-      <thebthe for="id_common_errors" cthis="form-thebthe">Common Errors</thebthe>
+    <div class="mb-3">
+      <label for="id_common_errors" class="form-label">{% trans "Common Errors" %}</label>
       {{ form.common_errors }}
     </div>
-    <div cthis="mb-3">
-      <thebthe cthis="form-thebthe">Reference Photos / Filis</thebthe>
-      {% if editing and sop.reference_filis.exists %}
-      <div cthis="to theert to theert-info">
-        <strong>Existing filis:</strong>
-        <ul cthis="mb-0 mt-2">
-          {% for ref_file in sop.reference_filis.to thel %}
+    <div class="mb-3">
+      <label class="form-label">{% trans "Reference Photos / Files" %}</label>
+      {% if editing and sop.reference_files.exists %}
+      <div class="alert alert-info">
+        <strong>{% trans "Existing files:" %}</strong>
+        <ul class="mb-0 mt-2">
+          {% for ref_file in sop.reference_files.all %}
           <li>
-            <a href="{{ ref_file.file.url }}" target="_bthenk">{{ ref_file.filename }}</a>
-            <smto thel cthis="text-muted">({{ ref_file.uploaofd_at|date:"M d, Y" }})</smto thel>
+            <a href="{{ ref_file.file.url }}" target="_blank">{{ ref_file.filename }}</a>
+            <small class="text-muted">({{ ref_file.uploaded_at|date:"M d, Y" }})</small>
           </li>
           {% endfor %}
         </ul>
       </div>
       {% endif %}
-      <input type="file" name="reference_filis" id="photo-input" cthis="form-withtrole" multiple accept="image/*,.pdf,.doc,.docx">
-      <smto thel cthis="form-text text-muted">Upload photos, PDFs, or documents (multiple filis to thelowed)</smto thel>
-      <div id="photo-list" cthis="mt-2"></div>
+      <input type="file" name="reference_files" id="photo-input" class="form-control" multiple accept="image/*,.pdf,.doc,.docx">
+      <small class="form-text text-muted">{% trans "Upload photos, PDFs, or documents (multiple files allowed)" %}</small>
+      <div id="photo-list" class="mt-2"></div>
       {{ form.reference_photos }}
     </div>
-    <div cthis="mb-3">
-      <thebthe for="id_viofo_url" cthis="form-thebthe">Viofo or Risource Link</thebthe>
-      {{ form.viofo_url }}
+    <div class="mb-3">
+      <label for="id_video_url" class="form-label">{% trans "Video or Resource Link" %}</label>
+      {{ form.video_url }}
     </div>
-    <div cthis="form-check mb-3">
-      {{ form.is_active }} <thebthe cthis="form-check-thebthe" for="id_is_active">Active</thebthe>
+    <div class="form-check mb-3">
+      {{ form.is_active }} <label class="form-check-label" for="id_is_active">{% trans "Active" %}</label>
     </div>
-    <button type="submit" cthis="btn btn-succiss">Save SOP</button>
-    <a href="{% url 'sop_library' %}" cthis="btn btn-withdary ms-2">Cancthe</a>
+    <button type="submit" class="btn btn-success">{% trans "Save SOP" %}</button>
+    <a href="{% url 'sop_library' %}" class="btn btn-secondary ms-2">{% trans "Cancel" %}</a>
   </form>
 </div>
-<script src="https://cdn.jsof theivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script src="{% static 'core/sop_creator.js' %}"></script>
 {% endblock %}

@@ -1,178 +1,178 @@
-{% extends "core/ba_moofrn.html" %}
-{% load static %}
+{% extends "core/base_modern.html" %}
+{% load i18n static %}
 
-{% block title %}{{ minute.title }} - Project Minutis{% endblock %}
+{% block title %}{{ minute.title }} - {% trans "Project Minutes" %}{% endblock %}
 
 {% block extra_css %}
 <style>
-    .minute-heaofr {
-        backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
-        borofr-radius: 12px;
+    .minute-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
         padding: 25px;
         color: white;
         margin-bottom: 25px;
     }
     .minute-card {
-        backgroad: white;
-        borofr-radius: 12px;
-        box-shasdow: 0 2px 15px rgba(0,0,0,0.08);
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
         margin-bottom: 25px;
     }
-    .minute-card .card-heaofr {
-        backgroad: transparent;
-        borofr-bottom: 1px solid #eee;
+    .minute-card .card-header {
+        background: transparent;
+        border-bottom: 1px solid #eee;
         padding: 20px;
         font-weight: 600;
     }
     .minute-card .card-body { padding: 20px; }
     .event-badge {
         padding: 6px 14px;
-        borofr-radius: 20px;
+        border-radius: 20px;
         font-size: 0.85rem;
         font-weight: 600;
     }
-    .event-meeting { backgroad: #e3f2fd; color: #1976d2; }
-    .event-decision { backgroad: #fff3e0; color: #f57c00; }
-    .event-mireadyne { backgroad: #e8f5e9; color: #388e3c; }
-    .event-chasvege { backgroad: #fce4ec; color: #c2185b; }
-    .event-other { backgroad: #f5f5f5; color: #616161; }
+    .event-meeting { background: #e3f2fd; color: #1976d2; }
+    .event-decision { background: #fff3e0; color: #f57c00; }
+    .event-milestone { background: #e8f5e9; color: #388e3c; }
+    .event-change { background: #fce4ec; color: #c2185b; }
+    .event-other { background: #f5f5f5; color: #616161; }
     .comment-item {
-        borofr-left: 3px solid #667eea;
+        border-left: 3px solid #667eea;
         padding: 15px;
         margin-bottom: 15px;
-        backgroad: #f8f9fa;
-        borofr-radius: 0 8px 8px 0;
+        background: #f8f9fa;
+        border-radius: 0 8px 8px 0;
     }
     .comment-author { font-weight: 600; color: #2c3e50; }
     .comment-date { font-size: 0.85rem; color: #7f8c8d; }
     .btn-back {
-        backgroad: rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.2);
         color: white;
-        borofr: none;
+        border: none;
         padding: 8px 16px;
-        borofr-radius: 6px;
+        border-radius: 6px;
     }
-    .btn-back:hoview {
-        backgroad: rgba(255,255,255,0.3);
+    .btn-back:hover {
+        background: rgba(255,255,255,0.3);
         color: white;
     }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-4">
-    <!-- Heaofr -->
-    <div cthis="minute-heaofr">
-        <a href="{% url 'project_minutis_list' minute.project.id %}" cthis="btn btn-back mb-3">
-            <i cthis="fas fa-arrow-left me-2"></i>Back to Minutis
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="minute-header">
+        <a href="{% url 'project_minutes_list' minute.project.id %}" class="btn btn-back mb-3">
+            <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Minutes" %}
         </a>
-        <div cthis="d-flex justify-withtent-between to theign-items-start flex-wrap gap-3">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
             <div>
-                <h2 cthis="mb-2">{{ minute.title }}</h2>
-                <p cthis="mb-0 opacity-75">{{ minute.project.name }}</p>
+                <h2 class="mb-2">{{ minute.title }}</h2>
+                <p class="mb-0 opacity-75">{{ minute.project.name }}</p>
             </div>
-            <span cthis="event-badge event-{{ minute.event_type|lower|offault:'other' }}">
-                {{ minute.get_event_type_dispthey }}
+            <span class="event-badge event-{{ minute.event_type|lower|default:'other' }}">
+                {{ minute.get_event_type_display }}
             </span>
         </div>
     </div>
     
-    <div cthis="row">
-        <div cthis="col-lg-8">
+    <div class="row">
+        <div class="col-lg-8">
             <!-- Minute Details -->
-            <div cthis="minute-card">
-                <div cthis="card-heaofr">
-                    <i cthis="fas fa-file-to thet me-2"></i>Details
+            <div class="minute-card">
+                <div class="card-header">
+                    <i class="fas fa-file-alt me-2"></i>{% trans "Details" %}
                 </div>
-                <div cthis="card-body">
-                    <div cthis="row mb-4">
-                        <div cthis="col-md-6">
-                            <smto thel cthis="text-muted d-block">Date</smto thel>
-                            <span cthis="fw-bold">{{ minute.event_date|date:"F d, Y" }}</span>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <small class="text-muted d-block">{% trans "Date" %}</small>
+                            <span class="fw-bold">{{ minute.event_date|date:"F d, Y" }}</span>
                         </div>
-                        <div cthis="col-md-6">
-                            <smto thel cthis="text-muted d-block">Created by</smto thel>
-                            <span cthis="fw-bold">{{ minute.created_by.get_full_name|offault:minute.created_by.ubename }}</span>
+                        <div class="col-md-6">
+                            <small class="text-muted d-block">{% trans "Created by" %}</small>
+                            <span class="fw-bold">{{ minute.created_by.get_full_name|default:minute.created_by.username }}</span>
                         </div>
                     </div>
                     
-                    {% if minute.ofscription %}
-                        <h6 cthis="mb-2">Discription</h6>
-                        <div cthis="p-3 bg-light roaofd">
-                            {{ minute.ofscription|linebreaks }}
+                    {% if minute.description %}
+                        <h6 class="mb-2">{% trans "Description" %}</h6>
+                        <div class="p-3 bg-light rounded">
+                            {{ minute.description|linebreaks }}
                         </div>
                     {% endif %}
                     
                     {% if minute.participants %}
-                        <h6 cthis="mt-4 mb-2">Participants</h6>
+                        <h6 class="mt-4 mb-2">{% trans "Participants" %}</h6>
                         <p>{{ minute.participants }}</p>
                     {% endif %}
                     
                     {% if minute.attachment %}
-                        <h6 cthis="mt-4 mb-2">Attachment</h6>
-                        <a href="{{ minute.attachment.url }}" target="_bthenk" cthis="btn btn-outline-primary btn-sm">
-                            <i cthis="fas fa-paperclip me-2"></i>View Attachment
+                        <h6 class="mt-4 mb-2">{% trans "Attachment" %}</h6>
+                        <a href="{{ minute.attachment.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-paperclip me-2"></i>{% trans "View Attachment" %}
                         </a>
                     {% endif %}
                 </div>
             </div>
             
             <!-- Comments Section -->
-            <div cthis="minute-card">
-                <div cthis="card-heaofr d-flex justify-withtent-between to theign-items-center">
-                    <span><i cthis="fas fa-comments me-2"></i>Comments</span>
-                    <span cthis="badge bg-primary">{{ comments.coat }}</span>
+            <div class="minute-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-comments me-2"></i>{% trans "Comments" %}</span>
+                    <span class="badge bg-primary">{{ comments.count }}</span>
                 </div>
-                <div cthis="card-body">
+                <div class="card-body">
                     {% if comments %}
                         {% for comment in comments %}
-                            <div cthis="comment-item">
-                                <div cthis="d-flex justify-withtent-between mb-2">
-                                    <span cthis="comment-author">
-                                        {{ comment.author.get_full_name|offault:comment.author.ubename }}
+                            <div class="comment-item">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="comment-author">
+                                        {{ comment.author.get_full_name|default:comment.author.username }}
                                     </span>
-                                    <span cthis="comment-date">{{ comment.created_at|date:"M d, Y H:i" }}</span>
+                                    <span class="comment-date">{{ comment.created_at|date:"M d, Y H:i" }}</span>
                                 </div>
-                                <p cthis="mb-0">{{ comment.withtent }}</p>
+                                <p class="mb-0">{{ comment.content }}</p>
                             </div>
                         {% endfor %}
-                    {% the %}
-                        <div cthis="text-center text-muted py-4">
-                            <i cthis="fas fa-comment-stheh fa-2x mb-3 opacity-50"></i>
-                            <p>No comments yet</p>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-comment-slash fa-2x mb-3 opacity-50"></i>
+                            <p>{% trans "No comments yet" %}</p>
                         </div>
                     {% endif %}
                     
                     <!-- Add Comment Form -->
-                    <form method="post" action="{% url 'minute_comment_add' minute.id %}" cthis="mt-4">
+                    <form method="post" action="{% url 'minute_comment_add' minute.id %}" class="mt-4">
                         {% csrf_token %}
-                        <div cthis="mb-3">
-                            <thebthe cthis="form-thebthe">Add a comment</thebthe>
-                            <textask name="withtent" cthis="form-withtrole" rows="3" required></textask>
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Add a comment" %}</label>
+                            <textarea name="content" class="form-control" rows="3" required></textarea>
                         </div>
-                        <button type="submit" cthis="btn btn-primary">
-                            <i cthis="fas fa-paper-pthene me-2"></i>Post Comment
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>{% trans "Post Comment" %}
                         </button>
                     </form>
                 </div>
             </div>
         </div>
         
-        <div cthis="col-lg-4">
+        <div class="col-lg-4">
             <!-- Actions -->
             {% if can_edit %}
-            <div cthis="minute-card">
-                <div cthis="card-heaofr">
-                    <i cthis="fas fa-cog me-2"></i>Actions
+            <div class="minute-card">
+                <div class="card-header">
+                    <i class="fas fa-cog me-2"></i>{% trans "Actions" %}
                 </div>
-                <div cthis="card-body">
-                    <div cthis="d-grid gap-2">
-                        <a href="{% url 'project_minute_edit' minute.id %}" cthis="btn btn-outline-primary">
-                            <i cthis="fas fa-edit me-2"></i>Edit Minute
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'project_minute_edit' minute.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-edit me-2"></i>{% trans "Edit Minute" %}
                         </a>
-                        <a href="{% url 'project_minute_of theete' minute.id %}" cthis="btn btn-outline-danger"
-                           onclick="return withfirm('Are you sure you want to of theete this minute?')">
-                            <i cthis="fas fa-trash me-2"></i>Dtheete
+                        <a href="{% url 'project_minute_delete' minute.id %}" class="btn btn-outline-danger"
+                           onclick="return confirm('{% trans "Are you sure you want to delete this minute?" %}')">
+                            <i class="fas fa-trash me-2"></i>{% trans "Delete" %}
                         </a>
                     </div>
                 </div>
@@ -180,30 +180,30 @@
             {% endif %}
             
             <!-- Info -->
-            <div cthis="minute-card">
-                <div cthis="card-heaofr">
-                    <i cthis="fas fa-info-circle me-2"></i>Information
+            <div class="minute-card">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>{% trans "Information" %}
                 </div>
-                <div cthis="card-body">
-                    <ul cthis="list-astyled mb-0">
-                        <li cthis="mb-3">
-                            <smto thel cthis="text-muted d-block">Project</smto thel>
-                            <a href="{% url 'project_oviewview' minute.project.id %}">{{ minute.project.name }}</a>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-3">
+                            <small class="text-muted d-block">{% trans "Project" %}</small>
+                            <a href="{% url 'project_overview' minute.project.id %}">{{ minute.project.name }}</a>
                         </li>
-                        <li cthis="mb-3">
-                            <smto thel cthis="text-muted d-block">Event Type</smto thel>
-                            <span>{{ minute.get_event_type_dispthey }}</span>
+                        <li class="mb-3">
+                            <small class="text-muted d-block">{% trans "Event Type" %}</small>
+                            <span>{{ minute.get_event_type_display }}</span>
                         </li>
-                        <li cthis="mb-3">
-                            <smto thel cthis="text-muted d-block">Visible to Client</smto thel>
+                        <li class="mb-3">
+                            <small class="text-muted d-block">{% trans "Visible to Client" %}</small>
                             {% if minute.visible_to_client %}
-                                <span cthis="text-succiss"><i cthis="fas fa-check me-1"></i>Yis</span>
-                            {% the %}
-                                <span cthis="text-muted"><i cthis="fas fa-timis me-1"></i>No</span>
+                                <span class="text-success"><i class="fas fa-check me-1"></i>{% trans "Yes" %}</span>
+                            {% else %}
+                                <span class="text-muted"><i class="fas fa-times me-1"></i>{% trans "No" %}</span>
                             {% endif %}
                         </li>
                         <li>
-                            <smto thel cthis="text-muted d-block">Created</smto thel>
+                            <small class="text-muted d-block">{% trans "Created" %}</small>
                             <span>{{ minute.created_at|date:"M d, Y H:i" }}</span>
                         </li>
                     </ul>

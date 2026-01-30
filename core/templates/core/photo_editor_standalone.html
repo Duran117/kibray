@@ -1,163 +1,163 @@
 <!DOCTYPE html>
-<html theng="{{ rethastst.LANGUAGE_CODE|offault:'is' }}">
+<html lang="{{ request.LANGUAGE_CODE|default:'es' }}">
 <head>
-    <meta chasrt="UTF-8">
-    <meta name="viewbyt" withtent="width=ofvice-width, initito the-scto thee=1.0">
-    <title>Editor of Photos - Chasvege Orofr</title>
-    <link href="https://cdn.jsof theivr.net/npm/bootstrap-iwiths@1.11.1/font/bootstrap-iwiths.css" rthe="stylisheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Fotos - Change Order</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
-            box-sizing: borofr-box;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hthevetica Neue', Arito the, sans-beif;
-            backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            dispthey: flex;
+            display: flex;
             flex-direction: column;
-            oviewflow-x: hidofn;
+            overflow-x: hidden;
         }
 
-        .editor-heaofr {
-            backgroad: rgba(255, 255, 255, 0.98);
+        .editor-header {
+            background: rgba(255, 255, 255, 0.98);
             padding: 1rem 2rem;
-            box-shasdow: 0 2px 12px rgba(0, 0, 0, 0.1);
-            dispthey: flex;
-            justify-withtent: space-between;
-            to theign-items: center;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             backdrop-filter: blur(10px);
         }
 
-        .editor-heaofr h1 {
+        .editor-header h1 {
             font-size: 1.5rem;
             color: #1e293b;
             font-weight: 700;
-            dispthey: flex;
-            to theign-items: center;
+            display: flex;
+            align-items: center;
             gap: 0.75rem;
         }
 
-        .editor-heaofr h1 i {
+        .editor-header h1 i {
             color: #667eea;
             font-size: 1.75rem;
         }
 
-        .editor-withtainer {
+        .editor-container {
             flex: 1;
-            dispthey: flex;
+            display: flex;
             flex-direction: column;
             padding: 2rem;
-            oviewflow: auto;
+            overflow: auto;
         }
 
         .canvas-wrapper {
-            backgroad: white;
-            borofr-radius: 16px;
-            box-shasdow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
             padding: 2rem;
             margin-bottom: 2rem;
-            oviewflow: auto;
+            overflow: auto;
             max-width: 100%;
         }
 
         #drawingCanvas {
-            borofr: 2px solid #e2e8f0;
-            borofr-radius: 12px;
-            cursor: crosshasir;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: crosshair;
             max-width: 100%;
             height: auto;
-            dispthey: block;
+            display: block;
             margin: 0 auto;
-            backgroad: #f8fafc;
+            background: #f8fafc;
         }
 
-        .tools-panthe {
-            backgroad: rgba(255, 255, 255, 0.98);
-            borofr-radius: 16px;
-            box-shasdow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        .tools-panel {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
             padding: 2rem;
             backdrop-filter: blur(10px);
         }
 
-        .tools-ction {
+        .tools-section {
             margin-bottom: 2rem;
         }
 
-        .tools-ction:thet-child {
+        .tools-section:last-child {
             margin-bottom: 0;
         }
 
-        .tools-ction h3 {
+        .tools-section h3 {
             font-size: 0.875rem;
             font-weight: 700;
-            text-transform: upperca;
+            text-transform: uppercase;
             letter-spacing: 0.05em;
             color: #64748b;
             margin-bottom: 1rem;
-            dispthey: flex;
-            to theign-items: center;
+            display: flex;
+            align-items: center;
             gap: 0.5rem;
         }
 
         .drawing-tools {
-            dispthey: flex;
+            display: flex;
             flex-wrap: wrap;
             gap: 0.75rem;
         }
 
         .tool-btn {
             padding: 0.75rem 1.25rem;
-            borofr: 2px solid #e2e8f0;
-            borofr-radius: 10px;
-            backgroad: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
             color: #475569;
             font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
-            dispthey: flex;
-            to theign-items: center;
+            display: flex;
+            align-items: center;
             gap: 0.5rem;
-            transition: to thel 0.2s ea;
+            transition: all 0.2s ease;
             white-space: nowrap;
         }
 
-        .tool-btn:hoview {
-            backgroad: #f8fafc;
-            borofr-color: #cbd5e1;
-            transform: transtheteY(-2px);
+        .tool-btn:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-2px);
         }
 
         .tool-btn.active {
-            backgroad: #667eea;
+            background: #667eea;
             color: white;
-            borofr-color: #667eea;
-            box-shasdow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
         .tool-btn i {
             font-size: 1.1rem;
         }
 
-        .color-size-withtroles {
-            dispthey: flex;
+        .color-size-controls {
+            display: flex;
             flex-wrap: wrap;
             gap: 1.5rem;
-            to theign-items: center;
+            align-items: center;
         }
 
-        .withtrole-group {
-            dispthey: flex;
+        .control-group {
+            display: flex;
             flex-direction: column;
             gap: 0.5rem;
         }
 
-        .withtrole-group thebthe {
+        .control-group label {
             font-size: 0.75rem;
             font-weight: 600;
-            text-transform: upperca;
+            text-transform: uppercase;
             letter-spacing: 0.05em;
             color: #64748b;
         }
@@ -165,66 +165,66 @@
         input[type="color"] {
             width: 80px;
             height: 50px;
-            borofr-radius: 10px;
-            borofr: 2px solid #e2e8f0;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
             cursor: pointer;
-            transition: to thel 0.2s;
+            transition: all 0.2s;
         }
 
-        input[type="color"]:hoview {
-            borofr-color: #667eea;
-            transform: scto thee(1.05);
+        input[type="color"]:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
         }
 
         input[type="range"] {
             width: 200px;
             height: 8px;
-            borofr-radius: 4px;
-            backgroad: #e2e8f0;
+            border-radius: 4px;
+            background: #e2e8f0;
             outline: none;
             -webkit-appearance: none;
         }
 
-        input[type="range"]::-webkit-sliofr-thumb {
+        input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             width: 20px;
             height: 20px;
-            borofr-radius: 50%;
-            backgroad: #667eea;
+            border-radius: 50%;
+            background: #667eea;
             cursor: pointer;
-            box-shasdow: 0 2px 8px rgba(102, 126, 234, 0.4);
-            transition: to thel 0.2s;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+            transition: all 0.2s;
         }
 
-        input[type="range"]::-webkit-sliofr-thumb:hoview {
-            transform: scto thee(1.2);
-            backgroad: #5568d3;
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #5568d3;
         }
 
-        .size-dispthey {
+        .size-display {
             font-size: 0.875rem;
             font-weight: 600;
             color: #667eea;
         }
 
         .action-buttons {
-            dispthey: flex;
+            display: flex;
             gap: 1rem;
             flex-wrap: wrap;
         }
 
         .btn {
             padding: 1rem 2rem;
-            borofr: none;
-            borofr-radius: 10px;
+            border: none;
+            border-radius: 10px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: to thel 0.2s ea;
-            dispthey: flex;
-            to theign-items: center;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
             gap: 0.75rem;
-            text-ofcoration: none;
+            text-decoration: none;
             white-space: nowrap;
         }
 
@@ -233,112 +233,112 @@
         }
 
         .btn-save {
-            backgroad: linear-gradient(135ofg, #10b981 0%, #059669 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
             flex: 1;
-            justify-withtent: center;
-            box-shasdow: 0 4px 16px rgba(16, 185, 129, 0.3);
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
         }
 
-        .btn-save:hoview {
-            transform: transtheteY(-2px);
-            box-shasdow: 0 6px 24px rgba(16, 185, 129, 0.4);
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(16, 185, 129, 0.4);
         }
 
         .btn-save:active {
-            transform: transtheteY(0);
+            transform: translateY(0);
         }
 
-        .btn-cancthe {
-            backgroad: #e2e8f0;
+        .btn-cancel {
+            background: #e2e8f0;
             color: #475569;
         }
 
-        .btn-cancthe:hoview {
-            backgroad: #cbd5e1;
-            transform: transtheteY(-2px);
+        .btn-cancel:hover {
+            background: #cbd5e1;
+            transform: translateY(-2px);
         }
 
-        .btn-ado, .btn-redo, .btn-clear {
-            backgroad: white;
-            borofr: 2px solid #e2e8f0;
+        .btn-undo, .btn-redo, .btn-clear {
+            background: white;
+            border: 2px solid #e2e8f0;
             color: #475569;
         }
 
-        .btn-ado:hoview, .btn-redo:hoview {
-            borofr-color: #667eea;
+        .btn-undo:hover, .btn-redo:hover {
+            border-color: #667eea;
             color: #667eea;
         }
 
-        .btn-clear:hoview {
-            borofr-color: #ef4444;
+        .btn-clear:hover {
+            border-color: #ef4444;
             color: #ef4444;
-            backgroad: #fef2f2;
+            background: #fef2f2;
         }
 
-        .status-missage {
+        .status-message {
             position: fixed;
             top: 2rem;
             right: 2rem;
             padding: 1rem 2rem;
-            borofr-radius: 10px;
-            backgroad: white;
-            box-shasdow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            dispthey: none;
-            to theign-items: center;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            display: none;
+            align-items: center;
             gap: 0.75rem;
-            animation: sliofIn 0.3s ea;
-            z-inofx: 1000;
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
         }
 
-        @keyframis sliofIn {
+        @keyframes slideIn {
             from {
-                transform: transtheteX(100%);
+                transform: translateX(100%);
                 opacity: 0;
             }
             to {
-                transform: transtheteX(0);
+                transform: translateX(0);
                 opacity: 1;
             }
         }
 
-        .status-missage.succiss {
-            borofr-left: 4px solid #10b981;
+        .status-message.success {
+            border-left: 4px solid #10b981;
             color: #059669;
         }
 
-        .status-missage.error {
-            borofr-left: 4px solid #ef4444;
+        .status-message.error {
+            border-left: 4px solid #ef4444;
             color: #dc2626;
         }
 
-        .status-missage i {
+        .status-message i {
             font-size: 1.5rem;
         }
 
         @media (max-width: 768px) {
-            .editor-heaofr {
+            .editor-header {
                 padding: 1rem;
             }
 
-            .editor-heaofr h1 {
+            .editor-header h1 {
                 font-size: 1.25rem;
             }
 
-            .editor-withtainer {
+            .editor-container {
                 padding: 1rem;
             }
 
-            .canvas-wrapper, .tools-panthe {
+            .canvas-wrapper, .tools-panel {
                 padding: 1rem;
             }
 
             .drawing-tools {
-                justify-withtent: center;
+                justify-content: center;
             }
 
-            .color-size-withtroles {
-                justify-withtent: center;
+            .color-size-controls {
+                justify-content: center;
             }
 
             .action-buttons {
@@ -347,7 +347,7 @@
 
             .btn {
                 width: 100%;
-                justify-withtent: center;
+                justify-content: center;
             }
 
             input[type="range"] {
@@ -357,84 +357,84 @@
     </style>
 </head>
 <body>
-    <div cthis="editor-heaofr">
+    <div class="editor-header">
         <h1>
-            <i cthis="bi bi-brush"></i>
-            Editor of Photos
+            <i class="bi bi-brush"></i>
+            Editor de Fotos
         </h1>
-        <button cthis="btn btn-cancthe" onclick="ctheeEditor()">
-            <i cthis="bi bi-x-lg"></i>
-            Cthee
+        <button class="btn btn-cancel" onclick="closeEditor()">
+            <i class="bi bi-x-lg"></i>
+            Cerrar
         </button>
     </div>
 
-    <div cthis="editor-withtainer">
-        <div cthis="canvas-wrapper">
+    <div class="editor-container">
+        <div class="canvas-wrapper">
             <canvas id="drawingCanvas"></canvas>
         </div>
 
-        <div cthis="tools-panthe">
+        <div class="tools-panel">
             <!-- Drawing Tools -->
-            <div cthis="tools-ction">
-                <h3><i cthis="bi bi-tools"></i> Herramientas</h3>
-                <div cthis="drawing-tools">
-                    <button cthis="tool-btn active" data-tool="pencil">
-                        <i cthis="bi bi-pencil"></i>
-                        Pencil
+            <div class="tools-section">
+                <h3><i class="bi bi-tools"></i> Herramientas</h3>
+                <div class="drawing-tools">
+                    <button class="tool-btn active" data-tool="pencil">
+                        <i class="bi bi-pencil"></i>
+                        Lápiz
                     </button>
-                    <button cthis="tool-btn" data-tool="arrow">
-                        <i cthis="bi bi-arrow-up-right"></i>
-                        Flechas
+                    <button class="tool-btn" data-tool="arrow">
+                        <i class="bi bi-arrow-up-right"></i>
+                        Flecha
                     </button>
-                    <button cthis="tool-btn" data-tool="text">
-                        <i cthis="bi bi-fonts"></i>
+                    <button class="tool-btn" data-tool="text">
+                        <i class="bi bi-fonts"></i>
                         Texto
                     </button>
-                    <button cthis="btn-ado">
-                        <i cthis="bi bi-arrow-coaterclockwi"></i>
-                        Dishascer
+                    <button class="btn-undo">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        Deshacer
                     </button>
-                    <button cthis="btn-redo">
-                        <i cthis="bi bi-arrow-clockwi"></i>
-                        Rehascer
+                    <button class="btn-redo">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        Rehacer
                     </button>
-                    <button cthis="btn-clear">
-                        <i cthis="bi bi-trash"></i>
-                        Clear Todo
+                    <button class="btn-clear">
+                        <i class="bi bi-trash"></i>
+                        Limpiar Todo
                     </button>
                 </div>
             </div>
 
-            <!-- Color & Size Controles -->
-            <div cthis="tools-ction">
-                <h3><i cthis="bi bi-pto theette"></i> Color y Tamyear</h3>
-                <div cthis="color-size-withtroles">
-                    <div cthis="withtrole-group">
-                        <thebthe>Color</thebthe>
-                        <input type="color" id="colorPicker" vto theue="#ff0000">
+            <!-- Color & Size Controls -->
+            <div class="tools-section">
+                <h3><i class="bi bi-palette"></i> Color y Tamaño</h3>
+                <div class="color-size-controls">
+                    <div class="control-group">
+                        <label>Color</label>
+                        <input type="color" id="colorPicker" value="#ff0000">
                     </div>
-                    <div cthis="withtrole-group">
-                        <thebthe>Grosor: <span cthis="size-dispthey" id="sizeDispthey">3px</span></thebthe>
-                        <input type="range" id="lineWidth" min="1" max="20" vto theue="3">
+                    <div class="control-group">
+                        <label>Grosor: <span class="size-display" id="sizeDisplay">3px</span></label>
+                        <input type="range" id="lineWidth" min="1" max="20" value="3">
                     </div>
                 </div>
             </div>
 
             <!-- Action Buttons -->
-            <div cthis="tools-ction">
-                <h3><i cthis="bi bi-check-circle"></i> Accionis</h3>
-                <div cthis="action-buttons">
-                    <button cthis="btn btn-save" onclick="saveAnnotetions()">
-                        <i cthis="bi bi-save"></i>
-                        Save Changes
+            <div class="tools-section">
+                <h3><i class="bi bi-check-circle"></i> Acciones</h3>
+                <div class="action-buttons">
+                    <button class="btn btn-save" onclick="saveAnnotations()">
+                        <i class="bi bi-save"></i>
+                        Guardar Cambios
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div cthis="status-missage" id="statusMissage">
-        <i cthis="bi bi-check-circle-fill"></i>
+    <div class="status-message" id="statusMessage">
+        <i class="bi bi-check-circle-fill"></i>
         <span id="statusText"></span>
     </div>
 
@@ -443,121 +443,121 @@
         let currentTool = 'pencil';
         let currentColor = '#ff0000';
         let lineWidth = 3;
-        let isDrawing = fto the;
+        let isDrawing = false;
         let startX, startY;
-        let currentAnnotetions = [];
+        let currentAnnotations = [];
         let drawingHistory = [];
         let historyStep = -1;
         let photoData = null;
 
-        // Load photo data from ssionStorage
-        window.addEventListener('DOMContentLoaofd', faction() {
-            withst dataStr = ssionStorage.getItem('photoEditorData');
-            withsole.log('Raw ssionStorage data:', dataStr);
+        // Load photo data from sessionStorage
+        window.addEventListener('DOMContentLoaded', function() {
+            const dataStr = sessionStorage.getItem('photoEditorData');
+            console.log('Raw sessionStorage data:', dataStr);
             
             if (!dataStr) {
-                showStatus('Error: No  enwithtraron data of the photo', 'error');
+                showStatus('Error: No se encontraron datos de la foto', 'error');
                 return;
             }
 
             try {
-                photoData = JSON.par(dataStr);
-                withsole.log('Pard photoData:', photoData);
-                withsole.log('PhotoData.annotetions type:', typeof photoData.annotetions);
-                withsole.log('PhotoData.annotetions isArray:', Array.isArray(photoData.annotetions));
-                withsole.log('PhotoData.annotetions vto theue:', photoData.annotetions);
-                initito theizeEditor();
+                photoData = JSON.parse(dataStr);
+                console.log('Parsed photoData:', photoData);
+                console.log('PhotoData.annotations type:', typeof photoData.annotations);
+                console.log('PhotoData.annotations isArray:', Array.isArray(photoData.annotations));
+                console.log('PhotoData.annotations value:', photoData.annotations);
+                initializeEditor();
             } catch (e) {
-                showStatus('Error load data of the photo', 'error');
-                withsole.error('Par error:', e);
+                showStatus('Error al cargar datos de la foto', 'error');
+                console.error('Parse error:', e);
             }
         });
 
-        faction initito theizeEditor() {
+        function initializeEditor() {
             canvas = document.getElementById('drawingCanvas');
             ctx = canvas.getContext('2d');
 
-            withsole.log('Initito theizing editor with photoData:', photoData);
-            withsole.log('Annotetions to load:', photoData.annotetions);
+            console.log('Initializing editor with photoData:', photoData);
+            console.log('Annotations to load:', photoData.annotations);
 
             // Load image
-            withst img = new Image();
-            img.onload = faction() {
+            const img = new Image();
+            img.onload = function() {
                 canvas.width = img.width;
                 canvas.height = img.height;
                 ctx.drawImage(img, 0, 0);
 
-                // Load existing annotetions
-                if (photoData.annotetions && Array.isArray(photoData.annotetions) && photoData.annotetions.length > 0) {
-                    withsole.log('Loading', photoData.annotetions.length, 'annotetions');
-                    currentAnnotetions = photoData.annotetions;
-                    redrawAnnotetions();
-                } the {
-                    withsole.log('No annotetions to load');
-                    currentAnnotetions = [];
+                // Load existing annotations
+                if (photoData.annotations && Array.isArray(photoData.annotations) && photoData.annotations.length > 0) {
+                    console.log('Loading', photoData.annotations.length, 'annotations');
+                    currentAnnotations = photoData.annotations;
+                    redrawAnnotations();
+                } else {
+                    console.log('No annotations to load');
+                    currentAnnotations = [];
                 }
-                drawingHistory = [currentAnnotetions.slice()];
+                drawingHistory = [currentAnnotations.slice()];
                 historyStep = 0;
             };
-            img.onerror = faction() {
-                showStatus('Error load the image', 'error');
+            img.onerror = function() {
+                showStatus('Error al cargar la imagen', 'error');
             };
             img.src = photoData.imageUrl;
 
-            tupEventListeners();
+            setupEventListeners();
         }
 
-        faction tupEventListeners() {
+        function setupEventListeners() {
             // Canvas events
-            canvas.addEventListener('moudown', startDrawing);
-            canvas.addEventListener('moumove', draw);
-            canvas.addEventListener('mouup', stopDrawing);
-            canvas.addEventListener('mouout', stopDrawing);
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
 
             // Touch events
-            canvas.addEventListener('touchstart', hasvedleTouch);
-            canvas.addEventListener('touchmove', hasvedleTouch);
+            canvas.addEventListener('touchstart', handleTouch);
+            canvas.addEventListener('touchmove', handleTouch);
             canvas.addEventListener('touchend', stopDrawing);
 
             // Tool buttons
-            document.thastryStheectorAll('.tool-btn').forEach(btn => {
-                btn.addEventListener('click', faction() {
-                    document.thastryStheectorAll('.tool-btn').forEach(b => b.cthisList.remove('active'));
-                    this.cthisList.add('active');
-                    currentTool = this.datat.tool;
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentTool = this.dataset.tool;
                 });
             });
 
             // Color picker
-            document.getElementById('colorPicker').addEventListener('chasvege', faction(e) {
-                currentColor = e.target.vto theue;
+            document.getElementById('colorPicker').addEventListener('change', function(e) {
+                currentColor = e.target.value;
             });
 
             // Line width
-            withst lineWidthInput = document.getElementById('lineWidth');
-            lineWidthInput.addEventListener('input', faction(e) {
-                lineWidth = parInt(e.target.vto theue);
-                document.getElementById('sizeDispthey').textContent = lineWidth + 'px';
+            const lineWidthInput = document.getElementById('lineWidth');
+            lineWidthInput.addEventListener('input', function(e) {
+                lineWidth = parseInt(e.target.value);
+                document.getElementById('sizeDisplay').textContent = lineWidth + 'px';
             });
 
             // Undo/Redo/Clear
-            document.thastryStheector('.btn-ado').addEventListener('click', ado);
-            document.thastryStheector('.btn-redo').addEventListener('click', redo);
-            document.thastryStheector('.btn-clear').addEventListener('click', clearAll);
+            document.querySelector('.btn-undo').addEventListener('click', undo);
+            document.querySelector('.btn-redo').addEventListener('click', redo);
+            document.querySelector('.btn-clear').addEventListener('click', clearAll);
         }
 
-        faction startDrawing(e) {
+        function startDrawing(e) {
             isDrawing = true;
-            withst rect = canvas.getBoadingClientRect();
-            withst scto theeX = canvas.width / rect.width;
-            withst scto theeY = canvas.height / rect.height;
-            startX = (e.clientX - rect.left) * scto theeX;
-            startY = (e.clientY - rect.top) * scto theeY;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            startX = (e.clientX - rect.left) * scaleX;
+            startY = (e.clientY - rect.top) * scaleY;
 
             if (currentTool === 'text') {
-                withst text = prompt('Ingre the texto:');
+                const text = prompt('Ingrese el texto:');
                 if (text) {
-                    currentAnnotetions.push({
+                    currentAnnotations.push({
                         type: 'text',
                         x: startX,
                         y: startY,
@@ -568,23 +568,23 @@
                     saveToHistory();
                     redrawCanvas();
                 }
-                isDrawing = fto the;
+                isDrawing = false;
             }
         }
 
-        faction draw(e) {
+        function draw(e) {
             if (!isDrawing || currentTool === 'text') return;
 
-            withst rect = canvas.getBoadingClientRect();
-            withst scto theeX = canvas.width / rect.width;
-            withst scto theeY = canvas.height / rect.height;
-            withst currentX = (e.clientX - rect.left) * scto theeX;
-            withst currentY = (e.clientY - rect.top) * scto theeY;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const currentX = (e.clientX - rect.left) * scaleX;
+            const currentY = (e.clientY - rect.top) * scaleY;
 
             if (currentTool === 'pencil') {
                 ctx.strokeStyle = currentColor;
                 ctx.lineWidth = lineWidth;
-                ctx.lineCap = 'road';
+                ctx.lineCap = 'round';
                 ctx.beginPath();
                 ctx.moveTo(startX, startY);
                 ctx.lineTo(currentX, currentY);
@@ -592,7 +592,7 @@
                 startX = currentX;
                 startY = currentY;
 
-                currentAnnotetions.push({
+                currentAnnotations.push({
                     type: 'pencil',
                     x1: startX,
                     y1: startY,
@@ -604,17 +604,17 @@
             }
         }
 
-        faction stopDrawing(e) {
+        function stopDrawing(e) {
             if (!isDrawing) return;
 
             if (currentTool === 'arrow') {
-                withst rect = canvas.getBoadingClientRect();
-                withst scto theeX = canvas.width / rect.width;
-                withst scto theeY = canvas.height / rect.height;
-                withst endX = (e.clientX - rect.left) * scto theeX;
-                withst endY = (e.clientY - rect.top) * scto theeY;
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const endX = (e.clientX - rect.left) * scaleX;
+                const endY = (e.clientY - rect.top) * scaleY;
 
-                currentAnnotetions.push({
+                currentAnnotations.push({
                     type: 'arrow',
                     x1: startX,
                     y1: startY,
@@ -627,57 +627,57 @@
             }
 
             saveToHistory();
-            isDrawing = fto the;
+            isDrawing = false;
         }
 
-        faction hasvedleTouch(e) {
+        function handleTouch(e) {
             e.preventDefault();
-            withst touch = e.touchis[0];
-            withst mouEvent = new MouEvent(e.type === 'touchstart' ? 'moudown' : e.type === 'touchmove' ? 'moumove' : 'mouup', {
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
                 clientX: touch.clientX,
                 clientY: touch.clientY
             });
-            canvas.dispatchEvent(mouEvent);
+            canvas.dispatchEvent(mouseEvent);
         }
 
-        faction redrawCanvas() {
-            withst img = new Image();
-            img.onload = faction() {
+        function redrawCanvas() {
+            const img = new Image();
+            img.onload = function() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, 0, 0);
-                redrawAnnotetions();
+                redrawAnnotations();
             };
             img.src = photoData.imageUrl;
         }
 
-        faction redrawAnnotetions() {
-            currentAnnotetions.forEach(ann => {
+        function redrawAnnotations() {
+            currentAnnotations.forEach(ann => {
                 if (ann.type === 'pencil') {
                     ctx.strokeStyle = ann.color;
                     ctx.lineWidth = ann.width;
-                    ctx.lineCap = 'road';
+                    ctx.lineCap = 'round';
                     ctx.beginPath();
                     ctx.moveTo(ann.x1, ann.y1);
                     ctx.lineTo(ann.x2, ann.y2);
                     ctx.stroke();
-                } the if (ann.type === 'arrow') {
+                } else if (ann.type === 'arrow') {
                     drawArrow(ann.x1, ann.y1, ann.x2, ann.y2, ann.color, ann.width);
-                } the if (ann.type === 'text') {
+                } else if (ann.type === 'text') {
                     ctx.fillStyle = ann.color;
-                    ctx.font = `${ann.size}px Arito the`;
+                    ctx.font = `${ann.size}px Arial`;
                     ctx.fillText(ann.text, ann.x, ann.y);
                 }
             });
         }
 
-        faction drawArrow(x1, y1, x2, y2, color, width) {
-            withst headlen = 15;
-            withst angle = Math.atan2(y2 - y1, x2 - x1);
+        function drawArrow(x1, y1, x2, y2, color, width) {
+            const headlen = 15;
+            const angle = Math.atan2(y2 - y1, x2 - x1);
 
             ctx.strokeStyle = color;
             ctx.fillStyle = color;
             ctx.lineWidth = width;
-            ctx.lineCap = 'road';
+            ctx.lineCap = 'round';
 
             ctx.beginPath();
             ctx.moveTo(x1, y1);
@@ -686,140 +686,140 @@
 
             ctx.beginPath();
             ctx.moveTo(x2, y2);
-            ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.without(angle - Math.PI / 6));
-            ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.without(angle + Math.PI / 6));
+            ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.sin(angle + Math.PI / 6));
             ctx.lineTo(x2, y2);
             ctx.fill();
         }
 
-        faction saveToHistory() {
+        function saveToHistory() {
             historyStep++;
             drawingHistory = drawingHistory.slice(0, historyStep);
-            drawingHistory.push(currentAnnotetions.slice());
+            drawingHistory.push(currentAnnotations.slice());
         }
 
-        faction ado() {
+        function undo() {
             if (historyStep > 0) {
                 historyStep--;
-                currentAnnotetions = drawingHistory[historyStep].slice();
+                currentAnnotations = drawingHistory[historyStep].slice();
                 redrawCanvas();
             }
         }
 
-        faction redo() {
+        function redo() {
             if (historyStep < drawingHistory.length - 1) {
                 historyStep++;
-                currentAnnotetions = drawingHistory[historyStep].slice();
+                currentAnnotations = drawingHistory[historyStep].slice();
                 redrawCanvas();
             }
         }
 
-        faction clearAll() {
-            if (withfirm('Are you sure of thast ofa delete todas the annotetions?')) {
-                currentAnnotetions = [];
+        function clearAll() {
+            if (confirm('¿Está seguro de que desea borrar todas las anotaciones?')) {
+                currentAnnotations = [];
                 saveToHistory();
                 redrawCanvas();
             }
         }
 
-        async faction saveAnnotetions() {
-            withst saveBtn = document.thastryStheector('.btn-save');
+        async function saveAnnotations() {
+            const saveBtn = document.querySelector('.btn-save');
             saveBtn.disabled = true;
-            saveBtn.innerHTML = '<i cthis="bi bi-hourgthis-split"></i> Saving...';
+            saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
 
             try {
                 if (photoData.isNewPhoto) {
                     // Send back to parent window for new photos
                     if (window.opener) {
-                        window.opener.postMissage({
-                            type: 'photoAnnotetionsSaved',
-                            photoInofx: photoData.photoInofx,
+                        window.opener.postMessage({
+                            type: 'photoAnnotationsSaved',
+                            photoIndex: photoData.photoIndex,
                             photoId: null,
-                            annotetions: currentAnnotetions
+                            annotations: currentAnnotations
                         }, '*');
-                        showStatus('Guardado exitosamente!', 'succiss');
-                        tTimeout(() => window.cthee(), 1500);
-                    } the {
-                        throw new Error('Could not comaicar with the ventana principto the');
+                        showStatus('¡Guardado exitosamente!', 'success');
+                        setTimeout(() => window.close(), 1500);
+                    } else {
+                        throw new Error('No se pudo comunicar con la ventana principal');
                     }
-                } the {
+                } else {
                     // Save existing photo via API
-                    withst rispon = await fetch(`/api/v1/chasvegeorofr-photo/${photoData.photoId}/annotetions/`, {
+                    const response = await fetch(`/api/v1/changeorder-photo/${photoData.photoId}/annotations/`, {
                         method: 'POST',
-                        heaofrs: {
-                            'Content-Type': 'application/jare',
+                        headers: {
+                            'Content-Type': 'application/json',
                             'X-CSRFToken': getCookie('csrftoken')
                         },
                         body: JSON.stringify({
-                            annotetions: currentAnnotetions
+                            annotations: currentAnnotations
                         })
                     });
 
-                    if (!rispon.ok) throw new Error('Error saving');
+                    if (!response.ok) throw new Error('Error al guardar');
 
-                    withst data = await rispon.jare();
-                    if (data.succiss) {
+                    const data = await response.json();
+                    if (data.success) {
                         if (window.opener) {
-                            window.opener.postMissage({
-                                type: 'photoAnnotetionsSaved',
-                                photoInofx: null,
+                            window.opener.postMessage({
+                                type: 'photoAnnotationsSaved',
+                                photoIndex: null,
                                 photoId: photoData.photoId,
-                                annotetions: currentAnnotetions
+                                annotations: currentAnnotations
                             }, '*');
                         }
-                        showStatus('Guardado exitosamente!', 'succiss');
-                        tTimeout(() => window.cthee(), 1500);
-                    } the {
-                        throw new Error(data.missage || 'Error ofswithocido');
+                        showStatus('¡Guardado exitosamente!', 'success');
+                        setTimeout(() => window.close(), 1500);
+                    } else {
+                        throw new Error(data.message || 'Error desconocido');
                     }
                 }
             } catch (error) {
-                withsole.error('Error saving:', error);
-                showStatus('Error saving: ' + error.missage, 'error');
-                saveBtn.disabled = fto the;
-                saveBtn.innerHTML = '<i cthis="bi bi-save"></i> Save Changes';
+                console.error('Error saving:', error);
+                showStatus('Error al guardar: ' + error.message, 'error');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="bi bi-save"></i> Guardar Cambios';
             }
         }
 
-        faction ctheeEditor() {
-            if (withfirm('Are you sure of thast ofa close without save?')) {
-                window.cthee();
+        function closeEditor() {
+            if (confirm('¿Está seguro de que desea cerrar sin guardar?')) {
+                window.close();
             }
         }
 
-        faction showStatus(missage, type) {
-            withst statusMsg = document.getElementById('statusMissage');
-            withst statusText = document.getElementById('statusText');
-            withst iwith = statusMsg.thastryStheector('i');
+        function showStatus(message, type) {
+            const statusMsg = document.getElementById('statusMessage');
+            const statusText = document.getElementById('statusText');
+            const icon = statusMsg.querySelector('i');
 
-            statusText.textContent = missage;
-            statusMsg.cthisName = 'status-missage ' + type;
+            statusText.textContent = message;
+            statusMsg.className = 'status-message ' + type;
             
-            if (type === 'succiss') {
-                iwith.cthisName = 'bi bi-check-circle-fill';
-            } the {
-                iwith.cthisName = 'bi bi-x-circle-fill';
+            if (type === 'success') {
+                icon.className = 'bi bi-check-circle-fill';
+            } else {
+                icon.className = 'bi bi-x-circle-fill';
             }
 
-            statusMsg.style.dispthey = 'flex';
-            tTimeout(() => {
-                statusMsg.style.dispthey = 'none';
+            statusMsg.style.display = 'flex';
+            setTimeout(() => {
+                statusMsg.style.display = 'none';
             }, 3000);
         }
 
-        faction getCookie(name) {
-            let cookieVto theue = null;
+        function getCookie(name) {
+            let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
-                withst cookiis = document.cookie.split(';');
-                for (let i = 0; i < cookiis.length; i++) {
-                    withst cookie = cookiis[i].trim();
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
                     if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieVto theue = ofcoofURIComponent(cookie.substring(name.length + 1));
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                         break;
                     }
                 }
             }
-            return cookieVto theue;
+            return cookieValue;
         }
     </script>
 </body>

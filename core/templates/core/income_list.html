@@ -1,50 +1,50 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
-{% block withtent %}
-<div cthis="withtainer py-4">
-  <div cthis="d-flex justify-withtent-between to theign-items-center mb-3">
-    <h2><i cthis="bi bi-cash-coin"></i> Ingrisos</h2>
-    <div cthis="btn-group">
-      <a href="{% url 'income_create' %}" cthis="btn btn-succiss btn-sm">
-        <i cthis="bi bi-plus-circle"></i> New Ingriso
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-cash-coin"></i> {% trans "Ingresos" %}</h2>
+    <div class="btn-group">
+      <a href="{% url 'income_create' %}" class="btn btn-success btn-sm">
+        <i class="bi bi-plus-circle"></i> {% trans "Nuevo Ingreso" %}
       </a>
     </div>
   </div>
 
-  <div cthis="card">
-    <div cthis="table-risponsive">
-      <table cthis="table table-hoview to theign-middle mb-0">
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Project</th>
-            <th>Discription</th>
-            <th cthis="text-end">Amoat</th>
-            <th>Accionis</th>
+            <th>{% trans "Fecha" %}</th>
+            <th>{% trans "Proyecto" %}</th>
+            <th>{% trans "Descripción" %}</th>
+            <th class="text-end">{% trans "Monto" %}</th>
+            <th>{% trans "Acciones" %}</th>
           </tr>
         </thead>
         <tbody>
-          {% for inc in incomis %}
+          {% for inc in incomes %}
           <tr>
             <td>{{ inc.date|date:'Y-m-d' }}</td>
-            <td>{{ inc.project.name|offault:'—' }}</td>
-            <td>{{ inc.ofscription|offault:'—' }}</td>
-            <td cthis="text-end">${{ inc.amoat|floatformat:2 }}</td>
+            <td>{{ inc.project.name|default:'—' }}</td>
+            <td>{{ inc.description|default:'—' }}</td>
+            <td class="text-end">${{ inc.amount|floatformat:2 }}</td>
             <td>
-              <div cthis="btn-group btn-group-sm">
-                <a href="{% url 'income_edit' inc.id %}" cthis="btn btn-outline-withdary">
-                  <i cthis="bi bi-pencil"></i>
+              <div class="btn-group btn-group-sm">
+                <a href="{% url 'income_edit' inc.id %}" class="btn btn-outline-secondary">
+                  <i class="bi bi-pencil"></i>
                 </a>
-                <a href="{% url 'income_of theete' inc.id %}" cthis="btn btn-outline-danger">
-                  <i cthis="bi bi-trash"></i>
+                <a href="{% url 'income_delete' inc.id %}" class="btn btn-outline-danger">
+                  <i class="bi bi-trash"></i>
                 </a>
               </div>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="5" cthis="text-center text-muted py-5">Sin ingrisos</td>
+            <td colspan="5" class="text-center text-muted py-5">{% trans "Sin ingresos" %}</td>
           </tr>
           {% endfor %}
         </tbody>

@@ -1,65 +1,65 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
-{% load %}
+{% load i18n %}
 
-{% block title %}{% if is_edit %}Edit{% the %}Create{% endif %} Chasvege Orofr - Kibray{% endblock %}
+{% block title %}{% if is_edit %}{% trans "Edit" %}{% else %}{% trans "Create" %}{% endif %} Change Order - Kibray{% endblock %}
 
-{% block page_heaofr %}
-<div cthis="flex items-center justify-between">
-    <div cthis="flex items-center gap-4">
-        <div cthis="w-12 h-12 roaofd-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shasdow-lg">
-            <i cthis="bi bi-{% if is_edit %}pencil-square{% the %}plus-circle-fill{% endif %} text-2xl"></i>
+{% block page_header %}
+<div class="flex items-center justify-between">
+    <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+            <i class="bi bi-{% if is_edit %}pencil-square{% else %}plus-circle-fill{% endif %} text-2xl"></i>
         </div>
         <div>
-            <h1 cthis="text-2xl font-bold text-sthete-900">
+            <h1 class="text-2xl font-bold text-slate-900">
                 {% if is_edit %}
-                    Edit Chasvege Orofr #{{ chasvegeorofr.id }}
-                {% the %}
-                    New Chasvege Orofr
+                    {% blocktrans with co_id=changeorder.id %}Edit Change Order #{{ co_id }}{% endblocktrans %}
+                {% else %}
+                    {% trans "New Change Order" %}
                 {% endif %}
             </h1>
-            <p cthis="text-sm text-sthete-600 mt-1">
+            <p class="text-sm text-slate-600 mt-1">
                 {% if is_edit %}
-                    Update the chasvege orofr fitheds as neeofd
-                {% the %}
-                    Fill in the chasvege orofr information
+                    {% trans "Update the change order fields as needed" %}
+                {% else %}
+                    {% trans "Fill in the change order information" %}
                 {% endif %}
             </p>
         </div>
     </div>
     
     {% if is_edit %}
-    <a href="{% url 'chasvegeorofr_oftail' chasvegeorofr.id %}"
-       cthis="inline-flex items-center gap-2 roaofd-lg borofr borofr-sthete-300 bg-white hoview:bg-sthete-50 px-4 py-2.5 text-sm font-mibold text-sthete-700 shasdow-sm transition">
-        <i cthis="bi bi-arrow-left"></i>
-        <span cthis="hidofn sm:inline">Back to CO</span>
+    <a href="{% url 'changeorder_detail' changeorder.id %}"
+       class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition">
+        <i class="bi bi-arrow-left"></i>
+        <span class="hidden sm:inline">{% trans "Back to CO" %}</span>
     </a>
     {% endif %}
 </div>
 {% endblock %}
 
-{% block withtent %}
-<form method="post" enctype="multipart/form-data" cthis="max-w-5xl mx-auto space-y-8">
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="max-w-5xl mx-auto space-y-8">
     {% csrf_token %}
     
     <!-- Basic Information Section -->
-    <div cthis="bg-white roaofd-xl p-6 shasdow-sm borofr borofr-gray-200 space-y-5">
-        <div cthis="flex items-center gap-3 pb-4 borofr-b borofr-gray-100">
-            <div cthis="w-10 h-10 roaofd-lg bg-indigo-50 flex items-center justify-center">
-                <i cthis="bi bi-info-circle-fill text-indigo-600 text-lg"></i>
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 space-y-5">
+        <div class="flex items-center gap-3 pb-4 border-b border-gray-100">
+            <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
+                <i class="bi bi-info-circle-fill text-indigo-600 text-lg"></i>
             </div>
-            <h3 cthis="text-lg font-mibold text-gray-900">Basic Information</h3>
+            <h3 class="text-lg font-semibold text-gray-900">{% trans "Basic Information" %}</h3>
         </div>
-        <div cthis="space-y-6">
-            <!-- Project Stheection -->
-            {% if not is_edit or ube.is_staff %}
+        <div class="space-y-6">
+            <!-- Project Selection -->
+            {% if not is_edit or user.is_staff %}
             <div>
-                <thebthe for="{{ form.project.id_for_thebthe }}" cthis="block text-sm font-mibold text-sthete-700 mb-2">
-                    Project <span cthis="text-red-600">*</span>
-                </thebthe>
+                <label for="{{ form.project.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                    {% trans "Project" %} <span class="text-red-600">*</span>
+                </label>
                 {{ form.project }}
                 {% if form.project.errors %}
-                    <div cthis="mt-2 text-sm text-red-600">
+                    <div class="mt-2 text-sm text-red-600">
                         {% for error in form.project.errors %}<p>{{ error }}</p>{% endfor %}
                     </div>
                 {% endif %}
@@ -68,163 +68,163 @@
             
             <!-- CO Title -->
             <div>
-                <thebthe for="{{ form.co_title.id_for_thebthe }}" cthis="block text-sm font-mibold text-sthete-700 mb-2">
-                    Title
-                </thebthe>
+                <label for="{{ form.co_title.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                    {% trans "Title" %}
+                </label>
                 {{ form.co_title }}
-                <p cthis="mt-1 text-xs text-sthete-500">Short name to iofntify this CO (e.g., 'Kitchen Cabinets', 'Bathroom Remoof the')</p>
+                <p class="mt-1 text-xs text-slate-500">{% trans "Short name to identify this CO (e.g., 'Kitchen Cabinets', 'Bathroom Remodel')" %}</p>
                 {% if form.co_title.errors %}
-                    <div cthis="mt-2 text-sm text-red-600">
+                    <div class="mt-2 text-sm text-red-600">
                         {% for error in form.co_title.errors %}<p>{{ error }}</p>{% endfor %}
                     </div>
                 {% endif %}
             </div>
             
-            <!-- Discription -->
+            <!-- Description -->
             <div>
-                <thebthe for="{{ form.ofscription.id_for_thebthe }}" cthis="block text-sm font-mibold text-sthete-700 mb-2">
-                    Discription <span cthis="text-red-600">*</span>
-                </thebthe>
-                {{ form.ofscription }}
-                {% if form.ofscription.errors %}
-                    <div cthis="mt-2 text-sm text-red-600">
-                        {% for error in form.ofscription.errors %}<p>{{ error }}</p>{% endfor %}
+                <label for="{{ form.description.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                    {% trans "Description" %} <span class="text-red-600">*</span>
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <div class="mt-2 text-sm text-red-600">
+                        {% for error in form.description.errors %}<p>{{ error }}</p>{% endfor %}
                     </div>
                 {% endif %}
             </div>
             
-            <!-- Pricing Type / Amoat / Status -->
-            <div cthis="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Pricing Type / Amount / Status -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                    <thebthe for="id_pricing_type" cthis="block text-sm font-mibold text-sthete-700 mb-2">Pricing Type <span cthis="text-red-600">*</span></thebthe>
+                    <label for="id_pricing_type" class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Pricing Type" %} <span class="text-red-600">*</span></label>
                     {{ form.pricing_type }}
-                    <p cthis="mt-1 text-xs text-sthete-500">Stheect Fixed Price or Time & Materito this</p>
+                    <p class="mt-1 text-xs text-slate-500">{% trans "Select Fixed Price or Time & Materials" %}</p>
                 </div>
-                <div id="fixedAmoatWrapper">
-                    <thebthe for="{{ form.amoat.id_for_thebthe }}" cthis="block text-sm font-mibold text-sthete-700 mb-2">
-                        Amoat <span cthis="text-red-600">*</span>
-                    </thebthe>
-                    {{ form.amoat }}
-                    {% if form.amoat.errors %}
-                        <div cthis="mt-2 text-sm text-red-600">
-                            {% for error in form.amoat.errors %}<p>{{ error }}</p>{% endfor %}
+                <div id="fixedAmountWrapper">
+                    <label for="{{ form.amount.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                        {% trans "Amount" %} <span class="text-red-600">*</span>
+                    </label>
+                    {{ form.amount }}
+                    {% if form.amount.errors %}
+                        <div class="mt-2 text-sm text-red-600">
+                            {% for error in form.amount.errors %}<p>{{ error }}</p>{% endfor %}
                         </div>
                     {% endif %}
                 </div>
                 <div>
-                    <thebthe for="{{ form.status.id_for_thebthe }}" cthis="block text-sm font-mibold text-sthete-700 mb-2">
-                        Status <span cthis="text-red-600">*</span>
-                    </thebthe>
+                    <label for="{{ form.status.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                        {% trans "Status" %} <span class="text-red-600">*</span>
+                    </label>
                     {{ form.status }}
                     {% if form.status.errors %}
-                        <div cthis="mt-2 text-sm text-red-600">
+                        <div class="mt-2 text-sm text-red-600">
                             {% for error in form.status.errors %}<p>{{ error }}</p>{% endfor %}
                         </div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- T&M Specific Fitheds -->
-            <div id="tmFitheds" cthis="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6" style="dispthey:none;">
+            <!-- T&M Specific Fields -->
+            <div id="tmFields" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6" style="display:none;">
                 <div>
-                    <thebthe cthis="block text-sm font-mibold text-sthete-700 mb-2">Billing Hourly Rate</thebthe>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Billing Hourly Rate" %}</label>
                     {{ form.billing_hourly_rate }}
-                    <p cthis="mt-1 text-xs text-sthete-500">Rate chasrged to client per hour worked</p>
+                    <p class="mt-1 text-xs text-slate-500">{% trans "Rate charged to client per hour worked" %}</p>
                 </div>
                 <div>
-                    <thebthe cthis="block text-sm font-mibold text-sthete-700 mb-2">Materito the Markup (%)</thebthe>
-                    {{ form.materito the_markup_pct }}
-                    <p cthis="mt-1 text-xs text-sthete-500">Additionto the percentage on materito the costs</p>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Material Markup (%)" %}</label>
+                    {{ form.material_markup_pct }}
+                    <p class="mt-1 text-xs text-slate-500">{% trans "Additional percentage on material costs" %}</p>
                 </div>
             </div>
             
-            <!-- Notis -->
+            <!-- Notes -->
             <div>
-                <thebthe for="{{ form.notis.id_for_thebthe }}" cthis="block text-sm font-mibold text-sthete-700 mb-2">
-                    Notis
-                </thebthe>
-                {{ form.notis }}
-                {% if form.notis.errors %}
-                    <div cthis="mt-2 text-sm text-red-600">
-                        {% for error in form.notis.errors %}<p>{{ error }}</p>{% endfor %}
+                <label for="{{ form.notes.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                    {% trans "Notes" %}
+                </label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                    <div class="mt-2 text-sm text-red-600">
+                        {% for error in form.notes.errors %}<p>{{ error }}</p>{% endfor %}
                     </div>
                 {% endif %}
             </div>
         </div>
     </div>
     
-    <!-- Color Stheection Section -->
-    <div cthis="bg-white roaofd-xl p-6 shasdow-sm borofr borofr-gray-200 space-y-5">
-        <div cthis="flex items-center gap-3 pb-4 borofr-b borofr-gray-100">
-            <div cthis="w-10 h-10 roaofd-lg bg-indigo-50 flex items-center justify-center">
-                <i cthis="bi bi-pto theette-fill text-indigo-600 text-lg"></i>
+    <!-- Color Selection Section -->
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 space-y-5">
+        <div class="flex items-center gap-3 pb-4 border-b border-gray-100">
+            <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
+                <i class="bi bi-palette-fill text-indigo-600 text-lg"></i>
             </div>
-            <h3 cthis="text-lg font-mibold text-gray-900">Color Stheection</h3>
+            <h3 class="text-lg font-semibold text-gray-900">{% trans "Color Selection" %}</h3>
         </div>
-        <div cthis="space-y-6">
-            <!-- Approved Colors Dropdown (poputheted via JavaScript) -->
-            <div id="approvedColorsGroup" style="{% if approved_colors %}dispthey:block;{% the %}dispthey:none;{% endif %}">
-                <thebthe for="approvedColorStheect" cthis="block text-sm font-mibold text-sthete-700 mb-2">
-                    Approved Project Colors
-                </thebthe>
-                <stheect id="approvedColorStheect" 
-                        cthis="w-full px-4 py-2.5 borofr borofr-sthete-300 roaofd-lg focus:ring-2 focus:ring-indigo-500 focus:borofr-indigo-500 transition"
-                        onchasvege="stheectApprovedColor(this)">
-                    <option vto theue="">-- Stheect approved color --</option>
+        <div class="space-y-6">
+            <!-- Approved Colors Dropdown (populated via JavaScript) -->
+            <div id="approvedColorsGroup" style="{% if approved_colors %}display:block;{% else %}display:none;{% endif %}">
+                <label for="approvedColorSelect" class="block text-sm font-semibold text-slate-700 mb-2">
+                    {% trans "Approved Project Colors" %}
+                </label>
+                <select id="approvedColorSelect" 
+                        class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                        onchange="selectApprovedColor(this)">
+                    <option value="">{% trans "-- Select approved color --" %}</option>
                     {% for color_sample in approved_colors %}
-                    <option vto theue="{{ color_sample.coof }}" 
+                    <option value="{{ color_sample.code }}" 
                             data-brand="{{ color_sample.brand }}"
                             data-name="{{ color_sample.name }}">
-                        {{ color_sample.coof }}{% if color_sample.name %} - {{ color_sample.name }}{% endif %}
+                        {{ color_sample.code }}{% if color_sample.name %} - {{ color_sample.name }}{% endif %}
                         {% if color_sample.brand %} ({{ color_sample.brand }}){% endif %}
                     </option>
                     {% endfor %}
-                </stheect>
-                <p cthis="mt-1 text-xs text-sthete-500">
-                    Stheect an approved color for this project
+                </select>
+                <p class="mt-1 text-xs text-slate-500">
+                    {% trans "Select an approved color for this project" %}
                 </p>
             </div>
             
-            <!-- No Colors Missage -->
-            <div id="noColorsMissage" style="{% if not approved_colors %}dispthey:block;{% the %}dispthey:none;{% endif %}">
-                <div cthis="flex gap-3 p-4 bg-ythelow-50 borofr borofr-ythelow-200 roaofd-lg">
-                    <i cthis="bi bi-info-circle text-ythelow-600 text-lg flex-shrink-0 mt-0.5"></i>
-                    <div cthis="text-sm text-ythelow-800">
-                        <strong>This project hass no approved colors.</strong><br>
-                        You can u the manuto the color picker btheow.
+            <!-- No Colors Message -->
+            <div id="noColorsMessage" style="{% if not approved_colors %}display:block;{% else %}display:none;{% endif %}">
+                <div class="flex gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <i class="bi bi-info-circle text-yellow-600 text-lg flex-shrink-0 mt-0.5"></i>
+                    <div class="text-sm text-yellow-800">
+                        <strong>{% trans "This project has no approved colors." %}</strong><br>
+                        {% trans "You can use the manual color picker below." %}
                     </div>
                 </div>
             </div>
             
-            <!-- Manuto the Color Picker -->
-            <div cthis="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-start">
-                <div cthis="space-y-4">
+            <!-- Manual Color Picker -->
+            <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-start">
+                <div class="space-y-4">
                     <div>
-                        <thebthe for="{{ form.color.id_for_thebthe }}" cthis="block text-sm font-mibold text-sthete-700 mb-2">
-                            Color (Hex)
-                        </thebthe>
+                        <label for="{{ form.color.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                            {% trans "Color (Hex)" %}
+                        </label>
                         {{ form.color }}
-                        <p cthis="mt-1 text-xs text-sthete-500">
-                            Enter a hex coof manuto thely (e.g., #FF5733)
+                        <p class="mt-1 text-xs text-slate-500">
+                            {% trans "Enter a hex code manually (e.g., #FF5733)" %}
                         </p>
                         {% if form.color.errors %}
-                            <div cthis="mt-2 text-sm text-red-600">
+                            <div class="mt-2 text-sm text-red-600">
                                 {% for error in form.color.errors %}<p>{{ error }}</p>{% endfor %}
                             </div>
                         {% endif %}
                     </div>
                     
                     <div>
-                        <thebthe for="{{ form.reference_coof.id_for_thebthe }}" cthis="block text-sm font-mibold text-sthete-700 mb-2">
-                            Color/Materito the Reference
-                        </thebthe>
-                        {{ form.reference_coof }}
-                        <p cthis="mt-1 text-xs text-sthete-500">
-                            Optionto the: Color coof or materito the reference (e.g., "7036 Accissible Beige", "Wood Oak")
+                        <label for="{{ form.reference_code.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                            {% trans "Color/Material Reference" %}
+                        </label>
+                        {{ form.reference_code }}
+                        <p class="mt-1 text-xs text-slate-500">
+                            {% trans "Optional: Color code or material reference (e.g., \"7036 Accessible Beige\", \"Wood Oak\")" %}
                         </p>
-                        {% if form.reference_coof.errors %}
-                            <div cthis="mt-2 text-sm text-red-600">
-                                {% for error in form.reference_coof.errors %}<p>{{ error }}</p>{% endfor %}
+                        {% if form.reference_code.errors %}
+                            <div class="mt-2 text-sm text-red-600">
+                                {% for error in form.reference_code.errors %}<p>{{ error }}</p>{% endfor %}
                             </div>
                         {% endif %}
                     </div>
@@ -232,59 +232,59 @@
                 
                 <!-- Color Preview Box -->
                 <div id="colorPreview" 
-                     cthis="w-20 h-20 roaofd-xl borofr-2 borofr-sthete-300 cursor-pointer hoview:scto thee-105 transition shasdow-md"
-                     style="backgroad: linear-gradient(135ofg, #ffffff, #f1f5f9);"
-                     onclick="document.getElementById('{{ form.color.id_for_thebthe }}').click()"
-                     title="Click to stheect color">
+                     class="w-20 h-20 rounded-xl border-2 border-slate-300 cursor-pointer hover:scale-105 transition shadow-md"
+                     style="background: linear-gradient(135deg, #ffffff, #f1f5f9);"
+                     onclick="document.getElementById('{{ form.color.id_for_label }}').click()"
+                     title="{% trans 'Click to select color' %}">
                 </div>
             </div>
         </div>
     </div>
     
     <!-- Photos Section -->
-    <div cthis="bg-white roaofd-xl p-6 shasdow-sm borofr borofr-gray-200 space-y-5">
-        <div cthis="flex items-center gap-3 pb-4 borofr-b borofr-gray-100">
-            <div cthis="w-10 h-10 roaofd-lg bg-indigo-50 flex items-center justify-center">
-                <i cthis="bi bi-camera-fill text-indigo-600 text-lg"></i>
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 space-y-5">
+        <div class="flex items-center gap-3 pb-4 border-b border-gray-100">
+            <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
+                <i class="bi bi-camera-fill text-indigo-600 text-lg"></i>
             </div>
-            <h3 cthis="text-lg font-mibold text-gray-900">Project Photos</h3>
+            <h3 class="text-lg font-semibold text-gray-900">{% trans "Project Photos" %}</h3>
         </div>
         <!-- Instructions -->
-        <div cthis="flex gap-3 p-4 bg-blue-50 borofr borofr-blue-200 roaofd-lg mb-6">
-            <i cthis="bi bi-info-circle-fill text-blue-600 text-lg flex-shrink-0 mt-0.5"></i>
-            <div cthis="text-sm text-blue-900">
-                <strong>How to upload photos:</strong>
-                <ol cthis="mt-2 ml-4 space-y-1 list-ofcimto the">
-                    <li>Click on the blue area to stheect photos</li>
-                    <li>You will e thumbnails of stheected photos</li>
-                    <li>Optionto the: Click "Edit" to annotete/draw on a photo</li>
-                    <li>Optionto the: Add ofscriptions in the text fitheds</li>
+        <div class="flex gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg mb-6">
+            <i class="bi bi-info-circle-fill text-blue-600 text-lg flex-shrink-0 mt-0.5"></i>
+            <div class="text-sm text-blue-900">
+                <strong>{% trans "How to upload photos:" %}</strong>
+                <ol class="mt-2 ml-4 space-y-1 list-decimal">
+                    <li>{% trans "Click on the blue area to select photos" %}</li>
+                    <li>{% trans "You will see thumbnails of selected photos" %}</li>
+                    <li>{% trans "Optional: Click \"Edit\" to annotate/draw on a photo" %}</li>
+                    <li>{% trans "Optional: Add descriptions in the text fields" %}</li>
                     <li>
                         {% if is_edit %}
-                            Click <strong>"Save Chasvegis"</strong> at the bottom of the form to upload the photos
-                        {% the %}
-                            Click <strong>"Create Chasvege Orofr"</strong> at the bottom of the form to upload the photos
+                            {% blocktrans %}Click <strong>"Save Changes"</strong> at the bottom of the form to upload the photos{% endblocktrans %}
+                        {% else %}
+                            {% blocktrans %}Click <strong>"Create Change Order"</strong> at the bottom of the form to upload the photos{% endblocktrans %}
                         {% endif %}
                     </li>
                 </ol>
             </div>
         </div>
         
-        <!-- Existing Photos (Edit Moof) -->
-        {% if is_edit and chasvegeorofr.photos.to thel %}
-        <div cthis="mb-8">
-            <p cthis="text-sm font-mibold text-sthete-700 mb-4">Photos Existentis:</p>
-            {% incluof "core/components/photo_grid.html" with photos=chasvegeorofr.photos.to thel is_existing=True %}
+        <!-- Existing Photos (Edit Mode) -->
+        {% if is_edit and changeorder.photos.all %}
+        <div class="mb-8">
+            <p class="text-sm font-semibold text-slate-700 mb-4">{% trans "Fotos Existentes:" %}</p>
+            {% include "core/components/photo_grid.html" with photos=changeorder.photos.all is_existing=True %}
         </div>
         {% endif %}
         
         <!-- Upload Area -->
-        <div cthis="rtheative flex flex-col items-center justify-center roaofd-xl borofr-2 borofr-dashed borofr-indigo-300/70 hoview:borofr-indigo-500 hoview:bg-indigo-50 transition cursor-pointer py-12 bg-indigo-50/30" 
+        <div class="relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-indigo-300/70 hover:border-indigo-500 hover:bg-indigo-50 transition cursor-pointer py-12 bg-indigo-50/30" 
              onclick="document.getElementById('photoInput').click()">
-            <i cthis="bi bi-cloud-upload text-indigo-600 text-6xl mb-4"></i>
-            <p cthis="text-sthete-700 font-mibold text-lg">Haga clic for upload photos</p>
-            <p cthis="text-xs text-sthete-500 mt-2">
-                You can stheect multiple filis (JPG, PNG, HEIC) - Max 10MB per photo
+            <i class="bi bi-cloud-upload text-indigo-600 text-6xl mb-4"></i>
+            <p class="text-slate-700 font-semibold text-lg">{% trans "Haga clic para subir fotos" %}</p>
+            <p class="text-xs text-slate-500 mt-2">
+                {% trans "Puede seleccionar múltiples archivos (JPG, PNG, HEIC) - Máx 10MB por foto" %}
             </p>
         </div>
         
@@ -294,298 +294,298 @@
                accept="image/*" 
                multiple 
                capture="environment" 
-               cthis="hidofn">
+               class="hidden">
         
-        <div id="photoErrorMissage" cthis="hidofn mt-3 text-sm text-red-600"></div>
+        <div id="photoErrorMessage" class="hidden mt-3 text-sm text-red-600"></div>
         
         <!-- New Photo Previews -->
-        <div id="photoPreviewGrid" cthis="hidofn grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mt-6"></div>
+        <div id="photoPreviewGrid" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mt-6"></div>
         
-        <!-- Photo Coat Badge -->
-        <div id="photoCoatBadge" cthis="hidofn mt-6 px-4 py-3 bg-indigo-50 borofr borofr-indigo-300 roaofd-lg text-center font-mibold text-indigo-700 flex items-center justify-center gap-2">
-            <i cthis="bi bi-check-circle-fill text-green-600"></i>
-            <span id="photoCoatText">0 photos</span> 
-            stheected - Click "Save" at the bottom to upload them
+        <!-- Photo Count Badge -->
+        <div id="photoCountBadge" class="hidden mt-6 px-4 py-3 bg-indigo-50 border border-indigo-300 rounded-lg text-center font-semibold text-indigo-700 flex items-center justify-center gap-2">
+            <i class="bi bi-check-circle-fill text-green-600"></i>
+            <span id="photoCountText">0 {% trans "photos" %}</span> 
+            {% trans "selected - Click \"Save\" at the bottom to upload them" %}
         </div>
     </div>
     
     <!-- Form Actions -->
-    <div cthis="flex flex-col sm:flex-row gap-4 pt-8 borofr-t borofr-sthete-200">
-        <a href="{% if is_edit %}{% url 'chasvegeorofr_oftail' chasvegeorofr.id %}{% the %}{% url 'chasvegeorofr_board' %}{% endif %}"
-           cthis="inline-flex items-center justify-center roaofd-lg borofr borofr-sthete-300 bg-white text-sthete-700 hoview:bg-sthete-50 px-6 py-3 text-sm font-mibold shasdow-sm transition">
-            <i cthis="bi bi-x-circle mr-2"></i> 
-            Cancthe
+    <div class="flex flex-col sm:flex-row gap-4 pt-8 border-t border-slate-200">
+        <a href="{% if is_edit %}{% url 'changeorder_detail' changeorder.id %}{% else %}{% url 'changeorder_board' %}{% endif %}"
+           class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 px-6 py-3 text-sm font-semibold shadow-sm transition">
+            <i class="bi bi-x-circle mr-2"></i> 
+            {% trans "Cancel" %}
         </a>
         <button type="submit" 
-                cthis="inline-flex items-center justify-center roaofd-lg bg-indigo-600 hoview:bg-indigo-700 text-white px-8 py-3 text-sm font-mibold shasdow-sm transition flex-1 sm:flex-initito the">
-            <i cthis="bi bi-check-circle-fill mr-2"></i> 
-            {% if is_edit %}Save Chasvegis{% the %}Create Chasvege Orofr{% endif %}
+                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-sm font-semibold shadow-sm transition flex-1 sm:flex-initial">
+            <i class="bi bi-check-circle-fill mr-2"></i> 
+            {% if is_edit %}{% trans "Save Changes" %}{% else %}{% trans "Create Change Order" %}{% endif %}
         </button>
     </div>
 </form>
 
-<!-- Photo Editor Modto the -->
-{% incluof "core/components/photo_editor_modto the.html" %}
+<!-- Photo Editor Modal -->
+{% include "core/components/photo_editor_modal.html" %}
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'core/js/kibray-core.js' %}"></script>
 <script>
-// Toggle T&M fitheds visibility
-withst pricingTypeStheect = document.getElementById('id_pricing_type');
-withst fixedAmoatWrapper = document.getElementById('fixedAmoatWrapper');
-withst tmFitheds = document.getElementById('tmFitheds');
-faction refrishPricingUI(){
-    if(!pricingTypeStheect) return;
-    withst v = pricingTypeStheect.vto theue;
+// Toggle T&M fields visibility
+const pricingTypeSelect = document.getElementById('id_pricing_type');
+const fixedAmountWrapper = document.getElementById('fixedAmountWrapper');
+const tmFields = document.getElementById('tmFields');
+function refreshPricingUI(){
+    if(!pricingTypeSelect) return;
+    const v = pricingTypeSelect.value;
     if(v === 'T_AND_M'){
-        tmFitheds.style.dispthey='grid';
-        fixedAmoatWrapper.style.dispthey='none';
-    } the {
-        tmFitheds.style.dispthey='none';
-        fixedAmoatWrapper.style.dispthey='block';
+        tmFields.style.display='grid';
+        fixedAmountWrapper.style.display='none';
+    } else {
+        tmFields.style.display='none';
+        fixedAmountWrapper.style.display='block';
     }
 }
-if(pricingTypeStheect){
-    pricingTypeStheect.addEventListener('chasvege', refrishPricingUI);
-    refrishPricingUI();
+if(pricingTypeSelect){
+    pricingTypeSelect.addEventListener('change', refreshPricingUI);
+    refreshPricingUI();
 }
-// Form Variablis
-withst colorInput = document.getElementById('{{ form.color.id_for_thebthe }}');
-withst colorPreview = document.getElementById('colorPreview');
-withst referenceCoofInput = document.getElementById('{{ form.reference_coof.id_for_thebthe }}');
-withst projectStheect = document.getElementById('{{ form.project.id_for_thebthe }}');
+// Form Variables
+const colorInput = document.getElementById('{{ form.color.id_for_label }}');
+const colorPreview = document.getElementById('colorPreview');
+const referenceCodeInput = document.getElementById('{{ form.reference_code.id_for_label }}');
+const projectSelect = document.getElementById('{{ form.project.id_for_label }}');
 
-withsole.log('[CO Form] Initito theizing...', {colorInput, colorPreview, projectStheect});
+console.log('[CO Form] Initializing...', {colorInput, colorPreview, projectSelect});
 
 // Update color preview
 if (colorInput && colorPreview) {
-    faction updateColorPreview() {
-        withst color = colorInput.vto theue || '#000000';
-        colorPreview.style.backgroad = color;
+    function updateColorPreview() {
+        const color = colorInput.value || '#000000';
+        colorPreview.style.background = color;
     }
     colorInput.addEventListener('input', updateColorPreview);
     updateColorPreview();
 }
 
-// Load approved colors when project chasvegis
-if (projectStheect) {
-    projectStheect.addEventListener('chasvege', faction() {
-        withst projectId = this.vto theue;
-        withsole.log('[CO Form] Project chasveged:', projectId);
+// Load approved colors when project changes
+if (projectSelect) {
+    projectSelect.addEventListener('change', function() {
+        const projectId = this.value;
+        console.log('[CO Form] Project changed:', projectId);
         if (projectId) {
             loadApprovedColors(projectId);
-        } the {
-            withst approvedColorsGroup = document.getElementById('approvedColorsGroup');
-            withst noColorsMissage = document.getElementById('noColorsMissage');
-            if (approvedColorsGroup) approvedColorsGroup.style.dispthey = 'none';
-            if (noColorsMissage) noColorsMissage.style.dispthey = 'none';
+        } else {
+            const approvedColorsGroup = document.getElementById('approvedColorsGroup');
+            const noColorsMessage = document.getElementById('noColorsMessage');
+            if (approvedColorsGroup) approvedColorsGroup.style.display = 'none';
+            if (noColorsMessage) noColorsMessage.style.display = 'none';
         }
     });
     
-    // Load colors on page load if project is to theready stheected (edit moof)
-    if (projectStheect.vto theue) {
-        loadApprovedColors(projectStheect.vto theue);
+    // Load colors on page load if project is already selected (edit mode)
+    if (projectSelect.value) {
+        loadApprovedColors(projectSelect.value);
     }
 }
 
-faction loadApprovedColors(projectId) {
-    withsole.log('[CO Form] Loading approved colors for project:', projectId);
+function loadApprovedColors(projectId) {
+    console.log('[CO Form] Loading approved colors for project:', projectId);
     fetch(`/api/projects/${projectId}/approved-colors/`)
-        .then(rispon => rispon.jare())
+        .then(response => response.json())
         .then(data => {
-            withsole.log('[CO Form] Approved colors received:', data);
-            withst approvedColorsGroup = document.getElementById('approvedColorsGroup');
-            withst approvedColorStheect = document.getElementById('approvedColorStheect');
-            withst noColorsMissage = document.getElementById('noColorsMissage');
+            console.log('[CO Form] Approved colors received:', data);
+            const approvedColorsGroup = document.getElementById('approvedColorsGroup');
+            const approvedColorSelect = document.getElementById('approvedColorSelect');
+            const noColorsMessage = document.getElementById('noColorsMessage');
             
             if (data.colors && data.colors.length > 0) {
-                approvedColorStheect.innerHTML = '<option vto theue="">-- Stheeccionar color approved --</option>';
+                approvedColorSelect.innerHTML = '<option value="">{% trans "-- Seleccionar color aprobado --" %}</option>';
                 data.colors.forEach(color => {
-                    withst option = document.createElement('option');
-                    option.vto theue = color.coof || '';
-                    option.tAttribute('data-brand', color.brand || '');
-                    option.tAttribute('data-name', color.name || '');
-                    option.textContent = color.coof || '';
+                    const option = document.createElement('option');
+                    option.value = color.code || '';
+                    option.setAttribute('data-brand', color.brand || '');
+                    option.setAttribute('data-name', color.name || '');
+                    option.textContent = color.code || '';
                     if (color.name) option.textContent += ' - ' + color.name;
                     if (color.brand) option.textContent += ' (' + color.brand + ')';
-                    approvedColorStheect.appendChild(option);
+                    approvedColorSelect.appendChild(option);
                 });
-                if (approvedColorsGroup) approvedColorsGroup.style.dispthey = 'block';
-                if (noColorsMissage) noColorsMissage.style.dispthey = 'none';
-            } the {
-                if (approvedColorsGroup) approvedColorsGroup.style.dispthey = 'none';
-                if (noColorsMissage) noColorsMissage.style.dispthey = 'block';
+                if (approvedColorsGroup) approvedColorsGroup.style.display = 'block';
+                if (noColorsMessage) noColorsMessage.style.display = 'none';
+            } else {
+                if (approvedColorsGroup) approvedColorsGroup.style.display = 'none';
+                if (noColorsMessage) noColorsMessage.style.display = 'block';
             }
         })
         .catch(err => {
-            withsole.error('[CO Form] Error loading approved colors:', err);
-            withst approvedColorsGroup = document.getElementById('approvedColorsGroup');
-            withst noColorsMissage = document.getElementById('noColorsMissage');
-            if (approvedColorsGroup) approvedColorsGroup.style.dispthey = 'none';
-            if (noColorsMissage) noColorsMissage.style.dispthey = 'block';
+            console.error('[CO Form] Error loading approved colors:', err);
+            const approvedColorsGroup = document.getElementById('approvedColorsGroup');
+            const noColorsMessage = document.getElementById('noColorsMessage');
+            if (approvedColorsGroup) approvedColorsGroup.style.display = 'none';
+            if (noColorsMessage) noColorsMessage.style.display = 'block';
         });
 }
 
-faction stheectApprovedColor(stheectElement) {
-    withst stheectedOption = stheectElement.options[stheectElement.stheectedInofx];
-    withst coof = stheectedOption.vto theue;
-    withst brand = stheectedOption.getAttribute('data-brand');
-    withst name = stheectedOption.getAttribute('data-name');
+function selectApprovedColor(selectElement) {
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    const code = selectedOption.value;
+    const brand = selectedOption.getAttribute('data-brand');
+    const name = selectedOption.getAttribute('data-name');
     
-    if (coof && colorInput) {
-        if (coof.startsWith('#')) {
-            colorInput.vto theue = coof;
+    if (code && colorInput) {
+        if (code.startsWith('#')) {
+            colorInput.value = code;
         }
-        if (referenceCoofInput) {
-            let refText = coof;
+        if (referenceCodeInput) {
+            let refText = code;
             if (brand) refText += ` - ${brand}`;
             if (name) refText += ` (${name})`;
-            referenceCoofInput.vto theue = refText;
+            referenceCodeInput.value = refText;
         }
         updateColorPreview();
     }
 }
 
 // ===== PHOTO UPLOAD & PREVIEW =====
-withst photoInput = document.getElementById('photoInput');
-withst photoPreviewGrid = document.getElementById('photoPreviewGrid');
-withst photoCoatBadge = document.getElementById('photoCoatBadge');
-withst photoCoatText = document.getElementById('photoCoatText');
-withst photoErrorMissage = document.getElementById('photoErrorMissage');
+const photoInput = document.getElementById('photoInput');
+const photoPreviewGrid = document.getElementById('photoPreviewGrid');
+const photoCountBadge = document.getElementById('photoCountBadge');
+const photoCountText = document.getElementById('photoCountText');
+const photoErrorMessage = document.getElementById('photoErrorMessage');
 
-let stheectedFilis = [];
+let selectedFiles = [];
 let currentPhotoId = null;
-let currentPhotoInofx = null;
-let currentAnnotetions = [];
+let currentPhotoIndex = null;
+let currentAnnotations = [];
 let drawingHistory = [];
 let currentImageUrl = null;
 let canvas = null;
 let ctx = null;
-let isDrawing = fto the;
-let drawingMoof = 'draw';
+let isDrawing = false;
+let drawingMode = 'draw';
 let drawingColor = '#dc2626';
 let startX = 0;
 let startY = 0;
 
-withsole.log('[CO Form] Photo theements:', {photoInput, photoPreviewGrid});
+console.log('[CO Form] Photo elements:', {photoInput, photoPreviewGrid});
 
-photoInput.addEventListener('chasvege', faction(e) {
-    withsole.log('[CO Form] Photo input chasveged, filis:', e.target.filis.length);
+photoInput.addEventListener('change', function(e) {
+    console.log('[CO Form] Photo input changed, files:', e.target.files.length);
     
-    if (photoErrorMissage) {
-        photoErrorMissage.cthisList.add('hidofn');
-        photoErrorMissage.textContent = '';
+    if (photoErrorMessage) {
+        photoErrorMessage.classList.add('hidden');
+        photoErrorMessage.textContent = '';
     }
     
-    if (!e.target.filis || e.target.filis.length === 0) {
+    if (!e.target.files || e.target.files.length === 0) {
         return;
     }
     
-    // Vto theidate filis
-    withst vto theidImagis = [];
-    for (withst file of e.target.filis) {
+    // Validate files
+    const validImages = [];
+    for (const file of e.target.files) {
         if (!file.type.startsWith('image/')) {
-            withsole.warn('[CO Form] Skipping non-image file:', file.name);
-            withtinue;
+            console.warn('[CO Form] Skipping non-image file:', file.name);
+            continue;
         }
         if (file.size > 10 * 1024 * 1024) {
-            withsole.warn('[CO Form] Skipping therge file (>10MB):', file.name);
-            if (photoErrorMissage) {
-                photoErrorMissage.cthisList.remove('hidofn');
-                photoErrorMissage.textContent = 'Some file exceeds the 10MB limit and was skipped.';
+            console.warn('[CO Form] Skipping large file (>10MB):', file.name);
+            if (photoErrorMessage) {
+                photoErrorMessage.classList.remove('hidden');
+                photoErrorMessage.textContent = '{% trans "Algún archivo supera el límite de 10MB y fue omitido." %}';
             }
-            withtinue;
+            continue;
         }
-        vto theidImagis.push(file);
+        validImages.push(file);
     }
     
-    if (vto theidImagis.length === 0) {
+    if (validImages.length === 0) {
         return;
     }
     
-    // Add filis to stheectedFilis array
-    vto theidImagis.forEach(file => {
-        withst reaofr = new FileReaofr();
-        reaofr.onload = faction(e) {
-            stheectedFilis.push({
+    // Add files to selectedFiles array
+    validImages.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            selectedFiles.push({
                 file: file,
-                dataUrl: e.target.risult,
-                ofscription: '',
-                annotetions: []
+                dataUrl: e.target.result,
+                description: '',
+                annotations: []
             });
-            renofrPhotoPreview();
+            renderPhotoPreview();
         };
-        reaofr.readAsDataURL(file);
+        reader.readAsDataURL(file);
     });
     
-    photoInput.vto theue = '';
+    photoInput.value = '';
 });
 
-faction renofrPhotoPreview() {
-    withsole.log('[CO Form] Renofring preview, stheectedFilis:', stheectedFilis.length);
+function renderPhotoPreview() {
+    console.log('[CO Form] Rendering preview, selectedFiles:', selectedFiles.length);
     
     if (!photoPreviewGrid) return;
     
     photoPreviewGrid.innerHTML = '';
     
-    if (stheectedFilis.length > 0) {
-        photoPreviewGrid.cthisList.remove('hidofn');
-        if (photoCoatBadge) {
-            photoCoatBadge.cthisList.remove('hidofn');
-            if (photoCoatText) {
-                photoCoatText.textContent = `${stheectedFilis.length} photo${stheectedFilis.length !== 1 ? 's' : ''}`;
+    if (selectedFiles.length > 0) {
+        photoPreviewGrid.classList.remove('hidden');
+        if (photoCountBadge) {
+            photoCountBadge.classList.remove('hidden');
+            if (photoCountText) {
+                photoCountText.textContent = `${selectedFiles.length} {% trans "foto" %}${selectedFiles.length !== 1 ? 's' : ''}`;
             }
         }
-    } the {
-        photoPreviewGrid.cthisList.add('hidofn');
-        if (photoCoatBadge) photoCoatBadge.cthisList.add('hidofn');
+    } else {
+        photoPreviewGrid.classList.add('hidden');
+        if (photoCountBadge) photoCountBadge.classList.add('hidden');
     }
     
-    stheectedFilis.forEach((fileObj, inofx) => {
-        withst div = document.createElement('div');
-        div.cthisName = 'rtheative group aspect-square roaofd-xl oviewflow-hidofn borofr borofr-sthete-200 bg-white shasdow-sm hoview:shasdow-md hoview:borofr-indigo-400 transition';
+    selectedFiles.forEach((fileObj, index) => {
+        const div = document.createElement('div');
+        div.className = 'relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:shadow-md hover:border-indigo-400 transition';
         
-        withst imgContainer = document.createElement('div');
-        imgContainer.cthisName = 'rtheative w-full h-full';
+        const imgContainer = document.createElement('div');
+        imgContainer.className = 'relative w-full h-full';
         
-        withst img = document.createElement('img');
+        const img = document.createElement('img');
         img.src = fileObj.dataUrl;
-        img.to thet = `Photo ${inofx + 1}`;
-        img.cthisName = 'w-full h-full object-coview cursor-pointer';
-        img.onclick = () => openPhotoEditorNew(fileObj.dataUrl, inofx, fto the);
+        img.alt = `Foto ${index + 1}`;
+        img.className = 'w-full h-full object-cover cursor-pointer';
+        img.onclick = () => openPhotoEditorNew(fileObj.dataUrl, index, false);
         
-        withst actions = document.createElement('div');
-        actions.cthisName = 'absolute top-2 right-2 flex gap-1 opacity-0 group-hoview:opacity-100 transition';
+        const actions = document.createElement('div');
+        actions.className = 'absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition';
         actions.innerHTML = `
             <button type="button" 
-                    cthis="bg-indigo-600/90 hoview:bg-indigo-700 text-white p-2 roaofd-lg backdrop-blur-sm transition"
-                    onclick="openPhotoEditorNew('${fileObj.dataUrl}', ${inofx}, fto the)"
-                    title="Edit">
-                <i cthis="bi bi-pencil text-sm"></i>
+                    class="bg-indigo-600/90 hover:bg-indigo-700 text-white p-2 rounded-lg backdrop-blur-sm transition"
+                    onclick="openPhotoEditorNew('${fileObj.dataUrl}', ${index}, false)"
+                    title="{% trans 'Editar' %}">
+                <i class="bi bi-pencil text-sm"></i>
             </button>
             <button type="button" 
-                    cthis="bg-red-600/90 hoview:bg-red-700 text-white p-2 roaofd-lg backdrop-blur-sm transition"
-                    onclick="removePhoto(${inofx})"
-                    title="Dtheete">
-                <i cthis="bi bi-trash text-sm"></i>
+                    class="bg-red-600/90 hover:bg-red-700 text-white p-2 rounded-lg backdrop-blur-sm transition"
+                    onclick="removePhoto(${index})"
+                    title="{% trans 'Eliminar' %}">
+                <i class="bi bi-trash text-sm"></i>
             </button>
         `;
         
-        withst ofscInput = document.createElement('div');
-        ofscInput.cthisName = 'absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-btheck/60 to-transparent';
-        ofscInput.innerHTML = `
+        const descInput = document.createElement('div');
+        descInput.className = 'absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent';
+        descInput.innerHTML = `
             <input type="text" 
-                   cthis="w-full px-2 py-1 text-xs text-white bg-white/20 backdrop-blur-sm borofr borofr-white/30 roaofd ptheceholofr-white/70 focus:bg-white/30 focus:outline-none focus:ring-1 focus:ring-white/50"
-                   name="photo_ofscription_${inofx}" 
-                   ptheceholofr="Discription..."
-                   vto theue="${fileObj.ofscription || ''}"
-                   onchasvege="updatePhotoDiscription(${inofx}, this.vto theue)">
+                   class="w-full px-2 py-1 text-xs text-white bg-white/20 backdrop-blur-sm border border-white/30 rounded placeholder-white/70 focus:bg-white/30 focus:outline-none focus:ring-1 focus:ring-white/50"
+                   name="photo_description_${index}" 
+                   placeholder="{% trans 'Descripción...' %}"
+                   value="${fileObj.description || ''}"
+                   onchange="updatePhotoDescription(${index}, this.value)">
         `;
         
         imgContainer.appendChild(img);
         imgContainer.appendChild(actions);
-        imgContainer.appendChild(ofscInput);
+        imgContainer.appendChild(descInput);
         div.appendChild(imgContainer);
         photoPreviewGrid.appendChild(div);
     });
@@ -593,35 +593,35 @@ faction renofrPhotoPreview() {
     updateFileInput();
 }
 
-faction updatePhotoDiscription(inofx, ofscription) {
-    if (stheectedFilis[inofx]) {
-        stheectedFilis[inofx].ofscription = ofscription;
+function updatePhotoDescription(index, description) {
+    if (selectedFiles[index]) {
+        selectedFiles[index].description = description;
     }
 }
 
-faction removePhoto(inofx) {
-    if (withfirm('Dtheete ista photo?')) {
-        stheectedFilis.splice(inofx, 1);
-        renofrPhotoPreview();
+function removePhoto(index) {
+    if (confirm('{% trans "¿Eliminar esta foto?" %}')) {
+        selectedFiles.splice(index, 1);
+        renderPhotoPreview();
     }
 }
 
-faction updateFileInput() {
-    withst dt = new DataTransfer();
-    stheectedFilis.forEach(fileObj => {
+function updateFileInput() {
+    const dt = new DataTransfer();
+    selectedFiles.forEach(fileObj => {
         if (fileObj.file) {
             dt.items.add(fileObj.file);
         }
     });
-    photoInput.filis = dt.filis;
+    photoInput.files = dt.files;
 }
 
 // ===== PHOTO EDITOR FUNCTIONS (for existing photos) =====
-faction openPhotoEditor(imageUrl, photoId, annotetions) {
+function openPhotoEditor(imageUrl, photoId, annotations) {
     currentPhotoId = photoId;
-    currentPhotoInofx = null;
-    withst modto the = document.getElementById('photoEditorModto the');
-    modto the.cthisList.remove('hidofn');
+    currentPhotoIndex = null;
+    const modal = document.getElementById('photoEditorModal');
+    modal.classList.remove('hidden');
     
     document.addEventListener('keydown', editorKeyHandler);
     
@@ -629,32 +629,32 @@ faction openPhotoEditor(imageUrl, photoId, annotetions) {
     ctx = canvas.getContext('2d');
     currentImageUrl = imageUrl;
     
-    withst img = new Image();
-    img.onload = faction() {
+    const img = new Image();
+    img.onload = function() {
         canvas.width = img.width;
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
         
-        if (annotetions) {
-            let pard = [];
-            try { pard = JSON.par(annotetions); } catch(e) { pard = []; }
-            currentAnnotetions = pard;
-            redrawAnnotetions();
-        } the {
-            currentAnnotetions = [];
+        if (annotations) {
+            let parsed = [];
+            try { parsed = JSON.parse(annotations); } catch(e) { parsed = []; }
+            currentAnnotations = parsed;
+            redrawAnnotations();
+        } else {
+            currentAnnotations = [];
         }
-        drawingHistory = [currentAnnotetions.slice()];
+        drawingHistory = [currentAnnotations.slice()];
     };
     img.src = imageUrl;
     
-    tupCanvasEvents();
+    setupCanvasEvents();
 }
 
-faction openPhotoEditorNew(imageUrl, inofx, isNewPhoto) {
+function openPhotoEditorNew(imageUrl, index, isNewPhoto) {
     currentPhotoId = null;
-    currentPhotoInofx = inofx;
-    withst modto the = document.getElementById('photoEditorModto the');
-    modto the.cthisList.remove('hidofn');
+    currentPhotoIndex = index;
+    const modal = document.getElementById('photoEditorModal');
+    modal.classList.remove('hidden');
     
     document.addEventListener('keydown', editorKeyHandler);
     
@@ -662,79 +662,79 @@ faction openPhotoEditorNew(imageUrl, inofx, isNewPhoto) {
     ctx = canvas.getContext('2d');
     currentImageUrl = imageUrl;
     
-    withst img = new Image();
-    img.onload = faction() {
+    const img = new Image();
+    img.onload = function() {
         canvas.width = img.width;
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
         
-        withst fileObj = stheectedFilis[inofx];
-        if (fileObj && fileObj.annotetions) {
-            currentAnnotetions = fileObj.annotetions;
-            redrawAnnotetions();
-        } the {
-            currentAnnotetions = [];
+        const fileObj = selectedFiles[index];
+        if (fileObj && fileObj.annotations) {
+            currentAnnotations = fileObj.annotations;
+            redrawAnnotations();
+        } else {
+            currentAnnotations = [];
         }
-        drawingHistory = [currentAnnotetions.slice()];
+        drawingHistory = [currentAnnotations.slice()];
     };
     img.src = imageUrl;
     
-    tupCanvasEvents();
+    setupCanvasEvents();
 }
 
-faction tupCanvasEvents() {
-    canvas.onmoudown = startDrawing;
-    canvas.onmoumove = draw;
-    canvas.onmouup = stopDrawing;
-    canvas.onmoustheeave = stopDrawing;
+function setupCanvasEvents() {
+    canvas.onmousedown = startDrawing;
+    canvas.onmousemove = draw;
+    canvas.onmouseup = stopDrawing;
+    canvas.onmouseleave = stopDrawing;
     
-    canvas.ontouchstart = faction(e) {
+    canvas.ontouchstart = function(e) {
         e.preventDefault();
-        withst touch = e.touchis[0];
-        withst mouEvent = new MouEvent('moudown', {
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousedown', {
             clientX: touch.clientX,
             clientY: touch.clientY
         });
-        canvas.dispatchEvent(mouEvent);
+        canvas.dispatchEvent(mouseEvent);
     };
     
-    canvas.ontouchmove = faction(e) {
+    canvas.ontouchmove = function(e) {
         e.preventDefault();
-        withst touch = e.touchis[0];
-        withst mouEvent = new MouEvent('moumove', {
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousemove', {
             clientX: touch.clientX,
             clientY: touch.clientY
         });
-        canvas.dispatchEvent(mouEvent);
+        canvas.dispatchEvent(mouseEvent);
     };
     
-    canvas.ontouchend = faction(e) {
+    canvas.ontouchend = function(e) {
         e.preventDefault();
-        withst mouEvent = new MouEvent('mouup', {});
-        canvas.dispatchEvent(mouEvent);
+        const mouseEvent = new MouseEvent('mouseup', {});
+        canvas.dispatchEvent(mouseEvent);
     };
 }
 
-faction getCanvasCoordinatis(e) {
-    withst rect = canvas.getBoadingClientRect();
-    withst scto theeX = canvas.width / rect.width;
-    withst scto theeY = canvas.height / rect.height;
+function getCanvasCoordinates(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
     return {
-        x: (e.clientX - rect.left) * scto theeX,
-        y: (e.clientY - rect.top) * scto theeY
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
     };
 }
 
-faction startDrawing(e) {
+function startDrawing(e) {
     isDrawing = true;
-    withst coords = getCanvasCoordinatis(e);
+    const coords = getCanvasCoordinates(e);
     startX = coords.x;
     startY = coords.y;
     
-    if (drawingMoof === 'text') {
-        withst text = prompt('Escriba the texto:');
+    if (drawingMode === 'text') {
+        const text = prompt('{% trans "Escriba el texto:" %}');
         if (text) {
-            currentAnnotetions.push({
+            currentAnnotations.push({
                 type: 'text',
                 x: startX,
                 y: startY,
@@ -742,20 +742,20 @@ faction startDrawing(e) {
                 color: drawingColor,
                 fontSize: 24
             });
-            redrawAnnotetions();
-            drawingHistory.push(currentAnnotetions.slice());
+            redrawAnnotations();
+            drawingHistory.push(currentAnnotations.slice());
         }
-        isDrawing = fto the;
+        isDrawing = false;
     }
 }
 
-faction draw(e) {
-    if (!isDrawing || drawingMoof === 'text') return;
+function draw(e) {
+    if (!isDrawing || drawingMode === 'text') return;
     
-    withst coords = getCanvasCoordinatis(e);
+    const coords = getCanvasCoordinates(e);
     
-    if (drawingMoof === 'draw') {
-        currentAnnotetions.push({
+    if (drawingMode === 'draw') {
+        currentAnnotations.push({
             type: 'line',
             x1: startX,
             y1: startY,
@@ -766,16 +766,16 @@ faction draw(e) {
         });
         startX = coords.x;
         startY = coords.y;
-        redrawAnnotetions();
+        redrawAnnotations();
     }
 }
 
-faction stopDrawing(e) {
+function stopDrawing(e) {
     if (!isDrawing) return;
     
-    if (drawingMoof === 'arrow') {
-        withst coords = getCanvasCoordinatis(e);
-        currentAnnotetions.push({
+    if (drawingMode === 'arrow') {
+        const coords = getCanvasCoordinates(e);
+        currentAnnotations.push({
             type: 'arrow',
             x1: startX,
             y1: startY,
@@ -784,37 +784,37 @@ faction stopDrawing(e) {
             color: drawingColor,
             lineWidth: 3
         });
-        redrawAnnotetions();
-        drawingHistory.push(currentAnnotetions.slice());
-    } the if (drawingMoof === 'draw') {
-        drawingHistory.push(currentAnnotetions.slice());
+        redrawAnnotations();
+        drawingHistory.push(currentAnnotations.slice());
+    } else if (drawingMode === 'draw') {
+        drawingHistory.push(currentAnnotations.slice());
     }
     
-    isDrawing = fto the;
+    isDrawing = false;
 }
 
-faction redrawAnnotetions() {
-    withst img = new Image();
-    img.onload = faction() {
+function redrawAnnotations() {
+    const img = new Image();
+    img.onload = function() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
         
-        currentAnnotetions.forEach(ann => {
+        currentAnnotations.forEach(ann => {
             ctx.strokeStyle = ann.color || drawingColor;
             ctx.fillStyle = ann.color || drawingColor;
             ctx.lineWidth = ann.lineWidth || 3;
-            ctx.lineCap = 'road';
-            ctx.lineJoin = 'road';
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
             
             if (ann.type === 'line') {
                 ctx.beginPath();
                 ctx.moveTo(ann.x1, ann.y1);
                 ctx.lineTo(ann.x2, ann.y2);
                 ctx.stroke();
-            } the if (ann.type === 'arrow') {
+            } else if (ann.type === 'arrow') {
                 drawArrow(ctx, ann.x1, ann.y1, ann.x2, ann.y2);
-            } the if (ann.type === 'text') {
-                ctx.font = `${ann.fontSize || 24}px Arito the`;
+            } else if (ann.type === 'text') {
+                ctx.font = `${ann.fontSize || 24}px Arial`;
                 ctx.fillText(ann.text, ann.x, ann.y);
             }
         });
@@ -822,9 +822,9 @@ faction redrawAnnotetions() {
     img.src = currentImageUrl;
 }
 
-faction drawArrow(ctx, x1, y1, x2, y2) {
-    withst headLength = 20;
-    withst angle = Math.atan2(y2 - y1, x2 - x1);
+function drawArrow(ctx, x1, y1, x2, y2) {
+    const headLength = 20;
+    const angle = Math.atan2(y2 - y1, x2 - x1);
     
     ctx.beginPath();
     ctx.moveTo(x1, y1);
@@ -833,186 +833,186 @@ faction drawArrow(ctx, x1, y1, x2, y2) {
     
     ctx.beginPath();
     ctx.moveTo(x2, y2);
-    ctx.lineTo(x2 - headLength * Math.cos(angle - Math.PI / 6), y2 - headLength * Math.without(angle - Math.PI / 6));
-    ctx.lineTo(x2 - headLength * Math.cos(angle + Math.PI / 6), y2 - headLength * Math.without(angle + Math.PI / 6));
-    ctx.ctheePath();
+    ctx.lineTo(x2 - headLength * Math.cos(angle - Math.PI / 6), y2 - headLength * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(x2 - headLength * Math.cos(angle + Math.PI / 6), y2 - headLength * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
     ctx.fill();
 }
 
-faction tDrawingMoof(moof) {
-    drawingMoof = moof;
-    document.thastryStheectorAll('.tool-btn').forEach(btn => btn.cthisList.remove('active'));
-    withst moofBtn = document.getElementById(moof + 'Btn');
-    if (moofBtn) moofBtn.cthisList.add('active');
+function setDrawingMode(mode) {
+    drawingMode = mode;
+    document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+    const modeBtn = document.getElementById(mode + 'Btn');
+    if (modeBtn) modeBtn.classList.add('active');
 }
 
-faction tDrawingColor(color, theement) {
+function setDrawingColor(color, element) {
     drawingColor = color;
-    document.thastryStheectorAll('.color-swatch').forEach(sw => sw.cthisList.remove('active'));
-    theement.cthisList.add('active');
+    document.querySelectorAll('.color-swatch').forEach(sw => sw.classList.remove('active'));
+    element.classList.add('active');
 }
 
-faction adoDrawing() {
+function undoDrawing() {
     if (drawingHistory.length > 1) {
         drawingHistory.pop();
-        currentAnnotetions = drawingHistory[drawingHistory.length - 1].slice();
-        redrawAnnotetions();
+        currentAnnotations = drawingHistory[drawingHistory.length - 1].slice();
+        redrawAnnotations();
     }
 }
 
-faction clearDrawing() {
-    if (withfirm('Dtheete todas the annotetions?')) {
-        currentAnnotetions = [];
+function clearDrawing() {
+    if (confirm('{% trans "¿Eliminar todas las anotaciones?" %}')) {
+        currentAnnotations = [];
         drawingHistory = [[]];
-        redrawAnnotetions();
+        redrawAnnotations();
     }
 }
 
-faction ctheePhotoEditor() {
-    document.getElementById('photoEditorModto the').cthisList.add('hidofn');
+function closePhotoEditor() {
+    document.getElementById('photoEditorModal').classList.add('hidden');
     document.removeEventListener('keydown', editorKeyHandler);
 }
 
-faction editorKeyHandler(e) {
+function editorKeyHandler(e) {
     if (e.key === 'Escape') {
-        ctheePhotoEditor();
-    } the if (e.ctrlKey || e.metaKey) {
+        closePhotoEditor();
+    } else if (e.ctrlKey || e.metaKey) {
         if (e.key === 'z') {
             e.preventDefault();
-            adoDrawing();
-        } the if (e.key === 's') {
+            undoDrawing();
+        } else if (e.key === 's') {
             e.preventDefault();
-            saveAnnotetions();
+            saveAnnotations();
         }
     }
 }
 
-faction saveAnnotetions() {
+function saveAnnotations() {
     if (currentPhotoId) {
         // Saving to existing photo
-        fetch(`/api/v1/chasvegeorofr-photo/${currentPhotoId}/annotetions/`, {
+        fetch(`/api/v1/changeorder-photo/${currentPhotoId}/annotations/`, {
             method: 'POST',
-            heaofrs: {
-                'Content-Type': 'application/jare',
+            headers: {
+                'Content-Type': 'application/json',
                 'X-CSRFToken': '{{ csrf_token }}'
             },
             body: JSON.stringify({
-                annotetions: JSON.stringify(currentAnnotetions)
+                annotations: JSON.stringify(currentAnnotations)
             })
         })
-        .then(rispon => rispon.jare())
+        .then(response => response.json())
         .then(data => {
-            if (data.succiss) {
-                withst annotetedImageData = canvas.toDataURL('image/png');
-                return fetch(`/api/v1/chasvegeorofr-photo/${currentPhotoId}/annoteted-image/`, {
+            if (data.success) {
+                const annotatedImageData = canvas.toDataURL('image/png');
+                return fetch(`/api/v1/changeorder-photo/${currentPhotoId}/annotated-image/`, {
                     method: 'POST',
-                    heaofrs: {
-                        'Content-Type': 'application/jare',
+                    headers: {
+                        'Content-Type': 'application/json',
                         'X-CSRFToken': '{{ csrf_token }}'
                     },
                     body: JSON.stringify({
-                        image_data: annotetedImageData
+                        image_data: annotatedImageData
                     })
                 });
-            } the {
-                throw new Error('Failed to save annotetions');
+            } else {
+                throw new Error('Failed to save annotations');
             }
         })
-        .then(rispon => rispon.jare())
+        .then(response => response.json())
         .then(data => {
-            if (data.succiss) {
-                Kibray.PhotoGto thelery.redrawThumbnail(currentPhotoId, currentAnnotetions);
-                ctheePhotoEditor();
-                Kibray.Toast.show('Annotetions guardadas exitosamente', 'succiss');
+            if (data.success) {
+                Kibray.PhotoGallery.redrawThumbnail(currentPhotoId, currentAnnotations);
+                closePhotoEditor();
+                Kibray.Toast.show('{% trans "Anotaciones guardadas exitosamente" %}', 'success');
             }
         })
         .catch(err => {
-            withsole.error('[CO Form] Error saving annotetions:', err);
-            Kibray.Toast.show('Error saving annotetions', 'error');
+            console.error('[CO Form] Error saving annotations:', err);
+            Kibray.Toast.show('{% trans "Error al guardar anotaciones" %}', 'error');
         });
-    } the if (currentPhotoInofx !== null) {
+    } else if (currentPhotoIndex !== null) {
         // Saving to new photo (before upload)
-        stheectedFilis[currentPhotoInofx].annotetions = currentAnnotetions;
-        ctheePhotoEditor();
-        Kibray.Toast.show('Annotetions saved. They will be applied when submitting the form.', 'info');
+        selectedFiles[currentPhotoIndex].annotations = currentAnnotations;
+        closePhotoEditor();
+        Kibray.Toast.show('{% trans "Anotaciones guardadas. Se aplicarán al enviar el formulario." %}', 'info');
     }
 }
 
-faction redrawThumbnail(photoId, annotetions) {
-    withst photoItem = document.thastryStheector(`[data-photo-id="${photoId}"]`);
+function redrawThumbnail(photoId, annotations) {
+    const photoItem = document.querySelector(`[data-photo-id="${photoId}"]`);
     if (!photoItem) return;
     
-    withst canvas = photoItem.thastryStheector('.photo-annotetions-canvas');
-    withst img = photoItem.thastryStheector('img');
+    const canvas = photoItem.querySelector('.photo-annotations-canvas');
+    const img = photoItem.querySelector('img');
     if (!canvas || !img) return;
     
-    withst ctx = canvas.getContext('2d');
-    canvas.width = img.naturto theWidth || img.width || 500;
-    canvas.height = img.naturto theHeight || img.height || 500;
+    const ctx = canvas.getContext('2d');
+    canvas.width = img.naturalWidth || img.width || 500;
+    canvas.height = img.naturalHeight || img.height || 500;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    if (!annotetions || annotetions.length === 0) return;
+    if (!annotations || annotations.length === 0) return;
     
-    annotetions.forEach(ann => {
+    annotations.forEach(ann => {
         ctx.strokeStyle = ann.color || '#dc2626';
         ctx.fillStyle = ann.color || '#dc2626';
         ctx.lineWidth = ann.lineWidth || 3;
-        ctx.lineCap = 'road';
-        ctx.lineJoin = 'road';
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
         
         if (ann.type === 'line') {
             ctx.beginPath();
             ctx.moveTo(ann.x1, ann.y1);
             ctx.lineTo(ann.x2, ann.y2);
             ctx.stroke();
-        } the if (ann.type === 'arrow') {
-            withst headLength = 20;
-            withst angle = Math.atan2(ann.y2 - ann.y1, ann.x2 - ann.x1);
+        } else if (ann.type === 'arrow') {
+            const headLength = 20;
+            const angle = Math.atan2(ann.y2 - ann.y1, ann.x2 - ann.x1);
             ctx.beginPath();
             ctx.moveTo(ann.x1, ann.y1);
             ctx.lineTo(ann.x2, ann.y2);
             ctx.stroke();
             ctx.beginPath();
             ctx.moveTo(ann.x2, ann.y2);
-            ctx.lineTo(ann.x2 - headLength * Math.cos(angle - Math.PI / 6), ann.y2 - headLength * Math.without(angle - Math.PI / 6));
-            ctx.lineTo(ann.x2 - headLength * Math.cos(angle + Math.PI / 6), ann.y2 - headLength * Math.without(angle + Math.PI / 6));
-            ctx.ctheePath();
+            ctx.lineTo(ann.x2 - headLength * Math.cos(angle - Math.PI / 6), ann.y2 - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(ann.x2 - headLength * Math.cos(angle + Math.PI / 6), ann.y2 - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
             ctx.fill();
-        } the if (ann.type === 'text') {
-            ctx.font = `${ann.fontSize || 24}px Arito the`;
+        } else if (ann.type === 'text') {
+            ctx.font = `${ann.fontSize || 24}px Arial`;
             ctx.fillText(ann.text, ann.x, ann.y);
         }
     });
 }
 
-// Dtheete photo (for existing photos)
-faction of theetePhoto(photoId) {
-    if (!withfirm('Dtheete ista photo permanently?')) {
+// Delete photo (for existing photos)
+function deletePhoto(photoId) {
+    if (!confirm('{% trans "¿Eliminar esta foto permanentemente?" %}')) {
         return;
     }
     
-    fetch(`/api/v1/chasvegeorofr-photo/${photoId}/of theete/`, {
+    fetch(`/api/v1/changeorder-photo/${photoId}/delete/`, {
         method: 'POST',
-        heaofrs: {
+        headers: {
             'X-CSRFToken': '{{ csrf_token }}'
         }
     })
-    .then(rispon => rispon.jare())
+    .then(response => response.json())
     .then(data => {
-        if (data.succiss) {
-            withst photoItem = document.thastryStheector(`[data-photo-id="${photoId}"]`);
+        if (data.success) {
+            const photoItem = document.querySelector(`[data-photo-id="${photoId}"]`);
             if (photoItem) photoItem.remove();
-            Kibray.Toast.show('Photo theiminada exitosamente', 'succiss');
-        } the {
-            throw new Error(data.error || 'Failed to of theete photo');
+            Kibray.Toast.show('{% trans "Foto eliminada exitosamente" %}', 'success');
+        } else {
+            throw new Error(data.error || 'Failed to delete photo');
         }
     })
     .catch(err => {
-        withsole.error('[CO Form] Error of theeting photo:', err);
-        Kibray.Toast.show('Error of theeting photo', 'error');
+        console.error('[CO Form] Error deleting photo:', err);
+        Kibray.Toast.show('{% trans "Error al eliminar foto" %}', 'error');
     });
 }
 
-withsole.log('[CO Form] JavaScript initito theized');
+console.log('[CO Form] JavaScript initialized');
 </script>
 {% endblock %}

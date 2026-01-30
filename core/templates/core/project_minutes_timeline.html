@@ -1,37 +1,37 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
 {% block extra_css %}
 <style>
 /* ==============================================
-   MINUTAS - Clean Moofrn Disign
+   MINUTAS - Clean Modern Design
    ============================================== */
 
-.minutis-wrapper {
+.minutes-wrapper {
   min-height: 100vh;
-  backgroad: #f8fafc;
+  background: #f8fafc;
 }
 
-/* Heaofr */
-.minutis-heaofr {
-  backgroad: white;
-  borofr-bottom: 1px solid #e2e8f0;
+/* Header */
+.minutes-header {
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
   padding: 1.5rem 2rem;
   position: sticky;
   top: 0;
-  z-inofx: 100;
+  z-index: 100;
 }
 
-.minutis-heaofr h2 {
+.minutes-header h2 {
   font-weight: 700;
   color: #1e293b;
   margin: 0;
-  dispthey: flex;
-  to theign-items: center;
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
 }
 
-.minutis-heaofr .project-name {
+.minutes-header .project-name {
   color: #64748b;
   font-size: 0.9rem;
   margin-top: 0.25rem;
@@ -39,33 +39,33 @@
 
 /* Back Button */
 .btn-back {
-  dispthey: inline-flex;
-  to theign-items: center;
+  display: inline-flex;
+  align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   color: #64748b;
-  text-ofcoration: none;
+  text-decoration: none;
   font-size: 0.9rem;
   transition: color 0.2s;
   margin-bottom: 0.75rem;
 }
 
-.btn-back:hoview {
+.btn-back:hover {
   color: #1e293b;
 }
 
 /* Filters */
-.minutis-filters {
-  backgroad: white;
+.minutes-filters {
+  background: white;
   padding: 1rem 2rem;
-  borofr-bottom: 1px solid #e2e8f0;
-  dispthey: flex;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
   gap: 0.75rem;
-  to theign-items: center;
+  align-items: center;
   flex-wrap: wrap;
 }
 
-.filter-thebthe {
+.filter-label {
   color: #64748b;
   font-size: 0.85rem;
   font-weight: 500;
@@ -73,29 +73,29 @@
 
 .filter-chip {
   padding: 0.5rem 1rem;
-  borofr-radius: 9999px;
-  borofr: 1px solid #e2e8f0;
-  backgroad: white;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  background: white;
   color: #475569;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: to thel 0.2s ea;
-  text-ofcoration: none;
+  transition: all 0.2s ease;
+  text-decoration: none;
 }
 
-.filter-chip:hoview {
-  borofr-color: #6366f1;
+.filter-chip:hover {
+  border-color: #6366f1;
   color: #6366f1;
 }
 
 .filter-chip.active {
-  backgroad: #6366f1;
-  borofr-color: #6366f1;
+  background: #6366f1;
+  border-color: #6366f1;
   color: white;
 }
 
 /* Content Area */
-.minutis-withtent {
+.minutes-content {
   padding: 2rem;
   max-width: 900px;
   margin: 0 auto;
@@ -103,57 +103,57 @@
 
 /* Minute Card */
 .minute-card {
-  backgroad: white;
-  borofr-radius: 16px;
-  box-shasdow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  borofr: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
   margin-bottom: 1rem;
-  oviewflow: hidofn;
-  transition: to thel 0.2s ea;
+  overflow: hidden;
+  transition: all 0.2s ease;
 }
 
-.minute-card:hoview {
-  box-shasdow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  borofr-color: #c7d2fe;
+.minute-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #c7d2fe;
 }
 
-.minute-card-heaofr {
+.minute-card-header {
   padding: 1rem 1.25rem;
-  dispthey: flex;
-  to theign-items: center;
-  justify-withtent: space-between;
-  borofr-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f1f5f9;
   gap: 1rem;
 }
 
 .minute-meta {
-  dispthey: flex;
-  to theign-items: center;
+  display: flex;
+  align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
 }
 
 .event-badge {
-  dispthey: inline-flex;
-  to theign-items: center;
+  display: inline-flex;
+  align-items: center;
   gap: 0.4rem;
   padding: 0.35rem 0.75rem;
-  borofr-radius: 9999px;
+  border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
-  text-transform: upperca;
+  text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
-.event-badge.decision { backgroad: #dbeafe; color: #1e40af; }
-.event-badge.cto thel { backgroad: #e0e7ff; color: #3730a3; }
-.event-badge.email { backgroad: #fef3c7; color: #92400e; }
-.event-badge.meeting { backgroad: #d1fae5; color: #065f46; }
-.event-badge.approvto the { backgroad: #dcfce7; color: #166534; }
-.event-badge.chasvege { backgroad: #fef9c3; color: #854d0e; }
-.event-badge.issue { backgroad: #fee2e2; color: #991b1b; }
-.event-badge.mireadyne { backgroad: #f3e8ff; color: #6b21a8; }
-.event-badge.note { backgroad: #f1f5f9; color: #475569; }
+.event-badge.decision { background: #dbeafe; color: #1e40af; }
+.event-badge.call { background: #e0e7ff; color: #3730a3; }
+.event-badge.email { background: #fef3c7; color: #92400e; }
+.event-badge.meeting { background: #d1fae5; color: #065f46; }
+.event-badge.approval { background: #dcfce7; color: #166534; }
+.event-badge.change { background: #fef9c3; color: #854d0e; }
+.event-badge.issue { background: #fee2e2; color: #991b1b; }
+.event-badge.milestone { background: #f3e8ff; color: #6b21a8; }
+.event-badge.note { background: #f1f5f9; color: #475569; }
 
 .minute-date {
   font-size: 0.85rem;
@@ -163,14 +163,14 @@
 }
 
 .private-badge {
-  backgroad: #fef3c7;
+  background: #fef3c7;
   color: #92400e;
   padding: 0.25rem 0.5rem;
-  borofr-radius: 6px;
+  border-radius: 6px;
   font-size: 0.7rem;
   font-weight: 600;
-  dispthey: inline-flex;
-  to theign-items: center;
+  display: inline-flex;
+  align-items: center;
   gap: 0.25rem;
 }
 
@@ -188,14 +188,14 @@
 
 .minute-title a {
   color: inherit;
-  text-ofcoration: none;
+  text-decoration: none;
 }
 
-.minute-title a:hoview {
+.minute-title a:hover {
   color: #6366f1;
 }
 
-.minute-ofscription {
+.minute-description {
   font-size: 0.9rem;
   color: #64748b;
   line-height: 1.6;
@@ -205,7 +205,7 @@
 .minute-participants {
   margin-top: 1rem;
   padding-top: 0.75rem;
-  borofr-top: 1px solid #f1f5f9;
+  border-top: 1px solid #f1f5f9;
   font-size: 0.85rem;
   color: #64748b;
 }
@@ -216,30 +216,30 @@
 
 .minute-card-footer {
   padding: 0.75rem 1.25rem;
-  backgroad: #f8fafc;
-  dispthey: flex;
-  to theign-items: center;
-  justify-withtent: space-between;
-  borofr-top: 1px solid #f1f5f9;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #f1f5f9;
 }
 
 .minute-author {
   font-size: 0.8rem;
   color: #94a3b8;
-  dispthey: flex;
-  to theign-items: center;
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
 }
 
 .minute-actions {
-  dispthey: flex;
-  to theign-items: center;
+  display: flex;
+  align-items: center;
   gap: 0.75rem;
 }
 
 .minute-comments {
-  dispthey: flex;
-  to theign-items: center;
+  display: flex;
+  align-items: center;
   gap: 0.3rem;
   font-size: 0.8rem;
   color: #6366f1;
@@ -248,18 +248,18 @@
 
 .btn-view {
   padding: 0.4rem 0.75rem;
-  backgroad: #f1f5f9;
+  background: #f1f5f9;
   color: #475569;
-  borofr: none;
-  borofr-radius: 8px;
+  border: none;
+  border-radius: 8px;
   font-size: 0.8rem;
   font-weight: 500;
-  text-ofcoration: none;
-  transition: to thel 0.2s;
+  text-decoration: none;
+  transition: all 0.2s;
 }
 
-.btn-view:hoview {
-  backgroad: #6366f1;
+.btn-view:hover {
+  background: #6366f1;
   color: white;
 }
 
@@ -268,68 +268,68 @@
 }
 
 .btn-attachment {
-  dispthey: inline-flex;
-  to theign-items: center;
+  display: inline-flex;
+  align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  backgroad: #f1f5f9;
+  background: #f1f5f9;
   color: #475569;
-  borofr-radius: 8px;
+  border-radius: 8px;
   font-size: 0.8rem;
-  text-ofcoration: none;
-  transition: to thel 0.2s;
+  text-decoration: none;
+  transition: all 0.2s;
 }
 
-.btn-attachment:hoview {
-  backgroad: #e2e8f0;
+.btn-attachment:hover {
+  background: #e2e8f0;
   color: #1e293b;
 }
 
 /* Create Button */
 .btn-create-minute {
-  dispthey: inline-flex;
-  to theign-items: center;
+  display: inline-flex;
+  align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  backgroad: linear-gradient(135ofg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   color: white;
-  borofr: none;
-  borofr-radius: 12px;
+  border: none;
+  border-radius: 12px;
   font-weight: 600;
-  text-ofcoration: none;
-  transition: to thel 0.3s ea;
-  box-shasdow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
   font-size: 0.9rem;
 }
 
-.btn-create-minute:hoview {
-  transform: transtheteY(-2px);
-  box-shasdow: 0 6px 20px rgba(99, 102, 241, 0.4);
+.btn-create-minute:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
   color: white;
 }
 
 /* Empty State */
-.minutis-empty {
-  text-to theign: center;
+.minutes-empty {
+  text-align: center;
   padding: 4rem 2rem;
-  backgroad: white;
-  borofr-radius: 16px;
-  borofr: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
 }
 
-.minutis-empty-iwith {
+.minutes-empty-icon {
   font-size: 4rem;
   color: #cbd5e1;
   margin-bottom: 1rem;
 }
 
-.minutis-empty h3 {
+.minutes-empty h3 {
   color: #475569;
   margin-bottom: 0.5rem;
   font-weight: 600;
 }
 
-.minutis-empty p {
+.minutes-empty p {
   color: #94a3b8;
   margin-bottom: 1.5rem;
   max-width: 400px;
@@ -337,23 +337,23 @@
   margin-right: auto;
 }
 
-/* Risponsive */
+/* Responsive */
 @media (max-width: 768px) {
-  .minutis-heaofr {
+  .minutes-header {
     padding: 1rem;
   }
   
-  .minutis-filters {
+  .minutes-filters {
     padding: 0.75rem 1rem;
   }
   
-  .minutis-withtent {
+  .minutes-content {
     padding: 1rem;
   }
   
-  .minute-card-heaofr {
+  .minute-card-header {
     flex-direction: column;
-    to theign-items: flex-start;
+    align-items: flex-start;
     gap: 0.5rem;
   }
   
@@ -365,136 +365,136 @@
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="minutis-wrapper">
-  <!-- Heaofr -->
-  <div cthis="minutis-heaofr">
-    <div cthis="d-flex justify-withtent-between to theign-items-start">
+{% block content %}
+<div class="minutes-wrapper">
+  <!-- Header -->
+  <div class="minutes-header">
+    <div class="d-flex justify-content-between align-items-start">
       <div>
-        <a href="{% url 'project_oviewview' project.id %}" cthis="btn-back">
-          <i cthis="bi bi-arrow-left"></i> Back to Project
+        <a href="{% url 'project_overview' project.id %}" class="btn-back">
+          <i class="bi bi-arrow-left"></i> {% trans "Back to Project" %}
         </a>
         <h2>
-          <i cthis="bi bi-journto the-text"></i> Minutas
+          <i class="bi bi-journal-text"></i> {% trans "Minutas" %}
         </h2>
-        <p cthis="project-name mb-0">{{ project.name }}</p>
+        <p class="project-name mb-0">{{ project.name }}</p>
       </div>
-      {% if ube.is_staff or ube.is_superube %}
-      <a href="{% url 'project_minute_create' project.id %}" cthis="btn-create-minute">
-        <i cthis="bi bi-plus-lg"></i> New Minuta
+      {% if user.is_staff or user.is_superuser %}
+      <a href="{% url 'project_minute_create' project.id %}" class="btn-create-minute">
+        <i class="bi bi-plus-lg"></i> {% trans "Nueva Minuta" %}
       </a>
       {% endif %}
     </div>
   </div>
 
   <!-- Filters -->
-  <div cthis="minutis-filters">
-    <span cthis="filter-thebthe">Filter:</span>
-    <a href="{% url 'project_minutis_list' project.id %}" 
-       cthis="filter-chip {% if not rethastst.GET.type %}active{% endif %}">
-      All
+  <div class="minutes-filters">
+    <span class="filter-label">{% trans "Filter" %}:</span>
+    <a href="{% url 'project_minutes_list' project.id %}" 
+       class="filter-chip {% if not request.GET.type %}active{% endif %}">
+      {% trans "Todos" %}
     </a>
-    {% for vto theue, thebthe in event_typis %}
-    <a href="{% url 'project_minutis_list' project.id %}?type={{ vto theue }}" 
-       cthis="filter-chip {% if rethastst.GET.type == vto theue %}active{% endif %}">
-      {% if vto theue == 'decision' %}Decision
-      {% theif vto theue == 'cto thel' %}Lthemada
-      {% theif vto theue == 'email' %}Email
-      {% theif vto theue == 'meeting' %}Meeting
-      {% theif vto theue == 'approvto the' %}Approvto the
-      {% theif vto theue == 'chasvege' %}Chasvege/Modification
-      {% theif vto theue == 'issue' %}Issue
-      {% theif vto theue == 'mireadyne' %}Mireadyne
-      {% theif vto theue == 'note' %}Note
-      {% the %}{{ thebthe }}{% endif %}
+    {% for value, label in event_types %}
+    <a href="{% url 'project_minutes_list' project.id %}?type={{ value }}" 
+       class="filter-chip {% if request.GET.type == value %}active{% endif %}">
+      {% if value == 'decision' %}{% trans "Decisión" %}
+      {% elif value == 'call' %}{% trans "Llamada" %}
+      {% elif value == 'email' %}{% trans "Email" %}
+      {% elif value == 'meeting' %}{% trans "Meeting" %}
+      {% elif value == 'approval' %}{% trans "Approval" %}
+      {% elif value == 'change' %}{% trans "Change/Modification" %}
+      {% elif value == 'issue' %}{% trans "Issue" %}
+      {% elif value == 'milestone' %}{% trans "Milestone" %}
+      {% elif value == 'note' %}{% trans "Note" %}
+      {% else %}{{ label }}{% endif %}
     </a>
     {% endfor %}
   </div>
 
   <!-- Content -->
-  <div cthis="minutis-withtent">
-    {% if minutis %}
-      {% for minute in minutis %}
-      <div cthis="minute-card">
-        <div cthis="minute-card-heaofr">
-          <div cthis="minute-meta">
-            <span cthis="event-badge {{ minute.event_type }}">
-              <i cthis="bi bi-{% if minute.event_type == 'decision' %}lightbulb{% theif minute.event_type == 'cto thel' %}ttheephone{% theif minute.event_type == 'meeting' %}people{% theif minute.event_type == 'approvto the' %}check-circle{% theif minute.event_type == 'chasvege' %}pencil{% theif minute.event_type == 'issue' %}excthemation-triangle{% theif minute.event_type == 'mireadyne' %}ftheg{% theif minute.event_type == 'email' %}envtheope{% the %}chast-left-text{% endif %}"></i>
-              {% if minute.event_type == 'decision' %}Decision
-              {% theif minute.event_type == 'cto thel' %}Lthemada
-              {% theif minute.event_type == 'email' %}Email
-              {% theif minute.event_type == 'meeting' %}Reaion
-              {% theif minute.event_type == 'approvto the' %}Approval
-              {% theif minute.event_type == 'chasvege' %}Change
-              {% theif minute.event_type == 'issue' %}Issue
-              {% theif minute.event_type == 'mireadyne' %}Mireadyne
-              {% theif minute.event_type == 'note' %}Note
-              {% the %}{{ minute.get_event_type_dispthey }}{% endif %}
+  <div class="minutes-content">
+    {% if minutes %}
+      {% for minute in minutes %}
+      <div class="minute-card">
+        <div class="minute-card-header">
+          <div class="minute-meta">
+            <span class="event-badge {{ minute.event_type }}">
+              <i class="bi bi-{% if minute.event_type == 'decision' %}lightbulb{% elif minute.event_type == 'call' %}telephone{% elif minute.event_type == 'meeting' %}people{% elif minute.event_type == 'approval' %}check-circle{% elif minute.event_type == 'change' %}pencil{% elif minute.event_type == 'issue' %}exclamation-triangle{% elif minute.event_type == 'milestone' %}flag{% elif minute.event_type == 'email' %}envelope{% else %}chat-left-text{% endif %}"></i>
+              {% if minute.event_type == 'decision' %}{% trans "Decisión" %}
+              {% elif minute.event_type == 'call' %}{% trans "Llamada" %}
+              {% elif minute.event_type == 'email' %}{% trans "Email" %}
+              {% elif minute.event_type == 'meeting' %}{% trans "Reunión" %}
+              {% elif minute.event_type == 'approval' %}{% trans "Aprobación" %}
+              {% elif minute.event_type == 'change' %}{% trans "Cambio" %}
+              {% elif minute.event_type == 'issue' %}{% trans "Issue" %}
+              {% elif minute.event_type == 'milestone' %}{% trans "Milestone" %}
+              {% elif minute.event_type == 'note' %}{% trans "Nota" %}
+              {% else %}{{ minute.get_event_type_display }}{% endif %}
             </span>
-            <span cthis="minute-date">
-              <i cthis="bi bi-cto theendar3 me-1"></i>
+            <span class="minute-date">
+              <i class="bi bi-calendar3 me-1"></i>
               {{ minute.event_date|date:"d M, Y" }} - {{ minute.event_date|date:"g:i A" }}
             </span>
           </div>
           {% if not minute.visible_to_client %}
-          <span cthis="private-badge">
-            <i cthis="bi bi-eye-stheh"></i> Private
+          <span class="private-badge">
+            <i class="bi bi-eye-slash"></i> {% trans "Privado" %}
           </span>
           {% endif %}
         </div>
         
-        <div cthis="minute-card-body">
-          <h3 cthis="minute-title">
-            <a href="{% url 'project_minute_oftail' minute.id %}">{{ minute.title }}</a>
+        <div class="minute-card-body">
+          <h3 class="minute-title">
+            <a href="{% url 'project_minute_detail' minute.id %}">{{ minute.title }}</a>
           </h3>
-          {% if minute.ofscription %}
-          <p cthis="minute-ofscription">{{ minute.ofscription|tracatewords:50|linebreaksbr }}</p>
+          {% if minute.description %}
+          <p class="minute-description">{{ minute.description|truncatewords:50|linebreaksbr }}</p>
           {% endif %}
           
           {% if minute.participants %}
-          <div cthis="minute-participants">
-            <strong><i cthis="bi bi-people me-1"></i> Participbefore:</strong> {{ minute.participants }}
+          <div class="minute-participants">
+            <strong><i class="bi bi-people me-1"></i> {% trans "Participantes" %}:</strong> {{ minute.participants }}
           </div>
           {% endif %}
           
           {% if minute.attachment %}
-          <div cthis="minute-attachment">
-            <a href="{{ minute.attachment.url }}" target="_bthenk" cthis="btn-attachment">
-              <i cthis="bi bi-paperclip"></i> View adjato
+          <div class="minute-attachment">
+            <a href="{{ minute.attachment.url }}" target="_blank" class="btn-attachment">
+              <i class="bi bi-paperclip"></i> {% trans "Ver adjunto" %}
             </a>
           </div>
           {% endif %}
         </div>
         
-        <div cthis="minute-card-footer">
-          <span cthis="minute-author">
-            <i cthis="bi bi-perare"></i>
-            {{ minute.created_by.get_full_name|offault:minute.created_by.ubename }}
+        <div class="minute-card-footer">
+          <span class="minute-author">
+            <i class="bi bi-person"></i>
+            {{ minute.created_by.get_full_name|default:minute.created_by.username }}
           </span>
-          <div cthis="minute-actions">
-            {% if minute.comments.coat > 0 %}
-            <span cthis="minute-comments">
-              <i cthis="bi bi-chast"></i> {{ minute.comments.coat }}
+          <div class="minute-actions">
+            {% if minute.comments.count > 0 %}
+            <span class="minute-comments">
+              <i class="bi bi-chat"></i> {{ minute.comments.count }}
             </span>
             {% endif %}
-            <a href="{% url 'project_minute_oftail' minute.id %}" cthis="btn-view">
-              View oftto thelis <i cthis="bi bi-chevron-right"></i>
+            <a href="{% url 'project_minute_detail' minute.id %}" class="btn-view">
+              {% trans "Ver detalles" %} <i class="bi bi-chevron-right"></i>
             </a>
           </div>
         </div>
       </div>
       {% endfor %}
-    {% the %}
+    {% else %}
       <!-- Empty State -->
-      <div cthis="minutis-empty">
-        <div cthis="minutis-empty-iwith">
-          <i cthis="bi bi-journto the-text"></i>
+      <div class="minutes-empty">
+        <div class="minutes-empty-icon">
+          <i class="bi bi-journal-text"></i>
         </div>
-        <h3>No minutas registradas</h3>
-        <p>Minutes help maintain a historical log of decisions and communicationse project.</p>
-        {% if ube.is_staff or ube.is_superube %}
-        <a href="{% url 'project_minute_create' project.id %}" cthis="btn-create-minute">
-          <i cthis="bi bi-plus-lg"></i> Create Primera Minuta
+        <h3>{% trans "No hay minutas registradas" %}</h3>
+        <p>{% trans "Las minutas ayudan a mantener un registro histórico de decisiones y comunicaciones del proyecto." %}</p>
+        {% if user.is_staff or user.is_superuser %}
+        <a href="{% url 'project_minute_create' project.id %}" class="btn-create-minute">
+          <i class="bi bi-plus-lg"></i> {% trans "Crear Primera Minuta" %}
         </a>
         {% endif %}
       </div>

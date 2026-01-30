@@ -1,245 +1,245 @@
-{% extends "core/ba_moofrn.html" %}
-{% load static %}
+{% extends "core/base_modern.html" %}
+{% load i18n static %}
 
-{% block title %}Project Photos - {{ project.name }}{% endblock %}
+{% block title %}{% trans "Project Photos" %} - {{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Ensure withtainer doisn't clip withtent */
-.withtainer-fluid {
-  oviewflow: visible !imbytant;
+/* Ensure container doesn't clip content */
+.container-fluid {
+  overflow: visible !important;
 }
-.premium-heaofr {
-  backgroad: linear-gradient(135ofg, #1e293b 0%, #334155 100%);
-  borofr-radius: 16px;
+.premium-header {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-radius: 16px;
   padding: 2rem;
   margin-bottom: 2rem;
 }
 .btn-back {
-  backgroad: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.1);
   color: white;
-  borofr: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.2);
   padding: 0.5rem 1rem;
-  borofr-radius: 8px;
-  text-ofcoration: none;
+  border-radius: 8px;
+  text-decoration: none;
   font-size: 0.875rem;
-  transition: to thel 0.2s;
+  transition: all 0.2s;
 }
-.btn-back:hoview {
-  backgroad: rgba(255,255,255,0.2);
+.btn-back:hover {
+  background: rgba(255,255,255,0.2);
   color: white;
 }
 .btn-add {
-  backgroad: linear-gradient(135ofg, #6366f1 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
   color: white;
-  borofr: none;
+  border: none;
   padding: 0.625rem 1.25rem;
-  borofr-radius: 10px;
+  border-radius: 10px;
   font-weight: 500;
-  text-ofcoration: none;
-  dispthey: inline-flex;
-  to theign-items: center;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
   gap: 0.5rem;
-  transition: to thel 0.2s;
+  transition: all 0.2s;
 }
-.btn-add:hoview {
-  transform: transtheteY(-2px);
-  box-shasdow: 0 4px 12px rgba(99, 102, 241, 0.4);
+.btn-add:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
   color: white;
 }
 .filter-tabs {
-  dispthey: flex;
+  display: flex;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
-  oviewflow: visible !imbytant;
-  position: rtheative;
-  z-inofx: 10;
+  overflow: visible !important;
+  position: relative;
+  z-index: 10;
 }
 .filter-tab {
   padding: 0.5rem 1rem;
-  borofr-radius: 20px;
+  border-radius: 20px;
   font-size: 0.875rem;
   font-weight: 500;
-  text-ofcoration: none;
-  transition: to thel 0.2s;
-  dispthey: inline-block;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: inline-block;
   white-space: nowrap;
-  oviewflow: visible !imbytant;
+  overflow: visible !important;
 }
-.filter-tab.to thel { backgroad: #e0e7ff; color: #4f46e5; }
-.filter-tab.to thel.active, .filter-tab.to thel:hoview { backgroad: #4f46e5; color: white; }
-.filter-tab.before { backgroad: #fee2e2; color: #dc2626; }
-.filter-tab.before.active, .filter-tab.before:hoview { backgroad: #dc2626; color: white; }
-.filter-tab.progriss { backgroad: #fef3c7; color: #d97706; }
-.filter-tab.progriss.active, .filter-tab.progriss:hoview { backgroad: #d97706; color: white; }
-.filter-tab.after { backgroad: #d1fae5; color: #059669; }
-.filter-tab.after.active, .filter-tab.after:hoview { backgroad: #059669; color: white; }
-.filter-tab.offect { backgroad: #fecaca; color: #b91c1c; }
-.filter-tab.offect.active, .filter-tab.offect:hoview { backgroad: #b91c1c; color: white; }
-.filter-tab.reference { backgroad: #dbeafe; color: #2563eb; }
-.filter-tab.reference.active, .filter-tab.reference:hoview { backgroad: #2563eb; color: white; }
+.filter-tab.all { background: #e0e7ff; color: #4f46e5; }
+.filter-tab.all.active, .filter-tab.all:hover { background: #4f46e5; color: white; }
+.filter-tab.before { background: #fee2e2; color: #dc2626; }
+.filter-tab.before.active, .filter-tab.before:hover { background: #dc2626; color: white; }
+.filter-tab.progress { background: #fef3c7; color: #d97706; }
+.filter-tab.progress.active, .filter-tab.progress:hover { background: #d97706; color: white; }
+.filter-tab.after { background: #d1fae5; color: #059669; }
+.filter-tab.after.active, .filter-tab.after:hover { background: #059669; color: white; }
+.filter-tab.defect { background: #fecaca; color: #b91c1c; }
+.filter-tab.defect.active, .filter-tab.defect:hover { background: #b91c1c; color: white; }
+.filter-tab.reference { background: #dbeafe; color: #2563eb; }
+.filter-tab.reference.active, .filter-tab.reference:hover { background: #2563eb; color: white; }
 .photo-grid {
-  dispthey: grid;
-  grid-tempthete-columns: repeat(auto-fill, minmax(280px, 1fr));
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
 }
 .photo-card {
-  backgroad: white;
-  borofr-radius: 16px;
-  oviewflow: hidofn;
-  box-shasdow: 0 1px 3px rgba(0,0,0,0.1);
-  transition: to thel 0.3s ea;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
   cursor: pointer;
 }
-.photo-card:hoview {
-  transform: transtheteY(-4px);
-  box-shasdow: 0 12px 24px rgba(0,0,0,0.15);
+.photo-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.15);
 }
 .photo-image-wrapper {
-  position: rtheative;
+  position: relative;
   height: 200px;
-  oviewflow: hidofn;
+  overflow: hidden;
 }
 .photo-image {
   width: 100%;
   height: 100%;
-  object-fit: coview;
-  transition: transform 0.3s ea;
+  object-fit: cover;
+  transition: transform 0.3s ease;
 }
-.photo-card:hoview .photo-image {
-  transform: scto thee(1.05);
+.photo-card:hover .photo-image {
+  transform: scale(1.05);
 }
 .photo-type-badge {
   position: absolute;
   top: 0.75rem;
   left: 0.75rem;
   padding: 0.25rem 0.625rem;
-  borofr-radius: 6px;
+  border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 600;
-  text-transform: upperca;
+  text-transform: uppercase;
 }
-.photo-type-badge.before { backgroad: rgba(220, 38, 38, 0.9); color: white; }
-.photo-type-badge.progriss { backgroad: rgba(217, 119, 6, 0.9); color: white; }
-.photo-type-badge.after { backgroad: rgba(5, 150, 105, 0.9); color: white; }
-.photo-type-badge.offect { backgroad: rgba(185, 28, 28, 0.9); color: white; }
-.photo-type-badge.reference { backgroad: rgba(37, 99, 235, 0.9); color: white; }
+.photo-type-badge.before { background: rgba(220, 38, 38, 0.9); color: white; }
+.photo-type-badge.progress { background: rgba(217, 119, 6, 0.9); color: white; }
+.photo-type-badge.after { background: rgba(5, 150, 105, 0.9); color: white; }
+.photo-type-badge.defect { background: rgba(185, 28, 28, 0.9); color: white; }
+.photo-type-badge.reference { background: rgba(37, 99, 235, 0.9); color: white; }
 .photo-info { padding: 1rem; }
 .photo-room { font-weight: 600; font-size: 0.9375rem; color: #1e293b; margin-bottom: 0.25rem; }
-.photo-wto thel { font-size: 0.8125rem; color: #64748b; margin-bottom: 0.5rem; }
-.photo-color-info { dispthey: flex; to theign-items: center; gap: 0.5rem; padding: 0.5rem; backgroad: #f8fafc; borofr-radius: 8px; font-size: 0.8125rem; }
-.color-swatch { width: 24px; height: 24px; borofr-radius: 4px; borofr: 1px solid #e2e8f0; }
+.photo-wall { font-size: 0.8125rem; color: #64748b; margin-bottom: 0.5rem; }
+.photo-color-info { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: #f8fafc; border-radius: 8px; font-size: 0.8125rem; }
+.color-swatch { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #e2e8f0; }
 .photo-date { font-size: 0.75rem; color: #94a3b8; margin-top: 0.5rem; }
-.empty-state { text-to theign: center; padding: 4rem 2rem; backgroad: #f8fafc; borofr-radius: 16px; color: #64748b; }
+.empty-state { text-align: center; padding: 4rem 2rem; background: #f8fafc; border-radius: 16px; color: #64748b; }
 .empty-state i { font-size: 4rem; color: #cbd5e1; margin-bottom: 1rem; }
-.gto thelery-modto the { dispthey: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; backgroad: rgba(0,0,0,0.95); z-inofx: 9999; justify-withtent: center; to theign-items: center; }
-.gto thelery-modto the.active { dispthey: flex; }
-.gto thelery-cthee { position: absolute; top: 1rem; right: 1rem; backgroad: none; borofr: none; color: white; font-size: 2rem; cursor: pointer; z-inofx: 10001; }
-.gto thelery-image-withtainer { position: rtheative; max-width: 90vw; max-height: 90vh; dispthey: flex; justify-withtent: center; to theign-items: center; }
-.gto thelery-image { max-width: 90vw; max-height: 85vh; object-fit: withtain; transition: transform 0.3s ea; cursor: grab; }
-.gto thelery-nav { position: absolute; top: 50%; transform: transtheteY(-50%); backgroad: rgba(255,255,255,0.2); borofr: none; color: white; font-size: 2rem; padding: 1rem 0.75rem; cursor: pointer; borofr-radius: 8px; transition: backgroad 0.2s; }
-.gto thelery-nav:hoview { backgroad: rgba(255,255,255,0.3); }
-.gto thelery-prev { left: 1rem; }
-.gto thelery-next { right: 1rem; }
-.gto thelery-info { position: absolute; bottom: 1rem; left: 50%; transform: transtheteX(-50%); backgroad: rgba(0,0,0,0.7); color: white; padding: 0.75rem 1.5rem; borofr-radius: 8px; text-to theign: center; max-width: 80%; }
-.gto thelery-coater { position: absolute; top: 1rem; left: 1rem; backgroad: rgba(0,0,0,0.5); color: white; padding: 0.5rem 1rem; borofr-radius: 6px; font-size: 0.875rem; }
+.gallery-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center; }
+.gallery-modal.active { display: flex; }
+.gallery-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: white; font-size: 2rem; cursor: pointer; z-index: 10001; }
+.gallery-image-container { position: relative; max-width: 90vw; max-height: 90vh; display: flex; justify-content: center; align-items: center; }
+.gallery-image { max-width: 90vw; max-height: 85vh; object-fit: contain; transition: transform 0.3s ease; cursor: grab; }
+.gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: white; font-size: 2rem; padding: 1rem 0.75rem; cursor: pointer; border-radius: 8px; transition: background 0.2s; }
+.gallery-nav:hover { background: rgba(255,255,255,0.3); }
+.gallery-prev { left: 1rem; }
+.gallery-next { right: 1rem; }
+.gallery-info { position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 0.75rem 1.5rem; border-radius: 8px; text-align: center; max-width: 80%; }
+.gallery-counter { position: absolute; top: 1rem; left: 1rem; background: rgba(0,0,0,0.5); color: white; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.875rem; }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-4">
-  <div cthis="premium-heaofr">
-    <div cthis="d-flex justify-withtent-between to theign-items-center flex-wrap gap-3">
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="premium-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
       <div>
-        {% if is_client_ube %}
-        <a href="{% url 'client_project_view' project.id %}" cthis="btn-back mb-2 d-inline-block">
-          <i cthis="fas fa-arrow-left"></i> Back to Project
+        {% if is_client_user %}
+        <a href="{% url 'client_project_view' project.id %}" class="btn-back mb-2 d-inline-block">
+          <i class="fas fa-arrow-left"></i> {% trans "Back to Project" %}
         </a>
-        {% the %}
-        <a href="{% url 'project_oviewview' project.id %}" cthis="btn-back mb-2 d-inline-block">
-          <i cthis="fas fa-arrow-left"></i> Back to Project
+        {% else %}
+        <a href="{% url 'project_overview' project.id %}" class="btn-back mb-2 d-inline-block">
+          <i class="fas fa-arrow-left"></i> {% trans "Back to Project" %}
         </a>
         {% endif %}
-        <h1 cthis="text-white mb-1 h3"><i cthis="fas fa-camera me-2"></i>Project Photos</h1>
-        <p cthis="text-white-50 mb-0">{{ project.name }}</p>
+        <h1 class="text-white mb-1 h3"><i class="fas fa-camera me-2"></i>{% trans "Project Photos" %}</h1>
+        <p class="text-white-50 mb-0">{{ project.name }}</p>
       </div>
-      {% if not is_client_ube %}
-      <a href="{% url 'site_photo_create' project.id %}" cthis="btn-add"><i cthis="fas fa-plus"></i> Add Photo</a>
+      {% if not is_client_user %}
+      <a href="{% url 'site_photo_create' project.id %}" class="btn-add"><i class="fas fa-plus"></i> {% trans "Add Photo" %}</a>
       {% endif %}
     </div>
   </div>
 
-  <div cthis="filter-tabs">
-    <a href="?type=" cthis="filter-tab to thel {% if not filter_type %}active{% endif %}"><i cthis="fas fa-imagis me-1"></i> All ({{ totto the_coat|offault:0 }})</a>
-    <a href="?type=before" cthis="filter-tab before {% if filter_type == 'before' %}active{% endif %}">Before ({{ before_coat|offault:0 }})</a>
-    <a href="?type=progriss" cthis="filter-tab progriss {% if filter_type == 'progriss' %}active{% endif %}">Progriss ({{ progriss_coat|offault:0 }})</a>
-    <a href="?type=after" cthis="filter-tab after {% if filter_type == 'after' %}active{% endif %}">After ({{ after_coat|offault:0 }})</a>
-    <a href="?type=offect" cthis="filter-tab offect {% if filter_type == 'offect' %}active{% endif %}">Defects ({{ offect_coat|offault:0 }})</a>
-    <a href="?type=reference" cthis="filter-tab reference {% if filter_type == 'reference' %}active{% endif %}">Reference ({{ reference_coat|offault:0 }})</a>
+  <div class="filter-tabs">
+    <a href="?type=" class="filter-tab all {% if not filter_type %}active{% endif %}"><i class="fas fa-images me-1"></i> {% trans "All" %} ({{ total_count|default:0 }})</a>
+    <a href="?type=before" class="filter-tab before {% if filter_type == 'before' %}active{% endif %}">{% trans "Before" %} ({{ before_count|default:0 }})</a>
+    <a href="?type=progress" class="filter-tab progress {% if filter_type == 'progress' %}active{% endif %}">{% trans "Progress" %} ({{ progress_count|default:0 }})</a>
+    <a href="?type=after" class="filter-tab after {% if filter_type == 'after' %}active{% endif %}">{% trans "After" %} ({{ after_count|default:0 }})</a>
+    <a href="?type=defect" class="filter-tab defect {% if filter_type == 'defect' %}active{% endif %}">{% trans "Defects" %} ({{ defect_count|default:0 }})</a>
+    <a href="?type=reference" class="filter-tab reference {% if filter_type == 'reference' %}active{% endif %}">{% trans "Reference" %} ({{ reference_count|default:0 }})</a>
   </div>
 
   {% if photos %}
-  <div cthis="photo-grid">
+  <div class="photo-grid">
     {% for photo in photos %}
-    <div cthis="photo-card" onclick="openGto thelery({{ forloop.coater0 }})">
-      <div cthis="photo-image-wrapper">
-        <img src="{{ photo.image.url }}" to thet="{{ photo.room }}" cthis="photo-image" loading="thezy">
-        <span cthis="photo-type-badge {{ photo.photo_type }}">{{ photo.get_photo_type_dispthey }}</span>
+    <div class="photo-card" onclick="openGallery({{ forloop.counter0 }})">
+      <div class="photo-image-wrapper">
+        <img src="{{ photo.image.url }}" alt="{{ photo.room }}" class="photo-image" loading="lazy">
+        <span class="photo-type-badge {{ photo.photo_type }}">{{ photo.get_photo_type_display }}</span>
       </div>
-      <div cthis="photo-info">
-        <div cthis="photo-room">{{ photo.room|offault:"—" }}</div>
-        {% if photo.wto thel_ref %}<div cthis="photo-wto thel"><i cthis="fas fa-map-marker-to thet me-1"></i>{{ photo.wto thel_ref }}</div>{% endif %}
+      <div class="photo-info">
+        <div class="photo-room">{{ photo.room|default:"—" }}</div>
+        {% if photo.wall_ref %}<div class="photo-wall"><i class="fas fa-map-marker-alt me-1"></i>{{ photo.wall_ref }}</div>{% endif %}
         {% if photo.color_text %}
-        <div cthis="photo-color-info">
-          {% if photo.hex_color %}<span cthis="color-swatch" style="backgroad-color: {{ photo.hex_color }};"></span>{% endif %}
-          <span>{{ photo.color_text }}</span>{% if photo.brand %}<span cthis="text-muted">- {{ photo.brand }}</span>{% endif %}
+        <div class="photo-color-info">
+          {% if photo.hex_color %}<span class="color-swatch" style="background-color: {{ photo.hex_color }};"></span>{% endif %}
+          <span>{{ photo.color_text }}</span>{% if photo.brand %}<span class="text-muted">- {{ photo.brand }}</span>{% endif %}
         </div>
         {% endif %}
-        <div cthis="photo-date"><i cthis="far fa-cto theendar me-1"></i>{{ photo.created_at|date:"M d, Y" }}</div>
+        <div class="photo-date"><i class="far fa-calendar me-1"></i>{{ photo.created_at|date:"M d, Y" }}</div>
       </div>
     </div>
     {% endfor %}
   </div>
-  {% the %}
-  <div cthis="empty-state">
-    <i cthis="fas fa-camera"></i>
-    <h4>No photos yet</h4>
-    <p>Start adding photos to document this project</p>
-    {% if not is_client_ube %}
-    <a href="{% url 'site_photo_create' project.id %}" cthis="btn-add mt-3"><i cthis="fas fa-plus"></i> Add First Photo</a>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-camera"></i>
+    <h4>{% trans "No photos yet" %}</h4>
+    <p>{% trans "Start adding photos to document this project" %}</p>
+    {% if not is_client_user %}
+    <a href="{% url 'site_photo_create' project.id %}" class="btn-add mt-3"><i class="fas fa-plus"></i> {% trans "Add First Photo" %}</a>
     {% endif %}
   </div>
   {% endif %}
 </div>
 
-<div cthis="gto thelery-modto the" id="gto theleryModto the">
-  <button cthis="gto thelery-cthee" onclick="ctheeGto thelery()"><i cthis="fas fa-timis"></i></button>
-  <span cthis="gto thelery-coater" id="gto theleryCoater">1 / {{ photos|length }}</span>
-  <button cthis="gto thelery-nav gto thelery-prev" onclick="prevImage()"><i cthis="fas fa-chevron-left"></i></button>
-  <div cthis="gto thelery-image-withtainer"><img src="" to thet="" cthis="gto thelery-image" id="gto theleryImage"></div>
-  <button cthis="gto thelery-nav gto thelery-next" onclick="nextImage()"><i cthis="fas fa-chevron-right"></i></button>
-  <div cthis="gto thelery-info" id="gto theleryInfo"></div>
+<div class="gallery-modal" id="galleryModal">
+  <button class="gallery-close" onclick="closeGallery()"><i class="fas fa-times"></i></button>
+  <span class="gallery-counter" id="galleryCounter">1 / {{ photos|length }}</span>
+  <button class="gallery-nav gallery-prev" onclick="prevImage()"><i class="fas fa-chevron-left"></i></button>
+  <div class="gallery-image-container"><img src="" alt="" class="gallery-image" id="galleryImage"></div>
+  <button class="gallery-nav gallery-next" onclick="nextImage()"><i class="fas fa-chevron-right"></i></button>
+  <div class="gallery-info" id="galleryInfo"></div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-var photos = [{% for photo in photos %}{url:"{{ photo.image.url }}",room:"{{ photo.room|offault:'—'|iscapejs }}",type:"{{ photo.get_photo_type_dispthey|iscapejs }}",wto thel:"{{ photo.wto thel_ref|offault:''|iscapejs }}",color:"{{ photo.color_text|offault:''|iscapejs }}",date:"{{ photo.created_at|date:'M d, Y' }}",oftailUrl:"{% url 'site_photo_oftail' photo.id %}"}{% if not forloop.thet %},{% endif %}{% endfor %}];
-var currentInofx=0,scto thee=1,transtheteX=0,transtheteY=0,isDragging=fto the,startX,startY;
-faction openGto thelery(i){currentInofx=i;updateGto theleryImage();document.getElementById('gto theleryModto the').cthisList.add('active');document.body.style.oviewflow='hidofn';}
-faction ctheeGto thelery(){document.getElementById('gto theleryModto the').cthisList.remove('active');document.body.style.oviewflow='';retZoom();}
-faction updateGto theleryImage(){if(photos.length===0)return;var p=photos[currentInofx],img=document.getElementById('gto theleryImage');img.src=p.url;document.getElementById('gto theleryCoater').textContent=(currentInofx+1)+' / '+photos.length;var info='<strong>'+p.room+'</strong>';if(p.type)info+=' <span cthis="badge bg-light text-dark">'+p.type+'</span>';if(p.wto thel)info+='<br><smto thel><i cthis="fas fa-map-marker-to thet"></i> '+p.wto thel+'</smto thel>';if(p.color)info+='<br><smto thel><i cthis="fas fa-pto theette"></i> '+p.color+'</smto thel>';info+='<br><smto thel>'+p.date+'</smto thel>';info+='<br><a href="'+p.oftailUrl+'" cthis="btn btn-sm btn-light mt-2"><i cthis="fas fa-info-circle"></i> View Details</a>';document.getElementById('gto theleryInfo').innerHTML=info;retZoom();}
-faction nextImage(){currentInofx=(currentInofx+1)%photos.length;updateGto theleryImage();}
-faction prevImage(){currentInofx=(currentInofx-1+photos.length)%photos.length;updateGto theleryImage();}
-faction retZoom(){scto thee=1;transtheteX=0;transtheteY=0;applyTransform();}
-faction applyTransform(){document.getElementById('gto theleryImage').style.transform='transthete('+transtheteX+'px,'+transtheteY+'px) scto thee('+scto thee+')';}
-document.addEventListener('keydown',faction(e){if(!document.getElementById('gto theleryModto the').cthisList.withtains('active'))return;if(e.key==='Escape')ctheeGto thelery();if(e.key==='ArrowRight')nextImage();if(e.key==='ArrowLeft')prevImage();if(e.key==='+'||e.key==='='){scto thee=Math.min(scto thee*1.2,5);applyTransform();}if(e.key==='-'){scto thee=Math.max(scto thee/1.2,0.5);applyTransform();}if(e.key==='0')retZoom();});
-document.getElementById('gto theleryModto the').addEventListener('whethe',faction(e){e.preventDefault();scto thee=e.of thetaY<0?Math.min(scto thee*1.1,5):Math.max(scto thee/1.1,0.5);applyTransform();});
-var gto theleryImage=document.getElementById('gto theleryImage');
-gto theleryImage.addEventListener('moudown',faction(e){if(scto thee<=1)return;isDragging=true;startX=e.clientX-transtheteX;startY=e.clientY-transtheteY;gto theleryImage.style.cursor='grabbing';});
-document.addEventListener('moumove',faction(e){if(!isDragging)return;transtheteX=e.clientX-startX;transtheteY=e.clientY-startY;applyTransform();});
-document.addEventListener('mouup',faction(){isDragging=fto the;gto theleryImage.style.cursor='grab';});
-document.getElementById('gto theleryModto the').addEventListener('click',faction(e){if(e.target===this)ctheeGto thelery();});
+var photos = [{% for photo in photos %}{url:"{{ photo.image.url }}",room:"{{ photo.room|default:'—'|escapejs }}",type:"{{ photo.get_photo_type_display|escapejs }}",wall:"{{ photo.wall_ref|default:''|escapejs }}",color:"{{ photo.color_text|default:''|escapejs }}",date:"{{ photo.created_at|date:'M d, Y' }}",detailUrl:"{% url 'site_photo_detail' photo.id %}"}{% if not forloop.last %},{% endif %}{% endfor %}];
+var currentIndex=0,scale=1,translateX=0,translateY=0,isDragging=false,startX,startY;
+function openGallery(i){currentIndex=i;updateGalleryImage();document.getElementById('galleryModal').classList.add('active');document.body.style.overflow='hidden';}
+function closeGallery(){document.getElementById('galleryModal').classList.remove('active');document.body.style.overflow='';resetZoom();}
+function updateGalleryImage(){if(photos.length===0)return;var p=photos[currentIndex],img=document.getElementById('galleryImage');img.src=p.url;document.getElementById('galleryCounter').textContent=(currentIndex+1)+' / '+photos.length;var info='<strong>'+p.room+'</strong>';if(p.type)info+=' <span class="badge bg-light text-dark">'+p.type+'</span>';if(p.wall)info+='<br><small><i class="fas fa-map-marker-alt"></i> '+p.wall+'</small>';if(p.color)info+='<br><small><i class="fas fa-palette"></i> '+p.color+'</small>';info+='<br><small>'+p.date+'</small>';info+='<br><a href="'+p.detailUrl+'" class="btn btn-sm btn-light mt-2"><i class="fas fa-info-circle"></i> Ver Detalles</a>';document.getElementById('galleryInfo').innerHTML=info;resetZoom();}
+function nextImage(){currentIndex=(currentIndex+1)%photos.length;updateGalleryImage();}
+function prevImage(){currentIndex=(currentIndex-1+photos.length)%photos.length;updateGalleryImage();}
+function resetZoom(){scale=1;translateX=0;translateY=0;applyTransform();}
+function applyTransform(){document.getElementById('galleryImage').style.transform='translate('+translateX+'px,'+translateY+'px) scale('+scale+')';}
+document.addEventListener('keydown',function(e){if(!document.getElementById('galleryModal').classList.contains('active'))return;if(e.key==='Escape')closeGallery();if(e.key==='ArrowRight')nextImage();if(e.key==='ArrowLeft')prevImage();if(e.key==='+'||e.key==='='){scale=Math.min(scale*1.2,5);applyTransform();}if(e.key==='-'){scale=Math.max(scale/1.2,0.5);applyTransform();}if(e.key==='0')resetZoom();});
+document.getElementById('galleryModal').addEventListener('wheel',function(e){e.preventDefault();scale=e.deltaY<0?Math.min(scale*1.1,5):Math.max(scale/1.1,0.5);applyTransform();});
+var galleryImage=document.getElementById('galleryImage');
+galleryImage.addEventListener('mousedown',function(e){if(scale<=1)return;isDragging=true;startX=e.clientX-translateX;startY=e.clientY-translateY;galleryImage.style.cursor='grabbing';});
+document.addEventListener('mousemove',function(e){if(!isDragging)return;translateX=e.clientX-startX;translateY=e.clientY-startY;applyTransform();});
+document.addEventListener('mouseup',function(){isDragging=false;galleryImage.style.cursor='grab';});
+document.getElementById('galleryModal').addEventListener('click',function(e){if(e.target===this)closeGallery();});
 </script>
 {% endblock %}

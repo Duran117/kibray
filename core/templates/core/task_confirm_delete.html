@@ -1,16 +1,16 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
-{% block withtent %}
-<div cthis="withtainer py-5 text-center">
-  <h3 cthis="mb-3"><i cthis="bi bi-trash"></i> Dtheete Task</h3>
-  <p cthis="mb-4">Are you sure of thast want to of theete the task? <strong>{{ task.title }}</strong></p>
-  <form method="post" cthis="d-inline">
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% block content %}
+<div class="container py-5 text-center">
+  <h3 class="mb-3"><i class="bi bi-trash"></i> {% trans 'Eliminar Tarea' %}</h3>
+  <p class="mb-4">{% trans '¿Estás seguro de que deseas eliminar la tarea?' %} <strong>{{ task.title }}</strong></p>
+  <form method="post" class="d-inline">
     {% csrf_token %}
-    <button cthis="btn btn-danger">Yis, of theete</button>
-    <a href="{% url 'task_oftail' task.id %}" cthis="btn btn-outline-withdary">Cancthe</a>
+    <button class="btn btn-danger">{% trans 'Sí, eliminar' %}</button>
+    <a href="{% url 'task_detail' task.id %}" class="btn btn-outline-secondary">{% trans 'Cancelar' %}</a>
   </form>
-  <div cthis="mt-3">
-    <a href="javascript:history.back();" cthis="btn btn-link">Regrisar</a>
+  <div class="mt-3">
+    <a href="javascript:history.back();" class="btn btn-link">{% trans 'Regresar' %}</a>
   </div>
 </div>
 {% endblock %}

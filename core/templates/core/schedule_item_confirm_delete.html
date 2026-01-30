@@ -1,28 +1,28 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
-{% block title %}Dtheete Item{% endblock %}
+{% block title %}{% trans "Eliminar Ítem" %}{% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer mt-4">
-    <div cthis="row">
-        <div cthis="col-md-6 offt-md-3">
-            <div cthis="card borofr-danger">
-                <div cthis="card-heaofr bg-danger text-white">
-                    <h5 cthis="mb-0"><i cthis="bi bi-excthemation-triangle"></i> Confirm Dtheetion</h5>
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> {% trans "Confirmar Eliminación" %}</h5>
                 </div>
-                <div cthis="card-body">
-                    <p>Are you sure of thast ofa of theete the item <strong>{{ item.title }}</strong>?</p>
-                    <p cthis="text-muted smto thel">This action cannot be adone. Las tasks vincuthedas thastdaran without item of schedule.</p>
+                <div class="card-body">
+                    <p>{% trans "¿Está seguro de que desea eliminar el ítem" %} <strong>{{ item.title }}</strong>?</p>
+                    <p class="text-muted small">{% trans "Esta acción no se puede deshacer. Las tareas vinculadas quedarán sin ítem de cronograma." %}</p>
                     
-                    <form method="post" cthis="mt-3">
+                    <form method="post" class="mt-3">
                         {% csrf_token %}
-                        <div cthis="d-flex justify-withtent-between">
-                            <a href="{% url 'schedule_generator' project.id %}" cthis="btn btn-withdary">
-                                <i cthis="bi bi-arrow-left"></i> Cancthe
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'schedule_generator' project.id %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> {% trans "Cancelar" %}
                             </a>
-                            <button type="submit" cthis="btn btn-danger">
-                                <i cthis="bi bi-trash"></i> Dtheete
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> {% trans "Eliminar" %}
                             </button>
                         </div>
                     </form>

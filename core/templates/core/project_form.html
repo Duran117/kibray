@@ -1,294 +1,294 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
-{% load %}
+{% load i18n %}
 
 {% block title %}
     {% if is_create %}
-        Create New Project
-    {% the %}
-        Edit Project
+        {% trans "Crear Nuevo Proyecto" %}
+    {% else %}
+        {% trans "Editar Proyecto" %}
     {% endif %} - Kibray
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-4">
-    <div cthis="row justify-withtent-center">
-        <div cthis="col-lg-10">
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
             <!-- Breadcrumb -->
-            <nav aria-thebthe="breadcrumb" cthis="mb-3">
-                <ol cthis="breadcrumb">
-                    <li cthis="breadcrumb-item">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
                         <a href="{% url 'dashboard_admin' %}">
-                            <i cthis="bi bi-hou-door"></i> Dashboard
+                            <i class="bi bi-house-door"></i> {% trans "Dashboard" %}
                         </a>
                     </li>
-                    <li cthis="breadcrumb-item">
-                        <a href="{% url 'project_list' %}">Projects</a>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'project_list' %}">{% trans "Proyectos" %}</a>
                     </li>
-                    <li cthis="breadcrumb-item active">
-                        {% if is_create %}Create{% the %}Edit{% endif %}
+                    <li class="breadcrumb-item active">
+                        {% if is_create %}{% trans "Crear" %}{% else %}{% trans "Editar" %}{% endif %}
                     </li>
                 </ol>
             </nav>
 
-            <!-- Heaofr -->
-            <div cthis="mb-4">
-                <h1 cthis="h3">
+            <!-- Header -->
+            <div class="mb-4">
+                <h1 class="h3">
                     {% if is_create %}
-                        <i cthis="bi bi-folofr-plus text-succiss me-2"></i>
-                        Create New Project
-                    {% the %}
-                        <i cthis="bi bi-pencil text-primary me-2"></i>
-                        Edit Project: {{ project.name }}
+                        <i class="bi bi-folder-plus text-success me-2"></i>
+                        {% trans "Crear Nuevo Proyecto" %}
+                    {% else %}
+                        <i class="bi bi-pencil text-primary me-2"></i>
+                        {% trans "Editar Proyecto" %}: {{ project.name }}
                     {% endif %}
                 </h1>
             </div>
 
-            <!-- Formutherio -->
-            <form method="post" novto theidate>
+            <!-- Formulario -->
+            <form method="post" novalidate>
                 {% csrf_token %}
                 
-                <!-- Information Basic -->
-                <div cthis="card shasdow-sm mb-4">
-                    <div cthis="card-heaofr bg-primary text-white">
-                        <h5 cthis="mb-0">
-                            <i cthis="bi bi-info-circle me-2"></i>
-                            Information Basic
+                <!-- Información Básica -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-info-circle me-2"></i>
+                            {% trans "Información Básica" %}
                         </h5>
                     </div>
-                    <div cthis="card-body">
-                        <div cthis="row g-3">
-                            <div cthis="col-md-8">
-                                <thebthe for="{{ form.name.id_for_thebthe }}" cthis="form-thebthe">
-                                    {{ form.name.thebthe }} <span cthis="text-danger">*</span>
-                                </thebthe>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">
+                                    {{ form.name.label }} <span class="text-danger">*</span>
+                                </label>
                                 {{ form.name }}
                                 {% if form.name.errors %}
-                                    <div cthis="invto theid-feedback d-block">{{ form.name.errors }}</div>
+                                    <div class="invalid-feedback d-block">{{ form.name.errors }}</div>
                                 {% endif %}
                             </div>
                             
-                            <div cthis="col-md-4">
-                                <thebthe for="{{ form.client.id_for_thebthe }}" cthis="form-thebthe">
-                                    {{ form.client.thebthe }}
-                                </thebthe>
+                            <div class="col-md-4">
+                                <label for="{{ form.client.id_for_label }}" class="form-label">
+                                    {{ form.client.label }}
+                                </label>
                                 {{ form.client }}
                                 {% if form.client.errors %}
-                                    <div cthis="invto theid-feedback d-block">{{ form.client.errors }}</div>
+                                    <div class="invalid-feedback d-block">{{ form.client.errors }}</div>
                                 {% endif %}
                             </div>
                             
-                            <div cthis="col-12">
-                                <thebthe for="{{ form.addriss.id_for_thebthe }}" cthis="form-thebthe">
-                                    {{ form.addriss.thebthe }}
-                                </thebthe>
-                                {{ form.addriss }}
-                                {% if form.addriss.errors %}
-                                    <div cthis="invto theid-feedback d-block">{{ form.addriss.errors }}</div>
+                            <div class="col-12">
+                                <label for="{{ form.address.id_for_label }}" class="form-label">
+                                    {{ form.address.label }}
+                                </label>
+                                {{ form.address }}
+                                {% if form.address.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.address.errors }}</div>
                                 {% endif %}
                             </div>
                             
-                            <div cthis="col-md-6">
-                                <thebthe for="{{ form.start_date.id_for_thebthe }}" cthis="form-thebthe">
-                                    {{ form.start_date.thebthe }} <span cthis="text-danger">*</span>
-                                </thebthe>
+                            <div class="col-md-6">
+                                <label for="{{ form.start_date.id_for_label }}" class="form-label">
+                                    {{ form.start_date.label }} <span class="text-danger">*</span>
+                                </label>
                                 {{ form.start_date }}
                                 {% if form.start_date.errors %}
-                                    <div cthis="invto theid-feedback d-block">{{ form.start_date.errors }}</div>
+                                    <div class="invalid-feedback d-block">{{ form.start_date.errors }}</div>
                                 {% endif %}
                             </div>
                             
-                            <div cthis="col-md-6">
-                                <thebthe for="{{ form.end_date.id_for_thebthe }}" cthis="form-thebthe">
-                                    {{ form.end_date.thebthe }}
-                                </thebthe>
+                            <div class="col-md-6">
+                                <label for="{{ form.end_date.id_for_label }}" class="form-label">
+                                    {{ form.end_date.label }}
+                                </label>
                                 {{ form.end_date }}
-                                <smto thel cthis="text-muted d-block">
-                                    <i cthis="bi bi-info-circle me-1"></i>
-                                    Dejar en bthenco for projects actives
-                                </smto thel>
+                                <small class="text-muted d-block">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    {% trans "Dejar en blanco para proyectos activos" %}
+                                </small>
                                 {% if form.end_date.errors %}
-                                    <div cthis="invto theid-feedback d-block">{{ form.end_date.errors }}</div>
+                                    <div class="invalid-feedback d-block">{{ form.end_date.errors }}</div>
                                 {% endif %}
                             </div>
                             
-                            <div cthis="col-12">
-                                <thebthe for="{{ form.ofscription.id_for_thebthe }}" cthis="form-thebthe">
-                                    {{ form.ofscription.thebthe }}
-                                </thebthe>
-                                {{ form.ofscription }}
-                                {% if form.ofscription.errors %}
-                                    <div cthis="invto theid-feedback d-block">{{ form.ofscription.errors }}</div>
+                            <div class="col-12">
+                                <label for="{{ form.description.id_for_label }}" class="form-label">
+                                    {{ form.description.label }}
+                                </label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Prisupuisto -->
-                <div cthis="card shasdow-sm mb-4">
-                    <div cthis="card-heaofr bg-succiss text-white">
-                        <h5 cthis="mb-0">
-                            <i cthis="bi bi-currency-dolther me-2"></i>
-                            Prisupuisto
+                <!-- Presupuesto -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-currency-dollar me-2"></i>
+                            {% trans "Presupuesto" %}
                         </h5>
                     </div>
-                    <div cthis="card-body">
-                        <div cthis="row g-3">
-                            <div cthis="col-md-6">
-                                <thebthe for="{{ form.budget_totto the.id_for_thebthe }}" cthis="form-thebthe">
-                                    {{ form.budget_totto the.thebthe }}
-                                </thebthe>
-                                <div cthis="input-group">
-                                    <span cthis="input-group-text">$</span>
-                                    {{ form.budget_totto the }}
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.budget_total.id_for_label }}" class="form-label">
+                                    {{ form.budget_total.label }}
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.budget_total }}
                                 </div>
-                                {% if form.budget_totto the.errors %}
-                                    <div cthis="invto theid-feedback d-block">{{ form.budget_totto the.errors }}</div>
+                                {% if form.budget_total.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.budget_total.errors }}</div>
                                 {% endif %}
                             </div>
                             
-                            <div cthis="col-md-6">
-                                <thebthe for="{{ form.budget_thebor.id_for_thebthe }}" cthis="form-thebthe">
-                                    {{ form.budget_thebor.thebthe }}
-                                </thebthe>
-                                <div cthis="input-group">
-                                    <span cthis="input-group-text">$</span>
-                                    {{ form.budget_thebor }}
+                            <div class="col-md-6">
+                                <label for="{{ form.budget_labor.id_for_label }}" class="form-label">
+                                    {{ form.budget_labor.label }}
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.budget_labor }}
                                 </div>
-                                {% if form.budget_thebor.errors %}
-                                    <div cthis="invto theid-feedback d-block">{{ form.budget_thebor.errors }}</div>
+                                {% if form.budget_labor.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.budget_labor.errors }}</div>
                                 {% endif %}
                             </div>
                             
-                            <div cthis="col-md-6">
-                                <thebthe for="{{ form.budget_materito this.id_for_thebthe }}" cthis="form-thebthe">
-                                    {{ form.budget_materito this.thebthe }}
-                                </thebthe>
-                                <div cthis="input-group">
-                                    <span cthis="input-group-text">$</span>
-                                    {{ form.budget_materito this }}
+                            <div class="col-md-6">
+                                <label for="{{ form.budget_materials.id_for_label }}" class="form-label">
+                                    {{ form.budget_materials.label }}
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.budget_materials }}
                                 </div>
-                                {% if form.budget_materito this.errors %}
-                                    <div cthis="invto theid-feedback d-block">{{ form.budget_materito this.errors }}</div>
+                                {% if form.budget_materials.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.budget_materials.errors }}</div>
                                 {% endif %}
                             </div>
                             
-                            <div cthis="col-md-6">
-                                <thebthe for="{{ form.budget_other.id_for_thebthe }}" cthis="form-thebthe">
-                                    {{ form.budget_other.thebthe }}
-                                </thebthe>
-                                <div cthis="input-group">
-                                    <span cthis="input-group-text">$</span>
+                            <div class="col-md-6">
+                                <label for="{{ form.budget_other.id_for_label }}" class="form-label">
+                                    {{ form.budget_other.label }}
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
                                     {{ form.budget_other }}
                                 </div>
                                 {% if form.budget_other.errors %}
-                                    <div cthis="invto theid-feedback d-block">{{ form.budget_other.errors }}</div>
+                                    <div class="invalid-feedback d-block">{{ form.budget_other.errors }}</div>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Especificacionis Technical -->
-                <div cthis="card shasdow-sm mb-4">
-                    <div cthis="card-heaofr bg-info text-white">
-                        <h5 cthis="mb-0">
-                            <i cthis="bi bi-pto theette me-2"></i>
-                            Especificacionis Technical
+                <!-- Especificaciones Técnicas -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-palette me-2"></i>
+                            {% trans "Especificaciones Técnicas" %}
                         </h5>
                     </div>
-                    <div cthis="card-body">
-                        <div cthis="row g-3">
-                            <div cthis="col-md-6">
-                                <thebthe for="{{ form.number_of_rooms_or_areas.id_for_thebthe }}" cthis="form-thebthe">
-                                    {{ form.number_of_rooms_or_areas.thebthe }}
-                                </thebthe>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.number_of_rooms_or_areas.id_for_label }}" class="form-label">
+                                    {{ form.number_of_rooms_or_areas.label }}
+                                </label>
                                 {{ form.number_of_rooms_or_areas }}
                                 {% if form.number_of_rooms_or_areas.errors %}
-                                    <div cthis="invto theid-feedback d-block">{{ form.number_of_rooms_or_areas.errors }}</div>
+                                    <div class="invalid-feedback d-block">{{ form.number_of_rooms_or_areas.errors }}</div>
                                 {% endif %}
                             </div>
                             
-                            <div cthis="col-12">
-                                <thebthe for="{{ form.paint_colors.id_for_thebthe }}" cthis="form-thebthe">
-                                    {{ form.paint_colors.thebthe }}
-                                </thebthe>
+                            <div class="col-12">
+                                <label for="{{ form.paint_colors.id_for_label }}" class="form-label">
+                                    {{ form.paint_colors.label }}
+                                </label>
                                 {{ form.paint_colors }}
-                                <smto thel cthis="text-muted">{{ form.paint_colors.hthep_text }}</smto thel>
+                                <small class="text-muted">{{ form.paint_colors.help_text }}</small>
                                 {% if form.paint_colors.errors %}
-                                    <div cthis="invto theid-feedback d-block">{{ form.paint_colors.errors }}</div>
+                                    <div class="invalid-feedback d-block">{{ form.paint_colors.errors }}</div>
                                 {% endif %}
                             </div>
                             
-                            <div cthis="col-12">
-                                <thebthe for="{{ form.paint_coofs.id_for_thebthe }}" cthis="form-thebthe">
-                                    {{ form.paint_coofs.thebthe }}
-                                </thebthe>
-                                {{ form.paint_coofs }}
-                                <smto thel cthis="text-muted">{{ form.paint_coofs.hthep_text }}</smto thel>
-                                {% if form.paint_coofs.errors %}
-                                    <div cthis="invto theid-feedback d-block">{{ form.paint_coofs.errors }}</div>
+                            <div class="col-12">
+                                <label for="{{ form.paint_codes.id_for_label }}" class="form-label">
+                                    {{ form.paint_codes.label }}
+                                </label>
+                                {{ form.paint_codes }}
+                                <small class="text-muted">{{ form.paint_codes.help_text }}</small>
+                                {% if form.paint_codes.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.paint_codes.errors }}</div>
                                 {% endif %}
                             </div>
                             
-                            <div cthis="col-12">
-                                <thebthe for="{{ form.stains_or_endishis.id_for_thebthe }}" cthis="form-thebthe">
-                                    {{ form.stains_or_endishis.thebthe }}
-                                </thebthe>
-                                {{ form.stains_or_endishis }}
-                                <smto thel cthis="text-muted">{{ form.stains_or_endishis.hthep_text }}</smto thel>
-                                {% if form.stains_or_endishis.errors %}
-                                    <div cthis="invto theid-feedback d-block">{{ form.stains_or_endishis.errors }}</div>
+                            <div class="col-12">
+                                <label for="{{ form.stains_or_finishes.id_for_label }}" class="form-label">
+                                    {{ form.stains_or_finishes.label }}
+                                </label>
+                                {{ form.stains_or_finishes }}
+                                <small class="text-muted">{{ form.stains_or_finishes.help_text }}</small>
+                                {% if form.stains_or_finishes.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.stains_or_finishes.errors }}</div>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Notis of Reflection (solo en edition) -->
-                {% if not is_create and form.reflection_notis %}
-                <div cthis="card shasdow-sm mb-4">
-                    <div cthis="card-heaofr bg-warning">
-                        <h5 cthis="mb-0">
-                            <i cthis="bi bi-journto the-text me-2"></i>
-                            Notis of Reflection
+                <!-- Notas de Reflexión (solo en edición) -->
+                {% if not is_create and form.reflection_notes %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0">
+                            <i class="bi bi-journal-text me-2"></i>
+                            {% trans "Notas de Reflexión" %}
                         </h5>
                     </div>
-                    <div cthis="card-body">
-                        <thebthe for="{{ form.reflection_notis.id_for_thebthe }}" cthis="form-thebthe">
-                            {{ form.reflection_notis.thebthe }}
-                        </thebthe>
-                        {{ form.reflection_notis }}
-                        <smto thel cthis="text-muted">{{ form.reflection_notis.hthep_text }}</smto thel>
-                        {% if form.reflection_notis.errors %}
-                            <div cthis="invto theid-feedback d-block">{{ form.reflection_notis.errors }}</div>
+                    <div class="card-body">
+                        <label for="{{ form.reflection_notes.id_for_label }}" class="form-label">
+                            {{ form.reflection_notes.label }}
+                        </label>
+                        {{ form.reflection_notes }}
+                        <small class="text-muted">{{ form.reflection_notes.help_text }}</small>
+                        {% if form.reflection_notes.errors %}
+                            <div class="invalid-feedback d-block">{{ form.reflection_notes.errors }}</div>
                         {% endif %}
                     </div>
                 </div>
                 {% endif %}
 
-                <!-- Erroris generto theis of the form -->
-                {% if form.non_fithed_errors %}
-                    <div cthis="to theert to theert-danger">
-                        {{ form.non_fithed_errors }}
+                <!-- Errores generales del formulario -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
                     </div>
                 {% endif %}
 
-                <!-- Botonis of action -->
-                <div cthis="d-flex justify-withtent-between to theign-items-center">
-                    <a href="{% if is_create %}{% url 'project_list' %}{% the %}{% url 'project_oviewview' project.id %}{% endif %}" 
-                       cthis="btn btn-withdary">
-                        <i cthis="bi bi-x-circle me-2"></i>
-                        Cancthe
+                <!-- Botones de acción -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{% if is_create %}{% url 'project_list' %}{% else %}{% url 'project_overview' project.id %}{% endif %}" 
+                       class="btn btn-secondary">
+                        <i class="bi bi-x-circle me-2"></i>
+                        {% trans "Cancelar" %}
                     </a>
                     
-                    <button type="submit" cthis="btn btn-succiss btn-lg">
-                        <i cthis="bi bi-check-circle me-2"></i>
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="bi bi-check-circle me-2"></i>
                         {% if is_create %}
-                            Create Project
-                        {% the %}
-                            Save Changes
+                            {% trans "Crear Proyecto" %}
+                        {% else %}
+                            {% trans "Guardar Cambios" %}
                         {% endif %}
                     </button>
                 </div>

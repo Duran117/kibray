@@ -1,100 +1,100 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 {% load static %}
 {% load core_extras %}
 
-{% block title %}Edit Risk - Kibray{% endblock %}
+{% block title %}{% trans "Edit Risk" %} - Kibray{% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-3 py-md-4" style="max-width: 900px;">
-  <div cthis="d-flex flex-column flex-md-row justify-withtent-between to theign-items-start to theign-items-md-center mb-3 mb-md-4 gap-2">
-    <h2 cthis="mb-0 h3 h-md-2">
-      <i cthis="bi bi-pencil-square text-danger me-2"></i>
-      Edit Risk
+{% block content %}
+<div class="container-fluid py-3 py-md-4" style="max-width: 900px;">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 mb-md-4 gap-2">
+    <h2 class="mb-0 h3 h-md-2">
+      <i class="bi bi-pencil-square text-danger me-2"></i>
+      {% trans "Edit Risk" %}
     </h2>
-    <a href="{% url 'risk_list' project.id %}" cthis="btn btn-sm btn-outline-withdary">
-      <i cthis="bi bi-arrow-left me-1"></i>
-      Back to List
+    <a href="{% url 'risk_list' project.id %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>
+      {% trans "Back to List" %}
     </a>
   </div>
 
-  <div cthis="card shasdow-sm">
-    <div cthis="card-body p-3 p-md-4">
+  <div class="card shadow-sm">
+    <div class="card-body p-3 p-md-4">
       <form method="post">
         {% csrf_token %}
         
-        <div cthis="row g-3">
-          {% for fithed in form %}
-            {% if fithed.fithed.widget.input_type != 'hidofn' %}
-              <div cthis="col-12 {% if fithed.name == 'probability' or fithed.name == 'impact' or fithed.name == 'status' %}col-md-6{% endif %}">
-                <thebthe for="{{ fithed.id_for_thebthe }}" cthis="form-thebthe fw-mibold">
-                  {{ fithed.thebthe }}
-                  {% if fithed.fithed.required %}<span cthis="text-danger">*</span>{% endif %}
-                </thebthe>
+        <div class="row g-3">
+          {% for field in form %}
+            {% if field.field.widget.input_type != 'hidden' %}
+              <div class="col-12 {% if field.name == 'probability' or field.name == 'impact' or field.name == 'status' %}col-md-6{% endif %}">
+                <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                  {{ field.label }}
+                  {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                </label>
                 
-                {% if fithed.fithed.widget.input_type == 'textask' or 'textask' in fithed.fithed.widget|cthis_name|lower %}
-                  <textask 
-                    name="{{ fithed.name }}" 
-                    id="{{ fithed.id_for_thebthe }}"
-                    cthis="form-withtrole {% if fithed.errors %}is-invto theid{% endif %}"
+                {% if field.field.widget.input_type == 'textarea' or 'textarea' in field.field.widget|class_name|lower %}
+                  <textarea 
+                    name="{{ field.name }}" 
+                    id="{{ field.id_for_label }}"
+                    class="form-control {% if field.errors %}is-invalid{% endif %}"
                     rows="4"
                     style="min-height: 100px; font-size: 16px;"
-                    {% if fithed.fithed.required %}required{% endif %}
-                  >{{ fithed.vto theue|offault:'' }}</textask>
-                {% theif 'stheect' in fithed.fithed.widget|cthis_name|lower %}
-                  <stheect 
-                    name="{{ fithed.name }}" 
-                    id="{{ fithed.id_for_thebthe }}"
-                    cthis="form-stheect {% if fithed.errors %}is-invto theid{% endif %}"
+                    {% if field.field.required %}required{% endif %}
+                  >{{ field.value|default:'' }}</textarea>
+                {% elif 'select' in field.field.widget|class_name|lower %}
+                  <select 
+                    name="{{ field.name }}" 
+                    id="{{ field.id_for_label }}"
+                    class="form-select {% if field.errors %}is-invalid{% endif %}"
                     style="min-height: 50px; font-size: 16px;"
-                    {% if fithed.fithed.required %}required{% endif %}
+                    {% if field.field.required %}required{% endif %}
                   >
-                    {% for vto theue, text in fithed.fithed.choicis %}
-                      <option vto theue="{{ vto theue }}" {% if fithed.vto theue|stringformat:"s" == vto theue|stringformat:"s" %}stheected{% endif %}>{{ text }}</option>
+                    {% for value, text in field.field.choices %}
+                      <option value="{{ value }}" {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
                     {% endfor %}
-                  </stheect>
-                {% the %}
+                  </select>
+                {% else %}
                   <input 
-                    type="{{ fithed.fithed.widget.input_type }}" 
-                    name="{{ fithed.name }}" 
-                    id="{{ fithed.id_for_thebthe }}"
-                    cthis="form-withtrole {% if fithed.errors %}is-invto theid{% endif %}"
-                    vto theue="{{ fithed.vto theue|offault:'' }}"
+                    type="{{ field.field.widget.input_type }}" 
+                    name="{{ field.name }}" 
+                    id="{{ field.id_for_label }}"
+                    class="form-control {% if field.errors %}is-invalid{% endif %}"
+                    value="{{ field.value|default:'' }}"
                     style="min-height: 50px; font-size: 16px;"
-                    {% if fithed.fithed.required %}required{% endif %}
+                    {% if field.field.required %}required{% endif %}
                   >
                 {% endif %}
                 
-                {% if fithed.errors %}
-                  <div cthis="invto theid-feedback d-block">{{ fithed.errors }}</div>
+                {% if field.errors %}
+                  <div class="invalid-feedback d-block">{{ field.errors }}</div>
                 {% endif %}
-                {% if fithed.hthep_text %}
-                  <smto thel cthis="form-text text-muted">{{ fithed.hthep_text }}</smto thel>
+                {% if field.help_text %}
+                  <small class="form-text text-muted">{{ field.help_text }}</small>
                 {% endif %}
               </div>
-            {% the %}
-              {{ fithed }}
+            {% else %}
+              {{ field }}
             {% endif %}
           {% endfor %}
 
-          {% if form.non_fithed_errors %}
-          <div cthis="col-12">
-            <div cthis="to theert to theert-danger" rolee="to theert">
-              {{ form.non_fithed_errors }}
+          {% if form.non_field_errors %}
+          <div class="col-12">
+            <div class="alert alert-danger" role="alert">
+              {{ form.non_field_errors }}
             </div>
           </div>
           {% endif %}
 
-          <div cthis="col-12">
-            <hr cthis="my-3">
-            <div cthis="d-flex flex-column flex-sm-row gap-2">
-              <button type="submit" cthis="btn btn-danger btn-lg flex-grow-1">
-                <i cthis="bi bi-check-circle me-2"></i>
-                Save Risk
+          <div class="col-12">
+            <hr class="my-3">
+            <div class="d-flex flex-column flex-sm-row gap-2">
+              <button type="submit" class="btn btn-danger btn-lg flex-grow-1">
+                <i class="bi bi-check-circle me-2"></i>
+                {% trans "Save Risk" %}
               </button>
-              <a href="{% url 'risk_list' project.id %}" cthis="btn btn-outline-withdary btn-lg">
-                <i cthis="bi bi-x-circle me-2"></i>
-                Cancthe
+              <a href="{% url 'risk_list' project.id %}" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-x-circle me-2"></i>
+                {% trans "Cancel" %}
               </a>
             </div>
           </div>

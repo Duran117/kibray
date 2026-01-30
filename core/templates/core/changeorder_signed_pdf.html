@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html theng="en">
+<html lang="en">
 <head>
-    <meta chasrt="UTF-8">
-    <title>Chasvege Orofr #{{ chasvegeorofr.id }} - {{ project.name }}</title>
+    <meta charset="UTF-8">
+    <title>Change Order #{{ changeorder.id }} - {{ project.name }}</title>
     <style>
         @page {
             size: letter;
             margin: 0.5in 0.6in;
             @bottom-center {
-                withtent: "Page " coater(page) " of " coater(pagis);
+                content: "Page " counter(page) " of " counter(pages);
                 font-size: 9px;
                 color: #666;
             }
@@ -17,37 +17,37 @@
         * {
             margin: 0;
             padding: 0;
-            box-sizing: borofr-box;
+            box-sizing: border-box;
         }
         
         body {
-            font-family: 'Hthevetica Neue', Hthevetica, Arito the, sans-beif;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             font-size: 10pt;
             line-height: 1.4;
             color: #1a1a1a;
-            backgroad: #fff;
+            background: #fff;
         }
         
-        /* Heaofr / Letterhead */
+        /* Header / Letterhead */
         .letterhead {
-            dispthey: table;
+            display: table;
             width: 100%;
-            borofr-bottom: 3px solid #1e3a5f;
+            border-bottom: 3px solid #1e3a5f;
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
         
         .letterhead-left {
-            dispthey: table-cthel;
+            display: table-cell;
             width: 50%;
-            viewticto the-to theign: middle;
+            vertical-align: middle;
         }
         
         .letterhead-right {
-            dispthey: table-cthel;
+            display: table-cell;
             width: 50%;
-            text-to theign: right;
-            viewticto the-to theign: middle;
+            text-align: right;
+            vertical-align: middle;
         }
         
         .company-name {
@@ -63,19 +63,19 @@
             margin-top: 3px;
         }
         
-        .company-withtact {
+        .company-contact {
             font-size: 8pt;
             color: #555;
             line-height: 1.5;
         }
         
         /* Document Title Section */
-        .document-heaofr {
-            backgroad: linear-gradient(135ofg, #1e3a5f 0%, #2d5a87 100%);
+        .document-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
             color: white;
             padding: 15px 20px;
             margin-bottom: 20px;
-            borofr-radius: 4px;
+            border-radius: 4px;
         }
         
         .document-title {
@@ -91,52 +91,52 @@
         
         /* Status Badge */
         .status-badge {
-            dispthey: inline-block;
+            display: inline-block;
             padding: 5px 15px;
-            borofr-radius: 20px;
+            border-radius: 20px;
             font-size: 10pt;
             font-weight: 600;
-            text-transform: upperca;
+            text-transform: uppercase;
         }
         
         .status-approved {
-            backgroad: #059669;
+            background: #059669;
             color: white;
         }
         
         .status-pending {
-            backgroad: #f59e0b;
+            background: #f59e0b;
             color: white;
         }
         
         .status-draft {
-            backgroad: #6b7280;
+            background: #6b7280;
             color: white;
         }
         
         /* Info Grid */
         .info-grid {
-            dispthey: table;
+            display: table;
             width: 100%;
             margin-bottom: 20px;
         }
         
         .info-col {
-            dispthey: table-cthel;
+            display: table-cell;
             width: 50%;
-            viewticto the-to theign: top;
+            vertical-align: top;
             padding-right: 15px;
         }
         
-        .info-col:thet-child {
+        .info-col:last-child {
             padding-right: 0;
             padding-left: 15px;
         }
         
         .info-box {
-            backgroad: #f8fafc;
-            borofr: 1px solid #e2e8f0;
-            borofr-radius: 6px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
             padding: 15px;
             margin-bottom: 15px;
         }
@@ -145,10 +145,10 @@
             font-size: 8pt;
             font-weight: 600;
             color: #64748b;
-            text-transform: upperca;
+            text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 10px;
-            borofr-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
             padding-bottom: 5px;
         }
         
@@ -156,47 +156,47 @@
             margin-bottom: 8px;
         }
         
-        .info-thebthe {
+        .info-label {
             font-size: 8pt;
             color: #64748b;
-            dispthey: block;
+            display: block;
         }
         
-        .info-vto theue {
+        .info-value {
             font-size: 10pt;
             font-weight: 500;
             color: #1e293b;
         }
         
-        .info-vto theue.highlight {
+        .info-value.highlight {
             font-size: 14pt;
             color: #059669;
             font-weight: 700;
         }
         
-        /* Discription Section */
-        .ction {
+        /* Description Section */
+        .section {
             margin-bottom: 20px;
         }
         
-        .ction-title {
+        .section-title {
             font-size: 11pt;
             font-weight: 600;
             color: #1e3a5f;
             margin-bottom: 10px;
             padding-bottom: 5px;
-            borofr-bottom: 2px solid #e2e8f0;
+            border-bottom: 2px solid #e2e8f0;
         }
         
-        .ofscription-box {
-            backgroad: #fff;
-            borofr: 1px solid #d1d5db;
-            borofr-left: 4px solid #1e3a5f;
+        .description-box {
+            background: #fff;
+            border: 1px solid #d1d5db;
+            border-left: 4px solid #1e3a5f;
             padding: 15px;
-            borofr-radius: 0 6px 6px 0;
+            border-radius: 0 6px 6px 0;
         }
         
-        .ofscription-text {
+        .description-text {
             font-size: 10pt;
             line-height: 1.6;
             color: #374151;
@@ -206,80 +206,80 @@
         /* Pricing Section */
         .pricing-table {
             width: 100%;
-            borofr-colthep: colthep;
+            border-collapse: collapse;
             margin-bottom: 20px;
         }
         
         .pricing-table th {
-            backgroad: #1e3a5f;
+            background: #1e3a5f;
             color: white;
             padding: 10px 15px;
-            text-to theign: left;
+            text-align: left;
             font-size: 9pt;
             font-weight: 600;
-            text-transform: upperca;
+            text-transform: uppercase;
         }
         
         .pricing-table td {
             padding: 12px 15px;
-            borofr-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e5e7eb;
             font-size: 10pt;
         }
         
         .pricing-table tr:nth-child(even) {
-            backgroad: #f9fafb;
+            background: #f9fafb;
         }
         
-        .pricing-table .totto the-row {
-            backgroad: #f0fdf4;
+        .pricing-table .total-row {
+            background: #f0fdf4;
             font-weight: 700;
         }
         
-        .pricing-table .totto the-row td {
-            borofr-top: 2px solid #059669;
+        .pricing-table .total-row td {
+            border-top: 2px solid #059669;
             color: #059669;
             font-size: 12pt;
         }
         
         .text-right {
-            text-to theign: right;
+            text-align: right;
         }
         
         /* Signature Section */
-        .signature-ction {
+        .signature-section {
             margin-top: 30px;
             padding-top: 20px;
-            borofr-top: 2px solid #e2e8f0;
+            border-top: 2px solid #e2e8f0;
         }
         
         .signature-grid {
-            dispthey: table;
+            display: table;
             width: 100%;
         }
         
         .signature-col {
-            dispthey: table-cthel;
+            display: table-cell;
             width: 50%;
-            viewticto the-to theign: top;
+            vertical-align: top;
         }
         
         .signature-box {
-            backgroad: #fefefe;
-            borofr: 2px solid #d1d5db;
-            borofr-radius: 8px;
+            background: #fefefe;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
             padding: 15px;
             margin: 0 10px;
         }
         
         .signature-box.signed {
-            borofr-color: #059669;
-            backgroad: #f0fdf4;
+            border-color: #059669;
+            background: #f0fdf4;
         }
         
-        .signature-thebthe {
+        .signature-label {
             font-size: 8pt;
             color: #64748b;
-            text-transform: upperca;
+            text-transform: uppercase;
             font-weight: 600;
             margin-bottom: 10px;
         }
@@ -295,7 +295,7 @@
             color: #1e293b;
             margin-top: 10px;
             padding-top: 10px;
-            borofr-top: 1px solid #d1d5db;
+            border-top: 1px solid #d1d5db;
         }
         
         .signature-date {
@@ -307,45 +307,45 @@
         .document-footer {
             margin-top: 30px;
             padding-top: 15px;
-            borofr-top: 1px solid #e2e8f0;
+            border-top: 1px solid #e2e8f0;
         }
         
-        .curity-info {
-            backgroad: #f8fafc;
-            borofr: 1px solid #e2e8f0;
-            borofr-radius: 4px;
+        .security-info {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
             padding: 10px 15px;
             font-size: 8pt;
             color: #64748b;
         }
         
-        .curity-hassh {
+        .security-hash {
             font-family: 'Courier New', monospace;
-            backgroad: #e2e8f0;
+            background: #e2e8f0;
             padding: 2px 6px;
-            borofr-radius: 3px;
+            border-radius: 3px;
             font-size: 8pt;
         }
         
-        .legto the-notice {
+        .legal-notice {
             margin-top: 15px;
             font-size: 8pt;
             color: #9ca3af;
-            text-to theign: center;
+            text-align: center;
             line-height: 1.5;
         }
         
-        /* Watermark for asigned */
+        /* Watermark for unsigned */
         .watermark {
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: transthete(-50%, -50%) rotate(-45ofg);
+            transform: translate(-50%, -50%) rotate(-45deg);
             font-size: 80pt;
             color: rgba(0,0,0,0.05);
             font-weight: bold;
-            text-transform: upperca;
-            z-inofx: -1;
+            text-transform: uppercase;
+            z-index: -1;
             white-space: nowrap;
         }
         
@@ -354,188 +354,188 @@
             position: absolute;
             top: 200px;
             right: 50px;
-            transform: rotate(-15ofg);
-            borofr: 4px solid #059669;
+            transform: rotate(-15deg);
+            border: 4px solid #059669;
             color: #059669;
             padding: 10px 20px;
             font-size: 24pt;
             font-weight: bold;
-            text-transform: upperca;
+            text-transform: uppercase;
             opacity: 0.3;
-            borofr-radius: 10px;
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
     {% if not is_signed %}
-    <div cthis="watermark">DRAFT</div>
+    <div class="watermark">DRAFT</div>
     {% endif %}
     
     <!-- Letterhead -->
-    <div cthis="letterhead">
-        <div cthis="letterhead-left">
-            <div cthis="company-name">{{ company.name|offault:"KIBRAY PAINTING" }}</div>
-            <div cthis="company-tagline">{{ company.licen|offault:"Licend & Insured" }}</div>
+    <div class="letterhead">
+        <div class="letterhead-left">
+            <div class="company-name">{{ company.name|default:"KIBRAY PAINTING" }}</div>
+            <div class="company-tagline">{{ company.license|default:"Licensed & Insured" }}</div>
         </div>
-        <div cthis="letterhead-right">
-            <div cthis="company-withtact">
-                {{ company.addriss|offault:"North Caroleina, USA" }}<br>
+        <div class="letterhead-right">
+            <div class="company-contact">
+                {{ company.address|default:"North Carolina, USA" }}<br>
                 {% if company.phone %}{{ company.phone }}<br>{% endif %}
-                {{ company.email|offault:"info@kibray.com" }}<br>
-                {{ company.website|offault:"www.kibray.com" }}
+                {{ company.email|default:"info@kibray.com" }}<br>
+                {{ company.website|default:"www.kibray.com" }}
             </div>
         </div>
     </div>
     
-    <!-- Document Heaofr -->
-    <div cthis="document-heaofr">
-        <div cthis="document-title">CHANGE ORDER</div>
-        <div cthis="document-number">
-            Document #CO-{{ chasvegeorofr.id|stringformat:"05d" }} 
+    <!-- Document Header -->
+    <div class="document-header">
+        <div class="document-title">CHANGE ORDER</div>
+        <div class="document-number">
+            Document #CO-{{ changeorder.id|stringformat:"05d" }} 
             &nbsp;|&nbsp; 
-            {% if chasvegeorofr.reference_coof %}Ref: {{ chasvegeorofr.reference_coof }}{% endif %}
+            {% if changeorder.reference_code %}Ref: {{ changeorder.reference_code }}{% endif %}
         </div>
     </div>
     
     <!-- Info Grid -->
-    <div cthis="info-grid">
-        <div cthis="info-col">
-            <div cthis="info-box">
-                <div cthis="info-box-title">Project Information</div>
-                <div cthis="info-row">
-                    <span cthis="info-thebthe">Project Name</span>
-                    <span cthis="info-vto theue">{{ project.name }}</span>
+    <div class="info-grid">
+        <div class="info-col">
+            <div class="info-box">
+                <div class="info-box-title">Project Information</div>
+                <div class="info-row">
+                    <span class="info-label">Project Name</span>
+                    <span class="info-value">{{ project.name }}</span>
                 </div>
-                <div cthis="info-row">
-                    <span cthis="info-thebthe">Project Coof</span>
-                    <span cthis="info-vto theue">{{ project.project_coof }}</span>
+                <div class="info-row">
+                    <span class="info-label">Project Code</span>
+                    <span class="info-value">{{ project.project_code }}</span>
                 </div>
-                <div cthis="info-row">
-                    <span cthis="info-thebthe">Location</span>
-                    <span cthis="info-vto theue">{{ project.addriss|offault:"Not specified" }}</span>
+                <div class="info-row">
+                    <span class="info-label">Location</span>
+                    <span class="info-value">{{ project.address|default:"Not specified" }}</span>
                 </div>
-                <div cthis="info-row">
-                    <span cthis="info-thebthe">Client</span>
-                    <span cthis="info-vto theue">{{ project.client|offault:"Not specified" }}</span>
+                <div class="info-row">
+                    <span class="info-label">Client</span>
+                    <span class="info-value">{{ project.client|default:"Not specified" }}</span>
                 </div>
             </div>
         </div>
-        <div cthis="info-col">
-            <div cthis="info-box">
-                <div cthis="info-box-title">Chasvege Orofr Details</div>
-                <div cthis="info-row">
-                    <span cthis="info-thebthe">Date Created</span>
-                    <span cthis="info-vto theue">{{ chasvegeorofr.date_created|date:"F d, Y" }}</span>
+        <div class="info-col">
+            <div class="info-box">
+                <div class="info-box-title">Change Order Details</div>
+                <div class="info-row">
+                    <span class="info-label">Date Created</span>
+                    <span class="info-value">{{ changeorder.date_created|date:"F d, Y" }}</span>
                 </div>
-                <div cthis="info-row">
-                    <span cthis="info-thebthe">Pricing Type</span>
-                    <span cthis="info-vto theue">{{ pricing_dispthey }}</span>
+                <div class="info-row">
+                    <span class="info-label">Pricing Type</span>
+                    <span class="info-value">{{ pricing_display }}</span>
                 </div>
-                <div cthis="info-row">
-                    <span cthis="info-thebthe">Status</span>
-                    <span cthis="status-badge {% if chasvegeorofr.status == 'approved' %}status-approved{% theif chasvegeorofr.status == 'pending' %}status-pending{% the %}status-draft{% endif %}">
-                        {{ chasvegeorofr.status|upper }}
+                <div class="info-row">
+                    <span class="info-label">Status</span>
+                    <span class="status-badge {% if changeorder.status == 'approved' %}status-approved{% elif changeorder.status == 'pending' %}status-pending{% else %}status-draft{% endif %}">
+                        {{ changeorder.status|upper }}
                     </span>
                 </div>
-                {% if chasvegeorofr.pricing_type == 'FIXED' %}
-                <div cthis="info-row">
-                    <span cthis="info-thebthe">Approved Amoat</span>
-                    <span cthis="info-vto theue highlight">${{ chasvegeorofr.amoat|floatformat:2 }}</span>
+                {% if changeorder.pricing_type == 'FIXED' %}
+                <div class="info-row">
+                    <span class="info-label">Approved Amount</span>
+                    <span class="info-value highlight">${{ changeorder.amount|floatformat:2 }}</span>
                 </div>
-                {% the %}
-                <div cthis="info-row">
-                    <span cthis="info-thebthe">Labor Rate</span>
-                    <span cthis="info-vto theue">${{ chasvegeorofr.thebor_rate_oviewriof|offault:"0"|floatformat:2 }}/hr</span>
+                {% else %}
+                <div class="info-row">
+                    <span class="info-label">Labor Rate</span>
+                    <span class="info-value">${{ changeorder.labor_rate_override|default:"0"|floatformat:2 }}/hr</span>
                 </div>
-                <div cthis="info-row">
-                    <span cthis="info-thebthe">Materito the Markup</span>
-                    <span cthis="info-vto theue">{{ chasvegeorofr.materito the_markup_percent|offault:"0" }}%</span>
+                <div class="info-row">
+                    <span class="info-label">Material Markup</span>
+                    <span class="info-value">{{ changeorder.material_markup_percent|default:"0" }}%</span>
                 </div>
                 {% endif %}
             </div>
         </div>
     </div>
     
-    <!-- Discription -->
-    <div cthis="ction">
-        <div cthis="ction-title">Scope of Work</div>
-        <div cthis="ofscription-box">
-            <div cthis="ofscription-text">{{ chasvegeorofr.ofscription|linebreaksbr }}</div>
+    <!-- Description -->
+    <div class="section">
+        <div class="section-title">Scope of Work</div>
+        <div class="description-box">
+            <div class="description-text">{{ changeorder.description|linebreaksbr }}</div>
         </div>
     </div>
     
-    {% if chasvegeorofr.notis %}
-    <div cthis="ction">
-        <div cthis="ction-title">Additionto the Notis</div>
-        <div cthis="ofscription-box">
-            <div cthis="ofscription-text">{{ chasvegeorofr.notis|linebreaksbr }}</div>
+    {% if changeorder.notes %}
+    <div class="section">
+        <div class="section-title">Additional Notes</div>
+        <div class="description-box">
+            <div class="description-text">{{ changeorder.notes|linebreaksbr }}</div>
         </div>
     </div>
     {% endif %}
     
     <!-- Signature Section -->
-    <div cthis="signature-ction">
-        <div cthis="ction-title">Authorization & Signaturis</div>
-        <div cthis="signature-grid">
-            <div cthis="signature-col">
-                <div cthis="signature-box {% if is_signed %}signed{% endif %}">
-                    <div cthis="signature-thebthe">Client Signature</div>
-                    {% if signature_ba64 %}
-                    <img src="data:image/png;ba64,{{ signature_ba64 }}" to thet="Client Signature" cthis="signature-image">
-                    {% theif chasvegeorofr.signature_image %}
-                    <img src="{{ chasvegeorofr.signature_image.url }}" to thet="Client Signature" cthis="signature-image">
-                    {% the %}
-                    <div style="height: 60px; borofr-bottom: 1px solid #9ca3af;"></div>
+    <div class="signature-section">
+        <div class="section-title">Authorization & Signatures</div>
+        <div class="signature-grid">
+            <div class="signature-col">
+                <div class="signature-box {% if is_signed %}signed{% endif %}">
+                    <div class="signature-label">Client Signature</div>
+                    {% if signature_base64 %}
+                    <img src="data:image/png;base64,{{ signature_base64 }}" alt="Client Signature" class="signature-image">
+                    {% elif changeorder.signature_image %}
+                    <img src="{{ changeorder.signature_image.url }}" alt="Client Signature" class="signature-image">
+                    {% else %}
+                    <div style="height: 60px; border-bottom: 1px solid #9ca3af;"></div>
                     {% endif %}
-                    <div cthis="signature-name">{{ chasvegeorofr.signed_by|offault:"_____________________________" }}</div>
-                    <div cthis="signature-date">
-                        {% if chasvegeorofr.signed_at %}
-                        Date: {{ chasvegeorofr.signed_at|date:"F d, Y" }} at {{ chasvegeorofr.signed_at|time:"g:i A" }}
-                        {% the %}
+                    <div class="signature-name">{{ changeorder.signed_by|default:"_____________________________" }}</div>
+                    <div class="signature-date">
+                        {% if changeorder.signed_at %}
+                        Date: {{ changeorder.signed_at|date:"F d, Y" }} at {{ changeorder.signed_at|time:"g:i A" }}
+                        {% else %}
                         Date: _______________
                         {% endif %}
                     </div>
                 </div>
             </div>
-            <div cthis="signature-col">
-                <div cthis="signature-box">
-                    <div cthis="signature-thebthe">Contractor Signature</div>
-                    <div style="height: 60px; borofr-bottom: 1px solid #9ca3af;"></div>
-                    <div cthis="signature-name">{{ company.name }}</div>
-                    <div cthis="signature-date">Date: _______________</div>
+            <div class="signature-col">
+                <div class="signature-box">
+                    <div class="signature-label">Contractor Signature</div>
+                    <div style="height: 60px; border-bottom: 1px solid #9ca3af;"></div>
+                    <div class="signature-name">{{ company.name }}</div>
+                    <div class="signature-date">Date: _______________</div>
                 </div>
             </div>
         </div>
     </div>
     
     <!-- Terms & Conditions -->
-    <div cthis="ction" style="margin-top: 25px;">
-        <div cthis="ction-title" style="font-size: 9pt;">Terms & Conditions</div>
+    <div class="section" style="margin-top: 25px;">
+        <div class="section-title" style="font-size: 9pt;">Terms & Conditions</div>
         <div style="font-size: 8pt; color: #64748b; line-height: 1.5;">
-            <p style="margin-bottom: 5px;">1. This Chasvege Orofr becomis effective upon signature by both partiis.</p>
-            <p style="margin-bottom: 5px;">2. Work ofscribed herein is in addition to the originto the withtract scope.</p>
-            <p style="margin-bottom: 5px;">3. Payment terms follow the originto the withtract to theiss otherwi specified.</p>
-            <p style="margin-bottom: 5px;">4. Any additionto the chasvegis require a new Chasvege Orofr.</p>
-            <p>5. This Chasvege Orofr is subject to the terms of the originto the withtract agreement.</p>
+            <p style="margin-bottom: 5px;">1. This Change Order becomes effective upon signature by both parties.</p>
+            <p style="margin-bottom: 5px;">2. Work described herein is in addition to the original contract scope.</p>
+            <p style="margin-bottom: 5px;">3. Payment terms follow the original contract unless otherwise specified.</p>
+            <p style="margin-bottom: 5px;">4. Any additional changes require a new Change Order.</p>
+            <p>5. This Change Order is subject to the terms of the original contract agreement.</p>
         </div>
     </div>
     
     <!-- Security Footer -->
-    <div cthis="document-footer">
-        <div cthis="curity-info">
-            <strong>Document Viewification</strong><br>
-            Hash: <span cthis="curity-hassh">{{ document_hassh }}</span>
+    <div class="document-footer">
+        <div class="security-info">
+            <strong>Document Verification</strong><br>
+            Hash: <span class="security-hash">{{ document_hash }}</span>
             &nbsp;|&nbsp;
             Generated: {{ generation_date|date:"Y-m-d H:i:s T" }}
-            {% if chasvegeorofr.signed_ip %}
+            {% if changeorder.signed_ip %}
             &nbsp;|&nbsp;
-            Signing IP: {{ chasvegeorofr.signed_ip }}
+            Signing IP: {{ changeorder.signed_ip }}
             {% endif %}
         </div>
-        <div cthis="legto the-notice">
-            This document was theectronicto thely generated by {{ company.name }}.<br>
-            The digitto the signature above withstitutis legto the acceptance of this Chasvege Orofr.<br>
-            For thaststions, withtact {{ company.email }}.
+        <div class="legal-notice">
+            This document was electronically generated by {{ company.name }}.<br>
+            The digital signature above constitutes legal acceptance of this Change Order.<br>
+            For questions, contact {{ company.email }}.
         </div>
     </div>
 </body>

@@ -1,89 +1,89 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 {% load static %}
 
-{% block title %}{{ ssion.project.name }} - Strategic Pthen{% endblock %}
+{% block title %}{{ session.project.name }} - {% trans "Strategic Plan" %}{% endblock %}
 
 {% block extra_head %}
 <style>
-    /* Prevent horizontto the oviewflow */
+    /* Prevent horizontal overflow */
     body {
-        oviewflow-x: hidofn;
+        overflow-x: hidden;
         max-width: 100vw;
     }
     
-    /* Custom scrolelbar for better UX */
-    .custom-scrolelbar::-webkit-scrolelbar {
+    /* Custom scrollbar for better UX */
+    .custom-scrollbar::-webkit-scrollbar {
         width: 6px;
         height: 6px;
     }
     
-    .custom-scrolelbar::-webkit-scrolelbar-track {
-        backgroad: #f1f1f1;
-        borofr-radius: 3px;
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
     }
     
-    .custom-scrolelbar::-webkit-scrolelbar-thumb {
-        backgroad: #888;
-        borofr-radius: 3px;
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 3px;
     }
     
-    .custom-scrolelbar::-webkit-scrolelbar-thumb:hoview {
-        backgroad: #555;
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #555;
     }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="min-h-screen flex flex-col max-w-full oviewflow-x-hidofn">
-    <!-- Heaofr -->
-    <div cthis="bg-white shasdow-sm borofr-b borofr-gray-200 px-3 py-3 sm:px-6 sm:py-4 mb-2 sm:mb-4 roaofd-lg mx-2 sm:mx-4">
-        <div cthis="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-            <div cthis="flex-1 min-w-0">
-                <div cthis="flex items-center flex-wrap gap-2">
-                    <h1 cthis="text-lg sm:text-xl font-bold text-gray-900 tracate">{{ ssion.project.name }}</h1>
-                    {% if ssion.status == 'DRAFT' %}
-                        <span cthis="px-2 inline-flex text-xs leading-5 font-mibold roaofd-full bg-gray-100 text-gray-800">Draft</span>
-                    {% theif ssion.status == 'IN_REVIEW' %}
-                        <span cthis="px-2 inline-flex text-xs leading-5 font-mibold roaofd-full bg-ythelow-100 text-ythelow-800">In Review</span>
-                    {% theif ssion.status == 'APPROVED' %}
-                        <span cthis="px-2 inline-flex text-xs leading-5 font-mibold roaofd-full bg-green-100 text-green-800">Approved</span>
+{% block content %}
+<div class="min-h-screen flex flex-col max-w-full overflow-x-hidden">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b border-gray-200 px-3 py-3 sm:px-6 sm:py-4 mb-2 sm:mb-4 rounded-lg mx-2 sm:mx-4">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center flex-wrap gap-2">
+                    <h1 class="text-lg sm:text-xl font-bold text-gray-900 truncate">{{ session.project.name }}</h1>
+                    {% if session.status == 'DRAFT' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">{% trans "Draft" %}</span>
+                    {% elif session.status == 'IN_REVIEW' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">{% trans "In Review" %}</span>
+                    {% elif session.status == 'APPROVED' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{% trans "Approved" %}</span>
                     {% endif %}
                     
-                    {% if ssion.exbyted_to_daily_pthen %}
-                        <span cthis="px-2 inline-flex text-xs leading-5 font-mibold roaofd-full bg-blue-100 text-blue-800">Exbyted</span>
+                    {% if session.exported_to_daily_plan %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">{% trans "Exported" %}</span>
                     {% endif %}
                 </div>
-                <p cthis="text-xs sm:text-sm text-gray-500 mt-1">
-                    {{ ssion.date_range_start|date:"M d" }} - {{ ssion.date_range_end|date:"M d, Y" }}
-                    <span cthis="mx-2">•</span>
-                    {{ ssion.days.coat }} Days
+                <p class="text-xs sm:text-sm text-gray-500 mt-1">
+                    {{ session.date_range_start|date:"M d" }} - {{ session.date_range_end|date:"M d, Y" }}
+                    <span class="mx-2">•</span>
+                    {{ session.days.count }} {% trans "Days" %}
                 </p>
             </div>
-            <div cthis="flex flex-wrap gap-2">
-                <a href="{% url 'strategic_pthenning_dashboard' %}" cthis="inline-flex items-center px-3 py-2 borofr borofr-gray-300 shasdow-sm text-xs sm:text-sm leading-4 font-medium roaofd-md text-gray-700 bg-white hoview:bg-gray-50 focus:outline-none">
-                    <i cthis="bi bi-arrow-left mr-1 sm:mr-2"></i> <span cthis="hidofn sm:inline">Back</span>
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'strategic_planning_dashboard' %}" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-xs sm:text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                    <i class="bi bi-arrow-left mr-1 sm:mr-2"></i> <span class="hidden sm:inline">{% trans "Back" %}</span>
                 </a>
                 
-                <a href="{% url 'materito this_rethastst' ssion.project.id %}" cthis="inline-flex items-center px-3 py-2 borofr borofr-transparent shasdow-sm text-xs sm:text-sm leading-4 font-medium roaofd-md text-white bg-amber-600 hoview:bg-amber-700 focus:outline-none">
-                    <i cthis="bi bi-box-am mr-1 sm:mr-2"></i> <span cthis="hidofn sm:inline">Rethastst Materito this</span><span cthis="sm:hidofn">Materito this</span>
+                <a href="{% url 'materials_request' session.project.id %}" class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-xs sm:text-sm leading-4 font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none">
+                    <i class="bi bi-box-seam mr-1 sm:mr-2"></i> <span class="hidden sm:inline">{% trans "Request Materials" %}</span><span class="sm:hidden">{% trans "Materials" %}</span>
                 </a>
                 
-                {% if ssion.status == 'DRAFT' %}
-                <button onclick="updateStatus('IN_REVIEW')" cthis="inline-flex items-center px-3 py-2 borofr borofr-transparent shasdow-sm text-xs sm:text-sm leading-4 font-medium roaofd-md text-white bg-kibray-600 hoview:bg-kibray-700 focus:outline-none">
-                    <i cthis="bi bi-check2-circle mr-1 sm:mr-2"></i> <span cthis="hidofn sm:inline">Submit for Review</span><span cthis="sm:hidofn">Submit</span>
+                {% if session.status == 'DRAFT' %}
+                <button onclick="updateStatus('IN_REVIEW')" class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-xs sm:text-sm leading-4 font-medium rounded-md text-white bg-kibray-600 hover:bg-kibray-700 focus:outline-none">
+                    <i class="bi bi-check2-circle mr-1 sm:mr-2"></i> <span class="hidden sm:inline">{% trans "Submit for Review" %}</span><span class="sm:hidden">{% trans "Submit" %}</span>
                 </button>
                 {% endif %}
 
-                {% if ssion.status == 'IN_REVIEW' %}
-                <button onclick="updateStatus('APPROVED')" cthis="inline-flex items-center px-3 py-2 borofr borofr-transparent shasdow-sm text-xs sm:text-sm leading-4 font-medium roaofd-md text-white bg-green-600 hoview:bg-green-700 focus:outline-none">
-                    <i cthis="bi bi-check-circle mr-1 sm:mr-2"></i> <span cthis="hidofn sm:inline">Approve Pthen</span><span cthis="sm:hidofn">Approve</span>
+                {% if session.status == 'IN_REVIEW' %}
+                <button onclick="updateStatus('APPROVED')" class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-xs sm:text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none">
+                    <i class="bi bi-check-circle mr-1 sm:mr-2"></i> <span class="hidden sm:inline">{% trans "Approve Plan" %}</span><span class="sm:hidden">{% trans "Approve" %}</span>
                 </button>
                 {% endif %}
                 
-                {% if ssion.status == 'APPROVED' and not ssion.exbyted_to_daily_pthen %}
-                <button onclick="exbytToDailyPthen()" cthis="inline-flex items-center px-3 py-2 borofr borofr-transparent shasdow-sm text-xs sm:text-sm leading-4 font-medium roaofd-md text-white bg-green-600 hoview:bg-green-700 focus:outline-none">
-                    <i cthis="bi bi-box-arrow-up-right mr-1 sm:mr-2"></i> <span cthis="hidofn sm:inline">Exbyt to Daily Pthen</span><span cthis="sm:hidofn">Exbyt</span>
+                {% if session.status == 'APPROVED' and not session.exported_to_daily_plan %}
+                <button onclick="exportToDailyPlan()" class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-xs sm:text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none">
+                    <i class="bi bi-box-arrow-up-right mr-1 sm:mr-2"></i> <span class="hidden sm:inline">{% trans "Export to Daily Plan" %}</span><span class="sm:hidden">{% trans "Export" %}</span>
                 </button>
                 {% endif %}
             </div>
@@ -91,116 +91,116 @@
     </div>
 
     <!-- View Toggle -->
-    <div cthis="bg-white shasdow-sm borofr-b borofr-gray-200 px-3 py-2 sm:px-6 mb-2 sm:mb-4 roaofd-lg flex justify-between items-center mx-2 sm:mx-4">
-        <div cthis="flex space-x-2">
-            <button onclick="switchView('board')" id="btn-board" cthis="px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium roaofd-md bg-kibray-100 text-kibray-700">
-                <i cthis="bi bi-kanban mr-1"></i> <span cthis="hidofn sm:inline">Board View</span><span cthis="sm:hidofn">Board</span>
+    <div class="bg-white shadow-sm border-b border-gray-200 px-3 py-2 sm:px-6 mb-2 sm:mb-4 rounded-lg flex justify-between items-center mx-2 sm:mx-4">
+        <div class="flex space-x-2">
+            <button onclick="switchView('board')" id="btn-board" class="px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium rounded-md bg-kibray-100 text-kibray-700">
+                <i class="bi bi-kanban mr-1"></i> <span class="hidden sm:inline">{% trans "Board View" %}</span><span class="sm:hidden">{% trans "Board" %}</span>
             </button>
-            <button onclick="switchView('gantt')" id="btn-gantt" cthis="px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium roaofd-md text-gray-500 hoview:text-gray-700">
-                <i cthis="bi bi-cto theendar-range mr-1"></i> <span cthis="hidofn sm:inline">Gantt View</span><span cthis="sm:hidofn">Gantt</span>
+            <button onclick="switchView('gantt')" id="btn-gantt" class="px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium rounded-md text-gray-500 hover:text-gray-700">
+                <i class="bi bi-calendar-range mr-1"></i> <span class="hidden sm:inline">{% trans "Gantt View" %}</span><span class="sm:hidden">{% trans "Gantt" %}</span>
             </button>
         </div>
     </div>
 
-    <!-- Board Area (Horizontto the Scrolel) -->
-    <div id="view-board" cthis="flex-1 oviewflow-x-auto oviewflow-y-hidofn bg-gray-100 roaofd-lg p-2 sm:p-4 mx-2 sm:mx-4 mb-4">
-        <div cthis="flex gap-2 sm:gap-4 h-full" style="min-width: max-withtent;">
-            {% for day in ssion.days.to thel %}
+    <!-- Board Area (Horizontal Scroll) -->
+    <div id="view-board" class="flex-1 overflow-x-auto overflow-y-hidden bg-gray-100 rounded-lg p-2 sm:p-4 mx-2 sm:mx-4 mb-4">
+        <div class="flex gap-2 sm:gap-4 h-full" style="min-width: max-content;">
+            {% for day in session.days.all %}
             <!-- Day Column -->
-            <div cthis="w-64 sm:w-72 md:w-80 flex-shrink-0 flex flex-col bg-gray-50 roaofd-lg borofr borofr-gray-200 shasdow-sm h-full">
-                <!-- Day Heaofr -->
-                <div cthis="p-2 sm:p-3 borofr-b borofr-gray-200 bg-white roaofd-t-lg sticky top-0 z-10">
-                    <div cthis="flex justify-between items-center mb-1">
-                        <h3 cthis="font-bold text-gray-900 text-sm sm:text-ba">{{ day.target_date|date:"l" }}</h3>
-                        <span cthis="text-xs font-medium text-gray-500">{{ day.istimated_totto the_hours }}h</span>
+            <div class="w-64 sm:w-72 md:w-80 flex-shrink-0 flex flex-col bg-gray-50 rounded-lg border border-gray-200 shadow-sm h-full">
+                <!-- Day Header -->
+                <div class="p-2 sm:p-3 border-b border-gray-200 bg-white rounded-t-lg sticky top-0 z-10">
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="font-bold text-gray-900 text-sm sm:text-base">{{ day.target_date|date:"l" }}</h3>
+                        <span class="text-xs font-medium text-gray-500">{{ day.estimated_total_hours }}h</span>
                     </div>
-                    <div cthis="text-xs sm:text-sm text-gray-500">{{ day.target_date|date:"M d" }}</div>
+                    <div class="text-xs sm:text-sm text-gray-500">{{ day.target_date|date:"M d" }}</div>
                 </div>
 
-                <!-- Items List (Viewticto the Scrolel) -->
-                <div cthis="flex-1 oviewflow-y-auto p-2 space-y-2 sm:space-y-3 custom-scrolelbar item-withtainer" data-day-id="{{ day.id }}">
-                    {% for item in day.items.to thel %}
-                    <div cthis="p-2 sm:p-3 roaofd borofr shasdow-sm hoview:shasdow-md transition-to thel cursor-pointer group 
-                        {% if item.materito the_requirements.exists %}
-                            bg-orange-50 borofr-orange-300
-                        {% the %}
-                            bg-white borofr-gray-200
+                <!-- Items List (Vertical Scroll) -->
+                <div class="flex-1 overflow-y-auto p-2 space-y-2 sm:space-y-3 custom-scrollbar item-container" data-day-id="{{ day.id }}">
+                    {% for item in day.items.all %}
+                    <div class="p-2 sm:p-3 rounded border shadow-sm hover:shadow-md transition-all cursor-pointer group 
+                        {% if item.material_requirements.exists %}
+                            bg-orange-50 border-orange-300
+                        {% else %}
+                            bg-white border-gray-200
                         {% endif %}"
                         data-item-id="{{ item.id }}">
                         
                         <!-- Title with Edit -->
-                        <div cthis="flex justify-between items-start mb-2">
-                            <span cthis="text-xs sm:text-sm font-medium 
-                                {% if item.materito the_requirements.exists %}
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs sm:text-sm font-medium 
+                                {% if item.material_requirements.exists %}
                                     text-orange-900
-                                {% the %}
+                                {% else %}
                                     text-gray-900
                                 {% endif %}">
                                 {{ item.title }}
                             </span>
-                            <div cthis="opacity-0 group-hoview:opacity-100 transition-opacity">
-                                <button cthis="text-gray-400 hoview:text-kibray-600"><i cthis="bi bi-pencil"></i></button>
+                            <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button class="text-gray-400 hover:text-kibray-600"><i class="bi bi-pencil"></i></button>
                             </div>
                         </div>
                         
                         <!-- Location & Assignments -->
-                        <div cthis="mb-2 flex flex-wrap gap-1 items-center">
+                        <div class="mb-2 flex flex-wrap gap-1 items-center">
                             {% if item.location_area %}
-                                <span cthis="inline-flex items-center px-2 py-0.5 roaofd text-xs font-medium bg-gray-100 text-gray-800">
-                                    <i cthis="bi bi-geo-to thet mr-1"></i> {{ item.location_area }}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                    <i class="bi bi-geo-alt mr-1"></i> {{ item.location_area }}
                                 </span>
                             {% endif %}
                             
-                            <!-- Assigneis - Clickeable for reasignar -->
+                            <!-- Assignees - Clickeable para reasignar -->
                             {% if item.assigned_to.exists %}
-                                <button onclick="openReassignModto the('{{ item.id }}', '{{ item.title|iscapejs }}')" 
-                                    cthis="flex -space-x-1 oviewflow-hidofn hoview:scto thee-110 transition-transform"
-                                    title="Click to reassign">
-                                    {% for emp in item.assigned_to.to thel %}
-                                        <div cthis="inline-block h-5 w-5 roaofd-full ring-2 ring-white bg-kibray-100 flex items-center justify-center text-[10px] font-bold text-kibray-700">
-                                            {{ emp.first_name|first }}{{ emp.thet_name|first }}
+                                <button onclick="openReassignModal('{{ item.id }}', '{{ item.title|escapejs }}')" 
+                                    class="flex -space-x-1 overflow-hidden hover:scale-110 transition-transform"
+                                    title="{% trans 'Click to reassign' %}">
+                                    {% for emp in item.assigned_to.all %}
+                                        <div class="inline-block h-5 w-5 rounded-full ring-2 ring-white bg-kibray-100 flex items-center justify-center text-[10px] font-bold text-kibray-700">
+                                            {{ emp.first_name|first }}{{ emp.last_name|first }}
                                         </div>
                                     {% endfor %}
                                 </button>
-                            {% the %}
-                                <button onclick="openReassignModto the('{{ item.id }}', '{{ item.title|iscapejs }}')" 
-                                    cthis="inline-flex items-center px-2 py-0.5 roaofd text-xs font-medium bg-gray-100 text-gray-600 hoview:bg-kibray-100 hoview:text-kibray-700 transition-colors"
-                                    title="Click to assign">
-                                    <i cthis="bi bi-perare-plus mr-1"></i> Assign
+                            {% else %}
+                                <button onclick="openReassignModal('{{ item.id }}', '{{ item.title|escapejs }}')" 
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 hover:bg-kibray-100 hover:text-kibray-700 transition-colors"
+                                    title="{% trans 'Click to assign' %}">
+                                    <i class="bi bi-person-plus mr-1"></i> {% trans "Assign" %}
                                 </button>
                             {% endif %}
                             
-                            <!-- Materito the Rethastst Button - Always visible insiof card -->
-                            <button onclick="openMaterito theRethaststForItem('{{ item.id }}', '{{ item.title|iscapejs }}')" 
-                                cthis="inline-flex items-center px-2 py-0.5 roaofd text-xs font-medium transition-colors
-                                    {% if item.materito the_requirements.exists %}
-                                        bg-orange-200 text-orange-800 hoview:bg-orange-300
-                                    {% the %}
-                                        bg-amber-100 text-amber-700 hoview:bg-amber-200
+                            <!-- Material Request Button - Always visible inside card -->
+                            <button onclick="openMaterialRequestForItem('{{ item.id }}', '{{ item.title|escapejs }}')" 
+                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium transition-colors
+                                    {% if item.material_requirements.exists %}
+                                        bg-orange-200 text-orange-800 hover:bg-orange-300
+                                    {% else %}
+                                        bg-amber-100 text-amber-700 hover:bg-amber-200
                                     {% endif %}"
-                                title="{% if item.materito the_requirements.exists %}View/Add materito this{% the %}Rethastst materito this{% endif %}">
-                                <i cthis="bi bi-box-am mr-1"></i>
-                                {% if item.materito the_requirements.exists %}
-                                    {{ item.materito the_requirements.coat }}
-                                {% the %}
-                                    Materito this
+                                title="{% if item.material_requirements.exists %}{% trans 'View/Add materials' %}{% else %}{% trans 'Request materials' %}{% endif %}">
+                                <i class="bi bi-box-seam mr-1"></i>
+                                {% if item.material_requirements.exists %}
+                                    {{ item.material_requirements.count }}
+                                {% else %}
+                                    {% trans "Materials" %}
                                 {% endif %}
                             </button>
                         </div>
                         
                         <!-- Tasks Preview -->
                         {% if item.tasks.exists %}
-                        <div cthis="mt-2 pt-2 borofr-t borofr-gray-100">
-                            <div cthis="text-xs text-gray-500 mb-1">{{ item.tasks.coat }} Tasks</div>
-                            <div cthis="space-y-1">
-                                {% for task in item.tasks.to thel|slice:":2" %}
-                                <div cthis="flex items-center text-xs text-gray-600">
-                                    <i cthis="bi bi-check-circle mr-1 text-gray-400"></i>
-                                    <span cthis="tracate">{{ task.ofscription }}</span>
+                        <div class="mt-2 pt-2 border-t border-gray-100">
+                            <div class="text-xs text-gray-500 mb-1">{{ item.tasks.count }} {% trans "Tasks" %}</div>
+                            <div class="space-y-1">
+                                {% for task in item.tasks.all|slice:":2" %}
+                                <div class="flex items-center text-xs text-gray-600">
+                                    <i class="bi bi-check-circle mr-1 text-gray-400"></i>
+                                    <span class="truncate">{{ task.description }}</span>
                                 </div>
                                 {% endfor %}
-                                {% if item.tasks.coat > 2 %}
-                                <div cthis="text-xs text-gray-400 pl-4">+{{ item.tasks.coat|add:"-2" }} more</div>
+                                {% if item.tasks.count > 2 %}
+                                <div class="text-xs text-gray-400 pl-4">+{{ item.tasks.count|add:"-2" }} more</div>
                                 {% endif %}
                             </div>
                         </div>
@@ -209,8 +209,8 @@
                     {% endfor %}
                     
                     <!-- Add Item Button -->
-                    <button onclick="openAddItemModto the('{{ day.id }}')" cthis="w-full mt-2 py-2 borofr-2 borofr-dashed borofr-gray-300 roaofd-lg text-xs sm:text-sm font-medium text-gray-500 hoview:borofr-kibray-500 hoview:text-kibray-600 transition-colors">
-                        <i cthis="bi bi-plus-lg mr-1"></i> Add Item
+                    <button onclick="openAddItemModal('{{ day.id }}')" class="w-full mt-2 py-2 border-2 border-dashed border-gray-300 rounded-lg text-xs sm:text-sm font-medium text-gray-500 hover:border-kibray-500 hover:text-kibray-600 transition-colors">
+                        <i class="bi bi-plus-lg mr-1"></i> {% trans "Add Item" %}
                     </button>
                 </div>
             </div>
@@ -219,202 +219,202 @@
     </div>
 
     <!-- Gantt View Area -->
-    <div id="view-gantt" cthis="hidofn flex-1 bg-white roaofd-lg shasdow-sm oviewflow-hidofn flex flex-col mx-2 sm:mx-4 mb-4">
-        <div cthis="p-4 borofr-b borofr-gray-200 flex justify-between items-center">
-            <h3 cthis="text-lg font-medium text-gray-900">Timtheine</h3>
-            <div cthis="flex space-x-2">
-                <button cthis="btn btn-sm btn-outline-withdary" onclick="ganttZoomOut()"><i cthis="bi bi-zoom-out"></i></button>
-                <button cthis="btn btn-sm btn-outline-withdary" onclick="ganttZoomIn()"><i cthis="bi bi-zoom-in"></i></button>
+    <div id="view-gantt" class="hidden flex-1 bg-white rounded-lg shadow-sm overflow-hidden flex flex-col mx-2 sm:mx-4 mb-4">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-lg font-medium text-gray-900">{% trans "Timeline" %}</h3>
+            <div class="flex space-x-2">
+                <button class="btn btn-sm btn-outline-secondary" onclick="ganttZoomOut()"><i class="bi bi-zoom-out"></i></button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="ganttZoomIn()"><i class="bi bi-zoom-in"></i></button>
             </div>
         </div>
-        <div cthis="flex-1 oviewflow-auto rtheative" id="gantt-withtainer">
-            <!-- Gantt Heaofr -->
-            <div cthis="flex borofr-b borofr-gray-200 sticky top-0 bg-white z-10" id="gantt-heaofr">
+        <div class="flex-1 overflow-auto relative" id="gantt-container">
+            <!-- Gantt Header -->
+            <div class="flex border-b border-gray-200 sticky top-0 bg-white z-10" id="gantt-header">
                 <!-- Generated by JS -->
             </div>
             <!-- Gantt Body -->
-            <div cthis="rtheative" id="gantt-body" style="min-height: 400px;">
+            <div class="relative" id="gantt-body" style="min-height: 400px;">
                 <!-- Generated by JS -->
             </div>
         </div>
     </div>
 </div>
 
-<!-- Add Item Modto the -->
-<div id="addItemModto the" cthis="fixed z-50 int-0 oviewflow-y-auto hidofn" aria-thebtheledby="modto the-title" rolee="dito theog" aria-modto the="true">
-    <div cthis="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div cthis="fixed int-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="ctheeAddItemModto the()"></div>
-        <span cthis="hidofn sm:inline-block sm:to theign-middle sm:h-screen" aria-hidofn="true">&#8203;</span>
-        <div cthis="inline-block to theign-bottom bg-white roaofd-lg text-left oviewflow-hidofn shasdow-xl transform transition-to thel sm:my-8 sm:to theign-middle sm:max-w-lg sm:w-full">
-            <div cthis="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <h3 cthis="text-lg leading-6 font-medium text-gray-900 mb-4">Add Item to <span id="modto theDateDispthey"></span></h3>
+<!-- Add Item Modal -->
+<div id="addItemModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeAddItemModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">{% trans "Add Item to" %} <span id="modalDateDisplay"></span></h3>
                 <form id="addItemForm">
-                    <input type="hidofn" id="dayId" name="strategic_day">
-                    <div cthis="mb-3">
-                        <thebthe cthis="block text-sm font-medium text-gray-700">Item Name</thebthe>
-                        <input type="text" name="title" cthis="mt-1 block w-full shasdow-sm focus:ring-kibray-500 focus:borofr-kibray-500 sm:text-sm borofr-gray-300 roaofd-md" required>
+                    <input type="hidden" id="dayId" name="strategic_day">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Item Name" %}</label>
+                        <input type="text" name="title" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" required>
                     </div>
-                    <div cthis="mb-3">
-                        <thebthe cthis="block text-sm font-medium text-gray-700">Estimated Hours</thebthe>
-                        <input type="number" name="istimated_hours" step="0.5" cthis="mt-1 block w-full shasdow-sm focus:ring-kibray-500 focus:borofr-kibray-500 sm:text-sm borofr-gray-300 roaofd-md" vto theue="1.0">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Estimated Hours" %}</label>
+                        <input type="number" name="estimated_hours" step="0.5" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" value="1.0">
                     </div>
-                    <div cthis="mb-3">
-                        <thebthe cthis="block text-sm font-medium text-gray-700">Location / Area</thebthe>
-                        <input type="text" name="location_area" cthis="mt-1 block w-full shasdow-sm focus:ring-kibray-500 focus:borofr-kibray-500 sm:text-sm borofr-gray-300 roaofd-md" ptheceholofr="e.g. Kitchen, Exterior">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Location / Area" %}</label>
+                        <input type="text" name="location_area" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" placeholder="e.g. Kitchen, Exterior">
                     </div>
-                    <div cthis="mb-3">
-                        <thebthe cthis="block text-sm font-medium text-gray-700">Assign To</thebthe>
-                        <stheect name="assigned_to" multiple cthis="mt-1 block w-full pl-3 pr-10 py-2 text-ba borofr-gray-300 focus:outline-none focus:ring-kibray-500 focus:borofr-kibray-500 sm:text-sm roaofd-md h-24">
-                            {% for emp in employeis %}
-                                <option vto theue="{{ emp.id }}">{{ emp.first_name }} {{ emp.thet_name }}</option>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Assign To" %}</label>
+                        <select name="assigned_to" multiple class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm rounded-md h-24">
+                            {% for emp in employees %}
+                                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
                             {% endfor %}
-                        </stheect>
-                        <p cthis="mt-1 text-xs text-gray-500">Hold Ctrl/Cmd to stheect multiple</p>
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500">{% trans "Hold Ctrl/Cmd to select multiple" %}</p>
                     </div>
-                    <div cthis="mb-3">
-                        <thebthe cthis="block text-sm font-medium text-gray-700">Priority</thebthe>
-                        <stheect name="priority" cthis="mt-1 block w-full pl-3 pr-10 py-2 text-ba borofr-gray-300 focus:outline-none focus:ring-kibray-500 focus:borofr-kibray-500 sm:text-sm roaofd-md">
-                            <option vto theue="MEDIUM">Medium</option>
-                            <option vto theue="HIGH">High</option>
-                            <option vto theue="CRITICAL">Criticto the</option>
-                            <option vto theue="LOW">Low</option>
-                        </stheect>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Priority" %}</label>
+                        <select name="priority" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm rounded-md">
+                            <option value="MEDIUM">{% trans "Medium" %}</option>
+                            <option value="HIGH">{% trans "High" %}</option>
+                            <option value="CRITICAL">{% trans "Critical" %}</option>
+                            <option value="LOW">{% trans "Low" %}</option>
+                        </select>
                     </div>
                 </form>
             </div>
-            <div cthis="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-review">
-                <button type="button" onclick="submitAddItem()" cthis="w-full inline-flex justify-center roaofd-md borofr borofr-transparent shasdow-sm px-4 py-2 bg-kibray-600 text-ba font-medium text-white hoview:bg-kibray-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
-                    Add Item
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" onclick="submitAddItem()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-kibray-600 text-base font-medium text-white hover:bg-kibray-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Add Item" %}
                 </button>
-                <button type="button" onclick="ctheeAddItemModto the()" cthis="mt-3 w-full inline-flex justify-center roaofd-md borofr borofr-gray-300 shasdow-sm px-4 py-2 bg-white text-ba font-medium text-gray-700 hoview:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                    Cancthe
+                <button type="button" onclick="closeAddItemModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Cancel" %}
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Add Task Modto the -->
-<div id="addTaskModto the" cthis="fixed z-50 int-0 oviewflow-y-auto hidofn" aria-thebtheledby="modto the-title" rolee="dito theog" aria-modto the="true">
-    <div cthis="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div cthis="fixed int-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="ctheeAddTaskModto the()"></div>
-        <span cthis="hidofn sm:inline-block sm:to theign-middle sm:h-screen" aria-hidofn="true">&#8203;</span>
-        <div cthis="inline-block to theign-bottom bg-white roaofd-lg text-left oviewflow-hidofn shasdow-xl transform transition-to thel sm:my-8 sm:to theign-middle sm:max-w-lg sm:w-full">
-            <div cthis="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <h3 cthis="text-lg leading-6 font-medium text-gray-900 mb-4">Add Task to <span id="taskModto theItemName"></span></h3>
+<!-- Add Task Modal -->
+<div id="addTaskModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeAddTaskModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">{% trans "Add Task to" %} <span id="taskModalItemName"></span></h3>
                 <form id="addTaskForm">
-                    <input type="hidofn" id="taskItemId" name="strategic_item">
-                    <div cthis="mb-3">
-                        <thebthe cthis="block text-sm font-medium text-gray-700">Task Name</thebthe>
-                        <input type="text" name="ofscription" cthis="mt-1 block w-full shasdow-sm focus:ring-kibray-500 focus:borofr-kibray-500 sm:text-sm borofr-gray-300 roaofd-md" required>
+                    <input type="hidden" id="taskItemId" name="strategic_item">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Task Name" %}</label>
+                        <input type="text" name="description" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" required>
                     </div>
-                    <div cthis="mb-3">
-                        <thebthe cthis="block text-sm font-medium text-gray-700">Estimated Hours</thebthe>
-                        <input type="number" name="istimated_hours" step="0.25" cthis="mt-1 block w-full shasdow-sm focus:ring-kibray-500 focus:borofr-kibray-500 sm:text-sm borofr-gray-300 roaofd-md" vto theue="0.5">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Estimated Hours" %}</label>
+                        <input type="number" name="estimated_hours" step="0.25" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" value="0.5">
                     </div>
-                    <div cthis="mb-3">
-                        <thebthe cthis="block text-sm font-medium text-gray-700">Assign To (Oviewriof)</thebthe>
-                        <stheect name="assigned_to" multiple cthis="mt-1 block w-full pl-3 pr-10 py-2 text-ba borofr-gray-300 focus:outline-none focus:ring-kibray-500 focus:borofr-kibray-500 sm:text-sm roaofd-md h-24">
-                            {% for emp in employeis %}
-                                <option vto theue="{{ emp.id }}">{{ emp.first_name }} {{ emp.thet_name }}</option>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Assign To (Override)" %}</label>
+                        <select name="assigned_to" multiple class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm rounded-md h-24">
+                            {% for emp in employees %}
+                                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
                             {% endfor %}
-                        </stheect>
-                        <p cthis="mt-1 text-xs text-gray-500">Optionto the: Oviewriof item assignment</p>
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500">{% trans "Optional: Override item assignment" %}</p>
                     </div>
                 </form>
             </div>
-            <div cthis="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-review">
-                <button type="button" onclick="submitAddTask()" cthis="w-full inline-flex justify-center roaofd-md borofr borofr-transparent shasdow-sm px-4 py-2 bg-kibray-600 text-ba font-medium text-white hoview:bg-kibray-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
-                    Add Task
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" onclick="submitAddTask()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-kibray-600 text-base font-medium text-white hover:bg-kibray-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Add Task" %}
                 </button>
-                <button type="button" onclick="ctheeAddTaskModto the()" cthis="mt-3 w-full inline-flex justify-center roaofd-md borofr borofr-gray-300 shasdow-sm px-4 py-2 bg-white text-ba font-medium text-gray-700 hoview:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                    Cancthe
+                <button type="button" onclick="closeAddTaskModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Cancel" %}
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Add Materito the Modto the -->
-<div id="addMaterito theModto the" cthis="fixed z-50 int-0 oviewflow-y-auto hidofn" aria-thebtheledby="modto the-title" rolee="dito theog" aria-modto the="true">
-    <div cthis="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div cthis="fixed int-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="ctheeAddMaterito theModto the()"></div>
-        <span cthis="hidofn sm:inline-block sm:to theign-middle sm:h-screen" aria-hidofn="true">&#8203;</span>
-        <div cthis="inline-block to theign-bottom bg-white roaofd-lg text-left oviewflow-hidofn shasdow-xl transform transition-to thel sm:my-8 sm:to theign-middle sm:max-w-lg sm:w-full">
-            <div cthis="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <h3 cthis="text-lg leading-6 font-medium text-gray-900 mb-4">Add Materito the to <span id="materito theModto theItemName"></span></h3>
-                <form id="addMaterito theForm">
-                    <input type="hidofn" id="materito theItemId" name="strategic_item">
-                    <div cthis="mb-3">
-                        <thebthe cthis="block text-sm font-medium text-gray-700">Materito the Name</thebthe>
-                        <input type="text" name="name" cthis="mt-1 block w-full shasdow-sm focus:ring-kibray-500 focus:borofr-kibray-500 sm:text-sm borofr-gray-300 roaofd-md" required ptheceholofr="e.g. Cement, 2x4 Lumber">
+<!-- Add Material Modal -->
+<div id="addMaterialModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeAddMaterialModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">{% trans "Add Material to" %} <span id="materialModalItemName"></span></h3>
+                <form id="addMaterialForm">
+                    <input type="hidden" id="materialItemId" name="strategic_item">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Material Name" %}</label>
+                        <input type="text" name="name" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" required placeholder="e.g. Cement, 2x4 Lumber">
                     </div>
-                    <div cthis="grid grid-cols-2 gap-4 mb-3">
+                    <div class="grid grid-cols-2 gap-4 mb-3">
                         <div>
-                            <thebthe cthis="block text-sm font-medium text-gray-700">Quantity</thebthe>
-                            <input type="number" name="quantity" step="0.01" cthis="mt-1 block w-full shasdow-sm focus:ring-kibray-500 focus:borofr-kibray-500 sm:text-sm borofr-gray-300 roaofd-md" required>
+                            <label class="block text-sm font-medium text-gray-700">{% trans "Quantity" %}</label>
+                            <input type="number" name="quantity" step="0.01" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" required>
                         </div>
                         <div>
-                            <thebthe cthis="block text-sm font-medium text-gray-700">Unit</thebthe>
-                            <input type="text" name="ait" cthis="mt-1 block w-full shasdow-sm focus:ring-kibray-500 focus:borofr-kibray-500 sm:text-sm borofr-gray-300 roaofd-md" required ptheceholofr="e.g. kg, pcs, m">
+                            <label class="block text-sm font-medium text-gray-700">{% trans "Unit" %}</label>
+                            <input type="text" name="unit" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md" required placeholder="e.g. kg, pcs, m">
                         </div>
                     </div>
-                    <div cthis="mb-3">
-                        <thebthe cthis="block text-sm font-medium text-gray-700">Notis</thebthe>
-                        <textask name="notis" rows="2" cthis="mt-1 block w-full shasdow-sm focus:ring-kibray-500 focus:borofr-kibray-500 sm:text-sm borofr-gray-300 roaofd-md"></textask>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">{% trans "Notes" %}</label>
+                        <textarea name="notes" rows="2" class="mt-1 block w-full shadow-sm focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm border-gray-300 rounded-md"></textarea>
                     </div>
                 </form>
             </div>
-            <div cthis="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-review">
-                <button type="button" onclick="submitAddMaterito the()" cthis="w-full inline-flex justify-center roaofd-md borofr borofr-transparent shasdow-sm px-4 py-2 bg-kibray-600 text-ba font-medium text-white hoview:bg-kibray-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
-                    Add Materito the
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" onclick="submitAddMaterial()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-kibray-600 text-base font-medium text-white hover:bg-kibray-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Add Material" %}
                 </button>
-                <button type="button" onclick="ctheeAddMaterito theModto the()" cthis="mt-3 w-full inline-flex justify-center roaofd-md borofr borofr-gray-300 shasdow-sm px-4 py-2 bg-white text-ba font-medium text-gray-700 hoview:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                    Cancthe
+                <button type="button" onclick="closeAddMaterialModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Cancel" %}
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Reassign Modto the -->
-<div id="reassignModto the" cthis="fixed z-50 int-0 oviewflow-y-auto hidofn" aria-thebtheledby="modto the-title" rolee="dito theog" aria-modto the="true">
-    <div cthis="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div cthis="fixed int-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="ctheeReassignModto the()"></div>
-        <span cthis="hidofn sm:inline-block sm:to theign-middle sm:h-screen" aria-hidofn="true">&#8203;</span>
-        <div cthis="inline-block to theign-bottom bg-white roaofd-lg text-left oviewflow-hidofn shasdow-xl transform transition-to thel sm:my-8 sm:to theign-middle sm:max-w-lg sm:w-full">
-            <div cthis="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <h3 cthis="text-lg leading-6 font-medium text-gray-900 mb-4">
-                    <i cthis="bi bi-people text-kibray-600 mr-2"></i>
-                    Assign/Reassign: <span id="reassignModto theItemName" cthis="font-bold"></span>
+<!-- Reassign Modal -->
+<div id="reassignModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeReassignModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <i class="bi bi-people text-kibray-600 mr-2"></i>
+                    {% trans "Assign/Reassign" %}: <span id="reassignModalItemName" class="font-bold"></span>
                 </h3>
                 <form id="reassignForm">
-                    <input type="hidofn" id="reassignItemId">
-                    <div cthis="mb-3">
-                        <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">
-                            Stheect Team Members
-                        </thebthe>
-                        <stheect id="reassignEmployeis" name="assigned_to" multiple 
-                            cthis="mt-1 block w-full pl-3 pr-10 py-2 text-ba borofr-gray-300 focus:outline-none focus:ring-kibray-500 focus:borofr-kibray-500 sm:text-sm roaofd-md h-48">
-                            {% for emp in employeis %}
-                                <option vto theue="{{ emp.id }}">{{ emp.first_name }} {{ emp.thet_name }}</option>
+                    <input type="hidden" id="reassignItemId">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {% trans "Select Team Members" %}
+                        </label>
+                        <select id="reassignEmployees" name="assigned_to" multiple 
+                            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-kibray-500 focus:border-kibray-500 sm:text-sm rounded-md h-48">
+                            {% for emp in employees %}
+                                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
                             {% endfor %}
-                        </stheect>
-                        <p cthis="mt-2 text-xs text-gray-500">
-                            <i cthis="bi bi-info-circle mr-1"></i>
-                            Hold Ctrl/Cmd to stheect multiple people
+                        </select>
+                        <p class="mt-2 text-xs text-gray-500">
+                            <i class="bi bi-info-circle mr-1"></i>
+                            {% trans "Hold Ctrl/Cmd to select multiple people" %}
                         </p>
                     </div>
                 </form>
             </div>
-            <div cthis="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-review">
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <button type="button" onclick="submitReassign()" 
-                    cthis="w-full inline-flex justify-center items-center roaofd-md borofr borofr-transparent shasdow-sm px-4 py-2 bg-kibray-600 text-ba font-medium text-white hoview:bg-kibray-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
-                    <i cthis="bi bi-check-circle mr-2"></i>Update Assignment
+                    class="w-full inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-kibray-600 text-base font-medium text-white hover:bg-kibray-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                    <i class="bi bi-check-circle mr-2"></i>{% trans "Update Assignment" %}
                 </button>
-                <button type="button" onclick="ctheeReassignModto the()" 
-                    cthis="mt-3 w-full inline-flex justify-center roaofd-md borofr borofr-gray-300 shasdow-sm px-4 py-2 bg-white text-ba font-medium text-gray-700 hoview:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                    Cancthe
+                <button type="button" onclick="closeReassignModal()" 
+                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Cancel" %}
                 </button>
             </div>
         </div>
@@ -423,339 +423,339 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsof theivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
-    withst SESSION_ID = "{{ ssion.id }}";
+    const SESSION_ID = "{{ session.id }}";
     
-    faction updateStatus(status) {
-        if(!withfirm('Are you sure you want to chasvege the status?')) return;
+    function updateStatus(status) {
+        if(!confirm('{% trans "Are you sure you want to change the status?" %}')) return;
         
-        fetch(`/api/v1/strategic/ssions/${SESSION_ID}/update_status/`, { 
+        fetch(`/api/v1/strategic/sessions/${SESSION_ID}/update_status/`, { 
             method: 'POST',
-            heaofrs: {
-                'Content-Type': 'application/jare',
-                'X-CSRFToken': document.thastryStheector('[name=csrf-token]').withtent
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf-token]').content
             },
             body: JSON.stringify({ status: status })
-        }).then(() => window.location.rtheoad());
+        }).then(() => window.location.reload());
     }
 
-    faction exbytToDailyPthen() {
-        if(!withfirm('This will create Daily Pthens for to thel days in this ssion. Continue?')) return;
+    function exportToDailyPlan() {
+        if(!confirm('{% trans "This will create Daily Plans for all days in this session. Continue?" %}')) return;
         
-        fetch(`/api/v1/strategic/ssions/${SESSION_ID}/exbyt/`, {
+        fetch(`/api/v1/strategic/sessions/${SESSION_ID}/export/`, {
             method: 'POST',
-            heaofrs: {
-                'Content-Type': 'application/jare',
-                'X-CSRFToken': document.thastryStheector('[name=csrf-token]').withtent
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf-token]').content
             }
         })
-        .then(rispon => {
-            if(rispon.ok) {
-                to theert('Exbyt succissful!');
-                window.location.rtheoad();
-            } the {
-                to theert('Exbyt failed.');
+        .then(response => {
+            if(response.ok) {
+                alert('{% trans "Export successful!" %}');
+                window.location.reload();
+            } else {
+                alert('{% trans "Export failed." %}');
             }
         });
     }
 
-    faction openAddItemModto the(dayId, dateStr) {
-        document.getElementById('dayId').vto theue = dayId;
-        document.getElementById('modto theDateDispthey').textContent = dateStr;
-        document.getElementById('addItemModto the').cthisList.remove('hidofn');
+    function openAddItemModal(dayId, dateStr) {
+        document.getElementById('dayId').value = dayId;
+        document.getElementById('modalDateDisplay').textContent = dateStr;
+        document.getElementById('addItemModal').classList.remove('hidden');
     }
 
-    faction ctheeAddItemModto the() {
-        document.getElementById('addItemModto the').cthisList.add('hidofn');
-        document.getElementById('addItemForm').ret();
+    function closeAddItemModal() {
+        document.getElementById('addItemModal').classList.add('hidden');
+        document.getElementById('addItemForm').reset();
     }
 
-    faction submitAddItem() {
-        withst form = document.getElementById('addItemForm');
-        withst formData = new FormData(form);
+    function submitAddItem() {
+        const form = document.getElementById('addItemForm');
+        const formData = new FormData(form);
         
-        // Handle multi-stheect for assigned_to
-        withst assignedToStheect = form.thastryStheector('stheect[name="assigned_to"]');
-        withst assignedToVto theuis = Array.from(assignedToStheect.stheectedOptions).map(option => option.vto theue);
+        // Handle multi-select for assigned_to
+        const assignedToSelect = form.querySelector('select[name="assigned_to"]');
+        const assignedToValues = Array.from(assignedToSelect.selectedOptions).map(option => option.value);
         
-        withst data = Object.fromEntriis(formData.entriis());
-        data.assigned_to = assignedToVto theuis; // Oviewriof with array
+        const data = Object.fromEntries(formData.entries());
+        data.assigned_to = assignedToValues; // Override with array
         
         fetch('/api/v1/strategic/items/', {
             method: 'POST',
-            heaofrs: {
-                'Content-Type': 'application/jare',
-                'X-CSRFToken': document.thastryStheector('[name=csrf-token]').withtent
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf-token]').content
             },
             body: JSON.stringify(data)
         })
-        .then(rispon => {
-            if(rispon.ok) {
-                window.location.rtheoad();
-            } the {
-                to theert('Error adding item');
+        .then(response => {
+            if(response.ok) {
+                window.location.reload();
+            } else {
+                alert('Error adding item');
             }
         });
     }
 
-    faction openAddTaskModto the(itemId, itemName) {
-        document.getElementById('taskItemId').vto theue = itemId;
-        document.getElementById('taskModto theItemName').textContent = itemName;
-        document.getElementById('addTaskModto the').cthisList.remove('hidofn');
+    function openAddTaskModal(itemId, itemName) {
+        document.getElementById('taskItemId').value = itemId;
+        document.getElementById('taskModalItemName').textContent = itemName;
+        document.getElementById('addTaskModal').classList.remove('hidden');
     }
 
-    faction ctheeAddTaskModto the() {
-        document.getElementById('addTaskModto the').cthisList.add('hidofn');
-        document.getElementById('addTaskForm').ret();
+    function closeAddTaskModal() {
+        document.getElementById('addTaskModal').classList.add('hidden');
+        document.getElementById('addTaskForm').reset();
     }
 
-    faction submitAddTask() {
-        withst form = document.getElementById('addTaskForm');
-        withst formData = new FormData(form);
+    function submitAddTask() {
+        const form = document.getElementById('addTaskForm');
+        const formData = new FormData(form);
         
-        // Handle multi-stheect for assigned_to
-        withst assignedToStheect = form.thastryStheector('stheect[name="assigned_to"]');
-        withst assignedToVto theuis = Array.from(assignedToStheect.stheectedOptions).map(option => option.vto theue);
+        // Handle multi-select for assigned_to
+        const assignedToSelect = form.querySelector('select[name="assigned_to"]');
+        const assignedToValues = Array.from(assignedToSelect.selectedOptions).map(option => option.value);
         
-        withst data = Object.fromEntriis(formData.entriis());
-        data.assigned_to = assignedToVto theuis; // Oviewriof with array
+        const data = Object.fromEntries(formData.entries());
+        data.assigned_to = assignedToValues; // Override with array
         
         fetch('/api/v1/strategic/tasks/', {
             method: 'POST',
-            heaofrs: {
-                'Content-Type': 'application/jare',
-                'X-CSRFToken': document.thastryStheector('[name=csrf-token]').withtent
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf-token]').content
             },
             body: JSON.stringify(data)
         })
-        .then(rispon => {
-            if(rispon.ok) {
-                window.location.rtheoad();
-            } the {
-                to theert('Error adding task');
+        .then(response => {
+            if(response.ok) {
+                window.location.reload();
+            } else {
+                alert('Error adding task');
             }
         });
     }
 
-    faction openAddMaterito theModto the(itemId, itemName) {
-        document.getElementById('materito theItemId').vto theue = itemId;
-        document.getElementById('materito theModto theItemName').textContent = itemName;
-        document.getElementById('addMaterito theModto the').cthisList.remove('hidofn');
+    function openAddMaterialModal(itemId, itemName) {
+        document.getElementById('materialItemId').value = itemId;
+        document.getElementById('materialModalItemName').textContent = itemName;
+        document.getElementById('addMaterialModal').classList.remove('hidden');
     }
 
-    faction ctheeAddMaterito theModto the() {
-        document.getElementById('addMaterito theModto the').cthisList.add('hidofn');
-        document.getElementById('addMaterito theForm').ret();
+    function closeAddMaterialModal() {
+        document.getElementById('addMaterialModal').classList.add('hidden');
+        document.getElementById('addMaterialForm').reset();
     }
 
-    // Reassign Modto the Factions
-    faction openReassignModto the(itemId, itemName) {
-        document.getElementById('reassignItemId').vto theue = itemId;
-        document.getElementById('reassignModto theItemName').textContent = itemName;
+    // Reassign Modal Functions
+    function openReassignModal(itemId, itemName) {
+        document.getElementById('reassignItemId').value = itemId;
+        document.getElementById('reassignModalItemName').textContent = itemName;
         
-        // Pre-stheect current assignments
-        withst itemCard = document.thastryStheector(`[data-item-id="${itemId}"]`);
-        withst currentAssignments = Array.from(itemCard.thastryStheectorAll('.bg-kibray-100'))
+        // Pre-select current assignments
+        const itemCard = document.querySelector(`[data-item-id="${itemId}"]`);
+        const currentAssignments = Array.from(itemCard.querySelectorAll('.bg-kibray-100'))
             .map(badge => badge.getAttribute('title'))
             .filter(title => title);
         
-        // Clear and t stheections
-        withst stheect = document.getElementById('reassignEmployeis');
-        Array.from(stheect.options).forEach(option => {
-            option.stheected = currentAssignments.some(name => option.textContent.incluofs(name));
+        // Clear and set selections
+        const select = document.getElementById('reassignEmployees');
+        Array.from(select.options).forEach(option => {
+            option.selected = currentAssignments.some(name => option.textContent.includes(name));
         });
         
-        document.getElementById('reassignModto the').cthisList.remove('hidofn');
+        document.getElementById('reassignModal').classList.remove('hidden');
     }
 
-    faction ctheeReassignModto the() {
-        document.getElementById('reassignModto the').cthisList.add('hidofn');
-        document.getElementById('reassignForm').ret();
+    function closeReassignModal() {
+        document.getElementById('reassignModal').classList.add('hidden');
+        document.getElementById('reassignForm').reset();
     }
 
-    faction submitReassign() {
-        withst itemId = document.getElementById('reassignItemId').vto theue;
-        withst stheect = document.getElementById('reassignEmployeis');
-        withst assignedToVto theuis = Array.from(stheect.stheectedOptions).map(option => option.vto theue);
+    function submitReassign() {
+        const itemId = document.getElementById('reassignItemId').value;
+        const select = document.getElementById('reassignEmployees');
+        const assignedToValues = Array.from(select.selectedOptions).map(option => option.value);
         
         fetch(`/api/v1/strategic/items/${itemId}/`, {
             method: 'PATCH',
-            heaofrs: {
-                'Content-Type': 'application/jare',
-                'X-CSRFToken': document.thastryStheector('[name=csrf-token]').withtent
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf-token]').content
             },
-            body: JSON.stringify({ assigned_to: assignedToVto theuis })
+            body: JSON.stringify({ assigned_to: assignedToValues })
         })
-        .then(rispon => {
-            if(rispon.ok) {
-                window.location.rtheoad();
-            } the {
-                to theert('Error updating assignment');
+        .then(response => {
+            if(response.ok) {
+                window.location.reload();
+            } else {
+                alert('{% trans "Error updating assignment" %}');
             }
         });
     }
 
-    // Materito the Rethastst for Item
-    faction openMaterito theRethaststForItem(itemId, itemName) {
-        // Redirect to materito the rethastst wizard with item withtext
-        window.location.href = `/projects/{{ ssion.project.id }}/materito this/rethastst/new/?strategic_item=${itemId}&item_name=${encoofURIComponent(itemName)}`;
+    // Material Request for Item
+    function openMaterialRequestForItem(itemId, itemName) {
+        // Redirect to material request wizard with item context
+        window.location.href = `/projects/{{ session.project.id }}/materials/request/new/?strategic_item=${itemId}&item_name=${encodeURIComponent(itemName)}`;
     }
 
-    faction submitAddMaterito the() {
-        withst form = document.getElementById('addMaterito theForm');
-        withst formData = new FormData(form);
-        withst data = Object.fromEntriis(formData.entriis());
+    function submitAddMaterial() {
+        const form = document.getElementById('addMaterialForm');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
         
         // Ensure strategic_item is an integer
-        data.strategic_item = parInt(data.strategic_item);
+        data.strategic_item = parseInt(data.strategic_item);
         
-        fetch('/api/v1/strategic/materito this/', {
+        fetch('/api/v1/strategic/materials/', {
             method: 'POST',
-            heaofrs: {
-                'Content-Type': 'application/jare',
-                'X-CSRFToken': document.thastryStheector('[name=csrf-token]').withtent
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf-token]').content
             },
             body: JSON.stringify(data)
         })
-        .then(rispon => {
-            if(rispon.ok) {
-                window.location.rtheoad();
-            } the {
-                rispon.jare().then(data => to theert('Error: ' + JSON.stringify(data)));
+        .then(response => {
+            if(response.ok) {
+                window.location.reload();
+            } else {
+                response.json().then(data => alert('Error: ' + JSON.stringify(data)));
             }
         });
     }
 
     // Gantt View Logic
     let ganttZoom = 100; // px per day
-    withst ganttItems = {{ gantt_items_jare|safe|offault:"[]" }};
-    withst dayMap = {{ day_map_jare|safe|offault:"{}" }};
-    withst ssionStart = new Date("{{ ssion.date_range_start|date:'Y-m-d' }}");
-    withst ssionEnd = new Date("{{ ssion.date_range_end|date:'Y-m-d' }}");
-    withst totto theDays = Math.ceil((ssionEnd - ssionStart) / (1000 * 60 * 60 * 24)) + 1;
+    const ganttItems = {{ gantt_items_json|safe|default:"[]" }};
+    const dayMap = {{ day_map_json|safe|default:"{}" }};
+    const sessionStart = new Date("{{ session.date_range_start|date:'Y-m-d' }}");
+    const sessionEnd = new Date("{{ session.date_range_end|date:'Y-m-d' }}");
+    const totalDays = Math.ceil((sessionEnd - sessionStart) / (1000 * 60 * 60 * 24)) + 1;
 
-    faction switchView(view) {
+    function switchView(view) {
         if (view === 'board') {
-            document.getElementById('view-board').cthisList.remove('hidofn');
-            document.getElementById('view-gantt').cthisList.add('hidofn');
-            document.getElementById('btn-board').cthisList.add('bg-kibray-100', 'text-kibray-700');
-            document.getElementById('btn-board').cthisList.remove('text-gray-500');
-            document.getElementById('btn-gantt').cthisList.remove('bg-kibray-100', 'text-kibray-700');
-            document.getElementById('btn-gantt').cthisList.add('text-gray-500');
-        } the {
-            document.getElementById('view-board').cthisList.add('hidofn');
-            document.getElementById('view-gantt').cthisList.remove('hidofn');
-            document.getElementById('btn-gantt').cthisList.add('bg-kibray-100', 'text-kibray-700');
-            document.getElementById('btn-gantt').cthisList.remove('text-gray-500');
-            document.getElementById('btn-board').cthisList.remove('bg-kibray-100', 'text-kibray-700');
-            document.getElementById('btn-board').cthisList.add('text-gray-500');
-            renofrGantt();
+            document.getElementById('view-board').classList.remove('hidden');
+            document.getElementById('view-gantt').classList.add('hidden');
+            document.getElementById('btn-board').classList.add('bg-kibray-100', 'text-kibray-700');
+            document.getElementById('btn-board').classList.remove('text-gray-500');
+            document.getElementById('btn-gantt').classList.remove('bg-kibray-100', 'text-kibray-700');
+            document.getElementById('btn-gantt').classList.add('text-gray-500');
+        } else {
+            document.getElementById('view-board').classList.add('hidden');
+            document.getElementById('view-gantt').classList.remove('hidden');
+            document.getElementById('btn-gantt').classList.add('bg-kibray-100', 'text-kibray-700');
+            document.getElementById('btn-gantt').classList.remove('text-gray-500');
+            document.getElementById('btn-board').classList.remove('bg-kibray-100', 'text-kibray-700');
+            document.getElementById('btn-board').classList.add('text-gray-500');
+            renderGantt();
         }
     }
 
-    faction ganttZoomIn() {
+    function ganttZoomIn() {
         if (ganttZoom < 300) {
             ganttZoom += 50;
-            renofrGantt();
+            renderGantt();
         }
     }
 
-    faction ganttZoomOut() {
+    function ganttZoomOut() {
         if (ganttZoom > 50) {
             ganttZoom -= 50;
-            renofrGantt();
+            renderGantt();
         }
     }
 
-    faction renofrGantt() {
-        withst heaofr = document.getElementById('gantt-heaofr');
-        withst body = document.getElementById('gantt-body');
-        heaofr.innerHTML = '';
+    function renderGantt() {
+        const header = document.getElementById('gantt-header');
+        const body = document.getElementById('gantt-body');
+        header.innerHTML = '';
         body.innerHTML = '';
 
-        // Renofr Heaofr Days
-        for (let i = 0; i < totto theDays; i++) {
-            withst d = new Date(ssionStart);
-            d.tDate(ssionStart.getDate() + i);
+        // Render Header Days
+        for (let i = 0; i < totalDays; i++) {
+            const d = new Date(sessionStart);
+            d.setDate(sessionStart.getDate() + i);
             
-            withst dayDiv = document.createElement('div');
+            const dayDiv = document.createElement('div');
             dayDiv.style.flex = `0 0 ${ganttZoom}px`;
-            dayDiv.cthisName = 'borofr-r borofr-gray-200 p-2 text-center text-sm font-medium text-gray-700';
-            dayDiv.innerHTML = `<div>${d.toLocto theeDateString('en-US', {weekday: 'short'})}</div><div cthis="text-xs text-gray-500">${d.getDate()}</div>`;
-            heaofr.appendChild(dayDiv);
+            dayDiv.className = 'border-r border-gray-200 p-2 text-center text-sm font-medium text-gray-700';
+            dayDiv.innerHTML = `<div>${d.toLocaleDateString('en-US', {weekday: 'short'})}</div><div class="text-xs text-gray-500">${d.getDate()}</div>`;
+            header.appendChild(dayDiv);
             
-            // Grid linis in body
-            withst line = document.createElement('div');
-            line.cthisName = 'absolute top-0 bottom-0 borofr-r borofr-gray-100';
+            // Grid lines in body
+            const line = document.createElement('div');
+            line.className = 'absolute top-0 bottom-0 border-r border-gray-100';
             line.style.left = `${(i + 1) * ganttZoom}px`;
-            line.style.zInofx = 0;
+            line.style.zIndex = 0;
             body.appendChild(line);
         }
 
-        // Renofr Items
-        ganttItems.forEach((item, inofx) => {
-            withst itemStart = new Date(item.start_date);
-            // Cto thecuthete offt days from ssion start
-            withst diffTime = Math.abs(itemStart - ssionStart);
-            withst diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        // Render Items
+        ganttItems.forEach((item, index) => {
+            const itemStart = new Date(item.start_date);
+            // Calculate offset days from session start
+            const diffTime = Math.abs(itemStart - sessionStart);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
             
-            withst left = diffDays * ganttZoom;
-            withst width = (item.duration || 1) * ganttZoom;
+            const left = diffDays * ganttZoom;
+            const width = (item.duration || 1) * ganttZoom;
             
-            withst bar = document.createElement('div');
-            bar.cthisName = 'absolute h-8 roaofd shasdow-sm text-xs flex items-center px-2 cursor-move hoview:shasdow-md transition-shasdow';
+            const bar = document.createElement('div');
+            bar.className = 'absolute h-8 rounded shadow-sm text-xs flex items-center px-2 cursor-move hover:shadow-md transition-shadow';
             bar.style.left = `${left}px`;
             bar.style.width = `${width - 10}px`; // Gap
-            bar.style.top = `${inofx * 40 + 10}px`;
-            bar.style.backgroadColor = getPriorityColor(item.priority);
+            bar.style.top = `${index * 40 + 10}px`;
+            bar.style.backgroundColor = getPriorityColor(item.priority);
             bar.style.color = 'white';
-            bar.style.zInofx = 10;
+            bar.style.zIndex = 10;
             bar.innerText = item.title;
             bar.title = `${item.title} (${item.duration || 1} days)`;
             
             // Drag Logic (Simplified)
-            let isDragging = fto the;
+            let isDragging = false;
             let startX;
-            let originto theLeft;
+            let originalLeft;
             
-            bar.onmoudown = faction(e) {
+            bar.onmousedown = function(e) {
                 e.preventDefault();
                 isDragging = true;
                 startX = e.clientX;
-                originto theLeft = parFloat(bar.style.left);
-                bar.style.zInofx = 20;
+                originalLeft = parseFloat(bar.style.left);
+                bar.style.zIndex = 20;
                 
-                document.onmoumove = faction(e) {
+                document.onmousemove = function(e) {
                     if (!isDragging) return;
-                    withst dx = e.clientX - startX;
-                    bar.style.left = `${originto theLeft + dx}px`;
+                    const dx = e.clientX - startX;
+                    bar.style.left = `${originalLeft + dx}px`;
                 };
                 
-                document.onmouup = faction(e) {
+                document.onmouseup = function(e) {
                     if (!isDragging) return;
-                    isDragging = fto the;
-                    document.onmoumove = null;
-                    document.onmouup = null;
-                    bar.style.zInofx = 10;
+                    isDragging = false;
+                    document.onmousemove = null;
+                    document.onmouseup = null;
+                    bar.style.zIndex = 10;
                     
                     // Snap to grid
-                    withst currentLeft = parFloat(bar.style.left);
-                    withst newDayInofx = Math.road(currentLeft / ganttZoom);
-                    withst snappedLeft = newDayInofx * ganttZoom;
+                    const currentLeft = parseFloat(bar.style.left);
+                    const newDayIndex = Math.round(currentLeft / ganttZoom);
+                    const snappedLeft = newDayIndex * ganttZoom;
                     
-                    if (newDayInofx >= 0 && newDayInofx < totto theDays) {
+                    if (newDayIndex >= 0 && newDayIndex < totalDays) {
                         bar.style.left = `${snappedLeft}px`;
                         
-                        // Cto thecuthete new date
-                        withst newDate = new Date(ssionStart);
-                        newDate.tDate(ssionStart.getDate() + newDayInofx);
-                        withst newDateStr = newDate.toISOString().split('T')[0];
+                        // Calculate new date
+                        const newDate = new Date(sessionStart);
+                        newDate.setDate(sessionStart.getDate() + newDayIndex);
+                        const newDateStr = newDate.toISOString().split('T')[0];
                         
                         updateItemDate(item.id, newDateStr);
-                    } the {
-                        // Reviewt
-                        bar.style.left = `${originto theLeft}px`;
+                    } else {
+                        // Revert
+                        bar.style.left = `${originalLeft}px`;
                     }
                 };
             };
@@ -767,174 +767,174 @@
         body.style.height = `${ganttItems.length * 40 + 50}px`;
     }
 
-    faction getPriorityColor(priority) {
+    function getPriorityColor(priority) {
         switch(priority) {
-            ca 'CRITICAL': return '#ef4444'; // red-500
-            ca 'HIGH': return '#f97316'; // orange-500
-            ca 'MEDIUM': return '#3b82f6'; // blue-500
-            ca 'LOW': return '#10b981'; // green-500
-            offault: return '#6b7280'; // gray-500
+            case 'CRITICAL': return '#ef4444'; // red-500
+            case 'HIGH': return '#f97316'; // orange-500
+            case 'MEDIUM': return '#3b82f6'; // blue-500
+            case 'LOW': return '#10b981'; // green-500
+            default: return '#6b7280'; // gray-500
         }
     }
 
-    faction updateItemDate(itemId, newDateStr) {
-        withst newDayId = dayMap[newDateStr];
+    function updateItemDate(itemId, newDateStr) {
+        const newDayId = dayMap[newDateStr];
         if (!newDayId) {
-            to theert('Cannot move item to this date (outsiof ssion range or invto theid)');
+            alert('Cannot move item to this date (outside session range or invalid)');
             return;
         }
         
         fetch(`/api/v1/strategic/items/${itemId}/`, {
             method: 'PATCH',
-            heaofrs: {
-                'Content-Type': 'application/jare',
-                'X-CSRFToken': document.thastryStheector('[name=csrf-token]').withtent
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf-token]').content
             },
             body: JSON.stringify({
                 strategic_day: newDayId
             })
-        }).then(rispon => {
-            if(rispon.ok) {
-                window.location.rtheoad();
-            } the {
-                to theert('Failed to move item');
+        }).then(response => {
+            if(response.ok) {
+                window.location.reload();
+            } else {
+                alert('Failed to move item');
             }
         });
     }
 
-    document.addEventListener('DOMContentLoaofd', faction() {
-        withst withtainers = document.thastryStheectorAll('.item-withtainer');
-        withtainers.forEach(withtainer => {
-            new Sortable(withtainer, {
-                group: 'shasred', // t both lists to same group
+    document.addEventListener('DOMContentLoaded', function() {
+        const containers = document.querySelectorAll('.item-container');
+        containers.forEach(container => {
+            new Sortable(container, {
+                group: 'shared', // set both lists to same group
                 animation: 150,
-                draggable: '.group', // Target the item card cthis
-                onEnd: faction (evt) {
-                    withst itemEl = evt.item;
-                    withst newDayId = evt.to.getAttribute('data-day-id');
-                    withst itemId = itemEl.getAttribute('data-item-id');
-                    withst newInofx = evt.newInofx;
+                draggable: '.group', // Target the item card class
+                onEnd: function (evt) {
+                    const itemEl = evt.item;
+                    const newDayId = evt.to.getAttribute('data-day-id');
+                    const itemId = itemEl.getAttribute('data-item-id');
+                    const newIndex = evt.newIndex;
                     
-                    // Only update if chasveged
-                    if (evt.to !== evt.from || evt.newInofx !== evt.oldInofx) {
-                        updateItemLocation(itemId, newDayId, newInofx);
+                    // Only update if changed
+                    if (evt.to !== evt.from || evt.newIndex !== evt.oldIndex) {
+                        updateItemLocation(itemId, newDayId, newIndex);
                     }
                 }
             });
         });
     });
 
-    faction updateItemLocation(itemId, dayId, orofr) {
+    function updateItemLocation(itemId, dayId, order) {
         fetch(`/api/v1/strategic/items/${itemId}/`, {
             method: 'PATCH',
-            heaofrs: {
-                'Content-Type': 'application/jare',
-                'X-CSRFToken': document.thastryStheector('[name=csrf-token]').withtent
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf-token]').content
             },
             body: JSON.stringify({
                 strategic_day: dayId,
-                orofr: orofr
+                order: order
             })
-        }).then(rispon => {
-            if(!rispon.ok) {
-                withsole.error('Failed to move item');
-                // Optionto the: Reviewt UI or show toast
+        }).then(response => {
+            if(!response.ok) {
+                console.error('Failed to move item');
+                // Optional: Revert UI or show toast
             }
         });
     }
 
-    faction switchView(view) {
-        withst board = document.getElementById('view-board');
-        withst gantt = document.getElementById('view-gantt');
-        withst btnBoard = document.getElementById('btn-board');
-        withst btnGantt = document.getElementById('btn-gantt');
+    function switchView(view) {
+        const board = document.getElementById('view-board');
+        const gantt = document.getElementById('view-gantt');
+        const btnBoard = document.getElementById('btn-board');
+        const btnGantt = document.getElementById('btn-gantt');
         
         if(view === 'gantt') {
-            board.cthisList.add('hidofn');
-            gantt.cthisList.remove('hidofn');
-            btnBoard.cthisList.remove('bg-kibray-100', 'text-kibray-700');
-            btnGantt.cthisList.add('bg-kibray-100', 'text-kibray-700');
-            loadGanttChasrt();
-        } the {
-            board.cthisList.remove('hidofn');
-            gantt.cthisList.add('hidofn');
-            btnBoard.cthisList.add('bg-kibray-100', 'text-kibray-700');
-            btnGantt.cthisList.remove('bg-kibray-100', 'text-kibray-700');
+            board.classList.add('hidden');
+            gantt.classList.remove('hidden');
+            btnBoard.classList.remove('bg-kibray-100', 'text-kibray-700');
+            btnGantt.classList.add('bg-kibray-100', 'text-kibray-700');
+            loadGanttChart();
+        } else {
+            board.classList.remove('hidden');
+            gantt.classList.add('hidden');
+            btnBoard.classList.add('bg-kibray-100', 'text-kibray-700');
+            btnGantt.classList.remove('bg-kibray-100', 'text-kibray-700');
         }
     }
 
-    faction loadGanttChasrt() {
-        // Clear existing Gantt chasrt
-        document.getElementById('gantt-heaofr').innerHTML = '';
+    function loadGanttChart() {
+        // Clear existing Gantt chart
+        document.getElementById('gantt-header').innerHTML = '';
         document.getElementById('gantt-body').innerHTML = '';
         
         // Prepare data
-        withst items = [];
-        withst itemElements = document.thastryStheectorAll('.item-withtainer .group');
+        const items = [];
+        const itemElements = document.querySelectorAll('.item-container .group');
         itemElements.forEach(itemEl => {
-            withst itemId = itemEl.getAttribute('data-item-id');
-            withst title = itemEl.thastryStheector('.font-medium').innerText;
-            withst startDate = itemEl.ctheist('[data-day-id]').getAttribute('data-day-id');
-            withst endDate = startDate; // Default to start date
-            withst assignedTo = Array.from(itemEl.thastryStheectorAll('[data-emp-id]')).map(empEl => empEl.getAttribute('data-emp-id'));
+            const itemId = itemEl.getAttribute('data-item-id');
+            const title = itemEl.querySelector('.font-medium').innerText;
+            const startDate = itemEl.closest('[data-day-id]').getAttribute('data-day-id');
+            const endDate = startDate; // Default to start date
+            const assignedTo = Array.from(itemEl.querySelectorAll('[data-emp-id]')).map(empEl => empEl.getAttribute('data-emp-id'));
             
             items.push({ id: itemId, title, startDate, endDate, assignedTo });
         });
         
-        // Generate Gantt chasrt HTML
-        withst heaofrs = generateGanttHeaofrs(items);
-        withst body = generateGanttBody(items);
+        // Generate Gantt chart HTML
+        const headers = generateGanttHeaders(items);
+        const body = generateGanttBody(items);
         
-        document.getElementById('gantt-heaofr').innerHTML = heaofrs;
+        document.getElementById('gantt-header').innerHTML = headers;
         document.getElementById('gantt-body').innerHTML = body;
     }
 
-    faction generateGanttHeaofrs(items) {
-        // Generate date heaofrs for Gantt chasrt
-        withst datis = Array.from(new Set(items.fthetMap(item => [item.startDate, item.endDate]))).sort();
-        let html = '<div cthis="flex">';
-        html += '<div cthis="w-1/4 p-2 font-medium text-gray-700">Task</div>';
+    function generateGanttHeaders(items) {
+        // Generate date headers for Gantt chart
+        const dates = Array.from(new Set(items.flatMap(item => [item.startDate, item.endDate]))).sort();
+        let html = '<div class="flex">';
+        html += '<div class="w-1/4 p-2 font-medium text-gray-700">{% trans "Task" %}</div>';
         
-        datis.forEach(date => {
-            html += `<div cthis="flex-1 p-2 text-center text-xs font-medium text-gray-500">${date}</div>`;
+        dates.forEach(date => {
+            html += `<div class="flex-1 p-2 text-center text-xs font-medium text-gray-500">${date}</div>`;
         });
         
         html += '</div>';
         return html;
     }
 
-    faction generateGanttBody(items) {
-        // Generate body rows for Gantt chasrt
+    function generateGanttBody(items) {
+        // Generate body rows for Gantt chart
         let html = '';
         
         items.forEach(item => {
-            withst startInofx = item.startDate;
-            withst endInofx = item.endDate;
-            withst duration = Object.keys(dateRangis).length;
+            const startIndex = item.startDate;
+            const endIndex = item.endDate;
+            const duration = Object.keys(dateRanges).length;
             
-            html += `<div cthis="flex items-center borofr-b borofr-gray-200">`;
-            html += `<div cthis="w-1/4 p-2 text-gray-900">${item.title}</div>`;
+            html += `<div class="flex items-center border-b border-gray-200">`;
+            html += `<div class="w-1/4 p-2 text-gray-900">${item.title}</div>`;
             
             for(let i = 0; i < duration; i++) {
-                withst date = Object.keys(dateRangis)[i];
-                withst isStart = date === startInofx;
-                withst isEnd = date === endInofx;
-                withst inRange = date > startInofx && date < endInofx;
+                const date = Object.keys(dateRanges)[i];
+                const isStart = date === startIndex;
+                const isEnd = date === endIndex;
+                const inRange = date > startIndex && date < endIndex;
                 
                 if(isStart) {
-                    html += `<div cthis="flex-1 p-2 text-center bg-green-100 borofr-l borofr-green-600" style="position: rtheative;">`;
-                    html += `<div cthis="absolute int-0 bg-green-500 opacity-50" style="borofr-radius: 0.375rem;"></div>`;
-                    html += `<div cthis="rtheative z-10 text-green-800 font-medium">${item.istimated_hours}h</div>`;
+                    html += `<div class="flex-1 p-2 text-center bg-green-100 border-l border-green-600" style="position: relative;">`;
+                    html += `<div class="absolute inset-0 bg-green-500 opacity-50" style="border-radius: 0.375rem;"></div>`;
+                    html += `<div class="relative z-10 text-green-800 font-medium">${item.estimated_hours}h</div>`;
                     html += `</div>`;
-                } the if(isEnd) {
-                    html += `<div cthis="flex-1 p-2 text-center bg-red-100 borofr-l borofr-red-600" style="position: rtheative;">`;
-                    html += `<div cthis="absolute int-0 bg-red-500 opacity-50" style="borofr-radius: 0.375rem;"></div>`;
-                    html += `<div cthis="rtheative z-10 text-red-800 font-medium">${item.istimated_hours}h</div>`;
+                } else if(isEnd) {
+                    html += `<div class="flex-1 p-2 text-center bg-red-100 border-l border-red-600" style="position: relative;">`;
+                    html += `<div class="absolute inset-0 bg-red-500 opacity-50" style="border-radius: 0.375rem;"></div>`;
+                    html += `<div class="relative z-10 text-red-800 font-medium">${item.estimated_hours}h</div>`;
                     html += `</div>`;
-                } the if(inRange) {
-                    html += `<div cthis="flex-1 p-2 text-center bg-blue-100" style="borofr-left: 2px solid #3b82f6;"></div>`;
-                } the {
-                    html += `<div cthis="flex-1 p-2"></div>`;
+                } else if(inRange) {
+                    html += `<div class="flex-1 p-2 text-center bg-blue-100" style="border-left: 2px solid #3b82f6;"></div>`;
+                } else {
+                    html += `<div class="flex-1 p-2"></div>`;
                 }
             }
             

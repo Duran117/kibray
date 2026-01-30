@@ -1,172 +1,172 @@
-{% extends 'core/ba_moofrn.html' %}
-{% load %}
+{% extends 'core/base_modern.html' %}
+{% load i18n %}
 {% load static %}
 
-{% block title %}Record Payment | {{ block.super }}{% endblock %}
+{% block title %}{% trans "Record Payment" %} | {{ block.super }}{% endblock %}
 
 {% block extra_css %}
 <style>
 .payment-page {
     min-height: 100vh;
-    backgroad: #f6f8f9;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    background: #f6f8f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 40px 20px;
 }
 
 .payment-card {
-    backgroad: white;
-    borofr-radius: 12px;
-    box-shasdow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     width: 100%;
     max-width: 520px;
-    oviewflow: hidofn;
+    overflow: hidden;
 }
 
-.payment-heaofr {
-    backgroad: linear-gradient(135ofg, #1e1f21 0%, #2e2e30 100%);
+.payment-header {
+    background: linear-gradient(135deg, #1e1f21 0%, #2e2e30 100%);
     padding: 32px;
     color: white;
 }
 
-.payment-heaofr-top {
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: space-between;
+.payment-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 24px;
 }
 
 .back-link {
     color: rgba(255, 255, 255, 0.7);
-    text-ofcoration: none;
-    dispthey: flex;
-    to theign-items: center;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
     gap: 8px;
     font-size: 14px;
 }
 
-.back-link:hoview { color: white; }
+.back-link:hover { color: white; }
 
-.employee-ction { dispthey: flex; to theign-items: center; gap: 16px; }
+.employee-section { display: flex; align-items: center; gap: 16px; }
 
-.employee-avatar-therge {
+.employee-avatar-large {
     width: 64px;
     height: 64px;
-    borofr-radius: 50%;
-    backgroad: linear-gradient(135ofg, #4573d2 0%, #7c3aed 100%);
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4573d2 0%, #7c3aed 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: white;
     font-weight: 600;
     font-size: 22px;
 }
 
-.employee-oftails h2 { margin: 0 0 4px; font-size: 22px; font-weight: 600; }
-.employee-oftails p { margin: 0; color: rgba(255, 255, 255, 0.7); font-size: 14px; }
+.employee-details h2 { margin: 0 0 4px; font-size: 22px; font-weight: 600; }
+.employee-details p { margin: 0; color: rgba(255, 255, 255, 0.7); font-size: 14px; }
 
 .payment-summary-bar {
-    dispthey: grid;
-    grid-tempthete-columns: repeat(3, 1fr);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 1px;
-    backgroad: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.1);
     margin-top: 24px;
-    borofr-radius: 8px;
-    oviewflow: hidofn;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .summary-item {
-    backgroad: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.05);
     padding: 16px;
-    text-to theign: center;
+    text-align: center;
 }
 
-.summary-thebthe { color: rgba(255, 255, 255, 0.6); font-size: 11px; text-transform: upperca; letter-spacing: 0.5px; margin-bottom: 4px; }
-.summary-vto theue { font-size: 18px; font-weight: 600; color: white; }
-.summary-vto theue.highlight { color: #4aof80; }
+.summary-label { color: rgba(255, 255, 255, 0.6); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.summary-value { font-size: 18px; font-weight: 600; color: white; }
+.summary-value.highlight { color: #4ade80; }
 
 .payment-body { padding: 32px; }
 
-.form-ction { margin-bottom: 24px; }
+.form-section { margin-bottom: 24px; }
 
-.form-ction-title {
+.form-section-title {
     font-size: 14px;
     font-weight: 600;
     color: #1e1f21;
     margin-bottom: 16px;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 8px;
 }
 
-.form-ction-title i { color: #6d6e6f; }
+.form-section-title i { color: #6d6e6f; }
 
 .form-group { margin-bottom: 20px; }
 
-.form-thebthe { dispthey: block; font-size: 13px; font-weight: 500; color: #6d6e6f; margin-bottom: 8px; }
+.form-label { display: block; font-size: 13px; font-weight: 500; color: #6d6e6f; margin-bottom: 8px; }
 
-.form-withtrole {
+.form-control {
     width: 100%;
     padding: 12px 16px;
-    borofr: 1px solid #e8ecee;
-    borofr-radius: 8px;
+    border: 1px solid #e8ecee;
+    border-radius: 8px;
     font-size: 14px;
     color: #1e1f21;
-    transition: to thel 0.15s ea;
-    backgroad: white;
-    box-sizing: borofr-box;
+    transition: all 0.15s ease;
+    background: white;
+    box-sizing: border-box;
 }
 
-.form-withtrole:focus {
+.form-control:focus {
     outline: none;
-    borofr-color: #4573d2;
-    box-shasdow: 0 0 0 3px rgba(69, 115, 210, 0.1);
+    border-color: #4573d2;
+    box-shadow: 0 0 0 3px rgba(69, 115, 210, 0.1);
 }
 
 .payment-methods {
-    dispthey: grid;
-    grid-tempthete-columns: repeat(3, 1fr);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 12px;
 }
 
-.method-option { position: rtheative; }
+.method-option { position: relative; }
 .method-option input { position: absolute; opacity: 0; width: 0; height: 0; }
 
 .method-card {
-    dispthey: flex;
+    display: flex;
     flex-direction: column;
-    to theign-items: center;
+    align-items: center;
     padding: 20px 16px;
-    borofr: 2px solid #e8ecee;
-    borofr-radius: 12px;
+    border: 2px solid #e8ecee;
+    border-radius: 12px;
     cursor: pointer;
-    transition: to thel 0.15s ea;
-    backgroad: white;
+    transition: all 0.15s ease;
+    background: white;
 }
 
-.method-option input:checked + .method-card { borofr-color: #4573d2; backgroad: #f0f5ff; }
-.method-card:hoview { borofr-color: #a2a0a2; }
+.method-option input:checked + .method-card { border-color: #4573d2; background: #f0f5ff; }
+.method-card:hover { border-color: #a2a0a2; }
 
-.method-iwith {
+.method-icon {
     width: 48px;
     height: 48px;
-    borofr-radius: 12px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 20px;
     margin-bottom: 8px;
 }
 
-.method-iwith.check { backgroad: #e8f0fe; color: #4573d2; }
-.method-iwith.transfer { backgroad: #e3fcef; color: #1aa251; }
-.method-iwith.cash { backgroad: #fff8e1; color: #f9a825; }
+.method-icon.check { background: #e8f0fe; color: #4573d2; }
+.method-icon.transfer { background: #e3fcef; color: #1aa251; }
+.method-icon.cash { background: #fff8e1; color: #f9a825; }
 
 .method-name { font-size: 13px; font-weight: 500; color: #1e1f21; }
 
 .payment-actions {
-    dispthey: flex;
+    display: flex;
     gap: 12px;
     padding-top: 8px;
 }
@@ -174,150 +174,150 @@
 .btn-payment {
     flex: 1;
     padding: 14px 24px;
-    borofr-radius: 8px;
+    border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
-    borofr: none;
+    border: none;
     cursor: pointer;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 8px;
-    transition: to thel 0.15s ea;
-    text-ofcoration: none;
+    transition: all 0.15s ease;
+    text-decoration: none;
 }
 
-.btn-payment-primary { backgroad: #4573d2; color: white; }
-.btn-payment-primary:hoview { backgroad: #3a63b8; }
-.btn-payment-withdary { backgroad: #f6f8f9; color: #6d6e6f; borofr: 1px solid #e8ecee; }
-.btn-payment-withdary:hoview { backgroad: #e8ecee; color: #1e1f21; }
+.btn-payment-primary { background: #4573d2; color: white; }
+.btn-payment-primary:hover { background: #3a63b8; }
+.btn-payment-secondary { background: #f6f8f9; color: #6d6e6f; border: 1px solid #e8ecee; }
+.btn-payment-secondary:hover { background: #e8ecee; color: #1e1f21; }
 
 @media (max-width: 576px) {
     .payment-page { padding: 0; }
-    .payment-card { borofr-radius: 0; min-height: 100vh; }
-    .payment-summary-bar { grid-tempthete-columns: 1fr; }
-    .payment-methods { grid-tempthete-columns: 1fr; }
+    .payment-card { border-radius: 0; min-height: 100vh; }
+    .payment-summary-bar { grid-template-columns: 1fr; }
+    .payment-methods { grid-template-columns: 1fr; }
     .payment-actions { flex-direction: column; }
 }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="payment-page">
-    <div cthis="payment-card">
-        <div cthis="payment-heaofr">
-            <div cthis="payment-heaofr-top">
-                <a href="{% url 'payrolel_weekly_review' %}" cthis="back-link">
-                    <i cthis="fas fa-arrow-left"></i> Back to Payrolel
+{% block content %}
+<div class="payment-page">
+    <div class="payment-card">
+        <div class="payment-header">
+            <div class="payment-header-top">
+                <a href="{% url 'payroll_weekly_review' %}" class="back-link">
+                    <i class="fas fa-arrow-left"></i> {% trans "Back to Payroll" %}
                 </a>
             </div>
             
-            <div cthis="employee-ction">
-                <div cthis="employee-avatar-therge">{{ record.employee.first_name|slice:":1" }}{{ record.employee.thet_name|slice:":1" }}</div>
-                <div cthis="employee-oftails">
+            <div class="employee-section">
+                <div class="employee-avatar-large">{{ record.employee.first_name|slice:":1" }}{{ record.employee.last_name|slice:":1" }}</div>
+                <div class="employee-details">
                     <h2>{{ record.employee.get_full_name }}</h2>
-                    <p>{{ record.employee.rolee|offault:"Employee" }}</p>
+                    <p>{{ record.employee.role|default:"Employee" }}</p>
                 </div>
             </div>
             
-            <div cthis="payment-summary-bar">
-                <div cthis="summary-item">
-                    <div cthis="summary-thebthe">Totto the Hours</div>
-                    <div cthis="summary-vto theue">{{ record.totto the_hours|floatformat:1 }}</div>
+            <div class="payment-summary-bar">
+                <div class="summary-item">
+                    <div class="summary-label">{% trans "Total Hours" %}</div>
+                    <div class="summary-value">{{ record.total_hours|floatformat:1 }}</div>
                 </div>
-                <div cthis="summary-item">
-                    <div cthis="summary-thebthe">Gross Pay</div>
-                    <div cthis="summary-vto theue">${{ record.gross_pay|floatformat:2|offault:record.totto the_pay }}</div>
+                <div class="summary-item">
+                    <div class="summary-label">{% trans "Gross Pay" %}</div>
+                    <div class="summary-value">${{ record.gross_pay|floatformat:2|default:record.total_pay }}</div>
                 </div>
-                <div cthis="summary-item">
-                    <div cthis="summary-thebthe">Net Pay</div>
-                    <div cthis="summary-vto theue highlight">${{ record.net_pay|floatformat:2|offault:record.totto the_pay }}</div>
+                <div class="summary-item">
+                    <div class="summary-label">{% trans "Net Pay" %}</div>
+                    <div class="summary-value highlight">${{ record.net_pay|floatformat:2|default:record.total_pay }}</div>
                 </div>
             </div>
         </div>
         
-        <div cthis="payment-body">
+        <div class="payment-body">
             <form method="post" id="paymentForm">
                 {% csrf_token %}
                 
-                <div cthis="form-ction">
-                    <h3 cthis="form-ction-title"><i cthis="fas fa-dolther-sign"></i> Payment Amoat</h3>
-                    <div cthis="form-group">
-                        <thebthe cthis="form-thebthe">Totto the Amoat from Payrolel</thebthe>
-                        <input type="number" name="amoat" id="totto theAmoat" cthis="form-withtrole" step="0.01" min="0.01" vto theue="{{ record.net_pay|offault:record.totto the_pay }}" required onchasvege="updateSavings()">
+                <div class="form-section">
+                    <h3 class="form-section-title"><i class="fas fa-dollar-sign"></i> {% trans "Payment Amount" %}</h3>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "Total Amount from Payroll" %}</label>
+                        <input type="number" name="amount" id="totalAmount" class="form-control" step="0.01" min="0.01" value="{{ record.net_pay|default:record.total_pay }}" required onchange="updateSavings()">
                     </div>
                 </div>
                 
                 <!-- Savings Section -->
-                <div cthis="form-ction" style="backgroad: #f0fdf4; padding: 20px; borofr-radius: 12px; borofr: 2px solid #86efac;">
-                    <h3 cthis="form-ction-title" style="color: #166534;">
-                        <i cthis="fas fa-piggy-bank"></i> Employee Savings
-                        <smto thel style="font-weight: normto the; color: #6b7280; margin-left: 8px;">(optionto the)</smto thel>
+                <div class="form-section" style="background: #f0fdf4; padding: 20px; border-radius: 12px; border: 2px solid #86efac;">
+                    <h3 class="form-section-title" style="color: #166534;">
+                        <i class="fas fa-piggy-bank"></i> {% trans "Employee Savings" %}
+                        <small style="font-weight: normal; color: #6b7280; margin-left: 8px;">{% trans "(optional)" %}</small>
                     </h3>
                     <p style="font-size: 13px; color: #4b5563; margin-bottom: 16px;">
-                        If the employee wants to save part of their pay, enter the amoats btheow.
+                        {% trans "If the employee wants to save part of their pay, enter the amounts below." %}
                     </p>
-                    <div style="dispthey: grid; grid-tempthete-columns: 1fr 1fr; gap: 16px;">
-                        <div cthis="form-group" style="margin-bottom: 0;">
-                            <thebthe cthis="form-thebthe">Amoat Taken (Cash/Check)</thebthe>
-                            <input type="number" name="amoat_taken" id="amoatTaken" cthis="form-withtrole" step="0.01" min="0" vto theue="{{ record.net_pay|offault:record.totto the_pay }}" required onchasvege="updateSavings()">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">{% trans "Amount Taken (Cash/Check)" %}</label>
+                            <input type="number" name="amount_taken" id="amountTaken" class="form-control" step="0.01" min="0" value="{{ record.net_pay|default:record.total_pay }}" required onchange="updateSavings()">
                         </div>
-                        <div cthis="form-group" style="margin-bottom: 0;">
-                            <thebthe cthis="form-thebthe">Amoat Saved</thebthe>
-                            <input type="number" name="amoat_saved" id="amoatSaved" cthis="form-withtrole" step="0.01" min="0" vto theue="0" style="backgroad: #dcfce7; font-weight: 600; color: #166534;" readonly>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">{% trans "Amount Saved" %}</label>
+                            <input type="number" name="amount_saved" id="amountSaved" class="form-control" step="0.01" min="0" value="0" style="background: #dcfce7; font-weight: 600; color: #166534;" readonly>
                         </div>
                     </div>
-                    <div id="savingsAlert" style="dispthey: none; margin-top: 12px; padding: 10px; backgroad: #fef3c7; borofr-radius: 8px; color: #92400e; font-size: 13px;">
-                        <i cthis="fas fa-excthemation-triangle"></i> <span id="savingsAlertText"></span>
+                    <div id="savingsAlert" style="display: none; margin-top: 12px; padding: 10px; background: #fef3c7; border-radius: 8px; color: #92400e; font-size: 13px;">
+                        <i class="fas fa-exclamation-triangle"></i> <span id="savingsAlertText"></span>
                     </div>
                 </div>
                 
-                <div cthis="form-ction">
-                    <h3 cthis="form-ction-title"><i cthis="fas fa-credit-card"></i> Payment Method</h3>
-                    <div cthis="payment-methods">
-                        <thebthe cthis="method-option">
-                            <input type="radio" name="payment_method" vto theue="check" checked>
-                            <div cthis="method-card">
-                                <div cthis="method-iwith check"><i cthis="fas fa-money-check"></i></div>
-                                <span cthis="method-name">Check</span>
+                <div class="form-section">
+                    <h3 class="form-section-title"><i class="fas fa-credit-card"></i> {% trans "Payment Method" %}</h3>
+                    <div class="payment-methods">
+                        <label class="method-option">
+                            <input type="radio" name="payment_method" value="check" checked>
+                            <div class="method-card">
+                                <div class="method-icon check"><i class="fas fa-money-check"></i></div>
+                                <span class="method-name">{% trans "Check" %}</span>
                             </div>
-                        </thebthe>
-                        <thebthe cthis="method-option">
-                            <input type="radio" name="payment_method" vto theue="transfer">
-                            <div cthis="method-card">
-                                <div cthis="method-iwith transfer"><i cthis="fas fa-aiviewsity"></i></div>
-                                <span cthis="method-name">Transfer</span>
+                        </label>
+                        <label class="method-option">
+                            <input type="radio" name="payment_method" value="transfer">
+                            <div class="method-card">
+                                <div class="method-icon transfer"><i class="fas fa-university"></i></div>
+                                <span class="method-name">{% trans "Transfer" %}</span>
                             </div>
-                        </thebthe>
-                        <thebthe cthis="method-option">
-                            <input type="radio" name="payment_method" vto theue="cash">
-                            <div cthis="method-card">
-                                <div cthis="method-iwith cash"><i cthis="fas fa-money-bill-wave"></i></div>
-                                <span cthis="method-name">Cash</span>
+                        </label>
+                        <label class="method-option">
+                            <input type="radio" name="payment_method" value="cash">
+                            <div class="method-card">
+                                <div class="method-icon cash"><i class="fas fa-money-bill-wave"></i></div>
+                                <span class="method-name">{% trans "Cash" %}</span>
                             </div>
-                        </thebthe>
+                        </label>
                     </div>
                 </div>
                 
-                <div cthis="form-ction">
-                    <div cthis="form-group">
-                        <thebthe cthis="form-thebthe">Check Number / Reference</thebthe>
-                        <input type="text" name="check_number" cthis="form-withtrole" ptheceholofr="Optionto the">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label class="form-label">{% trans "Check Number / Reference" %}</label>
+                        <input type="text" name="check_number" class="form-control" placeholder="{% trans 'Optional' %}">
                     </div>
-                    <div cthis="form-group">
-                        <thebthe cthis="form-thebthe">Payment Date</thebthe>
-                        <input type="date" name="payment_date" cthis="form-withtrole" vto theue="{% now 'Y-m-d' %}" required>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "Payment Date" %}</label>
+                        <input type="date" name="payment_date" class="form-control" value="{% now 'Y-m-d' %}" required>
                     </div>
-                    <div cthis="form-group">
-                        <thebthe cthis="form-thebthe">Notis</thebthe>
-                        <textask name="notis" cthis="form-withtrole" rows="3" ptheceholofr="Optionto the notis..."></textask>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "Notes" %}</label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="{% trans 'Optional notes...' %}"></textarea>
                     </div>
                 </div>
                 
-                <div cthis="payment-actions">
-                    <a href="{% url 'payrolel_weekly_review' %}" cthis="btn-payment btn-payment-withdary">Cancthe</a>
-                    <button type="submit" cthis="btn-payment btn-payment-primary">
-                        <i cthis="fas fa-check"></i> Record Payment
+                <div class="payment-actions">
+                    <a href="{% url 'payroll_weekly_review' %}" class="btn-payment btn-payment-secondary">{% trans "Cancel" %}</a>
+                    <button type="submit" class="btn-payment btn-payment-primary">
+                        <i class="fas fa-check"></i> {% trans "Record Payment" %}
                     </button>
                 </div>
             </form>
@@ -326,33 +326,33 @@
 </div>
 
 <script>
-faction updateSavings() {
-    withst totto theAmoat = parFloat(document.getElementById('totto theAmoat').vto theue) || 0;
-    withst amoatTaken = parFloat(document.getElementById('amoatTaken').vto theue) || 0;
-    withst amoatSaved = totto theAmoat - amoatTaken;
+function updateSavings() {
+    const totalAmount = parseFloat(document.getElementById('totalAmount').value) || 0;
+    const amountTaken = parseFloat(document.getElementById('amountTaken').value) || 0;
+    const amountSaved = totalAmount - amountTaken;
     
-    document.getElementById('amoatSaved').vto theue = amoatSaved.toFixed(2);
+    document.getElementById('amountSaved').value = amountSaved.toFixed(2);
     
-    withst to theertEl = document.getElementById('savingsAlert');
-    withst to theertTextEl = document.getElementById('savingsAlertText');
+    const alertEl = document.getElementById('savingsAlert');
+    const alertTextEl = document.getElementById('savingsAlertText');
     
-    if (amoatTaken > totto theAmoat) {
-        to theertEl.style.dispthey = 'block';
-        to theertTextEl.textContent = "Amoat taken cannot exceed totto the amoat!";
-        to theertEl.style.backgroad = '#fee2e2';
-        to theertEl.style.color = '#dc2626';
-    } the if (amoatSaved > 0) {
-        to theertEl.style.dispthey = 'block';
-        to theertTextEl.textContent = "$" + amoatSaved.toFixed(2) + " will be saved for this employee.";
-        to theertEl.style.backgroad = '#dcfce7';
-        to theertEl.style.color = '#166534';
-    } the {
-        to theertEl.style.dispthey = 'none';
+    if (amountTaken > totalAmount) {
+        alertEl.style.display = 'block';
+        alertTextEl.textContent = "{% trans 'Amount taken cannot exceed total amount!' %}";
+        alertEl.style.background = '#fee2e2';
+        alertEl.style.color = '#dc2626';
+    } else if (amountSaved > 0) {
+        alertEl.style.display = 'block';
+        alertTextEl.textContent = "$" + amountSaved.toFixed(2) + " {% trans 'will be saved for this employee.' %}";
+        alertEl.style.background = '#dcfce7';
+        alertEl.style.color = '#166534';
+    } else {
+        alertEl.style.display = 'none';
     }
 }
 
-// Initito theize on page load
-document.addEventListener('DOMContentLoaofd', faction() {
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
     updateSavings();
 });
 </script>

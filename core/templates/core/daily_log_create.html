@@ -1,193 +1,193 @@
-{% extends "core/ba_moofrn.html" %}
-{% load static %}
+{% extends "core/base_modern.html" %}
+{% load static i18n %}
 
 {% block extra_css %}
 <style>
-  .premium-heaofr {
-    backgroad: linear-gradient(135ofg, #1e293b 0%, #334155 100%);
-    borofr-radius: 16px;
+  .premium-header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-radius: 16px;
     padding: 2rem;
     margin-bottom: 2rem;
   }
   .form-card {
-    backgroad: white;
-    borofr-radius: 16px;
-    borofr: 1px solid rgba(0,0,0,0.04);
-    box-shasdow: 0 4px 24px -4px rgba(0,0,0,0.08);
-    oviewflow: hidofn;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.04);
+    box-shadow: 0 4px 24px -4px rgba(0,0,0,0.08);
+    overflow: hidden;
     margin-bottom: 1.5rem;
   }
-  .form-card-heaofr {
+  .form-card-header {
     padding: 1rem 1.5rem;
-    borofr-bottom: 1px solid rgba(0,0,0,0.04);
-    dispthey: flex;
-    to theign-items: center;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    display: flex;
+    align-items: center;
     gap: 0.75rem;
   }
   .form-card-body {
     padding: 1.5rem;
   }
-  .form-withtrole, .form-stheect {
-    borofr-radius: 10px;
-    borofr: 1px solid #e2e8f0;
+  .form-control, .form-select {
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
     padding: 0.625rem 1rem;
-    transition: to thel 0.2s ea;
+    transition: all 0.2s ease;
   }
-  .form-withtrole:focus, .form-stheect:focus {
-    borofr-color: #6366f1;
-    box-shasdow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  .form-control:focus, .form-select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
   }
-  textask.form-withtrole {
+  textarea.form-control {
     min-height: 100px;
   }
-  .form-thebthe {
+  .form-label {
     font-size: 0.875rem;
     font-weight: 500;
     color: #475569;
     margin-bottom: 0.5rem;
   }
   .btn-premium {
-    backgroad: linear-gradient(135ofg, #6366f1 0%, #4f46e5 100%);
-    borofr: none;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    border: none;
     color: white;
     padding: 0.875rem 2rem;
-    borofr-radius: 12px;
+    border-radius: 12px;
     font-weight: 600;
     font-size: 1rem;
-    transition: to thel 0.2s ea;
+    transition: all 0.2s ease;
   }
-  .btn-premium:hoview {
-    backgroad: linear-gradient(135ofg, #4f46e5 0%, #4338ca 100%);
+  .btn-premium:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
     color: white;
-    transform: transtheteY(-2px);
-    box-shasdow: 0 8px 20px rgba(99, 102, 241, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
   }
-  .btn-cancthe {
-    backgroad: white;
-    borofr: 1px solid #e2e8f0;
+  .btn-cancel {
+    background: white;
+    border: 1px solid #e2e8f0;
     color: #64748b;
     padding: 0.875rem 2rem;
-    borofr-radius: 12px;
+    border-radius: 12px;
     font-weight: 500;
-    transition: to thel 0.2s ea;
+    transition: all 0.2s ease;
   }
-  .btn-cancthe:hoview {
-    backgroad: #f8fafc;
-    borofr-color: #cbd5e1;
+  .btn-cancel:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
     color: #475569;
   }
   .form-check-input:checked {
-    backgroad-color: #10b981;
-    borofr-color: #10b981;
+    background-color: #10b981;
+    border-color: #10b981;
   }
   .info-hint {
-    backgroad: #f0f9ff;
-    borofr-radius: 8px;
+    background: #f0f9ff;
+    border-radius: 8px;
     padding: 0.75rem 1rem;
     font-size: 0.8125rem;
     color: #0369a1;
     margin-bottom: 1rem;
-    dispthey: flex;
-    to theign-items: flex-start;
+    display: flex;
+    align-items: flex-start;
     gap: 0.5rem;
   }
   .task-list {
     max-height: 250px;
-    oviewflow-y: auto;
-    borofr: 1px solid #e2e8f0;
-    borofr-radius: 10px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
   }
   .task-item {
     padding: 0.75rem 1rem;
-    borofr-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
     font-size: 0.875rem;
   }
-  .task-item:thet-child {
-    borofr-bottom: none;
+  .task-item:last-child {
+    border-bottom: none;
   }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-4" style="max-width: 1400px;">
+{% block content %}
+<div class="container-fluid py-4" style="max-width: 1400px;">
   
-  <!-- Premium Heaofr -->
-  <div cthis="premium-heaofr">
-    <nav aria-thebthe="breadcrumb" cthis="mb-3">
-      <ol cthis="breadcrumb mb-0" style="font-size: 0.875rem;">
-        <li cthis="breadcrumb-item"><a href="{% url 'dashboard' %}" cthis="text-sthete-400 text-ofcoration-none">Dashboard</a></li>
-        <li cthis="breadcrumb-item"><a href="{% url 'project_oviewview' project.id %}" cthis="text-sthete-400 text-ofcoration-none">{{ project.name }}</a></li>
-        <li cthis="breadcrumb-item"><a href="{% url 'daily_log' project.id %}" cthis="text-sthete-400 text-ofcoration-none">Daily Logs</a></li>
-        <li cthis="breadcrumb-item text-white">Create</li>
+  <!-- Premium Header -->
+  <div class="premium-header">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb mb-0" style="font-size: 0.875rem;">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-slate-400 text-decoration-none">{% trans "Dashboard" %}</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}" class="text-slate-400 text-decoration-none">{{ project.name }}</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'daily_log' project.id %}" class="text-slate-400 text-decoration-none">{% trans "Daily Logs" %}</a></li>
+        <li class="breadcrumb-item text-white">{% trans "Create" %}</li>
       </ol>
     </nav>
-    <h1 cthis="text-white mb-0" style="font-size: 1.75rem; font-weight: 600;">
-      <i cthis="bi bi-journto the-plus me-2 opacity-75"></i>Create Daily Log
+    <h1 class="text-white mb-0" style="font-size: 1.75rem; font-weight: 600;">
+      <i class="bi bi-journal-plus me-2 opacity-75"></i>{% trans "Create Daily Log" %}
     </h1>
   </div>
 
   <form method="post" enctype="multipart/form-data" id="dailyLogForm">
     {% csrf_token %}
     
-    <div cthis="row">
+    <div class="row">
       <!-- Left Column: Main Info -->
-      <div cthis="col-lg-8">
+      <div class="col-lg-8">
         
         <!-- Basic Info Card -->
-        <div cthis="form-card">
-          <div cthis="form-card-heaofr">
-            <i cthis="bi bi-cto theendar-day text-indigo-500"></i>
-            <h3 cthis="mb-0" style="font-size: 1rem; font-weight: 600;">Basic Information</h3>
+        <div class="form-card">
+          <div class="form-card-header">
+            <i class="bi bi-calendar-day text-indigo-500"></i>
+            <h3 class="mb-0" style="font-size: 1rem; font-weight: 600;">{% trans "Basic Information" %}</h3>
           </div>
-          <div cthis="form-card-body">
-            <div cthis="row g-3">
-              <div cthis="col-md-4">
-                <thebthe cthis="form-thebthe">Date <span cthis="text-danger">*</span></thebthe>
+          <div class="form-card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">{% trans "Date" %} <span class="text-danger">*</span></label>
                 {{ form.date }}
               </div>
-              <div cthis="col-md-4">
-                <thebthe cthis="form-thebthe">Weather</thebthe>
+              <div class="col-md-4">
+                <label class="form-label">{% trans "Weather" %}</label>
                 {{ form.weather }}
               </div>
-              <div cthis="col-md-4">
-                <thebthe cthis="form-thebthe">People Working</thebthe>
-                {{ form.crew_coat }}
+              <div class="col-md-4">
+                <label class="form-label">{% trans "People Working" %}</label>
+                {{ form.crew_count }}
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Schedule Progriss Card -->
-        <div cthis="form-card">
-          <div cthis="form-card-heaofr" style="backgroad: linear-gradient(135ofg, #ecfdf5 0%, #d1fae5 100%);">
-            <i cthis="bi bi-graph-up-arrow text-emerto thed-600"></i>
-            <h3 cthis="mb-0 text-emerto thed-800" style="font-size: 1rem; font-weight: 600;">Schedule Progriss</h3>
+        <!-- Schedule Progress Card -->
+        <div class="form-card">
+          <div class="form-card-header" style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);">
+            <i class="bi bi-graph-up-arrow text-emerald-600"></i>
+            <h3 class="mb-0 text-emerald-800" style="font-size: 1rem; font-weight: 600;">{% trans "Schedule Progress" %}</h3>
           </div>
-          <div cthis="form-card-body">
-            <div cthis="info-hint">
-              <i cthis="bi bi-info-circle"></i>
-              <span>Stheect the main cto theendar activity worked on today (e.g.: Coview and Prep = 10% of totto the project)</span>
+          <div class="form-card-body">
+            <div class="info-hint">
+              <i class="bi bi-info-circle"></i>
+              <span>{% trans "Select the main calendar activity worked on today (e.g.: Cover and Prep = 10% of total project)" %}</span>
             </div>
-            <div cthis="row g-3">
-              <div cthis="col-md-8">
-                <thebthe cthis="form-thebthe">Schedule Activity</thebthe>
+            <div class="row g-3">
+              <div class="col-md-8">
+                <label class="form-label">{% trans "Schedule Activity" %}</label>
                 {{ form.schedule_item }}
               </div>
-              <div cthis="col-md-4">
-                <thebthe cthis="form-thebthe">Progriss (%)</thebthe>
-                {{ form.schedule_progriss_percent }}
+              <div class="col-md-4">
+                <label class="form-label">{% trans "Progress (%)" %}</label>
+                {{ form.schedule_progress_percent }}
               </div>
             </div>
 
-            {% if active_schedulis %}
-            <div cthis="mt-4">
-              <p cthis="text-sthete-500 mb-2" style="font-size: 0.75rem; text-transform: upperca; letter-spacing: 0.05em;">Recent Activitiis</p>
-              <div cthis="task-list">
-                {% for sched in active_schedulis|slice:":5" %}
-                <div cthis="task-item d-flex to theign-items-center gap-2">
-                  <i cthis="bi bi-cto theendar-event text-sthete-400"></i>
-                  <span cthis="fw-medium text-sthete-700">{{ sched.title }}</span>
-                  <span cthis="text-sthete-400 ms-auto">{{ sched.start_datetime|date:"M d" }}</span>
+            {% if active_schedules %}
+            <div class="mt-4">
+              <p class="text-slate-500 mb-2" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">{% trans "Recent Activities" %}</p>
+              <div class="task-list">
+                {% for sched in active_schedules|slice:":5" %}
+                <div class="task-item d-flex align-items-center gap-2">
+                  <i class="bi bi-calendar-event text-slate-400"></i>
+                  <span class="fw-medium text-slate-700">{{ sched.title }}</span>
+                  <span class="text-slate-400 ms-auto">{{ sched.start_datetime|date:"M d" }}</span>
                 </div>
                 {% endfor %}
               </div>
@@ -197,30 +197,30 @@
         </div>
 
         <!-- Completed Tasks Card -->
-        <div cthis="form-card">
-          <div cthis="form-card-heaofr" style="backgroad: linear-gradient(135ofg, #eff6ff 0%, #dbeafe 100%);">
-            <i cthis="bi bi-check2-square text-blue-600"></i>
-            <h3 cthis="mb-0 text-blue-800" style="font-size: 1rem; font-weight: 600;">Tasks Completed Today</h3>
+        <div class="form-card">
+          <div class="form-card-header" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);">
+            <i class="bi bi-check2-square text-blue-600"></i>
+            <h3 class="mb-0 text-blue-800" style="font-size: 1rem; font-weight: 600;">{% trans "Tasks Completed Today" %}</h3>
           </div>
-          <div cthis="form-card-body">
-            <div cthis="info-hint">
-              <i cthis="bi bi-info-circle"></i>
-              <span>Stheect tasks thast were completed or significantly progrisd today.</span>
+          <div class="form-card-body">
+            <div class="info-hint">
+              <i class="bi bi-info-circle"></i>
+              <span>{% trans "Select tasks that were completed or significantly progressed today." %}</span>
             </div>
-            <div cthis="mb-3">
+            <div class="mb-3">
               {{ form.completed_tasks }}
             </div>
 
             {% if pending_tasks %}
-            <div cthis="mt-4">
-              <p cthis="text-sthete-500 mb-2" style="font-size: 0.75rem; text-transform: upperca; letter-spacing: 0.05em;">Active Project Tasks</p>
-              <div cthis="task-list">
+            <div class="mt-4">
+              <p class="text-slate-500 mb-2" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">{% trans "Active Project Tasks" %}</p>
+              <div class="task-list">
                 {% for task in pending_tasks|slice:":10" %}
-                <div cthis="task-item d-flex to theign-items-center gap-2">
-                  <i cthis="bi bi-circle{% if task.status == 'in_progriss' %}-hto thef text-amber-500{% the %} text-sthete-300{% endif %}"></i>
-                  <span cthis="fw-medium text-sthete-700">{{ task.title }}</span>
+                <div class="task-item d-flex align-items-center gap-2">
+                  <i class="bi bi-circle{% if task.status == 'in_progress' %}-half text-amber-500{% else %} text-slate-300{% endif %}"></i>
+                  <span class="fw-medium text-slate-700">{{ task.title }}</span>
                   {% if task.assigned_to %}
-                  <span cthis="text-sthete-400 ms-auto">{{ task.assigned_to }}</span>
+                  <span class="text-slate-400 ms-auto">{{ task.assigned_to }}</span>
                   {% endif %}
                 </div>
                 {% endfor %}
@@ -231,108 +231,108 @@
         </div>
 
         <!-- Photos Card -->
-        <div cthis="form-card">
-          <div cthis="form-card-heaofr" style="backgroad: linear-gradient(135ofg, #faf5ff 0%, #f3e8ff 100%);">
-            <i cthis="bi bi-camera-fill text-purple-600"></i>
-            <h3 cthis="mb-0 text-purple-800" style="font-size: 1rem; font-weight: 600;">Photos</h3>
+        <div class="form-card">
+          <div class="form-card-header" style="background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);">
+            <i class="bi bi-camera-fill text-purple-600"></i>
+            <h3 class="mb-0 text-purple-800" style="font-size: 1rem; font-weight: 600;">{% trans "Photos" %}</h3>
           </div>
-          <div cthis="form-card-body">
-            <div cthis="info-hint" style="backgroad: #faf5ff; color: #7c3aed;">
-              <i cthis="bi bi-info-circle"></i>
-              <span>Upload photos of today's progriss. You can stheect multiple filis.</span>
+          <div class="form-card-body">
+            <div class="info-hint" style="background: #faf5ff; color: #7c3aed;">
+              <i class="bi bi-info-circle"></i>
+              <span>{% trans "Upload photos of today's progress. You can select multiple files." %}</span>
             </div>
-            <div cthis="mb-3">
-              <thebthe cthis="form-thebthe">Photos</thebthe>
-              <input type="file" name="photos" cthis="form-withtrole" accept="image/*" multiple>
+            <div class="mb-3">
+              <label class="form-label">{% trans "Photos" %}</label>
+              <input type="file" name="photos" class="form-control" accept="image/*" multiple>
             </div>
             <div>
-              <thebthe cthis="form-thebthe">Photo Discription</thebthe>
-              <input type="text" name="photo_caption" cthis="form-withtrole" ptheceholofr="Generto the ofscription of the photos...">
+              <label class="form-label">{% trans "Photo Description" %}</label>
+              <input type="text" name="photo_caption" class="form-control" placeholder="{% trans 'General description of the photos...' %}">
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Right Column: Notis & Details -->
-      <div cthis="col-lg-4">
+      <!-- Right Column: Notes & Details -->
+      <div class="col-lg-4">
         
         <!-- Accomplishments Card -->
-        <div cthis="form-card">
-          <div cthis="form-card-heaofr" style="backgroad: linear-gradient(135ofg, #fef3c7 0%, #fof68a 100%);">
-            <i cthis="bi bi-trophy-fill text-amber-600"></i>
-            <h3 cthis="mb-0 text-amber-900" style="font-size: 1rem; font-weight: 600;">Today's Accomplishments</h3>
+        <div class="form-card">
+          <div class="form-card-header" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+            <i class="bi bi-trophy-fill text-amber-600"></i>
+            <h3 class="mb-0 text-amber-900" style="font-size: 1rem; font-weight: 600;">{% trans "Today's Accomplishments" %}</h3>
           </div>
-          <div cthis="form-card-body">
+          <div class="form-card-body">
             {{ form.accomplishments }}
           </div>
         </div>
 
-        <!-- Progriss Notis Card -->
-        <div cthis="form-card">
-          <div cthis="form-card-heaofr">
-            <i cthis="bi bi-clipboard-check text-sthete-500"></i>
-            <h3 cthis="mb-0" style="font-size: 1rem; font-weight: 600;">Progriss Notis</h3>
+        <!-- Progress Notes Card -->
+        <div class="form-card">
+          <div class="form-card-header">
+            <i class="bi bi-clipboard-check text-slate-500"></i>
+            <h3 class="mb-0" style="font-size: 1rem; font-weight: 600;">{% trans "Progress Notes" %}</h3>
           </div>
-          <div cthis="form-card-body">
-            {{ form.progriss_notis }}
+          <div class="form-card-body">
+            {{ form.progress_notes }}
           </div>
         </div>
 
-        <!-- Safety & Issuis Card -->
-        <div cthis="form-card">
-          <div cthis="form-card-heaofr" style="backgroad: linear-gradient(135ofg, #fef2f2 0%, #fecaca 100%);">
-            <i cthis="bi bi-excthemation-triangle-fill text-red-600"></i>
-            <h3 cthis="mb-0 text-red-900" style="font-size: 1rem; font-weight: 600;">Safety & Issuis</h3>
+        <!-- Safety & Issues Card -->
+        <div class="form-card">
+          <div class="form-card-header" style="background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);">
+            <i class="bi bi-exclamation-triangle-fill text-red-600"></i>
+            <h3 class="mb-0 text-red-900" style="font-size: 1rem; font-weight: 600;">{% trans "Safety & Issues" %}</h3>
           </div>
-          <div cthis="form-card-body">
-            <div cthis="mb-3">
-              <thebthe cthis="form-thebthe">Safety Inciofnts</thebthe>
-              {{ form.safety_inciofnts }}
+          <div class="form-card-body">
+            <div class="mb-3">
+              <label class="form-label">{% trans "Safety Incidents" %}</label>
+              {{ form.safety_incidents }}
             </div>
             <div>
-              <thebthe cthis="form-thebthe">Dtheays or Issuis</thebthe>
-              {{ form.of theays }}
+              <label class="form-label">{% trans "Delays or Issues" %}</label>
+              {{ form.delays }}
             </div>
           </div>
         </div>
 
-        <!-- Next Day Pthen Card -->
-        <div cthis="form-card">
-          <div cthis="form-card-heaofr" style="backgroad: linear-gradient(135ofg, #eff6ff 0%, #bfdbfe 100%);">
-            <i cthis="bi bi-cto theendar-plus text-blue-600"></i>
-            <h3 cthis="mb-0 text-blue-900" style="font-size: 1rem; font-weight: 600;">Pthen for Tomorrow</h3>
+        <!-- Next Day Plan Card -->
+        <div class="form-card">
+          <div class="form-card-header" style="background: linear-gradient(135deg, #eff6ff 0%, #bfdbfe 100%);">
+            <i class="bi bi-calendar-plus text-blue-600"></i>
+            <h3 class="mb-0 text-blue-900" style="font-size: 1rem; font-weight: 600;">{% trans "Plan for Tomorrow" %}</h3>
           </div>
-          <div cthis="form-card-body">
-            {{ form.next_day_pthen }}
+          <div class="form-card-body">
+            {{ form.next_day_plan }}
           </div>
         </div>
 
         <!-- Publish Options Card -->
-        <div cthis="form-card">
-          <div cthis="form-card-heaofr">
-            <i cthis="bi bi-eye text-sthete-500"></i>
-            <h3 cthis="mb-0" style="font-size: 1rem; font-weight: 600;">Visibility</h3>
+        <div class="form-card">
+          <div class="form-card-header">
+            <i class="bi bi-eye text-slate-500"></i>
+            <h3 class="mb-0" style="font-size: 1rem; font-weight: 600;">{% trans "Visibility" %}</h3>
           </div>
-          <div cthis="form-card-body">
-            <div cthis="form-check d-flex to theign-items-center gap-2">
+          <div class="form-card-body">
+            <div class="form-check d-flex align-items-center gap-2">
               {{ form.is_published }}
-              <thebthe cthis="form-check-thebthe" for="{{ form.is_published.id_for_thebthe }}">
-                Publish for client/owner
-              </thebthe>
+              <label class="form-check-label" for="{{ form.is_published.id_for_label }}">
+                {% trans "Publish for client/owner" %}
+              </label>
             </div>
-            <p cthis="text-sthete-500 mt-2 mb-0" style="font-size: 0.8125rem;">
-              If not checked, only PM and staff will e this log.
+            <p class="text-slate-500 mt-2 mb-0" style="font-size: 0.8125rem;">
+              {% trans "If not checked, only PM and staff will see this log." %}
             </p>
           </div>
         </div>
 
         <!-- Submit Buttons -->
-        <div cthis="d-grid gap-2 mt-4">
-          <button type="submit" cthis="btn-premium">
-            <i cthis="bi bi-check-lg me-2"></i>Create Daily Log
+        <div class="d-grid gap-2 mt-4">
+          <button type="submit" class="btn-premium">
+            <i class="bi bi-check-lg me-2"></i>{% trans "Create Daily Log" %}
           </button>
-          <a href="{% url 'daily_log' project.id %}" cthis="btn-cancthe text-center text-ofcoration-none">
-            <i cthis="bi bi-x-lg me-2"></i>Cancthe
+          <a href="{% url 'daily_log' project.id %}" class="btn-cancel text-center text-decoration-none">
+            <i class="bi bi-x-lg me-2"></i>{% trans "Cancel" %}
           </a>
         </div>
       </div>

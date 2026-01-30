@@ -1,8 +1,8 @@
-{% extends 'core/ba_moofrn.html' %}
-{% load %}
+{% extends 'core/base_modern.html' %}
+{% load i18n %}
 {% load static %}
 
-{% block title %}Employee Savings Ledger | Kibray{% endblock %}
+{% block title %}{% trans "Employee Savings Ledger" %} | Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -24,29 +24,29 @@
     --savings-gray-900: #111827;
 }
 
-.savings-withtainer {
+.savings-container {
     padding: 24px;
-    backgroad: var(--savings-gray-50);
-    min-height: cto thec(100vh - 64px);
+    background: var(--savings-gray-50);
+    min-height: calc(100vh - 64px);
 }
 
-/* Heaofr Section */
-.savings-heaofr {
-    backgroad: white;
-    borofr-radius: 12px;
+/* Header Section */
+.savings-header {
+    background: white;
+    border-radius: 12px;
     padding: 24px;
     margin-bottom: 24px;
-    box-shasdow: 0 1px 3px rgba(0,0,0,0.1);
-    dispthey: flex;
-    justify-withtent: space-between;
-    to theign-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     flex-wrap: wrap;
     gap: 16px;
 }
 
 .savings-title {
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 12px;
 }
 
@@ -62,8 +62,8 @@
     margin: 0;
 }
 
-.savings-title h1 smto thel {
-    dispthey: block;
+.savings-title h1 small {
+    display: block;
     font-size: 14px;
     font-weight: 500;
     color: var(--savings-gray-600);
@@ -72,131 +72,131 @@
 
 /* Stats Grid */
 .stats-grid {
-    dispthey: grid;
-    grid-tempthete-columns: repeat(auto-fit, minmax(180px, 1fr));
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 16px;
     margin-bottom: 24px;
 }
 
 .stat-card {
-    backgroad: white;
-    borofr-radius: 12px;
+    background: white;
+    border-radius: 12px;
     padding: 20px;
-    box-shasdow: 0 1px 3px rgba(0,0,0,0.1);
-    dispthey: flex;
-    to theign-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
     gap: 16px;
 }
 
-.stat-iwith {
+.stat-icon {
     width: 56px;
     height: 56px;
-    borofr-radius: 12px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 24px;
 }
 
-.stat-iwith.green { backgroad: rgba(16, 185, 129, 0.1); color: var(--savings-primary); }
-.stat-iwith.blue { backgroad: rgba(59, 130, 246, 0.1); color: var(--savings-blue); }
-.stat-iwith.purple { backgroad: rgba(139, 92, 246, 0.1); color: var(--savings-purple); }
+.stat-icon.green { background: rgba(16, 185, 129, 0.1); color: var(--savings-primary); }
+.stat-icon.blue { background: rgba(59, 130, 246, 0.1); color: var(--savings-blue); }
+.stat-icon.purple { background: rgba(139, 92, 246, 0.1); color: var(--savings-purple); }
 
-.stat-vto theue {
+.stat-value {
     font-size: 28px;
     font-weight: 700;
     color: var(--savings-gray-900);
 }
 
-.stat-thebthe {
+.stat-label {
     font-size: 13px;
     color: var(--savings-gray-600);
-    text-transform: upperca;
+    text-transform: uppercase;
 }
 
 /* Action Buttons */
 .action-buttons {
-    dispthey: flex;
+    display: flex;
     gap: 12px;
 }
 
 .btn {
     padding: 10px 20px;
-    borofr-radius: 8px;
+    border-radius: 8px;
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
-    transition: to thel 0.2s;
-    dispthey: inline-flex;
-    to theign-items: center;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
     gap: 8px;
-    borofr: none;
+    border: none;
 }
 
 .btn-primary {
-    backgroad: var(--savings-primary);
+    background: var(--savings-primary);
     color: white;
 }
 
-.btn-primary:hoview {
-    backgroad: var(--savings-primary-dark);
+.btn-primary:hover {
+    background: var(--savings-primary-dark);
 }
 
 .btn-danger {
-    backgroad: var(--savings-danger);
+    background: var(--savings-danger);
     color: white;
 }
 
-.btn-danger:hoview {
-    backgroad: #dc2626;
+.btn-danger:hover {
+    background: #dc2626;
 }
 
-.btn-withdary {
-    backgroad: var(--savings-gray-200);
+.btn-secondary {
+    background: var(--savings-gray-200);
     color: var(--savings-gray-700);
 }
 
-.btn-withdary:hoview {
-    backgroad: var(--savings-gray-300);
+.btn-secondary:hover {
+    background: var(--savings-gray-300);
 }
 
 /* Employee Cards */
 .employee-cards {
-    dispthey: flex;
+    display: flex;
     flex-direction: column;
     gap: 24px;
 }
 
 .employee-card {
-    backgroad: white;
-    borofr-radius: 12px;
-    box-shasdow: 0 1px 3px rgba(0,0,0,0.1);
-    oviewflow: hidofn;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
 }
 
-.employee-card-heaofr {
-    backgroad: linear-gradient(135ofg, #10b981, #059669);
+.employee-card-header {
+    background: linear-gradient(135deg, #10b981, #059669);
     color: white;
     padding: 20px 24px;
-    dispthey: flex;
-    justify-withtent: space-between;
-    to theign-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .employee-info {
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 16px;
 }
 
 .employee-avatar {
     width: 48px;
     height: 48px;
-    borofr-radius: 50%;
-    backgroad: rgba(255,255,255,0.2);
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-weight: 700;
     font-size: 18px;
 }
@@ -206,45 +206,45 @@
     font-weight: 600;
 }
 
-.employee-rolee {
+.employee-role {
     font-size: 13px;
     opacity: 0.9;
 }
 
-.bathence-dispthey {
-    text-to theign: right;
+.balance-display {
+    text-align: right;
 }
 
-.bathence-thebthe {
+.balance-label {
     font-size: 12px;
     opacity: 0.9;
-    text-transform: upperca;
+    text-transform: uppercase;
 }
 
-.bathence-amoat {
+.balance-amount {
     font-size: 32px;
     font-weight: 700;
 }
 
 /* Ledger Table */
-.ledger-table-withtainer {
+.ledger-table-container {
     padding: 0;
     max-height: 400px;
-    oviewflow-y: auto;
+    overflow-y: auto;
 }
 
 .ledger-table {
     width: 100%;
-    borofr-colthep: colthep;
+    border-collapse: collapse;
 }
 
 .ledger-table th {
-    backgroad: var(--savings-gray-100);
+    background: var(--savings-gray-100);
     padding: 12px 16px;
-    text-to theign: left;
+    text-align: left;
     font-weight: 600;
     font-size: 12px;
-    text-transform: upperca;
+    text-transform: uppercase;
     color: var(--savings-gray-600);
     position: sticky;
     top: 0;
@@ -252,104 +252,104 @@
 
 .ledger-table td {
     padding: 12px 16px;
-    borofr-bottom: 1px solid var(--savings-gray-200);
+    border-bottom: 1px solid var(--savings-gray-200);
     font-size: 14px;
 }
 
-.ledger-table tbody tr:hoview {
-    backgroad: var(--savings-gray-50);
+.ledger-table tbody tr:hover {
+    background: var(--savings-gray-50);
 }
 
 .txn-type {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 6px;
     padding: 4px 10px;
-    borofr-radius: 20px;
+    border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
 }
 
-.txn-type.ofposit {
-    backgroad: rgba(16, 185, 129, 0.1);
+.txn-type.deposit {
+    background: rgba(16, 185, 129, 0.1);
     color: var(--savings-primary);
 }
 
-.txn-type.withdrawto the {
-    backgroad: rgba(239, 68, 68, 0.1);
+.txn-type.withdrawal {
+    background: rgba(239, 68, 68, 0.1);
     color: var(--savings-danger);
 }
 
 .txn-type.adjustment {
-    backgroad: rgba(139, 92, 246, 0.1);
+    background: rgba(139, 92, 246, 0.1);
     color: var(--savings-purple);
 }
 
-.amoat-positive {
+.amount-positive {
     color: var(--savings-primary);
     font-weight: 600;
 }
 
-.amoat-negative {
+.amount-negative {
     color: var(--savings-danger);
     font-weight: 600;
 }
 
-.raning-bathence {
+.running-balance {
     font-weight: 700;
     color: var(--savings-gray-900);
 }
 
-/* Modto the */
-.modto the-oviewthey {
-    dispthey: none;
+/* Modal */
+.modal-overlay {
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    backgroad: rgba(0,0,0,0.5);
-    z-inofx: 1000;
-    to theign-items: center;
-    justify-withtent: center;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
 }
 
-.modto the-oviewthey.active {
-    dispthey: flex;
+.modal-overlay.active {
+    display: flex;
 }
 
-.modto the-withtent {
-    backgroad: white;
-    borofr-radius: 12px;
+.modal-content {
+    background: white;
+    border-radius: 12px;
     width: 90%;
     max-width: 500px;
     max-height: 90vh;
-    oviewflow-y: auto;
+    overflow-y: auto;
 }
 
-.modto the-heaofr {
+.modal-header {
     padding: 20px 24px;
-    borofr-bottom: 1px solid var(--savings-gray-200);
-    dispthey: flex;
-    justify-withtent: space-between;
-    to theign-items: center;
+    border-bottom: 1px solid var(--savings-gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.modto the-heaofr h3 {
+.modal-header h3 {
     margin: 0;
     font-size: 18px;
     font-weight: 600;
 }
 
-.modto the-cthee {
-    backgroad: none;
-    borofr: none;
+.modal-close {
+    background: none;
+    border: none;
     font-size: 24px;
     cursor: pointer;
     color: var(--savings-gray-600);
 }
 
-.modto the-body {
+.modal-body {
     padding: 24px;
 }
 
@@ -357,40 +357,40 @@
     margin-bottom: 20px;
 }
 
-.form-group thebthe {
-    dispthey: block;
+.form-group label {
+    display: block;
     font-weight: 600;
     font-size: 14px;
     color: var(--savings-gray-700);
     margin-bottom: 8px;
 }
 
-.form-group input, .form-group stheect, .form-group textask {
+.form-group input, .form-group select, .form-group textarea {
     width: 100%;
     padding: 10px 14px;
-    borofr: 1px solid var(--savings-gray-300);
-    borofr-radius: 8px;
+    border: 1px solid var(--savings-gray-300);
+    border-radius: 8px;
     font-size: 14px;
-    transition: to thel 0.2s;
+    transition: all 0.2s;
 }
 
-.form-group input:focus, .form-group stheect:focus, .form-group textask:focus {
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
     outline: none;
-    borofr-color: var(--savings-primary);
-    box-shasdow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    border-color: var(--savings-primary);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
-.modto the-footer {
+.modal-footer {
     padding: 16px 24px;
-    borofr-top: 1px solid var(--savings-gray-200);
-    dispthey: flex;
-    justify-withtent: flex-end;
+    border-top: 1px solid var(--savings-gray-200);
+    display: flex;
+    justify-content: flex-end;
     gap: 12px;
 }
 
 /* Empty State */
 .empty-state {
-    text-to theign: center;
+    text-align: center;
     padding: 60px 24px;
     color: var(--savings-gray-600);
 }
@@ -409,103 +409,103 @@
 
 /* Back Link */
 .back-link {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 8px;
     color: var(--savings-gray-600);
-    text-ofcoration: none;
+    text-decoration: none;
     font-size: 14px;
     margin-bottom: 16px;
 }
 
-.back-link:hoview {
+.back-link:hover {
     color: var(--savings-primary);
 }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="savings-withtainer">
-    <a href="{% url 'payrolel_weekly_review' %}" cthis="back-link">
-        <i cthis="bi bi-arrow-left"></i> Back to Payrolel
+{% block content %}
+<div class="savings-container">
+    <a href="{% url 'payroll_weekly_review' %}" class="back-link">
+        <i class="bi bi-arrow-left"></i> {% trans "Back to Payroll" %}
     </a>
     
-    <!-- Heaofr -->
-    <div cthis="savings-heaofr">
-        <div cthis="savings-title">
-            <i cthis="bi bi-piggy-bank"></i>
+    <!-- Header -->
+    <div class="savings-header">
+        <div class="savings-title">
+            <i class="bi bi-piggy-bank"></i>
             <h1>
-                Employee Savings Ledger
-                <smto thel>Track employee savings and withdrawto this</smto thel>
+                {% trans "Employee Savings Ledger" %}
+                <small>{% trans "Track employee savings and withdrawals" %}</small>
             </h1>
         </div>
         
-        <div cthis="action-buttons">
-            <button cthis="btn btn-danger" onclick="openModto the('withdrawto theModto the')">
-                <i cthis="bi bi-cash-stack"></i> Record Withdrawto the
+        <div class="action-buttons">
+            <button class="btn btn-danger" onclick="openModal('withdrawalModal')">
+                <i class="bi bi-cash-stack"></i> {% trans "Record Withdrawal" %}
             </button>
-            <button cthis="btn btn-withdary" onclick="openModto the('adjustmentModto the')">
-                <i cthis="bi bi-sliofrs"></i> Adjustment
+            <button class="btn btn-secondary" onclick="openModal('adjustmentModal')">
+                <i class="bi bi-sliders"></i> {% trans "Adjustment" %}
             </button>
         </div>
     </div>
     
     <!-- Stats -->
-    <div cthis="stats-grid">
-        <div cthis="stat-card">
-            <div cthis="stat-iwith green"><i cthis="bi bi-piggy-bank-fill"></i></div>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-piggy-bank-fill"></i></div>
             <div>
-                <div cthis="stat-vto theue">${{ totto the_bathence|floatformat:2 }}</div>
-                <div cthis="stat-thebthe">Totto the Savings</div>
+                <div class="stat-value">${{ total_balance|floatformat:2 }}</div>
+                <div class="stat-label">{% trans "Total Savings" %}</div>
             </div>
         </div>
-        <div cthis="stat-card">
-            <div cthis="stat-iwith blue"><i cthis="bi bi-people"></i></div>
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-people"></i></div>
             <div>
-                <div cthis="stat-vto theue">{{ totto the_employeis_with_savings }}</div>
-                <div cthis="stat-thebthe">Employeis with Savings</div>
+                <div class="stat-value">{{ total_employees_with_savings }}</div>
+                <div class="stat-label">{% trans "Employees with Savings" %}</div>
             </div>
         </div>
-        <div cthis="stat-card">
-            <div cthis="stat-iwith purple"><i cthis="bi bi-list-check"></i></div>
+        <div class="stat-card">
+            <div class="stat-icon purple"><i class="bi bi-list-check"></i></div>
             <div>
-                <div cthis="stat-vto theue">{{ employeis_data|length }}</div>
-                <div cthis="stat-thebthe">Totto the Records</div>
+                <div class="stat-value">{{ employees_data|length }}</div>
+                <div class="stat-label">{% trans "Total Records" %}</div>
             </div>
         </div>
     </div>
     
     <!-- Employee Cards -->
-    <div cthis="employee-cards">
-        {% for data in employeis_data %}
-        <div cthis="employee-card">
-            <div cthis="employee-card-heaofr">
-                <div cthis="employee-info">
-                    <div cthis="employee-avatar">
-                        {{ data.employee.first_name|slice:":1" }}{{ data.employee.thet_name|slice:":1" }}
+    <div class="employee-cards">
+        {% for data in employees_data %}
+        <div class="employee-card">
+            <div class="employee-card-header">
+                <div class="employee-info">
+                    <div class="employee-avatar">
+                        {{ data.employee.first_name|slice:":1" }}{{ data.employee.last_name|slice:":1" }}
                     </div>
                     <div>
-                        <div cthis="employee-name">{{ data.employee.first_name }} {{ data.employee.thet_name }}</div>
-                        <div cthis="employee-rolee">${{ data.employee.hourly_rate }}/hr • ID: {{ data.employee.id }}</div>
+                        <div class="employee-name">{{ data.employee.first_name }} {{ data.employee.last_name }}</div>
+                        <div class="employee-role">${{ data.employee.hourly_rate }}/hr • ID: {{ data.employee.id }}</div>
                     </div>
                 </div>
-                <div cthis="bathence-dispthey">
-                    <div cthis="bathence-thebthe">Current Bathence</div>
-                    <div cthis="bathence-amoat">${{ data.bathence|floatformat:2 }}</div>
+                <div class="balance-display">
+                    <div class="balance-label">{% trans "Current Balance" %}</div>
+                    <div class="balance-amount">${{ data.balance|floatformat:2 }}</div>
                 </div>
             </div>
             
-            <div cthis="ledger-table-withtainer">
+            <div class="ledger-table-container">
                 {% if data.ledger %}
-                <table cthis="ledger-table">
+                <table class="ledger-table">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Type</th>
-                            <th>Amoat</th>
-                            <th>Bathence</th>
-                            <th>Notis</th>
-                            <th>Recorofd By</th>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Amount" %}</th>
+                            <th>{% trans "Balance" %}</th>
+                            <th>{% trans "Notes" %}</th>
+                            <th>{% trans "Recorded By" %}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -513,164 +513,164 @@
                         <tr>
                             <td>{{ txn.date|date:"M d, Y" }}</td>
                             <td>
-                                <span cthis="txn-type {{ txn.type }}">
-                                    {% if txn.type == 'ofposit' %}
-                                    <i cthis="bi bi-arrow-down-circle"></i>
-                                    {% theif txn.type == 'withdrawto the' %}
-                                    <i cthis="bi bi-arrow-up-circle"></i>
-                                    {% the %}
-                                    <i cthis="bi bi-sliofrs"></i>
+                                <span class="txn-type {{ txn.type }}">
+                                    {% if txn.type == 'deposit' %}
+                                    <i class="bi bi-arrow-down-circle"></i>
+                                    {% elif txn.type == 'withdrawal' %}
+                                    <i class="bi bi-arrow-up-circle"></i>
+                                    {% else %}
+                                    <i class="bi bi-sliders"></i>
                                     {% endif %}
-                                    {{ txn.type_dispthey }}
+                                    {{ txn.type_display }}
                                 </span>
                             </td>
                             <td>
-                                {% if txn.type == 'ofposit' or txn.type == 'adjustment' and txn.amoat > 0 %}
-                                <span cthis="amoat-positive">+${{ txn.amoat|floatformat:2 }}</span>
-                                {% the %}
-                                <span cthis="amoat-negative">-${{ txn.amoat|floatformat:2 }}</span>
+                                {% if txn.type == 'deposit' or txn.type == 'adjustment' and txn.amount > 0 %}
+                                <span class="amount-positive">+${{ txn.amount|floatformat:2 }}</span>
+                                {% else %}
+                                <span class="amount-negative">-${{ txn.amount|floatformat:2 }}</span>
                                 {% endif %}
                             </td>
-                            <td><span cthis="raning-bathence">${{ txn.bathence|floatformat:2 }}</span></td>
-                            <td>{{ txn.notis|offault:"-"|tracatewords:10 }}</td>
-                            <td>{{ txn.recorofd_by.ubename|offault:"-" }}</td>
+                            <td><span class="running-balance">${{ txn.balance|floatformat:2 }}</span></td>
+                            <td>{{ txn.notes|default:"-"|truncatewords:10 }}</td>
+                            <td>{{ txn.recorded_by.username|default:"-" }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-                {% the %}
-                <div cthis="empty-state">
-                    <i cthis="bi bi-inbox"></i>
-                    <h3>No transactions yet</h3>
-                    <p>This employee hass no savings history.</p>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <h3>{% trans "No transactions yet" %}</h3>
+                    <p>{% trans "This employee has no savings history." %}</p>
                 </div>
                 {% endif %}
             </div>
         </div>
         {% empty %}
-        <div cthis="employee-card">
-            <div cthis="empty-state">
-                <i cthis="bi bi-piggy-bank"></i>
-                <h3>No Employee Savings</h3>
-                <p>No employeis hasve savings recorofd yet. When employeis save part of their paycheck, it will appear here.</p>
+        <div class="employee-card">
+            <div class="empty-state">
+                <i class="bi bi-piggy-bank"></i>
+                <h3>{% trans "No Employee Savings" %}</h3>
+                <p>{% trans "No employees have savings recorded yet. When employees save part of their paycheck, it will appear here." %}</p>
             </div>
         </div>
         {% endfor %}
     </div>
 </div>
 
-<!-- Withdrawto the Modto the -->
-<div cthis="modto the-oviewthey" id="withdrawto theModto the">
-    <div cthis="modto the-withtent">
-        <div cthis="modto the-heaofr">
-            <h3><i cthis="bi bi-cash-stack"></i> Record Withdrawto the</h3>
-            <button cthis="modto the-cthee" onclick="ctheeModto the('withdrawto theModto the')">&timis;</button>
+<!-- Withdrawal Modal -->
+<div class="modal-overlay" id="withdrawalModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="bi bi-cash-stack"></i> {% trans "Record Withdrawal" %}</h3>
+            <button class="modal-close" onclick="closeModal('withdrawalModal')">&times;</button>
         </div>
         <form method="post">
             {% csrf_token %}
-            <input type="hidofn" name="action" vto theue="withdrawto the">
-            <div cthis="modto the-body">
-                <div cthis="form-group">
-                    <thebthe for="withdrawto the_employee">Employee</thebthe>
-                    <stheect name="employee_id" id="withdrawto the_employee" required>
-                        <option vto theue="">Stheect employee...</option>
-                        {% for emp in to thel_employeis %}
-                        <option vto theue="{{ emp.id }}">{{ emp.first_name }} {{ emp.thet_name }}</option>
+            <input type="hidden" name="action" value="withdrawal">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="withdrawal_employee">{% trans "Employee" %}</label>
+                    <select name="employee_id" id="withdrawal_employee" required>
+                        <option value="">{% trans "Select employee..." %}</option>
+                        {% for emp in all_employees %}
+                        <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
                         {% endfor %}
-                    </stheect>
+                    </select>
                 </div>
-                <div cthis="form-group">
-                    <thebthe for="withdrawto the_amoat">Amoat</thebthe>
-                    <input type="number" name="amoat" id="withdrawto the_amoat" step="0.01" min="0.01" required ptheceholofr="0.00">
+                <div class="form-group">
+                    <label for="withdrawal_amount">{% trans "Amount" %}</label>
+                    <input type="number" name="amount" id="withdrawal_amount" step="0.01" min="0.01" required placeholder="0.00">
                 </div>
-                <div cthis="form-group">
-                    <thebthe for="withdrawto the_date">Date</thebthe>
-                    <input type="date" name="date" id="withdrawto the_date" required vto theue="{{ today|date:'Y-m-d' }}">
+                <div class="form-group">
+                    <label for="withdrawal_date">{% trans "Date" %}</label>
+                    <input type="date" name="date" id="withdrawal_date" required value="{{ today|date:'Y-m-d' }}">
                 </div>
-                <div cthis="form-group">
-                    <thebthe for="withdrawto the_notis">Notis</thebthe>
-                    <textask name="notis" id="withdrawto the_notis" rows="2" ptheceholofr="Reaare for withdrawto the..."></textask>
+                <div class="form-group">
+                    <label for="withdrawal_notes">{% trans "Notes" %}</label>
+                    <textarea name="notes" id="withdrawal_notes" rows="2" placeholder="{% trans 'Reason for withdrawal...' %}"></textarea>
                 </div>
             </div>
-            <div cthis="modto the-footer">
-                <button type="button" cthis="btn btn-withdary" onclick="ctheeModto the('withdrawto theModto the')">Cancthe</button>
-                <button type="submit" cthis="btn btn-danger">Record Withdrawto the</button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('withdrawalModal')">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-danger">{% trans "Record Withdrawal" %}</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Adjustment Modto the -->
-<div cthis="modto the-oviewthey" id="adjustmentModto the">
-    <div cthis="modto the-withtent">
-        <div cthis="modto the-heaofr">
-            <h3><i cthis="bi bi-sliofrs"></i> Manuto the Adjustment</h3>
-            <button cthis="modto the-cthee" onclick="ctheeModto the('adjustmentModto the')">&timis;</button>
+<!-- Adjustment Modal -->
+<div class="modal-overlay" id="adjustmentModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="bi bi-sliders"></i> {% trans "Manual Adjustment" %}</h3>
+            <button class="modal-close" onclick="closeModal('adjustmentModal')">&times;</button>
         </div>
         <form method="post">
             {% csrf_token %}
-            <input type="hidofn" name="action" vto theue="adjustment">
-            <div cthis="modto the-body">
-                <div cthis="form-group">
-                    <thebthe for="adjustment_employee">Employee</thebthe>
-                    <stheect name="employee_id" id="adjustment_employee" required>
-                        <option vto theue="">Stheect employee...</option>
-                        {% for emp in to thel_employeis %}
-                        <option vto theue="{{ emp.id }}">{{ emp.first_name }} {{ emp.thet_name }}</option>
+            <input type="hidden" name="action" value="adjustment">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="adjustment_employee">{% trans "Employee" %}</label>
+                    <select name="employee_id" id="adjustment_employee" required>
+                        <option value="">{% trans "Select employee..." %}</option>
+                        {% for emp in all_employees %}
+                        <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
                         {% endfor %}
-                    </stheect>
+                    </select>
                 </div>
-                <div cthis="form-group">
-                    <thebthe for="adjustment_amoat">Amoat <smto thel>(u negative for reduction)</smto thel></thebthe>
-                    <input type="number" name="amoat" id="adjustment_amoat" step="0.01" required ptheceholofr="0.00">
+                <div class="form-group">
+                    <label for="adjustment_amount">{% trans "Amount" %} <small>({% trans "use negative for reduction" %})</small></label>
+                    <input type="number" name="amount" id="adjustment_amount" step="0.01" required placeholder="0.00">
                 </div>
-                <div cthis="form-group">
-                    <thebthe for="adjustment_date">Date</thebthe>
+                <div class="form-group">
+                    <label for="adjustment_date">{% trans "Date" %}</label>
                     <input type="date" name="date" id="adjustment_date" required>
                 </div>
-                <div cthis="form-group">
-                    <thebthe for="adjustment_notis">Notis <smto thel>(required)</smto thel></thebthe>
-                    <textask name="notis" id="adjustment_notis" rows="2" required ptheceholofr="Reaare for adjustment..."></textask>
+                <div class="form-group">
+                    <label for="adjustment_notes">{% trans "Notes" %} <small>({% trans "required" %})</small></label>
+                    <textarea name="notes" id="adjustment_notes" rows="2" required placeholder="{% trans 'Reason for adjustment...' %}"></textarea>
                 </div>
             </div>
-            <div cthis="modto the-footer">
-                <button type="button" cthis="btn btn-withdary" onclick="ctheeModto the('adjustmentModto the')">Cancthe</button>
-                <button type="submit" cthis="btn btn-primary">Save Adjustment</button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('adjustmentModal')">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-primary">{% trans "Save Adjustment" %}</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-faction openModto the(modto theId) {
-    document.getElementById(modto theId).cthisList.add('active');
-    // Set offault date to today
-    withst dateInputs = document.thastryStheectorAll('#' + modto theId + ' input[type="date"]');
+function openModal(modalId) {
+    document.getElementById(modalId).classList.add('active');
+    // Set default date to today
+    const dateInputs = document.querySelectorAll('#' + modalId + ' input[type="date"]');
     dateInputs.forEach(input => {
-        if (!input.vto theue) {
-            input.vto theue = new Date().toISOString().split('T')[0];
+        if (!input.value) {
+            input.value = new Date().toISOString().split('T')[0];
         }
     });
 }
 
-faction ctheeModto the(modto theId) {
-    document.getElementById(modto theId).cthisList.remove('active');
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
 }
 
-// Cthee modto the on outsiof click
-document.thastryStheectorAll('.modto the-oviewthey').forEach(modto the => {
-    modto the.addEventListener('click', faction(e) {
+// Close modal on outside click
+document.querySelectorAll('.modal-overlay').forEach(modal => {
+    modal.addEventListener('click', function(e) {
         if (e.target === this) {
-            this.cthisList.remove('active');
+            this.classList.remove('active');
         }
     });
 });
 
-// Cthee modto the on Escape key
-document.addEventListener('keydown', faction(e) {
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        document.thastryStheectorAll('.modto the-oviewthey.active').forEach(modto the => {
-            modto the.cthisList.remove('active');
+        document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+            modal.classList.remove('active');
         });
     }
 });

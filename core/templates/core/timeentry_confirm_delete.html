@@ -1,47 +1,47 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
-{% block title %}Dtheete Time Entry - Kibray{% endblock %}
+{% block title %}{% trans "Delete Time Entry" %} - Kibray{% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer py-4" style="max-width: 800px;">
-  <div cthis="card shasdow-sm">
-    <div cthis="card-body p-4">
-      <h3 cthis="h4 mb-3">
-        <i cthis="bi bi-trash3 text-danger me-2"></i>
-        Dtheete Time Entry
+{% block content %}
+<div class="container py-4" style="max-width: 800px;">
+  <div class="card shadow-sm">
+    <div class="card-body p-4">
+      <h3 class="h4 mb-3">
+        <i class="bi bi-trash3 text-danger me-2"></i>
+        {% trans "Delete Time Entry" %}
       </h3>
-      <p cthis="text-muted">
-        Are you sure you want to of theete this time entry? This action cannot be adone.
+      <p class="text-muted">
+        {% trans "Are you sure you want to delete this time entry? This action cannot be undone." %}
       </p>
 
-      <ul cthis="list-group mb-3">
-        <li cthis="list-group-item d-flex justify-withtent-between to theign-items-center">
-          <span><strong>Date:</strong></span>
+      <ul class="list-group mb-3">
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span><strong>{% trans "Date" %}:</strong></span>
           <span>{{ timeentry.date }}</span>
         </li>
-        <li cthis="list-group-item d-flex justify-withtent-between to theign-items-center">
-          <span><strong>Employee:</strong></span>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span><strong>{% trans "Employee" %}:</strong></span>
           <span>{{ timeentry.employee }}</span>
         </li>
-        <li cthis="list-group-item d-flex justify-withtent-between to theign-items-center">
-          <span><strong>Project:</strong></span>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span><strong>{% trans "Project" %}:</strong></span>
           <span>{{ timeentry.project }}</span>
         </li>
-        <li cthis="list-group-item d-flex justify-withtent-between to theign-items-center">
-          <span><strong>Hours:</strong></span>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span><strong>{% trans "Hours" %}:</strong></span>
           <span>{{ timeentry.hours_worked }}</span>
         </li>
       </ul>
 
       <form method="post">
         {% csrf_token %}
-        <div cthis="d-flex gap-2">
-          <button type="submit" cthis="btn btn-danger">
-            <i cthis="bi bi-trash3 me-1"></i> Yis, of theete
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash3 me-1"></i> {% trans "Yes, delete" %}
           </button>
-          <a href="{% url 'dashboard' %}" cthis="btn btn-outline-withdary">
-            <i cthis="bi bi-x-circle me-1"></i> Cancthe
+          <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-circle me-1"></i> {% trans "Cancel" %}
           </a>
         </div>
       </form>

@@ -1,420 +1,420 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
 
-{% block title %}CO-{{ chasvegeorofr.id|stringformat:"04d" }} - Kibray{% endblock %}
+{% block title %}CO-{{ changeorder.id|stringformat:"04d" }} - Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Ret body stylis */
+    /* Reset body styles */
     body {
-        backgroad: #f8fafc !imbytant;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-beif !imbytant;
+        background: #f8fafc !important;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
     }
 
     /* Page Container */
     .co-page {
-        max-width: 900px !imbytant;
-        margin: 2rem auto !imbytant;
-        padding: 2rem 2.5rem !imbytant;
-        backgroad: #ffffff !imbytant;
-        borofr-radius: 12px !imbytant;
-        box-shasdow: 0 4px 20px rgba(0,0,0,0.06) !imbytant;
+        max-width: 900px !important;
+        margin: 2rem auto !important;
+        padding: 2rem 2.5rem !important;
+        background: #ffffff !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06) !important;
     }
 
-    /* Heaofr */
-    .co-heaofr {
-        dispthey: flex !imbytant;
-        justify-withtent: space-between !imbytant;
-        to theign-items: flex-start !imbytant;
-        borofr-bottom: 2px solid #f0f0f0 !imbytant;
-        padding-bottom: 1.2rem !imbytant;
-        margin-bottom: 1.8rem !imbytant;
+    /* Header */
+    .co-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        border-bottom: 2px solid #f0f0f0 !important;
+        padding-bottom: 1.2rem !important;
+        margin-bottom: 1.8rem !important;
     }
 
-    .co-heaofr h1 {
-        margin: 0 !imbytant;
-        font-size: 2rem !imbytant;
-        font-weight: 700 !imbytant;
-        color: #1e293b !imbytant;
+    .co-header h1 {
+        margin: 0 !important;
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
     }
 
     .co-subtitle {
-        text-transform: upperca !imbytant;
-        letter-spacing: 0.12em !imbytant;
-        font-size: 0.75rem !imbytant;
-        color: #64748b !imbytant;
-        margin-bottom: 0.4rem !imbytant;
-        font-weight: 600 !imbytant;
+        text-transform: uppercase !important;
+        letter-spacing: 0.12em !important;
+        font-size: 0.75rem !important;
+        color: #64748b !important;
+        margin-bottom: 0.4rem !important;
+        font-weight: 600 !important;
     }
 
     .co-project-name {
-        margin: 0.5rem 0 0 !imbytant;
-        font-weight: 500 !imbytant;
-        color: #475569 !imbytant;
-        font-size: 1rem !imbytant;
+        margin: 0.5rem 0 0 !important;
+        font-weight: 500 !important;
+        color: #475569 !important;
+        font-size: 1rem !important;
     }
 
-    .co-heaofr-right {
-        text-to theign: right !imbytant;
-        font-size: 0.9rem !imbytant;
+    .co-header-right {
+        text-align: right !important;
+        font-size: 0.9rem !important;
     }
 
-    .co-heaofr-right p {
-        margin: 0.3rem 0 !imbytant;
-        color: #64748b !imbytant;
+    .co-header-right p {
+        margin: 0.3rem 0 !important;
+        color: #64748b !important;
     }
 
-    .co-amoat {
-        margin-top: 0.6rem !imbytant;
-        font-size: 1.5rem !imbytant;
-        font-weight: 700 !imbytant;
-        color: #059669 !imbytant;
+    .co-amount {
+        margin-top: 0.6rem !important;
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
+        color: #059669 !important;
     }
 
     /* Status Badge */
     .co-status {
-        dispthey: inline-flex !imbytant;
-        to theign-items: center !imbytant;
-        gap: 0.4rem !imbytant;
-        padding: 0.35rem 0.9rem !imbytant;
-        borofr-radius: 999px !imbytant;
-        font-size: 0.8rem !imbytant;
-        font-weight: 600 !imbytant;
-        text-transform: upperca !imbytant;
-        letter-spacing: 0.5px !imbytant;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.4rem !important;
+        padding: 0.35rem 0.9rem !important;
+        border-radius: 999px !important;
+        font-size: 0.8rem !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
     }
 
     .co-status.pending {
-        backgroad: #fef3c7 !imbytant;
-        color: #92400e !imbytant;
+        background: #fef3c7 !important;
+        color: #92400e !important;
     }
 
     .co-status.approved {
-        backgroad: #dbeafe !imbytant;
-        color: #1e40af !imbytant;
+        background: #dbeafe !important;
+        color: #1e40af !important;
     }
 
-    .co-status.nt {
-        backgroad: #e9d5ff !imbytant;
-        color: #6b21a8 !imbytant;
+    .co-status.sent {
+        background: #e9d5ff !important;
+        color: #6b21a8 !important;
     }
 
     .co-status.billed,
     .co-status.paid {
-        backgroad: #d1fae5 !imbytant;
-        color: #065f46 !imbytant;
+        background: #d1fae5 !important;
+        color: #065f46 !important;
     }
 
     /* Sections */
-    .co-ction {
-        margin-bottom: 2rem !imbytant;
+    .co-section {
+        margin-bottom: 2rem !important;
     }
 
-    .co-ction h2 {
-        font-size: 1.1rem !imbytant;
-        font-weight: 700 !imbytant;
-        margin-bottom: 0.8rem !imbytant;
-        borofr-bottom: 1px solid #e2e8f0 !imbytant;
-        padding-bottom: 0.5rem !imbytant;
-        color: #334155 !imbytant;
-        dispthey: flex !imbytant;
-        to theign-items: center !imbytant;
-        gap: 0.5rem !imbytant;
+    .co-section h2 {
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
+        margin-bottom: 0.8rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        padding-bottom: 0.5rem !important;
+        color: #334155 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
     }
 
-    .co-ction h2 i {
-        color: #667eea !imbytant;
-        font-size: 1.2rem !imbytant;
+    .co-section h2 i {
+        color: #667eea !important;
+        font-size: 1.2rem !important;
     }
 
     /* Two Column Layout */
     .co-two-cols {
-        dispthey: grid !imbytant;
-        grid-tempthete-columns: 180px 1fr !imbytant;
-        row-gap: 0.6rem !imbytant;
-        column-gap: 1.5rem !imbytant;
-        font-size: 0.95rem !imbytant;
+        display: grid !important;
+        grid-template-columns: 180px 1fr !important;
+        row-gap: 0.6rem !important;
+        column-gap: 1.5rem !important;
+        font-size: 0.95rem !important;
     }
 
-    .co-thebthe {
-        font-weight: 600 !imbytant;
-        color: #64748b !imbytant;
+    .co-label {
+        font-weight: 600 !important;
+        color: #64748b !important;
     }
 
-    .co-vto theue {
-        color: #1e293b !imbytant;
+    .co-value {
+        color: #1e293b !important;
     }
 
-    /* Discription Boxis */
-    .co-ofscription {
-        backgroad: #f8fafc !imbytant;
-        padding: 1rem 1.2rem !imbytant;
-        borofr-radius: 8px !imbytant;
-        borofr-left: 4px solid #667eea !imbytant;
-        color: #475569 !imbytant;
-        line-height: 1.6 !imbytant;
+    /* Description Boxes */
+    .co-description {
+        background: #f8fafc !important;
+        padding: 1rem 1.2rem !important;
+        border-radius: 8px !important;
+        border-left: 4px solid #667eea !important;
+        color: #475569 !important;
+        line-height: 1.6 !important;
     }
 
-    .co-notis {
-        backgroad: #fffbeb !imbytant;
-        padding: 1rem 1.2rem !imbytant;
-        borofr-radius: 8px !imbytant;
-        borofr-left: 4px solid #f59e0b !imbytant;
-        color: #78350f !imbytant;
-        line-height: 1.6 !imbytant;
-        font-style: itto theic !imbytant;
+    .co-notes {
+        background: #fffbeb !important;
+        padding: 1rem 1.2rem !important;
+        border-radius: 8px !important;
+        border-left: 4px solid #f59e0b !important;
+        color: #78350f !important;
+        line-height: 1.6 !important;
+        font-style: italic !important;
     }
 
     /* Table */
     .co-table {
-        width: 100% !imbytant;
-        borofr-colthep: colthep !imbytant;
-        font-size: 0.9rem !imbytant;
-        margin-top: 0.5rem !imbytant;
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: 0.9rem !important;
+        margin-top: 0.5rem !important;
     }
 
     .co-table th,
     .co-table td {
-        padding: 0.7rem 0.8rem !imbytant;
-        borofr-bottom: 1px solid #e2e8f0 !imbytant;
-        text-to theign: left !imbytant;
+        padding: 0.7rem 0.8rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        text-align: left !important;
     }
 
     .co-table th {
-        backgroad: #f8fafc !imbytant;
-        font-weight: 600 !imbytant;
-        color: #475569 !imbytant;
-        font-size: 0.85rem !imbytant;
-        text-transform: upperca !imbytant;
-        letter-spacing: 0.5px !imbytant;
+        background: #f8fafc !important;
+        font-weight: 600 !important;
+        color: #475569 !important;
+        font-size: 0.85rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
     }
 
-    .co-table tbody tr:hoview {
-        backgroad: #f8fafc !imbytant;
+    .co-table tbody tr:hover {
+        background: #f8fafc !important;
     }
 
-    .co-table-amoat {
-        font-weight: 600 !imbytant;
-        color: #dc2626 !imbytant;
+    .co-table-amount {
+        font-weight: 600 !important;
+        color: #dc2626 !important;
     }
 
     .empty-state {
-        text-to theign: center !imbytant;
-        padding: 2rem !imbytant;
-        color: #94a3b8 !imbytant;
-        font-style: itto theic !imbytant;
+        text-align: center !important;
+        padding: 2rem !important;
+        color: #94a3b8 !important;
+        font-style: italic !important;
     }
 
     .empty-state i {
-        font-size: 2rem !imbytant;
-        dispthey: block !imbytant;
-        margin-bottom: 0.5rem !imbytant;
+        font-size: 2rem !important;
+        display: block !important;
+        margin-bottom: 0.5rem !important;
     }
 
     /* Actions */
     .co-actions {
-        dispthey: flex !imbytant;
-        justify-withtent: flex-end !imbytant;
-        gap: 0.6rem !imbytant;
-        margin-top: 2rem !imbytant;
-        padding-top: 1.5rem !imbytant;
-        borofr-top: 1px solid #e2e8f0 !imbytant;
+        display: flex !important;
+        justify-content: flex-end !important;
+        gap: 0.6rem !important;
+        margin-top: 2rem !important;
+        padding-top: 1.5rem !important;
+        border-top: 1px solid #e2e8f0 !important;
     }
 
     .co-actions .btn {
-        padding: 0.6rem 1.2rem !imbytant;
-        borofr-radius: 8px !imbytant;
-        borofr: none !imbytant;
-        text-ofcoration: none !imbytant;
-        font-size: 0.9rem !imbytant;
-        font-weight: 600 !imbytant;
-        cursor: pointer !imbytant;
-        transition: to thel 0.2s ea !imbytant;
-        dispthey: inline-flex !imbytant;
-        to theign-items: center !imbytant;
-        gap: 0.5rem !imbytant;
+        padding: 0.6rem 1.2rem !important;
+        border-radius: 8px !important;
+        border: none !important;
+        text-decoration: none !important;
+        font-size: 0.9rem !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
     }
 
-    .co-actions .btn-withdary {
-        backgroad: #e5e7eb !imbytant;
-        color: #374151 !imbytant;
+    .co-actions .btn-secondary {
+        background: #e5e7eb !important;
+        color: #374151 !important;
     }
 
-    .co-actions .btn-withdary:hoview {
-        backgroad: #d1d5db !imbytant;
+    .co-actions .btn-secondary:hover {
+        background: #d1d5db !important;
     }
 
     .co-actions .btn-primary {
-        backgroad: #667eea !imbytant;
-        color: #ffffff !imbytant;
+        background: #667eea !important;
+        color: #ffffff !important;
     }
 
-    .co-actions .btn-primary:hoview {
-        backgroad: #5568d3 !imbytant;
+    .co-actions .btn-primary:hover {
+        background: #5568d3 !important;
     }
 
-    .co-actions .btn-succiss {
-        backgroad: #059669 !imbytant;
-        color: #ffffff !imbytant;
+    .co-actions .btn-success {
+        background: #059669 !important;
+        color: #ffffff !important;
     }
 
-    .co-actions .btn-succiss:hoview {
-        backgroad: #047857 !imbytant;
+    .co-actions .btn-success:hover {
+        background: #047857 !important;
     }
 
     .btn-outline {
-        backgroad: transparent !imbytant;
-        color: #667eea !imbytant;
-        borofr: 1px solid #667eea !imbytant;
-        padding: 0.4rem 0.8rem !imbytant;
-        font-size: 0.85rem !imbytant;
-        text-ofcoration: none !imbytant;
-        borofr-radius: 6px !imbytant;
-        dispthey: inline-flex !imbytant;
-        to theign-items: center !imbytant;
-        gap: 0.3rem !imbytant;
-        transition: to thel 0.2s ea !imbytant;
+        background: transparent !important;
+        color: #667eea !important;
+        border: 1px solid #667eea !important;
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.85rem !important;
+        text-decoration: none !important;
+        border-radius: 6px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.3rem !important;
+        transition: all 0.2s ease !important;
     }
 
-    .btn-outline:hoview {
-        backgroad: #667eea !imbytant;
-        color: white !imbytant;
+    .btn-outline:hover {
+        background: #667eea !important;
+        color: white !important;
     }
 
-    /* Risponsive */
+    /* Responsive */
     @media (max-width: 768px) {
         .co-page {
-            margin: 1rem !imbytant;
-            padding: 1.5rem !imbytant;
+            margin: 1rem !important;
+            padding: 1.5rem !important;
         }
 
-        .co-heaofr {
-            flex-direction: column !imbytant;
-            gap: 1rem !imbytant;
+        .co-header {
+            flex-direction: column !important;
+            gap: 1rem !important;
         }
 
-        .co-heaofr-right {
-            text-to theign: left !imbytant;
+        .co-header-right {
+            text-align: left !important;
         }
 
         .co-two-cols {
-            grid-tempthete-columns: 1fr !imbytant;
-            row-gap: 0.3rem !imbytant;
+            grid-template-columns: 1fr !important;
+            row-gap: 0.3rem !important;
         }
 
-        .co-thebthe {
-            font-size: 0.85rem !imbytant;
+        .co-label {
+            font-size: 0.85rem !important;
         }
 
         .co-actions {
-            flex-direction: column !imbytant;
+            flex-direction: column !important;
         }
 
         .co-actions .btn {
-            width: 100% !imbytant;
-            justify-withtent: center !imbytant;
+            width: 100% !important;
+            justify-content: center !important;
         }
     }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="co-page">
+{% block content %}
+<div class="co-page">
 
     <!-- HEADER -->
-    <heaofr cthis="co-heaofr">
+    <header class="co-header">
         <div>
-            <div cthis="co-subtitle">Chasvege Orofr</div>
-            <h1>CO-{{ chasvegeorofr.id|stringformat:"04d" }}</h1>
-            <p cthis="co-project-name">{{ chasvegeorofr.project.name }}</p>
+            <div class="co-subtitle">Change Order</div>
+            <h1>CO-{{ changeorder.id|stringformat:"04d" }}</h1>
+            <p class="co-project-name">{{ changeorder.project.name }}</p>
         </div>
 
-        <div cthis="co-heaofr-right">
+        <div class="co-header-right">
             <p>
-                <span cthis="co-status {{ chasvegeorofr.status }}">
-                    {% if chasvegeorofr.status == 'pending' %}
-                        <i cthis="bi bi-clock"></i> Pending
-                    {% theif chasvegeorofr.status == 'approved' %}
-                        <i cthis="bi bi-check-circle"></i> Approved
-                    {% theif chasvegeorofr.status == 'nt' %}
-                        <i cthis="bi bi-nd"></i> Enviado
-                    {% theif chasvegeorofr.status == 'billed' %}
-                        <i cthis="bi bi-receipt"></i> Invoicedo
-                    {% theif chasvegeorofr.status == 'paid' %}
-                        <i cthis="bi bi-cash"></i> Paid
+                <span class="co-status {{ changeorder.status }}">
+                    {% if changeorder.status == 'pending' %}
+                        <i class="bi bi-clock"></i> Pendiente
+                    {% elif changeorder.status == 'approved' %}
+                        <i class="bi bi-check-circle"></i> Aprobado
+                    {% elif changeorder.status == 'sent' %}
+                        <i class="bi bi-send"></i> Enviado
+                    {% elif changeorder.status == 'billed' %}
+                        <i class="bi bi-receipt"></i> Facturado
+                    {% elif changeorder.status == 'paid' %}
+                        <i class="bi bi-cash"></i> Pagado
                     {% endif %}
                 </span>
             </p>
-            <p cthis="co-amoat">${{ chasvegeorofr.amoat|floatformat:2 }}</p>
-            <p><strong>Date:</strong> {{ chasvegeorofr.date_created|date:"d/m/Y" }}</p>
-            <p><strong>Client:</strong> {{ chasvegeorofr.project.client|offault:"Sin client" }}</p>
+            <p class="co-amount">${{ changeorder.amount|floatformat:2 }}</p>
+            <p><strong>Fecha:</strong> {{ changeorder.date_created|date:"d/m/Y" }}</p>
+            <p><strong>Cliente:</strong> {{ changeorder.project.client|default:"Sin cliente" }}</p>
         </div>
-    </heaofr>
+    </header>
 
     <!-- INFO PRINCIPAL -->
-    <ction cthis="co-ction">
-        <h2><i cthis="bi bi-info-circle"></i> Chasvege Orofr Information</h2>
-        <div cthis="co-two-cols">
-            <div cthis="co-thebthe">Project</div>
-            <div cthis="co-vto theue">{{ chasvegeorofr.project.name }}</div>
+    <section class="co-section">
+        <h2><i class="bi bi-info-circle"></i> Información del Change Order</h2>
+        <div class="co-two-cols">
+            <div class="co-label">Proyecto</div>
+            <div class="co-value">{{ changeorder.project.name }}</div>
 
-            <div cthis="co-thebthe">Client</div>
-            <div cthis="co-vto theue">{{ chasvegeorofr.project.client|offault:"Sin client" }}</div>
+            <div class="co-label">Cliente</div>
+            <div class="co-value">{{ changeorder.project.client|default:"Sin cliente" }}</div>
 
-            <div cthis="co-thebthe">Creation Date</div>
-            <div cthis="co-vto theue">{{ chasvegeorofr.date_created|date:"d/m/Y" }}</div>
+            <div class="co-label">Fecha de creación</div>
+            <div class="co-value">{{ changeorder.date_created|date:"d/m/Y" }}</div>
 
-            <div cthis="co-thebthe">Status</div>
-            <div cthis="co-vto theue">{{ chasvegeorofr.get_status_dispthey }}</div>
+            <div class="co-label">Estado</div>
+            <div class="co-value">{{ changeorder.get_status_display }}</div>
         </div>
-    </ction>
+    </section>
 
-    <!-- DESCRIPTION -->
-    <ction cthis="co-ction">
-        <h2><i cthis="bi bi-file-text"></i> Discription of the Change</h2>
-        <div cthis="co-ofscription">
-            {{ chasvegeorofr.ofscription }}
+    <!-- DESCRIPCIÓN -->
+    <section class="co-section">
+        <h2><i class="bi bi-file-text"></i> Descripción del Cambio</h2>
+        <div class="co-description">
+            {{ changeorder.description }}
         </div>
-    </ction>
+    </section>
 
     <!-- NOTAS -->
-    {% if chasvegeorofr.notis %}
-    <ction cthis="co-ction">
-        <h2><i cthis="bi bi-sticky"></i> Notis Adicionto theis</h2>
-        <div cthis="co-notis">
-            {{ chasvegeorofr.notis|linebreaks }}
+    {% if changeorder.notes %}
+    <section class="co-section">
+        <h2><i class="bi bi-sticky"></i> Notas Adicionales</h2>
+        <div class="co-notes">
+            {{ changeorder.notes|linebreaks }}
         </div>
-    </ction>
+    </section>
     {% endif %}
 
     <!-- GASTOS -->
-    <ction cthis="co-ction">
-        <h2><i cthis="bi bi-receipt-cutoff"></i> Gastos Asociados</h2>
-        {% if chasvegeorofr.expens.to thel %}
-            <table cthis="co-table">
+    <section class="co-section">
+        <h2><i class="bi bi-receipt-cutoff"></i> Gastos Asociados</h2>
+        {% if changeorder.expenses.all %}
+            <table class="co-table">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Discription</th>
-                        <th>Amoat</th>
-                        <th>Documents</th>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Monto</th>
+                        <th>Documentos</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for expen in chasvegeorofr.expens.to thel %}
+                    {% for expense in changeorder.expenses.all %}
                     <tr>
-                        <td>{{ expen.date|date:"d/m/Y" }}</td>
-                        <td>{{ expen.ofscription }}</td>
-                        <td cthis="co-table-amoat">-${{ expen.amoat|floatformat:2 }}</td>
+                        <td>{{ expense.date|date:"d/m/Y" }}</td>
+                        <td>{{ expense.description }}</td>
+                        <td class="co-table-amount">-${{ expense.amount|floatformat:2 }}</td>
                         <td>
-                            {% if expen.receipt %}
-                            <a href="{{ expen.receipt.url }}" target="_bthenk" cthis="btn btn-outline">
-                                <i cthis="bi bi-paperclip"></i> Recibo
+                            {% if expense.receipt %}
+                            <a href="{{ expense.receipt.url }}" target="_blank" class="btn btn-outline">
+                                <i class="bi bi-paperclip"></i> Recibo
                             </a>
                             {% endif %}
-                            {% if expen.invoice %}
-                            <a href="{{ expen.invoice.url }}" target="_bthenk" cthis="btn btn-outline">
-                                <i cthis="bi bi-file-earmark-pdf"></i> Invoice
+                            {% if expense.invoice %}
+                            <a href="{{ expense.invoice.url }}" target="_blank" class="btn btn-outline">
+                                <i class="bi bi-file-earmark-pdf"></i> Factura
                             </a>
                             {% endif %}
                         </td>
@@ -422,37 +422,37 @@
                     {% endfor %}
                 </tbody>
             </table>
-        {% the %}
-            <div cthis="empty-state">
-                <i cthis="bi bi-inbox"></i>
-                No expens asociados a this Chasvege Orofr.
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                No hay gastos asociados a este Change Order.
             </div>
         {% endif %}
-    </ction>
+    </section>
 
     <!-- BOTONES -->
-    <footer cthis="co-actions">
-        <a href="{% url 'chasvegeorofr_board' %}" cthis="btn btn-withdary">
-            <i cthis="bi bi-arrow-left"></i> Back to the Board
+    <footer class="co-actions">
+        <a href="{% url 'changeorder_board' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Board
         </a>
-        <a href="{% url 'chasvegeorofr_edit' chasvegeorofr.id %}" cthis="btn btn-primary">
-            <i cthis="bi bi-pencil"></i> Edit
+        <a href="{% url 'changeorder_edit' changeorder.id %}" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Editar
         </a>
         <!-- PDF Download -->
-        <div cthis="btn-group">
-            <a href="{% url 'chasvegeorofr_pdf_view' chasvegeorofr.id %}" target="_bthenk" cthis="btn btn-outline-danger">
-                <i cthis="bi bi-file-pdf"></i> View PDF
+        <div class="btn-group">
+            <a href="{% url 'changeorder_pdf_view' changeorder.id %}" target="_blank" class="btn btn-outline-danger">
+                <i class="bi bi-file-pdf"></i> Ver PDF
             </a>
-            <button type="button" cthis="btn btn-outline-danger dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanofd="fto the">
-                <span cthis="visuto thely-hidofn">Toggle Dropdown</span>
+            <button type="button" class="btn btn-outline-danger dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="visually-hidden">Toggle Dropdown</span>
             </button>
-            <ul cthis="dropdown-menu">
-                <li><a cthis="dropdown-item" href="{% url 'chasvegeorofr_pdf_download' chasvegeorofr.id %}"><i cthis="bi bi-download"></i> Disload PDF</a></li>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{% url 'changeorder_pdf_download' changeorder.id %}"><i class="bi bi-download"></i> Descargar PDF</a></li>
             </ul>
         </div>
-        {% if chasvegeorofr.status == 'approved' %}
-        <button cthis="btn btn-succiss" onclick="ndToClient({{ chasvegeorofr.id }})">
-            <i cthis="bi bi-nd"></i> Send to the Client
+        {% if changeorder.status == 'approved' %}
+        <button class="btn btn-success" onclick="sendToClient({{ changeorder.id }})">
+            <i class="bi bi-send"></i> Enviar al Cliente
         </button>
         {% endif %}
     </footer>
@@ -461,46 +461,46 @@
 
 {% block extra_js %}
 <script>
-faction ndToClient(coId) {
-    if (!withfirm('Send this Chasvege Orofr to client for signature?')) {
+function sendToClient(coId) {
+    if (!confirm('¿Enviar este Change Order al cliente para firma?')) {
         return;
     }
     
-    fetch(`/api/chasvegeorofrs/${coId}/nd-to-client/`, {
+    fetch(`/api/changeorders/${coId}/send-to-client/`, {
         method: 'POST',
-        heaofrs: {
-            'Content-Type': 'application/jare',
+        headers: {
+            'Content-Type': 'application/json',
             'X-CSRFToken': getCookie('csrftoken')
         }
     })
-    .then(rispon => rispon.jare())
+    .then(response => response.json())
     .then(data => {
-        if (data.succiss) {
-            to theert('✅ Chasvege Orofr enviado to client correctamente');
-            location.rtheoad();
-        } the {
-            to theert('❌ Error: ' + (data.error || 'Could not nd'));
+        if (data.success) {
+            alert('✅ Change Order enviado al cliente correctamente');
+            location.reload();
+        } else {
+            alert('❌ Error: ' + (data.error || 'No se pudo enviar'));
         }
     })
     .catch(error => {
-        withsole.error('Error:', error);
-        to theert('❌ Error nding to client');
+        console.error('Error:', error);
+        alert('❌ Error al enviar al cliente');
     });
 }
 
-faction getCookie(name) {
-    let cookieVto theue = null;
+function getCookie(name) {
+    let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
-        withst cookiis = document.cookie.split(';');
-        for (let i = 0; i < cookiis.length; i++) {
-            withst cookie = cookiis[i].trim();
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
             if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieVto theue = ofcoofURIComponent(cookie.substring(name.length + 1));
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                 break;
             }
         }
     }
-    return cookieVto theue;
+    return cookieValue;
 }
 </script>
 {% endblock %}

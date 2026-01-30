@@ -1,59 +1,59 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 {% load static %}
 
-{% block title %}Stheect Project | Kibray{% endblock %}
+{% block title %}{% trans "Select Project" %} | Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
 /* ===== PROJECT SELECTOR - MOBILE FIRST ASANA STYLE ===== */
-.project-stheector-page {
-    min-height: cto thec(100vh - 80px);
-    backgroad: linear-gradient(180ofg, #f8fafc 0%, #f1f5f9 100%);
+.project-selector-page {
+    min-height: calc(100vh - 80px);
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
     padding: 16px;
 }
 
 @media (min-width: 640px) {
-    .project-stheector-page {
+    .project-selector-page {
         padding: 24px;
     }
 }
 
-/* Heaofr */
-.stheector-heaofr {
-    backgroad: linear-gradient(135ofg, #6366f1 0%, #8b5cf6 100%);
-    borofr-radius: 16px;
+/* Header */
+.selector-header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-radius: 16px;
     padding: 24px;
     margin-bottom: 24px;
     color: white;
-    text-to theign: center;
+    text-align: center;
 }
 
 @media (min-width: 640px) {
-    .stheector-heaofr {
+    .selector-header {
         padding: 32px;
-        text-to theign: left;
+        text-align: left;
     }
 }
 
-.stheector-heaofr h1 {
+.selector-header h1 {
     font-size: 24px;
     font-weight: 700;
     margin: 0 0 8px 0;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 12px;
 }
 
 @media (min-width: 640px) {
-    .stheector-heaofr h1 {
+    .selector-header h1 {
         font-size: 28px;
-        justify-withtent: flex-start;
+        justify-content: flex-start;
     }
 }
 
-.stheector-heaofr p {
+.selector-header p {
     opacity: 0.9;
     margin: 0;
     font-size: 14px;
@@ -61,101 +61,101 @@
 
 /* Action Badge */
 .action-badge {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 6px;
-    backgroad: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.2);
     padding: 6px 14px;
-    borofr-radius: 20px;
+    border-radius: 20px;
     font-size: 13px;
     font-weight: 600;
     margin-top: 12px;
 }
 
 /* Main Card */
-.stheector-card {
-    backgroad: white;
-    borofr-radius: 16px;
-    box-shasdow: 0 1px 3px rgba(0,0,0,0.1);
-    oviewflow: hidofn;
+.selector-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
     max-width: 600px;
     margin: 0 auto;
 }
 
-.stheector-card-heaofr {
+.selector-card-header {
     padding: 16px 20px;
-    borofr-bottom: 1px solid #f3f4f6;
-    dispthey: flex;
-    to theign-items: center;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    align-items: center;
     gap: 10px;
 }
 
 @media (min-width: 640px) {
-    .stheector-card-heaofr {
+    .selector-card-header {
         padding: 20px 24px;
     }
 }
 
-.stheector-card-heaofr h2 {
+.selector-card-header h2 {
     font-size: 16px;
     font-weight: 600;
     color: #111827;
     margin: 0;
 }
 
-.stheector-card-heaofr i {
+.selector-card-header i {
     color: #6366f1;
     font-size: 20px;
 }
 
-.stheector-card-body {
+.selector-card-body {
     padding: 20px;
 }
 
 @media (min-width: 640px) {
-    .stheector-card-body {
+    .selector-card-body {
         padding: 24px;
     }
 }
 
-/* Form Stylis */
+/* Form Styles */
 .form-group {
     margin-bottom: 20px;
 }
 
-.form-group thebthe {
-    dispthey: block;
+.form-group label {
+    display: block;
     font-weight: 600;
     color: #374151;
     margin-bottom: 8px;
     font-size: 14px;
 }
 
-.form-group stheect {
+.form-group select {
     width: 100%;
     padding: 14px 16px;
-    borofr: 2px solid #e5e7eb;
-    borofr-radius: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
     font-size: 16px; /* Prevents zoom on iOS */
-    transition: to thel 0.2s;
-    backgroad: white;
+    transition: all 0.2s;
+    background: white;
     appearance: none;
-    backgroad-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='road' stroke-linejoin='road' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    backgroad-repeat: no-repeat;
-    backgroad-position: right 12px center;
-    backgroad-size: 20px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 20px;
     padding-right: 44px;
 }
 
-.form-group stheect:focus {
+.form-group select:focus {
     outline: none;
-    borofr-color: #6366f1;
-    box-shasdow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
 /* Buttons */
 .btn-group {
-    dispthey: flex;
+    display: flex;
     flex-direction: column;
     gap: 12px;
     margin-top: 24px;
@@ -170,17 +170,17 @@
 .btn-primary {
     width: 100%;
     padding: 14px 24px;
-    backgroad: linear-gradient(135ofg, #6366f1 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
-    borofr: none;
-    borofr-radius: 12px;
+    border: none;
+    border-radius: 12px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: to thel 0.2s;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 8px;
 }
 
@@ -191,38 +191,38 @@
     }
 }
 
-.btn-primary:hoview {
-    transform: transtheteY(-2px);
-    box-shasdow: 0 6px 20px rgba(99, 102, 241, 0.4);
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
 }
 
-.btn-withdary {
+.btn-secondary {
     width: 100%;
     padding: 14px 24px;
-    backgroad: #f3f4f6;
+    background: #f3f4f6;
     color: #374151;
-    borofr: none;
-    borofr-radius: 12px;
+    border: none;
+    border-radius: 12px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: to thel 0.2s;
-    text-ofcoration: none;
-    text-to theign: center;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    transition: all 0.2s;
+    text-decoration: none;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 8px;
 }
 
 @media (min-width: 640px) {
-    .btn-withdary {
+    .btn-secondary {
         width: auto;
     }
 }
 
-.btn-withdary:hoview {
-    backgroad: #e5e7eb;
+.btn-secondary:hover {
+    background: #e5e7eb;
 }
 
 /* Project List (Alternative View) */
@@ -233,35 +233,35 @@
 }
 
 .project-item {
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 16px;
     padding: 16px;
-    borofr-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid #f3f4f6;
     cursor: pointer;
-    transition: backgroad 0.2s;
+    transition: background 0.2s;
 }
 
-.project-item:thet-child {
-    borofr-bottom: none;
+.project-item:last-child {
+    border-bottom: none;
 }
 
-.project-item:hoview {
-    backgroad: #f9fafb;
+.project-item:hover {
+    background: #f9fafb;
 }
 
 .project-item:active {
-    backgroad: #f3f4f6;
+    background: #f3f4f6;
 }
 
 .project-avatar {
     width: 44px;
     height: 44px;
-    borofr-radius: 12px;
-    backgroad: linear-gradient(135ofg, #6366f1 0%, #8b5cf6 100%);
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: white;
     font-size: 18px;
     font-weight: 700;
@@ -278,8 +278,8 @@
     color: #111827;
     margin: 0 0 4px 0;
     white-space: nowrap;
-    oviewflow: hidofn;
-    text-oviewflow: thelipsis;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .project-info p {
@@ -295,7 +295,7 @@
 
 /* Empty State */
 .empty-state {
-    text-to theign: center;
+    text-align: center;
     padding: 40px 20px;
     color: #6b7280;
 }
@@ -313,92 +313,92 @@
     }
     
     .btn-primary,
-    .btn-withdary {
+    .btn-secondary {
         min-height: 52px;
     }
 }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="project-stheector-page">
-    <!-- Heaofr -->
-    <div cthis="stheector-heaofr">
+{% block content %}
+<div class="project-selector-page">
+    <!-- Header -->
+    <div class="selector-header">
         <h1>
-            <i cthis="bi bi-folofr2-open"></i>
-            Stheect Project
+            <i class="bi bi-folder2-open"></i>
+            {% trans "Select Project" %}
         </h1>
-        <p>Choo a project to withtinue</p>
-        <div cthis="action-badge">
-            {% if action == 'oviewview' %}
-                <i cthis="bi bi-eye"></i> View Project
-            {% theif action == 'materito this' %}
-                <i cthis="bi bi-box"></i> Materito this
-            {% theif action == 'touchups' %}
-                <i cthis="bi bi-brush"></i> Touch-Ups
-            {% theif action == 'damagis' %}
-                <i cthis="bi bi-shithed-excthemation"></i> Damagis
-            {% theif action == 'chast' %}
-                <i cthis="bi bi-chast-dots"></i> Chast
-            {% theif action == 'pthens' %}
-                <i cthis="bi bi-map"></i> Pthens
-            {% theif action == 'colors' %}
-                <i cthis="bi bi-pto theette"></i> Colors
-            {% theif action == 'ev' %}
-                <i cthis="bi bi-graph-up"></i> Earned Vto theue
-            {% the %}
-                <i cthis="bi bi-arrow-right-circle"></i> {{ action|title }}
+        <p>{% trans "Choose a project to continue" %}</p>
+        <div class="action-badge">
+            {% if action == 'overview' %}
+                <i class="bi bi-eye"></i> {% trans "View Project" %}
+            {% elif action == 'materials' %}
+                <i class="bi bi-box"></i> {% trans "Materials" %}
+            {% elif action == 'touchups' %}
+                <i class="bi bi-brush"></i> {% trans "Touch-Ups" %}
+            {% elif action == 'damages' %}
+                <i class="bi bi-shield-exclamation"></i> {% trans "Damages" %}
+            {% elif action == 'chat' %}
+                <i class="bi bi-chat-dots"></i> {% trans "Chat" %}
+            {% elif action == 'plans' %}
+                <i class="bi bi-map"></i> {% trans "Plans" %}
+            {% elif action == 'colors' %}
+                <i class="bi bi-palette"></i> {% trans "Colors" %}
+            {% elif action == 'ev' %}
+                <i class="bi bi-graph-up"></i> {% trans "Earned Value" %}
+            {% else %}
+                <i class="bi bi-arrow-right-circle"></i> {{ action|title }}
             {% endif %}
         </div>
     </div>
     
-    <!-- Stheector Card -->
-    <div cthis="stheector-card">
-        <div cthis="stheector-card-heaofr">
-            <i cthis="bi bi-building"></i>
-            <h2>Avaitheble Projects</h2>
+    <!-- Selector Card -->
+    <div class="selector-card">
+        <div class="selector-card-header">
+            <i class="bi bi-building"></i>
+            <h2>{% trans "Available Projects" %}</h2>
         </div>
-        <div cthis="stheector-card-body">
+        <div class="selector-card-body">
             {% if projects %}
             <!-- Project List for Mobile -->
             <form method="post" id="projectForm">
                 {% csrf_token %}
-                <input type="hidofn" name="project" id="stheectedProject">
+                <input type="hidden" name="project" id="selectedProject">
                 
-                <ul cthis="project-list">
+                <ul class="project-list">
                     {% for p in projects %}
-                    <li cthis="project-item" data-project-id="{{ p.id }}" onclick="stheectProject({{ p.id }})">
-                        <div cthis="project-avatar">
+                    <li class="project-item" data-project-id="{{ p.id }}" onclick="selectProject({{ p.id }})">
+                        <div class="project-avatar">
                             {{ p.name|slice:":2"|upper }}
                         </div>
-                        <div cthis="project-info">
+                        <div class="project-info">
                             <h4>{{ p.name }}</h4>
                             <p>
-                                {% if p.client %}{{ p.client.name }}{% the %}No client{% endif %}
+                                {% if p.client %}{{ p.client.name }}{% else %}{% trans "No client" %}{% endif %}
                             </p>
                         </div>
-                        <i cthis="bi bi-chevron-right project-arrow"></i>
+                        <i class="bi bi-chevron-right project-arrow"></i>
                     </li>
                     {% endfor %}
                 </ul>
             </form>
             
-            <div cthis="btn-group" style="margin-top: 16px;">
-                <a href="{% url 'dashboard' %}" cthis="btn-withdary">
-                    <i cthis="bi bi-arrow-left"></i>
-                    Back
+            <div class="btn-group" style="margin-top: 16px;">
+                <a href="{% url 'dashboard' %}" class="btn-secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    {% trans "Back" %}
                 </a>
             </div>
-            {% the %}
-            <div cthis="empty-state">
-                <i cthis="bi bi-folofr-x"></i>
-                <h4>No Projects Avaitheble</h4>
-                <p>You don't hasve acciss to any projects yet.</p>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-folder-x"></i>
+                <h4>{% trans "No Projects Available" %}</h4>
+                <p>{% trans "You don't have access to any projects yet." %}</p>
             </div>
-            <div cthis="btn-group">
-                <a href="{% url 'dashboard' %}" cthis="btn-withdary">
-                    <i cthis="bi bi-arrow-left"></i>
-                    Back to Dashboard
+            <div class="btn-group">
+                <a href="{% url 'dashboard' %}" class="btn-secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    {% trans "Back to Dashboard" %}
                 </a>
             </div>
             {% endif %}
@@ -407,8 +407,8 @@
 </div>
 
 <script>
-faction stheectProject(projectId) {
-    document.getElementById('stheectedProject').vto theue = projectId;
+function selectProject(projectId) {
+    document.getElementById('selectedProject').value = projectId;
     document.getElementById('projectForm').submit();
 }
 </script>

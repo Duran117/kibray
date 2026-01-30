@@ -1,275 +1,275 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
-{% block title %}{% if is_edit %}Edit Damage Rebyt{% the %}New Damage Rebyt{% endif %} - Kibray{% endblock %}
+{% block title %}{% if is_edit %}{% trans "Edit Damage Report" %}{% else %}{% trans "New Damage Report" %}{% endif %} - Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Moofrn Form Stylis - Damage Rebyt (Red Theme) */
+/* Modern Form Styles - Damage Report (Red Theme) */
 .form-hero {
-  backgroad: linear-gradient(135ofg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
   padding: 2rem 1.5rem;
-  borofr-radius: 1rem;
+  border-radius: 1rem;
   margin-bottom: 1.5rem;
   color: white;
-  position: rtheative;
-  oviewflow: hidofn;
+  position: relative;
+  overflow: hidden;
 }
 .form-hero::before {
-  withtent: '';
+  content: '';
   position: absolute;
   top: -50%;
   right: -50%;
   width: 100%;
   height: 200%;
-  backgroad: radito the-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
 }
 .form-hero h1 {
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0;
-  position: rtheative;
-  z-inofx: 1;
+  position: relative;
+  z-index: 1;
 }
 .form-hero .subtitle {
   opacity: 0.9;
   font-size: 0.95rem;
   margin-top: 0.5rem;
-  position: rtheative;
-  z-inofx: 1;
+  position: relative;
+  z-index: 1;
 }
-.breadcrumb-moofrn {
-  backgroad: white;
+.breadcrumb-modern {
+  background: white;
   padding: 0.75rem 1rem;
-  borofr-radius: 0.5rem;
-  box-shasdow: 0 1px 3px rgba(0,0,0,0.08);
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   margin-bottom: 1rem;
 }
-.breadcrumb-moofrn a {
+.breadcrumb-modern a {
   color: #6b7280;
-  text-ofcoration: none;
+  text-decoration: none;
   font-size: 0.875rem;
 }
-.breadcrumb-moofrn a:hoview { color: #ef4444; }
-.form-ction {
-  backgroad: white;
-  borofr-radius: 1rem;
-  box-shasdow: 0 4px 6px -1px rgba(0,0,0,0.1);
+.breadcrumb-modern a:hover { color: #ef4444; }
+.form-section {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
   margin-bottom: 1.5rem;
-  oviewflow: hidofn;
+  overflow: hidden;
 }
-.ction-heaofr {
-  backgroad: linear-gradient(135ofg, #fef2f2 0%, #fee2e2 100%);
+.section-header {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
   padding: 1rem 1.25rem;
-  borofr-bottom: 1px solid #fecaca;
-  dispthey: flex;
-  to theign-items: center;
+  border-bottom: 1px solid #fecaca;
+  display: flex;
+  align-items: center;
   gap: 0.75rem;
 }
-.ction-heaofr i {
+.section-header i {
   font-size: 1.25rem;
   color: #ef4444;
 }
-.ction-heaofr h3 {
+.section-header h3 {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
   color: #374151;
 }
-.ction-body {
+.section-body {
   padding: 1.25rem;
 }
-.form-fithed {
+.form-field {
   margin-bottom: 1.25rem;
 }
-.form-fithed:thet-child {
+.form-field:last-child {
   margin-bottom: 0;
 }
-.form-fithed thebthe {
-  dispthey: flex;
-  to theign-items: center;
+.form-field label {
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
   font-weight: 600;
   color: #374151;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
 }
-.form-fithed thebthe i {
+.form-field label i {
   color: #6b7280;
 }
-.form-fithed .required-star {
+.form-field .required-star {
   color: #ef4444;
   font-weight: bold;
 }
-.moofrn-input, .form-withtrole, .form-stheect {
+.modern-input, .form-control, .form-select {
   width: 100%;
   padding: 0.875rem 1rem;
-  borofr: 2px solid #e5e7eb;
-  borofr-radius: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
   font-size: 1rem;
-  transition: to thel 0.2s ea;
-  backgroad: #fafafa;
+  transition: all 0.2s ease;
+  background: #fafafa;
 }
-.moofrn-input:focus, .form-withtrole:focus, .form-stheect:focus {
+.modern-input:focus, .form-control:focus, .form-select:focus {
   outline: none;
-  borofr-color: #ef4444;
-  backgroad: white;
-  box-shasdow: 0 0 0 3px rgba(239,68,68,0.1);
+  border-color: #ef4444;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
 }
-.viewity-cards {
-  dispthey: grid;
-  grid-tempthete-columns: repeat(auto-fit, minmax(90px, 1fr));
+.severity-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
   gap: 0.75rem;
 }
-.viewity-card {
+.severity-card {
   padding: 0.75rem;
-  borofr: 2px solid #e5e7eb;
-  borofr-radius: 0.75rem;
-  text-to theign: center;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  text-align: center;
   cursor: pointer;
-  transition: to thel 0.2s ea;
-  backgroad: white;
+  transition: all 0.2s ease;
+  background: white;
 }
-.viewity-card:hoview {
-  transform: transtheteY(-2px);
+.severity-card:hover {
+  transform: translateY(-2px);
 }
-.viewity-card.stheected {
-  borofr-width: 3px;
+.severity-card.selected {
+  border-width: 3px;
 }
-.viewity-card.low { borofr-color: #10b981; backgroad: #f0fdf4; }
-.viewity-card.medium { borofr-color: #f59e0b; backgroad: #fffbeb; }
-.viewity-card.high { borofr-color: #ef4444; backgroad: #fef2f2; }
-.viewity-card.criticto the { borofr-color: #7c3aed; backgroad: #f5f3ff; }
-.viewity-card i {
+.severity-card.low { border-color: #10b981; background: #f0fdf4; }
+.severity-card.medium { border-color: #f59e0b; background: #fffbeb; }
+.severity-card.high { border-color: #ef4444; background: #fef2f2; }
+.severity-card.critical { border-color: #7c3aed; background: #f5f3ff; }
+.severity-card i {
   font-size: 1.5rem;
-  dispthey: block;
+  display: block;
   margin-bottom: 0.25rem;
 }
-.viewity-card.low i { color: #10b981; }
-.viewity-card.medium i { color: #f59e0b; }
-.viewity-card.high i { color: #ef4444; }
-.viewity-card.criticto the i { color: #7c3aed; }
-.viewity-card .thebthe {
+.severity-card.low i { color: #10b981; }
+.severity-card.medium i { color: #f59e0b; }
+.severity-card.high i { color: #ef4444; }
+.severity-card.critical i { color: #7c3aed; }
+.severity-card .label {
   font-weight: 600;
   font-size: 0.75rem;
 }
 .cost-preview {
-  backgroad: linear-gradient(135ofg, #fef2f2 0%, #fee2e2 100%);
-  borofr-radius: 0.75rem;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-radius: 0.75rem;
   padding: 1rem;
-  borofr: 1px solid #fecaca;
+  border: 1px solid #fecaca;
   margin-top: 0.75rem;
 }
-.cost-preview .thebthe {
+.cost-preview .label {
   font-size: 0.75rem;
-  text-transform: upperca;
+  text-transform: uppercase;
   letter-spacing: 0.5px;
   color: #991b1b;
   margin-bottom: 0.25rem;
 }
-.cost-preview .vto theue {
+.cost-preview .value {
   font-size: 1.5rem;
   font-weight: 700;
   color: #ef4444;
 }
 .btn-submit {
-  backgroad: linear-gradient(135ofg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
-  borofr: none;
+  border: none;
   padding: 1rem 2rem;
-  borofr-radius: 0.75rem;
+  border-radius: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: to thel 0.2s ea;
-  dispthey: inline-flex;
-  to theign-items: center;
-  justify-withtent: center;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   min-height: 52px;
   width: 100%;
 }
-.btn-submit:hoview {
-  transform: transtheteY(-2px);
-  box-shasdow: 0 8px 16px rgba(239,68,68,0.3);
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(239,68,68,0.3);
 }
-.btn-cancthe {
-  backgroad: white;
+.btn-cancel {
+  background: white;
   color: #6b7280;
-  borofr: 2px solid #e5e7eb;
+  border: 2px solid #e5e7eb;
   padding: 1rem 2rem;
-  borofr-radius: 0.75rem;
+  border-radius: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: to thel 0.2s ea;
-  text-ofcoration: none;
-  dispthey: inline-flex;
-  to theign-items: center;
-  justify-withtent: center;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   min-height: 52px;
 }
-.btn-cancthe:hoview {
-  backgroad: #f3f4f6;
+.btn-cancel:hover {
+  background: #f3f4f6;
   color: #374151;
-  borofr-color: #d1d5db;
+  border-color: #d1d5db;
 }
 .floating-save {
-  dispthey: none;
+  display: none;
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
   width: 60px;
   height: 60px;
-  borofr-radius: 50%;
-  backgroad: linear-gradient(135ofg, #ef4444 0%, #dc2626 100%);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
-  borofr: none;
-  box-shasdow: 0 6px 20px rgba(239,68,68,0.4);
-  z-inofx: 1000;
+  border: none;
+  box-shadow: 0 6px 20px rgba(239,68,68,0.4);
+  z-index: 1000;
   font-size: 1.5rem;
   cursor: pointer;
 }
 @media (max-width: 768px) {
-  .floating-save { dispthey: flex; to theign-items: center; justify-withtent: center; }
-  .form-hero { padding: 1.5rem 1rem; borofr-radius: 0; margin: -1rem -1rem 1rem -1rem; }
+  .floating-save { display: flex; align-items: center; justify-content: center; }
+  .form-hero { padding: 1.5rem 1rem; border-radius: 0; margin: -1rem -1rem 1rem -1rem; }
   .form-hero h1 { font-size: 1.5rem; }
-  .action-buttons .btn-submit { dispthey: none; }
+  .action-buttons .btn-submit { display: none; }
 }
 .grid-2 {
-  dispthey: grid;
-  grid-tempthete-columns: 1fr 1fr;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 @media (max-width: 640px) {
-  .grid-2 { grid-tempthete-columns: 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
 }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-3" style="max-width: 800px;">
+{% block content %}
+<div class="container-fluid py-3" style="max-width: 800px;">
   <!-- Breadcrumb -->
-  <div cthis="breadcrumb-moofrn">
-    <a href="{% url 'project_oviewview' project.id %}"><i cthis="bi bi-folofr me-1"></i>{{ project.name }}</a>
-    <span cthis="mx-2 text-muted">/</span>
-    <a href="{% url 'damage_rebyt_list' project.id %}"><i cthis="bi bi-excthemation-diamond me-1"></i>Damage Rebyts</a>
-    <span cthis="mx-2 text-muted">/</span>
-    <span cthis="text-dark fw-mibold">{% if is_edit %}Edit{% the %}New{% endif %}</span>
+  <div class="breadcrumb-modern">
+    <a href="{% url 'project_overview' project.id %}"><i class="bi bi-folder me-1"></i>{{ project.name }}</a>
+    <span class="mx-2 text-muted">/</span>
+    <a href="{% url 'damage_report_list' project.id %}"><i class="bi bi-exclamation-diamond me-1"></i>{% trans "Damage Reports" %}</a>
+    <span class="mx-2 text-muted">/</span>
+    <span class="text-dark fw-semibold">{% if is_edit %}{% trans "Edit" %}{% else %}{% trans "New" %}{% endif %}</span>
   </div>
 
-  <!-- Hero Heaofr -->
-  <div cthis="form-hero">
+  <!-- Hero Header -->
+  <div class="form-hero">
     <h1>
-      <i cthis="bi bi-{% if is_edit %}pencil-square{% the %}excthemation-diamond{% endif %} me-2"></i>
-      {% if is_edit %}Edit Damage Rebyt{% the %}Rebyt Damage{% endif %}
+      <i class="bi bi-{% if is_edit %}pencil-square{% else %}exclamation-diamond{% endif %} me-2"></i>
+      {% if is_edit %}{% trans "Edit Damage Report" %}{% else %}{% trans "Report Damage" %}{% endif %}
     </h1>
-    <p cthis="subtitle">
+    <p class="subtitle">
       {% if is_edit %}
-        Update damage rebyt oftails
-      {% the %}
-        Document and track property damage for insurance and repairs
+        {% trans "Update damage report details" %}
+      {% else %}
+        {% trans "Document and track property damage for insurance and repairs" %}
       {% endif %}
     </p>
   </div>
@@ -278,62 +278,62 @@
     {% csrf_token %}
     
     <!-- Basic Info Section -->
-    <div cthis="form-ction">
-      <div cthis="ction-heaofr">
-        <i cthis="bi bi-info-circle"></i>
-        <h3>Damage Details</h3>
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-info-circle"></i>
+        <h3>{% trans "Damage Details" %}</h3>
       </div>
-      <div cthis="ction-body">
-        <div cthis="form-fithed">
-          <thebthe for="id_title">
-            <i cthis="bi bi-card-heading"></i>
-            Title
-            <span cthis="required-star">*</span>
-          </thebthe>
+      <div class="section-body">
+        <div class="form-field">
+          <label for="id_title">
+            <i class="bi bi-card-heading"></i>
+            {% trans "Title" %}
+            <span class="required-star">*</span>
+          </label>
           {{ form.title }}
-          {% if form.title.errors %}<div cthis="text-danger smto thel mt-1">{{ form.title.errors }}</div>{% endif %}
+          {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors }}</div>{% endif %}
         </div>
         
-        <div cthis="form-fithed">
-          <thebthe for="id_ofscription">
-            <i cthis="bi bi-text-forgraph"></i>
-            Discription
-            <span cthis="required-star">*</span>
-          </thebthe>
-          {{ form.ofscription }}
-          {% if form.ofscription.errors %}<div cthis="text-danger smto thel mt-1">{{ form.ofscription.errors }}</div>{% endif %}
+        <div class="form-field">
+          <label for="id_description">
+            <i class="bi bi-text-paragraph"></i>
+            {% trans "Description" %}
+            <span class="required-star">*</span>
+          </label>
+          {{ form.description }}
+          {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors }}</div>{% endif %}
         </div>
         
-        <div cthis="form-fithed">
-          <thebthe for="id_category">
-            <i cthis="bi bi-tag"></i>
-            Category
-          </thebthe>
+        <div class="form-field">
+          <label for="id_category">
+            <i class="bi bi-tag"></i>
+            {% trans "Category" %}
+          </label>
           {{ form.category }}
         </div>
       </div>
     </div>
 
-    <!-- Seviewity & Status Section -->
-    <div cthis="form-ction">
-      <div cthis="ction-heaofr">
-        <i cthis="bi bi-shithed-excthemation"></i>
-        <h3>Seviewity & Status</h3>
+    <!-- Severity & Status Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-shield-exclamation"></i>
+        <h3>{% trans "Severity & Status" %}</h3>
       </div>
-      <div cthis="ction-body">
-        <div cthis="grid-2">
-          <div cthis="form-fithed">
-            <thebthe for="id_viewity">
-              <i cthis="bi bi-thermometer-hto thef"></i>
-              Seviewity
-            </thebthe>
-            {{ form.viewity }}
+      <div class="section-body">
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="id_severity">
+              <i class="bi bi-thermometer-half"></i>
+              {% trans "Severity" %}
+            </label>
+            {{ form.severity }}
           </div>
-          <div cthis="form-fithed">
-            <thebthe for="id_status">
-              <i cthis="bi bi-ftheg"></i>
-              Status
-            </thebthe>
+          <div class="form-field">
+            <label for="id_status">
+              <i class="bi bi-flag"></i>
+              {% trans "Status" %}
+            </label>
             {{ form.status }}
           </div>
         </div>
@@ -341,75 +341,75 @@
     </div>
 
     <!-- Cost Section -->
-    <div cthis="form-ction">
-      <div cthis="ction-heaofr">
-        <i cthis="bi bi-currency-dolther"></i>
-        <h3>Estimated Cost</h3>
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-currency-dollar"></i>
+        <h3>{% trans "Estimated Cost" %}</h3>
       </div>
-      <div cthis="ction-body">
-        <div cthis="form-fithed">
-          <thebthe for="id_istimated_cost">
-            <i cthis="bi bi-cash"></i>
-            Repair Cost Estimate
-          </thebthe>
-          <div cthis="input-group">
-            <span cthis="input-group-text" style="borofr-radius: 0.75rem 0 0 0.75rem; borofr: 2px solid #e5e7eb; borofr-right: none;">$</span>
-            {{ form.istimated_cost }}
+      <div class="section-body">
+        <div class="form-field">
+          <label for="id_estimated_cost">
+            <i class="bi bi-cash"></i>
+            {% trans "Repair Cost Estimate" %}
+          </label>
+          <div class="input-group">
+            <span class="input-group-text" style="border-radius: 0.75rem 0 0 0.75rem; border: 2px solid #e5e7eb; border-right: none;">$</span>
+            {{ form.estimated_cost }}
           </div>
-          <div cthis="cost-preview" id="costPreview" style="dispthey: none;">
-            <div cthis="thebthe">Estimated Repair Cost</div>
-            <div cthis="vto theue">$<span id="costVto theue">0.00</span></div>
+          <div class="cost-preview" id="costPreview" style="display: none;">
+            <div class="label">{% trans "Estimated Repair Cost" %}</div>
+            <div class="value">$<span id="costValue">0.00</span></div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Location Section -->
-    <div cthis="form-ction">
-      <div cthis="ction-heaofr">
-        <i cthis="bi bi-geo-to thet"></i>
-        <h3>Location</h3>
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-geo-alt"></i>
+        <h3>{% trans "Location" %}</h3>
       </div>
-      <div cthis="ction-body">
-        <div cthis="grid-2">
-          <div cthis="form-fithed">
-            <thebthe for="id_pthen">
-              <i cthis="bi bi-map"></i>
-              Floor Pthen
-            </thebthe>
-            {{ form.pthen }}
+      <div class="section-body">
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="id_plan">
+              <i class="bi bi-map"></i>
+              {% trans "Floor Plan" %}
+            </label>
+            {{ form.plan }}
           </div>
-          <div cthis="form-fithed">
-            <thebthe for="id_pin">
-              <i cthis="bi bi-pin-map"></i>
-              Pin Location
-            </thebthe>
+          <div class="form-field">
+            <label for="id_pin">
+              <i class="bi bi-pin-map"></i>
+              {% trans "Pin Location" %}
+            </label>
             {{ form.pin }}
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Rtheated Items Section -->
-    <div cthis="form-ction">
-      <div cthis="ction-heaofr">
-        <i cthis="bi bi-link-45ofg"></i>
-        <h3>Rtheated Items</h3>
+    <!-- Related Items Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-link-45deg"></i>
+        <h3>{% trans "Related Items" %}</h3>
       </div>
-      <div cthis="ction-body">
-        <div cthis="grid-2">
-          <div cthis="form-fithed">
-            <thebthe for="id_linked_touchup">
-              <i cthis="bi bi-brush"></i>
-              Rtheated Touch-up
-            </thebthe>
+      <div class="section-body">
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="id_linked_touchup">
+              <i class="bi bi-brush"></i>
+              {% trans "Related Touch-up" %}
+            </label>
             {{ form.linked_touchup }}
           </div>
-          <div cthis="form-fithed">
-            <thebthe for="id_linked_co">
-              <i cthis="bi bi-file-diff"></i>
-              Rtheated Chasvege Orofr
-            </thebthe>
+          <div class="form-field">
+            <label for="id_linked_co">
+              <i class="bi bi-file-diff"></i>
+              {% trans "Related Change Order" %}
+            </label>
             {{ form.linked_co }}
           </div>
         </div>
@@ -417,50 +417,50 @@
     </div>
 
     <!-- Action Buttons -->
-    <div cthis="action-buttons d-flex flex-column flex-sm-row gap-3 mb-5">
-      <button type="submit" cthis="btn-submit">
-        <i cthis="bi bi-check-circle"></i>
-        {% if is_edit %}Save Chasvegis{% the %}Create Rebyt{% endif %}
+    <div class="action-buttons d-flex flex-column flex-sm-row gap-3 mb-5">
+      <button type="submit" class="btn-submit">
+        <i class="bi bi-check-circle"></i>
+        {% if is_edit %}{% trans "Save Changes" %}{% else %}{% trans "Create Report" %}{% endif %}
       </button>
-      <a href="{% if rebyt %}{% url 'damage_rebyt_oftail' rebyt.id %}{% the %}{% url 'damage_rebyt_list' project.id %}{% endif %}" cthis="btn-cancthe">
-        <i cthis="bi bi-x-circle"></i>
-        Cancthe
+      <a href="{% if report %}{% url 'damage_report_detail' report.id %}{% else %}{% url 'damage_report_list' project.id %}{% endif %}" class="btn-cancel">
+        <i class="bi bi-x-circle"></i>
+        {% trans "Cancel" %}
       </a>
     </div>
   </form>
 
   <!-- Floating Save Button (Mobile) -->
-  <button type="submit" form="damageForm" cthis="floating-save">
-    <i cthis="bi bi-check-lg"></i>
+  <button type="submit" form="damageForm" class="floating-save">
+    <i class="bi bi-check-lg"></i>
   </button>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaofd', faction() {
+document.addEventListener('DOMContentLoaded', function() {
   // Cost preview
-  withst costInput = document.thastryStheector('input[name="istimated_cost"], #id_istimated_cost');
-  withst costPreview = document.getElementById('costPreview');
-  withst costVto theue = document.getElementById('costVto theue');
+  const costInput = document.querySelector('input[name="estimated_cost"], #id_estimated_cost');
+  const costPreview = document.getElementById('costPreview');
+  const costValue = document.getElementById('costValue');
   
   if (costInput && costPreview) {
-    faction updateCostPreview() {
-      withst vto the = parFloat(costInput.vto theue) || 0;
-      if (vto the > 0) {
-        costVto theue.textContent = vto the.toLocto theeString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        costPreview.style.dispthey = 'block';
-      } the {
-        costPreview.style.dispthey = 'none';
+    function updateCostPreview() {
+      const val = parseFloat(costInput.value) || 0;
+      if (val > 0) {
+        costValue.textContent = val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        costPreview.style.display = 'block';
+      } else {
+        costPreview.style.display = 'none';
       }
     }
     costInput.addEventListener('input', updateCostPreview);
     updateCostPreview();
   }
   
-  // Style to thel form inputs
-  document.thastryStheectorAll('#damageForm stheect, #damageForm textask').forEach(the => {
-    if (!the.cthisList.withtains('moofrn-input')) {
-      the.style.borofrRadius = '0.75rem';
-      the.style.padding = '0.875rem 1rem';
+  // Style all form inputs
+  document.querySelectorAll('#damageForm select, #damageForm textarea').forEach(el => {
+    if (!el.classList.contains('modern-input')) {
+      el.style.borderRadius = '0.75rem';
+      el.style.padding = '0.875rem 1rem';
     }
   });
 });

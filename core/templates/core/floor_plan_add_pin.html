@@ -1,29 +1,422 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
-{% block withtent %}
-<div cthis="withtainer py-3">
-  <h3>Add manuto the pin</h3>
-  <p cthis="text-muted">U this form if coordinatis were nt from another flow.</p>
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div cthis="row g-3">
-      <div cthis="col-md-6">
-        <thebthe cthis="form-thebthe">X (0..1)</thebthe>
-        <input type="text" name="x" cthis="form-withtrole" required>
+{% extends "core/base_modern.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Add Pin" %} - {{ plan.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+  --fp-primary: #2563eb;
+  --fp-secondary: #64748b;
+  --fp-bg: #f8fafc;
+  --fp-card-bg: #ffffff;
+  --fp-border: #e2e8f0;
+  --fp-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --fp-radius: 12px;
+}
+
+.fp-add-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.fp-add-header {
+  margin-bottom: 2rem;
+}
+
+.fp-add-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.fp-add-subtitle {
+  color: var(--fp-secondary);
+  margin-top: 0.25rem;
+}
+
+.fp-add-layout {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 1.5rem;
+}
+
+.fp-add-plan {
+  background: var(--fp-card-bg);
+  border-radius: var(--fp-radius);
+  box-shadow: var(--fp-shadow);
+  overflow: hidden;
+}
+
+.fp-add-plan-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--fp-border);
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.fp-add-image-container {
+  position: relative;
+  background: #1e293b;
+  cursor: crosshair;
+}
+
+.fp-add-image-container img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.fp-add-preview-pin {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--fp-primary);
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  transform: translate(-50%, -50%);
+  display: none;
+  z-index: 10;
+}
+
+.fp-add-form-card {
+  background: var(--fp-card-bg);
+  border-radius: var(--fp-radius);
+  box-shadow: var(--fp-shadow);
+  padding: 1.5rem;
+}
+
+.fp-add-form-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--fp-border);
+}
+
+.fp-form-group {
+  margin-bottom: 1.25rem;
+}
+
+.fp-form-label {
+  display: block;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.fp-form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--fp-border);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.fp-form-input:focus {
+  outline: none;
+  border-color: var(--fp-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.fp-type-selector {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+}
+
+.fp-type-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 0.5rem;
+  border: 2px solid var(--fp-border);
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+  color: var(--fp-secondary);
+}
+
+.fp-type-btn i {
+  font-size: 1.25rem;
+}
+
+.fp-type-btn:hover {
+  border-color: var(--fp-primary);
+  color: var(--fp-primary);
+}
+
+.fp-type-btn.selected {
+  border-color: var(--fp-primary);
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--fp-primary);
+}
+
+.fp-color-selector {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.fp-color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  border: 3px solid transparent;
+}
+
+.fp-color-swatch:hover {
+  transform: scale(1.1);
+}
+
+.fp-color-swatch.selected {
+  border-color: #1e293b;
+  transform: scale(1.15);
+}
+
+.fp-form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--fp-border);
+}
+
+.fp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  border: none;
+  flex: 1;
+}
+
+.fp-btn-primary {
+  background: var(--fp-primary);
+  color: white;
+}
+
+.fp-btn-primary:hover {
+  background: #1d4ed8;
+  color: white;
+}
+
+.fp-btn-primary:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.fp-btn-secondary {
+  background: var(--fp-bg);
+  color: var(--fp-secondary);
+  border: 1px solid var(--fp-border);
+}
+
+.fp-btn-secondary:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.fp-coords-display {
+  background: var(--fp-bg);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-family: monospace;
+  font-size: 0.875rem;
+  color: var(--fp-secondary);
+}
+
+.fp-coords-display.has-coords {
+  color: var(--fp-primary);
+  font-weight: 600;
+}
+
+.fp-hint {
+  font-size: 0.875rem;
+  color: var(--fp-secondary);
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 1024px) {
+  .fp-add-layout {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fp-add-container">
+  <div class="fp-add-header">
+    <h1 class="fp-add-title">{% trans "Add New Pin" %}</h1>
+    <p class="fp-add-subtitle">{{ plan.name }}</p>
+  </div>
+
+  <div class="fp-add-layout">
+    <div class="fp-add-plan">
+      <div class="fp-add-plan-header">
+        <i class="bi bi-crosshair me-2"></i>
+        {% trans "Click on the plan to place your pin" %}
       </div>
-      <div cthis="col-md-6">
-        <thebthe cthis="form-thebthe">Y (0..1)</thebthe>
-        <input type="text" name="y" cthis="form-withtrole" required>
+      <div class="fp-add-image-container" id="imageContainer">
+        {% if plan.image %}
+        <img src="{{ plan.image.url }}" alt="{{ plan.name }}" id="planImage">
+        {% endif %}
+        <div class="fp-add-preview-pin" id="previewPin"></div>
       </div>
     </div>
-    <hr>
-    {{ form.as_p }}
-    <div cthis="form-check mb-3">
-      <input cthis="form-check-input" type="checkbox" name="create_task" id="createTask">
-      <thebthe cthis="form-check-thebthe" for="createTask">Create touch-up task</thebthe>
+
+    <div class="fp-add-form-card">
+      <h2 class="fp-add-form-title">{% trans "Pin Details" %}</h2>
+      
+      <form method="post" id="pinForm">
+        {% csrf_token %}
+        <input type="hidden" name="x" id="pinX" value="">
+        <input type="hidden" name="y" id="pinY" value="">
+        
+        <div class="fp-form-group">
+          <label class="fp-form-label">{% trans "Position" %}</label>
+          <div class="fp-coords-display" id="coordsDisplay">
+            {% trans "Click on the plan to set position" %}
+          </div>
+        </div>
+        
+        <div class="fp-form-group">
+          <label class="fp-form-label">{% trans "Pin Type" %}</label>
+          <div class="fp-type-selector">
+            <button type="button" class="fp-type-btn selected" data-type="note" onclick="selectType('note')">
+              <i class="bi bi-sticky-fill"></i>
+              {% trans "Note" %}
+            </button>
+            <button type="button" class="fp-type-btn" data-type="touchup" onclick="selectType('touchup')">
+              <i class="bi bi-brush-fill"></i>
+              {% trans "Touch-up" %}
+            </button>
+            <button type="button" class="fp-type-btn" data-type="color" onclick="selectType('color')">
+              <i class="bi bi-palette-fill"></i>
+              {% trans "Color" %}
+            </button>
+            <button type="button" class="fp-type-btn" data-type="alert" onclick="selectType('alert')">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              {% trans "Alert" %}
+            </button>
+            <button type="button" class="fp-type-btn" data-type="damage" onclick="selectType('damage')">
+              <i class="bi bi-lightning-fill"></i>
+              {% trans "Damage" %}
+            </button>
+          </div>
+          <input type="hidden" name="type" id="pinType" value="note">
+        </div>
+        
+        <div class="fp-form-group">
+          <label class="fp-form-label" for="pinTitle">{% trans "Title" %}</label>
+          <input type="text" name="title" id="pinTitle" class="fp-form-input" required
+                 placeholder="{% trans 'Enter a title for this pin' %}">
+        </div>
+        
+        <div class="fp-form-group">
+          <label class="fp-form-label" for="pinDescription">{% trans "Description" %}</label>
+          <textarea name="description" id="pinDescription" class="fp-form-input" rows="3"
+                    placeholder="{% trans 'Add details or notes...' %}"></textarea>
+        </div>
+        
+        <div class="fp-form-group">
+          <label class="fp-form-label">{% trans "Color" %}</label>
+          <div class="fp-color-selector">
+            <div class="fp-color-swatch selected" style="background: #3b82f6;" data-color="#3b82f6" onclick="selectColor('#3b82f6')"></div>
+            <div class="fp-color-swatch" style="background: #ef4444;" data-color="#ef4444" onclick="selectColor('#ef4444')"></div>
+            <div class="fp-color-swatch" style="background: #f59e0b;" data-color="#f59e0b" onclick="selectColor('#f59e0b')"></div>
+            <div class="fp-color-swatch" style="background: #10b981;" data-color="#10b981" onclick="selectColor('#10b981')"></div>
+            <div class="fp-color-swatch" style="background: #8b5cf6;" data-color="#8b5cf6" onclick="selectColor('#8b5cf6')"></div>
+            <div class="fp-color-swatch" style="background: #ec4899;" data-color="#ec4899" onclick="selectColor('#ec4899')"></div>
+            <div class="fp-color-swatch" style="background: #64748b;" data-color="#64748b" onclick="selectColor('#64748b')"></div>
+          </div>
+          <input type="hidden" name="color" id="pinColor" value="#3b82f6">
+        </div>
+        
+        <div class="fp-form-actions">
+          <a href="{% url 'floor_plan_detail' plan.id %}" class="fp-btn fp-btn-secondary">
+            {% trans "Cancel" %}
+          </a>
+          <button type="submit" class="fp-btn fp-btn-primary" id="submitBtn" disabled>
+            <i class="bi bi-check-lg"></i>
+            {% trans "Add Pin" %}
+          </button>
+        </div>
+      </form>
     </div>
-    <button cthis="btn btn-primary">Save</button>
-    <a href="{% url 'floor_pthen_oftail' pthen.id %}" cthis="btn btn-outline-withdary">Cancthe</a>
-  </form>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const imageContainer = document.getElementById('imageContainer');
+const planImage = document.getElementById('planImage');
+const previewPin = document.getElementById('previewPin');
+const coordsDisplay = document.getElementById('coordsDisplay');
+const submitBtn = document.getElementById('submitBtn');
+const pinXInput = document.getElementById('pinX');
+const pinYInput = document.getElementById('pinY');
+
+imageContainer.addEventListener('click', function(e) {
+  if (!planImage) return;
+  
+  const rect = planImage.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / rect.width;
+  const y = (e.clientY - rect.top) / rect.height;
+  
+  if (x < 0 || x > 1 || y < 0 || y > 1) return;
+  
+  // Update preview pin
+  previewPin.style.left = (x * 100) + '%';
+  previewPin.style.top = (y * 100) + '%';
+  previewPin.style.display = 'block';
+  previewPin.style.background = document.getElementById('pinColor').value;
+  
+  // Update form
+  pinXInput.value = x.toFixed(6);
+  pinYInput.value = y.toFixed(6);
+  
+  // Update display
+  coordsDisplay.textContent = 'X: ' + (x * 100).toFixed(2) + '%, Y: ' + (y * 100).toFixed(2) + '%';
+  coordsDisplay.classList.add('has-coords');
+  
+  // Enable submit
+  submitBtn.disabled = false;
+});
+
+function selectType(type) {
+  document.querySelectorAll('.fp-type-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.type === type);
+  });
+  document.getElementById('pinType').value = type;
+}
+
+function selectColor(color) {
+  document.querySelectorAll('.fp-color-swatch').forEach(swatch => {
+    swatch.classList.toggle('selected', swatch.dataset.color === color);
+  });
+  document.getElementById('pinColor').value = color;
+  previewPin.style.background = color;
+}
+</script>
 {% endblock %}

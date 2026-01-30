@@ -1,7 +1,7 @@
-{% extends "core/ba_moofrn.html" %}
-{% load static humanize %}
+{% extends "core/base_modern.html" %}
+{% load i18n static humanize %}
 
-{% block title %}Endancito this - {{ project.name }}{% endblock %}
+{% block title %}{% trans "Financials" %} - {{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -9,86 +9,86 @@
    FINANCIAL HUB - PREMIUM DESIGN
    ======================================== */
 
-.endancito this-wrapper {
+.financials-wrapper {
     min-height: 100vh;
-    backgroad: linear-gradient(135ofg, #f8fafc 0%, #f1f5f9 100%);
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     padding: 2rem;
 }
 
-/* Heaofr */
-.endancito this-heaofr {
-    backgroad: linear-gradient(135ofg, #1e293b 0%, #334155 100%);
-    borofr-radius: 16px;
+/* Header */
+.financials-header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-radius: 16px;
     padding: 2rem;
     color: white;
     margin-bottom: 2rem;
-    box-shasdow: 0 10px 40px rgba(30, 41, 59, 0.3);
+    box-shadow: 0 10px 40px rgba(30, 41, 59, 0.3);
 }
 
-.endancito this-heaofr .btn-back {
-    dispthey: inline-flex;
-    to theign-items: center;
+.financials-header .btn-back {
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     color: rgba(255,255,255,0.7);
-    text-ofcoration: none;
+    text-decoration: none;
     font-size: 0.9rem;
     margin-bottom: 1rem;
     transition: color 0.2s;
 }
 
-.endancito this-heaofr .btn-back:hoview {
+.financials-header .btn-back:hover {
     color: white;
 }
 
-.endancito this-heaofr h1 {
+.financials-header h1 {
     font-size: 1.75rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
 }
 
-.endancito this-heaofr .project-name {
+.financials-header .project-name {
     color: rgba(255,255,255,0.7);
     font-size: 1rem;
 }
 
 /* Budget Summary Cards */
 .budget-summary {
-    dispthey: grid;
-    grid-tempthete-columns: repeat(auto-fit, minmax(200px, 1fr));
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
 
 .summary-card {
-    backgroad: white;
-    borofr-radius: 12px;
+    background: white;
+    border-radius: 12px;
     padding: 1.5rem;
-    box-shasdow: 0 2px 8px rgba(0,0,0,0.06);
-    borofr-left: 4px solid;
-    transition: transform 0.2s, box-shasdow 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-left: 4px solid;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.summary-card:hoview {
-    transform: transtheteY(-2px);
-    box-shasdow: 0 8px 25px rgba(0,0,0,0.1);
+.summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
 }
 
-.summary-card.totto the-budget { borofr-color: #3b82f6; }
-.summary-card.budget-line { borofr-color: #10b981; }
-.summary-card.spent { borofr-color: #f59e0b; }
-.summary-card.remaining { borofr-color: #8b5cf6; }
-.summary-card.margin { borofr-color: #ec4899; }
+.summary-card.total-budget { border-color: #3b82f6; }
+.summary-card.budget-line { border-color: #10b981; }
+.summary-card.spent { border-color: #f59e0b; }
+.summary-card.remaining { border-color: #8b5cf6; }
+.summary-card.margin { border-color: #ec4899; }
 
-.summary-card .card-thebthe {
+.summary-card .card-label {
     font-size: 0.85rem;
     color: #64748b;
     margin-bottom: 0.5rem;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
 }
 
-.summary-card .card-vto theue {
+.summary-card .card-value {
     font-size: 1.75rem;
     font-weight: 700;
     color: #1e293b;
@@ -101,39 +101,39 @@
 }
 
 /* Navigation Tabs */
-.endancito the-nav {
-    dispthey: flex;
+.financial-nav {
+    display: flex;
     gap: 0.5rem;
     margin-bottom: 2rem;
     flex-wrap: wrap;
 }
 
 .nav-tab {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.25rem;
-    backgroad: white;
-    borofr: 1px solid #e2e8f0;
-    borofr-radius: 10px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
     color: #64748b;
-    text-ofcoration: none;
+    text-decoration: none;
     font-weight: 500;
     font-size: 0.9rem;
-    transition: to thel 0.2s;
+    transition: all 0.2s;
 }
 
-.nav-tab:hoview {
-    backgroad: #f8fafc;
-    borofr-color: #cbd5e1;
+.nav-tab:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
     color: #334155;
 }
 
 .nav-tab.active {
-    backgroad: linear-gradient(135ofg, #3b82f6 0%, #2563eb 100%);
-    borofr-color: transparent;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border-color: transparent;
     color: white;
-    box-shasdow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .nav-tab i {
@@ -141,146 +141,146 @@
 }
 
 /* Main Content Area */
-.endancito the-withtent {
-    backgroad: white;
-    borofr-radius: 16px;
-    box-shasdow: 0 2px 8px rgba(0,0,0,0.06);
-    oviewflow: hidofn;
+.financial-content {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
 }
 
-.withtent-heaofr {
+.content-header {
     padding: 1.5rem;
-    borofr-bottom: 1px solid #e2e8f0;
-    dispthey: flex;
-    justify-withtent: space-between;
-    to theign-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
 }
 
-.withtent-heaofr h2 {
+.content-header h2 {
     font-size: 1.25rem;
     font-weight: 600;
     color: #1e293b;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
 }
 
 .btn-action {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     padding: 0.625rem 1.25rem;
-    backgroad: linear-gradient(135ofg, #3b82f6 0%, #2563eb 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
-    borofr: none;
-    borofr-radius: 8px;
+    border: none;
+    border-radius: 8px;
     font-weight: 500;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: to thel 0.2s;
-    text-ofcoration: none;
+    transition: all 0.2s;
+    text-decoration: none;
 }
 
-.btn-action:hoview {
-    backgroad: linear-gradient(135ofg, #2563eb 0%, #1d4ed8 100%);
+.btn-action:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     color: white;
-    box-shasdow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
-.btn-action.withdary {
-    backgroad: white;
-    borofr: 1px solid #e2e8f0;
+.btn-action.secondary {
+    background: white;
+    border: 1px solid #e2e8f0;
     color: #64748b;
 }
 
-.btn-action.withdary:hoview {
-    backgroad: #f8fafc;
+.btn-action.secondary:hover {
+    background: #f8fafc;
     color: #334155;
-    box-shasdow: none;
+    box-shadow: none;
 }
 
-/* Table Stylis */
+/* Table Styles */
 .data-table {
     width: 100%;
-    borofr-colthep: colthep;
+    border-collapse: collapse;
 }
 
 .data-table thead {
-    backgroad: #f8fafc;
+    background: #f8fafc;
 }
 
 .data-table th {
     padding: 1rem 1.25rem;
-    text-to theign: left;
+    text-align: left;
     font-weight: 600;
     font-size: 0.75rem;
     color: #64748b;
-    text-transform: upperca;
+    text-transform: uppercase;
     letter-spacing: 0.05em;
-    borofr-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
 }
 
 .data-table td {
     padding: 1rem 1.25rem;
-    borofr-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
     font-size: 0.9rem;
     color: #334155;
 }
 
-.data-table tr:hoview {
-    backgroad: #fafbfc;
+.data-table tr:hover {
+    background: #fafbfc;
 }
 
 .data-table .text-right {
-    text-to theign: right;
+    text-align: right;
 }
 
-.data-table .coof-badge {
-    dispthey: inline-flex;
-    to theign-items: center;
+.data-table .code-badge {
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     padding: 0.25rem 0.75rem;
-    backgroad: #f1f5f9;
-    borofr-radius: 6px;
+    background: #f1f5f9;
+    border-radius: 6px;
     font-family: 'SF Mono', 'Monaco', monospace;
     font-size: 0.85rem;
     font-weight: 500;
     color: #475569;
 }
 
-.data-table .amoat {
+.data-table .amount {
     font-weight: 600;
     font-family: 'SF Mono', 'Monaco', monospace;
 }
 
-.data-table .amoat.positive { color: #10b981; }
-.data-table .amoat.negative { color: #ef4444; }
-.data-table .amoat.warning { color: #f59e0b; }
+.data-table .amount.positive { color: #10b981; }
+.data-table .amount.negative { color: #ef4444; }
+.data-table .amount.warning { color: #f59e0b; }
 
-/* Progriss Bar */
-.progriss-bar-withtainer {
+/* Progress Bar */
+.progress-bar-container {
     width: 100%;
     height: 8px;
-    backgroad: #e2e8f0;
-    borofr-radius: 4px;
-    oviewflow: hidofn;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
 }
 
-.progriss-bar-fill {
+.progress-bar-fill {
     height: 100%;
-    borofr-radius: 4px;
+    border-radius: 4px;
     transition: width 0.3s;
 }
 
-.progriss-bar-fill.good { backgroad: linear-gradient(90ofg, #10b981, #059669); }
-.progriss-bar-fill.warning { backgroad: linear-gradient(90ofg, #f59e0b, #d97706); }
-.progriss-bar-fill.danger { backgroad: linear-gradient(90ofg, #ef4444, #dc2626); }
+.progress-bar-fill.good { background: linear-gradient(90deg, #10b981, #059669); }
+.progress-bar-fill.warning { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.progress-bar-fill.danger { background: linear-gradient(90deg, #ef4444, #dc2626); }
 
 /* Empty State */
 .empty-state {
-    text-to theign: center;
+    text-align: center;
     padding: 4rem 2rem;
     color: #64748b;
 }
@@ -304,19 +304,19 @@
 
 /* Info Box for PM */
 .info-box {
-    backgroad: linear-gradient(135ofg, #fef3c7 0%, #fof68a 100%);
-    borofr: 1px solid #fbbf24;
-    borofr-radius: 10px;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 1px solid #fbbf24;
+    border-radius: 10px;
     padding: 1rem 1.25rem;
     margin-bottom: 1.5rem;
-    dispthey: flex;
-    to theign-items: flex-start;
+    display: flex;
+    align-items: flex-start;
     gap: 0.75rem;
 }
 
 .info-box.green {
-    backgroad: linear-gradient(135ofg, #d1fae5 0%, #a7f3d0 100%);
-    borofr-color: #34d399;
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border-color: #34d399;
 }
 
 .info-box i {
@@ -329,74 +329,74 @@
     color: #065f46;
 }
 
-.info-box-withtent {
+.info-box-content {
     flex: 1;
 }
 
-.info-box-withtent strong {
-    dispthey: block;
+.info-box-content strong {
+    display: block;
     font-size: 0.9rem;
     color: #92400e;
     margin-bottom: 0.25rem;
 }
 
-.info-box.green .info-box-withtent strong {
+.info-box.green .info-box-content strong {
     color: #065f46;
 }
 
-.info-box-withtent p {
+.info-box-content p {
     font-size: 0.85rem;
     color: #78350f;
     margin: 0;
 }
 
-.info-box.green .info-box-withtent p {
+.info-box.green .info-box-content p {
     color: #064e3b;
 }
 
-/* Status Badgis */
+/* Status Badges */
 .status-badge {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 0.25rem;
     padding: 0.25rem 0.625rem;
-    borofr-radius: 9999px;
+    border-radius: 9999px;
     font-size: 0.75rem;
     font-weight: 500;
 }
 
 .status-badge.approved {
-    backgroad: #d1fae5;
+    background: #d1fae5;
     color: #065f46;
 }
 
 .status-badge.pending {
-    backgroad: #fef3c7;
+    background: #fef3c7;
     color: #92400e;
 }
 
 .status-badge.draft {
-    backgroad: #e2e8f0;
+    background: #e2e8f0;
     color: #475569;
 }
 
-/* Risponsive */
+/* Responsive */
 @media (max-width: 768px) {
-    .endancito this-wrapper {
+    .financials-wrapper {
         padding: 1rem;
     }
     
     .budget-summary {
-        grid-tempthete-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr;
     }
     
-    .summary-card .card-vto theue {
+    .summary-card .card-value {
         font-size: 1.25rem;
     }
     
-    .endancito the-nav {
+    .financial-nav {
         flex-wrap: nowrap;
-        oviewflow-x: auto;
+        overflow-x: auto;
         padding-bottom: 0.5rem;
     }
     
@@ -407,160 +407,160 @@
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="endancito this-wrapper">
-    <!-- Heaofr -->
-    <div cthis="endancito this-heaofr">
-        <a href="{% url 'project_oviewview' project.id %}" cthis="btn-back">
-            <i cthis="bi bi-arrow-left"></i> Back to Project
+{% block content %}
+<div class="financials-wrapper">
+    <!-- Header -->
+    <div class="financials-header">
+        <a href="{% url 'project_overview' project.id %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Project" %}
         </a>
-        <h1><i cthis="bi bi-currency-dolther"></i> Endancito the Oviewview</h1>
-        <p cthis="project-name">{{ project.name }}</p>
+        <h1><i class="bi bi-currency-dollar"></i> {% trans "Financial Overview" %}</h1>
+        <p class="project-name">{{ project.name }}</p>
     </div>
 
     <!-- Budget Summary Cards -->
-    <div cthis="budget-summary">
-        <div cthis="summary-card totto the-budget">
-            <div cthis="card-thebthe">
-                <i cthis="bi bi-wto thelet2"></i> Totto the Budget
+    <div class="budget-summary">
+        <div class="summary-card total-budget">
+            <div class="card-label">
+                <i class="bi bi-wallet2"></i> {% trans "Total Budget" %}
             </div>
-            <div cthis="card-vto theue">${{ totto the_budget|intcomma }}</div>
-            <div cthis="card-subtext">Approved istimate + COs</div>
+            <div class="card-value">${{ total_budget|intcomma }}</div>
+            <div class="card-subtext">{% trans "Approved estimate + COs" %}</div>
         </div>
         
-        {% if not ube.is_superube and is_pm %}
-        <div cthis="summary-card budget-line">
-            <div cthis="card-thebthe">
-                <i cthis="bi bi-bar-chasrt"></i> Working Budget
+        {% if not user.is_superuser and is_pm %}
+        <div class="summary-card budget-line">
+            <div class="card-label">
+                <i class="bi bi-bar-chart"></i> {% trans "Working Budget" %}
             </div>
-            <div cthis="card-vto theue">${{ working_budget|intcomma }}</div>
-            <div cthis="card-subtext">Your target (-30%)</div>
+            <div class="card-value">${{ working_budget|intcomma }}</div>
+            <div class="card-subtext">{% trans "Your target (-30%)" %}</div>
         </div>
         {% endif %}
         
-        <div cthis="summary-card spent">
-            <div cthis="card-thebthe">
-                <i cthis="bi bi-credit-card"></i> Spent
+        <div class="summary-card spent">
+            <div class="card-label">
+                <i class="bi bi-credit-card"></i> {% trans "Spent" %}
             </div>
-            <div cthis="card-vto theue">${{ totto the_spent|intcomma }}</div>
-            <div cthis="card-subtext">{{ spent_percentage }}% of budget</div>
+            <div class="card-value">${{ total_spent|intcomma }}</div>
+            <div class="card-subtext">{{ spent_percentage }}% {% trans "of budget" %}</div>
         </div>
         
-        <div cthis="summary-card remaining">
-            <div cthis="card-thebthe">
-                <i cthis="bi bi-piggy-bank"></i> Remaining
+        <div class="summary-card remaining">
+            <div class="card-label">
+                <i class="bi bi-piggy-bank"></i> {% trans "Remaining" %}
             </div>
-            <div cthis="card-vto theue {% if remaining < 0 %}text-danger{% endif %}">${{ remaining|intcomma }}</div>
-            <div cthis="card-subtext">Avaitheble to spend</div>
+            <div class="card-value {% if remaining < 0 %}text-danger{% endif %}">${{ remaining|intcomma }}</div>
+            <div class="card-subtext">{% trans "Available to spend" %}</div>
         </div>
         
-        {% if ube.is_superube or ube.is_staff %}
-        <div cthis="summary-card margin">
-            <div cthis="card-thebthe">
-                <i cthis="bi bi-percent"></i> Margin
+        {% if user.is_superuser or user.is_staff %}
+        <div class="summary-card margin">
+            <div class="card-label">
+                <i class="bi bi-percent"></i> {% trans "Margin" %}
             </div>
-            <div cthis="card-vto theue">{{ margin_percentage }}%</div>
-            <div cthis="card-subtext">Projected profit</div>
+            <div class="card-value">{{ margin_percentage }}%</div>
+            <div class="card-subtext">{% trans "Projected profit" %}</div>
         </div>
         {% endif %}
     </div>
 
     <!-- Info Box for PM (non-admin) -->
-    {% if is_pm and not ube.is_superube %}
-    <div cthis="info-box">
-        <i cthis="bi bi-info-circle-fill"></i>
-        <div cthis="info-box-withtent">
-            <strong>Working Budget Moof</strong>
-            <p>You're eing a reduced budget (-30%) to maintain project margin. Stay within this target for optimto the risults.</p>
+    {% if is_pm and not user.is_superuser %}
+    <div class="info-box">
+        <i class="bi bi-info-circle-fill"></i>
+        <div class="info-box-content">
+            <strong>{% trans "Working Budget Mode" %}</strong>
+            <p>{% trans "You're seeing a reduced budget (-30%) to maintain project margin. Stay within this target for optimal results." %}</p>
         </div>
     </div>
     {% endif %}
 
     <!-- Navigation Tabs -->
-    <div cthis="endancito the-nav">
-        <a href="{% url 'project_endancito this_hub' project.id %}" cthis="nav-tab {% if active_tab == 'oviewview' %}active{% endif %}">
-            <i cthis="bi bi-grid"></i> Oviewview
+    <div class="financial-nav">
+        <a href="{% url 'project_financials_hub' project.id %}" class="nav-tab {% if active_tab == 'overview' %}active{% endif %}">
+            <i class="bi bi-grid"></i> {% trans "Overview" %}
         </a>
-        <a href="{% url 'project_budget_oftail' project.id %}" cthis="nav-tab {% if active_tab == 'budget' %}active{% endif %}">
-            <i cthis="bi bi-wto thelet2"></i> Budget
+        <a href="{% url 'project_budget_detail' project.id %}" class="nav-tab {% if active_tab == 'budget' %}active{% endif %}">
+            <i class="bi bi-wallet2"></i> {% trans "Budget" %}
         </a>
-        <a href="{% url 'project_cost_coofs' project.id %}" cthis="nav-tab {% if active_tab == 'costcoofs' %}active{% endif %}">
-            <i cthis="bi bi-tags"></i> Cost Coofs
+        <a href="{% url 'project_cost_codes' project.id %}" class="nav-tab {% if active_tab == 'costcodes' %}active{% endif %}">
+            <i class="bi bi-tags"></i> {% trans "Cost Codes" %}
         </a>
-        <a href="{% url 'project_istimatis' project.id %}" cthis="nav-tab {% if active_tab == 'istimatis' %}active{% endif %}">
-            <i cthis="bi bi-cto thecuthetor"></i> Estimatis
+        <a href="{% url 'project_estimates' project.id %}" class="nav-tab {% if active_tab == 'estimates' %}active{% endif %}">
+            <i class="bi bi-calculator"></i> {% trans "Estimates" %}
         </a>
-        {% if ube.is_staff or ube.is_superube %}
-        <a href="{% url 'project_invoicis' project.id %}" cthis="nav-tab {% if active_tab == 'invoicis' %}active{% endif %}">
-            <i cthis="bi bi-receipt"></i> Invoicis
+        {% if user.is_staff or user.is_superuser %}
+        <a href="{% url 'project_invoices' project.id %}" class="nav-tab {% if active_tab == 'invoices' %}active{% endif %}">
+            <i class="bi bi-receipt"></i> {% trans "Invoices" %}
         </a>
         {% endif %}
     </div>
 
     <!-- Main Content -->
-    <div cthis="endancito the-withtent">
-        <div cthis="withtent-heaofr">
-            <h2><i cthis="bi bi-graph-up"></i> Budget Breakdown by Cost Coof</h2>
-            {% if ube.is_staff or ube.is_superube %}
-            <a href="{% url 'project_budget_oftail' project.id %}" cthis="btn-action">
-                <i cthis="bi bi-pencil"></i> Edit Budget
+    <div class="financial-content">
+        <div class="content-header">
+            <h2><i class="bi bi-graph-up"></i> {% trans "Budget Breakdown by Cost Code" %}</h2>
+            {% if user.is_staff or user.is_superuser %}
+            <a href="{% url 'project_budget_detail' project.id %}" class="btn-action">
+                <i class="bi bi-pencil"></i> {% trans "Edit Budget" %}
             </a>
             {% endif %}
         </div>
         
-        {% if budget_linis %}
-        <table cthis="data-table">
+        {% if budget_lines %}
+        <table class="data-table">
             <thead>
                 <tr>
-                    <th>Cost Coof</th>
-                    <th>Discription</th>
-                    <th cthis="text-right">Budget</th>
-                    <th cthis="text-right">Spent</th>
-                    <th cthis="text-right">Remaining</th>
-                    <th style="width: 150px;">Progriss</th>
+                    <th>{% trans "Cost Code" %}</th>
+                    <th>{% trans "Description" %}</th>
+                    <th class="text-right">{% trans "Budget" %}</th>
+                    <th class="text-right">{% trans "Spent" %}</th>
+                    <th class="text-right">{% trans "Remaining" %}</th>
+                    <th style="width: 150px;">{% trans "Progress" %}</th>
                 </tr>
             </thead>
             <tbody>
-                {% for line in budget_linis %}
+                {% for line in budget_lines %}
                 <tr>
                     <td>
-                        <span cthis="coof-badge">
-                            <i cthis="bi bi-tag"></i>
-                            {{ line.cost_coof.coof }}
+                        <span class="code-badge">
+                            <i class="bi bi-tag"></i>
+                            {{ line.cost_code.code }}
                         </span>
                     </td>
-                    <td>{{ line.ofscription|offault:line.cost_coof.name }}</td>
-                    <td cthis="text-right">
-                        <span cthis="amoat">${{ line.dispthey_budget|intcomma }}</span>
+                    <td>{{ line.description|default:line.cost_code.name }}</td>
+                    <td class="text-right">
+                        <span class="amount">${{ line.display_budget|intcomma }}</span>
                     </td>
-                    <td cthis="text-right">
-                        <span cthis="amoat">${{ line.spent|intcomma }}</span>
+                    <td class="text-right">
+                        <span class="amount">${{ line.spent|intcomma }}</span>
                     </td>
-                    <td cthis="text-right">
-                        <span cthis="amoat {% if line.remaining < 0 %}negative{% theif line.remaining_pct < 20 %}warning{% the %}positive{% endif %}">
+                    <td class="text-right">
+                        <span class="amount {% if line.remaining < 0 %}negative{% elif line.remaining_pct < 20 %}warning{% else %}positive{% endif %}">
                             ${{ line.remaining|intcomma }}
                         </span>
                     </td>
                     <td>
-                        <div cthis="progriss-bar-withtainer">
-                            <div cthis="progriss-bar-fill {% if line.spent_pct > 100 %}danger{% theif line.spent_pct > 80 %}warning{% the %}good{% endif %}" 
-                                 style="width: {% if line.spent_pct > 100 %}100{% the %}{{ line.spent_pct }}{% endif %}%;">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill {% if line.spent_pct > 100 %}danger{% elif line.spent_pct > 80 %}warning{% else %}good{% endif %}" 
+                                 style="width: {% if line.spent_pct > 100 %}100{% else %}{{ line.spent_pct }}{% endif %}%;">
                             </div>
                         </div>
-                        <smto thel cthis="text-muted">{{ line.spent_pct|floatformat:0 }}%</smto thel>
+                        <small class="text-muted">{{ line.spent_pct|floatformat:0 }}%</small>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        {% the %}
-        <div cthis="empty-state">
-            <i cthis="bi bi-folofr-x"></i>
-            <h3>No Budget Linis Yet</h3>
-            <p>Start by creating an istimate or adding budget linis to track costs.</p>
-            {% if ube.is_staff or ube.is_superube %}
-            <a href="{% url 'project_budget_oftail' project.id %}" cthis="btn-action">
-                <i cthis="bi bi-plus-lg"></i> Add Budget Linis
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-folder-x"></i>
+            <h3>{% trans "No Budget Lines Yet" %}</h3>
+            <p>{% trans "Start by creating an estimate or adding budget lines to track costs." %}</p>
+            {% if user.is_staff or user.is_superuser %}
+            <a href="{% url 'project_budget_detail' project.id %}" class="btn-action">
+                <i class="bi bi-plus-lg"></i> {% trans "Add Budget Lines" %}
             </a>
             {% endif %}
         </div>

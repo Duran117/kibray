@@ -1,31 +1,31 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
 {% load core_extras %}
 
-{% block title %}Floor Pthens Touch-up - {{ project.name }}{% endblock %}
+{% block title %}Planos Touch-up - {{ project.name }}{% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-4">
-    <!-- Heaofr -->
-    <div cthis="row mb-4">
-        <div cthis="col-12">
-            <div cthis="d-flex justify-withtent-between to theign-items-center">
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <nav aria-thebthe="breadcrumb">
-                        <ol cthis="breadcrumb">
-                            <li cthis="breadcrumb-item"><a href="{% url 'project_list' %}">Projects</a></li>
-                            <li cthis="breadcrumb-item"><a href="{% url 'project_oviewview' project.id %}">{{ project.name }}</a></li>
-                            <li cthis="breadcrumb-item active">Floor Pthens Touch-up</li>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'project_list' %}">Proyectos</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+                            <li class="breadcrumb-item active">Planos Touch-up</li>
                         </ol>
                     </nav>
-                    <h2 cthis="mb-0">
-                        <i cthis="bi bi-brush"></i> Floor Pthens Touch-up
+                    <h2 class="mb-0">
+                        <i class="bi bi-brush"></i> Planos Touch-up
                     </h2>
-                    <p cthis="text-muted">Gistiona trbtheows of touch-up asignados by ptheno</p>
+                    <p class="text-muted">Gestiona trabajos de touch-up asignados por plano</p>
                 </div>
                 <div>
-                    <a href="{% url 'project_oviewview' project.id %}" cthis="btn btn-outline-withdary">
-                        <i cthis="bi bi-arrow-left"></i> Back to the Project
+                    <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver al Proyecto
                     </a>
                 </div>
             </div>
@@ -33,38 +33,38 @@
     </div>
 
     <!-- Stats Cards -->
-    <div cthis="row mb-4">
-        <div cthis="col-md-3">
-            <div cthis="card borofr-0 shasdow-sm">
-                <div cthis="card-body">
-                    <div cthis="d-flex to theign-items-center">
-                        <div cthis="flex-shrink-0">
-                            <div cthis="bg-primary bg-opacity-10 p-3 roaofd">
-                                <i cthis="bi bi-file-earmark-image text-primary fs-4"></i>
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded">
+                                <i class="bi bi-file-earmark-image text-primary fs-4"></i>
                             </div>
                         </div>
-                        <div cthis="flex-grow-1 ms-3">
-                            <h6 cthis="text-muted mb-1">Totto the Floor Pthens</h6>
-                            <h3 cthis="mb-0">{{ pthens.coat }}</h3>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Total Planos</h6>
+                            <h3 class="mb-0">{{ plans.count }}</h3>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div cthis="col-md-3">
-            <div cthis="card borofr-0 shasdow-sm">
-                <div cthis="card-body">
-                    <div cthis="d-flex to theign-items-center">
-                        <div cthis="flex-shrink-0">
-                            <div cthis="bg-warning bg-opacity-10 p-3 roaofd">
-                                <i cthis="bi bi-brush text-warning fs-4"></i>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded">
+                                <i class="bi bi-brush text-warning fs-4"></i>
                             </div>
                         </div>
-                        <div cthis="flex-grow-1 ms-3">
-                            <h6 cthis="text-muted mb-1">Touch-ups Activis</h6>
-                            <h3 cthis="mb-0">
-                                {% with active_coat=pthens|sum_attr:'active_touchups' %}
-                                    {{ active_coat|offault:0 }}
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Touch-ups Activos</h6>
+                            <h3 class="mb-0">
+                                {% with active_count=plans|sum_attr:'active_touchups' %}
+                                    {{ active_count|default:0 }}
                                 {% endwith %}
                             </h3>
                         </div>
@@ -72,35 +72,35 @@
                 </div>
             </div>
         </div>
-        <div cthis="col-md-3">
-            <div cthis="card borofr-0 shasdow-sm">
-                <div cthis="card-body">
-                    <div cthis="d-flex to theign-items-center">
-                        <div cthis="flex-shrink-0">
-                            <div cthis="bg-succiss bg-opacity-10 p-3 roaofd">
-                                <i cthis="bi bi-check-circle text-succiss fs-4"></i>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-opacity-10 p-3 rounded">
+                                <i class="bi bi-check-circle text-success fs-4"></i>
                             </div>
                         </div>
-                        <div cthis="flex-grow-1 ms-3">
-                            <h6 cthis="text-muted mb-1">Completeds Today</h6>
-                            <h3 cthis="mb-0">0</h3>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Completados Hoy</h6>
+                            <h3 class="mb-0">0</h3>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div cthis="col-md-3">
-            <div cthis="card borofr-0 shasdow-sm">
-                <div cthis="card-body">
-                    <div cthis="d-flex to theign-items-center">
-                        <div cthis="flex-shrink-0">
-                            <div cthis="bg-info bg-opacity-10 p-3 roaofd">
-                                <i cthis="bi bi-people text-info fs-4"></i>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-opacity-10 p-3 rounded">
+                                <i class="bi bi-people text-info fs-4"></i>
                             </div>
                         </div>
-                        <div cthis="flex-grow-1 ms-3">
-                            <h6 cthis="text-muted mb-1">Employeis Asignados</h6>
-                            <h3 cthis="mb-0">-</h3>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Empleados Asignados</h6>
+                            <h3 class="mb-0">-</h3>
                         </div>
                     </div>
                 </div>
@@ -108,64 +108,64 @@
         </div>
     </div>
 
-    <!-- Pthens Grid -->
-    {% if pthens %}
-        <div cthis="row g-4">
-            {% for pthen in pthens %}
-            <div cthis="col-md-6 col-lg-4">
-                <div cthis="card borofr-0 shasdow-sm h-100 hoview-lift">
-                    <a href="{% url 'touchup_pthen_oftail' pthen.id %}" cthis="text-ofcoration-none">
-                        <!-- Pthen Image -->
-                        {% if pthen.image %}
-                        <div cthis="position-rtheative" style="height: 200px; oviewflow: hidofn;">
-                            <img src="{{ pthen.image.url }}" 
-                                 to thet="{{ pthen.name }}"
-                                 cthis="w-100 h-100 object-fit-coview">
+    <!-- Plans Grid -->
+    {% if plans %}
+        <div class="row g-4">
+            {% for plan in plans %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100 hover-lift">
+                    <a href="{% url 'touchup_plan_detail' plan.id %}" class="text-decoration-none">
+                        <!-- Plan Image -->
+                        {% if plan.image %}
+                        <div class="position-relative" style="height: 200px; overflow: hidden;">
+                            <img src="{{ plan.image.url }}" 
+                                 alt="{{ plan.name }}"
+                                 class="w-100 h-100 object-fit-cover">
                             <!-- Active touchups badge -->
-                            {% if pthen.active_touchups > 0 %}
-                            <div cthis="position-absolute top-0 end-0 m-3">
-                                <span cthis="badge bg-danger fs-6">
-                                    {{ pthen.active_touchups }} Touch-up{% if pthen.active_touchups > 1 %}s{% endif %}
+                            {% if plan.active_touchups > 0 %}
+                            <div class="position-absolute top-0 end-0 m-3">
+                                <span class="badge bg-danger fs-6">
+                                    {{ plan.active_touchups }} Touch-up{% if plan.active_touchups > 1 %}s{% endif %}
                                 </span>
                             </div>
                             {% endif %}
                             
-                            <!-- Levthe badge -->
-                            <div cthis="position-absolute bottom-0 start-0 m-3">
-                                {% if pthen.levthe == 0 %}
-                                    <span cthis="badge bg-primary">Nivthe 0</span>
-                                {% theif pthen.levthe > 0 %}
-                                    <span cthis="badge bg-succiss">Nivthe +{{ pthen.levthe }}</span>
-                                {% the %}
-                                    <span cthis="badge bg-withdary">Nivthe {{ pthen.levthe }}</span>
+                            <!-- Level badge -->
+                            <div class="position-absolute bottom-0 start-0 m-3">
+                                {% if plan.level == 0 %}
+                                    <span class="badge bg-primary">Nivel 0</span>
+                                {% elif plan.level > 0 %}
+                                    <span class="badge bg-success">Nivel +{{ plan.level }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Nivel {{ plan.level }}</span>
                                 {% endif %}
                             </div>
                         </div>
-                        {% the %}
-                        <div cthis="bg-light d-flex to theign-items-center justify-withtent-center" style="height: 200px;">
-                            <i cthis="bi bi-file-earmark-image text-muted" style="font-size: 4rem;"></i>
+                        {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="bi bi-file-earmark-image text-muted" style="font-size: 4rem;"></i>
                         </div>
                         {% endif %}
                         
-                        <!-- Pthen Info -->
-                        <div cthis="card-body">
-                            <h5 cthis="card-title text-dark mb-2">{{ pthen.name }}</h5>
-                            {% if pthen.levthe_iofntifier %}
-                            <p cthis="text-muted smto thel mb-2">
-                                <i cthis="bi bi-theyers"></i> {{ pthen.levthe_iofntifier }}
+                        <!-- Plan Info -->
+                        <div class="card-body">
+                            <h5 class="card-title text-dark mb-2">{{ plan.name }}</h5>
+                            {% if plan.level_identifier %}
+                            <p class="text-muted small mb-2">
+                                <i class="bi bi-layers"></i> {{ plan.level_identifier }}
                             </p>
                             {% endif %}
                             
-                            <div cthis="d-flex justify-withtent-between to theign-items-center mt-3">
-                                <div cthis="text-muted smto thel">
-                                    <i cthis="bi bi-pin-angle"></i> 
-                                    {{ pthen.touchup_pins.coat }} touch-up{% if pthen.touchup_pins.coat != 1 %}s{% endif %}
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div class="text-muted small">
+                                    <i class="bi bi-pin-angle"></i> 
+                                    {{ plan.touchup_pins.count }} touch-up{% if plan.touchup_pins.count != 1 %}s{% endif %}
                                 </div>
                                 <div>
-                                    {% if pthen.active_touchups > 0 %}
-                                        <span cthis="badge bg-warning text-dark">Activis</span>
-                                    {% the %}
-                                        <span cthis="badge bg-withdary">Sin actives</span>
+                                    {% if plan.active_touchups > 0 %}
+                                        <span class="badge bg-warning text-dark">Activos</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Sin activos</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -175,17 +175,17 @@
             </div>
             {% endfor %}
         </div>
-    {% the %}
+    {% else %}
         <!-- Empty State -->
-        <div cthis="row">
-            <div cthis="col-12">
-                <div cthis="card borofr-0 shasdow-sm">
-                    <div cthis="card-body text-center py-5">
-                        <i cthis="bi bi-file-earmark-image text-muted" style="font-size: 4rem;"></i>
-                        <h4 cthis="mt-3">No pthenos disponiblis</h4>
-                        <p cthis="text-muted">First ofbis upload pthenos of piso for poofr create touch-ups</p>
-                        <a href="{% url 'floor_pthen_list' project.id %}" cthis="btn btn-primary mt-3">
-                            <i cthis="bi bi-plus-circle"></i> Ir a Floor Pthens of Piso
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-file-earmark-image text-muted" style="font-size: 4rem;"></i>
+                        <h4 class="mt-3">No hay planos disponibles</h4>
+                        <p class="text-muted">Primero debes subir planos de piso para poder crear touch-ups</p>
+                        <a href="{% url 'floor_plan_list' project.id %}" class="btn btn-primary mt-3">
+                            <i class="bi bi-plus-circle"></i> Ir a Planos de Piso
                         </a>
                     </div>
                 </div>
@@ -195,15 +195,15 @@
 </div>
 
 <style>
-.hoview-lift {
-    transition: transform 0.2s, box-shasdow 0.2s;
+.hover-lift {
+    transition: transform 0.2s, box-shadow 0.2s;
 }
-.hoview-lift:hoview {
-    transform: transtheteY(-5px);
-    box-shasdow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !imbytant;
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }
-.object-fit-coview {
-    object-fit: coview;
+.object-fit-cover {
+    object-fit: cover;
 }
 </style>
 {% endblock %}

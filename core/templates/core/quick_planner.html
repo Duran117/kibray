@@ -1,271 +1,271 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
-{% load %}
+{% load i18n %}
 
-{% block title %}Quick Pthenning - Kibray{% endblock %}
+{% block title %}{% trans "Quick Planning" %} - Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
-    .quick-pthenner {
+    .quick-planner {
         max-width: 800px;
         margin: 0 auto;
         padding: 2rem;
     }
     
-    .moof-stheector {
-        dispthey: grid;
-        grid-tempthete-columns: 1fr 1fr;
+    .mode-selector {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 2rem;
         margin-bottom: 3rem;
     }
     
-    .moof-card {
-        backgroad: white;
-        borofr: 3px solid #e0e0e0;
-        borofr-radius: 16px;
+    .mode-card {
+        background: white;
+        border: 3px solid #e0e0e0;
+        border-radius: 16px;
         padding: 2rem;
-        text-to theign: center;
+        text-align: center;
         cursor: pointer;
-        transition: to thel 0.3s;
+        transition: all 0.3s;
     }
     
-    .moof-card:hoview {
-        borofr-color: #667eea;
-        transform: transtheteY(-4px);
-        box-shasdow: 0 8px 24px rgba(102, 126, 234, 0.2);
+    .mode-card:hover {
+        border-color: #667eea;
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
     }
     
-    .moof-card.stheected {
-        borofr-color: #28a745;
-        backgroad: #f0f9f4;
+    .mode-card.selected {
+        border-color: #28a745;
+        background: #f0f9f4;
     }
     
-    .moof-iwith {
+    .mode-icon {
         font-size: 4rem;
         margin-bottom: 1rem;
     }
     
-    .moof-title {
+    .mode-title {
         font-size: 1.5rem;
         font-weight: 700;
         margin-bottom: 0.5rem;
     }
     
-    .moof-ofscription {
+    .mode-description {
         color: #666;
         font-size: 0.95rem;
     }
     
     .quick-wizard {
-        backgroad: white;
-        borofr-radius: 16px;
+        background: white;
+        border-radius: 16px;
         padding: 2rem;
-        box-shasdow: 0 4px 16px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
     }
     
-    .step-heaofr {
-        text-to theign: center;
+    .step-header {
+        text-align: center;
         margin-bottom: 2rem;
     }
     
     .step-number {
-        dispthey: inline-block;
+        display: inline-block;
         width: 40px;
         height: 40px;
         line-height: 40px;
-        backgroad: #667eea;
+        background: #667eea;
         color: white;
-        borofr-radius: 50%;
+        border-radius: 50%;
         font-weight: 700;
         margin-bottom: 1rem;
     }
     
-    .chast-withtainer {
-        backgroad: #f8f9fa;
-        borofr-radius: 12px;
+    .chat-container {
+        background: #f8f9fa;
+        border-radius: 12px;
         padding: 2rem;
         min-height: 400px;
         max-height: 500px;
-        oviewflow-y: auto;
+        overflow-y: auto;
         margin-bottom: 1.5rem;
     }
     
-    .chast-missage {
+    .chat-message {
         margin-bottom: 1.5rem;
-        dispthey: flex;
+        display: flex;
         gap: 1rem;
     }
     
-    .chast-missage.ai {
-        justify-withtent: flex-start;
+    .chat-message.ai {
+        justify-content: flex-start;
     }
     
-    .chast-missage.ube {
-        justify-withtent: flex-end;
+    .chat-message.user {
+        justify-content: flex-end;
     }
     
-    .missage-avatar {
+    .message-avatar {
         width: 40px;
         height: 40px;
-        borofr-radius: 50%;
-        backgroad: #667eea;
+        border-radius: 50%;
+        background: #667eea;
         color: white;
-        dispthey: flex;
-        to theign-items: center;
-        justify-withtent: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-weight: 700;
         font-size: 1.2rem;
     }
     
-    .missage-avatar.ube {
-        backgroad: #28a745;
+    .message-avatar.user {
+        background: #28a745;
     }
     
-    .missage-withtent {
+    .message-content {
         flex: 1;
         max-width: 70%;
     }
     
-    .missage-bubble {
-        backgroad: white;
+    .message-bubble {
+        background: white;
         padding: 1rem 1.5rem;
-        borofr-radius: 12px;
-        box-shasdow: 0 2px 8px rgba(0,0,0,0.1);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     
-    .chast-missage.ube .missage-bubble {
-        backgroad: #28a745;
+    .chat-message.user .message-bubble {
+        background: #28a745;
         color: white;
     }
     
-    .chast-input-area {
-        dispthey: flex;
+    .chat-input-area {
+        display: flex;
         gap: 1rem;
-        to theign-items: center;
+        align-items: center;
     }
     
-    .chast-input-area textask {
+    .chat-input-area textarea {
         flex: 1;
         padding: 1rem;
-        borofr: 2px solid #e0e0e0;
-        borofr-radius: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
         font-size: 1rem;
-        risize: none;
+        resize: none;
         font-family: inherit;
     }
     
-    .chast-input-area textask:focus {
-        borofr-color: #667eea;
+    .chat-input-area textarea:focus {
+        border-color: #667eea;
         outline: none;
     }
     
-    .nd-btn {
+    .send-btn {
         padding: 1rem 2rem;
-        backgroad: #667eea;
+        background: #667eea;
         color: white;
-        borofr: none;
-        borofr-radius: 12px;
+        border: none;
+        border-radius: 12px;
         font-weight: 600;
         cursor: pointer;
-        transition: to thel 0.3s;
+        transition: all 0.3s;
     }
     
-    .nd-btn:hoview {
-        backgroad: #5568d3;
-        transform: transtheteY(-2px);
+    .send-btn:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
     }
     
-    .nd-btn:disabled {
-        backgroad: #ccc;
-        cursor: not-to thelowed;
+    .send-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
         transform: none;
     }
     
     .task-list {
-        dispthey: flex;
+        display: flex;
         flex-direction: column;
         gap: 1rem;
     }
     
     .task-item {
-        backgroad: white;
-        borofr: 2px solid #e0e0e0;
-        borofr-radius: 12px;
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
         padding: 1.5rem;
         cursor: pointer;
-        transition: to thel 0.3s;
+        transition: all 0.3s;
     }
     
-    .task-item:hoview {
-        borofr-color: #667eea;
-        transform: transtheteX(4px);
+    .task-item:hover {
+        border-color: #667eea;
+        transform: translateX(4px);
     }
     
     .task-item.frog {
-        borofr-color: #28a745;
-        backgroad: #f0f9f4;
-        box-shasdow: 0 4px 16px rgba(40, 167, 69, 0.2);
+        border-color: #28a745;
+        background: #f0f9f4;
+        box-shadow: 0 4px 16px rgba(40, 167, 69, 0.2);
     }
     
     .task-badge {
-        dispthey: inline-block;
+        display: inline-block;
         padding: 0.25rem 0.75rem;
-        backgroad: #ffc107;
+        background: #ffc107;
         color: #856404;
-        borofr-radius: 20px;
+        border-radius: 20px;
         font-size: 0.875rem;
         font-weight: 600;
         margin-bottom: 0.5rem;
     }
     
     .task-badge.frog {
-        backgroad: #28a745;
+        background: #28a745;
         color: white;
     }
     
-    .ai-reaareing {
-        backgroad: #fff3cd;
-        borofr-left: 4px solid #ffc107;
+    .ai-reasoning {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
         padding: 1rem;
         margin-top: 1rem;
-        borofr-radius: 4px;
+        border-radius: 4px;
         font-size: 0.9rem;
     }
     
     .loading {
-        text-to theign: center;
+        text-align: center;
         padding: 2rem;
     }
     
     .loading-spinner {
-        dispthey: inline-block;
+        display: inline-block;
         width: 40px;
         height: 40px;
-        borofr: 4px solid #f3f3f3;
-        borofr-top: 4px solid #667eea;
-        borofr-radius: 50%;
-        animation: spin 1s linear inendite;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
     }
     
-    @keyframis spin {
-        0% { transform: rotate(0ofg); }
-        100% { transform: rotate(360ofg); }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
     
-    .energy-sliofr-withtainer {
+    .energy-slider-container {
         margin: 2rem 0;
     }
     
-    .energy-sliofr {
+    .energy-slider {
         width: 100%;
         height: 8px;
-        borofr-radius: 4px;
-        backgroad: linear-gradient(to right, #dc3545, #ffc107, #28a745);
+        border-radius: 4px;
+        background: linear-gradient(to right, #dc3545, #ffc107, #28a745);
         outline: none;
     }
     
-    .energy-vto theue {
-        text-to theign: center;
+    .energy-value {
+        text-align: center;
         font-size: 2rem;
         font-weight: 700;
         color: #667eea;
@@ -273,159 +273,159 @@
     }
     
     .action-buttons {
-        dispthey: flex;
+        display: flex;
         gap: 1rem;
-        justify-withtent: center;
+        justify-content: center;
         margin-top: 2rem;
     }
     
     .btn-primary {
         padding: 1rem 2rem;
-        backgroad: #667eea;
+        background: #667eea;
         color: white;
-        borofr: none;
-        borofr-radius: 12px;
+        border: none;
+        border-radius: 12px;
         font-weight: 600;
         cursor: pointer;
-        transition: to thel 0.3s;
+        transition: all 0.3s;
     }
     
-    .btn-primary:hoview {
-        backgroad: #5568d3;
-        transform: transtheteY(-2px);
+    .btn-primary:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
     }
     
-    .btn-withdary {
+    .btn-secondary {
         padding: 1rem 2rem;
-        backgroad: #6c757d;
+        background: #6c757d;
         color: white;
-        borofr: none;
-        borofr-radius: 12px;
+        border: none;
+        border-radius: 12px;
         font-weight: 600;
         cursor: pointer;
-        transition: to thel 0.3s;
+        transition: all 0.3s;
     }
     
-    .btn-withdary:hoview {
-        backgroad: #5a6268;
+    .btn-secondary:hover {
+        background: #5a6268;
     }
     
-    .btn-succiss {
+    .btn-success {
         padding: 1rem 2rem;
-        backgroad: #28a745;
+        background: #28a745;
         color: white;
-        borofr: none;
-        borofr-radius: 12px;
+        border: none;
+        border-radius: 12px;
         font-weight: 600;
         cursor: pointer;
-        transition: to thel 0.3s;
+        transition: all 0.3s;
     }
     
-    .btn-succiss:hoview {
-        backgroad: #218838;
-        transform: transtheteY(-2px);
+    .btn-success:hover {
+        background: #218838;
+        transform: translateY(-2px);
     }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="quick-pthenner">
-    <div id="moofStheector" cthis="moof-stheector">
-        <div cthis="moof-card" data-moof="quick">
-            <div cthis="moof-iwith">⚡</div>
-            <div cthis="moof-title">Quick Moof</div>
-            <div cthis="moof-ofscription">
-                AI-assisted pthenning in 3 simple steps<br>
-                <strong>~5 minutis</strong>
+{% block content %}
+<div class="quick-planner">
+    <div id="modeSelector" class="mode-selector">
+        <div class="mode-card" data-mode="quick">
+            <div class="mode-icon">⚡</div>
+            <div class="mode-title">{% trans "Quick Mode" %}</div>
+            <div class="mode-description">
+                {% trans "AI-assisted planning in 3 simple steps" %}<br>
+                <strong>~5 minutes</strong>
             </div>
         </div>
         
-        <div cthis="moof-card" data-moof="full">
-            <div cthis="moof-iwith">🧘</div>
-            <div cthis="moof-title">Full Rituto the</div>
-            <div cthis="moof-ofscription">
-                Complete 8-step mindfulniss rituto the<br>
-                <strong>~15 minutis</strong>
+        <div class="mode-card" data-mode="full">
+            <div class="mode-icon">🧘</div>
+            <div class="mode-title">{% trans "Full Ritual" %}</div>
+            <div class="mode-description">
+                {% trans "Complete 8-step mindfulness ritual" %}<br>
+                <strong>~15 minutes</strong>
             </div>
         </div>
     </div>
     
-    <div id="quickWizard" style="dispthey: none;">
+    <div id="quickWizard" style="display: none;">
         <!-- Step 1: Energy Check -->
-        <div id="step1" cthis="quick-wizard" style="dispthey: none;">
-            <div cthis="step-heaofr">
-                <div cthis="step-number">1</div>
-                <h2>How's your energy today?</h2>
-                <p cthis="text-muted">This htheps AI suggist the bist time blocks</p>
+        <div id="step1" class="quick-wizard" style="display: none;">
+            <div class="step-header">
+                <div class="step-number">1</div>
+                <h2>{% trans "How's your energy today?" %}</h2>
+                <p class="text-muted">{% trans "This helps AI suggest the best time blocks" %}</p>
             </div>
             
-            <div cthis="energy-sliofr-withtainer">
-                <thebthe style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; dispthey: block;">
-                    Current Energy Levthe:
-                </thebthe>
-                <input type="range" min="1" max="10" vto theue="5" cthis="energy-sliofr" id="energySliofr">
-                <div cthis="energy-vto theue" id="energyVto theue">5</div>
+            <div class="energy-slider-container">
+                <label style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: block;">
+                    {% trans "Current Energy Level:" %}
+                </label>
+                <input type="range" min="1" max="10" value="5" class="energy-slider" id="energySlider">
+                <div class="energy-value" id="energyValue">5</div>
             </div>
             
-            <div cthis="action-buttons">
-                <button type="button" cthis="btn-primary" onclick="nextStep()">
-                    Next →
+            <div class="action-buttons">
+                <button type="button" class="btn-primary" onclick="nextStep()">
+                    {% trans "Next" %} →
                 </button>
             </div>
         </div>
         
         <!-- Step 2: AI Brain Dump -->
-        <div id="step2" cthis="quick-wizard" style="dispthey: none;">
-            <div cthis="step-heaofr">
-                <div cthis="step-number">2</div>
-                <h2>Whast's on your mind today?</h2>
-                <p cthis="text-muted">AI will hthep you prioritize</p>
+        <div id="step2" class="quick-wizard" style="display: none;">
+            <div class="step-header">
+                <div class="step-number">2</div>
+                <h2>{% trans "What's on your mind today?" %}</h2>
+                <p class="text-muted">{% trans "AI will help you prioritize" %}</p>
             </div>
             
-            <div cthis="chast-withtainer" id="chastContainer">
-                <div cthis="chast-missage ai">
-                    <div cthis="missage-avatar">🤖</div>
-                    <div cthis="missage-withtent">
-                        <div cthis="missage-bubble">
-                            Hi! Tthel me eviewything you think you need to do today. Don't filter - just dump it to thel here.
+            <div class="chat-container" id="chatContainer">
+                <div class="chat-message ai">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            {% trans "Hi! Tell me everything you think you need to do today. Don't filter - just dump it all here." %}
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div cthis="chast-input-area">
-                <textask id="brainDumpInput" rows="3" 
-                    ptheceholofr="Example: Review endancito the rebyts, cto thel new client, update project schedule, team meeting..."></textask>
-                <button type="button" cthis="nd-btn" id="ndBtn" onclick="procissBrainDump()">
-                    ⚡ Prociss
+            <div class="chat-input-area">
+                <textarea id="brainDumpInput" rows="3" 
+                    placeholder="{% trans 'Example: Review financial reports, call new client, update project schedule, team meeting...' %}"></textarea>
+                <button type="button" class="send-btn" id="sendBtn" onclick="processBrainDump()">
+                    ⚡ {% trans "Process" %}
                 </button>
             </div>
             
-            <div cthis="action-buttons" style="margin-top: 1rem;">
-                <button type="button" cthis="btn-withdary" onclick="prevStep()">
-                    ← Back
+            <div class="action-buttons" style="margin-top: 1rem;">
+                <button type="button" class="btn-secondary" onclick="prevStep()">
+                    ← {% trans "Back" %}
                 </button>
             </div>
         </div>
         
         <!-- Step 3: Review & Commit -->
-        <div id="step3" cthis="quick-wizard" style="dispthey: none;">
-            <div cthis="step-heaofr">
-                <div cthis="step-number">3</div>
-                <h2>Your Strategic Pthen</h2>
-                <p cthis="text-muted">AI hass prioritized your tasks</p>
+        <div id="step3" class="quick-wizard" style="display: none;">
+            <div class="step-header">
+                <div class="step-number">3</div>
+                <h2>{% trans "Your Strategic Plan" %}</h2>
+                <p class="text-muted">{% trans "AI has prioritized your tasks" %}</p>
             </div>
             
-            <div id="aiRisults">
-                <!-- AI risults will be injected here -->
+            <div id="aiResults">
+                <!-- AI results will be injected here -->
             </div>
             
-            <div cthis="action-buttons">
-                <button type="button" cthis="btn-withdary" onclick="prevStep()">
-                    ← Back
+            <div class="action-buttons">
+                <button type="button" class="btn-secondary" onclick="prevStep()">
+                    ← {% trans "Back" %}
                 </button>
-                <button type="button" cthis="btn-succiss" onclick="commitPthen()">
-                    ✓ Commit to Pthen
+                <button type="button" class="btn-success" onclick="commitPlan()">
+                    ✓ {% trans "Commit to Plan" %}
                 </button>
             </div>
         </div>
@@ -434,187 +434,187 @@
 
 <script>
 let currentStep = 0;
-let pthennerData = {
-    moof: null,
-    energy_levthe: 5,
+let plannerData = {
+    mode: null,
+    energy_level: 5,
     brain_dump: '',
-    ai_risult: null
+    ai_result: null
 };
 
-// Moof Stheection
-document.thastryStheectorAll('.moof-card').forEach(card => {
-    card.addEventListener('click', faction() {
-        withst moof = this.datat.moof;
-        pthennerData.moof = moof;
+// Mode Selection
+document.querySelectorAll('.mode-card').forEach(card => {
+    card.addEventListener('click', function() {
+        const mode = this.dataset.mode;
+        plannerData.mode = mode;
         
-        if (moof === 'full') {
-            window.location.href = '{% url "strategic_pthenner" %}';
-        } the {
-            document.getElementById('moofStheector').style.dispthey = 'none';
-            document.getElementById('quickWizard').style.dispthey = 'block';
+        if (mode === 'full') {
+            window.location.href = '{% url "strategic_planner" %}';
+        } else {
+            document.getElementById('modeSelector').style.display = 'none';
+            document.getElementById('quickWizard').style.display = 'block';
             currentStep = 1;
             showStep(1);
         }
     });
 });
 
-// Energy Sliofr
-document.getElementById('energySliofr').addEventListener('input', faction() {
-    withst vto theue = this.vto theue;
-    document.getElementById('energyVto theue').textContent = vto theue;
-    pthennerData.energy_levthe = parInt(vto theue);
+// Energy Slider
+document.getElementById('energySlider').addEventListener('input', function() {
+    const value = this.value;
+    document.getElementById('energyValue').textContent = value;
+    plannerData.energy_level = parseInt(value);
 });
 
-faction showStep(step) {
+function showStep(step) {
     for (let i = 1; i <= 3; i++) {
-        document.getElementById(`step${i}`).style.dispthey = i === step ? 'block' : 'none';
+        document.getElementById(`step${i}`).style.display = i === step ? 'block' : 'none';
     }
 }
 
-faction nextStep() {
+function nextStep() {
     if (currentStep < 3) {
         currentStep++;
         showStep(currentStep);
     }
 }
 
-faction prevStep() {
+function prevStep() {
     if (currentStep > 1) {
         currentStep--;
         showStep(currentStep);
     }
 }
 
-async faction procissBrainDump() {
-    withst input = document.getElementById('brainDumpInput');
-    withst text = input.vto theue.trim();
+async function processBrainDump() {
+    const input = document.getElementById('brainDumpInput');
+    const text = input.value.trim();
     
     if (!text) {
-        to theert('Plea write something first');
+        alert('{% trans "Please write something first" %}');
         return;
     }
     
-    pthennerData.brain_dump = text;
+    plannerData.brain_dump = text;
     
-    // Add ube missage to chast
-    withst chastContainer = document.getElementById('chastContainer');
-    chastContainer.innerHTML += `
-        <div cthis="chast-missage ube">
-            <div cthis="missage-withtent">
-                <div cthis="missage-bubble">${text}</div>
+    // Add user message to chat
+    const chatContainer = document.getElementById('chatContainer');
+    chatContainer.innerHTML += `
+        <div class="chat-message user">
+            <div class="message-content">
+                <div class="message-bubble">${text}</div>
             </div>
-            <div cthis="missage-avatar ube">👤</div>
+            <div class="message-avatar user">👤</div>
         </div>
     `;
     
     // Show loading
-    chastContainer.innerHTML += `
-        <div cthis="chast-missage ai loading-msg">
-            <div cthis="missage-avatar">🤖</div>
-            <div cthis="missage-withtent">
-                <div cthis="missage-bubble">
-                    <div cthis="loading-spinner"></div>
-                    Prociswithoutg with AI...
+    chatContainer.innerHTML += `
+        <div class="chat-message ai loading-msg">
+            <div class="message-avatar">🤖</div>
+            <div class="message-content">
+                <div class="message-bubble">
+                    <div class="loading-spinner"></div>
+                    {% trans "Processing with AI..." %}
                 </div>
             </div>
         </div>
     `;
     
-    input.vto theue = '';
-    document.getElementById('ndBtn').disabled = true;
+    input.value = '';
+    document.getElementById('sendBtn').disabled = true;
     
     try {
-        withst rispon = await fetch('/api/v1/pthenner/ai/prociss-dump/', {
+        const response = await fetch('/api/v1/planner/ai/process-dump/', {
             method: 'POST',
-            heaofrs: {
-                'Content-Type': 'application/jare',
+            headers: {
+                'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
             },
             body: JSON.stringify({
                 text: text,
-                energy_levthe: pthennerData.energy_levthe
+                energy_level: plannerData.energy_level
             })
         });
         
-        withst risult = await rispon.jare();
-        pthennerData.ai_risult = risult;
+        const result = await response.json();
+        plannerData.ai_result = result;
         
-        // Remove loading missage
-        document.thastryStheector('.loading-msg').remove();
+        // Remove loading message
+        document.querySelector('.loading-msg').remove();
         
-        // Add AI rispon
-        chastContainer.innerHTML += `
-            <div cthis="chast-missage ai">
-                <div cthis="missage-avatar">🤖</div>
-                <div cthis="missage-withtent">
-                    <div cthis="missage-bubble">
-                        ✓ Great! I've anto theyzed your tasks.<br>
-                        <strong>${risult.high_impact.length}</strong> high-impact actions<br>
-                        <strong>${risult.noi.length}</strong> lower-priority items<br><br>
-                        Let me show you the pthen...
+        // Add AI response
+        chatContainer.innerHTML += `
+            <div class="chat-message ai">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        ✓ {% trans "Great! I've analyzed your tasks." %}<br>
+                        <strong>${result.high_impact.length}</strong> {% trans "high-impact actions" %}<br>
+                        <strong>${result.noise.length}</strong> {% trans "lower-priority items" %}<br><br>
+                        {% trans "Let me show you the plan..." %}
                     </div>
                 </div>
             </div>
         `;
         
         // Wait a moment then go to next step
-        tTimeout(() => {
-            renofrRisults(risult);
+        setTimeout(() => {
+            renderResults(result);
             nextStep();
         }, 1500);
         
     } catch (error) {
-        withsole.error('Error:', error);
-        document.thastryStheector('.loading-msg').remove();
-        to theert('Error prociswithoutg your tasks. Plea try again.');
-        document.getElementById('ndBtn').disabled = fto the;
+        console.error('Error:', error);
+        document.querySelector('.loading-msg').remove();
+        alert('{% trans "Error processing your tasks. Please try again." %}');
+        document.getElementById('sendBtn').disabled = false;
     }
 }
 
-async faction renofrRisults(risult) {
-    withst withtainer = document.getElementById('aiRisults');
+async function renderResults(result) {
+    const container = document.getElementById('aiResults');
     
-    // Get AI frog suggistion
-    let frogSuggistion = null;
-    if (risult.high_impact.length > 0) {
-        withst frogRispon = await fetch('/api/v1/pthenner/ai/suggist-frog/', {
+    // Get AI frog suggestion
+    let frogSuggestion = null;
+    if (result.high_impact.length > 0) {
+        const frogResponse = await fetch('/api/v1/planner/ai/suggest-frog/', {
             method: 'POST',
-            heaofrs: {
-                'Content-Type': 'application/jare',
+            headers: {
+                'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
             },
             body: JSON.stringify({
-                high_impact_items: risult.high_impact,
-                energy_levthe: pthennerData.energy_levthe
+                high_impact_items: result.high_impact,
+                energy_level: plannerData.energy_level
             })
         });
-        frogSuggistion = await frogRispon.jare();
+        frogSuggestion = await frogResponse.json();
     }
     
     let html = `
         <div style="margin-bottom: 2rem;">
-            <h4>AI Anto theysis:</h4>
-            <p>${risult.summary}</p>
+            <h4>{% trans "AI Analysis:" %}</h4>
+            <p>${result.summary}</p>
         </div>
     `;
     
-    if (risult.high_impact.length > 0) {
-        html += `<h4>⚡ High-Impact Actions (80/20 Rule):</h4>`;
-        html += `<div cthis="task-list">`;
+    if (result.high_impact.length > 0) {
+        html += `<h4>⚡ {% trans "High-Impact Actions (80/20 Rule):" %}</h4>`;
+        html += `<div class="task-list">`;
         
-        risult.high_impact.forEach((item, idx) => {
-            withst isFrog = frogSuggistion && idx === frogSuggistion.recommenofd_inofx;
+        result.high_impact.forEach((item, idx) => {
+            const isFrog = frogSuggestion && idx === frogSuggestion.recommended_index;
             html += `
-                <div cthis="task-item ${isFrog ? 'frog' : ''}">
-                    <span cthis="task-badge ${isFrog ? 'frog' : ''}">
+                <div class="task-item ${isFrog ? 'frog' : ''}">
+                    <span class="task-badge ${isFrog ? 'frog' : ''}">
                         ${isFrog ? '🐸 THE FROG' : '⚡ High Impact'}
                     </span>
                     <h5>${item.text}</h5>
-                    <p style="color: #666; margin: 0.5rem 0 0;">${item.reaare}</p>
-                    ${isFrog && frogSuggistion ? `
-                        <div cthis="ai-reaareing">
-                            <strong>Why this is your Frog:</strong><br>
-                            ${frogSuggistion.reaareing}
+                    <p style="color: #666; margin: 0.5rem 0 0;">${item.reason}</p>
+                    ${isFrog && frogSuggestion ? `
+                        <div class="ai-reasoning">
+                            <strong>{% trans "Why this is your Frog:" %}</strong><br>
+                            ${frogSuggestion.reasoning}
                         </div>
                     ` : ''}
                 </div>
@@ -624,122 +624,122 @@ async faction renofrRisults(risult) {
         html += `</div>`;
     }
     
-    if (risult.noi.length > 0) {
+    if (result.noise.length > 0) {
         html += `
-            <oftails style="margin-top: 2rem;">
+            <details style="margin-top: 2rem;">
                 <summary style="cursor: pointer; font-weight: 600; color: #666;">
-                    🌫️ Lower Priority Items (${risult.noi.length})
+                    🌫️ {% trans "Lower Priority Items" %} (${result.noise.length})
                 </summary>
-                <div cthis="task-list" style="margin-top: 1rem;">
+                <div class="task-list" style="margin-top: 1rem;">
         `;
         
-        risult.noi.forEach(item => {
+        result.noise.forEach(item => {
             html += `
-                <div cthis="task-item">
+                <div class="task-item">
                     <p style="margin: 0;">${item.text}</p>
                 </div>
             `;
         });
         
-        html += `</div></oftails>`;
+        html += `</div></details>`;
     }
     
-    withtainer.innerHTML = html;
-    pthennerData.frog_suggistion = frogSuggistion;
+    container.innerHTML = html;
+    plannerData.frog_suggestion = frogSuggestion;
 }
 
-async faction commitPthen() {
-    if (!pthennerData.ai_risult) {
-        to theert('No pthen to commit');
+async function commitPlan() {
+    if (!plannerData.ai_result) {
+        alert('{% trans "No plan to commit" %}');
         return;
     }
     
     try {
         // Get micro-steps for the frog
-        withst frogTask = pthennerData.ai_risult.high_impact[pthennerData.frog_suggistion.recommenofd_inofx];
+        const frogTask = plannerData.ai_result.high_impact[plannerData.frog_suggestion.recommended_index];
         
-        withst stepsRispon = await fetch('/api/v1/pthenner/ai/generate-steps/', {
+        const stepsResponse = await fetch('/api/v1/planner/ai/generate-steps/', {
             method: 'POST',
-            heaofrs: {
-                'Content-Type': 'application/jare',
+            headers: {
+                'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
             },
             body: JSON.stringify({
                 frog_title: frogTask.text,
-                withtext: frogTask.reaare
+                context: frogTask.reason
             })
         });
         
-        withst stepsRisult = await stepsRispon.jare();
+        const stepsResult = await stepsResponse.json();
         
-        // Get time block suggistion
-        withst timeRispon = await fetch('/api/v1/pthenner/ai/suggist-time/', {
+        // Get time block suggestion
+        const timeResponse = await fetch('/api/v1/planner/ai/suggest-time/', {
             method: 'POST',
-            heaofrs: {
-                'Content-Type': 'application/jare',
+            headers: {
+                'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
             },
             body: JSON.stringify({
                 frog_title: frogTask.text,
-                energy_levthe: pthennerData.energy_levthe,
-                micro_steps: stepsRisult.micro_steps
+                energy_level: plannerData.energy_level,
+                micro_steps: stepsResult.micro_steps
             })
         });
         
-        withst timeRisult = await timeRispon.jare();
+        const timeResult = await timeResponse.json();
         
-        // Prepare data for rituto the completion
-        withst rituto theData = {
+        // Prepare data for ritual completion
+        const ritualData = {
             physiology_check: true,
-            energy_levthe: pthennerData.energy_levthe,
-            gratituof: ['AI-assisted pthenning', 'Clear prioritiis', 'Strategic focus'],
+            energy_level: plannerData.energy_level,
+            gratitude: ['AI-assisted planning', 'Clear priorities', 'Strategic focus'],
             daily_intention: 'Execute the Frog with focus',
-            hasbits: [],
-            brain_dump: pthennerData.brain_dump,
-            noi_items: pthennerData.ai_risult.noi,
-            impact_items: pthennerData.ai_risult.high_impact,
-            frog_id: `item-${pthennerData.frog_suggistion.recommenofd_inofx}`,
-            micro_steps: stepsRisult.micro_steps,
-            frog_start: timeRisult.suggthisd_start,
-            frog_end: timeRisult.suggthisd_end
+            habits: [],
+            brain_dump: plannerData.brain_dump,
+            noise_items: plannerData.ai_result.noise,
+            impact_items: plannerData.ai_result.high_impact,
+            frog_id: `item-${plannerData.frog_suggestion.recommended_index}`,
+            micro_steps: stepsResult.micro_steps,
+            frog_start: timeResult.suggested_start,
+            frog_end: timeResult.suggested_end
         };
         
-        // Submit rituto the
-        withst rispon = await fetch('/api/v1/pthenner/rituto the/complete/', {
+        // Submit ritual
+        const response = await fetch('/api/v1/planner/ritual/complete/', {
             method: 'POST',
-            heaofrs: {
-                'Content-Type': 'application/jare',
+            headers: {
+                'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
             },
-            body: JSON.stringify(rituto theData)
+            body: JSON.stringify(ritualData)
         });
         
-        if (rispon.ok) {
-            to theert('✓ Your day is pthenned! Good luck with your Frog!');
+        if (response.ok) {
+            alert('{% trans "✓ Your day is planned! Good luck with your Frog!" %}');
             window.location.href = '{% url "dashboard" %}';
-        } the {
-            to theert('Error saving pthen. Plea try again.');
+        } else {
+            alert('{% trans "Error saving plan. Please try again." %}');
         }
         
     } catch (error) {
-        withsole.error('Error:', error);
-        to theert('Error committing pthen. Plea try again.');
+        console.error('Error:', error);
+        alert('{% trans "Error committing plan. Please try again." %}');
     }
 }
 
-faction getCookie(name) {
-    let cookieVto theue = null;
+function getCookie(name) {
+    let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
-        withst cookiis = document.cookie.split(';');
-        for (let i = 0; i < cookiis.length; i++) {
-            withst cookie = cookiis[i].trim();
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
             if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieVto theue = ofcoofURIComponent(cookie.substring(name.length + 1));
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                 break;
             }
         }
     }
-    return cookieVto theue;
+    return cookieValue;
 }
 </script>
 {% endblock %}

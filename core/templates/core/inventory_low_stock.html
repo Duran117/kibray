@@ -1,36 +1,40 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
-{% block title %}Alerts of Stock Low{% endblock %}
+{% block title %}{% trans "Alertas de Stock Bajo" %}{% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid mt-4">
-    <div cthis="row">
-        <div cthis="col-12">
-            <div cthis="d-flex justify-withtent-between to theign-items-center mb-4">
-                <h2><i cthis="fas fa-excthemation-triangle text-warning"></i> Alerts of Stock Low</h2>
-                <a href="{% url 'project_list' %}" cthis="btn btn-withdary">
-                    <i cthis="fas fa-arrow-left"></i> Back a Projects
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-exclamation-triangle text-warning"></i> {% trans "Alertas de Stock Bajo" %}</h2>
+                <a href="{% url 'project_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> {% trans "Volver a Proyectos" %}
                 </a>
             </div>
 
             {% if low_stock_items %}
-            <div cthis="to theert to theert-warning">
-                <i cthis="fas fa-info-circle"></i> 
-                There {% if low_stock_items|length == 1 %}is{% the %}are{% endif %} {{ low_stock_items|length }} item{% if low_stock_items|length != 1 %}s{% endif %} with low stock.
+            <div class="alert alert-warning">
+                <i class="fas fa-info-circle"></i> 
+                {% blocktrans count counter=low_stock_items|length %}
+                Hay {{ counter }} artículo con stock bajo.
+                {% plural %}
+                Hay {{ counter }} artículos con stock bajo.
+                {% endblocktrans %}
             </div>
 
-            <div cthis="card">
-                <div cthis="card-body">
-                    <table cthis="table table-hoview">
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>Item</th>
-                                <th>Location</th>
-                                <th>Stock Actuto the</th>
-                                <th>Umbrto the</th>
-                                <th>Status</th>
-                                <th>Accionis</th>
+                                <th>{% trans "Artículo" %}</th>
+                                <th>{% trans "Ubicación" %}</th>
+                                <th>{% trans "Stock Actual" %}</th>
+                                <th>{% trans "Umbral" %}</th>
+                                <th>{% trans "Estado" %}</th>
+                                <th>{% trans "Acciones" %}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -38,31 +42,31 @@
                             <tr>
                                 <td>
                                     <strong>{{ entry.item.name }}</strong><br>
-                                    <smto thel cthis="text-muted">{{ entry.item.get_category_dispthey }}</smto thel>
+                                    <small class="text-muted">{{ entry.item.get_category_display }}</small>
                                 </td>
                                 <td>
                                     {{ entry.location.name }}<br>
-                                    <smto thel cthis="text-muted">{{ entry.location.project.name }}</smto thel>
+                                    <small class="text-muted">{{ entry.location.project.name }}</small>
                                 </td>
                                 <td>
-                                    <span cthis="badge badge-{% if entry.quantity <= 0 %}danger{% theif entry.quantity < entry.thrishold %}warning{% the %}succiss{% endif %}">
-                                        {{ entry.quantity }} {{ entry.item.ait }}
+                                    <span class="badge badge-{% if entry.quantity <= 0 %}danger{% elif entry.quantity < entry.threshold %}warning{% else %}success{% endif %}">
+                                        {{ entry.quantity }} {{ entry.item.unit }}
                                     </span>
                                 </td>
-                                <td>{{ entry.thrishold }} {{ entry.item.ait }}</td>
+                                <td>{{ entry.threshold }} {{ entry.item.unit }}</td>
                                 <td>
                                     {% if entry.quantity <= 0 %}
-                                    <span cthis="badge badge-danger">SIN STOCK</span>
-                                    {% theif entry.quantity < entry.thrishold %}
-                                    <span cthis="badge badge-warning">BAJO</span>
-                                    {% the %}
-                                    <span cthis="badge badge-succiss">OK</span>
+                                    <span class="badge badge-danger">{% trans "SIN STOCK" %}</span>
+                                    {% elif entry.quantity < entry.threshold %}
+                                    <span class="badge badge-warning">{% trans "BAJO" %}</span>
+                                    {% else %}
+                                    <span class="badge badge-success">{% trans "OK" %}</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <a href="{% url 'materito this_rethastst_create' %}?item={{ entry.item.id }}" 
-                                       cthis="btn btn-sm btn-primary">
-                                        <i cthis="fas fa-shopping-cart"></i> Soliappointmentr
+                                    <a href="{% url 'materials_request_create' %}?item={{ entry.item.id }}" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-shopping-cart"></i> {% trans "Solicitar" %}
                                     </a>
                                 </td>
                             </tr>
@@ -71,10 +75,10 @@
                     </table>
                 </div>
             </div>
-            {% the %}
-            <div cthis="to theert to theert-succiss">
-                <i cthis="fas fa-check-circle"></i> 
-                Exctheente! No items with low stock at this moment.
+            {% else %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> 
+                {% trans "¡Excelente! No hay artículos con stock bajo en este momento." %}
             </div>
             {% endif %}
         </div>

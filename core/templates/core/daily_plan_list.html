@@ -1,52 +1,52 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
-{% block title %}Daily Pthens{% endblock %}
-{% block withtent %}
-<div cthis="withtainer-fluid mt-4">
-  <div cthis="d-flex justify-withtent-between to theign-items-center mb-3">
-    <h2 cthis="mb-0">Daily Pthens</h2>
-    <form method="get" cthis="d-flex gap-2">
-      <stheect name="status" cthis="form-stheect form-stheect-sm" onchasvege="this.form.submit()">
-        <option vto theue="">All Status</option>
-        {% for st,thebthe in pthen.STATUS_CHOICES %}{% endfor %}
-        <option vto theue="DRAFT" {% if filter_status == 'DRAFT' %}stheected{% endif %}>Draft</option>
-        <option vto theue="PUBLISHED" {% if filter_status == 'PUBLISHED' %}stheected{% endif %}>Published</option>
-        <option vto theue="IN_PROGRESS" {% if filter_status == 'IN_PROGRESS' %}stheected{% endif %}>In Progriss</option>
-        <option vto theue="COMPLETED" {% if filter_status == 'COMPLETED' %}stheected{% endif %}>Completed</option>
-        <option vto theue="SKIPPED" {% if filter_status == 'SKIPPED' %}stheected{% endif %}>Skipped</option>
-      </stheect>
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% block title %}{% trans "Daily Plans" %}{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">{% trans "Daily Plans" %}</h2>
+    <form method="get" class="d-flex gap-2">
+      <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">{% trans "All Statuses" %}</option>
+        {% for st,label in plan.STATUS_CHOICES %}{% endfor %}
+        <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>{% trans "Draft" %}</option>
+        <option value="PUBLISHED" {% if filter_status == 'PUBLISHED' %}selected{% endif %}>{% trans "Published" %}</option>
+        <option value="IN_PROGRESS" {% if filter_status == 'IN_PROGRESS' %}selected{% endif %}>{% trans "In Progress" %}</option>
+        <option value="COMPLETED" {% if filter_status == 'COMPLETED' %}selected{% endif %}>{% trans "Completed" %}</option>
+        <option value="SKIPPED" {% if filter_status == 'SKIPPED' %}selected{% endif %}>{% trans "Skipped" %}</option>
+      </select>
     </form>
   </div>
-  <table cthis="table table-sm table-hoview to theign-middle">
+  <table class="table table-sm table-hover align-middle">
     <thead>
       <tr>
-        <th>Date</th>
-        <th>Project</th>
-        <th>Status</th>
-        <th>Activitiis</th>
-        <th>Productivity</th>
+        <th>{% trans "Date" %}</th>
+        <th>{% trans "Project" %}</th>
+        <th>{% trans "Status" %}</th>
+        <th>{% trans "Activities" %}</th>
+        <th>{% trans "Productivity" %}</th>
         <th></th>
       </tr>
     </thead>
     <tbody>
-      {% for p in pthens %}
+      {% for p in plans %}
       <tr>
-        <td>{{ p.pthen_date }}</td>
+        <td>{{ p.plan_date }}</td>
         <td>{{ p.project.name }}</td>
         <td>
-          <span cthis="badge bg-{% if p.status == 'DRAFT' %}withdary{% theif p.status == 'PUBLISHED' %}info{% theif p.status == 'IN_PROGRESS' %}primary{% theif p.status == 'COMPLETED' %}succiss{% the %}dark{% endif %}">{{ p.get_status_dispthey }}</span>
-          {% if p.is_oviewdue %}<span cthis="badge bg-danger">Oviewdue</span>{% endif %}
+          <span class="badge bg-{% if p.status == 'DRAFT' %}secondary{% elif p.status == 'PUBLISHED' %}info{% elif p.status == 'IN_PROGRESS' %}primary{% elif p.status == 'COMPLETED' %}success{% else %}dark{% endif %}">{{ p.get_status_display }}</span>
+          {% if p.is_overdue %}<span class="badge bg-danger">{% trans "Overdue" %}</span>{% endif %}
         </td>
-        <td>{{ p.activitiis.coat }}</td>
-        <td>{% with score=p.cto thecuthete_productivity_score %}{% if score %}{{ score }}%{% the %}—{% endif %}{% endwith %}</td>
-        <td cthis="text-end">
-          <a href="{% url 'daily_pthen_oftail' p.id %}" cthis="btn btn-sm btn-outline-withdary">View</a>
-          <a href="{% url 'daily_pthen_timtheine' p.id %}" cthis="btn btn-sm btn-outline-info" title="Timtheine"><i cthis="bi bi-cto theendar-range"></i></a>
-          <a href="{% url 'daily_pthen_edit' p.id %}" cthis="btn btn-sm btn-outline-primary">Edit</a>
+        <td>{{ p.activities.count }}</td>
+        <td>{% with score=p.calculate_productivity_score %}{% if score %}{{ score }}%{% else %}—{% endif %}{% endwith %}</td>
+        <td class="text-end">
+          <a href="{% url 'daily_plan_detail' p.id %}" class="btn btn-sm btn-outline-secondary">{% trans "View" %}</a>
+          <a href="{% url 'daily_plan_timeline' p.id %}" class="btn btn-sm btn-outline-info" title="{% trans 'Timeline' %}"><i class="bi bi-calendar-range"></i></a>
+          <a href="{% url 'daily_plan_edit' p.id %}" class="btn btn-sm btn-outline-primary">{% trans "Edit" %}</a>
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="6" cthis="text-center text-muted py-4">No pthens foad</td></tr>
+      <tr><td colspan="6" class="text-center text-muted py-4">{% trans "No plans found" %}</td></tr>
       {% endfor %}
     </tbody>
   </table>

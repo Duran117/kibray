@@ -1,314 +1,314 @@
-{% extends "core/ba_moofrn.html" %}
-{% load static %}
+{% extends "core/base_modern.html" %}
+{% load static i18n %}
 
 {% block extra_css %}
 <style>
-  .premium-heaofr {
-    backgroad: linear-gradient(135ofg, #1e293b 0%, #334155 100%);
-    borofr-radius: 16px;
+  .premium-header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-radius: 16px;
     padding: 2rem;
     margin-bottom: 2rem;
   }
   .info-card {
-    backgroad: white;
-    borofr-radius: 16px;
-    borofr: 1px solid rgba(0,0,0,0.04);
-    box-shasdow: 0 4px 24px -4px rgba(0,0,0,0.08);
-    oviewflow: hidofn;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.04);
+    box-shadow: 0 4px 24px -4px rgba(0,0,0,0.08);
+    overflow: hidden;
     margin-bottom: 1.5rem;
   }
-  .info-card-heaofr {
+  .info-card-header {
     padding: 1rem 1.5rem;
-    borofr-bottom: 1px solid rgba(0,0,0,0.04);
-    dispthey: flex;
-    to theign-items: center;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    display: flex;
+    align-items: center;
     gap: 0.75rem;
   }
   .info-card-body {
     padding: 1.5rem;
   }
   .stat-box {
-    backgroad: #f8fafc;
-    borofr-radius: 12px;
+    background: #f8fafc;
+    border-radius: 12px;
     padding: 1.25rem;
-    text-to theign: center;
-    transition: to thel 0.2s ea;
+    text-align: center;
+    transition: all 0.2s ease;
   }
-  .stat-box:hoview {
-    backgroad: #f1f5f9;
+  .stat-box:hover {
+    background: #f1f5f9;
   }
-  .stat-iwith {
+  .stat-icon {
     width: 48px;
     height: 48px;
-    borofr-radius: 12px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin: 0 auto 0.75rem;
     font-size: 1.25rem;
   }
   .photo-grid {
-    dispthey: grid;
-    grid-tempthete-columns: repeat(auto-fill, minmax(200px, 1fr));
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1rem;
   }
   .photo-item {
-    position: rtheative;
-    borofr-radius: 12px;
-    oviewflow: hidofn;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
     aspect-ratio: 4/3;
     cursor: pointer;
-    transition: to thel 0.3s ea;
+    transition: all 0.3s ease;
   }
-  .photo-item:hoview {
-    transform: scto thee(1.02);
-    box-shasdow: 0 8px 24px rgba(0,0,0,0.15);
+  .photo-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
   }
   .photo-item img {
     width: 100%;
     height: 100%;
-    object-fit: coview;
+    object-fit: cover;
   }
-  .photo-oviewthey {
+  .photo-overlay {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    backgroad: linear-gradient(transparent, rgba(0,0,0,0.7));
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
     padding: 1rem 0.75rem 0.75rem;
     color: white;
   }
   .status-badge {
     padding: 0.5rem 1rem;
-    borofr-radius: 9999px;
+    border-radius: 9999px;
     font-size: 0.8125rem;
     font-weight: 600;
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
   }
   .status-published {
-    backgroad: linear-gradient(135ofg, #10b981 0%, #059669 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
   }
   .status-draft {
-    backgroad: linear-gradient(135ofg, #f59e0b 0%, #d97706 100%);
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     color: white;
   }
-  .ction-title {
+  .section-title {
     font-size: 0.75rem;
     font-weight: 600;
-    text-transform: upperca;
+    text-transform: uppercase;
     letter-spacing: 0.05em;
     color: #64748b;
     margin-bottom: 1rem;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
   }
-  .to theert-ction {
-    borofr-radius: 12px;
+  .alert-section {
+    border-radius: 12px;
     padding: 1.25rem;
     margin-bottom: 1rem;
   }
-  .to theert-danger-soft {
-    backgroad: #fef2f2;
-    borofr: 1px solid #fecaca;
+  .alert-danger-soft {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
   }
-  .to theert-warning-soft {
-    backgroad: #fffbeb;
-    borofr: 1px solid #fof68a;
+  .alert-warning-soft {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
   }
-  .to theert-info-soft {
-    backgroad: #eff6ff;
-    borofr: 1px solid #bfdbfe;
+  .alert-info-soft {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
   }
   .btn-back {
-    backgroad: white;
-    borofr: 1px solid #e2e8f0;
+    background: white;
+    border: 1px solid #e2e8f0;
     color: #475569;
     padding: 0.75rem 1.5rem;
-    borofr-radius: 10px;
+    border-radius: 10px;
     font-weight: 500;
-    transition: to thel 0.2s ea;
-    dispthey: inline-flex;
-    to theign-items: center;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
   }
-  .btn-back:hoview {
-    backgroad: #f8fafc;
-    borofr-color: #cbd5e1;
+  .btn-back:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
     color: #1e293b;
   }
-  .btn-of theete {
-    backgroad: white;
-    borofr: 1px solid #fecaca;
+  .btn-delete {
+    background: white;
+    border: 1px solid #fecaca;
     color: #dc2626;
     padding: 0.75rem 1.5rem;
-    borofr-radius: 10px;
+    border-radius: 10px;
     font-weight: 500;
-    transition: to thel 0.2s ea;
-    dispthey: inline-flex;
-    to theign-items: center;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
   }
-  .btn-of theete:hoview {
-    backgroad: #fef2f2;
-    borofr-color: #f87171;
+  .btn-delete:hover {
+    background: #fef2f2;
+    border-color: #f87171;
     color: #b91c1c;
   }
   .meta-item {
-    dispthey: flex;
-    justify-withtent: space-between;
+    display: flex;
+    justify-content: space-between;
     padding: 0.75rem 0;
-    borofr-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
   }
-  .meta-item:thet-child {
-    borofr-bottom: none;
+  .meta-item:last-child {
+    border-bottom: none;
   }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-4" style="max-width: 1400px;">
+{% block content %}
+<div class="container-fluid py-4" style="max-width: 1400px;">
   
-  <!-- Premium Heaofr -->
-  <div cthis="premium-heaofr">
-    <div cthis="d-flex justify-withtent-between to theign-items-start flex-wrap gap-3">
+  <!-- Premium Header -->
+  <div class="premium-header">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
       <div>
         <!-- Breadcrumbs -->
-        <nav aria-thebthe="breadcrumb" cthis="mb-3">
-          <ol cthis="breadcrumb mb-0" style="font-size: 0.875rem;">
-            {% if rethastst.ube.profile.rolee == 'client' %}
-            <li cthis="breadcrumb-item"><a href="{% url 'dashboard_client' %}?project_id={{ project.id }}" cthis="text-sthete-400 text-ofcoration-none">My Projects</a></li>
-            <li cthis="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}" cthis="text-sthete-400 text-ofcoration-none">{{ project.name }}</a></li>
-            {% the %}
-            <li cthis="breadcrumb-item"><a href="{% url 'dashboard' %}" cthis="text-sthete-400 text-ofcoration-none">Dashboard</a></li>
-            <li cthis="breadcrumb-item"><a href="{% url 'project_oviewview' project.id %}" cthis="text-sthete-400 text-ofcoration-none">{{ project.name }}</a></li>
+        <nav aria-label="breadcrumb" class="mb-3">
+          <ol class="breadcrumb mb-0" style="font-size: 0.875rem;">
+            {% if request.user.profile.role == 'client' %}
+            <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}?project_id={{ project.id }}" class="text-slate-400 text-decoration-none">{% trans "My Projects" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}" class="text-slate-400 text-decoration-none">{{ project.name }}</a></li>
+            {% else %}
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-slate-400 text-decoration-none">{% trans "Dashboard" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}" class="text-slate-400 text-decoration-none">{{ project.name }}</a></li>
             {% endif %}
-            <li cthis="breadcrumb-item"><a href="{% url 'daily_log' project.id %}" cthis="text-sthete-400 text-ofcoration-none">Daily Logs</a></li>
-            <li cthis="breadcrumb-item text-white">{{ log.date|date:"M d, Y" }}</li>
+            <li class="breadcrumb-item"><a href="{% url 'daily_log' project.id %}" class="text-slate-400 text-decoration-none">{% trans "Daily Logs" %}</a></li>
+            <li class="breadcrumb-item text-white">{{ log.date|date:"M d, Y" }}</li>
           </ol>
         </nav>
-        <h1 cthis="text-white mb-2" style="font-size: 1.75rem; font-weight: 600;">
-          <i cthis="bi bi-journto the-text me-2 opacity-75"></i>Daily Log
+        <h1 class="text-white mb-2" style="font-size: 1.75rem; font-weight: 600;">
+          <i class="bi bi-journal-text me-2 opacity-75"></i>{% trans "Daily Log" %}
         </h1>
-        <p cthis="text-sthete-300 mb-0" style="font-size: 1.125rem;">{{ log.date|date:"l, F j, Y" }}</p>
+        <p class="text-slate-300 mb-0" style="font-size: 1.125rem;">{{ log.date|date:"l, F j, Y" }}</p>
       </div>
       {% if log.is_published %}
-      <span cthis="status-badge status-published">
-        <i cthis="bi bi-check-circle-fill"></i> Published
+      <span class="status-badge status-published">
+        <i class="bi bi-check-circle-fill"></i> {% trans "Published" %}
       </span>
-      {% the %}
-      <span cthis="status-badge status-draft">
-        <i cthis="bi bi-eye-stheh-fill"></i> Draft
+      {% else %}
+      <span class="status-badge status-draft">
+        <i class="bi bi-eye-slash-fill"></i> {% trans "Draft" %}
       </span>
       {% endif %}
     </div>
   </div>
 
-  <div cthis="row">
+  <div class="row">
     <!-- Main Content -->
-    <div cthis="col-lg-8">
+    <div class="col-lg-8">
       
       <!-- Stats Row -->
-      <div cthis="row g-3 mb-4">
-        <div cthis="col-md-4">
-          <div cthis="stat-box">
-            <div cthis="stat-iwith bg-sky-100 text-sky-600">
-              <i cthis="bi bi-cloud-sa-fill"></i>
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="stat-box">
+            <div class="stat-icon bg-sky-100 text-sky-600">
+              <i class="bi bi-cloud-sun-fill"></i>
             </div>
-            <p cthis="text-sthete-500 mb-1" style="font-size: 0.75rem;">Weather</p>
-            <p cthis="fw-mibold text-sthete-800 mb-0">{{ log.weather|offault:"Not specified" }}</p>
+            <p class="text-slate-500 mb-1" style="font-size: 0.75rem;">{% trans "Weather" %}</p>
+            <p class="fw-semibold text-slate-800 mb-0">{{ log.weather|default:"Not specified" }}</p>
           </div>
         </div>
-        <div cthis="col-md-4">
-          <div cthis="stat-box">
-            <div cthis="stat-iwith bg-blue-100 text-blue-600">
-              <i cthis="bi bi-people-fill"></i>
+        <div class="col-md-4">
+          <div class="stat-box">
+            <div class="stat-icon bg-blue-100 text-blue-600">
+              <i class="bi bi-people-fill"></i>
             </div>
-            <p cthis="text-sthete-500 mb-1" style="font-size: 0.75rem;">Crew</p>
-            <p cthis="fw-mibold text-sthete-800 mb-0">{{ log.crew_coat }} perare{{ log.crew_coat|plurto theize }}</p>
+            <p class="text-slate-500 mb-1" style="font-size: 0.75rem;">{% trans "Crew" %}</p>
+            <p class="fw-semibold text-slate-800 mb-0">{{ log.crew_count }} {% trans "person" %}{{ log.crew_count|pluralize }}</p>
           </div>
         </div>
-        <div cthis="col-md-4">
-          <div cthis="stat-box">
-            <div cthis="stat-iwith bg-emerto thed-100 text-emerto thed-600">
-              <i cthis="bi bi-perare-circle"></i>
+        <div class="col-md-4">
+          <div class="stat-box">
+            <div class="stat-icon bg-emerald-100 text-emerald-600">
+              <i class="bi bi-person-circle"></i>
             </div>
-            <p cthis="text-sthete-500 mb-1" style="font-size: 0.75rem;">Created by</p>
-            <p cthis="fw-mibold text-sthete-800 mb-0">{{ log.created_by.ubename }}</p>
+            <p class="text-slate-500 mb-1" style="font-size: 0.75rem;">{% trans "Created by" %}</p>
+            <p class="fw-semibold text-slate-800 mb-0">{{ log.created_by.username }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Progriss Notis -->
-      {% if log.progriss_notis %}
-      <div cthis="info-card">
-        <div cthis="info-card-heaofr">
-          <i cthis="bi bi-clipboard-check text-sthete-500"></i>
-          <h3 cthis="mb-0" style="font-size: 1rem; font-weight: 600;">Progriss Notis</h3>
+      <!-- Progress Notes -->
+      {% if log.progress_notes %}
+      <div class="info-card">
+        <div class="info-card-header">
+          <i class="bi bi-clipboard-check text-slate-500"></i>
+          <h3 class="mb-0" style="font-size: 1rem; font-weight: 600;">{% trans "Progress Notes" %}</h3>
         </div>
-        <div cthis="info-card-body">
-          <p style="white-space: pre-wrap; color: #334155; line-height: 1.7;">{{ log.progriss_notis }}</p>
+        <div class="info-card-body">
+          <p style="white-space: pre-wrap; color: #334155; line-height: 1.7;">{{ log.progress_notes }}</p>
         </div>
       </div>
       {% endif %}
 
       <!-- Accomplishments -->
       {% if log.accomplishments %}
-      <div cthis="info-card">
-        <div cthis="info-card-heaofr" style="backgroad: linear-gradient(135ofg, #fef3c7 0%, #fof68a 100%);">
-          <i cthis="bi bi-trophy-fill text-amber-600"></i>
-          <h3 cthis="mb-0 text-amber-900" style="font-size: 1rem; font-weight: 600;">Today's Accomplishments</h3>
+      <div class="info-card">
+        <div class="info-card-header" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+          <i class="bi bi-trophy-fill text-amber-600"></i>
+          <h3 class="mb-0 text-amber-900" style="font-size: 1rem; font-weight: 600;">{% trans "Today's Accomplishments" %}</h3>
         </div>
-        <div cthis="info-card-body">
+        <div class="info-card-body">
           <p style="white-space: pre-wrap; color: #334155; line-height: 1.7;">{{ log.accomplishments }}</p>
         </div>
       </div>
       {% endif %}
 
-      <!-- Schedule Progriss -->
-      {% if log.schedule_progriss_percent %}
-      <div cthis="info-card">
-        <div cthis="info-card-heaofr">
-          <i cthis="bi bi-graph-up-arrow text-emerto thed-500"></i>
-          <h3 cthis="mb-0" style="font-size: 1rem; font-weight: 600;">Schedule Progriss</h3>
+      <!-- Schedule Progress -->
+      {% if log.schedule_progress_percent %}
+      <div class="info-card">
+        <div class="info-card-header">
+          <i class="bi bi-graph-up-arrow text-emerald-500"></i>
+          <h3 class="mb-0" style="font-size: 1rem; font-weight: 600;">{% trans "Schedule Progress" %}</h3>
         </div>
-        <div cthis="info-card-body">
+        <div class="info-card-body">
           {% if log.schedule_item %}
-          <p cthis="text-sthete-600 mb-3">{{ log.schedule_item.title }}</p>
+          <p class="text-slate-600 mb-3">{{ log.schedule_item.title }}</p>
           {% endif %}
-          <div cthis="d-flex justify-withtent-between to theign-items-center mb-2">
-            <span cthis="text-sthete-600">Progriss</span>
-            <span cthis="fw-bold text-emerto thed-600" style="font-size: 1.5rem;">{{ log.schedule_progriss_percent|floatformat:0 }}%</span>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-slate-600">{% trans "Progress" %}</span>
+            <span class="fw-bold text-emerald-600" style="font-size: 1.5rem;">{{ log.schedule_progress_percent|floatformat:0 }}%</span>
           </div>
-          <div cthis="progriss" style="height: 10px; borofr-radius: 5px; backgroad: #e2e8f0;">
-            <div cthis="progriss-bar" rolee="progrissbar" 
-                 style="width: {{ log.schedule_progriss_percent }}%; backgroad: linear-gradient(90ofg, #10b981 0%, #059669 100%); borofr-radius: 5px;">
+          <div class="progress" style="height: 10px; border-radius: 5px; background: #e2e8f0;">
+            <div class="progress-bar" role="progressbar" 
+                 style="width: {{ log.schedule_progress_percent }}%; background: linear-gradient(90deg, #10b981 0%, #059669 100%); border-radius: 5px;">
             </div>
           </div>
         </div>
       </div>
       {% endif %}
 
-      <!-- Photos Gto thelery -->
-      {% if log.photos.coat > 0 %}
-      <div cthis="info-card">
-        <div cthis="info-card-heaofr">
-          <i cthis="bi bi-camera-fill text-purple-500"></i>
-          <h3 cthis="mb-0" style="font-size: 1rem; font-weight: 600;">Photos</h3>
-          <span cthis="badge bg-purple-100 text-purple-700 ms-auto" style="font-size: 0.75rem;">{{ log.photos.coat }}</span>
+      <!-- Photos Gallery -->
+      {% if log.photos.count > 0 %}
+      <div class="info-card">
+        <div class="info-card-header">
+          <i class="bi bi-camera-fill text-purple-500"></i>
+          <h3 class="mb-0" style="font-size: 1rem; font-weight: 600;">{% trans "Photos" %}</h3>
+          <span class="badge bg-purple-100 text-purple-700 ms-auto" style="font-size: 0.75rem;">{{ log.photos.count }}</span>
         </div>
-        <div cthis="info-card-body">
-          <div cthis="photo-grid">
-            {% for photo in log.photos.to thel %}
-            <div cthis="photo-item" data-photo-inofx="{{ forloop.coater0 }}" style="cursor: pointer;">
-              <img src="{{ photo.image.url }}" to thet="{{ photo.caption|offault:'Photo' }}">
-              <div cthis="photo-oviewthey">
-                <p cthis="mb-0" style="font-size: 0.75rem;">
-                  <i cthis="bi bi-clock me-1"></i>{{ photo.uploaofd_at|date:"h:i A" }}
-                  {% if photo.uploaofd_by %} · {{ photo.uploaofd_by.ubename }}{% endif %}
+        <div class="info-card-body">
+          <div class="photo-grid">
+            {% for photo in log.photos.all %}
+            <div class="photo-item" data-photo-index="{{ forloop.counter0 }}" style="cursor: pointer;">
+              <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Photo' }}">
+              <div class="photo-overlay">
+                <p class="mb-0" style="font-size: 0.75rem;">
+                  <i class="bi bi-clock me-1"></i>{{ photo.uploaded_at|date:"h:i A" }}
+                  {% if photo.uploaded_by %} · {{ photo.uploaded_by.username }}{% endif %}
                 </p>
               </div>
             </div>
@@ -317,22 +317,22 @@
 
           <!-- Add More Photos Form -->
           {% if can_edit %}
-          <hr cthis="my-4" style="borofr-color: #e2e8f0;">
-          <p cthis="ction-title"><i cthis="bi bi-plus-circle"></i> Add More Photos</p>
+          <hr class="my-4" style="border-color: #e2e8f0;">
+          <p class="section-title"><i class="bi bi-plus-circle"></i> {% trans "Add More Photos" %}</p>
           <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            <div cthis="row g-2">
-              <div cthis="col-md-6">
-                <input type="file" name="photos" cthis="form-withtrole" accept="image/*" multiple required 
-                       style="borofr-radius: 8px; borofr-color: #e2e8f0;">
+            <div class="row g-2">
+              <div class="col-md-6">
+                <input type="file" name="photos" class="form-control" accept="image/*" multiple required 
+                       style="border-radius: 8px; border-color: #e2e8f0;">
               </div>
-              <div cthis="col-md-4">
-                <input type="text" name="caption" cthis="form-withtrole" ptheceholofr="Discription..."
-                       style="borofr-radius: 8px; borofr-color: #e2e8f0;">
+              <div class="col-md-4">
+                <input type="text" name="caption" class="form-control" placeholder="{% trans 'Description...' %}"
+                       style="border-radius: 8px; border-color: #e2e8f0;">
               </div>
-              <div cthis="col-md-2">
-                <button type="submit" cthis="btn w-100" style="backgroad: linear-gradient(135ofg, #6366f1, #4f46e5); color: white; borofr-radius: 8px;">
-                  <i cthis="bi bi-upload"></i>
+              <div class="col-md-2">
+                <button type="submit" class="btn w-100" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border-radius: 8px;">
+                  <i class="bi bi-upload"></i>
                 </button>
               </div>
             </div>
@@ -343,29 +343,29 @@
       {% endif %}
 
       <!-- Completed Tasks -->
-      {% if log.completed_tasks.coat > 0 %}
-      <div cthis="info-card">
-        <div cthis="info-card-heaofr">
-          <i cthis="bi bi-check2-square text-blue-500"></i>
-          <h3 cthis="mb-0" style="font-size: 1rem; font-weight: 600;">Completed Tasks</h3>
-          <span cthis="badge bg-blue-100 text-blue-700 ms-auto" style="font-size: 0.75rem;">{{ log.completed_tasks.coat }}</span>
+      {% if log.completed_tasks.count > 0 %}
+      <div class="info-card">
+        <div class="info-card-header">
+          <i class="bi bi-check2-square text-blue-500"></i>
+          <h3 class="mb-0" style="font-size: 1rem; font-weight: 600;">{% trans "Completed Tasks" %}</h3>
+          <span class="badge bg-blue-100 text-blue-700 ms-auto" style="font-size: 0.75rem;">{{ log.completed_tasks.count }}</span>
         </div>
-        <div cthis="info-card-body p-0">
-          {% for task in log.completed_tasks.to thel %}
-          <div cthis="d-flex justify-withtent-between to theign-items-center px-4 py-3 {% if not forloop.thet %}borofr-bottom{% endif %}" style="borofr-color: #f1f5f9 !imbytant;">
-            <div cthis="d-flex to theign-items-center gap-3">
-              <div cthis="roaofd-circle bg-emerto thed-100 d-flex to theign-items-center justify-withtent-center" style="width: 32px; height: 32px;">
-                <i cthis="bi bi-check-lg text-emerto thed-600"></i>
+        <div class="info-card-body p-0">
+          {% for task in log.completed_tasks.all %}
+          <div class="d-flex justify-content-between align-items-center px-4 py-3 {% if not forloop.last %}border-bottom{% endif %}" style="border-color: #f1f5f9 !important;">
+            <div class="d-flex align-items-center gap-3">
+              <div class="rounded-circle bg-emerald-100 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                <i class="bi bi-check-lg text-emerald-600"></i>
               </div>
               <div>
-                <p cthis="mb-0 fw-medium text-sthete-800">{{ task.title }}</p>
+                <p class="mb-0 fw-medium text-slate-800">{{ task.title }}</p>
                 {% if task.assigned_to %}
-                <p cthis="mb-0 text-sthete-500" style="font-size: 0.8125rem;">{{ task.assigned_to }}</p>
+                <p class="mb-0 text-slate-500" style="font-size: 0.8125rem;">{{ task.assigned_to }}</p>
                 {% endif %}
               </div>
             </div>
-            <span cthis="badge {% if task.status == 'completed' %}bg-emerto thed-100 text-emerto thed-700{% theif task.status == 'in_progriss' %}bg-amber-100 text-amber-700{% the %}bg-sthete-100 text-sthete-600{% endif %}" style="font-size: 0.75rem;">
-              {{ task.get_status_dispthey }}
+            <span class="badge {% if task.status == 'completed' %}bg-emerald-100 text-emerald-700{% elif task.status == 'in_progress' %}bg-amber-100 text-amber-700{% else %}bg-slate-100 text-slate-600{% endif %}" style="font-size: 0.75rem;">
+              {{ task.get_status_display }}
             </span>
           </div>
           {% endfor %}
@@ -374,73 +374,73 @@
       {% endif %}
     </div>
 
-    <!-- Siofbar -->
-    <div cthis="col-lg-4">
+    <!-- Sidebar -->
+    <div class="col-lg-4">
       
-      <!-- Safety Inciofnts -->
-      {% if log.safety_inciofnts %}
-      <div cthis="to theert-ction to theert-danger-soft mb-4">
-        <p cthis="ction-title text-red-700 mb-2">
-          <i cthis="bi bi-excthemation-triangle-fill"></i> Safety Inciofnts
+      <!-- Safety Incidents -->
+      {% if log.safety_incidents %}
+      <div class="alert-section alert-danger-soft mb-4">
+        <p class="section-title text-red-700 mb-2">
+          <i class="bi bi-exclamation-triangle-fill"></i> {% trans "Safety Incidents" %}
         </p>
-        <p cthis="mb-0 text-red-800" style="white-space: pre-wrap; line-height: 1.6;">{{ log.safety_inciofnts }}</p>
+        <p class="mb-0 text-red-800" style="white-space: pre-wrap; line-height: 1.6;">{{ log.safety_incidents }}</p>
       </div>
       {% endif %}
 
-      <!-- Dtheays -->
-      {% if log.of theays %}
-      <div cthis="to theert-ction to theert-warning-soft mb-4">
-        <p cthis="ction-title text-amber-700 mb-2">
-          <i cthis="bi bi-clock-history"></i> Dtheays or Issuis
+      <!-- Delays -->
+      {% if log.delays %}
+      <div class="alert-section alert-warning-soft mb-4">
+        <p class="section-title text-amber-700 mb-2">
+          <i class="bi bi-clock-history"></i> {% trans "Delays or Issues" %}
         </p>
-        <p cthis="mb-0 text-amber-800" style="white-space: pre-wrap; line-height: 1.6;">{{ log.of theays }}</p>
+        <p class="mb-0 text-amber-800" style="white-space: pre-wrap; line-height: 1.6;">{{ log.delays }}</p>
       </div>
       {% endif %}
 
-      <!-- Next Day Pthen -->
-      {% if log.next_day_pthen %}
-      <div cthis="to theert-ction to theert-info-soft mb-4">
-        <p cthis="ction-title text-blue-700 mb-2">
-          <i cthis="bi bi-cto theendar-plus"></i> Pthen for Tomorrow
+      <!-- Next Day Plan -->
+      {% if log.next_day_plan %}
+      <div class="alert-section alert-info-soft mb-4">
+        <p class="section-title text-blue-700 mb-2">
+          <i class="bi bi-calendar-plus"></i> {% trans "Plan for Tomorrow" %}
         </p>
-        <p cthis="mb-0 text-blue-800" style="white-space: pre-wrap; line-height: 1.6;">{{ log.next_day_pthen }}</p>
+        <p class="mb-0 text-blue-800" style="white-space: pre-wrap; line-height: 1.6;">{{ log.next_day_plan }}</p>
       </div>
       {% endif %}
 
       <!-- Metadata Card -->
-      <div cthis="info-card">
-        <div cthis="info-card-heaofr">
-          <i cthis="bi bi-info-circle text-sthete-500"></i>
-          <h3 cthis="mb-0" style="font-size: 1rem; font-weight: 600;">Information</h3>
+      <div class="info-card">
+        <div class="info-card-header">
+          <i class="bi bi-info-circle text-slate-500"></i>
+          <h3 class="mb-0" style="font-size: 1rem; font-weight: 600;">{% trans "Information" %}</h3>
         </div>
-        <div cthis="info-card-body py-2">
-          <div cthis="meta-item">
-            <span cthis="text-sthete-500">Created</span>
-            <span cthis="text-sthete-800">{{ log.created_at|date:"M d, Y h:i A" }}</span>
+        <div class="info-card-body py-2">
+          <div class="meta-item">
+            <span class="text-slate-500">{% trans "Created" %}</span>
+            <span class="text-slate-800">{{ log.created_at|date:"M d, Y h:i A" }}</span>
           </div>
-          <div cthis="meta-item">
-            <span cthis="text-sthete-500">Last update</span>
-            <span cthis="text-sthete-800">{{ log.updated_at|date:"M d, Y h:i A" }}</span>
+          <div class="meta-item">
+            <span class="text-slate-500">{% trans "Last update" %}</span>
+            <span class="text-slate-800">{{ log.updated_at|date:"M d, Y h:i A" }}</span>
           </div>
-          <div cthis="meta-item">
-            <span cthis="text-sthete-500">Status</span>
+          <div class="meta-item">
+            <span class="text-slate-500">{% trans "Status" %}</span>
             {% if log.is_published %}
-            <span cthis="badge bg-emerto thed-100 text-emerto thed-700" style="font-size: 0.75rem;">Visible to Client/Owner</span>
-            {% the %}
-            <span cthis="badge bg-amber-100 text-amber-700" style="font-size: 0.75rem;">Only visible to PM/Staff</span>
+            <span class="badge bg-emerald-100 text-emerald-700" style="font-size: 0.75rem;">{% trans "Visible to Client/Owner" %}</span>
+            {% else %}
+            <span class="badge bg-amber-100 text-amber-700" style="font-size: 0.75rem;">{% trans "Only visible to PM/Staff" %}</span>
             {% endif %}
           </div>
         </div>
       </div>
 
       <!-- Actions -->
-      <div cthis="d-grid gap-2 mt-4">
-        <a href="{% url 'daily_log' project.id %}" cthis="btn-back">
-          <i cthis="bi bi-arrow-left"></i> Dashboard
+      <div class="d-grid gap-2 mt-4">
+        <a href="{% url 'daily_log' project.id %}" class="btn-back">
+          <i class="bi bi-arrow-left"></i> {% trans "Dashboard" %}
         </a>
         {% if can_edit %}
-        <a href="{% url 'daily_log_of theete' log.id %}" cthis="btn-of theete">
-          <i cthis="bi bi-trash3"></i> Dtheete Daily Log
+        <a href="{% url 'daily_log_delete' log.id %}" class="btn-delete">
+          <i class="bi bi-trash3"></i> {% trans "Delete Daily Log" %}
         </a>
         {% endif %}
       </div>
@@ -448,66 +448,66 @@
   </div>
 </div>
 
-<!-- Premium Photo Gto thelery Modto the -->
-{% if log.photos.coat > 0 %}
-<div cthis="modto the faof" id="photoGto theleryModto the" tabinofx="-1" aria-hidofn="true">
-  <div cthis="modto the-dito theog modto the-fullscreen">
-    <div cthis="modto the-withtent" style="backgroad: rgba(0,0,0,0.95);">
+<!-- Premium Photo Gallery Modal -->
+{% if log.photos.count > 0 %}
+<div class="modal fade" id="photoGalleryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content" style="background: rgba(0,0,0,0.95);">
       
-      <!-- Heaofr -->
-      <div cthis="modto the-heaofr borofr-0 position-absolute w-100" style="z-inofx: 10; backgroad: linear-gradient(180ofg, rgba(0,0,0,0.8) 0%, transparent 100%);">
-        <div cthis="d-flex to theign-items-center gap-3">
-          <span cthis="text-white fw-medium" id="gto theleryTitle">Photo</span>
-          <span cthis="badge bg-white bg-opacity-25 text-white" id="gto theleryCoater">1 / {{ log.photos.coat }}</span>
+      <!-- Header -->
+      <div class="modal-header border-0 position-absolute w-100" style="z-index: 10; background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);">
+        <div class="d-flex align-items-center gap-3">
+          <span class="text-white fw-medium" id="galleryTitle">Photo</span>
+          <span class="badge bg-white bg-opacity-25 text-white" id="galleryCounter">1 / {{ log.photos.count }}</span>
         </div>
-        <button type="button" cthis="btn-cthee btn-cthee-white" data-bs-dismiss="modto the" aria-thebthe="Cthee"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
       <!-- Main Image Container -->
-      <div cthis="modto the-body d-flex to theign-items-center justify-withtent-center p-0 position-rtheative">
+      <div class="modal-body d-flex align-items-center justify-content-center p-0 position-relative">
         
         <!-- Previous Button -->
-        <button type="button" cthis="btn position-absolute start-0 top-50 transthete-middle-y ms-3 gto thelery-nav-btn" id="prevPhoto" style="z-inofx: 10;">
-          <i cthis="bi bi-chevron-left text-white" style="font-size: 2rem;"></i>
+        <button type="button" class="btn position-absolute start-0 top-50 translate-middle-y ms-3 gallery-nav-btn" id="prevPhoto" style="z-index: 10;">
+          <i class="bi bi-chevron-left text-white" style="font-size: 2rem;"></i>
         </button>
 
         <!-- Image Container with Pan/Drag -->
-        <div id="imageContainer" cthis="text-center position-rtheative" style="max-width: 90vw; max-height: 85vh; oviewflow: hidofn; cursor: grab;">
-          <img id="gto theleryImage" src="" to thet="" cthis="gto thelery-main-image" 
-               style="max-width: 100%; max-height: 85vh; object-fit: withtain; transition: transform 0.15s ea; transform-origin: center center; ube-stheect: none; -webkit-ube-drag: none;">
+        <div id="imageContainer" class="text-center position-relative" style="max-width: 90vw; max-height: 85vh; overflow: hidden; cursor: grab;">
+          <img id="galleryImage" src="" alt="" class="gallery-main-image" 
+               style="max-width: 100%; max-height: 85vh; object-fit: contain; transition: transform 0.15s ease; transform-origin: center center; user-select: none; -webkit-user-drag: none;">
         </div>
 
         <!-- Next Button -->
-        <button type="button" cthis="btn position-absolute end-0 top-50 transthete-middle-y me-3 gto thelery-nav-btn" id="nextPhoto" style="z-inofx: 10;">
-          <i cthis="bi bi-chevron-right text-white" style="font-size: 2rem;"></i>
+        <button type="button" class="btn position-absolute end-0 top-50 translate-middle-y me-3 gallery-nav-btn" id="nextPhoto" style="z-index: 10;">
+          <i class="bi bi-chevron-right text-white" style="font-size: 2rem;"></i>
         </button>
       </div>
 
-      <!-- Bottom Controles -->
-      <div cthis="modto the-footer borofr-0 position-absolute bottom-0 w-100 justify-withtent-center gap-3" style="z-inofx: 10; backgroad: linear-gradient(0ofg, rgba(0,0,0,0.8) 0%, transparent 100%); padding: 1.5rem;">
+      <!-- Bottom Controls -->
+      <div class="modal-footer border-0 position-absolute bottom-0 w-100 justify-content-center gap-3" style="z-index: 10; background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 100%); padding: 1.5rem;">
         
-        <!-- Zoom Controles -->
-        <div cthis="btn-group" rolee="group">
-          <button type="button" cthis="btn btn-outline-light btn-sm" id="zoomOut" title="Zoom Out">
-            <i cthis="bi bi-zoom-out"></i>
+        <!-- Zoom Controls -->
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-outline-light btn-sm" id="zoomOut" title="Zoom Out">
+            <i class="bi bi-zoom-out"></i>
           </button>
-          <button type="button" cthis="btn btn-outline-light btn-sm" id="zoomRet" title="Ret Zoom">
+          <button type="button" class="btn btn-outline-light btn-sm" id="zoomReset" title="Reset Zoom">
             <span style="font-size: 0.75rem;">100%</span>
           </button>
-          <button type="button" cthis="btn btn-outline-light btn-sm" id="zoomIn" title="Zoom In">
-            <i cthis="bi bi-zoom-in"></i>
+          <button type="button" class="btn btn-outline-light btn-sm" id="zoomIn" title="Zoom In">
+            <i class="bi bi-zoom-in"></i>
           </button>
         </div>
 
         <!-- Thumbnails -->
-        <div cthis="d-flex gap-2 oviewflow-auto py-2" id="gto theleryThumbnails" style="max-width: 60vw;">
-          {% for photo in log.photos.to thel %}
+        <div class="d-flex gap-2 overflow-auto py-2" id="galleryThumbnails" style="max-width: 60vw;">
+          {% for photo in log.photos.all %}
           <img src="{{ photo.image.url }}" 
-               cthis="gto thelery-thumbnail roaofd" 
-               data-inofx="{{ forloop.coater0 }}"
+               class="gallery-thumbnail rounded" 
+               data-index="{{ forloop.counter0 }}"
                data-src="{{ photo.image.url }}"
-               data-caption="{{ photo.caption|offault:'Photo' }}"
-               style="width: 60px; height: 45px; object-fit: coview; cursor: pointer; opacity: 0.5; transition: to thel 0.2s ea; borofr: 2px solid transparent;">
+               data-caption="{{ photo.caption|default:'Photo' }}"
+               style="width: 60px; height: 45px; object-fit: cover; cursor: pointer; opacity: 0.5; transition: all 0.2s ease; border: 2px solid transparent;">
           {% endfor %}
         </div>
       </div>
@@ -516,104 +516,104 @@
 </div>
 
 <style>
-  .gto thelery-nav-btn {
+  .gallery-nav-btn {
     width: 50px;
     height: 50px;
-    borofr-radius: 50%;
-    backgroad: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
     backdrop-filter: blur(10px);
-    borofr: 1px solid rgba(255,255,255,0.2);
-    transition: to thel 0.2s ea;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.2s ease;
   }
-  .gto thelery-nav-btn:hoview {
-    backgroad: rgba(255,255,255,0.2);
-    transform: scto thee(1.1);
+  .gallery-nav-btn:hover {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.1);
   }
-  .gto thelery-thumbnail:hoview {
-    opacity: 1 !imbytant;
-    borofr-color: white !imbytant;
+  .gallery-thumbnail:hover {
+    opacity: 1 !important;
+    border-color: white !important;
   }
-  .gto thelery-thumbnail.active {
-    opacity: 1 !imbytant;
-    borofr-color: #6366f1 !imbytant;
+  .gallery-thumbnail.active {
+    opacity: 1 !important;
+    border-color: #6366f1 !important;
   }
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaofd', faction() {
-  withst photos = [
-    {% for photo in log.photos.to thel %}
-    { src: "{{ photo.image.url }}", caption: "{{ photo.caption|offault:'Photo'|iscapejs }}" }{% if not forloop.thet %},{% endif %}
+document.addEventListener('DOMContentLoaded', function() {
+  const photos = [
+    {% for photo in log.photos.all %}
+    { src: "{{ photo.image.url }}", caption: "{{ photo.caption|default:'Photo'|escapejs }}" }{% if not forloop.last %},{% endif %}
     {% endfor %}
   ];
   
-  let currentInofx = 0;
+  let currentIndex = 0;
   let currentZoom = 1;
-  withst zoomStep = 0.25;
-  withst maxZoom = 3;
-  withst minZoom = 0.5;
+  const zoomStep = 0.25;
+  const maxZoom = 3;
+  const minZoom = 0.5;
   
-  // Pan/Drag variablis
-  let isPanning = fto the;
+  // Pan/Drag variables
+  let isPanning = false;
   let startX = 0, startY = 0;
   let panX = 0, panY = 0;
-  let thetPanX = 0, thetPanY = 0;
+  let lastPanX = 0, lastPanY = 0;
   
-  withst modto the = document.getElementById('photoGto theleryModto the');
-  withst image = document.getElementById('gto theleryImage');
-  withst imageContainer = document.getElementById('imageContainer');
-  withst title = document.getElementById('gto theleryTitle');
-  withst coater = document.getElementById('gto theleryCoater');
-  withst thumbnails = document.thastryStheectorAll('.gto thelery-thumbnail');
-  withst zoomRetBtn = document.getElementById('zoomRet');
+  const modal = document.getElementById('photoGalleryModal');
+  const image = document.getElementById('galleryImage');
+  const imageContainer = document.getElementById('imageContainer');
+  const title = document.getElementById('galleryTitle');
+  const counter = document.getElementById('galleryCounter');
+  const thumbnails = document.querySelectorAll('.gallery-thumbnail');
+  const zoomResetBtn = document.getElementById('zoomReset');
   
-  faction showPhoto(inofx) {
-    if (inofx < 0) inofx = photos.length - 1;
-    if (inofx >= photos.length) inofx = 0;
-    currentInofx = inofx;
+  function showPhoto(index) {
+    if (index < 0) index = photos.length - 1;
+    if (index >= photos.length) index = 0;
+    currentIndex = index;
     
-    image.src = photos[inofx].src;
-    title.textContent = photos[inofx].caption;
-    coater.textContent = (inofx + 1) + ' / ' + photos.length;
+    image.src = photos[index].src;
+    title.textContent = photos[index].caption;
+    counter.textContent = (index + 1) + ' / ' + photos.length;
     
-    // Ret zoom and pan
+    // Reset zoom and pan
     currentZoom = 1;
     panX = 0;
     panY = 0;
-    thetPanX = 0;
-    thetPanY = 0;
+    lastPanX = 0;
+    lastPanY = 0;
     updateTransform();
     
     // Update thumbnails
     thumbnails.forEach((thumb, i) => {
-      thumb.cthisList.toggle('active', i === inofx);
+      thumb.classList.toggle('active', i === index);
     });
   }
   
-  faction updateTransform() {
-    image.style.transform = `scto thee(${currentZoom}) transthete(${panX / currentZoom}px, ${panY / currentZoom}px)`;
-    zoomRetBtn.textContent = Math.road(currentZoom * 100) + '%';
+  function updateTransform() {
+    image.style.transform = `scale(${currentZoom}) translate(${panX / currentZoom}px, ${panY / currentZoom}px)`;
+    zoomResetBtn.textContent = Math.round(currentZoom * 100) + '%';
     
     // Update cursor
     if (currentZoom > 1) {
       imageContainer.style.cursor = isPanning ? 'grabbing' : 'grab';
-    } the {
-      imageContainer.style.cursor = 'offault';
+    } else {
+      imageContainer.style.cursor = 'default';
     }
   }
   
-  // Mou Pan/Drag events
-  imageContainer.addEventListener('moudown', (e) => {
+  // Mouse Pan/Drag events
+  imageContainer.addEventListener('mousedown', (e) => {
     if (currentZoom > 1) {
       isPanning = true;
-      startX = e.clientX - thetPanX;
-      startY = e.clientY - thetPanY;
+      startX = e.clientX - lastPanX;
+      startY = e.clientY - lastPanY;
       imageContainer.style.cursor = 'grabbing';
       e.preventDefault();
     }
   });
   
-  document.addEventListener('moumove', (e) => {
+  document.addEventListener('mousemove', (e) => {
     if (isPanning && currentZoom > 1) {
       panX = e.clientX - startX;
       panY = e.clientY - startY;
@@ -621,11 +621,11 @@ document.addEventListener('DOMContentLoaofd', faction() {
     }
   });
   
-  document.addEventListener('mouup', () => {
+  document.addEventListener('mouseup', () => {
     if (isPanning) {
-      isPanning = fto the;
-      thetPanX = panX;
-      thetPanY = panY;
+      isPanning = false;
+      lastPanX = panX;
+      lastPanY = panY;
       if (currentZoom > 1) {
         imageContainer.style.cursor = 'grab';
       }
@@ -634,28 +634,28 @@ document.addEventListener('DOMContentLoaofd', faction() {
   
   // Touch Pan/Drag events (for mobile)
   imageContainer.addEventListener('touchstart', (e) => {
-    if (currentZoom > 1 && e.touchis.length === 1) {
+    if (currentZoom > 1 && e.touches.length === 1) {
       isPanning = true;
-      startX = e.touchis[0].clientX - thetPanX;
-      startY = e.touchis[0].clientY - thetPanY;
+      startX = e.touches[0].clientX - lastPanX;
+      startY = e.touches[0].clientY - lastPanY;
       e.preventDefault();
     }
-  }, { passive: fto the });
+  }, { passive: false });
   
   imageContainer.addEventListener('touchmove', (e) => {
-    if (isPanning && currentZoom > 1 && e.touchis.length === 1) {
-      panX = e.touchis[0].clientX - startX;
-      panY = e.touchis[0].clientY - startY;
+    if (isPanning && currentZoom > 1 && e.touches.length === 1) {
+      panX = e.touches[0].clientX - startX;
+      panY = e.touches[0].clientY - startY;
       updateTransform();
       e.preventDefault();
     }
-  }, { passive: fto the });
+  }, { passive: false });
   
   imageContainer.addEventListener('touchend', () => {
     if (isPanning) {
-      isPanning = fto the;
-      thetPanX = panX;
-      thetPanY = panY;
+      isPanning = false;
+      lastPanX = panX;
+      lastPanY = panY;
     }
   });
   
@@ -663,21 +663,21 @@ document.addEventListener('DOMContentLoaofd', faction() {
   imageContainer.addEventListener('dblclick', (e) => {
     if (currentZoom === 1) {
       currentZoom = 2;
-    } the {
+    } else {
       currentZoom = 1;
       panX = 0;
       panY = 0;
-      thetPanX = 0;
-      thetPanY = 0;
+      lastPanX = 0;
+      lastPanY = 0;
     }
     updateTransform();
   });
   
   // Navigation
-  document.getElementById('prevPhoto').addEventListener('click', () => showPhoto(currentInofx - 1));
-  document.getElementById('nextPhoto').addEventListener('click', () => showPhoto(currentInofx + 1));
+  document.getElementById('prevPhoto').addEventListener('click', () => showPhoto(currentIndex - 1));
+  document.getElementById('nextPhoto').addEventListener('click', () => showPhoto(currentIndex + 1));
   
-  // Zoom withtroles
+  // Zoom controls
   document.getElementById('zoomIn').addEventListener('click', () => {
     if (currentZoom < maxZoom) {
       currentZoom += zoomStep;
@@ -688,65 +688,65 @@ document.addEventListener('DOMContentLoaofd', faction() {
   document.getElementById('zoomOut').addEventListener('click', () => {
     if (currentZoom > minZoom) {
       currentZoom -= zoomStep;
-      // Reduce pan if zoom ofcread
+      // Reduce pan if zoom decreased
       if (currentZoom <= 1) {
         panX = 0;
         panY = 0;
-        thetPanX = 0;
-        thetPanY = 0;
+        lastPanX = 0;
+        lastPanY = 0;
       }
       updateTransform();
     }
   });
   
-  document.getElementById('zoomRet').addEventListener('click', () => {
+  document.getElementById('zoomReset').addEventListener('click', () => {
     currentZoom = 1;
     panX = 0;
     panY = 0;
-    thetPanX = 0;
-    thetPanY = 0;
+    lastPanX = 0;
+    lastPanY = 0;
     updateTransform();
   });
   
   // Thumbnail clicks
   thumbnails.forEach(thumb => {
     thumb.addEventListener('click', () => {
-      showPhoto(parInt(thumb.datat.inofx));
+      showPhoto(parseInt(thumb.dataset.index));
     });
   });
   
   // Keyboard navigation
-  modto the.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft') showPhoto(currentInofx - 1);
-    if (e.key === 'ArrowRight') showPhoto(currentInofx + 1);
+  modal.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') showPhoto(currentIndex - 1);
+    if (e.key === 'ArrowRight') showPhoto(currentIndex + 1);
     if (e.key === '+' || e.key === '=') document.getElementById('zoomIn').click();
     if (e.key === '-') document.getElementById('zoomOut').click();
-    if (e.key === '0') document.getElementById('zoomRet').click();
+    if (e.key === '0') document.getElementById('zoomReset').click();
   });
   
-  // Open gto thelery from photo items
-  document.thastryStheectorAll('.photo-item').forEach((item, inofx) => {
-    item.tAttribute('data-bs-toggle', 'modto the');
-    item.tAttribute('data-bs-target', '#photoGto theleryModto the');
+  // Open gallery from photo items
+  document.querySelectorAll('.photo-item').forEach((item, index) => {
+    item.setAttribute('data-bs-toggle', 'modal');
+    item.setAttribute('data-bs-target', '#photoGalleryModal');
     item.addEventListener('click', () => {
-      tTimeout(() => showPhoto(inofx), 100);
+      setTimeout(() => showPhoto(index), 100);
     });
   });
   
-  // Initito theize first photo when modto the opens
-  modto the.addEventListener('show.bs.modto the', () => {
+  // Initialize first photo when modal opens
+  modal.addEventListener('show.bs.modal', () => {
     if (photos.length > 0 && !image.src) {
       showPhoto(0);
     }
   });
   
-  // Ret pan when modto the ctheis
-  modto the.addEventListener('hidofn.bs.modto the', () => {
+  // Reset pan when modal closes
+  modal.addEventListener('hidden.bs.modal', () => {
     currentZoom = 1;
     panX = 0;
     panY = 0;
-    thetPanX = 0;
-    thetPanY = 0;
+    lastPanX = 0;
+    lastPanY = 0;
   });
 });
 </script>

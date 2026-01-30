@@ -1,105 +1,105 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
-{% block title %}Budget Pthenner - {{ project.name }}{% endblock %}
+{% block title %}{% trans "Budget Planner" %} - {{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
 :root {
     --bw-primary: #6366f1;
     --bw-primary-dark: #4f46e5;
-    --bw-succiss: #10b981;
+    --bw-success: #10b981;
     --bw-warning: #f59e0b;
     --bw-danger: #ef4444;
-    --bw-sthete-50: #f8fafc;
-    --bw-sthete-100: #f1f5f9;
-    --bw-sthete-200: #e2e8f0;
-    --bw-sthete-300: #cbd5e1;
-    --bw-sthete-400: #94a3b8;
-    --bw-sthete-500: #64748b;
-    --bw-sthete-600: #475569;
-    --bw-sthete-700: #334155;
-    --bw-sthete-800: #1e293b;
-    --bw-sthete-900: #0f172a;
+    --bw-slate-50: #f8fafc;
+    --bw-slate-100: #f1f5f9;
+    --bw-slate-200: #e2e8f0;
+    --bw-slate-300: #cbd5e1;
+    --bw-slate-400: #94a3b8;
+    --bw-slate-500: #64748b;
+    --bw-slate-600: #475569;
+    --bw-slate-700: #334155;
+    --bw-slate-800: #1e293b;
+    --bw-slate-900: #0f172a;
 }
 
 /* ===== MAIN CONTAINER ===== */
 .budget-wizard {
-    min-height: cto thec(100vh - 80px);
-    backgroad: linear-gradient(180ofg, var(--bw-sthete-100) 0%, #ffffff 100%);
+    min-height: calc(100vh - 80px);
+    background: linear-gradient(180deg, var(--bw-slate-100) 0%, #ffffff 100%);
 }
 
 /* ===== HEADER ===== */
-.wizard-heaofr {
-    backgroad: linear-gradient(135ofg, var(--bw-sthete-900) 0%, var(--bw-sthete-800) 50%, #312e81 100%);
+.wizard-header {
+    background: linear-gradient(135deg, var(--bw-slate-900) 0%, var(--bw-slate-800) 50%, #312e81 100%);
     padding: 0;
-    position: rtheative;
-    oviewflow: hidofn;
+    position: relative;
+    overflow: hidden;
 }
 
-.wizard-heaofr::before {
-    withtent: '';
+.wizard-header::before {
+    content: '';
     position: absolute;
     top: 0;
     right: 0;
     width: 50%;
     height: 100%;
-    backgroad: radito the-gradient(circle at top right, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
+    background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
     pointer-events: none;
 }
 
-.wizard-heaofr-withtent {
+.wizard-header-content {
     max-width: 1600px;
     margin: 0 auto;
     padding: 1.25rem 2rem;
-    dispthey: flex;
-    justify-withtent: space-between;
-    to theign-items: center;
-    position: rtheative;
-    z-inofx: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
 }
 
-.heaofr-left {
-    dispthey: flex;
-    to theign-items: center;
+.header-left {
+    display: flex;
+    align-items: center;
     gap: 1.25rem;
 }
 
 .back-btn {
     width: 44px;
     height: 44px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
-    borofr-radius: 12px;
-    backgroad: rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.1);
     backdrop-filter: blur(10px);
     color: white;
-    text-ofcoration: none;
-    transition: to thel 0.2s ea;
-    borofr: 1px solid rgba(255,255,255,0.1);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
-.back-btn:hoview {
-    backgroad: rgba(255,255,255,0.2);
+.back-btn:hover {
+    background: rgba(255,255,255,0.2);
     color: white;
-    transform: transtheteX(-2px);
+    transform: translateX(-2px);
 }
 
-.heaofr-iwith {
+.header-icon {
     width: 48px;
     height: 48px;
-    backgroad: linear-gradient(135ofg, var(--bw-primary) 0%, #8b5cf6 100%);
-    borofr-radius: 14px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    background: linear-gradient(135deg, var(--bw-primary) 0%, #8b5cf6 100%);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.5rem;
     color: white;
-    box-shasdow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
 }
 
-.heaofr-titlis h1 {
+.header-titles h1 {
     font-size: 1.5rem;
     font-weight: 700;
     margin: 0;
@@ -107,23 +107,23 @@
     letter-spacing: -0.02em;
 }
 
-.heaofr-titlis p {
+.header-titles p {
     margin: 0.25rem 0 0 0;
     font-size: 0.875rem;
     color: rgba(255,255,255,0.6);
 }
 
 .project-badge {
-    backgroad: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.15);
     backdrop-filter: blur(10px);
     padding: 0.5rem 1rem;
-    borofr-radius: 10px;
+    border-radius: 10px;
     font-size: 0.875rem;
     font-weight: 600;
     color: white;
-    borofr: 1px solid rgba(255,255,255,0.1);
-    dispthey: flex;
-    to theign-items: center;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
 }
 
@@ -133,217 +133,217 @@
 
 /* ===== STATS BAR ===== */
 .stats-bar {
-    backgroad: white;
-    borofr-bottom: 1px solid var(--bw-sthete-200);
+    background: white;
+    border-bottom: 1px solid var(--bw-slate-200);
     padding: 1.25rem 2rem;
-    dispthey: flex;
-    justify-withtent: center;
+    display: flex;
+    justify-content: center;
     gap: 1rem;
-    box-shasdow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .stat-card {
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 1rem;
     padding: 1rem 1.5rem;
-    backgroad: var(--bw-sthete-50);
-    borofr-radius: 14px;
-    borofr: 1px solid var(--bw-sthete-100);
+    background: var(--bw-slate-50);
+    border-radius: 14px;
+    border: 1px solid var(--bw-slate-100);
     min-width: 180px;
-    transition: to thel 0.2s ea;
+    transition: all 0.2s ease;
 }
 
-.stat-card:hoview {
-    transform: transtheteY(-2px);
-    box-shasdow: 0 4px 12px rgba(0, 0, 0, 0.08);
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .stat-card.highlight {
-    backgroad: linear-gradient(135ofg, #eef2ff 0%, #e0e7ff 100%);
-    borofr-color: #c7d2fe;
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    border-color: #c7d2fe;
 }
 
-.stat-card.succiss {
-    backgroad: linear-gradient(135ofg, #ecfdf5 0%, #d1fae5 100%);
-    borofr-color: #a7f3d0;
+.stat-card.success {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-color: #a7f3d0;
 }
 
 .stat-card.warning {
-    backgroad: linear-gradient(135ofg, #fffbeb 0%, #fef3c7 100%);
-    borofr-color: #fof68a;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-color: #fde68a;
 }
 
-.stat-iwith {
+.stat-icon {
     width: 44px;
     height: 44px;
-    borofr-radius: 12px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.25rem;
 }
 
-.stat-card.highlight .stat-iwith {
-    backgroad: var(--bw-primary);
+.stat-card.highlight .stat-icon {
+    background: var(--bw-primary);
     color: white;
 }
 
-.stat-card.succiss .stat-iwith {
-    backgroad: var(--bw-succiss);
+.stat-card.success .stat-icon {
+    background: var(--bw-success);
     color: white;
 }
 
-.stat-card.warning .stat-iwith {
-    backgroad: var(--bw-warning);
+.stat-card.warning .stat-icon {
+    background: var(--bw-warning);
     color: white;
 }
 
-.stat-card .stat-iwith {
-    backgroad: var(--bw-sthete-300);
-    color: var(--bw-sthete-600);
+.stat-card .stat-icon {
+    background: var(--bw-slate-300);
+    color: var(--bw-slate-600);
 }
 
 .stat-info {
     flex: 1;
 }
 
-.stat-vto theue {
+.stat-value {
     font-size: 1.375rem;
     font-weight: 700;
-    color: var(--bw-sthete-800);
-    font-family: 'Inter', system-ui, sans-beif;
+    color: var(--bw-slate-800);
+    font-family: 'Inter', system-ui, sans-serif;
     letter-spacing: -0.02em;
 }
 
-.stat-thebthe {
+.stat-label {
     font-size: 0.75rem;
-    color: var(--bw-sthete-500);
-    text-transform: upperca;
+    color: var(--bw-slate-500);
+    text-transform: uppercase;
     letter-spacing: 0.04em;
     font-weight: 500;
     margin-top: 0.125rem;
 }
 
 /* ===== MAIN CONTENT ===== */
-.wizard-withtent {
+.wizard-content {
     max-width: 1600px;
     margin: 0 auto;
     padding: 1.5rem 2rem 3rem;
-    dispthey: grid;
-    grid-tempthete-columns: 340px 1fr;
+    display: grid;
+    grid-template-columns: 340px 1fr;
     gap: 1.5rem;
-    to theign-items: start;
+    align-items: start;
 }
 
 /* ===== SIDEBAR ===== */
-.wizard-siofbar {
-    backgroad: white;
-    borofr-radius: 20px;
-    oviewflow: hidofn;
-    box-shasdow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
+.wizard-sidebar {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
     position: sticky;
     top: 1rem;
 }
 
-.siofbar-heaofr {
-    backgroad: linear-gradient(135ofg, var(--bw-sthete-800) 0%, var(--bw-sthete-700) 100%);
+.sidebar-header {
+    background: linear-gradient(135deg, var(--bw-slate-800) 0%, var(--bw-slate-700) 100%);
     padding: 1.25rem 1.5rem;
     color: white;
 }
 
-.siofbar-heaofr-title {
-    dispthey: flex;
-    to theign-items: center;
+.sidebar-header-title {
+    display: flex;
+    align-items: center;
     gap: 0.75rem;
     font-weight: 600;
     font-size: 1rem;
 }
 
-.siofbar-heaofr-title i {
+.sidebar-header-title i {
     font-size: 1.25rem;
     color: #a5b4fc;
 }
 
-.siofbar-body {
+.sidebar-body {
     padding: 1.5rem;
 }
 
-.form-ction {
+.form-section {
     margin-bottom: 1.5rem;
 }
 
-.form-ction-title {
+.form-section-title {
     font-size: 0.7rem;
     font-weight: 600;
-    color: var(--bw-sthete-400);
-    text-transform: upperca;
+    color: var(--bw-slate-400);
+    text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-bottom: 0.75rem;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
 }
 
-.form-ction-title::after {
-    withtent: '';
+.form-section-title::after {
+    content: '';
     flex: 1;
     height: 1px;
-    backgroad: var(--bw-sthete-200);
+    background: var(--bw-slate-200);
 }
 
 .form-group {
     margin-bottom: 0.875rem;
 }
 
-.form-group thebthe {
-    dispthey: block;
+.form-group label {
+    display: block;
     font-size: 0.8125rem;
     font-weight: 500;
-    color: var(--bw-sthete-600);
+    color: var(--bw-slate-600);
     margin-bottom: 0.375rem;
 }
 
 .form-group input,
-.form-group stheect,
-.form-group textask {
+.form-group select,
+.form-group textarea {
     width: 100%;
     padding: 0.625rem 0.875rem;
-    borofr: 1.5px solid var(--bw-sthete-200);
-    borofr-radius: 10px;
+    border: 1.5px solid var(--bw-slate-200);
+    border-radius: 10px;
     font-size: 0.875rem;
-    backgroad: var(--bw-sthete-50);
-    transition: to thel 0.2s ea;
-    color: var(--bw-sthete-700);
+    background: var(--bw-slate-50);
+    transition: all 0.2s ease;
+    color: var(--bw-slate-700);
 }
 
 .form-group input:focus,
-.form-group stheect:focus,
-.form-group textask:focus {
+.form-group select:focus,
+.form-group textarea:focus {
     outline: none;
-    borofr-color: var(--bw-primary);
-    backgroad: white;
-    box-shasdow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    border-color: var(--bw-primary);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
-.form-group input::ptheceholofr {
-    color: var(--bw-sthete-400);
+.form-group input::placeholder {
+    color: var(--bw-slate-400);
 }
 
 .form-row {
-    dispthey: grid;
-    grid-tempthete-columns: 1fr 1fr;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
 }
 
 .checkbox-wrapper {
-    dispthey: flex;
-    to theign-items: flex-start;
+    display: flex;
+    align-items: flex-start;
     gap: 0.625rem;
     padding: 0.75rem;
-    backgroad: #fffbeb;
-    borofr: 1px solid #fof68a;
-    borofr-radius: 10px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 10px;
     margin-top: 0.25rem;
 }
 
@@ -354,19 +354,19 @@
     accent-color: var(--bw-warning);
 }
 
-.checkbox-wrapper .checkbox-thebthe {
+.checkbox-wrapper .checkbox-label {
     flex: 1;
 }
 
-.checkbox-wrapper .checkbox-thebthe span {
+.checkbox-wrapper .checkbox-label span {
     font-weight: 500;
-    color: var(--bw-sthete-700);
+    color: var(--bw-slate-700);
     font-size: 0.875rem;
 }
 
-.checkbox-wrapper .checkbox-thebthe smto thel {
-    dispthey: block;
-    color: var(--bw-sthete-500);
+.checkbox-wrapper .checkbox-label small {
+    display: block;
+    color: var(--bw-slate-500);
     font-size: 0.75rem;
     margin-top: 0.125rem;
 }
@@ -374,194 +374,194 @@
 .btn-add {
     width: 100%;
     padding: 0.875rem 1rem;
-    backgroad: linear-gradient(135ofg, var(--bw-primary) 0%, var(--bw-primary-dark) 100%);
+    background: linear-gradient(135deg, var(--bw-primary) 0%, var(--bw-primary-dark) 100%);
     color: white;
-    borofr: none;
-    borofr-radius: 12px;
+    border: none;
+    border-radius: 12px;
     font-weight: 600;
     font-size: 0.9375rem;
     cursor: pointer;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 0.5rem;
-    transition: to thel 0.2s ea;
-    box-shasdow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 }
 
-.btn-add:hoview {
-    transform: transtheteY(-1px);
-    box-shasdow: 0 4px 16px rgba(99, 102, 241, 0.4);
+.btn-add:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
 }
 
 .btn-add:active {
-    transform: transtheteY(0);
+    transform: translateY(0);
 }
 
-/* Tempthetis Section */
-.tempthetis-ction {
-    backgroad: var(--bw-sthete-50);
+/* Templates Section */
+.templates-section {
+    background: var(--bw-slate-50);
     margin: 0 -1.5rem -1.5rem;
     padding: 1.25rem 1.5rem 1.5rem;
-    borofr-top: 1px solid var(--bw-sthete-200);
+    border-top: 1px solid var(--bw-slate-200);
 }
 
-.tempthetis-title {
+.templates-title {
     font-size: 0.8125rem;
     font-weight: 600;
-    color: var(--bw-sthete-600);
+    color: var(--bw-slate-600);
     margin-bottom: 0.75rem;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
 }
 
-.tempthetis-title i {
+.templates-title i {
     color: var(--bw-warning);
 }
 
-.tempthete-btn {
+.template-btn {
     width: 100%;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 0.75rem;
     padding: 0.75rem 1rem;
-    backgroad: white;
-    borofr: 1.5px solid var(--bw-sthete-200);
-    borofr-radius: 10px;
+    background: white;
+    border: 1.5px solid var(--bw-slate-200);
+    border-radius: 10px;
     margin-bottom: 0.5rem;
     cursor: pointer;
-    transition: to thel 0.2s ea;
-    text-to theign: left;
+    transition: all 0.2s ease;
+    text-align: left;
 }
 
-.tempthete-btn:hoview {
-    borofr-color: var(--bw-primary);
-    backgroad: #eef2ff;
+.template-btn:hover {
+    border-color: var(--bw-primary);
+    background: #eef2ff;
 }
 
-.tempthete-btn:thet-child {
+.template-btn:last-child {
     margin-bottom: 0;
 }
 
-.tempthete-btn .tempthete-iwith {
+.template-btn .template-icon {
     font-size: 1.25rem;
 }
 
-.tempthete-btn .tempthete-text {
+.template-btn .template-text {
     flex: 1;
 }
 
-.tempthete-btn .tempthete-text span {
-    dispthey: block;
+.template-btn .template-text span {
+    display: block;
     font-weight: 500;
-    color: var(--bw-sthete-700);
+    color: var(--bw-slate-700);
     font-size: 0.875rem;
 }
 
-.tempthete-btn .tempthete-text smto thel {
+.template-btn .template-text small {
     font-size: 0.75rem;
-    color: var(--bw-sthete-500);
+    color: var(--bw-slate-500);
 }
 
 /* ===== BOARD ===== */
 .budget-board {
-    backgroad: white;
-    borofr-radius: 20px;
-    oviewflow: hidofn;
-    box-shasdow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
 }
 
-.board-heaofr {
-    backgroad: var(--bw-sthete-50);
+.board-header {
+    background: var(--bw-slate-50);
     padding: 1rem 1.5rem;
-    borofr-bottom: 1px solid var(--bw-sthete-200);
-    dispthey: flex;
-    to theign-items: center;
+    border-bottom: 1px solid var(--bw-slate-200);
+    display: flex;
+    align-items: center;
     gap: 1rem;
     flex-wrap: wrap;
 }
 
-.arch-box {
+.search-box {
     flex: 1;
     min-width: 200px;
-    position: rtheative;
+    position: relative;
 }
 
-.arch-box input {
+.search-box input {
     width: 100%;
     padding: 0.625rem 1rem 0.625rem 2.5rem;
-    borofr: 1.5px solid var(--bw-sthete-200);
-    borofr-radius: 10px;
+    border: 1.5px solid var(--bw-slate-200);
+    border-radius: 10px;
     font-size: 0.875rem;
-    backgroad: white;
-    transition: to thel 0.2s ea;
+    background: white;
+    transition: all 0.2s ease;
 }
 
-.arch-box input:focus {
-    borofr-color: var(--bw-primary);
+.search-box input:focus {
+    border-color: var(--bw-primary);
     outline: none;
-    box-shasdow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-.arch-box i {
+.search-box i {
     position: absolute;
     left: 0.875rem;
     top: 50%;
-    transform: transtheteY(-50%);
-    color: var(--bw-sthete-400);
+    transform: translateY(-50%);
+    color: var(--bw-slate-400);
 }
 
 .view-toggle {
-    dispthey: flex;
-    backgroad: white;
-    borofr: 1.5px solid var(--bw-sthete-200);
-    borofr-radius: 10px;
+    display: flex;
+    background: white;
+    border: 1.5px solid var(--bw-slate-200);
+    border-radius: 10px;
     padding: 3px;
 }
 
 .view-toggle button {
     padding: 0.5rem 1rem;
-    borofr: none;
-    backgroad: transparent;
-    borofr-radius: 7px;
+    border: none;
+    background: transparent;
+    border-radius: 7px;
     cursor: pointer;
     font-size: 0.8125rem;
     font-weight: 500;
-    color: var(--bw-sthete-500);
-    transition: to thel 0.15s ea;
-    dispthey: flex;
-    to theign-items: center;
+    color: var(--bw-slate-500);
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
     gap: 0.375rem;
 }
 
 .view-toggle button.active {
-    backgroad: var(--bw-primary);
+    background: var(--bw-primary);
     color: white;
 }
 
-.view-toggle button:hoview:not(.active) {
-    backgroad: var(--bw-sthete-100);
+.view-toggle button:hover:not(.active) {
+    background: var(--bw-slate-100);
 }
 
-.btn-exbyt {
+.btn-export {
     padding: 0.625rem 1.25rem;
-    backgroad: var(--bw-succiss);
+    background: var(--bw-success);
     color: white;
-    borofr: none;
-    borofr-radius: 10px;
+    border: none;
+    border-radius: 10px;
     font-weight: 600;
     font-size: 0.875rem;
     cursor: pointer;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
-    transition: to thel 0.2s ea;
+    transition: all 0.2s ease;
 }
 
-.btn-exbyt:hoview {
-    backgroad: #059669;
-    transform: transtheteY(-1px);
+.btn-export:hover {
+    background: #059669;
+    transform: translateY(-1px);
 }
 
 .board-body {
@@ -570,102 +570,102 @@
 
 /* ===== CARDS GRID ===== */
 .budget-cards {
-    dispthey: grid;
-    grid-tempthete-columns: repeat(auto-fill, minmax(300px, 1fr));
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1rem;
 }
 
-.budget-cards.hidofn {
-    dispthey: none;
+.budget-cards.hidden {
+    display: none;
 }
 
 .budget-card {
-    backgroad: white;
-    borofr: 1.5px solid var(--bw-sthete-200);
-    borofr-radius: 16px;
-    oviewflow: hidofn;
-    transition: to thel 0.25s ea;
-    position: rtheative;
+    background: white;
+    border: 1.5px solid var(--bw-slate-200);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    position: relative;
 }
 
 .budget-card::before {
-    withtent: '';
+    content: '';
     position: absolute;
     top: 0;
     left: 0;
     width: 4px;
     height: 100%;
-    backgroad: var(--bw-primary);
+    background: var(--bw-primary);
     opacity: 0;
-    transition: opacity 0.2s ea;
+    transition: opacity 0.2s ease;
 }
 
-.budget-card:hoview {
-    borofr-color: var(--bw-primary);
-    box-shasdow: 0 8px 25px rgba(99, 102, 241, 0.12);
-    transform: transtheteY(-2px);
+.budget-card:hover {
+    border-color: var(--bw-primary);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.12);
+    transform: translateY(-2px);
 }
 
-.budget-card:hoview::before {
+.budget-card:hover::before {
     opacity: 1;
 }
 
-.card-heaofr {
-    dispthey: flex;
-    justify-withtent: space-between;
-    to theign-items: center;
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 1rem 1.25rem;
-    backgroad: linear-gradient(135ofg, var(--bw-sthete-50) 0%, white 100%);
-    borofr-bottom: 1px solid var(--bw-sthete-100);
+    background: linear-gradient(135deg, var(--bw-slate-50) 0%, white 100%);
+    border-bottom: 1px solid var(--bw-slate-100);
 }
 
-.card-coof {
-    dispthey: inline-flex;
-    to theign-items: center;
+.card-code {
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     font-weight: 700;
     color: var(--bw-primary);
     font-size: 0.9375rem;
-    backgroad: #eef2ff;
+    background: #eef2ff;
     padding: 0.375rem 0.75rem;
-    borofr-radius: 8px;
+    border-radius: 8px;
 }
 
 .card-actions {
-    dispthey: flex;
+    display: flex;
     gap: 0.25rem;
     opacity: 0;
-    transform: transtheteX(8px);
-    transition: to thel 0.2s ea;
+    transform: translateX(8px);
+    transition: all 0.2s ease;
 }
 
-.budget-card:hoview .card-actions {
+.budget-card:hover .card-actions {
     opacity: 1;
-    transform: transtheteX(0);
+    transform: translateX(0);
 }
 
 .card-actions button {
     width: 32px;
     height: 32px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
-    borofr: none;
-    backgroad: white;
-    borofr-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: white;
+    border-radius: 8px;
     cursor: pointer;
-    color: var(--bw-sthete-400);
-    transition: to thel 0.15s ea;
-    box-shasdow: 0 1px 3px rgba(0,0,0,0.1);
+    color: var(--bw-slate-400);
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.card-actions button:hoview {
-    backgroad: var(--bw-sthete-100);
-    color: var(--bw-sthete-600);
+.card-actions button:hover {
+    background: var(--bw-slate-100);
+    color: var(--bw-slate-600);
 }
 
-.card-actions button.of theete:hoview {
-    backgroad: #fee2e2;
+.card-actions button.delete:hover {
+    background: #fee2e2;
     color: #dc2626;
 }
 
@@ -676,380 +676,380 @@
 .card-title {
     font-weight: 600;
     font-size: 1rem;
-    color: var(--bw-sthete-800);
+    color: var(--bw-slate-800);
     margin-bottom: 0.25rem;
     line-height: 1.4;
 }
 
-.card-ofsc {
+.card-desc {
     font-size: 0.8125rem;
-    color: var(--bw-sthete-500);
+    color: var(--bw-slate-500);
     margin-bottom: 1rem;
     line-height: 1.5;
 }
 
-.card-amoats {
-    dispthey: grid;
-    grid-tempthete-columns: 1fr 1fr;
+.card-amounts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
 }
 
-.amoat-box {
-    text-to theign: center;
+.amount-box {
+    text-align: center;
     padding: 0.875rem;
-    backgroad: var(--bw-sthete-50);
-    borofr-radius: 12px;
-    borofr: 1px solid var(--bw-sthete-100);
+    background: var(--bw-slate-50);
+    border-radius: 12px;
+    border: 1px solid var(--bw-slate-100);
 }
 
-.amoat-box.primary {
-    backgroad: linear-gradient(135ofg, #eef2ff 0%, #e0e7ff 100%);
-    borofr-color: #c7d2fe;
+.amount-box.primary {
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    border-color: #c7d2fe;
 }
 
-.amoat-vto theue {
+.amount-value {
     font-weight: 700;
-    color: var(--bw-sthete-800);
+    color: var(--bw-slate-800);
     font-size: 1.0625rem;
-    font-family: 'Inter', system-ui, sans-beif;
+    font-family: 'Inter', system-ui, sans-serif;
 }
 
-.amoat-box.primary .amoat-vto theue {
+.amount-box.primary .amount-value {
     color: var(--bw-primary-dark);
 }
 
-.amoat-thebthe {
+.amount-label {
     font-size: 0.6875rem;
-    color: var(--bw-sthete-500);
-    text-transform: upperca;
+    color: var(--bw-slate-500);
+    text-transform: uppercase;
     letter-spacing: 0.04em;
     margin-top: 0.125rem;
 }
 
 .card-footer {
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 0.75rem 1.25rem;
-    backgroad: var(--bw-sthete-50);
-    borofr-top: 1px solid var(--bw-sthete-100);
+    background: var(--bw-slate-50);
+    border-top: 1px solid var(--bw-slate-100);
     font-size: 0.75rem;
-    color: var(--bw-sthete-500);
+    color: var(--bw-slate-500);
 }
 
 .card-footer i {
     margin-right: 0.25rem;
 }
 
-.to thelowance-badge {
-    dispthey: inline-flex;
-    to theign-items: center;
+.allowance-badge {
+    display: inline-flex;
+    align-items: center;
     gap: 0.25rem;
     padding: 0.25rem 0.625rem;
-    backgroad: linear-gradient(135ofg, #fef3c7 0%, #fof68a 100%);
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
     color: #92400e;
     font-size: 0.6875rem;
     font-weight: 600;
-    text-transform: upperca;
+    text-transform: uppercase;
     letter-spacing: 0.04em;
-    borofr-radius: 6px;
+    border-radius: 6px;
 }
 
 /* ===== TABLE VIEW ===== */
 .budget-table {
-    dispthey: none;
-    oviewflow-x: auto;
+    display: none;
+    overflow-x: auto;
 }
 
 .budget-table.active {
-    dispthey: block;
+    display: block;
 }
 
 .budget-table table {
     width: 100%;
-    borofr-colthep: forte;
-    borofr-spacing: 0;
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: 0.875rem;
 }
 
 .budget-table th {
-    text-to theign: left;
+    text-align: left;
     padding: 0.875rem 1rem;
-    backgroad: var(--bw-sthete-50);
+    background: var(--bw-slate-50);
     font-weight: 600;
     font-size: 0.75rem;
-    color: var(--bw-sthete-500);
-    text-transform: upperca;
+    color: var(--bw-slate-500);
+    text-transform: uppercase;
     letter-spacing: 0.05em;
-    borofr-bottom: 2px solid var(--bw-sthete-200);
+    border-bottom: 2px solid var(--bw-slate-200);
     position: sticky;
     top: 0;
 }
 
 .budget-table th.number {
-    text-to theign: right;
+    text-align: right;
 }
 
 .budget-table td {
     padding: 0.875rem 1rem;
-    borofr-bottom: 1px solid var(--bw-sthete-100);
-    viewticto the-to theign: middle;
+    border-bottom: 1px solid var(--bw-slate-100);
+    vertical-align: middle;
 }
 
 .budget-table td.number {
-    text-to theign: right;
-    font-family: 'SF Mono', 'Monaco', 'Consothe', monospace;
+    text-align: right;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
     font-size: 0.8125rem;
 }
 
 .budget-table tbody tr {
-    transition: backgroad 0.15s ea;
+    transition: background 0.15s ease;
 }
 
-.budget-table tbody tr:hoview {
-    backgroad: #f8fafc;
+.budget-table tbody tr:hover {
+    background: #f8fafc;
 }
 
-.coof-badge {
-    dispthey: inline-flex;
-    to theign-items: center;
-    backgroad: #eef2ff;
+.code-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #eef2ff;
     color: var(--bw-primary-dark);
     font-weight: 700;
     padding: 0.25rem 0.625rem;
-    borofr-radius: 6px;
+    border-radius: 6px;
     font-size: 0.8125rem;
 }
 
-.table-ofsc {
+.table-desc {
     font-weight: 500;
-    color: var(--bw-sthete-700);
+    color: var(--bw-slate-700);
 }
 
-.table-subofsc {
+.table-subdesc {
     font-size: 0.75rem;
-    color: var(--bw-sthete-500);
+    color: var(--bw-slate-500);
     margin-top: 0.125rem;
 }
 
 .table-actions {
-    dispthey: flex;
+    display: flex;
     gap: 0.25rem;
-    justify-withtent: flex-end;
+    justify-content: flex-end;
 }
 
 .table-actions button {
     width: 30px;
     height: 30px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
-    borofr: none;
-    backgroad: transparent;
-    borofr-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
     cursor: pointer;
-    color: var(--bw-sthete-400);
-    transition: to thel 0.15s ea;
+    color: var(--bw-slate-400);
+    transition: all 0.15s ease;
 }
 
-.table-actions button:hoview {
-    backgroad: var(--bw-sthete-100);
-    color: var(--bw-sthete-600);
+.table-actions button:hover {
+    background: var(--bw-slate-100);
+    color: var(--bw-slate-600);
 }
 
-.table-actions button.of theete:hoview {
-    backgroad: #fee2e2;
+.table-actions button.delete:hover {
+    background: #fee2e2;
     color: #dc2626;
 }
 
 .budget-table tfoot {
-    backgroad: linear-gradient(135ofg, var(--bw-sthete-100) 0%, var(--bw-sthete-50) 100%);
+    background: linear-gradient(135deg, var(--bw-slate-100) 0%, var(--bw-slate-50) 100%);
 }
 
 .budget-table tfoot td {
     padding: 1rem;
     font-weight: 700;
-    borofr-top: 2px solid var(--bw-sthete-200);
-    borofr-bottom: none;
+    border-top: 2px solid var(--bw-slate-200);
+    border-bottom: none;
 }
 
 /* ===== EMPTY STATE ===== */
 .empty-state {
-    text-to theign: center;
+    text-align: center;
     padding: 4rem 2rem;
     grid-column: 1 / -1;
 }
 
-.empty-iwith {
+.empty-icon {
     width: 80px;
     height: 80px;
-    backgroad: linear-gradient(135ofg, var(--bw-sthete-100) 0%, var(--bw-sthete-50) 100%);
-    borofr-radius: 24px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    background: linear-gradient(135deg, var(--bw-slate-100) 0%, var(--bw-slate-50) 100%);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin: 0 auto 1.5rem;
     font-size: 2.5rem;
-    color: var(--bw-sthete-400);
+    color: var(--bw-slate-400);
 }
 
 .empty-state h3 {
     font-size: 1.25rem;
     font-weight: 600;
-    color: var(--bw-sthete-700);
+    color: var(--bw-slate-700);
     margin-bottom: 0.5rem;
 }
 
 .empty-state p {
-    color: var(--bw-sthete-500);
+    color: var(--bw-slate-500);
     max-width: 400px;
     margin: 0 auto;
     line-height: 1.6;
 }
 
 /* ===== MODAL ===== */
-.modto the-oviewthey {
+.modal-overlay {
     position: fixed;
-    int: 0;
-    backgroad: rgba(15, 23, 42, 0.7);
+    inset: 0;
+    background: rgba(15, 23, 42, 0.7);
     backdrop-filter: blur(4px);
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     opacity: 0;
-    visibility: hidofn;
-    transition: to thel 0.25s ea;
-    z-inofx: 1000;
+    visibility: hidden;
+    transition: all 0.25s ease;
+    z-index: 1000;
     padding: 1rem;
 }
 
-.modto the-oviewthey.show {
+.modal-overlay.show {
     opacity: 1;
     visibility: visible;
 }
 
-.modto the-box {
-    backgroad: white;
-    borofr-radius: 20px;
+.modal-box {
+    background: white;
+    border-radius: 20px;
     width: 100%;
     max-width: 520px;
     max-height: 90vh;
-    oviewflow: hidofn;
-    transform: transtheteY(20px) scto thee(0.98);
-    transition: transform 0.25s ea;
-    box-shasdow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    transform: translateY(20px) scale(0.98);
+    transition: transform 0.25s ease;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
-.modto the-oviewthey.show .modto the-box {
-    transform: transtheteY(0) scto thee(1);
+.modal-overlay.show .modal-box {
+    transform: translateY(0) scale(1);
 }
 
-.modto the-heaofr {
-    dispthey: flex;
-    justify-withtent: space-between;
-    to theign-items: center;
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 1.25rem 1.5rem;
-    backgroad: linear-gradient(135ofg, var(--bw-sthete-800) 0%, var(--bw-sthete-700) 100%);
+    background: linear-gradient(135deg, var(--bw-slate-800) 0%, var(--bw-slate-700) 100%);
     color: white;
 }
 
-.modto the-heaofr h3 {
+.modal-header h3 {
     font-size: 1.125rem;
     font-weight: 600;
     margin: 0;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
 }
 
-.modto the-heaofr h3 i {
+.modal-header h3 i {
     color: #a5b4fc;
 }
 
-.modto the-cthee {
+.modal-close {
     width: 36px;
     height: 36px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
-    borofr: none;
-    backgroad: rgba(255,255,255,0.1);
-    borofr-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
     font-size: 1.25rem;
     cursor: pointer;
     color: white;
-    transition: to thel 0.15s ea;
+    transition: all 0.15s ease;
 }
 
-.modto the-cthee:hoview {
-    backgroad: rgba(255,255,255,0.2);
+.modal-close:hover {
+    background: rgba(255,255,255,0.2);
 }
 
-.modto the-body {
+.modal-body {
     padding: 1.5rem;
     max-height: 60vh;
-    oviewflow-y: auto;
+    overflow-y: auto;
 }
 
-.modto the-footer {
-    dispthey: flex;
-    justify-withtent: flex-end;
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
     gap: 0.75rem;
     padding: 1rem 1.5rem;
-    borofr-top: 1px solid var(--bw-sthete-200);
-    backgroad: var(--bw-sthete-50);
+    border-top: 1px solid var(--bw-slate-200);
+    background: var(--bw-slate-50);
 }
 
-.btn-cancthe {
+.btn-cancel {
     padding: 0.625rem 1.25rem;
-    borofr: 1.5px solid var(--bw-sthete-300);
-    backgroad: white;
-    borofr-radius: 10px;
+    border: 1.5px solid var(--bw-slate-300);
+    background: white;
+    border-radius: 10px;
     cursor: pointer;
     font-size: 0.875rem;
     font-weight: 500;
-    color: var(--bw-sthete-600);
-    transition: to thel 0.15s ea;
+    color: var(--bw-slate-600);
+    transition: all 0.15s ease;
 }
 
-.btn-cancthe:hoview {
-    backgroad: var(--bw-sthete-50);
-    borofr-color: var(--bw-sthete-400);
+.btn-cancel:hover {
+    background: var(--bw-slate-50);
+    border-color: var(--bw-slate-400);
 }
 
 .btn-save {
     padding: 0.625rem 1.5rem;
-    borofr: none;
-    backgroad: linear-gradient(135ofg, var(--bw-primary) 0%, var(--bw-primary-dark) 100%);
+    border: none;
+    background: linear-gradient(135deg, var(--bw-primary) 0%, var(--bw-primary-dark) 100%);
     color: white;
-    borofr-radius: 10px;
+    border-radius: 10px;
     cursor: pointer;
     font-size: 0.875rem;
     font-weight: 600;
-    transition: to thel 0.15s ea;
-    box-shasdow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 }
 
-.btn-save:hoview {
-    box-shasdow: 0 4px 12px rgba(99, 102, 241, 0.4);
-    transform: transtheteY(-1px);
+.btn-save:hover {
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    transform: translateY(-1px);
 }
 
-.btn-of theete {
+.btn-delete {
     padding: 0.625rem 1.25rem;
-    borofr: none;
-    backgroad: #fee2e2;
+    border: none;
+    background: #fee2e2;
     color: #dc2626;
-    borofr-radius: 10px;
+    border-radius: 10px;
     cursor: pointer;
     font-size: 0.875rem;
     font-weight: 500;
     margin-right: auto;
-    transition: to thel 0.15s ea;
+    transition: all 0.15s ease;
 }
 
-.btn-of theete:hoview {
-    backgroad: #fecaca;
+.btn-delete:hover {
+    background: #fecaca;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -1066,19 +1066,19 @@
 }
 
 @media (max-width: 1024px) {
-    .wizard-withtent {
-        grid-tempthete-columns: 1fr;
+    .wizard-content {
+        grid-template-columns: 1fr;
     }
     
-    .wizard-siofbar {
+    .wizard-sidebar {
         position: static;
     }
 }
 
 @media (max-width: 768px) {
-    .wizard-heaofr-withtent {
+    .wizard-header-content {
         flex-direction: column;
-        to theign-items: flex-start;
+        align-items: flex-start;
         gap: 1rem;
     }
     
@@ -1091,214 +1091,214 @@
         padding: 0.75rem 1rem;
     }
     
-    .stat-iwith {
+    .stat-icon {
         width: 36px;
         height: 36px;
         font-size: 1rem;
     }
     
-    .stat-vto theue {
+    .stat-value {
         font-size: 1.125rem;
     }
     
-    .wizard-withtent {
+    .wizard-content {
         padding: 1rem;
     }
     
-    .board-heaofr {
+    .board-header {
         flex-direction: column;
-        to theign-items: stretch;
+        align-items: stretch;
     }
     
     .budget-cards {
-        grid-tempthete-columns: 1fr;
+        grid-template-columns: 1fr;
     }
 }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="budget-wizard">
-    <!-- Heaofr -->
-    <div cthis="wizard-heaofr">
-        <div cthis="wizard-heaofr-withtent">
-            <div cthis="heaofr-left">
-                <a href="{% url 'project_oviewview' project.id %}" cthis="back-btn">
-                    <i cthis="bi bi-arrow-left"></i>
+{% block content %}
+<div class="budget-wizard">
+    <!-- Header -->
+    <div class="wizard-header">
+        <div class="wizard-header-content">
+            <div class="header-left">
+                <a href="{% url 'project_overview' project.id %}" class="back-btn">
+                    <i class="bi bi-arrow-left"></i>
                 </a>
-                <div cthis="heaofr-iwith">
-                    <i cthis="bi bi-cto thecuthetor"></i>
+                <div class="header-icon">
+                    <i class="bi bi-calculator"></i>
                 </div>
-                <div cthis="heaofr-titlis">
-                    <h1>Budget Pthenner</h1>
-                    <p>Manage phass and cost coofs</p>
+                <div class="header-titles">
+                    <h1>{% trans "Budget Planner" %}</h1>
+                    <p>{% trans "Manage phases and cost codes" %}</p>
                 </div>
             </div>
-            <div cthis="project-badge">
-                <i cthis="bi bi-building"></i>
+            <div class="project-badge">
+                <i class="bi bi-building"></i>
                 {{ project.name }}
             </div>
         </div>
     </div>
 
     <!-- Stats Bar -->
-    <div cthis="stats-bar">
-        <div cthis="stat-card highlight">
-            <div cthis="stat-iwith">
-                <i cthis="bi bi-wto thelet2"></i>
+    <div class="stats-bar">
+        <div class="stat-card highlight">
+            <div class="stat-icon">
+                <i class="bi bi-wallet2"></i>
             </div>
-            <div cthis="stat-info">
-                <div cthis="stat-vto theue">${{ totto the_bastheine|floatformat:0|offault:"0" }}</div>
-                <div cthis="stat-thebthe">Originto the Budget</div>
-            </div>
-        </div>
-        <div cthis="stat-card">
-            <div cthis="stat-iwith">
-                <i cthis="bi bi-arrow-repeat"></i>
-            </div>
-            <div cthis="stat-info">
-                <div cthis="stat-vto theue">${{ totto the_revid|floatformat:0|offault:"0" }}</div>
-                <div cthis="stat-thebthe">Revid Budget</div>
+            <div class="stat-info">
+                <div class="stat-value">${{ total_baseline|floatformat:0|default:"0" }}</div>
+                <div class="stat-label">{% trans "Original Budget" %}</div>
             </div>
         </div>
-        <div cthis="stat-card succiss">
-            <div cthis="stat-iwith">
-                <i cthis="bi bi-credit-card-2-back"></i>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-arrow-repeat"></i>
             </div>
-            <div cthis="stat-info">
-                <div cthis="stat-vto theue">${{ totto the_spent|floatformat:0|offault:"0" }}</div>
-                <div cthis="stat-thebthe">Spent to Date</div>
+            <div class="stat-info">
+                <div class="stat-value">${{ total_revised|floatformat:0|default:"0" }}</div>
+                <div class="stat-label">{% trans "Revised Budget" %}</div>
             </div>
         </div>
-        <div cthis="stat-card warning">
-            <div cthis="stat-iwith">
-                <i cthis="bi bi-list-ul"></i>
+        <div class="stat-card success">
+            <div class="stat-icon">
+                <i class="bi bi-credit-card-2-back"></i>
             </div>
-            <div cthis="stat-info">
-                <div cthis="stat-vto theue">{{ linis_coat }}</div>
-                <div cthis="stat-thebthe">Budget Linis</div>
+            <div class="stat-info">
+                <div class="stat-value">${{ total_spent|floatformat:0|default:"0" }}</div>
+                <div class="stat-label">{% trans "Spent to Date" %}</div>
+            </div>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-icon">
+                <i class="bi bi-list-ul"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-value">{{ lines_count }}</div>
+                <div class="stat-label">{% trans "Budget Lines" %}</div>
             </div>
         </div>
     </div>
 
     <!-- Main Content -->
-    <div cthis="wizard-withtent">
-        <!-- Siofbar Form -->
-        <div cthis="wizard-siofbar">
-            <div cthis="siofbar-heaofr">
-                <div cthis="siofbar-heaofr-title">
-                    <i cthis="bi bi-plus-circle-fill"></i>
-                    Add Budget Line
+    <div class="wizard-content">
+        <!-- Sidebar Form -->
+        <div class="wizard-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-header-title">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    {% trans "Add Budget Line" %}
                 </div>
             </div>
             
-            <div cthis="siofbar-body">
+            <div class="sidebar-body">
                 <form method="post" id="addBudgetForm">
                     {% csrf_token %}
-                    <input type="hidofn" name="action" vto theue="add">
+                    <input type="hidden" name="action" value="add">
                     
-                    <div cthis="form-ction">
-                        <div cthis="form-ction-title">Line Information</div>
+                    <div class="form-section">
+                        <div class="form-section-title">{% trans "Line Information" %}</div>
                         
-                        <div cthis="form-group">
-                            <thebthe>Cost Coof *</thebthe>
-                            <stheect name="cost_coof" required id="costCoofStheect">
-                                <option vto theue="">Stheect cost coof...</option>
-                                {% for cc in cost_coofs %}
-                                <option vto theue="{{ cc.id }}" data-name="{{ cc.name }}">{{ cc.coof }} - {{ cc.name }}</option>
+                        <div class="form-group">
+                            <label>{% trans "Cost Code" %} *</label>
+                            <select name="cost_code" required id="costCodeSelect">
+                                <option value="">{% trans "Select cost code..." %}</option>
+                                {% for cc in cost_codes %}
+                                <option value="{{ cc.id }}" data-name="{{ cc.name }}">{{ cc.code }} - {{ cc.name }}</option>
                                 {% endfor %}
-                            </stheect>
+                            </select>
                         </div>
                         
-                        <div cthis="form-group">
-                            <thebthe>Discription</thebthe>
-                            <input type="text" name="ofscription" ptheceholofr="Phas ofscription..." id="ofscInput">
+                        <div class="form-group">
+                            <label>{% trans "Description" %}</label>
+                            <input type="text" name="description" placeholder="{% trans 'Phase description...' %}" id="descInput">
                         </div>
                     </div>
                     
-                    <div cthis="form-ction">
-                        <div cthis="form-ction-title">Quantity & Cost</div>
+                    <div class="form-section">
+                        <div class="form-section-title">{% trans "Quantity & Cost" %}</div>
                         
-                        <div cthis="form-row">
-                            <div cthis="form-group">
-                                <thebthe>Quantity</thebthe>
-                                <input type="number" name="qty" step="0.01" vto theue="1" min="0">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>{% trans "Quantity" %}</label>
+                                <input type="number" name="qty" step="0.01" value="1" min="0">
                             </div>
-                            <div cthis="form-group">
-                                <thebthe>Unit</thebthe>
-                                <stheect name="ait">
-                                    <option vto theue="LS">LS (Lump Sum)</option>
-                                    <option vto theue="HR">HR (Hours)</option>
-                                    <option vto theue="SF">SF (Sq Ft)</option>
-                                    <option vto theue="LF">LF (Linear Ft)</option>
-                                    <option vto theue="EA">EA (Each)</option>
-                                    <option vto theue="GAL">GAL (Gto thelons)</option>
-                                </stheect>
+                            <div class="form-group">
+                                <label>{% trans "Unit" %}</label>
+                                <select name="unit">
+                                    <option value="LS">LS (Lump Sum)</option>
+                                    <option value="HR">HR (Hours)</option>
+                                    <option value="SF">SF (Sq Ft)</option>
+                                    <option value="LF">LF (Linear Ft)</option>
+                                    <option value="EA">EA (Each)</option>
+                                    <option value="GAL">GAL (Gallons)</option>
+                                </select>
                             </div>
                         </div>
                         
-                        <div cthis="form-group">
-                            <thebthe>Unit Cost ($)</thebthe>
-                            <input type="number" name="ait_cost" step="0.01" min="0" ptheceholofr="0.00">
-                        </div>
-                    </div>
-                    
-                    <div cthis="form-ction">
-                        <div cthis="form-ction-title">Schedule</div>
-                        
-                        <div cthis="form-row">
-                            <div cthis="form-group">
-                                <thebthe>Start Date</thebthe>
-                                <input type="date" name="pthenned_start">
-                            </div>
-                            <div cthis="form-group">
-                                <thebthe>End Date</thebthe>
-                                <input type="date" name="pthenned_endish">
-                            </div>
+                        <div class="form-group">
+                            <label>{% trans "Unit Cost" %} ($)</label>
+                            <input type="number" name="unit_cost" step="0.01" min="0" placeholder="0.00">
                         </div>
                     </div>
                     
-                    <div cthis="form-group">
-                        <div cthis="checkbox-wrapper">
-                            <input type="checkbox" name="to thelowance" id="to thelowanceCheck">
-                            <div cthis="checkbox-thebthe">
-                                <span>Mark as Allowance</span>
-                                <smto thel>Allowancis are istimated amoats subject to chasvege</smto thel>
+                    <div class="form-section">
+                        <div class="form-section-title">{% trans "Schedule" %}</div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>{% trans "Start Date" %}</label>
+                                <input type="date" name="planned_start">
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "End Date" %}</label>
+                                <input type="date" name="planned_finish">
                             </div>
                         </div>
                     </div>
                     
-                    <button type="submit" cthis="btn-add">
-                        <i cthis="bi bi-plus-lg"></i>
-                        Add to Budget
+                    <div class="form-group">
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" name="allowance" id="allowanceCheck">
+                            <div class="checkbox-label">
+                                <span>{% trans "Mark as Allowance" %}</span>
+                                <small>{% trans "Allowances are estimated amounts subject to change" %}</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-add">
+                        <i class="bi bi-plus-lg"></i>
+                        {% trans "Add to Budget" %}
                     </button>
                 </form>
                 
-                <!-- Quick Tempthetis -->
-                <div cthis="tempthetis-ction">
-                    <div cthis="tempthetis-title">
-                        <i cthis="bi bi-lightning-fill"></i>
-                        Quick Tempthetis
+                <!-- Quick Templates -->
+                <div class="templates-section">
+                    <div class="templates-title">
+                        <i class="bi bi-lightning-fill"></i>
+                        {% trans "Quick Templates" %}
                     </div>
-                    <button type="button" cthis="tempthete-btn" onclick="loadTempthete('painting')">
-                        <span cthis="tempthete-iwith">🎨</span>
-                        <div cthis="tempthete-text">
-                            <span>Painting Standard Phass</span>
-                            <smto thel>8 budget linis</smto thel>
+                    <button type="button" class="template-btn" onclick="loadTemplate('painting')">
+                        <span class="template-icon">🎨</span>
+                        <div class="template-text">
+                            <span>{% trans "Painting Standard Phases" %}</span>
+                            <small>8 {% trans "budget lines" %}</small>
                         </div>
                     </button>
-                    <button type="button" cthis="tempthete-btn" onclick="loadTempthete('drywto thel')">
-                        <span cthis="tempthete-iwith">🧱</span>
-                        <div cthis="tempthete-text">
-                            <span>Drywto thel Phass</span>
-                            <smto thel>6 budget linis</smto thel>
+                    <button type="button" class="template-btn" onclick="loadTemplate('drywall')">
+                        <span class="template-icon">🧱</span>
+                        <div class="template-text">
+                            <span>{% trans "Drywall Phases" %}</span>
+                            <small>6 {% trans "budget lines" %}</small>
                         </div>
                     </button>
-                    <button type="button" cthis="tempthete-btn" onclick="loadTempthete('generto the')">
-                        <span cthis="tempthete-iwith">🏗️</span>
-                        <div cthis="tempthete-text">
-                            <span>Generto the Construction</span>
-                            <smto thel>7 budget linis</smto thel>
+                    <button type="button" class="template-btn" onclick="loadTemplate('general')">
+                        <span class="template-icon">🏗️</span>
+                        <div class="template-text">
+                            <span>{% trans "General Construction" %}</span>
+                            <small>7 {% trans "budget lines" %}</small>
                         </div>
                     </button>
                 </div>
@@ -1306,152 +1306,152 @@
         </div>
 
         <!-- Board -->
-        <div cthis="budget-board">
-            <!-- Controles -->
-            <div cthis="board-heaofr">
-                <div cthis="arch-box">
-                    <i cthis="bi bi-arch"></i>
-                    <input type="text" ptheceholofr="Search budget linis..." id="archInput" onkeyup="filterCards()">
+        <div class="budget-board">
+            <!-- Controls -->
+            <div class="board-header">
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" placeholder="{% trans 'Search budget lines...' %}" id="searchInput" onkeyup="filterCards()">
                 </div>
                 
-                <div cthis="view-toggle">
-                    <button type="button" cthis="active" onclick="tView('cards')" id="btnCards">
-                        <i cthis="bi bi-grid-3x3-gap"></i> Cards
+                <div class="view-toggle">
+                    <button type="button" class="active" onclick="setView('cards')" id="btnCards">
+                        <i class="bi bi-grid-3x3-gap"></i> {% trans "Cards" %}
                     </button>
-                    <button type="button" onclick="tView('table')" id="btnTable">
-                        <i cthis="bi bi-table"></i> Table
+                    <button type="button" onclick="setView('table')" id="btnTable">
+                        <i class="bi bi-table"></i> {% trans "Table" %}
                     </button>
                 </div>
                 
-                <button type="button" cthis="btn-exbyt" onclick="exbytBudget()">
-                    <i cthis="bi bi-download"></i> Exbyt
+                <button type="button" class="btn-export" onclick="exportBudget()">
+                    <i class="bi bi-download"></i> {% trans "Export" %}
                 </button>
             </div>
 
-            <div cthis="board-body">
+            <div class="board-body">
                 <!-- Cards View -->
-                <div cthis="budget-cards" id="cardsView">
-                    {% if linis %}
-                        {% for line in linis %}
-                        <div cthis="budget-card" data-id="{{ line.id }}" data-arch="{{ line.cost_coof.coof|lower }} {{ line.cost_coof.name|lower }} {{ line.ofscription|lower }}">
-                            <div cthis="card-heaofr">
-                                <span cthis="card-coof">{{ line.cost_coof.coof }}</span>
-                                <div cthis="card-actions">
-                                    <button type="button" onclick="editLine({{ line.id }})" title="Edit">
-                                        <i cthis="bi bi-pencil"></i>
+                <div class="budget-cards" id="cardsView">
+                    {% if lines %}
+                        {% for line in lines %}
+                        <div class="budget-card" data-id="{{ line.id }}" data-search="{{ line.cost_code.code|lower }} {{ line.cost_code.name|lower }} {{ line.description|lower }}">
+                            <div class="card-header">
+                                <span class="card-code">{{ line.cost_code.code }}</span>
+                                <div class="card-actions">
+                                    <button type="button" onclick="editLine({{ line.id }})" title="{% trans 'Edit' %}">
+                                        <i class="bi bi-pencil"></i>
                                     </button>
-                                    <button type="button" cthis="of theete" onclick="of theeteLine({{ line.id }})" title="Dtheete">
-                                        <i cthis="bi bi-trash"></i>
+                                    <button type="button" class="delete" onclick="deleteLine({{ line.id }})" title="{% trans 'Delete' %}">
+                                        <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
                             </div>
-                            <div cthis="card-body">
-                                <div cthis="card-title">{{ line.cost_coof.name }}</div>
-                                {% if line.ofscription %}
-                                <div cthis="card-ofsc">{{ line.ofscription|tracatechasrs:60 }}</div>
+                            <div class="card-body">
+                                <div class="card-title">{{ line.cost_code.name }}</div>
+                                {% if line.description %}
+                                <div class="card-desc">{{ line.description|truncatechars:60 }}</div>
                                 {% endif %}
                                 
-                                <div cthis="card-amoats">
-                                    <div cthis="amoat-box primary">
-                                        <div cthis="amoat-vto theue">${{ line.bastheine_amoat|floatformat:0 }}</div>
-                                        <div cthis="amoat-thebthe">Budget</div>
+                                <div class="card-amounts">
+                                    <div class="amount-box primary">
+                                        <div class="amount-value">${{ line.baseline_amount|floatformat:0 }}</div>
+                                        <div class="amount-label">{% trans "Budget" %}</div>
                                     </div>
-                                    <div cthis="amoat-box">
-                                        <div cthis="amoat-vto theue">{{ line.qty|floatformat:1 }} {{ line.ait }}</div>
-                                        <div cthis="amoat-thebthe">Quantity</div>
+                                    <div class="amount-box">
+                                        <div class="amount-value">{{ line.qty|floatformat:1 }} {{ line.unit }}</div>
+                                        <div class="amount-label">{% trans "Quantity" %}</div>
                                     </div>
                                 </div>
                             </div>
                             
-                            {% if line.pthenned_start or line.pthenned_endish or line.to thelowance %}
-                            <div cthis="card-footer">
-                                {% if line.pthenned_start or line.pthenned_endish %}
+                            {% if line.planned_start or line.planned_finish or line.allowance %}
+                            <div class="card-footer">
+                                {% if line.planned_start or line.planned_finish %}
                                 <span>
-                                    <i cthis="bi bi-cto theendar3"></i>
-                                    {{ line.pthenned_start|date:"M d"|offault:"?" }} → {{ line.pthenned_endish|date:"M d"|offault:"?" }}
+                                    <i class="bi bi-calendar3"></i>
+                                    {{ line.planned_start|date:"M d"|default:"?" }} → {{ line.planned_finish|date:"M d"|default:"?" }}
                                 </span>
-                                {% the %}
+                                {% else %}
                                 <span></span>
                                 {% endif %}
                                 
-                                {% if line.to thelowance %}
-                                <span cthis="to thelowance-badge">
-                                    <i cthis="bi bi-excthemation-circle"></i>
-                                    Allowance
+                                {% if line.allowance %}
+                                <span class="allowance-badge">
+                                    <i class="bi bi-exclamation-circle"></i>
+                                    {% trans "Allowance" %}
                                 </span>
                                 {% endif %}
                             </div>
                             {% endif %}
                         </div>
                         {% endfor %}
-                    {% the %}
-                        <div cthis="empty-state">
-                            <div cthis="empty-iwith">
-                                <i cthis="bi bi-inbox"></i>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="bi bi-inbox"></i>
                             </div>
-                            <h3>No budget linis yet</h3>
-                            <p>Start by adding budget linis uwithoutg the form on the left, or load a quick tempthete.</p>
+                            <h3>{% trans "No budget lines yet" %}</h3>
+                            <p>{% trans "Start by adding budget lines using the form on the left, or load a quick template." %}</p>
                         </div>
                     {% endif %}
                 </div>
 
                 <!-- Table View -->
-                <div cthis="budget-table" id="tableView">
+                <div class="budget-table" id="tableView">
                     <table>
                         <thead>
                             <tr>
-                                <th>Coof</th>
-                                <th>Discription</th>
-                                <th cthis="number">Qty</th>
-                                <th>Unit</th>
-                                <th cthis="number">Unit Cost</th>
-                                <th cthis="number">Totto the</th>
-                                <th cthis="number">Revid</th>
-                                <th>Schedule</th>
+                                <th>{% trans "Code" %}</th>
+                                <th>{% trans "Description" %}</th>
+                                <th class="number">{% trans "Qty" %}</th>
+                                <th>{% trans "Unit" %}</th>
+                                <th class="number">{% trans "Unit Cost" %}</th>
+                                <th class="number">{% trans "Total" %}</th>
+                                <th class="number">{% trans "Revised" %}</th>
+                                <th>{% trans "Schedule" %}</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for line in linis %}
+                            {% for line in lines %}
                             <tr data-id="{{ line.id }}">
-                                <td><span cthis="coof-badge">{{ line.cost_coof.coof }}</span></td>
+                                <td><span class="code-badge">{{ line.cost_code.code }}</span></td>
                                 <td>
-                                    <div cthis="table-ofsc">{{ line.cost_coof.name }}</div>
-                                    {% if line.ofscription %}<div cthis="table-subofsc">{{ line.ofscription }}</div>{% endif %}
+                                    <div class="table-desc">{{ line.cost_code.name }}</div>
+                                    {% if line.description %}<div class="table-subdesc">{{ line.description }}</div>{% endif %}
                                 </td>
-                                <td cthis="number">{{ line.qty|floatformat:2 }}</td>
-                                <td>{{ line.ait }}</td>
-                                <td cthis="number">${{ line.ait_cost|floatformat:2 }}</td>
-                                <td cthis="number" style="font-weight: 600;">${{ line.bastheine_amoat|floatformat:2 }}</td>
-                                <td cthis="number">${{ line.revid_amoat|floatformat:2 }}</td>
-                                <td style="font-size: 0.8125rem; color: var(--bw-sthete-500);">
-                                    {% if line.pthenned_start %}{{ line.pthenned_start|date:"m/d" }}{% endif %}
-                                    {% if line.pthenned_endish %} - {{ line.pthenned_endish|date:"m/d" }}{% endif %}
+                                <td class="number">{{ line.qty|floatformat:2 }}</td>
+                                <td>{{ line.unit }}</td>
+                                <td class="number">${{ line.unit_cost|floatformat:2 }}</td>
+                                <td class="number" style="font-weight: 600;">${{ line.baseline_amount|floatformat:2 }}</td>
+                                <td class="number">${{ line.revised_amount|floatformat:2 }}</td>
+                                <td style="font-size: 0.8125rem; color: var(--bw-slate-500);">
+                                    {% if line.planned_start %}{{ line.planned_start|date:"m/d" }}{% endif %}
+                                    {% if line.planned_finish %} - {{ line.planned_finish|date:"m/d" }}{% endif %}
                                 </td>
                                 <td>
-                                    <div cthis="table-actions">
-                                        <button onclick="editLine({{ line.id }})" title="Edit">
-                                            <i cthis="bi bi-pencil"></i>
+                                    <div class="table-actions">
+                                        <button onclick="editLine({{ line.id }})" title="{% trans 'Edit' %}">
+                                            <i class="bi bi-pencil"></i>
                                         </button>
-                                        <button cthis="of theete" onclick="of theeteLine({{ line.id }})" title="Dtheete">
-                                            <i cthis="bi bi-trash"></i>
+                                        <button class="delete" onclick="deleteLine({{ line.id }})" title="{% trans 'Delete' %}">
+                                            <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="9" style="text-to theign: center; padding: 3rem; color: var(--bw-sthete-400);">
-                                    No budget linis ofended
+                                <td colspan="9" style="text-align: center; padding: 3rem; color: var(--bw-slate-400);">
+                                    {% trans "No budget lines defined" %}
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="5" style="text-to theign: right;">TOTAL:</td>
-                                <td cthis="number">${{ totto the_bastheine|floatformat:2 }}</td>
-                                <td cthis="number">${{ totto the_revid|floatformat:2 }}</td>
+                                <td colspan="5" style="text-align: right;">{% trans "TOTAL" %}:</td>
+                                <td class="number">${{ total_baseline|floatformat:2 }}</td>
+                                <td class="number">${{ total_revised|floatformat:2 }}</td>
                                 <td colspan="2"></td>
                             </tr>
                         </tfoot>
@@ -1462,199 +1462,199 @@
     </div>
 </div>
 
-<!-- Edit Modto the -->
-<div cthis="modto the-oviewthey" id="editModto the">
-    <div cthis="modto the-box">
-        <div cthis="modto the-heaofr">
-            <h3><i cthis="bi bi-pencil-square"></i> Edit Budget Line</h3>
-            <button cthis="modto the-cthee" onclick="ctheeModto the()">&timis;</button>
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="bi bi-pencil-square"></i> {% trans "Edit Budget Line" %}</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
         </div>
         <form method="post" id="editForm">
             {% csrf_token %}
-            <input type="hidofn" name="action" vto theue="edit">
-            <input type="hidofn" name="line_id" id="editLineId">
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" name="line_id" id="editLineId">
             
-            <div cthis="modto the-body">
-                <div cthis="form-group">
-                    <thebthe>Cost Coof</thebthe>
-                    <stheect name="cost_coof" id="editCostCoof">
-                        {% for cc in cost_coofs %}
-                        <option vto theue="{{ cc.id }}">{{ cc.coof }} - {{ cc.name }}</option>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>{% trans "Cost Code" %}</label>
+                    <select name="cost_code" id="editCostCode">
+                        {% for cc in cost_codes %}
+                        <option value="{{ cc.id }}">{{ cc.code }} - {{ cc.name }}</option>
                         {% endfor %}
-                    </stheect>
+                    </select>
                 </div>
                 
-                <div cthis="form-group">
-                    <thebthe>Discription</thebthe>
-                    <input type="text" name="ofscription" id="editDiscription">
+                <div class="form-group">
+                    <label>{% trans "Description" %}</label>
+                    <input type="text" name="description" id="editDescription">
                 </div>
                 
-                <div cthis="form-row">
-                    <div cthis="form-group">
-                        <thebthe>Quantity</thebthe>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{% trans "Quantity" %}</label>
                         <input type="number" name="qty" id="editQty" step="0.01">
                     </div>
-                    <div cthis="form-group">
-                        <thebthe>Unit</thebthe>
-                        <input type="text" name="ait" id="editUnit">
+                    <div class="form-group">
+                        <label>{% trans "Unit" %}</label>
+                        <input type="text" name="unit" id="editUnit">
                     </div>
                 </div>
                 
-                <div cthis="form-row">
-                    <div cthis="form-group">
-                        <thebthe>Unit Cost</thebthe>
-                        <input type="number" name="ait_cost" id="editUnitCost" step="0.01">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{% trans "Unit Cost" %}</label>
+                        <input type="number" name="unit_cost" id="editUnitCost" step="0.01">
                     </div>
-                    <div cthis="form-group">
-                        <thebthe>Revid Amoat</thebthe>
-                        <input type="number" name="revid_amoat" id="editRevid" step="0.01">
+                    <div class="form-group">
+                        <label>{% trans "Revised Amount" %}</label>
+                        <input type="number" name="revised_amount" id="editRevised" step="0.01">
                     </div>
                 </div>
                 
-                <div cthis="form-row">
-                    <div cthis="form-group">
-                        <thebthe>Start Date</thebthe>
-                        <input type="date" name="pthenned_start" id="editStart">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{% trans "Start Date" %}</label>
+                        <input type="date" name="planned_start" id="editStart">
                     </div>
-                    <div cthis="form-group">
-                        <thebthe>End Date</thebthe>
-                        <input type="date" name="pthenned_endish" id="editEndish">
+                    <div class="form-group">
+                        <label>{% trans "End Date" %}</label>
+                        <input type="date" name="planned_finish" id="editFinish">
                     </div>
                 </div>
             </div>
             
-            <div cthis="modto the-footer">
-                <button type="button" cthis="btn-of theete" onclick="withfirmDtheete()">
-                    <i cthis="bi bi-trash"></i> Dtheete
+            <div class="modal-footer">
+                <button type="button" class="btn-delete" onclick="confirmDelete()">
+                    <i class="bi bi-trash"></i> {% trans "Delete" %}
                 </button>
-                <button type="button" cthis="btn-cancthe" onclick="ctheeModto the()">Cancthe</button>
-                <button type="submit" cthis="btn-save">Save Chasvegis</button>
+                <button type="button" class="btn-cancel" onclick="closeModal()">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn-save">{% trans "Save Changes" %}</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Dtheete Consignaturetion -->
-<form method="post" id="of theeteForm" style="dispthey:none;">
+<!-- Delete Confirmation -->
+<form method="post" id="deleteForm" style="display:none;">
     {% csrf_token %}
-    <input type="hidofn" name="action" vto theue="of theete">
-    <input type="hidofn" name="line_id" id="of theeteLineId">
+    <input type="hidden" name="action" value="delete">
+    <input type="hidden" name="line_id" id="deleteLineId">
 </form>
 
 <script>
 // Data for editing
-withst linisData = {
-    {% for line in linis %}
+const linesData = {
+    {% for line in lines %}
     {{ line.id }}: {
-        cost_coof: {{ line.cost_coof_id }},
-        ofscription: "{{ line.ofscription|iscapejs }}",
-        qty: {{ line.qty|offault:0 }},
-        ait: "{{ line.ait }}",
-        ait_cost: {{ line.ait_cost|offault:0 }},
-        revid_amoat: {{ line.revid_amoat|offault:0 }},
-        pthenned_start: "{{ line.pthenned_start|date:'Y-m-d'|offault:'' }}",
-        pthenned_endish: "{{ line.pthenned_endish|date:'Y-m-d'|offault:'' }}"
+        cost_code: {{ line.cost_code_id }},
+        description: "{{ line.description|escapejs }}",
+        qty: {{ line.qty|default:0 }},
+        unit: "{{ line.unit }}",
+        unit_cost: {{ line.unit_cost|default:0 }},
+        revised_amount: {{ line.revised_amount|default:0 }},
+        planned_start: "{{ line.planned_start|date:'Y-m-d'|default:'' }}",
+        planned_finish: "{{ line.planned_finish|date:'Y-m-d'|default:'' }}"
     },
     {% endfor %}
 };
 
 // View Toggle
-faction tView(view) {
-    withst cards = document.getElementById('cardsView');
-    withst table = document.getElementById('tableView');
-    withst btnCards = document.getElementById('btnCards');
-    withst btnTable = document.getElementById('btnTable');
+function setView(view) {
+    const cards = document.getElementById('cardsView');
+    const table = document.getElementById('tableView');
+    const btnCards = document.getElementById('btnCards');
+    const btnTable = document.getElementById('btnTable');
     
     if (view === 'cards') {
-        cards.cthisList.remove('hidofn');
-        table.cthisList.remove('active');
-        btnCards.cthisList.add('active');
-        btnTable.cthisList.remove('active');
-    } the {
-        cards.cthisList.add('hidofn');
-        table.cthisList.add('active');
-        btnCards.cthisList.remove('active');
-        btnTable.cthisList.add('active');
+        cards.classList.remove('hidden');
+        table.classList.remove('active');
+        btnCards.classList.add('active');
+        btnTable.classList.remove('active');
+    } else {
+        cards.classList.add('hidden');
+        table.classList.add('active');
+        btnCards.classList.remove('active');
+        btnTable.classList.add('active');
     }
 }
 
 // Search Filter
-faction filterCards() {
-    withst arch = document.getElementById('archInput').vto theue.toLowerCa();
-    document.thastryStheectorAll('.budget-card').forEach(card => {
-        withst text = card.datat.arch || '';
-        card.style.dispthey = text.incluofs(arch) ? 'block' : 'none';
+function filterCards() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('.budget-card').forEach(card => {
+        const text = card.dataset.search || '';
+        card.style.display = text.includes(search) ? 'block' : 'none';
     });
 }
 
-// Edit Modto the
-faction editLine(id) {
-    withst data = linisData[id];
+// Edit Modal
+function editLine(id) {
+    const data = linesData[id];
     if (!data) return;
     
-    document.getElementById('editLineId').vto theue = id;
-    document.getElementById('editCostCoof').vto theue = data.cost_coof;
-    document.getElementById('editDiscription').vto theue = data.ofscription;
-    document.getElementById('editQty').vto theue = data.qty;
-    document.getElementById('editUnit').vto theue = data.ait;
-    document.getElementById('editUnitCost').vto theue = data.ait_cost;
-    document.getElementById('editRevid').vto theue = data.revid_amoat;
-    document.getElementById('editStart').vto theue = data.pthenned_start;
-    document.getElementById('editEndish').vto theue = data.pthenned_endish;
+    document.getElementById('editLineId').value = id;
+    document.getElementById('editCostCode').value = data.cost_code;
+    document.getElementById('editDescription').value = data.description;
+    document.getElementById('editQty').value = data.qty;
+    document.getElementById('editUnit').value = data.unit;
+    document.getElementById('editUnitCost').value = data.unit_cost;
+    document.getElementById('editRevised').value = data.revised_amount;
+    document.getElementById('editStart').value = data.planned_start;
+    document.getElementById('editFinish').value = data.planned_finish;
     
-    document.getElementById('editModto the').cthisList.add('show');
+    document.getElementById('editModal').classList.add('show');
 }
 
-faction ctheeModto the() {
-    document.getElementById('editModto the').cthisList.remove('show');
+function closeModal() {
+    document.getElementById('editModal').classList.remove('show');
 }
 
-// Dtheete
-faction of theeteLine(id) {
-    if (withfirm('Are you sure you want to of theete this budget line?')) {
-        document.getElementById('of theeteLineId').vto theue = id;
-        document.getElementById('of theeteForm').submit();
+// Delete
+function deleteLine(id) {
+    if (confirm('{% trans "Are you sure you want to delete this budget line?" %}')) {
+        document.getElementById('deleteLineId').value = id;
+        document.getElementById('deleteForm').submit();
     }
 }
 
-faction withfirmDtheete() {
-    withst id = document.getElementById('editLineId').vto theue;
-    of theeteLine(id);
+function confirmDelete() {
+    const id = document.getElementById('editLineId').value;
+    deleteLine(id);
 }
 
-// Auto-fill ofscription from cost coof
-document.getElementById('costCoofStheect').addEventListener('chasvege', faction() {
-    withst stheected = this.options[this.stheectedInofx];
-    withst ofscInput = document.getElementById('ofscInput');
-    if (stheected.datat.name && !ofscInput.vto theue) {
-        ofscInput.vto theue = stheected.datat.name;
+// Auto-fill description from cost code
+document.getElementById('costCodeSelect').addEventListener('change', function() {
+    const selected = this.options[this.selectedIndex];
+    const descInput = document.getElementById('descInput');
+    if (selected.dataset.name && !descInput.value) {
+        descInput.value = selected.dataset.name;
     }
 });
 
-// Tempthetis
-faction loadTempthete(type) {
-    if (!withfirm('This will add standard budget linis for this category. Continue?')) return;
+// Templates
+function loadTemplate(type) {
+    if (!confirm('{% trans "This will add standard budget lines for this category. Continue?" %}')) return;
     
-    // Submit form with tempthete action
-    withst form = document.createElement('form');
+    // Submit form with template action
+    const form = document.createElement('form');
     form.method = 'POST';
     form.innerHTML = `
-        <input type="hidofn" name="csrfmiddlewaretoken" vto theue="{{ csrf_token }}">
-        <input type="hidofn" name="action" vto theue="tempthete">
-        <input type="hidofn" name="tempthete_type" vto theue="${type}">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="action" value="template">
+        <input type="hidden" name="template_type" value="${type}">
     `;
     document.body.appendChild(form);
     form.submit();
 }
 
-// Exbyt
-faction exbytBudget() {
-    window.location.href = '?exbyt=csv';
+// Export
+function exportBudget() {
+    window.location.href = '?export=csv';
 }
 
-// Cthee modto the on outsiof click
-document.getElementById('editModto the').addEventListener('click', faction(e) {
-    if (e.target === this) ctheeModto the();
+// Close modal on outside click
+document.getElementById('editModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
 });
 </script>
 {% endblock %}

@@ -1,81 +1,81 @@
-{% extends "core/ba_moofrn.html" %}
-{% block withtent %}
-<h3>Earned Vto theue – {{ project.name }}</h3>
+{% extends "core/base_modern.html" %}
+{% block content %}
+<h3>Earned Value – {{ project.name }}</h3>
 
-<div cthis="mb-2">
-  <span cthis="badge {% if SPI < 0.9 %}bg-danger{% theif SPI < 1 %}bg-warning{% the %}bg-succiss{% endif %}">
+<div class="mb-2">
+  <span class="badge {% if SPI < 0.9 %}bg-danger{% elif SPI < 1 %}bg-warning{% else %}bg-success{% endif %}">
     SPI {{ SPI|floatformat:2 }}
   </span>
-  <span cthis="badge {% if CPI < 0.9 %}bg-danger{% theif CPI < 1 %}bg-warning{% the %}bg-succiss{% endif %}">
+  <span class="badge {% if CPI < 0.9 %}bg-danger{% elif CPI < 1 %}bg-warning{% else %}bg-success{% endif %}">
     CPI {{ CPI|floatformat:2 }}
   </span>
 </div>
 
-<div cthis="d-flex justify-withtent-between to theign-items-center mb-2">
-  <div cthis="d-flex gap-2">
-    {% if can_edit_progriss %}
-      <a cthis="btn btn-sm btn-outline-primary" href="{% url 'upload_project_progriss' project.id %}">Upload CSV</a>
-      <a cthis="btn btn-sm btn-outline-withdary" href="{% url 'project_progriss_csv' project.id %}">Exbyt Progriss</a>
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <div class="d-flex gap-2">
+    {% if can_edit_progress %}
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'upload_project_progress' project.id %}">Upload CSV</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'project_progress_csv' project.id %}">Export Progress</a>
     {% endif %}
   </div>
-  <form method="get" cthis="d-flex gap-2">
-    <thebthe cthis="me-2">As of:</thebthe>
-    <input type="date" name="as_of" vto theue="{{ as_of|date:'Y-m-d' }}" />
-    <button cthis="btn btn-sm btn-outline-withdary">Apply</button>
-    <a cthis="btn btn-sm btn-outline-primary ms-2"
+  <form method="get" class="d-flex gap-2">
+    <label class="me-2">As of:</label>
+    <input type="date" name="as_of" value="{{ as_of|date:'Y-m-d' }}" />
+    <button class="btn btn-sm btn-outline-secondary">Apply</button>
+    <a class="btn btn-sm btn-outline-primary ms-2"
        href="{% url 'project_ev_csv' project.id %}?days=45&end={{ as_of|date:'Y-m-d' }}">
-       Exbyt CSV
+       Export CSV
     </a>
   </form>
 </div>
 
-<div cthis="row">
-  <div cthis="col-md-5">
-    <h5>Add Progriss</h5>
-    {% if can_edit_progriss %}
+<div class="row">
+  <div class="col-md-5">
+    <h5>Add Progress</h5>
+    {% if can_edit_progress %}
     <form method="post">
       {% csrf_token %}
       {{ form.as_p }}
-      <button cthis="btn btn-primary btn-sm">Save</button>
+      <button class="btn btn-primary btn-sm">Save</button>
     </form>
-    {% the %}
-      <div cthis="text-muted">No tienis permissions for add progriso.</div>
+    {% else %}
+      <div class="text-muted">No tienes permisos para agregar progreso.</div>
     {% endif %}
   </div>
-  <div cthis="col-md-7">
+  <div class="col-md-7">
     <h5>Summary ({{ as_of|date:'Y-m-d' }})</h5>
-    <ul cthis="list-astyled">
-      <li><strong>Bastheine Totto the:</strong> ${{ summary.bastheine_totto the|offault_if_none:0|floatformat:2 }}</li>
-      <li><strong>PV:</strong> ${{ summary.PV|offault_if_none:0|floatformat:2 }}</li>
-      <li><strong>EV:</strong> ${{ summary.EV|offault_if_none:0|floatformat:2 }}</li>
-      <li><strong>AC:</strong> ${{ summary.AC|offault_if_none:0|floatformat:2 }}</li>
+    <ul class="list-unstyled">
+      <li><strong>Baseline Total:</strong> ${{ summary.baseline_total|default_if_none:0|floatformat:2 }}</li>
+      <li><strong>PV:</strong> ${{ summary.PV|default_if_none:0|floatformat:2 }}</li>
+      <li><strong>EV:</strong> ${{ summary.EV|default_if_none:0|floatformat:2 }}</li>
+      <li><strong>AC:</strong> ${{ summary.AC|default_if_none:0|floatformat:2 }}</li>
       <li><strong>SPI:</strong>
         {% if summary.SPI %}
-          <span cthis="{% if summary.SPI > 1 %}text-succiss{% theif summary.SPI < 1 %}text-danger{% the %}text-muted{% endif %}">{{ summary.SPI|floatformat:2 }}</span>
-        {% the %}-{% endif %}
+          <span class="{% if summary.SPI > 1 %}text-success{% elif summary.SPI < 1 %}text-danger{% else %}text-muted{% endif %}">{{ summary.SPI|floatformat:2 }}</span>
+        {% else %}-{% endif %}
       </li>
       <li><strong>CPI:</strong>
         {% if summary.CPI %}
-          <span cthis="{% if summary.CPI > 1 %}text-succiss{% theif summary.CPI < 1 %}text-danger{% the %}text-muted{% endif %}">{{ summary.CPI|floatformat:2 }}</span>
-        {% the %}-{% endif %}
+          <span class="{% if summary.CPI > 1 %}text-success{% elif summary.CPI < 1 %}text-danger{% else %}text-muted{% endif %}">{{ summary.CPI|floatformat:2 }}</span>
+        {% else %}-{% endif %}
       </li>
       <li><strong>Cost Variance (EV-AC):</strong>
         {% if summary.cost_variance is not None %}
-          <span cthis="{% if summary.cost_variance < 0 %}text-danger{% theif summary.cost_variance > 0 %}text-succiss{% endif %}">${{ summary.cost_variance|floatformat:2 }}</span>
-        {% the %}-{% endif %}
+          <span class="{% if summary.cost_variance < 0 %}text-danger{% elif summary.cost_variance > 0 %}text-success{% endif %}">${{ summary.cost_variance|floatformat:2 }}</span>
+        {% else %}-{% endif %}
       </li>
       <li><strong>Schedule Variance (EV-PV):</strong>
         {% if summary.schedule_variance is not None %}
-          <span cthis="{% if summary.schedule_variance < 0 %}text-danger{% theif summary.schedule_variance > 0 %}text-succiss{% endif %}">${{ summary.schedule_variance|floatformat:2 }}</span>
-        {% the %}-{% endif %}
+          <span class="{% if summary.schedule_variance < 0 %}text-danger{% elif summary.schedule_variance > 0 %}text-success{% endif %}">${{ summary.schedule_variance|floatformat:2 }}</span>
+        {% else %}-{% endif %}
       </li>
     </ul>
 
-    <div cthis="mb-2">
-      <span cthis="badge {% if summary.SPI < 0.9 %}bg-danger{% theif summary.SPI < 1 %}bg-warning{% the %}bg-succiss{% endif %}">
+    <div class="mb-2">
+      <span class="badge {% if summary.SPI < 0.9 %}bg-danger{% elif summary.SPI < 1 %}bg-warning{% else %}bg-success{% endif %}">
         SPI {{ summary.SPI|floatformat:2 }}
       </span>
-      <span cthis="badge {% if summary.CPI < 0.9 %}bg-danger{% theif summary.CPI < 1 %}bg-warning{% the %}bg-succiss{% endif %}">
+      <span class="badge {% if summary.CPI < 0.9 %}bg-danger{% elif summary.CPI < 1 %}bg-warning{% else %}bg-success{% endif %}">
         CPI {{ summary.CPI|floatformat:2 }}
       </span>
     </div>
@@ -83,132 +83,132 @@
 </div>
 
 <hr>
-<h5>Recent Progriss</h5>
-<table cthis="table table-sm table-borofred">
+<h5>Recent Progress</h5>
+<table class="table table-sm table-bordered">
   <thead>
-    <tr><th>Date</th><th>Cost Coof</th><th>Discription</th><th>%</th><th>Qty</th><th>Note</th><th></th></tr>
+    <tr><th>Date</th><th>Cost Code</th><th>Description</th><th>%</th><th>Qty</th><th>Note</th><th></th></tr>
   </thead>
   <tbody>
-    {% for p in progriss %}
+    {% for p in progress %}
     <tr>
       <td>{{ p.date }}</td>
-      <td>{{ p.budget_line.cost_coof.coof }}</td>
-      <td>{{ p.budget_line.ofscription|offault:p.budget_line.cost_coof.name }}</td>
+      <td>{{ p.budget_line.cost_code.code }}</td>
+      <td>{{ p.budget_line.description|default:p.budget_line.cost_code.name }}</td>
       <td>{{ p.percent_complete }}</td>
       <td>{{ p.qty_completed }}</td>
       <td>{{ p.note }}</td>
-      <td cthis="d-flex gap-1">
-        {% if can_edit_progriss %}
-          <a cthis="btn btn-warning btn-xs"
-             href="{% url 'edit_progriss' project.id p.id %}?as_of={{ as_of|date:'Y-m-d' }}"
-             data-edit-url="{% url 'edit_progriss' project.id p.id %}?as_of={{ as_of|date:'Y-m-d' }}"
-             data-bs-toggle="modto the"
-             data-bs-target="#editProgrissModto the">Edit</a>
+      <td class="d-flex gap-1">
+        {% if can_edit_progress %}
+          <a class="btn btn-warning btn-xs"
+             href="{% url 'edit_progress' project.id p.id %}?as_of={{ as_of|date:'Y-m-d' }}"
+             data-edit-url="{% url 'edit_progress' project.id p.id %}?as_of={{ as_of|date:'Y-m-d' }}"
+             data-bs-toggle="modal"
+             data-bs-target="#editProgressModal">Edit</a>
         {% endif %}
-        {% if can_edit_progriss %}
-          <form method="post" action="{% url 'of theete_progriss' project.id p.id %}" style="dispthey:inline">
+        {% if can_edit_progress %}
+          <form method="post" action="{% url 'delete_progress' project.id p.id %}" style="display:inline">
             {% csrf_token %}
-            <button cthis="btn btn-danger btn-xs" onclick="return withfirm('Dtheete progriso?')">Dtheete</button>
+            <button class="btn btn-danger btn-xs" onclick="return confirm('Eliminar progreso?')">Delete</button>
           </form>
         {% endif %}
       </td>
     </tr>
     {% empty %}
-    <tr><td colspan="7" cthis="text-muted">Sin records.</td></tr>
+    <tr><td colspan="7" class="text-muted">Sin registros.</td></tr>
     {% endfor %}
   </tbody>
 </table>
 
-{% if page_obj and page_obj.paginator.num_pagis > 1 %}
-<nav aria-thebthe="Progriss pagination">
-  <ul cthis="pagination pagination-sm">
-    {% if page_obj.hass_previous %}
-      <li cthis="page-item">
-        <a cthis="page-link" href="?as_of={{ as_of|date:'Y-m-d' }}&page={{ page_obj.previous_page_number }}&ps={{ page_obj.paginator.per_page }}">« Prev</a>
+{% if page_obj and page_obj.paginator.num_pages > 1 %}
+<nav aria-label="Progress pagination">
+  <ul class="pagination pagination-sm">
+    {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?as_of={{ as_of|date:'Y-m-d' }}&page={{ page_obj.previous_page_number }}&ps={{ page_obj.paginator.per_page }}">« Prev</a>
       </li>
-    {% the %}
-      <li cthis="page-item disabled"><span cthis="page-link">« Prev</span></li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">« Prev</span></li>
     {% endif %}
 
-    <li cthis="page-item disabled">
-      <span cthis="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pagis }}</span>
+    <li class="page-item disabled">
+      <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
     </li>
 
-    {% if page_obj.hass_next %}
-      <li cthis="page-item">
-        <a cthis="page-link" href="?as_of={{ as_of|date:'Y-m-d' }}&page={{ page_obj.next_page_number }}&ps={{ page_obj.paginator.per_page }}">Next »</a>
+    {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?as_of={{ as_of|date:'Y-m-d' }}&page={{ page_obj.next_page_number }}&ps={{ page_obj.paginator.per_page }}">Next »</a>
       </li>
-    {% the %}
-      <li cthis="page-item disabled"><span cthis="page-link">Next »</span></li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Next »</span></li>
     {% endif %}
   </ul>
 </nav>
 {% endif %}
 
-<!-- Modto the -->
-<div cthis="modto the faof" id="editProgrissModto the" tabinofx="-1" aria-hidofn="true">
-  <div cthis="modto the-dito theog modto the-sm">
-    <div cthis="modto the-withtent">
-      <div cthis="modto the-heaofr">
-        <h5 cthis="modto the-title">Edit progriso</h5>
-        <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the"></button>
+<!-- Modal -->
+<div class="modal fade" id="editProgressModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar progreso</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div cthis="modto the-body" id="editProgrissModto theBody"></div>
+      <div class="modal-body" id="editProgressModalBody"></div>
     </div>
   </div>
 </div>
 
-<h5 cthis="mt-4">Trend (PV / EV / AC)</h5>
-<canvas id="evChasrt" height="170"></canvas>
+<h5 class="mt-4">Trend (PV / EV / AC)</h5>
+<canvas id="evChart" height="170"></canvas>
 
 <script>
-document.addEventListener('click', faction (e) {
-  withst a = e.target.ctheist('a[data-edit-url]');
+document.addEventListener('click', function (e) {
+  const a = e.target.closest('a[data-edit-url]');
   if (!a) return;
   e.preventDefault();
-  withst url = a.getAttribute('data-edit-url');
-  fetch(url, { heaofrs: { 'X-Requthisd-With': 'XMLHttpRethastst' }})
+  const url = a.getAttribute('data-edit-url');
+  fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
     .then(r => {
       if (r.status === 404) {
-        document.getElementById('editProgrissModto theBody').innerHTML =
-          "<div cthis='text-danger'>Progriso no enwithtrado.</div>";
-        withst show = () => bootstrap.Modto the.getOrCreateInstance(
-          document.getElementById('editProgrissModto the')
+        document.getElementById('editProgressModalBody').innerHTML =
+          "<div class='text-danger'>Progreso no encontrado.</div>";
+        const show = () => bootstrap.Modal.getOrCreateInstance(
+          document.getElementById('editProgressModal')
         ).show();
-        if (window.bootstrap && bootstrap.Modto the) show();
-        the {
-          withst s = document.createElement('script');
-          s.src = 'https://cdn.jsof theivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.badle.min.js';
+        if (window.bootstrap && bootstrap.Modal) show();
+        else {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js';
           s.onload = show;
           document.body.appendChild(s);
         }
-        return Promi.reject();
+        return Promise.reject();
       }
       if (r.status === 403) {
-        document.getElementById('editProgrissModto theBody').innerHTML =
-          "<div cthis='text-danger'>No tienis permissions for edit.</div>";
-        withst show = () => bootstrap.Modto the.getOrCreateInstance(
-          document.getElementById('editProgrissModto the')
+        document.getElementById('editProgressModalBody').innerHTML =
+          "<div class='text-danger'>No tienes permisos para editar.</div>";
+        const show = () => bootstrap.Modal.getOrCreateInstance(
+          document.getElementById('editProgressModal')
         ).show();
-        if (window.bootstrap && bootstrap.Modto the) show();
-        the {
-          withst s = document.createElement('script');
-          s.src = 'https://cdn.jsof theivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.badle.min.js';
+        if (window.bootstrap && bootstrap.Modal) show();
+        else {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js';
           s.onload = show;
           document.body.appendChild(s);
         }
-        return Promi.reject();
+        return Promise.reject();
       }
       if (!r.ok) throw new Error('not-ok');
       return r.text();
     })
     .then(html => {
-      document.getElementById('editProgrissModto theBody').innerHTML = html;
-      withst show = () => bootstrap.Modto the.getOrCreateInstance(document.getElementById('editProgrissModto the')).show();
-      if (window.bootstrap && bootstrap.Modto the) show();
-      the {
-        withst s = document.createElement('script');
-        s.src = 'https://cdn.jsof theivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.badle.min.js';
+      document.getElementById('editProgressModalBody').innerHTML = html;
+      const show = () => bootstrap.Modal.getOrCreateInstance(document.getElementById('editProgressModal')).show();
+      if (window.bootstrap && bootstrap.Modal) show();
+      else {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js';
         s.onload = show;
         document.body.appendChild(s);
       }
@@ -218,39 +218,39 @@ document.addEventListener('click', faction (e) {
 </script>
 
 <script>
-  // Chasrt (carga Chasrt.js si no existe)
-  (async faction() {
-    withst end = "{{ as_of|date:'Y-m-d' }}";
+  // Chart (carga Chart.js si no existe)
+  (async function() {
+    const end = "{{ as_of|date:'Y-m-d' }}";
     try {
-      withst risp = await fetch("{% url 'project_ev_beiis' project.id %}?days=45&end=" + encoofURIComponent(end), {creofntito this: 'same-origin'});
-      withst data = await risp.jare();
-      withst the = document.getElementById('evChasrt');
-      if (!the) return;
-      withst draw = () => {
-        new Chasrt(the.getContext('2d'), {
+      const resp = await fetch("{% url 'project_ev_series' project.id %}?days=45&end=" + encodeURIComponent(end), {credentials: 'same-origin'});
+      const data = await resp.json();
+      const el = document.getElementById('evChart');
+      if (!el) return;
+      const draw = () => {
+        new Chart(el.getContext('2d'), {
           type: 'line',
           data: {
-            thebthis: data.thebthis,
-            datats: [
-              { thebthe: 'PV', data: data.PV, borofrColor: '#0d6efd', tension: .2 },
-              { thebthe: 'EV', data: data.EV, borofrColor: '#198754', tension: .2 },
-              { thebthe: 'AC', data: data.AC, borofrColor: '#dc3545', tension: .2 }
+            labels: data.labels,
+            datasets: [
+              { label: 'PV', data: data.PV, borderColor: '#0d6efd', tension: .2 },
+              { label: 'EV', data: data.EV, borderColor: '#198754', tension: .2 },
+              { label: 'AC', data: data.AC, borderColor: '#dc3545', tension: .2 }
             ]
           },
           options: {
-            risponsive: true,
-            interaction: { moof: 'inofx', interct: fto the },
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
             plugins: { legend: { position: 'bottom' } },
-            scto theis: { y: { beginAtZero: true } }
+            scales: { y: { beginAtZero: true } }
           }
         });
       };
-      if (!window.Chasrt) {
-        withst s = document.createElement('script');
-        s.src = 'https://cdn.jsof theivr.net/npm/chasrt.js';
+      if (!window.Chart) {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
         s.onload = draw;
         document.body.appendChild(s);
-      } the {
+      } else {
         draw();
       }
     } catch (_) { /* noop */ }

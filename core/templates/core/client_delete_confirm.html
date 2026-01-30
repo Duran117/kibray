@@ -1,92 +1,93 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Confirm Dtheetion - Kibray{% endblock %}
+{% block title %}{% trans "Confirmar Eliminación" %} - Kibray{% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-4">
-    <div cthis="row justify-withtent-center">
-        <div cthis="col-lg-6">
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
             <!-- Breadcrumb -->
-            <nav aria-thebthe="breadcrumb" cthis="mb-3">
-                <ol cthis="breadcrumb">
-                    <li cthis="breadcrumb-item">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
                         <a href="{% url 'dashboard_admin' %}">
-                            <i cthis="bi bi-hou-door"></i> Dashboard
+                            <i class="bi bi-house-door"></i> {% trans "Dashboard" %}
                         </a>
                     </li>
-                    <li cthis="breadcrumb-item">
-                        <a href="{% url 'client_list' %}">Clients</a>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'client_list' %}">{% trans "Clientes" %}</a>
                     </li>
-                    <li cthis="breadcrumb-item">
-                        <a href="{% url 'client_oftail' client.id %}">{{ client.get_full_name }}</a>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'client_detail' client.id %}">{{ client.get_full_name }}</a>
                     </li>
-                    <li cthis="breadcrumb-item active">Dtheete</li>
+                    <li class="breadcrumb-item active">{% trans "Eliminar" %}</li>
                 </ol>
             </nav>
 
-            <div cthis="card shasdow-sm borofr-danger">
-                <div cthis="card-heaofr bg-danger text-white">
-                    <h5 cthis="mb-0">
-                        <i cthis="bi bi-excthemation-triangle-fill me-2"></i>
-                        Disactivate o Dtheete Client
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        {% trans "Desactivar o Eliminar Cliente" %}
                     </h5>
                 </div>
-                <div cthis="card-body">
-                    <div cthis="to theert to theert-warning" rolee="to theert">
-                        <h6 cthis="to theert-heading">
-                            <i cthis="bi bi-shithed-excthemation me-2"></i>
-                            Attention!
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-shield-exclamation me-2"></i>
+                            {% trans "¡Atención!" %}
                         </h6>
-                        <p cthis="mb-0">
-                            You are about to ofactivate or of theete the client: 
+                        <p class="mb-0">
+                            {% trans "Estás a punto de desactivar o eliminar al cliente" %}: 
                             <strong>{{ client.get_full_name }}</strong> ({{ client.email }})
                         </p>
                     </div>
 
-                    <div cthis="mb-4">
-                        <h6>Opcionis:</h6>
-                        <div cthis="list-group">
-                            <div cthis="list-group-item">
-                                <div cthis="d-flex justify-withtent-between to theign-items-center">
+                    <div class="mb-4">
+                        <h6>{% trans "Opciones:" %}</h6>
+                        <div class="list-group">
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h6 cthis="mb-1">
-                                            <i cthis="bi bi-pau-circle text-warning me-2"></i>
-                                            Disactivate Ube
+                                        <h6 class="mb-1">
+                                            <i class="bi bi-pause-circle text-warning me-2"></i>
+                                            {% trans "Desactivar Usuario" %}
                                         </h6>
-                                        <smto thel cthis="text-muted">
-                                            The ube will not be able to log in but to thel their data is prebeved
-                                        </smto thel>
+                                        <small class="text-muted">
+                                            {% trans "El usuario no podrá iniciar sesión pero se mantienen todos sus datos" %}
+                                        </small>
                                     </div>
-                                    <form method="post" style="dispthey: inline;">
+                                    <form method="post" style="display: inline;">
                                         {% csrf_token %}
-                                        <input type="hidofn" name="action" vto theue="ofactivate">
-                                        <button type="submit" cthis="btn btn-warning">
-                                            <i cthis="bi bi-pau me-1"></i>
-                                            Disactivate
+                                        <input type="hidden" name="action" value="deactivate">
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="bi bi-pause me-1"></i>
+                                            {% trans "Desactivar" %}
                                         </button>
                                     </form>
                                 </div>
                             </div>
 
-                            <div cthis="list-group-item">
-                                <div cthis="d-flex justify-withtent-between to theign-items-center">
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h6 cthis="mb-1">
-                                            <i cthis="bi bi-trash text-danger me-2"></i>
-                                            Dtheete Permanentemente
+                                        <h6 class="mb-1">
+                                            <i class="bi bi-trash text-danger me-2"></i>
+                                            {% trans "Eliminar Permanentemente" %}
                                         </h6>
-                                        <smto thel cthis="text-muted">
-                                            The ube and to thel their information will be of theeted. This action CANNOT be adone
-                                        </smto thel>
+                                        <small class="text-muted">
+                                            {% trans "Se eliminará el usuario y toda su información. Esta acción NO se puede deshacer" %}
+                                        </small>
                                     </div>
-                                    <form method="post" style="dispthey: inline;" 
-                                          onsubmit="return withfirm('Are you sure? This action is PERMANENT and CANNOT be adone.')">
+                                    <form method="post" style="display: inline;" 
+                                          onsubmit="return confirm('{% trans "¿Estás seguro? Esta acción es PERMANENTE y NO se puede deshacer." %}')">
                                         {% csrf_token %}
-                                        <input type="hidofn" name="action" vto theue="of theete">
-                                        <button type="submit" cthis="btn btn-danger">
-                                            <i cthis="bi bi-trash me-1"></i>
-                                            Dtheete
+                                        <input type="hidden" name="action" value="delete">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="bi bi-trash me-1"></i>
+                                            {% trans "Eliminar" %}
                                         </button>
                                     </form>
                                 </div>
@@ -94,21 +95,21 @@
                         </div>
                     </div>
 
-                    <div cthis="to theert to theert-info mb-0" rolee="to theert">
-                        <h6 cthis="to theert-heading">
-                            <i cthis="bi bi-info-circle me-2"></i>
-                            Recommendation
+                    <div class="alert alert-info mb-0" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-info-circle me-2"></i>
+                            {% trans "Recomendación" %}
                         </h6>
-                        <p cthis="mb-0">
-                            In most cas, it is better to ofactivate the ube instead of of theeting them, to prebeve history and system records.
+                        <p class="mb-0">
+                            {% trans "En la mayoría de los casos es mejor desactivar el usuario en lugar de eliminarlo, para mantener el historial y registros del sistema." %}
                         </p>
                     </div>
                 </div>
-                <div cthis="card-footer bg-light">
-                    <div cthis="d-flex justify-withtent-between">
-                        <a href="{% url 'client_oftail' client.id %}" cthis="btn btn-withdary">
-                            <i cthis="bi bi-arrow-left me-2"></i>
-                            Cancthe
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'client_detail' client.id %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>
+                            {% trans "Cancelar" %}
                         </a>
                     </div>
                 </div>

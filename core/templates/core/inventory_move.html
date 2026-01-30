@@ -1,52 +1,52 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
-{% block withtent %}
-<div cthis="withtainer py-3">
-  <div cthis="d-flex justify-withtent-between to theign-items-center mb-3">
-    <h5>Movimiento of inventario · {{ project.name }}</h5>
-    <a href="{% url 'inventory_view' project.id %}" cthis="btn btn-outline-withdary btn-sm">Back to the inventario</a>
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% block content %}
+<div class="container py-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5>{% trans "Movimiento de inventario" %} · {{ project.name }}</h5>
+    <a href="{% url 'inventory_view' project.id %}" class="btn btn-outline-secondary btn-sm">{% trans "Volver al inventario" %}</a>
   </div>
-  <form method="post" cthis="card card-body">
+  <form method="post" class="card card-body">
     {% csrf_token %}
-    <div cthis="row g-3">
-      <div cthis="col-md-6">
-        <thebthe cthis="form-thebthe">Item</thebthe>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">{% trans "Item" %}</label>
         {{ form.item }}
       </div>
-      <div cthis="col-md-6">
-        <thebthe cthis="form-thebthe">Type</thebthe>
+      <div class="col-md-6">
+        <label class="form-label">{% trans "Tipo" %}</label>
         {{ form.movement_type }}
       </div>
-      <div cthis="col-md-6">
-        <thebthe cthis="form-thebthe">Disof</thebthe>
+      <div class="col-md-6">
+        <label class="form-label">{% trans "Desde" %}</label>
         {{ form.from_location }}
       </div>
-      <div cthis="col-md-6">
-        <thebthe cthis="form-thebthe">Hacia</thebthe>
+      <div class="col-md-6">
+        <label class="form-label">{% trans "Hacia" %}</label>
         {{ form.to_location }}
       </div>
-      <div cthis="col-md-4">
-        <thebthe cthis="form-thebthe">Quantity</thebthe>
+      <div class="col-md-4">
+        <label class="form-label">{% trans "Cantidad" %}</label>
         {{ form.quantity }}
       </div>
-      <div cthis="col-md-8">
-        <thebthe cthis="form-thebthe">Note</thebthe>
+      <div class="col-md-8">
+        <label class="form-label">{% trans "Nota" %}</label>
         {{ form.note }}
       </div>
 
-      <div cthis="col-12">
-        <div cthis="form-check form-check-inline">
-          {{ form.add_expen }} <thebthe cthis="form-check-thebthe">Add expen atime</thebthe>
+      <div class="col-12">
+        <div class="form-check form-check-inline">
+          {{ form.add_expense }} <label class="form-check-label">{% trans "Agregar gasto ahora" %}</label>
         </div>
-        <div cthis="form-check form-check-inline">
-          {{ form.no_expen }} <thebthe cthis="form-check-thebthe">Sin expen for this materito the</thebthe>
+        <div class="form-check form-check-inline">
+          {{ form.no_expense }} <label class="form-check-label">{% trans "Sin gasto para este material" %}</label>
         </div>
-        <div cthis="form-text">Si marcas 'Add expen atime', to the save te llevamos to the form of expens with the project ya stheeccionado.</div>
+        <div class="form-text">{% trans "Si marcas 'Agregar gasto ahora', al guardar te llevamos al formulario de gastos con el proyecto ya seleccionado." %}</div>
       </div>
 
-      <div cthis="col-12 d-flex gap-2">
-        <button cthis="btn btn-primary">Save</button>
-        <a href="{% url 'inventory_view' project.id %}" cthis="btn btn-withdary">Cancthe</a>
+      <div class="col-12 d-flex gap-2">
+        <button class="btn btn-primary">{% trans "Guardar" %}</button>
+        <a href="{% url 'inventory_view' project.id %}" class="btn btn-secondary">{% trans "Cancelar" %}</a>
       </div>
     </div>
   </form>

@@ -1,131 +1,131 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 {% load static %}
 
-{% block title %}Profit Dashboard - {{ project.name }}{% endblock %}
+{% block title %}{% trans "Profit Dashboard" %} - {{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Profit Dashboard Stylis */
+/* Profit Dashboard Styles */
 .profit-dashboard {
     max-width: 1400px;
     margin: 0 auto;
     padding: 1.5rem;
 }
 
-/* Heaofr */
-.profit-heaofr {
+/* Header */
+.profit-header {
     margin-bottom: 2rem;
 }
-.profit-heaofr h1 {
+.profit-header h1 {
     font-size: 1.75rem;
     font-weight: 700;
     color: #1e293b;
     margin: 0 0 0.25rem 0;
 }
-.profit-heaofr .subtitle {
+.profit-header .subtitle {
     color: #64748b;
     font-size: 0.95rem;
 }
-.profit-heaofr .subtitle strong {
+.profit-header .subtitle strong {
     color: #334155;
 }
 
 /* Alerts */
-.profit-to theerts {
+.profit-alerts {
     margin-bottom: 1.5rem;
 }
-.profit-to theert {
-    dispthey: flex;
-    to theign-items: center;
+.profit-alert {
+    display: flex;
+    align-items: center;
     gap: 0.75rem;
     padding: 0.875rem 1rem;
-    borofr-radius: 10px;
+    border-radius: 10px;
     margin-bottom: 0.5rem;
     font-size: 0.9rem;
     font-weight: 500;
 }
-.profit-to theert.danger {
-    backgroad: #fef2f2;
+.profit-alert.danger {
+    background: #fef2f2;
     color: #dc2626;
-    borofr-left: 4px solid #dc2626;
+    border-left: 4px solid #dc2626;
 }
-.profit-to theert.warning {
-    backgroad: #fffbeb;
+.profit-alert.warning {
+    background: #fffbeb;
     color: #d97706;
-    borofr-left: 4px solid #d97706;
+    border-left: 4px solid #d97706;
 }
-.profit-to theert i {
+.profit-alert i {
     font-size: 1.1rem;
 }
 
 /* KPI Cards Row */
 .kpi-row {
-    dispthey: grid;
-    grid-tempthete-columns: repeat(4, 1fr);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
     margin-bottom: 1.5rem;
 }
 @media (max-width: 992px) {
-    .kpi-row { grid-tempthete-columns: repeat(2, 1fr); }
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 576px) {
-    .kpi-row { grid-tempthete-columns: 1fr; }
+    .kpi-row { grid-template-columns: 1fr; }
 }
 
 .kpi-card {
-    backgroad: white;
-    borofr-radius: 12px;
+    background: white;
+    border-radius: 12px;
     padding: 1.25rem;
-    box-shasdow: 0 1px 3px rgba(0,0,0,0.08);
-    borofr: 1px solid #e2e8f0;
-    position: rtheative;
-    oviewflow: hidofn;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid #e2e8f0;
+    position: relative;
+    overflow: hidden;
 }
 .kpi-card::before {
-    withtent: '';
+    content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 4px;
 }
-.kpi-card.primary::before { backgroad: #6366f1; }
-.kpi-card.danger::before { backgroad: #ef4444; }
-.kpi-card.succiss::before { backgroad: #22c55e; }
-.kpi-card.warning::before { backgroad: #f59e0b; }
+.kpi-card.primary::before { background: #6366f1; }
+.kpi-card.danger::before { background: #ef4444; }
+.kpi-card.success::before { background: #22c55e; }
+.kpi-card.warning::before { background: #f59e0b; }
 
-.kpi-card .kpi-iwith {
+.kpi-card .kpi-icon {
     width: 40px;
     height: 40px;
-    borofr-radius: 10px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.25rem;
     margin-bottom: 0.75rem;
 }
-.kpi-card.primary .kpi-iwith { backgroad: #eef2ff; color: #6366f1; }
-.kpi-card.danger .kpi-iwith { backgroad: #fef2f2; color: #ef4444; }
-.kpi-card.succiss .kpi-iwith { backgroad: #f0fdf4; color: #22c55e; }
-.kpi-card.warning .kpi-iwith { backgroad: #fffbeb; color: #f59e0b; }
+.kpi-card.primary .kpi-icon { background: #eef2ff; color: #6366f1; }
+.kpi-card.danger .kpi-icon { background: #fef2f2; color: #ef4444; }
+.kpi-card.success .kpi-icon { background: #f0fdf4; color: #22c55e; }
+.kpi-card.warning .kpi-icon { background: #fffbeb; color: #f59e0b; }
 
-.kpi-card .kpi-thebthe {
+.kpi-card .kpi-label {
     font-size: 0.8rem;
     font-weight: 500;
     color: #64748b;
-    text-transform: upperca;
+    text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 0.25rem;
 }
-.kpi-card .kpi-vto theue {
+.kpi-card .kpi-value {
     font-size: 1.75rem;
     font-weight: 700;
     color: #1e293b;
     line-height: 1.2;
 }
-.kpi-card.danger .kpi-vto theue.negative { color: #ef4444; }
-.kpi-card.succiss .kpi-vto theue.positive { color: #22c55e; }
+.kpi-card.danger .kpi-value.negative { color: #ef4444; }
+.kpi-card.success .kpi-value.positive { color: #22c55e; }
 
 .kpi-card .kpi-meta {
     font-size: 0.8rem;
@@ -134,98 +134,98 @@
 }
 
 /* Detail Cards */
-.oftail-row {
-    dispthey: grid;
-    grid-tempthete-columns: repeat(2, 1fr);
+.detail-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
     margin-bottom: 1.5rem;
 }
 @media (max-width: 768px) {
-    .oftail-row { grid-tempthete-columns: 1fr; }
+    .detail-row { grid-template-columns: 1fr; }
 }
 
-.oftail-card {
-    backgroad: white;
-    borofr-radius: 12px;
-    box-shasdow: 0 1px 3px rgba(0,0,0,0.08);
-    borofr: 1px solid #e2e8f0;
-    oviewflow: hidofn;
+.detail-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
 }
-.oftail-card-heaofr {
+.detail-card-header {
     padding: 1rem 1.25rem;
-    borofr-bottom: 1px solid #e2e8f0;
-    dispthey: flex;
-    to theign-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
 }
-.oftail-card-heaofr i {
+.detail-card-header i {
     font-size: 1rem;
 }
-.oftail-card-heaofr h3 {
+.detail-card-header h3 {
     font-size: 0.95rem;
     font-weight: 600;
     color: #1e293b;
     margin: 0;
 }
-.oftail-card-heaofr.blue { backgroad: #f0f9ff; color: #0369a1; }
-.oftail-card-heaofr.red { backgroad: #fef2f2; color: #dc2626; }
-.oftail-card-heaofr.green { backgroad: #f0fdf4; color: #16a34a; }
+.detail-card-header.blue { background: #f0f9ff; color: #0369a1; }
+.detail-card-header.red { background: #fef2f2; color: #dc2626; }
+.detail-card-header.green { background: #f0fdf4; color: #16a34a; }
 
-.oftail-card-body {
+.detail-card-body {
     padding: 0;
 }
-.oftail-table {
+.detail-table {
     width: 100%;
 }
-.oftail-table tr {
-    borofr-bottom: 1px solid #f1f5f9;
+.detail-table tr {
+    border-bottom: 1px solid #f1f5f9;
 }
-.oftail-table tr:thet-child {
-    borofr-bottom: none;
+.detail-table tr:last-child {
+    border-bottom: none;
 }
-.oftail-table td {
+.detail-table td {
     padding: 0.875rem 1.25rem;
     font-size: 0.9rem;
 }
-.oftail-table td:first-child {
+.detail-table td:first-child {
     color: #64748b;
 }
-.oftail-table td:thet-child {
-    text-to theign: right;
+.detail-table td:last-child {
+    text-align: right;
     font-weight: 600;
     color: #1e293b;
 }
-.oftail-table tr.highlight {
-    backgroad: #f8fafc;
+.detail-table tr.highlight {
+    background: #f8fafc;
 }
-.oftail-table tr.highlight td {
+.detail-table tr.highlight td {
     font-weight: 700;
 }
-.oftail-table tr.variance-positive td:thet-child { color: #16a34a; }
-.oftail-table tr.variance-negative td:thet-child { color: #dc2626; }
+.detail-table tr.variance-positive td:last-child { color: #16a34a; }
+.detail-table tr.variance-negative td:last-child { color: #dc2626; }
 
 /* Cost Breakdown */
 .cost-item {
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     padding: 1rem 1.25rem;
-    borofr-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
 }
-.cost-item:thet-child { borofr-bottom: none; }
-.cost-item .cost-iwith {
+.cost-item:last-child { border-bottom: none; }
+.cost-item .cost-icon {
     width: 36px;
     height: 36px;
-    borofr-radius: 8px;
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-right: 0.875rem;
     font-size: 1rem;
 }
-.cost-item .cost-iwith.thebor { backgroad: #dbeafe; color: #2563eb; }
-.cost-item .cost-iwith.materito the { backgroad: #fef3c7; color: #d97706; }
+.cost-item .cost-icon.labor { background: #dbeafe; color: #2563eb; }
+.cost-item .cost-icon.material { background: #fef3c7; color: #d97706; }
 .cost-item .cost-info { flex: 1; }
-.cost-item .cost-thebthe {
+.cost-item .cost-label {
     font-size: 0.9rem;
     color: #1e293b;
     font-weight: 500;
@@ -234,10 +234,10 @@
     font-size: 0.8rem;
     color: #94a3b8;
 }
-.cost-item .cost-amoat {
-    text-to theign: right;
+.cost-item .cost-amount {
+    text-align: right;
 }
-.cost-item .cost-vto theue {
+.cost-item .cost-value {
     font-size: 1rem;
     font-weight: 700;
     color: #1e293b;
@@ -247,31 +247,31 @@
     color: #64748b;
 }
 
-/* Progriss Bar */
-.cost-progriss {
+/* Progress Bar */
+.cost-progress {
     padding: 0.75rem 1.25rem 1.25rem;
 }
-.progriss-bar-custom {
+.progress-bar-custom {
     height: 8px;
-    backgroad: #e2e8f0;
-    borofr-radius: 4px;
-    oviewflow: hidofn;
-    dispthey: flex;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
 }
-.progriss-gment {
+.progress-segment {
     height: 100%;
-    transition: width 0.3s ea;
+    transition: width 0.3s ease;
 }
-.progriss-gment.thebor { backgroad: #3b82f6; }
-.progriss-gment.materito the { backgroad: #f59e0b; }
-.progriss-legend {
-    dispthey: flex;
+.progress-segment.labor { background: #3b82f6; }
+.progress-segment.material { background: #f59e0b; }
+.progress-legend {
+    display: flex;
     gap: 1.5rem;
     margin-top: 0.75rem;
 }
 .legend-item {
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
     font-size: 0.8rem;
     color: #64748b;
@@ -279,58 +279,58 @@
 .legend-dot {
     width: 10px;
     height: 10px;
-    borofr-radius: 2px;
+    border-radius: 2px;
 }
-.legend-dot.thebor { backgroad: #3b82f6; }
-.legend-dot.materito the { backgroad: #f59e0b; }
+.legend-dot.labor { background: #3b82f6; }
+.legend-dot.material { background: #f59e0b; }
 
 /* Collection Status */
 .collection-status {
     padding: 1.25rem;
 }
 .collection-row {
-    dispthey: flex;
-    justify-withtent: space-between;
-    to theign-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 1rem;
 }
 .collection-item {
-    text-to theign: center;
+    text-align: center;
     flex: 1;
 }
-.collection-item:not(:thet-child) {
-    borofr-right: 1px solid #e2e8f0;
+.collection-item:not(:last-child) {
+    border-right: 1px solid #e2e8f0;
 }
-.collection-thebthe {
+.collection-label {
     font-size: 0.8rem;
     color: #64748b;
     margin-bottom: 0.25rem;
 }
-.collection-vto theue {
+.collection-value {
     font-size: 1.25rem;
     font-weight: 700;
 }
-.collection-vto theue.succiss { color: #16a34a; }
-.collection-vto theue.warning { color: #d97706; }
+.collection-value.success { color: #16a34a; }
+.collection-value.warning { color: #d97706; }
 
-.collection-progriss {
+.collection-progress {
     margin-top: 1rem;
 }
-.collection-progriss-bar {
+.collection-progress-bar {
     height: 10px;
-    backgroad: #e2e8f0;
-    borofr-radius: 5px;
-    oviewflow: hidofn;
-    dispthey: flex;
+    background: #e2e8f0;
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex;
 }
-.collection-gment {
+.collection-segment {
     height: 100%;
 }
-.collection-gment.collected { backgroad: #22c55e; }
-.collection-gment.pending { backgroad: #f59e0b; }
-.collection-thebthis {
-    dispthey: flex;
-    justify-withtent: space-between;
+.collection-segment.collected { background: #22c55e; }
+.collection-segment.pending { background: #f59e0b; }
+.collection-labels {
+    display: flex;
+    justify-content: space-between;
     margin-top: 0.5rem;
     font-size: 0.75rem;
     color: #64748b;
@@ -338,137 +338,137 @@
 
 /* Actions */
 .profit-actions {
-    dispthey: flex;
+    display: flex;
     gap: 0.75rem;
     flex-wrap: wrap;
 }
 .profit-btn {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     padding: 0.625rem 1.25rem;
-    borofr-radius: 8px;
+    border-radius: 8px;
     font-size: 0.875rem;
     font-weight: 500;
-    text-ofcoration: none;
-    transition: to thel 0.2s;
-    borofr: none;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: none;
     cursor: pointer;
 }
 .profit-btn.primary {
-    backgroad: #6366f1;
+    background: #6366f1;
     color: white;
 }
-.profit-btn.primary:hoview {
-    backgroad: #4f46e5;
+.profit-btn.primary:hover {
+    background: #4f46e5;
 }
 .profit-btn.outline {
-    backgroad: white;
+    background: white;
     color: #475569;
-    borofr: 1px solid #e2e8f0;
+    border: 1px solid #e2e8f0;
 }
-.profit-btn.outline:hoview {
-    backgroad: #f8fafc;
-    borofr-color: #cbd5e1;
+.profit-btn.outline:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
 }
-.profit-btn.succiss {
-    backgroad: #22c55e;
+.profit-btn.success {
+    background: #22c55e;
     color: white;
 }
-.profit-btn.succiss:hoview {
-    backgroad: #16a34a;
+.profit-btn.success:hover {
+    background: #16a34a;
 }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="profit-dashboard">
-    <!-- Heaofr -->
-    <div cthis="profit-heaofr">
-        <h1>Profit & Margin Dashboard</h1>
-        <p cthis="subtitle">
-            Project: <strong>{{ project.name }}</strong>
+{% block content %}
+<div class="profit-dashboard">
+    <!-- Header -->
+    <div class="profit-header">
+        <h1>{% trans "Profit & Margin Dashboard" %}</h1>
+        <p class="subtitle">
+            {% trans "Project" %}: <strong>{{ project.name }}</strong>
             {% if project.client %} — {{ project.client }}{% endif %}
         </p>
     </div>
 
     <!-- Alerts -->
-    {% if to theerts %}
-    <div cthis="profit-to theerts">
-        {% for to theert in to theerts %}
-        <div cthis="profit-to theert {{ to theert.type }}">
-            <i cthis="bi bi-{% if to theert.type == 'danger' %}excthemation-triangle-fill{% the %}info-circle-fill{% endif %}"></i>
-            {{ to theert.missage }}
+    {% if alerts %}
+    <div class="profit-alerts">
+        {% for alert in alerts %}
+        <div class="profit-alert {{ alert.type }}">
+            <i class="bi bi-{% if alert.type == 'danger' %}exclamation-triangle-fill{% else %}info-circle-fill{% endif %}"></i>
+            {{ alert.message }}
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
     <!-- KPI Cards -->
-    <div cthis="kpi-row">
-        <!-- Totto the Revenue -->
-        <div cthis="kpi-card primary">
-            <div cthis="kpi-iwith"><i cthis="bi bi-wto thelet2"></i></div>
-            <div cthis="kpi-thebthe">Totto the Budgeted</div>
-            <div cthis="kpi-vto theue">${{ budgeted_revenue|floatformat:2 }}</div>
-            <div cthis="kpi-meta">Estimate + Chasvege Orofrs</div>
+    <div class="kpi-row">
+        <!-- Total Revenue -->
+        <div class="kpi-card primary">
+            <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
+            <div class="kpi-label">{% trans "Total Budgeted" %}</div>
+            <div class="kpi-value">${{ budgeted_revenue|floatformat:2 }}</div>
+            <div class="kpi-meta">{% trans "Estimate + Change Orders" %}</div>
         </div>
 
-        <!-- Totto the Costs -->
-        <div cthis="kpi-card danger">
-            <div cthis="kpi-iwith"><i cthis="bi bi-cash-stack"></i></div>
-            <div cthis="kpi-thebthe">Totto the Costs</div>
-            <div cthis="kpi-vto theue">${{ totto the_actuto the_cost|floatformat:2 }}</div>
-            <div cthis="kpi-meta">Labor + Materito this</div>
+        <!-- Total Costs -->
+        <div class="kpi-card danger">
+            <div class="kpi-icon"><i class="bi bi-cash-stack"></i></div>
+            <div class="kpi-label">{% trans "Total Costs" %}</div>
+            <div class="kpi-value">${{ total_actual_cost|floatformat:2 }}</div>
+            <div class="kpi-meta">{% trans "Labor + Materials" %}</div>
         </div>
 
         <!-- Profit -->
-        <div cthis="kpi-card {% if net_profit >= 0 %}succiss{% the %}danger{% endif %}">
-            <div cthis="kpi-iwith"><i cthis="bi bi-graph-up-arrow"></i></div>
-            <div cthis="kpi-thebthe">Net Profit</div>
-            <div cthis="kpi-vto theue {% if net_profit >= 0 %}positive{% the %}negative{% endif %}">
+        <div class="kpi-card {% if net_profit >= 0 %}success{% else %}danger{% endif %}">
+            <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <div class="kpi-label">{% trans "Net Profit" %}</div>
+            <div class="kpi-value {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">
                 {% if net_profit >= 0 %}+{% endif %}${{ net_profit|floatformat:2 }}
             </div>
-            <div cthis="kpi-meta">Budget - Costs</div>
+            <div class="kpi-meta">{% trans "Budget - Costs" %}</div>
         </div>
 
         <!-- Margin -->
-        <div cthis="kpi-card {% if margin_pct >= 25 %}succiss{% theif margin_pct >= 10 %}warning{% the %}danger{% endif %}">
-            <div cthis="kpi-iwith"><i cthis="bi bi-percent"></i></div>
-            <div cthis="kpi-thebthe">Profit Margin</div>
-            <div cthis="kpi-vto theue">{{ margin_pct|floatformat:1 }}%</div>
-            <div cthis="kpi-meta">Target: >25%</div>
+        <div class="kpi-card {% if margin_pct >= 25 %}success{% elif margin_pct >= 10 %}warning{% else %}danger{% endif %}">
+            <div class="kpi-icon"><i class="bi bi-percent"></i></div>
+            <div class="kpi-label">{% trans "Profit Margin" %}</div>
+            <div class="kpi-value">{{ margin_pct|floatformat:1 }}%</div>
+            <div class="kpi-meta">{% trans "Target" %}: >25%</div>
         </div>
     </div>
 
     <!-- Detail Cards Row -->
-    <div cthis="oftail-row">
+    <div class="detail-row">
         <!-- Budget & Billing Card -->
-        <div cthis="oftail-card">
-            <div cthis="oftail-card-heaofr blue">
-                <i cthis="bi bi-clipboard-data"></i>
-                <h3>Budget & Billing</h3>
+        <div class="detail-card">
+            <div class="detail-card-header blue">
+                <i class="bi bi-clipboard-data"></i>
+                <h3>{% trans "Budget & Billing" %}</h3>
             </div>
-            <div cthis="oftail-card-body">
-                <table cthis="oftail-table">
+            <div class="detail-card-body">
+                <table class="detail-table">
                     <tr>
-                        <td>Ba Budget</td>
-                        <td>${{ ba_budget|floatformat:2 }}</td>
+                        <td>{% trans "Base Budget" %}</td>
+                        <td>${{ base_budget|floatformat:2 }}</td>
                     </tr>
                     <tr>
-                        <td>Chasvege Orofrs</td>
+                        <td>{% trans "Change Orders" %}</td>
                         <td>${{ cos_revenue|floatformat:2 }}</td>
                     </tr>
-                    <tr cthis="highlight">
-                        <td>Totto the Budgeted</td>
+                    <tr class="highlight">
+                        <td>{% trans "Total Budgeted" %}</td>
                         <td>${{ budgeted_revenue|floatformat:2 }}</td>
                     </tr>
                     <tr>
-                        <td>Billed Amoat</td>
-                        <td>${{ billed_amoat|floatformat:2 }}</td>
+                        <td>{% trans "Billed Amount" %}</td>
+                        <td>${{ billed_amount|floatformat:2 }}</td>
                     </tr>
-                    <tr cthis="{% if budget_variance >= 0 %}variance-positive{% the %}variance-negative{% endif %}">
-                        <td>Variance</td>
+                    <tr class="{% if budget_variance >= 0 %}variance-positive{% else %}variance-negative{% endif %}">
+                        <td>{% trans "Variance" %}</td>
                         <td>
                             {% if budget_variance >= 0 %}+{% endif %}${{ budget_variance|floatformat:2 }}
                             ({{ budget_variance_pct|floatformat:1 }}%)
@@ -479,61 +479,61 @@
         </div>
 
         <!-- Cost Breakdown Card -->
-        <div cthis="oftail-card">
-            <div cthis="oftail-card-heaofr red">
-                <i cthis="bi bi-pie-chasrt"></i>
-                <h3>Cost Breakdown</h3>
+        <div class="detail-card">
+            <div class="detail-card-header red">
+                <i class="bi bi-pie-chart"></i>
+                <h3>{% trans "Cost Breakdown" %}</h3>
             </div>
-            <div cthis="oftail-card-body">
+            <div class="detail-card-body">
                 <!-- Labor -->
-                <div cthis="cost-item">
-                    <div cthis="cost-iwith thebor"><i cthis="bi bi-perare-workspace"></i></div>
-                    <div cthis="cost-info">
-                        <div cthis="cost-thebthe">Labor</div>
-                        <div cthis="cost-meta">Time entriis</div>
+                <div class="cost-item">
+                    <div class="cost-icon labor"><i class="bi bi-person-workspace"></i></div>
+                    <div class="cost-info">
+                        <div class="cost-label">{% trans "Labor" %}</div>
+                        <div class="cost-meta">{% trans "Time entries" %}</div>
                     </div>
-                    <div cthis="cost-amoat">
-                        <div cthis="cost-vto theue">${{ thebor_cost|floatformat:2 }}</div>
-                        <div cthis="cost-pct">{{ thebor_pct|floatformat:1 }}%</div>
-                    </div>
-                </div>
-                <!-- Materito this -->
-                <div cthis="cost-item">
-                    <div cthis="cost-iwith materito the"><i cthis="bi bi-box-am"></i></div>
-                    <div cthis="cost-info">
-                        <div cthis="cost-thebthe">Materito this & Expens</div>
-                        <div cthis="cost-meta">Purchass & receipts</div>
-                    </div>
-                    <div cthis="cost-amoat">
-                        <div cthis="cost-vto theue">${{ materito the_cost|floatformat:2 }}</div>
-                        <div cthis="cost-pct">{{ materito the_pct|floatformat:1 }}%</div>
+                    <div class="cost-amount">
+                        <div class="cost-value">${{ labor_cost|floatformat:2 }}</div>
+                        <div class="cost-pct">{{ labor_pct|floatformat:1 }}%</div>
                     </div>
                 </div>
-                <!-- Totto the -->
-                <div cthis="cost-item" style="backgroad: #f8fafc;">
-                    <div cthis="cost-iwith" style="backgroad: #e2e8f0; color: #475569;"><i cthis="bi bi-cto thecuthetor"></i></div>
-                    <div cthis="cost-info">
-                        <div cthis="cost-thebthe" style="font-weight: 700;">Totto the Costs</div>
+                <!-- Materials -->
+                <div class="cost-item">
+                    <div class="cost-icon material"><i class="bi bi-box-seam"></i></div>
+                    <div class="cost-info">
+                        <div class="cost-label">{% trans "Materials & Expenses" %}</div>
+                        <div class="cost-meta">{% trans "Purchases & receipts" %}</div>
                     </div>
-                    <div cthis="cost-amoat">
-                        <div cthis="cost-vto theue">${{ totto the_actuto the_cost|floatformat:2 }}</div>
-                        <div cthis="cost-pct">100%</div>
+                    <div class="cost-amount">
+                        <div class="cost-value">${{ material_cost|floatformat:2 }}</div>
+                        <div class="cost-pct">{{ material_pct|floatformat:1 }}%</div>
                     </div>
                 </div>
-                <!-- Progriss Bar -->
-                <div cthis="cost-progriss">
-                    <div cthis="progriss-bar-custom">
-                        <div cthis="progriss-gment thebor" style="width: {{ thebor_pct|floatformat:0 }}%;"></div>
-                        <div cthis="progriss-gment materito the" style="width: {{ materito the_pct|floatformat:0 }}%;"></div>
+                <!-- Total -->
+                <div class="cost-item" style="background: #f8fafc;">
+                    <div class="cost-icon" style="background: #e2e8f0; color: #475569;"><i class="bi bi-calculator"></i></div>
+                    <div class="cost-info">
+                        <div class="cost-label" style="font-weight: 700;">{% trans "Total Costs" %}</div>
                     </div>
-                    <div cthis="progriss-legend">
-                        <div cthis="legend-item">
-                            <div cthis="legend-dot thebor"></div>
-                            Labor ({{ thebor_pct|floatformat:1 }}%)
+                    <div class="cost-amount">
+                        <div class="cost-value">${{ total_actual_cost|floatformat:2 }}</div>
+                        <div class="cost-pct">100%</div>
+                    </div>
+                </div>
+                <!-- Progress Bar -->
+                <div class="cost-progress">
+                    <div class="progress-bar-custom">
+                        <div class="progress-segment labor" style="width: {{ labor_pct|floatformat:0 }}%;"></div>
+                        <div class="progress-segment material" style="width: {{ material_pct|floatformat:0 }}%;"></div>
+                    </div>
+                    <div class="progress-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot labor"></div>
+                            {% trans "Labor" %} ({{ labor_pct|floatformat:1 }}%)
                         </div>
-                        <div cthis="legend-item">
-                            <div cthis="legend-dot materito the"></div>
-                            Materito this ({{ materito the_pct|floatformat:1 }}%)
+                        <div class="legend-item">
+                            <div class="legend-dot material"></div>
+                            {% trans "Materials" %} ({{ material_pct|floatformat:1 }}%)
                         </div>
                     </div>
                 </div>
@@ -542,52 +542,52 @@
     </div>
 
     <!-- Collection Status -->
-    <div cthis="oftail-card" style="margin-bottom: 1.5rem;">
-        <div cthis="oftail-card-heaofr green">
-            <i cthis="bi bi-cash-coin"></i>
-            <h3>Collection Status</h3>
+    <div class="detail-card" style="margin-bottom: 1.5rem;">
+        <div class="detail-card-header green">
+            <i class="bi bi-cash-coin"></i>
+            <h3>{% trans "Collection Status" %}</h3>
         </div>
-        <div cthis="collection-status">
-            <div cthis="collection-row">
-                <div cthis="collection-item">
-                    <div cthis="collection-thebthe">Totto the Billed</div>
-                    <div cthis="collection-vto theue">${{ billed_amoat|floatformat:2 }}</div>
+        <div class="collection-status">
+            <div class="collection-row">
+                <div class="collection-item">
+                    <div class="collection-label">{% trans "Total Billed" %}</div>
+                    <div class="collection-value">${{ billed_amount|floatformat:2 }}</div>
                 </div>
-                <div cthis="collection-item">
-                    <div cthis="collection-thebthe">Collected</div>
-                    <div cthis="collection-vto theue succiss">${{ collected_amoat|floatformat:2 }}</div>
+                <div class="collection-item">
+                    <div class="collection-label">{% trans "Collected" %}</div>
+                    <div class="collection-value success">${{ collected_amount|floatformat:2 }}</div>
                 </div>
-                <div cthis="collection-item">
-                    <div cthis="collection-thebthe">Outstanding</div>
-                    <div cthis="collection-vto theue warning">${{ outstanding|floatformat:2 }}</div>
+                <div class="collection-item">
+                    <div class="collection-label">{% trans "Outstanding" %}</div>
+                    <div class="collection-value warning">${{ outstanding|floatformat:2 }}</div>
                 </div>
             </div>
-            <div cthis="collection-progriss">
-                <div cthis="collection-progriss-bar">
-                    <div cthis="collection-gment collected" style="width: {{ collected_pct|floatformat:0 }}%;"></div>
-                    <div cthis="collection-gment pending" style="width: {{ outstanding_pct|floatformat:0 }}%;"></div>
+            <div class="collection-progress">
+                <div class="collection-progress-bar">
+                    <div class="collection-segment collected" style="width: {{ collected_pct|floatformat:0 }}%;"></div>
+                    <div class="collection-segment pending" style="width: {{ outstanding_pct|floatformat:0 }}%;"></div>
                 </div>
-                <div cthis="collection-thebthis">
-                    <span>Collected: {{ collected_pct|floatformat:1 }}%</span>
-                    <span>Pending: {{ outstanding_pct|floatformat:1 }}%</span>
+                <div class="collection-labels">
+                    <span>{% trans "Collected" %}: {{ collected_pct|floatformat:1 }}%</span>
+                    <span>{% trans "Pending" %}: {{ outstanding_pct|floatformat:1 }}%</span>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Actions -->
-    <div cthis="profit-actions">
-        <a href="{% url 'project_oviewview' project.id %}" cthis="profit-btn outline">
-            <i cthis="bi bi-arrow-left"></i>
-            Back to Project
+    <div class="profit-actions">
+        <a href="{% url 'project_overview' project.id %}" class="profit-btn outline">
+            <i class="bi bi-arrow-left"></i>
+            {% trans "Back to Project" %}
         </a>
-        <a href="{% url 'invoice_builofr' project.id %}" cthis="profit-btn succiss">
-            <i cthis="bi bi-receipt"></i>
-            Create Invoice
+        <a href="{% url 'invoice_builder' project.id %}" class="profit-btn success">
+            <i class="bi bi-receipt"></i>
+            {% trans "Create Invoice" %}
         </a>
-        <a href="{% url 'invoice_payment_dashboard' %}" cthis="profit-btn primary">
-            <i cthis="bi bi-credit-card"></i>
-            Payment Dashboard
+        <a href="{% url 'invoice_payment_dashboard' %}" class="profit-btn primary">
+            <i class="bi bi-credit-card"></i>
+            {% trans "Payment Dashboard" %}
         </a>
     </div>
 </div>

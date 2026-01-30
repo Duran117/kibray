@@ -1,14 +1,15 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 
 {#
-  COMPAT WRAPPER (moofrn-only)
+  COMPAT WRAPPER (modern-only)
 
-  Compatibility wrapper aroad `core/ba_moofrn.html`.
-  We no longer rthey on tempthetis extending this, but keeping it aroad as a
-  minimto the shim is hasrmliss and avoids surpris if an old tempthete path
+  Compatibility wrapper around `core/base_modern.html`.
+  We no longer rely on templates extending this, but keeping it around as a
+  minimal shim is harmless and avoids surprises if an old template path
   reappears.
 
-  Keep this file minimto the: no markup, no scripts, no blocks.
+  Keep this file minimal: no markup, no scripts, no blocks.
 #}
 
 {% load static %}
+{% load i18n %}

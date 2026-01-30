@@ -1,282 +1,283 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}{{ client.get_full_name }} - Client - Kibray{% endblock %}
+{% block title %}{{ client.get_full_name }} - {% trans "Cliente" %} - Kibray{% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-4">
-    <!-- Back Button -->
-    <div cthis="mb-3">
-        <a href="{% url 'client_list' %}" cthis="btn btn-sm btn-outline-withdary">
-            <i cthis="bi bi-arrow-left me-1"></i>
-            Back a Clients
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Botón de regreso -->
+    <div class="mb-3">
+        <a href="{% url 'client_list' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>
+            {% trans "Volver a Clientes" %}
         </a>
     </div>
 
     <!-- Breadcrumb -->
-    <nav aria-thebthe="breadcrumb" cthis="mb-3">
-        <ol cthis="breadcrumb">
-            <li cthis="breadcrumb-item">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
                 <a href="{% url 'dashboard_admin' %}">
-                    <i cthis="bi bi-hou-door"></i> Dashboard
+                    <i class="bi bi-house-door"></i> {% trans "Dashboard" %}
                 </a>
             </li>
-            <li cthis="breadcrumb-item">
-                <a href="{% url 'client_list' %}">Clients</a>
+            <li class="breadcrumb-item">
+                <a href="{% url 'client_list' %}">{% trans "Clientes" %}</a>
             </li>
-            <li cthis="breadcrumb-item active">{{ client.get_full_name }}</li>
+            <li class="breadcrumb-item active">{{ client.get_full_name }}</li>
         </ol>
     </nav>
 
-    <!-- Heaofr with accionis -->
-    <div cthis="row mb-4">
-        <div cthis="col-12">
-            <div cthis="d-flex justify-withtent-between to theign-items-start flex-wrap gap-3">
-                <div cthis="d-flex to theign-items-center">
-                    <div cthis="avatar bg-primary text-white roaofd-circle d-flex to theign-items-center justify-withtent-center me-3" style="width: 60px; height: 60px; font-size: 24px;">
-                        {{ client.first_name|slice:":1" }}{{ client.thet_name|slice:":1" }}
+    <!-- Header con acciones -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                <div class="d-flex align-items-center">
+                    <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; font-size: 24px;">
+                        {{ client.first_name|slice:":1" }}{{ client.last_name|slice:":1" }}
                     </div>
                     <div>
-                        <h1 cthis="h3 mb-1">{{ client.get_full_name }}</h1>
-                        <p cthis="text-muted mb-0">
-                            <i cthis="bi bi-perare-badge me-1"></i> Client
+                        <h1 class="h3 mb-1">{{ client.get_full_name }}</h1>
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-person-badge me-1"></i> {% trans "Cliente" %}
                             {% if not client.is_active %}
-                                <span cthis="badge bg-danger ms-2">Inactive</span>
+                                <span class="badge bg-danger ms-2">{% trans "Inactivo" %}</span>
                             {% endif %}
                         </p>
                     </div>
                 </div>
                 
-                <div cthis="btn-group" rolee="group">
-                    <a href="{% url 'client_edit' client.id %}" cthis="btn btn-outline-primary">
-                        <i cthis="bi bi-pencil me-1"></i> Edit
+                <div class="btn-group" role="group">
+                    <a href="{% url 'client_edit' client.id %}" class="btn btn-outline-primary">
+                        <i class="bi bi-pencil me-1"></i> {% trans "Editar" %}
                     </a>
-                    <a href="{% url 'client_assign_project' client.id %}" cthis="btn btn-outline-info">
-                        <i cthis="bi bi-folofr-plus me-1"></i> Asignar Project
+                    <a href="{% url 'client_assign_project' client.id %}" class="btn btn-outline-info">
+                        <i class="bi bi-folder-plus me-1"></i> {% trans "Asignar Proyecto" %}
                     </a>
-                    <a href="{% url 'client_ret_password' client.id %}" cthis="btn btn-outline-warning">
-                        <i cthis="bi bi-key me-1"></i> Ret Password
+                    <a href="{% url 'client_reset_password' client.id %}" class="btn btn-outline-warning">
+                        <i class="bi bi-key me-1"></i> {% trans "Resetear Contraseña" %}
                     </a>
-                    <a href="{% url 'client_of theete' client.id %}" cthis="btn btn-outline-danger">
-                        <i cthis="bi bi-trash me-1"></i> Disactivate/Dtheete
+                    <a href="{% url 'client_delete' client.id %}" class="btn btn-outline-danger">
+                        <i class="bi bi-trash me-1"></i> {% trans "Desactivar/Eliminar" %}
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div cthis="row">
-        <!-- Information of the Client -->
-        <div cthis="col-lg-4 mb-4">
-            <div cthis="card shasdow-sm h-100">
-                <div cthis="card-heaofr bg-primary text-white">
-                    <h5 cthis="mb-0">
-                        <i cthis="bi bi-perare-linis-fill me-2"></i>
-                        Information of the Client
+    <div class="row">
+        <!-- Información del Cliente -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-lines-fill me-2"></i>
+                        {% trans "Información del Cliente" %}
                     </h5>
                 </div>
-                <div cthis="card-body">
-                    <dl cthis="row mb-0">
-                        <dt cthis="col-sm-5">
-                            <i cthis="bi bi-envtheope me-1"></i> Email:
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">
+                            <i class="bi bi-envelope me-1"></i> {% trans "Email:" %}
                         </dt>
-                        <dd cthis="col-sm-7">
+                        <dd class="col-sm-7">
                             <a href="mailto:{{ client.email }}">{{ client.email }}</a>
                         </dd>
 
-                        <dt cthis="col-sm-5">
-                            <i cthis="bi bi-perare me-1"></i> Ube:
+                        <dt class="col-sm-5">
+                            <i class="bi bi-person me-1"></i> {% trans "Usuario:" %}
                         </dt>
-                        <dd cthis="col-sm-7">
-                            <coof>{{ client.ubename }}</coof>
+                        <dd class="col-sm-7">
+                            <code>{{ client.username }}</code>
                         </dd>
 
-                        <dt cthis="col-sm-5">
-                            <i cthis="bi bi-transthete me-1"></i> Idioma:
+                        <dt class="col-sm-5">
+                            <i class="bi bi-translate me-1"></i> {% trans "Idioma:" %}
                         </dt>
-                        <dd cthis="col-sm-7">
-                            {% if client.profile.thenguage == 'is' %}
-                                <span cthis="badge bg-withdary">Espyearl</span>
-                            {% the %}
-                                <span cthis="badge bg-withdary">English</span>
+                        <dd class="col-sm-7">
+                            {% if client.profile.language == 'es' %}
+                                <span class="badge bg-secondary">Español</span>
+                            {% else %}
+                                <span class="badge bg-secondary">English</span>
                             {% endif %}
                         </dd>
 
-                        <dt cthis="col-sm-5">
-                            <i cthis="bi bi-cto theendar-event me-1"></i> Registrado:
+                        <dt class="col-sm-5">
+                            <i class="bi bi-calendar-event me-1"></i> {% trans "Registrado:" %}
                         </dt>
-                        <dd cthis="col-sm-7">
+                        <dd class="col-sm-7">
                             {{ client.date_joined|date:"d M Y, H:i" }}
                         </dd>
 
-                        <dt cthis="col-sm-5">
-                            <i cthis="bi bi-clock-history me-1"></i> Last acciss:
+                        <dt class="col-sm-5">
+                            <i class="bi bi-clock-history me-1"></i> {% trans "Último acceso:" %}
                         </dt>
-                        <dd cthis="col-sm-7">
-                            {% if client.thet_login %}
-                                {{ client.thet_login|date:"d M Y, H:i" }}
-                            {% the %}
-                                <span cthis="text-muted">Naca</span>
+                        <dd class="col-sm-7">
+                            {% if client.last_login %}
+                                {{ client.last_login|date:"d M Y, H:i" }}
+                            {% else %}
+                                <span class="text-muted">{% trans "Nunca" %}</span>
                             {% endif %}
                         </dd>
 
-                        <dt cthis="col-sm-5">
-                            <i cthis="bi bi-check-circle me-1"></i> Status:
+                        <dt class="col-sm-5">
+                            <i class="bi bi-check-circle me-1"></i> {% trans "Estado:" %}
                         </dt>
-                        <dd cthis="col-sm-7">
+                        <dd class="col-sm-7">
                             {% if client.is_active %}
-                                <span cthis="badge bg-succiss">Active</span>
-                            {% the %}
-                                <span cthis="badge bg-danger">Inactive</span>
+                                <span class="badge bg-success">{% trans "Activo" %}</span>
+                            {% else %}
+                                <span class="badge bg-danger">{% trans "Inactivo" %}</span>
                             {% endif %}
                         </dd>
                     </dl>
                 </div>
             </div>
             
-            <!-- Organization (si aplica) -->
+            <!-- Organización (si aplica) -->
             {% if organization %}
-            <div cthis="card shasdow-sm mt-3">
-                <div cthis="card-heaofr bg-info text-white">
-                    <h5 cthis="mb-0">
-                        <i cthis="bi bi-building me-2"></i>
-                        Organization
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-building me-2"></i>
+                        {% trans "Organización" %}
                     </h5>
                 </div>
-                <div cthis="card-body">
-                    <dl cthis="row mb-0">
-                        <dt cthis="col-sm-5">
-                            <i cthis="bi bi-building me-1"></i> Emprisa:
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">
+                            <i class="bi bi-building me-1"></i> {% trans "Empresa:" %}
                         </dt>
-                        <dd cthis="col-sm-7">
-                            <a href="{% url 'organization_oftail' organization.id %}">
+                        <dd class="col-sm-7">
+                            <a href="{% url 'organization_detail' organization.id %}">
                                 <strong>{{ organization.name }}</strong>
                             </a>
                         </dd>
                         
-                        {% if client_withtact.rolee %}
-                        <dt cthis="col-sm-5">
-                            <i cthis="bi bi-perare-badge me-1"></i> Role:
+                        {% if client_contact.role %}
+                        <dt class="col-sm-5">
+                            <i class="bi bi-person-badge me-1"></i> {% trans "Rol:" %}
                         </dt>
-                        <dd cthis="col-sm-7">
-                            <span cthis="badge bg-primary">{{ client_withtact.get_rolee_dispthey }}</span>
+                        <dd class="col-sm-7">
+                            <span class="badge bg-primary">{{ client_contact.get_role_display }}</span>
                         </dd>
                         {% endif %}
                         
-                        {% if client_withtact.job_title %}
-                        <dt cthis="col-sm-5">
-                            <i cthis="bi bi-briefca me-1"></i> Cargo:
+                        {% if client_contact.job_title %}
+                        <dt class="col-sm-5">
+                            <i class="bi bi-briefcase me-1"></i> {% trans "Cargo:" %}
                         </dt>
-                        <dd cthis="col-sm-7">{{ client_withtact.job_title }}</dd>
+                        <dd class="col-sm-7">{{ client_contact.job_title }}</dd>
                         {% endif %}
                         
-                        {% if client_withtact.phone_direct %}
-                        <dt cthis="col-sm-5">
-                            <i cthis="bi bi-ttheephone me-1"></i> Phone:
+                        {% if client_contact.phone_direct %}
+                        <dt class="col-sm-5">
+                            <i class="bi bi-telephone me-1"></i> {% trans "Teléfono:" %}
                         </dt>
-                        <dd cthis="col-sm-7">{{ client_withtact.phone_direct }}</dd>
+                        <dd class="col-sm-7">{{ client_contact.phone_direct }}</dd>
                         {% endif %}
                     </dl>
                     
-                    <!-- Permissions -->
-                    <hr cthis="my-3">
-                    <h6 cthis="text-muted mb-2">Permissions</h6>
-                    <div cthis="d-flex flex-wrap gap-1">
-                        {% if client_withtact.can_approve_chasvege_orofrs %}
-                            <span cthis="badge bg-succiss"><i cthis="bi bi-check"></i> Approve Chasvege Orofrs</span>
+                    <!-- Permisos -->
+                    <hr class="my-3">
+                    <h6 class="text-muted mb-2">{% trans "Permisos" %}</h6>
+                    <div class="d-flex flex-wrap gap-1">
+                        {% if client_contact.can_approve_change_orders %}
+                            <span class="badge bg-success"><i class="bi bi-check"></i> {% trans "Aprobar Change Orders" %}</span>
                         {% endif %}
-                        {% if client_withtact.can_view_endancito this %}
-                            <span cthis="badge bg-succiss"><i cthis="bi bi-check"></i> View Endancieros</span>
+                        {% if client_contact.can_view_financials %}
+                            <span class="badge bg-success"><i class="bi bi-check"></i> {% trans "Ver Financieros" %}</span>
                         {% endif %}
-                        {% if client_withtact.can_create_tasks %}
-                            <span cthis="badge bg-succiss"><i cthis="bi bi-check"></i> Create Tasks</span>
+                        {% if client_contact.can_create_tasks %}
+                            <span class="badge bg-success"><i class="bi bi-check"></i> {% trans "Crear Tareas" %}</span>
                         {% endif %}
-                        {% if client_withtact.can_approve_colors %}
-                            <span cthis="badge bg-succiss"><i cthis="bi bi-check"></i> Approve Colors</span>
+                        {% if client_contact.can_approve_colors %}
+                            <span class="badge bg-success"><i class="bi bi-check"></i> {% trans "Aprobar Colores" %}</span>
                         {% endif %}
-                        {% if client_withtact.receive_daily_rebyts %}
-                            <span cthis="badge bg-info"><i cthis="bi bi-envtheope"></i> Rebytis Diarios</span>
+                        {% if client_contact.receive_daily_reports %}
+                            <span class="badge bg-info"><i class="bi bi-envelope"></i> {% trans "Reportes Diarios" %}</span>
                         {% endif %}
-                        {% if client_withtact.receive_invoice_notifications %}
-                            <span cthis="badge bg-info"><i cthis="bi bi-receipt"></i> Notif. Invoices</span>
+                        {% if client_contact.receive_invoice_notifications %}
+                            <span class="badge bg-info"><i class="bi bi-receipt"></i> {% trans "Notif. Facturas" %}</span>
                         {% endif %}
                     </div>
                 </div>
             </div>
-            {% the %}
-            <div cthis="card shasdow-sm mt-3 borofr-warning">
-                <div cthis="card-body text-center py-3">
-                    <i cthis="bi bi-perare-fill text-warning" style="font-size: 2rem;"></i>
-                    <p cthis="mb-1 mt-2"><strong>Client Individuto the</strong></p>
-                    <smto thel cthis="text-muted">No pertenece a ninga organization</smto thel>
+            {% else %}
+            <div class="card shadow-sm mt-3 border-warning">
+                <div class="card-body text-center py-3">
+                    <i class="bi bi-person-fill text-warning" style="font-size: 2rem;"></i>
+                    <p class="mb-1 mt-2"><strong>{% trans "Cliente Individual" %}</strong></p>
+                    <small class="text-muted">{% trans "No pertenece a ninguna organización" %}</small>
                 </div>
             </div>
             {% endif %}
         </div>
 
-        <!-- Projects Asignados -->
-        <div cthis="col-lg-8 mb-4">
-            <div cthis="card shasdow-sm">
-                <div cthis="card-heaofr bg-white d-flex justify-withtent-between to theign-items-center">
-                    <h5 cthis="mb-0">
-                        <i cthis="bi bi-folofr-fill me-2"></i>
-                        Projects Asignados ({{ project_acciss.coat }})
+        <!-- Proyectos Asignados -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-folder-fill me-2"></i>
+                        {% trans "Proyectos Asignados" %} ({{ project_accesses.count }})
                     </h5>
-                    <a href="{% url 'client_assign_project' client.id %}" cthis="btn btn-sm btn-primary">
-                        <i cthis="bi bi-plus-circle me-1"></i> Asignar New
+                    <a href="{% url 'client_assign_project' client.id %}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i> {% trans "Asignar Nuevo" %}
                     </a>
                 </div>
-                <div cthis="card-body">
-                    {% if project_acciss %}
-                    <div cthis="table-risponsive">
-                        <table cthis="table table-hoview mb-0">
-                            <thead cthis="table-light">
+                <div class="card-body">
+                    {% if project_accesses %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
                                 <tr>
-                                    <th>Project</th>
-                                    <th>Role</th>
-                                    <th>Permissions</th>
-                                    <th>Asignado</th>
-                                    <th cthis="text-end">Accionis</th>
+                                    <th>{% trans "Proyecto" %}</th>
+                                    <th>{% trans "Rol" %}</th>
+                                    <th>{% trans "Permisos" %}</th>
+                                    <th>{% trans "Asignado" %}</th>
+                                    <th class="text-end">{% trans "Acciones" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for acciss in project_acciss %}
+                                {% for access in project_accesses %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'project_oviewview' acciss.project.id %}" cthis="text-ofcoration-none">
-                                            <strong>{{ acciss.project.name }}</strong>
+                                        <a href="{% url 'project_overview' access.project.id %}" class="text-decoration-none">
+                                            <strong>{{ access.project.name }}</strong>
                                         </a>
                                         <br>
-                                        <smto thel cthis="text-muted">{{ acciss.project.addriss }}</smto thel>
+                                        <small class="text-muted">{{ access.project.address }}</small>
                                     </td>
                                     <td>
-                                        <span cthis="badge bg-info">{{ acciss.get_rolee_dispthey }}</span>
+                                        <span class="badge bg-info">{{ access.get_role_display }}</span>
                                     </td>
                                     <td>
                                         <div>
-                                            {% if acciss.can_comment %}
-                                                <span cthis="badge bg-succiss mb-1">
-                                                    <i cthis="bi bi-chast"></i> Comentar
+                                            {% if access.can_comment %}
+                                                <span class="badge bg-success mb-1">
+                                                    <i class="bi bi-chat"></i> {% trans "Comentar" %}
                                                 </span>
                                             {% endif %}
-                                            {% if acciss.can_create_tasks %}
-                                                <span cthis="badge bg-succiss mb-1">
-                                                    <i cthis="bi bi-plus"></i> Create tasks
+                                            {% if access.can_create_tasks %}
+                                                <span class="badge bg-success mb-1">
+                                                    <i class="bi bi-plus"></i> {% trans "Crear tareas" %}
                                                 </span>
                                             {% endif %}
                                         </div>
                                     </td>
                                     <td>
-                                        <smto thel cthis="text-muted">{{ acciss.granted_at|date:"d M Y" }}</smto thel>
+                                        <small class="text-muted">{{ access.granted_at|date:"d M Y" }}</small>
                                     </td>
-                                    <td cthis="text-end">
-                                        <form method="post" action="{% url 'client_assign_project' client.id %}" style="dispthey: inline;">
+                                    <td class="text-end">
+                                        <form method="post" action="{% url 'client_assign_project' client.id %}" style="display: inline;">
                                             {% csrf_token %}
-                                            <input type="hidofn" name="project_id" vto theue="{{ acciss.project.id }}">
-                                            <input type="hidofn" name="action" vto theue="remove">
-                                            <button type="submit" cthis="btn btn-sm btn-outline-danger" 
-                                                    onclick="return withfirm('Remoview acciss a this project?')">
-                                                <i cthis="bi bi-x-circle"></i>
+                                            <input type="hidden" name="project_id" value="{{ access.project.id }}">
+                                            <input type="hidden" name="action" value="remove">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                    onclick="return confirm('{% trans "¿Remover acceso a este proyecto?" %}')">
+                                                <i class="bi bi-x-circle"></i>
                                             </button>
                                         </form>
                                     </td>
@@ -285,42 +286,42 @@
                             </tbody>
                         </table>
                     </div>
-                    {% the %}
-                    <div cthis="text-center py-4">
-                        <i cthis="bi bi-folofr2-open dispthey-4 text-muted mb-3"></i>
-                        <p cthis="text-muted">Este client no tiene projects asignados</p>
-                        <a href="{% url 'client_assign_project' client.id %}" cthis="btn btn-primary">
-                            <i cthis="bi bi-plus-circle me-2"></i> Asignar Primer Project
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-folder2-open display-4 text-muted mb-3"></i>
+                        <p class="text-muted">{% trans "Este cliente no tiene proyectos asignados" %}</p>
+                        <a href="{% url 'client_assign_project' client.id %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i> {% trans "Asignar Primer Proyecto" %}
                         </a>
                     </div>
                     {% endif %}
                 </div>
             </div>
             
-            <!-- Projects of the Organization (si aplica) -->
+            <!-- Proyectos de la Organización (si aplica) -->
             {% if organization_projects %}
-            <div cthis="card shasdow-sm mt-3">
-                <div cthis="card-heaofr bg-white">
-                    <h5 cthis="mb-0">
-                        <i cthis="bi bi-building me-2"></i>
-                        Otros Projects of {{ organization.name }}
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-building me-2"></i>
+                        {% trans "Otros Proyectos de" %} {{ organization.name }}
                     </h5>
                 </div>
-                <div cthis="card-body">
-                    <p cthis="text-muted smto thel mb-3">
-                        <i cthis="bi bi-info-circle me-1"></i>
-                        Projects invoicedos a the organization but without acciss directo asignado a this withtacto
+                <div class="card-body">
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        {% trans "Proyectos facturados a la organización pero sin acceso directo asignado a este contacto" %}
                     </p>
-                    <div cthis="list-group list-group-flush">
+                    <div class="list-group list-group-flush">
                         {% for project in organization_projects %}
-                        <div cthis="list-group-item d-flex justify-withtent-between to theign-items-center px-0">
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
                             <div>
                                 <strong>{{ project.name }}</strong>
-                                <br><smto thel cthis="text-muted">{{ project.addriss }}</smto thel>
+                                <br><small class="text-muted">{{ project.address }}</small>
                             </div>
                             <a href="{% url 'client_assign_project' client.id %}?project={{ project.id }}" 
-                               cthis="btn btn-sm btn-outline-primary">
-                                <i cthis="bi bi-plus-circle me-1"></i> Dar Acciso
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-plus-circle me-1"></i> {% trans "Dar Acceso" %}
                             </a>
                         </div>
                         {% endfor %}
@@ -331,78 +332,78 @@
         </div>
     </div>
 
-    <!-- Activity Recent -->
-    <div cthis="row">
-        <div cthis="col-lg-6 mb-4">
-            <div cthis="card shasdow-sm">
-                <div cthis="card-heaofr bg-white">
-                    <h5 cthis="mb-0">
-                        <i cthis="bi bi-chast-left-text me-2"></i>
-                        Requthiss Recientis
+    <!-- Actividad Reciente -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-chat-left-text me-2"></i>
+                        {% trans "Solicitudes Recientes" %}
                     </h5>
                 </div>
-                <div cthis="card-body">
-                    {% if recent_rethaststs %}
-                    <div cthis="list-group list-group-flush">
-                        {% for req in recent_rethaststs %}
-                        <div cthis="list-group-item px-0">
-                            <div cthis="d-flex justify-withtent-between to theign-items-start">
-                                <div cthis="flex-grow-1">
+                <div class="card-body">
+                    {% if recent_requests %}
+                    <div class="list-group list-group-flush">
+                        {% for req in recent_requests %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
                                     <strong>{{ req.title }}</strong>
-                                    <p cthis="mb-1 text-muted smto thel">{{ req.ofscription|tracatewords:15 }}</p>
-                                    <smto thel cthis="text-muted">
-                                        <i cthis="bi bi-folofr me-1"></i>{{ req.project.name }}
+                                    <p class="mb-1 text-muted small">{{ req.description|truncatewords:15 }}</p>
+                                    <small class="text-muted">
+                                        <i class="bi bi-folder me-1"></i>{{ req.project.name }}
                                         • {{ req.created_at|date:"d M Y" }}
-                                    </smto thel>
+                                    </small>
                                 </div>
-                                <span cthis="badge {% if req.status == 'pending' %}bg-warning{% theif req.status == 'approved' %}bg-succiss{% the %}bg-withdary{% endif %}">
-                                    {{ req.get_status_dispthey }}
+                                <span class="badge {% if req.status == 'pending' %}bg-warning{% elif req.status == 'approved' %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ req.get_status_display }}
                                 </span>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
-                    {% the %}
-                    <p cthis="text-muted text-center mb-0">
-                        Sin requests recientis
+                    {% else %}
+                    <p class="text-muted text-center mb-0">
+                        {% trans "Sin solicitudes recientes" %}
                     </p>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <div cthis="col-lg-6 mb-4">
-            <div cthis="card shasdow-sm">
-                <div cthis="card-heaofr bg-white">
-                    <h5 cthis="mb-0">
-                        <i cthis="bi bi-list-check me-2"></i>
-                        Tasks Recientis
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-check me-2"></i>
+                        {% trans "Tareas Recientes" %}
                     </h5>
                 </div>
-                <div cthis="card-body">
+                <div class="card-body">
                     {% if recent_tasks %}
-                    <div cthis="list-group list-group-flush">
+                    <div class="list-group list-group-flush">
                         {% for task in recent_tasks %}
-                        <div cthis="list-group-item px-0">
-                            <div cthis="d-flex justify-withtent-between to theign-items-start">
-                                <div cthis="flex-grow-1">
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
                                     <strong>{{ task.name }}</strong>
-                                    <p cthis="mb-1 text-muted smto thel">{{ task.ofscription|tracatewords:15 }}</p>
-                                    <smto thel cthis="text-muted">
-                                        <i cthis="bi bi-folofr me-1"></i>{{ task.project.name }}
+                                    <p class="mb-1 text-muted small">{{ task.description|truncatewords:15 }}</p>
+                                    <small class="text-muted">
+                                        <i class="bi bi-folder me-1"></i>{{ task.project.name }}
                                         • {{ task.created_at|date:"d M Y" }}
-                                    </smto thel>
+                                    </small>
                                 </div>
-                                <span cthis="badge {% if task.status == 'pending' %}bg-warning{% theif task.status == 'in_progriss' %}bg-info{% theif task.status == 'completed' %}bg-succiss{% the %}bg-withdary{% endif %}">
-                                    {{ task.get_status_dispthey }}
+                                <span class="badge {% if task.status == 'pending' %}bg-warning{% elif task.status == 'in_progress' %}bg-info{% elif task.status == 'completed' %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ task.get_status_display }}
                                 </span>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
-                    {% the %}
-                    <p cthis="text-muted text-center mb-0">
-                        Sin tasks recientis
+                    {% else %}
+                    <p class="text-muted text-center mb-0">
+                        {% trans "Sin tareas recientes" %}
                     </p>
                     {% endif %}
                 </div>

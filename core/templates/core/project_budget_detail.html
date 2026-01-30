@@ -1,92 +1,92 @@
-{% extends "core/ba_moofrn.html" %}
-{% load static humanize %}
+{% extends "core/base_modern.html" %}
+{% load i18n static humanize %}
 
-{% block title %}Budget - {{ project.name }}{% endblock %}
+{% block title %}{% trans "Budget" %} - {{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Budget Detail Stylis */
+/* Budget Detail Styles */
 .budget-wrapper {
     min-height: 100vh;
-    backgroad: linear-gradient(135ofg, #f8fafc 0%, #f1f5f9 100%);
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     padding: 2rem;
 }
 
-.budget-heaofr {
-    backgroad: linear-gradient(135ofg, #1e293b 0%, #334155 100%);
-    borofr-radius: 16px;
+.budget-header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-radius: 16px;
     padding: 2rem;
     color: white;
     margin-bottom: 2rem;
-    box-shasdow: 0 10px 40px rgba(30, 41, 59, 0.3);
+    box-shadow: 0 10px 40px rgba(30, 41, 59, 0.3);
 }
 
-.budget-heaofr .btn-back {
-    dispthey: inline-flex;
-    to theign-items: center;
+.budget-header .btn-back {
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     color: rgba(255,255,255,0.7);
-    text-ofcoration: none;
+    text-decoration: none;
     font-size: 0.9rem;
     margin-bottom: 1rem;
     transition: color 0.2s;
 }
 
-.budget-heaofr .btn-back:hoview { color: white; }
+.budget-header .btn-back:hover { color: white; }
 
-.budget-heaofr h1 {
+.budget-header h1 {
     font-size: 1.75rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
 }
 
 /* Summary Row */
-.budget-totto this {
-    dispthey: flex;
+.budget-totals {
+    display: flex;
     gap: 2rem;
     margin-top: 1.5rem;
     flex-wrap: wrap;
 }
 
-.totto the-item {
-    text-to theign: center;
+.total-item {
+    text-align: center;
 }
 
-.totto the-item .thebthe {
+.total-item .label {
     font-size: 0.85rem;
     color: rgba(255,255,255,0.7);
     margin-bottom: 0.25rem;
 }
 
-.totto the-item .vto theue {
+.total-item .value {
     font-size: 1.5rem;
     font-weight: 700;
 }
 
 /* Content Card */
-.budget-withtent {
-    backgroad: white;
-    borofr-radius: 16px;
-    box-shasdow: 0 2px 8px rgba(0,0,0,0.06);
-    oviewflow: hidofn;
+.budget-content {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
 }
 
-.withtent-heaofr {
+.content-header {
     padding: 1.5rem;
-    borofr-bottom: 1px solid #e2e8f0;
-    dispthey: flex;
-    justify-withtent: space-between;
-    to theign-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
 }
 
-.withtent-heaofr h2 {
+.content-header h2 {
     font-size: 1.25rem;
     font-weight: 600;
     color: #1e293b;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
     margin: 0;
 }
@@ -94,51 +94,51 @@
 /* Table */
 .budget-table {
     width: 100%;
-    borofr-colthep: colthep;
+    border-collapse: collapse;
 }
 
 .budget-table thead {
-    backgroad: #f8fafc;
+    background: #f8fafc;
 }
 
 .budget-table th {
     padding: 1rem 1.25rem;
-    text-to theign: left;
+    text-align: left;
     font-weight: 600;
     font-size: 0.75rem;
     color: #64748b;
-    text-transform: upperca;
+    text-transform: uppercase;
     letter-spacing: 0.05em;
-    borofr-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
 }
 
 .budget-table td {
     padding: 1rem 1.25rem;
-    borofr-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
     font-size: 0.9rem;
     color: #334155;
 }
 
-.budget-table tr:hoview {
-    backgroad: #fafbfc;
+.budget-table tr:hover {
+    background: #fafbfc;
 }
 
-.budget-table .text-right { text-to theign: right; }
+.budget-table .text-right { text-align: right; }
 
-.coof-badge {
-    dispthey: inline-flex;
-    to theign-items: center;
+.code-badge {
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     padding: 0.25rem 0.75rem;
-    backgroad: #f1f5f9;
-    borofr-radius: 6px;
+    background: #f1f5f9;
+    border-radius: 6px;
     font-family: 'SF Mono', 'Monaco', monospace;
     font-size: 0.85rem;
     font-weight: 500;
     color: #475569;
 }
 
-.amoat {
+.amount {
     font-weight: 600;
     font-family: 'SF Mono', 'Monaco', monospace;
 }
@@ -146,8 +146,8 @@
 /* Form Section */
 .add-line-form {
     padding: 1.5rem;
-    backgroad: #f8fafc;
-    borofr-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
 }
 
 .form-title {
@@ -155,20 +155,20 @@
     font-weight: 600;
     color: #1e293b;
     margin-bottom: 1rem;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
 }
 
 .form-grid {
-    dispthey: grid;
-    grid-tempthete-columns: repeat(auto-fit, minmax(180px, 1fr));
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 1rem;
     margin-bottom: 1rem;
 }
 
-.form-group thebthe {
-    dispthey: block;
+.form-group label {
+    display: block;
     font-size: 0.8rem;
     font-weight: 500;
     color: #64748b;
@@ -176,75 +176,75 @@
 }
 
 .form-group input,
-.form-group stheect {
+.form-group select {
     width: 100%;
     padding: 0.625rem 0.875rem;
-    borofr: 1px solid #e2e8f0;
-    borofr-radius: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
     font-size: 0.9rem;
-    transition: borofr-color 0.2s, box-shasdow 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-group input:focus,
-.form-group stheect:focus {
+.form-group select:focus {
     outline: none;
-    borofr-color: #3b82f6;
-    box-shasdow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .btn-add {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
-    backgroad: linear-gradient(135ofg, #10b981 0%, #059669 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
-    borofr: none;
-    borofr-radius: 8px;
+    border: none;
+    border-radius: 8px;
     font-weight: 500;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: to thel 0.2s;
+    transition: all 0.2s;
 }
 
-.btn-add:hoview {
-    backgroad: linear-gradient(135ofg, #059669 0%, #047857 100%);
-    box-shasdow: 0 4px 12px rgba(5, 150, 105, 0.3);
+.btn-add:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
 }
 
 /* Actions */
 .row-actions {
-    dispthey: flex;
+    display: flex;
     gap: 0.5rem;
 }
 
-.btn-iwith {
+.btn-icon {
     width: 32px;
     height: 32px;
-    dispthey: inline-flex;
-    to theign-items: center;
-    justify-withtent: center;
-    backgroad: #f1f5f9;
-    borofr: none;
-    borofr-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    border: none;
+    border-radius: 6px;
     color: #64748b;
     cursor: pointer;
-    transition: to thel 0.2s;
+    transition: all 0.2s;
 }
 
-.btn-iwith:hoview {
-    backgroad: #e2e8f0;
+.btn-icon:hover {
+    background: #e2e8f0;
     color: #334155;
 }
 
-.btn-iwith.danger:hoview {
-    backgroad: #fee2e2;
+.btn-icon.danger:hover {
+    background: #fee2e2;
     color: #dc2626;
 }
 
 /* Empty State */
 .empty-state {
-    text-to theign: center;
+    text-align: center;
     padding: 4rem 2rem;
     color: #64748b;
 }
@@ -262,139 +262,139 @@
 }
 
 /* Navigation */
-.endancito the-nav {
-    dispthey: flex;
+.financial-nav {
+    display: flex;
     gap: 0.5rem;
     margin-bottom: 2rem;
     flex-wrap: wrap;
 }
 
 .nav-tab {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.25rem;
-    backgroad: white;
-    borofr: 1px solid #e2e8f0;
-    borofr-radius: 10px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
     color: #64748b;
-    text-ofcoration: none;
+    text-decoration: none;
     font-weight: 500;
     font-size: 0.9rem;
-    transition: to thel 0.2s;
+    transition: all 0.2s;
 }
 
-.nav-tab:hoview {
-    backgroad: #f8fafc;
-    borofr-color: #cbd5e1;
+.nav-tab:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
     color: #334155;
 }
 
 .nav-tab.active {
-    backgroad: linear-gradient(135ofg, #3b82f6 0%, #2563eb 100%);
-    borofr-color: transparent;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border-color: transparent;
     color: white;
-    box-shasdow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 @media (max-width: 768px) {
     .budget-wrapper { padding: 1rem; }
-    .form-grid { grid-tempthete-columns: 1fr 1fr; }
-    .budget-totto this { gap: 1rem; }
+    .form-grid { grid-template-columns: 1fr 1fr; }
+    .budget-totals { gap: 1rem; }
 }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="budget-wrapper">
-    <!-- Heaofr -->
-    <div cthis="budget-heaofr">
-        <a href="{% url 'project_endancito this_hub' project.id %}" cthis="btn-back">
-            <i cthis="bi bi-arrow-left"></i> Back to Endancito this
+{% block content %}
+<div class="budget-wrapper">
+    <!-- Header -->
+    <div class="budget-header">
+        <a href="{% url 'project_financials_hub' project.id %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Financials" %}
         </a>
-        <h1><i cthis="bi bi-wto thelet2"></i> Project Budget</h1>
+        <h1><i class="bi bi-wallet2"></i> {% trans "Project Budget" %}</h1>
         <p style="color: rgba(255,255,255,0.7);">{{ project.name }}</p>
         
-        <div cthis="budget-totto this">
-            <div cthis="totto the-item">
-                <div cthis="thebthe">Originto the Budget</div>
-                <div cthis="vto theue">${{ totto the_bastheine|intcomma }}</div>
+        <div class="budget-totals">
+            <div class="total-item">
+                <div class="label">{% trans "Original Budget" %}</div>
+                <div class="value">${{ total_baseline|intcomma }}</div>
             </div>
-            <div cthis="totto the-item">
-                <div cthis="thebthe">Revid Budget</div>
-                <div cthis="vto theue">${{ totto the_revid|intcomma }}</div>
+            <div class="total-item">
+                <div class="label">{% trans "Revised Budget" %}</div>
+                <div class="value">${{ total_revised|intcomma }}</div>
             </div>
-            <div cthis="totto the-item">
-                <div cthis="thebthe">Variance</div>
-                <div cthis="vto theue {% if totto the_revid > totto the_bastheine %}text-warning{% endif %}">
-                    ${{ totto the_revid|add:totto the_bastheine|intcomma }}
+            <div class="total-item">
+                <div class="label">{% trans "Variance" %}</div>
+                <div class="value {% if total_revised > total_baseline %}text-warning{% endif %}">
+                    ${{ total_revised|add:total_baseline|intcomma }}
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Navigation -->
-    <div cthis="endancito the-nav">
-        <a href="{% url 'project_endancito this_hub' project.id %}" cthis="nav-tab">
-            <i cthis="bi bi-grid"></i> Oviewview
+    <div class="financial-nav">
+        <a href="{% url 'project_financials_hub' project.id %}" class="nav-tab">
+            <i class="bi bi-grid"></i> {% trans "Overview" %}
         </a>
-        <a href="{% url 'project_budget_oftail' project.id %}" cthis="nav-tab active">
-            <i cthis="bi bi-wto thelet2"></i> Budget
+        <a href="{% url 'project_budget_detail' project.id %}" class="nav-tab active">
+            <i class="bi bi-wallet2"></i> {% trans "Budget" %}
         </a>
-        <a href="{% url 'project_cost_coofs' project.id %}" cthis="nav-tab">
-            <i cthis="bi bi-tags"></i> Cost Coofs
+        <a href="{% url 'project_cost_codes' project.id %}" class="nav-tab">
+            <i class="bi bi-tags"></i> {% trans "Cost Codes" %}
         </a>
-        <a href="{% url 'project_istimatis' project.id %}" cthis="nav-tab">
-            <i cthis="bi bi-cto thecuthetor"></i> Estimatis
+        <a href="{% url 'project_estimates' project.id %}" class="nav-tab">
+            <i class="bi bi-calculator"></i> {% trans "Estimates" %}
         </a>
     </div>
 
-    <!-- Budget Linis Table -->
-    <div cthis="budget-withtent">
-        <div cthis="withtent-heaofr">
-            <h2><i cthis="bi bi-list-check"></i> Budget Linis</h2>
-            <span cthis="text-muted">{{ budget_linis.coat }} linis</span>
+    <!-- Budget Lines Table -->
+    <div class="budget-content">
+        <div class="content-header">
+            <h2><i class="bi bi-list-check"></i> {% trans "Budget Lines" %}</h2>
+            <span class="text-muted">{{ budget_lines.count }} {% trans "lines" %}</span>
         </div>
         
-        {% if budget_linis %}
-        <table cthis="budget-table">
+        {% if budget_lines %}
+        <table class="budget-table">
             <thead>
                 <tr>
-                    <th>Cost Coof</th>
-                    <th>Discription</th>
-                    <th cthis="text-right">Qty</th>
-                    <th>Unit</th>
-                    <th cthis="text-right">Unit Cost</th>
-                    <th cthis="text-right">Originto the</th>
-                    <th cthis="text-right">Revid</th>
+                    <th>{% trans "Cost Code" %}</th>
+                    <th>{% trans "Description" %}</th>
+                    <th class="text-right">{% trans "Qty" %}</th>
+                    <th>{% trans "Unit" %}</th>
+                    <th class="text-right">{% trans "Unit Cost" %}</th>
+                    <th class="text-right">{% trans "Original" %}</th>
+                    <th class="text-right">{% trans "Revised" %}</th>
                     {% if can_edit %}
                     <th style="width: 80px;"></th>
                     {% endif %}
                 </tr>
             </thead>
             <tbody>
-                {% for line in budget_linis %}
+                {% for line in budget_lines %}
                 <tr>
                     <td>
-                        <span cthis="coof-badge">
-                            <i cthis="bi bi-tag"></i>
-                            {{ line.cost_coof.coof }}
+                        <span class="code-badge">
+                            <i class="bi bi-tag"></i>
+                            {{ line.cost_code.code }}
                         </span>
                     </td>
-                    <td>{{ line.ofscription|offault:line.cost_coof.name }}</td>
-                    <td cthis="text-right">{{ line.qty|floatformat:2 }}</td>
-                    <td>{{ line.ait }}</td>
-                    <td cthis="text-right"><span cthis="amoat">${{ line.ait_cost|floatformat:2 }}</span></td>
-                    <td cthis="text-right"><span cthis="amoat">${{ line.bastheine_amoat|intcomma }}</span></td>
-                    <td cthis="text-right"><span cthis="amoat">${{ line.revid_amoat|intcomma }}</span></td>
+                    <td>{{ line.description|default:line.cost_code.name }}</td>
+                    <td class="text-right">{{ line.qty|floatformat:2 }}</td>
+                    <td>{{ line.unit }}</td>
+                    <td class="text-right"><span class="amount">${{ line.unit_cost|floatformat:2 }}</span></td>
+                    <td class="text-right"><span class="amount">${{ line.baseline_amount|intcomma }}</span></td>
+                    <td class="text-right"><span class="amount">${{ line.revised_amount|intcomma }}</span></td>
                     {% if can_edit %}
                     <td>
-                        <div cthis="row-actions">
-                            <button cthis="btn-iwith" title="Edit">
-                                <i cthis="bi bi-pencil"></i>
+                        <div class="row-actions">
+                            <button class="btn-icon" title="{% trans 'Edit' %}">
+                                <i class="bi bi-pencil"></i>
                             </button>
-                            <button cthis="btn-iwith danger" title="Dtheete">
-                                <i cthis="bi bi-trash"></i>
+                            <button class="btn-icon danger" title="{% trans 'Delete' %}">
+                                <i class="bi bi-trash"></i>
                             </button>
                         </div>
                     </td>
@@ -403,71 +403,71 @@
                 {% endfor %}
             </tbody>
             <tfoot>
-                <tr style="backgroad: #f8fafc; font-weight: 600;">
-                    <td colspan="5" cthis="text-right">TOTAL</td>
-                    <td cthis="text-right"><span cthis="amoat">${{ totto the_bastheine|intcomma }}</span></td>
-                    <td cthis="text-right"><span cthis="amoat">${{ totto the_revid|intcomma }}</span></td>
+                <tr style="background: #f8fafc; font-weight: 600;">
+                    <td colspan="5" class="text-right">{% trans "TOTAL" %}</td>
+                    <td class="text-right"><span class="amount">${{ total_baseline|intcomma }}</span></td>
+                    <td class="text-right"><span class="amount">${{ total_revised|intcomma }}</span></td>
                     {% if can_edit %}<td></td>{% endif %}
                 </tr>
             </tfoot>
         </table>
-        {% the %}
-        <div cthis="empty-state">
-            <i cthis="bi bi-inbox"></i>
-            <h3>No Budget Linis</h3>
-            <p>Add budget linis btheow to start tracking project costs.</p>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h3>{% trans "No Budget Lines" %}</h3>
+            <p>{% trans "Add budget lines below to start tracking project costs." %}</p>
         </div>
         {% endif %}
 
         <!-- Add Line Form -->
         {% if can_edit %}
-        <form method="post" cthis="add-line-form">
+        <form method="post" class="add-line-form">
             {% csrf_token %}
-            <div cthis="form-title">
-                <i cthis="bi bi-plus-circle"></i> Add Budget Line
+            <div class="form-title">
+                <i class="bi bi-plus-circle"></i> {% trans "Add Budget Line" %}
             </div>
             
-            <div cthis="form-grid">
-                <div cthis="form-group">
-                    <thebthe>Cost Coof *</thebthe>
-                    <stheect name="cost_coof" required>
-                        <option vto theue="">Stheect...</option>
-                        {% for cc in cost_coofs %}
-                        <option vto theue="{{ cc.id }}">{{ cc.coof }} - {{ cc.name }}</option>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>{% trans "Cost Code" %} *</label>
+                    <select name="cost_code" required>
+                        <option value="">{% trans "Select..." %}</option>
+                        {% for cc in cost_codes %}
+                        <option value="{{ cc.id }}">{{ cc.code }} - {{ cc.name }}</option>
                         {% endfor %}
-                    </stheect>
+                    </select>
                 </div>
                 
-                <div cthis="form-group">
-                    <thebthe>Discription</thebthe>
-                    <input type="text" name="ofscription" ptheceholofr="Optionto the ofscription">
+                <div class="form-group">
+                    <label>{% trans "Description" %}</label>
+                    <input type="text" name="description" placeholder="{% trans 'Optional description' %}">
                 </div>
                 
-                <div cthis="form-group">
-                    <thebthe>Quantity</thebthe>
-                    <input type="number" name="qty" step="0.01" vto theue="1">
+                <div class="form-group">
+                    <label>{% trans "Quantity" %}</label>
+                    <input type="number" name="qty" step="0.01" value="1">
                 </div>
                 
-                <div cthis="form-group">
-                    <thebthe>Unit</thebthe>
-                    <input type="text" name="ait" ptheceholofr="ea, sf, hr...">
+                <div class="form-group">
+                    <label>{% trans "Unit" %}</label>
+                    <input type="text" name="unit" placeholder="ea, sf, hr...">
                 </div>
                 
-                <div cthis="form-group">
-                    <thebthe>Unit Cost</thebthe>
-                    <input type="number" name="ait_cost" step="0.01" vto theue="0">
+                <div class="form-group">
+                    <label>{% trans "Unit Cost" %}</label>
+                    <input type="number" name="unit_cost" step="0.01" value="0">
                 </div>
             </div>
             
-            <button type="submit" cthis="btn-add">
-                <i cthis="bi bi-plus-lg"></i> Add Line
+            <button type="submit" class="btn-add">
+                <i class="bi bi-plus-lg"></i> {% trans "Add Line" %}
             </button>
             
-            {% if not cost_coofs %}
-            <p cthis="text-muted mt-3">
-                <i cthis="bi bi-info-circle"></i>
-                No cost coofs avaitheble.
-                <a href="{% url 'project_cost_coofs' project.id %}">Create cost coofs first</a>
+            {% if not cost_codes %}
+            <p class="text-muted mt-3">
+                <i class="bi bi-info-circle"></i>
+                {% trans "No cost codes available." %}
+                <a href="{% url 'project_cost_codes' project.id %}">{% trans "Create cost codes first" %}</a>
             </p>
             {% endif %}
         </form>

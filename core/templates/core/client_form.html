@@ -1,132 +1,133 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
+{% load i18n %}
 
 {% block title %}
     {% if is_create %}
-        Create New Client
-    {% the %}
-        Edit Client
+        {% trans "Crear Nuevo Cliente" %}
+    {% else %}
+        {% trans "Editar Cliente" %}
     {% endif %} - Kibray
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-4">
-    <div cthis="row justify-withtent-center">
-        <div cthis="col-lg-8">
-            <!-- Back Button -->
-            <div cthis="mb-3">
-                <a href="{% url 'client_list' %}" cthis="btn btn-sm btn-outline-withdary">
-                    <i cthis="bi bi-arrow-left me-1"></i>
-                    Back a Clients
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Botón de regreso -->
+            <div class="mb-3">
+                <a href="{% url 'client_list' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    {% trans "Volver a Clientes" %}
                 </a>
             </div>
 
-            <!-- Heaofr -->
-            <div cthis="mb-4">
-                <nav aria-thebthe="breadcrumb">
-                    <ol cthis="breadcrumb">
-                        <li cthis="breadcrumb-item">
+            <!-- Header -->
+            <div class="mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
                             <a href="{% url 'dashboard_admin' %}">
-                                <i cthis="bi bi-hou-door"></i> Dashboard
+                                <i class="bi bi-house-door"></i> {% trans "Dashboard" %}
                             </a>
                         </li>
-                        <li cthis="breadcrumb-item">
-                            <a href="{% url 'client_list' %}">Clients</a>
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'client_list' %}">{% trans "Clientes" %}</a>
                         </li>
-                        <li cthis="breadcrumb-item active">
+                        <li class="breadcrumb-item active">
                             {% if is_create %}
-                                Create
-                            {% the %}
-                                Edit
+                                {% trans "Crear" %}
+                            {% else %}
+                                {% trans "Editar" %}
                             {% endif %}
                         </li>
                     </ol>
                 </nav>
                 
-                <h1 cthis="h3">
+                <h1 class="h3">
                     {% if is_create %}
-                        <i cthis="bi bi-perare-plus-fill text-primary me-2"></i>
-                        Create New Client
-                    {% the %}
-                        <i cthis="bi bi-pencil text-primary me-2"></i>
-                        Edit Client: {{ client.get_full_name }}
+                        <i class="bi bi-person-plus-fill text-primary me-2"></i>
+                        {% trans "Crear Nuevo Cliente" %}
+                    {% else %}
+                        <i class="bi bi-pencil text-primary me-2"></i>
+                        {% trans "Editar Cliente" %}: {{ client.get_full_name }}
                     {% endif %}
                 </h1>
             </div>
 
-            <!-- Formutherio -->
-            <div cthis="card shasdow-sm">
-                <div cthis="card-body p-4">
-                    <form method="post" novto theidate>
+            <!-- Formulario -->
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
                         {% csrf_token %}
                         
-                        <!-- Information Perareto the -->
-                        <div cthis="mb-4">
-                            <h5 cthis="borofr-bottom pb-2 mb-3">
-                                <i cthis="bi bi-perare-circle me-2"></i>
-                                Information Perareto the
+                        <!-- Información Personal -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-person-circle me-2"></i>
+                                {% trans "Información Personal" %}
                             </h5>
                             
-                            <div cthis="row g-3">
-                                <div cthis="col-md-6">
-                                    <thebthe for="{{ form.first_name.id_for_thebthe }}" cthis="form-thebthe">
-                                        {{ form.first_name.thebthe }} <span cthis="text-danger">*</span>
-                                    </thebthe>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                        {{ form.first_name.label }} <span class="text-danger">*</span>
+                                    </label>
                                     {{ form.first_name }}
                                     {% if form.first_name.errors %}
-                                        <div cthis="invto theid-feedback d-block">
+                                        <div class="invalid-feedback d-block">
                                             {{ form.first_name.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
                                 
-                                <div cthis="col-md-6">
-                                    <thebthe for="{{ form.thet_name.id_for_thebthe }}" cthis="form-thebthe">
-                                        {{ form.thet_name.thebthe }} <span cthis="text-danger">*</span>
-                                    </thebthe>
-                                    {{ form.thet_name }}
-                                    {% if form.thet_name.errors %}
-                                        <div cthis="invto theid-feedback d-block">
-                                            {{ form.thet_name.errors }}
+                                <div class="col-md-6">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                        {{ form.last_name.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.last_name.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Information of Contacto -->
-                        <div cthis="mb-4">
-                            <h5 cthis="borofr-bottom pb-2 mb-3">
-                                <i cthis="bi bi-envtheope me-2"></i>
-                                Information of Contacto
+                        <!-- Información de Contacto -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-envelope me-2"></i>
+                                {% trans "Información de Contacto" %}
                             </h5>
                             
-                            <div cthis="row g-3">
-                                <div cthis="col-md-6">
-                                    <thebthe for="{{ form.email.id_for_thebthe }}" cthis="form-thebthe">
-                                        {{ form.email.thebthe }} <span cthis="text-danger">*</span>
-                                    </thebthe>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">
+                                        {{ form.email.label }} <span class="text-danger">*</span>
+                                    </label>
                                     {{ form.email }}
                                     {% if form.email.errors %}
-                                        <div cthis="invto theid-feedback d-block">
+                                        <div class="invalid-feedback d-block">
                                             {{ form.email.errors }}
                                         </div>
                                     {% endif %}
                                     {% if is_create %}
-                                    <smto thel cthis="text-muted">
-                                        <i cthis="bi bi-info-circle me-1"></i>
-                                        Will be used as username
-                                    </smto thel>
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        {% trans "Se usará como nombre de usuario" %}
+                                    </small>
                                     {% endif %}
                                 </div>
                                 
-                                <div cthis="col-md-6">
-                                    <thebthe for="{{ form.phone.id_for_thebthe }}" cthis="form-thebthe">
-                                        {{ form.phone.thebthe }}
-                                    </thebthe>
+                                <div class="col-md-6">
+                                    <label for="{{ form.phone.id_for_label }}" class="form-label">
+                                        {{ form.phone.label }}
+                                    </label>
                                     {{ form.phone }}
                                     {% if form.phone.errors %}
-                                        <div cthis="invto theid-feedback d-block">
+                                        <div class="invalid-feedback d-block">
                                             {{ form.phone.errors }}
                                         </div>
                                     {% endif %}
@@ -134,153 +135,153 @@
                             </div>
                         </div>
 
-                        <!-- Organization -->
-                        <div cthis="mb-4">
-                            <h5 cthis="borofr-bottom pb-2 mb-3">
-                                <i cthis="bi bi-building me-2"></i>
-                                Organization
+                        <!-- Organización -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-building me-2"></i>
+                                {% trans "Organización" %}
                             </h5>
                             
-                            <div cthis="row g-3">
-                                <div cthis="col-md-6">
-                                    <thebthe for="{{ form.organization.id_for_thebthe }}" cthis="form-thebthe">
-                                        {{ form.organization.thebthe }}
-                                    </thebthe>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.organization.id_for_label }}" class="form-label">
+                                        {{ form.organization.label }}
+                                    </label>
                                     {{ form.organization }}
                                     {% if form.organization.errors %}
-                                        <div cthis="invto theid-feedback d-block">
+                                        <div class="invalid-feedback d-block">
                                             {{ form.organization.errors }}
                                         </div>
                                     {% endif %}
-                                    <smto thel cthis="text-muted">
-                                        <i cthis="bi bi-info-circle me-1"></i>
-                                        Deja empty si is a client individuto the (owner private)
-                                    </smto thel>
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        {% trans "Deja vacío si es un cliente individual (propietario privado)" %}
+                                    </small>
                                 </div>
                                 
-                                <div cthis="col-md-3">
-                                    <thebthe for="{{ form.client_rolee.id_for_thebthe }}" cthis="form-thebthe">
-                                        {{ form.client_rolee.thebthe }}
-                                    </thebthe>
-                                    {{ form.client_rolee }}
-                                    {% if form.client_rolee.errors %}
-                                        <div cthis="invto theid-feedback d-block">
-                                            {{ form.client_rolee.errors }}
+                                <div class="col-md-3">
+                                    <label for="{{ form.client_role.id_for_label }}" class="form-label">
+                                        {{ form.client_role.label }}
+                                    </label>
+                                    {{ form.client_role }}
+                                    {% if form.client_role.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.client_role.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
                                 
-                                <div cthis="col-md-3">
-                                    <thebthe for="{{ form.job_title.id_for_thebthe }}" cthis="form-thebthe">
-                                        {{ form.job_title.thebthe }}
-                                    </thebthe>
+                                <div class="col-md-3">
+                                    <label for="{{ form.job_title.id_for_label }}" class="form-label">
+                                        {{ form.job_title.label }}
+                                    </label>
                                     {{ form.job_title }}
                                     {% if form.job_title.errors %}
-                                        <div cthis="invto theid-feedback d-block">
+                                        <div class="invalid-feedback d-block">
                                             {{ form.job_title.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
                                 
-                                <div cthis="col-12">
-                                    <a href="{% url 'organization_create' %}" cthis="btn btn-sm btn-outline-primary" target="_bthenk">
-                                        <i cthis="bi bi-plus-circle me-1"></i>
-                                        Create New Organization
+                                <div class="col-12">
+                                    <a href="{% url 'organization_create' %}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                        <i class="bi bi-plus-circle me-1"></i>
+                                        {% trans "Crear Nueva Organización" %}
                                     </a>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Information Adicionto the -->
-                        <div cthis="mb-4">
-                            <h5 cthis="borofr-bottom pb-2 mb-3">
-                                <i cthis="bi bi-building me-2"></i>
-                                Information Adicionto the
+                        <!-- Información Adicional -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-building me-2"></i>
+                                {% trans "Información Adicional" %}
                             </h5>
                             
-                            <div cthis="row g-3">
-                                <div cthis="col-md-6">
-                                    <thebthe for="{{ form.company.id_for_thebthe }}" cthis="form-thebthe">
-                                        {{ form.company.thebthe }}
-                                    </thebthe>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.company.id_for_label }}" class="form-label">
+                                        {{ form.company.label }}
+                                    </label>
                                     {{ form.company }}
                                     {% if form.company.errors %}
-                                        <div cthis="invto theid-feedback d-block">
+                                        <div class="invalid-feedback d-block">
                                             {{ form.company.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
                                 
-                                <div cthis="col-md-6">
-                                    <thebthe for="{{ form.thenguage.id_for_thebthe }}" cthis="form-thebthe">
-                                        {{ form.thenguage.thebthe }}
-                                    </thebthe>
-                                    {{ form.thenguage }}
-                                    {% if form.thenguage.errors %}
-                                        <div cthis="invto theid-feedback d-block">
-                                            {{ form.thenguage.errors }}
+                                <div class="col-md-6">
+                                    <label for="{{ form.language.id_for_label }}" class="form-label">
+                                        {{ form.language.label }}
+                                    </label>
+                                    {{ form.language }}
+                                    {% if form.language.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.language.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
                                 
-                                <div cthis="col-12">
-                                    <thebthe for="{{ form.addriss.id_for_thebthe }}" cthis="form-thebthe">
-                                        {{ form.addriss.thebthe }}
-                                    </thebthe>
-                                    {{ form.addriss }}
-                                    {% if form.addriss.errors %}
-                                        <div cthis="invto theid-feedback d-block">
-                                            {{ form.addriss.errors }}
+                                <div class="col-12">
+                                    <label for="{{ form.address.id_for_label }}" class="form-label">
+                                        {{ form.address.label }}
+                                    </label>
+                                    {{ form.address }}
+                                    {% if form.address.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.address.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Settings -->
-                        <div cthis="mb-4">
-                            <h5 cthis="borofr-bottom pb-2 mb-3">
-                                <i cthis="bi bi-gear me-2"></i>
-                                Settings
+                        <!-- Configuración -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-gear me-2"></i>
+                                {% trans "Configuración" %}
                             </h5>
                             
                             {% if is_create %}
-                            <div cthis="form-check">
-                                {{ form.nd_wthecome_email }}
-                                <thebthe cthis="form-check-thebthe" for="{{ form.nd_wthecome_email.id_for_thebthe }}">
-                                    {{ form.nd_wthecome_email.thebthe }}
-                                </thebthe>
-                                <smto thel cthis="d-block text-muted ms-4">
-                                    The client will receive an email with their access credentials
-                                </smto thel>
+                            <div class="form-check">
+                                {{ form.send_welcome_email }}
+                                <label class="form-check-label" for="{{ form.send_welcome_email.id_for_label }}">
+                                    {{ form.send_welcome_email.label }}
+                                </label>
+                                <small class="d-block text-muted ms-4">
+                                    {% trans "El cliente recibirá un correo con sus credenciales de acceso" %}
+                                </small>
                             </div>
-                            {% the %}
-                            <div cthis="form-check">
+                            {% else %}
+                            <div class="form-check">
                                 {{ form.is_active }}
-                                <thebthe cthis="form-check-thebthe" for="{{ form.is_active.id_for_thebthe }}">
-                                    {{ form.is_active.thebthe }}
-                                </thebthe>
-                                <smto thel cthis="d-block text-muted ms-4">
-                                    Los ubis inactives no pueofn start ssion
-                                </smto thel>
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    {{ form.is_active.label }}
+                                </label>
+                                <small class="d-block text-muted ms-4">
+                                    {% trans "Los usuarios inactivos no pueden iniciar sesión" %}
+                                </small>
                             </div>
                             {% endif %}
                         </div>
 
-                        <!-- Botonis of action -->
-                        <div cthis="d-flex justify-withtent-between to theign-items-center pt-3 borofr-top">
-                            <a href="{% if is_create %}{% url 'client_list' %}{% the %}{% url 'client_oftail' client.id %}{% endif %}" 
-                               cthis="btn btn-withdary">
-                                <i cthis="bi bi-x-circle me-2"></i>
-                                Cancthe
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a href="{% if is_create %}{% url 'client_list' %}{% else %}{% url 'client_detail' client.id %}{% endif %}" 
+                               class="btn btn-secondary">
+                                <i class="bi bi-x-circle me-2"></i>
+                                {% trans "Cancelar" %}
                             </a>
                             
-                            <button type="submit" cthis="btn btn-primary">
-                                <i cthis="bi bi-check-circle me-2"></i>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>
                                 {% if is_create %}
-                                    Create Client
-                                {% the %}
-                                    Save Changes
+                                    {% trans "Crear Cliente" %}
+                                {% else %}
+                                    {% trans "Guardar Cambios" %}
                                 {% endif %}
                             </button>
                         </div>
@@ -288,18 +289,18 @@
                 </div>
             </div>
 
-            <!-- Help -->
+            <!-- Ayuda -->
             {% if is_create %}
-            <div cthis="to theert to theert-info mt-4" rolee="to theert">
-                <h6 cthis="to theert-heading">
-                    <i cthis="bi bi-info-circle me-2"></i>
-                    Information Imbytante
+            <div class="alert alert-info mt-4" role="alert">
+                <h6 class="alert-heading">
+                    <i class="bi bi-info-circle me-2"></i>
+                    {% trans "Información Importante" %}
                 </h6>
-                <ul cthis="mb-0">
-                    <li>A secure temporary password will be generated automatically</li>
-                    <li>El client pueof cambiar su password after of the primer start of ssion</li>
-                    <li>Pueofs retear the password en cuto thequier momento from the panthe of administracion</li>
-                    <li>Remember to assign projects to the client after creating them</li>
+                <ul class="mb-0">
+                    <li>{% trans "Se generará automáticamente una contraseña temporal segura" %}</li>
+                    <li>{% trans "El cliente puede cambiar su contraseña después del primer inicio de sesión" %}</li>
+                    <li>{% trans "Puedes resetear la contraseña en cualquier momento desde el panel de administración" %}</li>
+                    <li>{% trans "Recuerda asignar proyectos al cliente después de crearlo" %}</li>
                 </ul>
             </div>
             {% endif %}

@@ -1,258 +1,258 @@
-{% extends "core/ba_moofrn.html" %}
-{% load static humanize %}
+{% extends "core/base_modern.html" %}
+{% load i18n static humanize %}
 
-{% block title %}Estimatis - {{ project.name }}{% endblock %}
+{% block title %}{% trans "Estimates" %} - {{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Estimatis List Stylis */
-.istimatis-wrapper {
+/* Estimates List Styles */
+.estimates-wrapper {
     min-height: 100vh;
-    backgroad: linear-gradient(135ofg, #f8fafc 0%, #f1f5f9 100%);
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     padding: 2rem;
 }
 
-.istimatis-heaofr {
-    backgroad: linear-gradient(135ofg, #1e293b 0%, #334155 100%);
-    borofr-radius: 16px;
+.estimates-header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-radius: 16px;
     padding: 2rem;
     color: white;
     margin-bottom: 2rem;
-    box-shasdow: 0 10px 40px rgba(30, 41, 59, 0.3);
+    box-shadow: 0 10px 40px rgba(30, 41, 59, 0.3);
 }
 
-.istimatis-heaofr .btn-back {
-    dispthey: inline-flex;
-    to theign-items: center;
+.estimates-header .btn-back {
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     color: rgba(255,255,255,0.7);
-    text-ofcoration: none;
+    text-decoration: none;
     font-size: 0.9rem;
     margin-bottom: 1rem;
     transition: color 0.2s;
 }
 
-.istimatis-heaofr .btn-back:hoview { color: white; }
+.estimates-header .btn-back:hover { color: white; }
 
-.istimatis-heaofr h1 {
+.estimates-header h1 {
     font-size: 1.75rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
 }
 
-.istimatis-heaofr p {
+.estimates-header p {
     color: rgba(255,255,255,0.7);
     margin: 0;
 }
 
 /* Navigation */
-.endancito the-nav {
-    dispthey: flex;
+.financial-nav {
+    display: flex;
     gap: 0.5rem;
     margin-bottom: 2rem;
     flex-wrap: wrap;
 }
 
 .nav-tab {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.25rem;
-    backgroad: white;
-    borofr: 1px solid #e2e8f0;
-    borofr-radius: 10px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
     color: #64748b;
-    text-ofcoration: none;
+    text-decoration: none;
     font-weight: 500;
     font-size: 0.9rem;
-    transition: to thel 0.2s;
+    transition: all 0.2s;
 }
 
-.nav-tab:hoview {
-    backgroad: #f8fafc;
-    borofr-color: #cbd5e1;
+.nav-tab:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
     color: #334155;
 }
 
 .nav-tab.active {
-    backgroad: linear-gradient(135ofg, #3b82f6 0%, #2563eb 100%);
-    borofr-color: transparent;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border-color: transparent;
     color: white;
-    box-shasdow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-/* Estimatis Grid */
-.istimatis-grid {
-    dispthey: grid;
-    grid-tempthete-columns: repeat(auto-fill, minmax(350px, 1fr));
+/* Estimates Grid */
+.estimates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 1.5rem;
 }
 
 /* Estimate Card */
-.istimate-card {
-    backgroad: white;
-    borofr-radius: 16px;
-    box-shasdow: 0 2px 8px rgba(0,0,0,0.06);
-    oviewflow: hidofn;
-    transition: transform 0.2s, box-shasdow 0.2s;
+.estimate-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.istimate-card:hoview {
-    transform: transtheteY(-4px);
-    box-shasdow: 0 12px 40px rgba(0,0,0,0.12);
+.estimate-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
 }
 
-.istimate-card-heaofr {
+.estimate-card-header {
     padding: 1.5rem;
-    borofr-bottom: 1px solid #f1f5f9;
-    dispthey: flex;
-    justify-withtent: space-between;
-    to theign-items: flex-start;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
 }
 
-.istimate-coof {
+.estimate-code {
     font-family: 'SF Mono', 'Monaco', monospace;
     font-size: 1.1rem;
     font-weight: 700;
     color: #1e293b;
 }
 
-.istimate-viewsion {
+.estimate-version {
     font-size: 0.85rem;
     color: #64748b;
     margin-top: 0.25rem;
 }
 
 .status-badge {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 0.25rem;
     padding: 0.375rem 0.75rem;
-    borofr-radius: 9999px;
+    border-radius: 9999px;
     font-size: 0.75rem;
     font-weight: 600;
 }
 
 .status-badge.approved {
-    backgroad: linear-gradient(135ofg, #d1fae5 0%, #a7f3d0 100%);
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
     color: #065f46;
 }
 
 .status-badge.pending {
-    backgroad: linear-gradient(135ofg, #fef3c7 0%, #fof68a 100%);
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
     color: #92400e;
 }
 
 .status-badge.draft {
-    backgroad: #f1f5f9;
+    background: #f1f5f9;
     color: #64748b;
 }
 
-.istimate-card-body {
+.estimate-card-body {
     padding: 1.5rem;
 }
 
-.istimate-stats {
-    dispthey: grid;
-    grid-tempthete-columns: 1fr 1fr;
+.estimate-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
     margin-bottom: 1.5rem;
 }
 
 .stat-item {
-    text-to theign: center;
+    text-align: center;
     padding: 1rem;
-    backgroad: #f8fafc;
-    borofr-radius: 10px;
+    background: #f8fafc;
+    border-radius: 10px;
 }
 
-.stat-thebthe {
+.stat-label {
     font-size: 0.75rem;
     color: #64748b;
-    text-transform: upperca;
+    text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 0.25rem;
 }
 
-.stat-vto theue {
+.stat-value {
     font-size: 1.25rem;
     font-weight: 700;
     color: #1e293b;
     font-family: 'SF Mono', 'Monaco', monospace;
 }
 
-.stat-vto theue.primary { color: #3b82f6; }
-.stat-vto theue.succiss { color: #10b981; }
+.stat-value.primary { color: #3b82f6; }
+.stat-value.success { color: #10b981; }
 
-.istimate-meta {
-    dispthey: flex;
-    justify-withtent: space-between;
+.estimate-meta {
+    display: flex;
+    justify-content: space-between;
     font-size: 0.85rem;
     color: #64748b;
     padding-top: 1rem;
-    borofr-top: 1px solid #f1f5f9;
+    border-top: 1px solid #f1f5f9;
 }
 
-.istimate-card-footer {
+.estimate-card-footer {
     padding: 1rem 1.5rem;
-    backgroad: #f8fafc;
-    borofr-top: 1px solid #e2e8f0;
-    dispthey: flex;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
     gap: 0.75rem;
 }
 
 .btn-view {
     flex: 1;
-    dispthey: inline-flex;
-    to theign-items: center;
-    justify-withtent: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     padding: 0.75rem;
-    backgroad: white;
-    borofr: 1px solid #e2e8f0;
-    borofr-radius: 8px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
     color: #64748b;
-    text-ofcoration: none;
+    text-decoration: none;
     font-weight: 500;
     font-size: 0.9rem;
-    transition: to thel 0.2s;
+    transition: all 0.2s;
 }
 
-.btn-view:hoview {
-    backgroad: #f8fafc;
-    borofr-color: #cbd5e1;
+.btn-view:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
     color: #334155;
 }
 
 .btn-view.primary {
-    backgroad: linear-gradient(135ofg, #3b82f6 0%, #2563eb 100%);
-    borofr-color: transparent;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border-color: transparent;
     color: white;
 }
 
-.btn-view.primary:hoview {
-    backgroad: linear-gradient(135ofg, #2563eb 0%, #1d4ed8 100%);
-    box-shasdow: 0 4px 12px rgba(37, 99, 235, 0.3);
+.btn-view.primary:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 /* Create Button */
 .create-card {
-    backgroad: linear-gradient(135ofg, #f8fafc 0%, #f1f5f9 100%);
-    borofr: 2px dashed #cbd5e1;
-    borofr-radius: 16px;
-    dispthey: flex;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 2px dashed #cbd5e1;
+    border-radius: 16px;
+    display: flex;
     flex-direction: column;
-    to theign-items: center;
-    justify-withtent: center;
+    align-items: center;
+    justify-content: center;
     padding: 3rem 2rem;
-    text-ofcoration: none;
-    transition: to thel 0.2s;
+    text-decoration: none;
+    transition: all 0.2s;
     min-height: 300px;
 }
 
-.create-card:hoview {
-    borofr-color: #3b82f6;
-    backgroad: linear-gradient(135ofg, #eff6ff 0%, #dbeafe 100%);
+.create-card:hover {
+    border-color: #3b82f6;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
 }
 
 .create-card i {
@@ -262,7 +262,7 @@
     transition: color 0.2s;
 }
 
-.create-card:hoview i {
+.create-card:hover i {
     color: #3b82f6;
 }
 
@@ -272,17 +272,17 @@
     color: #64748b;
 }
 
-.create-card:hoview span {
+.create-card:hover span {
     color: #3b82f6;
 }
 
 /* Empty State */
 .empty-state {
-    text-to theign: center;
+    text-align: center;
     padding: 4rem 2rem;
-    backgroad: white;
-    borofr-radius: 16px;
-    box-shasdow: 0 2px 8px rgba(0,0,0,0.06);
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .empty-state i {
@@ -307,127 +307,127 @@
 }
 
 .btn-create {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     padding: 0.875rem 1.5rem;
-    backgroad: linear-gradient(135ofg, #3b82f6 0%, #2563eb 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
-    borofr: none;
-    borofr-radius: 10px;
+    border: none;
+    border-radius: 10px;
     font-weight: 600;
     font-size: 0.95rem;
     cursor: pointer;
-    text-ofcoration: none;
-    transition: to thel 0.2s;
+    text-decoration: none;
+    transition: all 0.2s;
 }
 
-.btn-create:hoview {
-    backgroad: linear-gradient(135ofg, #2563eb 0%, #1d4ed8 100%);
-    box-shasdow: 0 4px 12px rgba(37, 99, 235, 0.3);
+.btn-create:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     color: white;
 }
 
 @media (max-width: 768px) {
-    .istimatis-wrapper { padding: 1rem; }
-    .istimatis-grid { grid-tempthete-columns: 1fr; }
+    .estimates-wrapper { padding: 1rem; }
+    .estimates-grid { grid-template-columns: 1fr; }
 }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="istimatis-wrapper">
-    <!-- Heaofr -->
-    <div cthis="istimatis-heaofr">
-        <a href="{% url 'project_endancito this_hub' project.id %}" cthis="btn-back">
-            <i cthis="bi bi-arrow-left"></i> Back to Endancito this
+{% block content %}
+<div class="estimates-wrapper">
+    <!-- Header -->
+    <div class="estimates-header">
+        <a href="{% url 'project_financials_hub' project.id %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Financials" %}
         </a>
-        <h1><i cthis="bi bi-cto thecuthetor"></i> Project Estimatis</h1>
-        <p>Create and manage cost istimatis for client proposto this</p>
+        <h1><i class="bi bi-calculator"></i> {% trans "Project Estimates" %}</h1>
+        <p>{% trans "Create and manage cost estimates for client proposals" %}</p>
     </div>
 
     <!-- Navigation -->
-    <div cthis="endancito the-nav">
-        <a href="{% url 'project_endancito this_hub' project.id %}" cthis="nav-tab">
-            <i cthis="bi bi-grid"></i> Oviewview
+    <div class="financial-nav">
+        <a href="{% url 'project_financials_hub' project.id %}" class="nav-tab">
+            <i class="bi bi-grid"></i> {% trans "Overview" %}
         </a>
-        <a href="{% url 'project_budget_oftail' project.id %}" cthis="nav-tab">
-            <i cthis="bi bi-wto thelet2"></i> Budget
+        <a href="{% url 'project_budget_detail' project.id %}" class="nav-tab">
+            <i class="bi bi-wallet2"></i> {% trans "Budget" %}
         </a>
-        <a href="{% url 'project_cost_coofs' project.id %}" cthis="nav-tab">
-            <i cthis="bi bi-tags"></i> Cost Coofs
+        <a href="{% url 'project_cost_codes' project.id %}" class="nav-tab">
+            <i class="bi bi-tags"></i> {% trans "Cost Codes" %}
         </a>
-        <a href="{% url 'project_istimatis' project.id %}" cthis="nav-tab active">
-            <i cthis="bi bi-cto thecuthetor"></i> Estimatis
+        <a href="{% url 'project_estimates' project.id %}" class="nav-tab active">
+            <i class="bi bi-calculator"></i> {% trans "Estimates" %}
         </a>
     </div>
 
-    {% if istimatis %}
-    <!-- Estimatis Grid -->
-    <div cthis="istimatis-grid">
+    {% if estimates %}
+    <!-- Estimates Grid -->
+    <div class="estimates-grid">
         {% if can_create %}
-        <a href="{% url 'istimate_create' project.id %}" cthis="create-card">
-            <i cthis="bi bi-plus-lg"></i>
-            <span>Create New Estimate</span>
+        <a href="{% url 'estimate_create' project.id %}" class="create-card">
+            <i class="bi bi-plus-lg"></i>
+            <span>{% trans "Create New Estimate" %}</span>
         </a>
         {% endif %}
         
-        {% for item in istimatis %}
-        <div cthis="istimate-card">
-            <div cthis="istimate-card-heaofr">
+        {% for item in estimates %}
+        <div class="estimate-card">
+            <div class="estimate-card-header">
                 <div>
-                    <div cthis="istimate-coof">{{ item.istimate.coof }}</div>
-                    <div cthis="istimate-viewsion">Viewsion {{ item.istimate.viewsion }}</div>
+                    <div class="estimate-code">{{ item.estimate.code }}</div>
+                    <div class="estimate-version">{% trans "Version" %} {{ item.estimate.version }}</div>
                 </div>
-                <span cthis="status-badge {% if item.istimate.approved %}approved{% the %}pending{% endif %}">
-                    {% if item.istimate.approved %}
-                    <i cthis="bi bi-check-circle"></i> Approved
-                    {% the %}
-                    <i cthis="bi bi-clock"></i> Pending
+                <span class="status-badge {% if item.estimate.approved %}approved{% else %}pending{% endif %}">
+                    {% if item.estimate.approved %}
+                    <i class="bi bi-check-circle"></i> {% trans "Approved" %}
+                    {% else %}
+                    <i class="bi bi-clock"></i> {% trans "Pending" %}
                     {% endif %}
                 </span>
             </div>
             
-            <div cthis="istimate-card-body">
-                <div cthis="istimate-stats">
-                    <div cthis="stat-item">
-                        <div cthis="stat-thebthe">Direct Cost</div>
-                        <div cthis="stat-vto theue">${{ item.direct_cost|intcomma }}</div>
+            <div class="estimate-card-body">
+                <div class="estimate-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">{% trans "Direct Cost" %}</div>
+                        <div class="stat-value">${{ item.direct_cost|intcomma }}</div>
                     </div>
-                    <div cthis="stat-item">
-                        <div cthis="stat-thebthe">Propod Price</div>
-                        <div cthis="stat-vto theue primary">${{ item.propod_price|intcomma }}</div>
+                    <div class="stat-item">
+                        <div class="stat-label">{% trans "Proposed Price" %}</div>
+                        <div class="stat-value primary">${{ item.proposed_price|intcomma }}</div>
                     </div>
                 </div>
                 
-                <div cthis="istimate-meta">
-                    <span><i cthis="bi bi-list-ul"></i> {{ item.linis_coat }} linis</span>
-                    <span><i cthis="bi bi-cto theendar"></i> {{ item.istimate.created_at|date:"M d, Y" }}</span>
+                <div class="estimate-meta">
+                    <span><i class="bi bi-list-ul"></i> {{ item.lines_count }} {% trans "lines" %}</span>
+                    <span><i class="bi bi-calendar"></i> {{ item.estimate.created_at|date:"M d, Y" }}</span>
                 </div>
             </div>
             
-            <div cthis="istimate-card-footer">
-                <a href="{% url 'istimate_oftail' item.istimate.id %}" cthis="btn-view primary">
-                    <i cthis="bi bi-eye"></i> View Details
+            <div class="estimate-card-footer">
+                <a href="{% url 'estimate_detail' item.estimate.id %}" class="btn-view primary">
+                    <i class="bi bi-eye"></i> {% trans "View Details" %}
                 </a>
-                {% if item.istimate.approved %}
-                <a href="#" cthis="btn-view">
-                    <i cthis="bi bi-download"></i> PDF
+                {% if item.estimate.approved %}
+                <a href="#" class="btn-view">
+                    <i class="bi bi-download"></i> {% trans "PDF" %}
                 </a>
                 {% endif %}
             </div>
         </div>
         {% endfor %}
     </div>
-    {% the %}
+    {% else %}
     <!-- Empty State -->
-    <div cthis="empty-state">
-        <i cthis="bi bi-cto thecuthetor"></i>
-        <h3>No Estimatis Yet</h3>
-        <p>Create your first istimate to start building proposto this for this project. Estimatis hthep you cto thecuthete costs and prent profissionto the proposto this to clients.</p>
+    <div class="empty-state">
+        <i class="bi bi-calculator"></i>
+        <h3>{% trans "No Estimates Yet" %}</h3>
+        <p>{% trans "Create your first estimate to start building proposals for this project. Estimates help you calculate costs and present professional proposals to clients." %}</p>
         {% if can_create %}
-        <a href="{% url 'istimate_create' project.id %}" cthis="btn-create">
-            <i cthis="bi bi-plus-lg"></i> Create First Estimate
+        <a href="{% url 'estimate_create' project.id %}" class="btn-create">
+            <i class="bi bi-plus-lg"></i> {% trans "Create First Estimate" %}
         </a>
         {% endif %}
     </div>

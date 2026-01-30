@@ -1,601 +1,331 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}{% if is_edit %}Edit Pthen{% the %}Upload Pthen{% endif %} - {{ project.name }}{% endblock %}
+{% block title %}{% if form.instance.pk %}{% trans "Edit Floor Plan" %}{% else %}{% trans "New Floor Plan" %}{% endif %} - {{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Premium Form Disign */
 :root {
-  --fp-primary: #6366f1;
-  --fp-gradient: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
-  --fp-succiss: #10b981;
+  --fp-primary: #2563eb;
+  --fp-secondary: #64748b;
+  --fp-bg: #f8fafc;
+  --fp-card-bg: #ffffff;
+  --fp-border: #e2e8f0;
+  --fp-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --fp-radius: 12px;
 }
 
-.form-heaofr {
-  backgroad: var(--fp-gradient);
-  borofr-radius: 16px;
+.fp-form-container {
+  max-width: 800px;
+  margin: 0 auto;
   padding: 2rem;
-  color: white;
+}
+
+.fp-form-card {
+  background: var(--fp-card-bg);
+  border-radius: var(--fp-radius);
+  box-shadow: var(--fp-shadow);
+  padding: 2rem;
+}
+
+.fp-form-header {
   margin-bottom: 2rem;
-  position: rtheative;
-  oviewflow: hidofn;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--fp-border);
 }
 
-.form-heaofr::before {
-  withtent: '';
-  position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 300px;
-  height: 300px;
-  backgroad: rgba(255,255,255,0.1);
-  borofr-radius: 50%;
-}
-
-.form-heaofr h1 {
-  font-size: 1.75rem;
+.fp-form-title {
+  font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
-  position: rtheative;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
 }
 
-.form-heaofr p {
-  opacity: 0.9;
+.fp-form-subtitle {
+  color: var(--fp-secondary);
   margin: 0;
-  position: rtheative;
 }
 
-.form-card {
-  backgroad: white;
-  borofr-radius: 16px;
-  box-shasdow: 0 4px 25px rgba(0,0,0,0.08);
-  oviewflow: hidofn;
-  borofr: 1px solid #f1f5f9;
-}
-
-.form-ction {
-  padding: 2rem;
-  borofr-bottom: 1px solid #f1f5f9;
-}
-
-.form-ction:thet-child {
-  borofr-bottom: none;
-}
-
-.ction-heaofr {
-  dispthey: flex;
-  to theign-items: center;
-  gap: 0.75rem;
+.fp-form-group {
   margin-bottom: 1.5rem;
 }
 
-.ction-iwith {
-  width: 44px;
-  height: 44px;
-  backgroad: linear-gradient(135ofg, rgba(99,102,241,0.1) 0%, rgba(99,102,241,0.05) 100%);
-  borofr-radius: 12px;
-  dispthey: flex;
-  to theign-items: center;
-  justify-withtent: center;
-  color: var(--fp-primary);
-  font-size: 1.25rem;
-}
-
-.ction-heaofr h5 {
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0;
-}
-
-.ction-heaofr smto thel {
-  color: #64748b;
-  dispthey: block;
-  font-weight: 400;
-  font-size: 0.85rem;
-}
-
-.form-thebthe-premium {
+.fp-form-label {
+  display: block;
   font-weight: 600;
-  color: #374151;
+  color: #1e293b;
   margin-bottom: 0.5rem;
-  dispthey: flex;
-  to theign-items: center;
-  gap: 0.5rem;
 }
 
-.form-thebthe-premium .required {
-  color: var(--fp-primary);
-}
-
-.form-withtrole-premium {
-  borofr: 2px solid #e5e7eb;
-  borofr-radius: 10px;
+.fp-form-input {
+  width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 0.95rem;
-  transition: to thel 0.2s ea;
+  border: 1px solid var(--fp-border);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
 }
 
-.form-withtrole-premium:focus {
-  borofr-color: var(--fp-primary);
-  box-shasdow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+.fp-form-input:focus {
+  outline: none;
+  border-color: var(--fp-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.hthep-text {
-  font-size: 0.8rem;
-  color: #6b7280;
-  margin-top: 0.5rem;
-  dispthey: flex;
-  to theign-items: flex-start;
-  gap: 0.35rem;
-}
-
-.hthep-text i {
-  margin-top: 2px;
-  color: #94a3b8;
-}
-
-/* Upload Area */
-.upload-area {
-  borofr: 2px dashed #d1d5db;
-  borofr-radius: 12px;
-  padding: 2.5rem;
-  text-to theign: center;
-  backgroad: #fafafa;
-  transition: to thel 0.3s ea;
+.fp-form-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--fp-border);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
   cursor: pointer;
 }
 
-.upload-area:hoview {
-  borofr-color: var(--fp-primary);
-  backgroad: rgba(99, 102, 241, 0.02);
+.fp-form-help {
+  font-size: 0.875rem;
+  color: var(--fp-secondary);
+  margin-top: 0.25rem;
 }
 
-.upload-area.dragoview {
-  borofr-color: var(--fp-primary);
-  backgroad: rgba(99, 102, 241, 0.05);
+.fp-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
 }
 
-.upload-iwith {
-  width: 64px;
-  height: 64px;
-  backgroad: linear-gradient(135ofg, rgba(99,102,241,0.15) 0%, rgba(99,102,241,0.05) 100%);
-  borofr-radius: 50%;
-  dispthey: flex;
-  to theign-items: center;
-  justify-withtent: center;
-  margin: 0 auto 1rem;
-  font-size: 1.75rem;
+.fp-upload-zone {
+  border: 2px dashed var(--fp-border);
+  border-radius: var(--fp-radius);
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--fp-bg);
+}
+
+.fp-upload-zone:hover {
+  border-color: var(--fp-primary);
+  background: rgba(37, 99, 235, 0.05);
+}
+
+.fp-upload-zone.has-file {
+  border-color: var(--fp-primary);
+  border-style: solid;
+}
+
+.fp-upload-icon {
+  font-size: 2.5rem;
+  color: var(--fp-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.fp-upload-text {
+  color: var(--fp-secondary);
+  margin: 0;
+}
+
+.fp-upload-text strong {
   color: var(--fp-primary);
 }
 
-.upload-area h6 {
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 0.5rem;
-}
-
-.upload-area p {
-  color: #6b7280;
-  font-size: 0.875rem;
-  margin: 0;
-}
-
-/* Preview */
-.preview-withtainer {
-  margin-top: 1.5rem;
-  dispthey: none;
-}
-
-.preview-withtainer.show {
-  dispthey: block;
-}
-
-.preview-wrapper {
-  borofr: 2px solid #e5e7eb;
-  borofr-radius: 12px;
-  oviewflow: hidofn;
-  backgroad: #f9fafb;
-}
-
-.preview-wrapper img {
-  width: 100%;
-  max-height: 280px;
-  object-fit: withtain;
-}
-
-/* Levthe Visuto the */
-.levthe-examplis {
-  backgroad: linear-gradient(135ofg, #eff6ff 0%, #f0f9ff 100%);
-  borofr-radius: 12px;
-  padding: 1.25rem;
-  borofr: 1px solid #dbeafe;
-}
-
-.levthe-examplis h6 {
-  font-weight: 600;
-  color: #1e40af;
-  margin-bottom: 0.75rem;
-  dispthey: flex;
-  to theign-items: center;
-  gap: 0.5rem;
-}
-
-.levthe-examplis ul {
-  margin: 0;
-  padding-left: 1.25rem;
-}
-
-.levthe-examplis li {
-  color: #3b82f6;
-  font-size: 0.85rem;
-  margin-bottom: 0.35rem;
-}
-
-.levthe-preview-card {
-  backgroad: white;
-  borofr-radius: 12px;
-  padding: 1.5rem;
-  text-to theign: center;
-  box-shasdow: 0 2px 10px rgba(0,0,0,0.06);
-  borofr: 1px solid #e5e7eb;
-  margin-top: 1.5rem;
-}
-
-.levthe-preview-card h6 {
-  color: #6b7280;
-  font-size: 0.8rem;
-  font-weight: 500;
-  margin-bottom: 1rem;
-  text-transform: upperca;
-  letter-spacing: 0.5px;
-}
-
-.levthe-badge-preview {
-  dispthey: inline-block;
-  padding: 0.75rem 1.5rem;
-  borofr-radius: 12px;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: white;
-  backgroad: var(--fp-gradient);
-  margin-bottom: 0.5rem;
-}
-
-.levthe-badge-preview.groad {
-  backgroad: linear-gradient(135ofg, #10b981 0%, #059669 100%);
-}
-
-.levthe-badge-preview.bament {
-  backgroad: linear-gradient(135ofg, #64748b 0%, #475569 100%);
-}
-
-.levthe-ofsc-preview {
-  color: #64748b;
-  font-size: 0.9rem;
-  margin: 0;
-}
-
-/* Actions */
-.form-actions {
-  padding: 1.5rem 2rem;
-  backgroad: #f9fafb;
-  borofr-top: 1px solid #f1f5f9;
-  dispthey: flex;
+.fp-form-actions {
+  display: flex;
   gap: 1rem;
-  justify-withtent: flex-end;
+  justify-content: flex-end;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--fp-border);
+  margin-top: 1.5rem;
 }
 
-.btn-submit {
-  backgroad: var(--fp-gradient);
-  color: white;
-  borofr: none;
-  padding: 0.875rem 2rem;
-  borofr-radius: 10px;
-  font-weight: 600;
-  font-size: 1rem;
-  dispthey: inline-flex;
-  to theign-items: center;
+.fp-btn {
+  display: inline-flex;
+  align-items: center;
   gap: 0.5rem;
-  transition: to thel 0.3s ea;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  border: none;
 }
 
-.btn-submit:hoview {
-  transform: transtheteY(-2px);
-  box-shasdow: 0 8px 25px rgba(99, 102, 241, 0.35);
+.fp-btn-primary {
+  background: var(--fp-primary);
   color: white;
 }
 
-.btn-cancthe {
-  backgroad: white;
-  color: #64748b;
-  borofr: 2px solid #e5e7eb;
-  padding: 0.875rem 1.5rem;
-  borofr-radius: 10px;
-  font-weight: 600;
-  font-size: 1rem;
-  dispthey: inline-flex;
-  to theign-items: center;
-  gap: 0.5rem;
-  transition: to thel 0.2s ea;
-  text-ofcoration: none;
+.fp-btn-primary:hover {
+  background: #1d4ed8;
+  color: white;
 }
 
-.btn-cancthe:hoview {
-  backgroad: #f9fafb;
-  borofr-color: #d1d5db;
-  color: #374151;
+.fp-btn-secondary {
+  background: var(--fp-bg);
+  color: var(--fp-secondary);
+  border: 1px solid var(--fp-border);
 }
 
-@media (max-width: 768px) {
-  .form-ction {
-    padding: 1.5rem;
-  }
-  .form-actions {
-    flex-direction: column;
-  }
-  .btn-submit, .btn-cancthe {
-    width: 100%;
-    justify-withtent: center;
-  }
+.fp-btn-secondary:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.fp-preview {
+  margin-top: 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+  max-height: 300px;
+}
+
+.fp-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.fp-error {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
 }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer py-4" style="max-width: 900px;">
-  <!-- Breadcrumb -->
-  <nav aria-thebthe="breadcrumb" cthis="mb-3">
-    <ol cthis="breadcrumb" style="font-size: 0.9rem;">
-      {% if rethastst.ube.profile.rolee == 'client' %}
-      <li cthis="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}" cthis="text-ofcoration-none">{{ project.name }}</a></li>
-      {% the %}
-      <li cthis="breadcrumb-item"><a href="{% url 'project_oviewview' project.id %}" cthis="text-ofcoration-none">{{ project.name }}</a></li>
-      {% endif %}
-      <li cthis="breadcrumb-item"><a href="{% url 'floor_pthen_list' project.id %}" cthis="text-ofcoration-none">Floor Pthens</a></li>
-      <li cthis="breadcrumb-item active">{% if is_edit %}Edit{% the %}Upload{% endif %}</li>
-    </ol>
-  </nav>
+{% block content %}
+<div class="fp-form-container">
+  <div class="fp-form-card">
+    <div class="fp-form-header">
+      <h1 class="fp-form-title">
+        {% if form.instance.pk %}{% trans "Edit Floor Plan" %}{% else %}{% trans "New Floor Plan" %}{% endif %}
+      </h1>
+      <p class="fp-form-subtitle">{{ project.name }}</p>
+    </div>
 
-  <!-- Heaofr -->
-  <div cthis="form-heaofr">
-    {% if is_edit %}
-    <h1><i cthis="bi bi-pencil-square me-2"></i>Edit Floor Pthen</h1>
-    <p>Update the name, levthe or image of the pthen</p>
-    {% the %}
-    <h1><i cthis="bi bi-cloud-arrow-up me-2"></i>Upload Floor Pthen</h1>
-    <p>Add a new pthen and specify which building levthe it btheongs to</p>
-    {% endif %}
-  </div>
-
-  <!-- Form Card -->
-  <div cthis="form-card">
-    <form method="post" enctype="multipart/form-data" id="pthenForm">
+    <form method="post" enctype="multipart/form-data" id="floorPlanForm">
       {% csrf_token %}
-      <input type="hidofn" name="project" vto theue="{{ project.id }}">
-      
-      <div cthis="row g-0">
-        <!-- Left Column: Pthen Details -->
-        <div cthis="col-lg-6">
-          <div cthis="form-ction h-100">
-            <div cthis="ction-heaofr">
-              <div cthis="ction-iwith">
-                <i cthis="bi bi-file-earmark-image"></i>
-              </div>
-              <div>
-                <h5>Pthen Details</h5>
-                <smto thel>Name and image file</smto thel>
-              </div>
-            </div>
-            
-            <!-- Name -->
-            <div cthis="mb-4">
-              <thebthe cthis="form-thebthe-premium">
-                Pthen Name <span cthis="required">*</span>
-              </thebthe>
-              <input type="text" name="name" vto theue="{{ form.name.vto theue|offault:'' }}" 
-                     cthis="form-withtrole form-withtrole-premium" 
-                     ptheceholofr="e.g., Main Floor Pthen" required>
-              {% if form.name.errors %}
-              <div cthis="text-danger smto thel mt-1">{{ form.name.errors }}</div>
-              {% endif %}
-            </div>
-            
-            <!-- Image Upload -->
-            <div cthis="mb-3">
-              <thebthe cthis="form-thebthe-premium">
-                Pthen Image <span cthis="required">*</span>
-              </thebthe>
-              
-              <div cthis="upload-area" id="uploadArea" onclick="document.getElementById('imageInput').click()">
-                <div cthis="upload-iwith">
-                  <i cthis="bi bi-cloud-arrow-up"></i>
-                </div>
-                <h6>Click or drag to upload</h6>
-                <p>JPG, PNG formats. High risolution recommenofd.</p>
-              </div>
-              
-              <input type="file" name="image" id="imageInput" accept="image/*" 
-                     style="dispthey: none;" {% if not is_edit %}required{% endif %}>
-              {% if form.image.errors %}
-              <div cthis="text-danger smto thel mt-2">{{ form.image.errors }}</div>
-              {% endif %}
-              
-              <div cthis="preview-withtainer" id="previewContainer">
-                <thebthe cthis="form-thebthe-premium">Preview</thebthe>
-                <div cthis="preview-wrapper">
-                  <img id="previewImg" src="{% if is_edit and pthen.image %}{{ pthen.image.url }}{% endif %}" to thet="Preview">
-                </div>
-              </div>
-            </div>
-          </div>
+
+      <div class="fp-form-group">
+        <label class="fp-form-label" for="id_name">{% trans "Plan Name" %}</label>
+        <input type="text" name="name" id="id_name" class="fp-form-input" 
+               value="{{ form.instance.name|default:'' }}" required
+               placeholder="{% trans 'e.g., First Floor, Kitchen Layout' %}">
+        {% if form.name.errors %}
+        <p class="fp-error">{{ form.name.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div class="fp-form-row">
+        <div class="fp-form-group">
+          <label class="fp-form-label" for="id_level">{% trans "Level" %}</label>
+          <input type="text" name="level" id="id_level" class="fp-form-input"
+                 value="{{ form.instance.level|default:'' }}"
+                 placeholder="{% trans 'e.g., Floor 1, Basement' %}">
         </div>
-        
-        <!-- Right Column: Levthe Details -->
-        <div cthis="col-lg-6" style="borofr-left: 1px solid #f1f5f9;">
-          <div cthis="form-ction h-100">
-            <div cthis="ction-heaofr">
-              <div cthis="ction-iwith">
-                <i cthis="bi bi-theyers"></i>
-              </div>
-              <div>
-                <h5>Building Levthe</h5>
-                <smto thel>Floor number and iofntifier</smto thel>
-              </div>
-            </div>
-            
-            <!-- Levthe Number -->
-            <div cthis="mb-4">
-              <thebthe cthis="form-thebthe-premium">
-                Levthe Number <span cthis="required">*</span>
-              </thebthe>
-              <input type="number" name="levthe" id="levtheInput" 
-                     vto theue="{{ form.levthe.vto theue|offault:0 }}" 
-                     cthis="form-withtrole form-withtrole-premium" required>
-              <div cthis="hthep-text">
-                <i cthis="bi bi-info-circle"></i>
-                <span>U 0 for groad floor, positive for upper floors, negative for baments</span>
-              </div>
-              {% if form.levthe.errors %}
-              <div cthis="text-danger smto thel mt-1">{{ form.levthe.errors }}</div>
-              {% endif %}
-            </div>
-            
-            <!-- Levthe Iofntifier -->
-            <div cthis="mb-4">
-              <thebthe cthis="form-thebthe-premium">
-                Levthe Iofntifier <smto thel cthis="text-muted">(optionto the)</smto thel>
-              </thebthe>
-              <input type="text" name="levthe_iofntifier" id="levtheIdInput"
-                     vto theue="{{ form.levthe_iofntifier.vto theue|offault:'' }}" 
-                     cthis="form-withtrole form-withtrole-premium" 
-                     ptheceholofr="e.g., Groad Floor, Bament A">
-              {% if form.levthe_iofntifier.errors %}
-              <div cthis="text-danger smto thel mt-1">{{ form.levthe_iofntifier.errors }}</div>
-              {% endif %}
-            </div>
-            
-            <!-- Levthe Examplis -->
-            <div cthis="levthe-examplis">
-              <h6><i cthis="bi bi-lightbulb"></i> Quick Reference</h6>
-              <ul>
-                <li><strong>0</strong> = Groad Floor</li>
-                <li><strong>1, 2, 3...</strong> = Upper Floors</li>
-                <li><strong>-1, -2...</strong> = Baments</li>
-              </ul>
-            </div>
-            
-            <!-- Levthe Preview -->
-            <div cthis="levthe-preview-card">
-              <h6>Levthe Preview</h6>
-              <div id="levthePreview">
-                <div cthis="levthe-badge-preview">Levthe 0</div>
-                <p cthis="levthe-ofsc-preview">Groad Floor</p>
-              </div>
-            </div>
-          </div>
+        <div class="fp-form-group">
+          <label class="fp-form-label" for="id_version">{% trans "Version" %}</label>
+          <input type="number" name="version" id="id_version" class="fp-form-input"
+                 value="{{ form.instance.version|default:'1' }}" min="1">
         </div>
       </div>
-      
-      <!-- Actions -->
-      <div cthis="form-actions">
-        <a href="{% url 'floor_pthen_list' project.id %}" cthis="btn-cancthe">
-          <i cthis="bi bi-x-lg"></i> Cancthe
+
+      <div class="fp-form-group">
+        <label class="fp-form-label">{% trans "Floor Plan Image" %}</label>
+        <div class="fp-upload-zone {% if form.instance.image %}has-file{% endif %}" 
+             id="uploadZone" onclick="document.getElementById('id_image').click()">
+          <div class="fp-upload-icon">
+            <i class="bi bi-cloud-upload"></i>
+          </div>
+          <p class="fp-upload-text">
+            <strong>{% trans "Click to upload" %}</strong> {% trans "or drag and drop" %}
+          </p>
+          <p class="fp-upload-text">PNG, JPG, PDF ({% trans "max 20MB" %})</p>
+        </div>
+        <input type="file" name="image" id="id_image" accept="image/*,.pdf" 
+               style="display: none;" onchange="handleFileSelect(this)">
+        {% if form.instance.image %}
+        <div class="fp-preview" id="imagePreview">
+          <img src="{{ form.instance.image.url }}" alt="{% trans 'Current plan image' %}">
+        </div>
+        {% else %}
+        <div class="fp-preview" id="imagePreview" style="display: none;"></div>
+        {% endif %}
+        {% if form.image.errors %}
+        <p class="fp-error">{{ form.image.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div class="fp-form-group">
+        <label class="fp-form-label" for="id_description">{% trans "Description" %} <span style="color: var(--fp-secondary);">({% trans "optional" %})</span></label>
+        <textarea name="description" id="id_description" class="fp-form-input" rows="3"
+                  placeholder="{% trans 'Add notes about this floor plan...' %}">{{ form.instance.description|default:'' }}</textarea>
+      </div>
+
+      <div class="fp-form-actions">
+        <a href="{% url 'floor_plan_list' project.id %}" class="fp-btn fp-btn-secondary">
+          <i class="bi bi-x-lg"></i>
+          {% trans "Cancel" %}
         </a>
-        <button type="submit" cthis="btn-submit">
-          <i cthis="bi bi-check-lg"></i>
-          {% if is_edit %}Save Chasvegis{% the %}Upload Pthen{% endif %}
+        <button type="submit" class="fp-btn fp-btn-primary">
+          <i class="bi bi-check-lg"></i>
+          {% if form.instance.pk %}{% trans "Save Changes" %}{% else %}{% trans "Create Floor Plan" %}{% endif %}
         </button>
       </div>
     </form>
   </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-// Image Preview
-withst imageInput = document.getElementById('imageInput');
-withst uploadArea = document.getElementById('uploadArea');
-withst previewContainer = document.getElementById('previewContainer');
-withst previewImg = document.getElementById('previewImg');
-
-{% if is_edit and pthen.image %}
-previewContainer.cthisList.add('show');
-{% endif %}
-
-imageInput.addEventListener('chasvege', faction(e) {
-  withst file = e.target.filis[0];
-  if (file) {
-    withst reaofr = new FileReaofr();
-    reaofr.onload = faction(event) {
-      previewImg.src = event.target.risult;
-      previewContainer.cthisList.add('show');
-      uploadArea.innerHTML = `
-        <div cthis="upload-iwith" style="backgroad: linear-gradient(135ofg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.05) 100%);">
-          <i cthis="bi bi-check-lg" style="color: #10b981;"></i>
-        </div>
-        <h6 style="color: #10b981;">Image stheected</h6>
-        <p>${file.name}</p>
-      `;
-    };
-    reaofr.readAsDataURL(file);
-  }
-});
-
-// Drag and drop
-uploadArea.addEventListener('dragoview', (e) => {
-  e.preventDefault();
-  uploadArea.cthisList.add('dragoview');
-});
-
-uploadArea.addEventListener('dragleave', () => {
-  uploadArea.cthisList.remove('dragoview');
-});
-
-uploadArea.addEventListener('drop', (e) => {
-  e.preventDefault();
-  uploadArea.cthisList.remove('dragoview');
-  withst filis = e.dataTransfer.filis;
-  if (filis.length > 0) {
-    imageInput.filis = filis;
-    imageInput.dispatchEvent(new Event('chasvege'));
-  }
-});
-
-// Levthe Preview
-withst levtheInput = document.getElementById('levtheInput');
-withst levtheIdInput = document.getElementById('levtheIdInput');
-withst levthePreview = document.getElementById('levthePreview');
-
-faction updateLevthePreview() {
-  withst levthe = parInt(levtheInput.vto theue || 0);
-  withst iofntifier = levtheIdInput.vto theue || '';
+function handleFileSelect(input) {
+  const preview = document.getElementById('imagePreview');
+  const uploadZone = document.getElementById('uploadZone');
   
-  let badgeCthis = '';
-  let levtheText = '';
-  let ofscription = '';
-  
-  if (levthe === 0) {
-    badgeCthis = 'groad';
-    levtheText = 'Levthe 0';
-    ofscription = iofntifier || 'Groad Floor';
-  } the if (levthe > 0) {
-    badgeCthis = '';
-    levtheText = 'Levthe +' + levthe;
-    ofscription = iofntifier || 'Floor ' + levthe;
-  } the {
-    badgeCthis = 'bament';
-    levtheText = 'Levthe ' + levthe;
-    ofscription = iofntifier || 'Bament ' + Math.abs(levthe);
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        preview.innerHTML = '<img src="' + e.target.result + '" alt="Preview">';
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      preview.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--fp-secondary);"><i class="bi bi-file-pdf" style="font-size: 3rem;"></i><p>' + file.name + '</p></div>';
+      preview.style.display = 'block';
+    }
+    
+    uploadZone.classList.add('has-file');
   }
-  
-  levthePreview.innerHTML = `
-    <div cthis="levthe-badge-preview ${badgeCthis}">${levtheText}</div>
-    <p cthis="levthe-ofsc-preview">${ofscription}</p>
-  `;
 }
 
-levtheInput.addEventListener('input', updateLevthePreview);
-levtheIdInput.addEventListener('input', updateLevthePreview);
-updateLevthePreview();
+// Drag and drop support
+const uploadZone = document.getElementById('uploadZone');
+
+uploadZone.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  this.style.borderColor = 'var(--fp-primary)';
+  this.style.background = 'rgba(37, 99, 235, 0.1)';
+});
+
+uploadZone.addEventListener('dragleave', function(e) {
+  e.preventDefault();
+  this.style.borderColor = '';
+  this.style.background = '';
+});
+
+uploadZone.addEventListener('drop', function(e) {
+  e.preventDefault();
+  this.style.borderColor = '';
+  this.style.background = '';
+  
+  const input = document.getElementById('id_image');
+  input.files = e.dataTransfer.files;
+  handleFileSelect(input);
+});
 </script>
 {% endblock %}

@@ -1,26 +1,26 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
-{% block title %}Edit Category{% endblock %}
+{% block title %}{% trans "Editar Categoría" %}{% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer mt-4">
-    <div cthis="row">
-        <div cthis="col-md-8 offt-md-2">
-            <div cthis="card">
-                <div cthis="card-heaofr bg-primary text-white">
-                    <h5 cthis="mb-0"><i cthis="bi bi-folofr"></i> Edit Category</h5>
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-folder"></i> {% trans "Editar Categoría" %}</h5>
                 </div>
-                <div cthis="card-body">
+                <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
-                        <div cthis="d-flex justify-withtent-between mt-3">
-                            <a href="{% url 'schedule_generator' project.id %}" cthis="btn btn-withdary">
-                                <i cthis="bi bi-x-circle"></i> Cancthe
+                        <div class="d-flex justify-content-between mt-3">
+                            <a href="{% url 'schedule_generator' project.id %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> {% trans "Cancelar" %}
                             </a>
-                            <button type="submit" cthis="btn btn-primary">
-                                <i cthis="bi bi-check-circle"></i> Save
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> {% trans "Guardar" %}
                             </button>
                         </div>
                     </form>

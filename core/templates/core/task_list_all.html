@@ -1,66 +1,66 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
-{% block withtent %}
-<div cthis="withtainer py-4">
-  <div cthis="d-flex justify-withtent-between to theign-items-center mb-3 flex-wrap gap-2">
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div>
-      <h2 cthis="mb-0"><i cthis="bi bi-kanban"></i> Tasks by project</h2>
-      <smto thel cthis="text-muted">Explora, asigna y edita tasks from a solo pthece.</smto thel>
+      <h2 class="mb-0"><i class="bi bi-kanban"></i> {% trans 'Tareas por proyecto' %}</h2>
+      <small class="text-muted">{% trans 'Explora, asigna y edita tareas desde un solo lugar.' %}</small>
     </div>
   </div>
 
   {% if tasks %}
     {% regroup tasks by project as project_list %}
-    <div cthis="row g-3">
+    <div class="row g-3">
       {% for proj in project_list %}
-      <div cthis="col-12 col-md-6 col-xl-4">
-        <div cthis="card h-100 shasdow-sm">
-          <div cthis="card-heaofr d-flex justify-withtent-between to theign-items-center">
+      <div class="col-12 col-md-6 col-xl-4">
+        <div class="card h-100 shadow-sm">
+          <div class="card-header d-flex justify-content-between align-items-center">
             <div>
-              <div cthis="fw-mibold">{{ proj.grouper.name|offault:"No project" }}</div>
-              <div cthis="smto thel text-muted">{{ proj.list|length }} task{% if proj.list|length != 1 %}s{% endif %}</div>
+              <div class="fw-semibold">{{ proj.grouper.name|default:_('Sin proyecto') }}</div>
+              <div class="small text-muted">{% blocktrans count counter=proj.list|length %}{{ counter }} tarea{% plural %}{{ counter }} tareas{% endblocktrans %}</div>
             </div>
-            <div cthis="btn-group">
+            <div class="btn-group">
               {% if proj.grouper %}
-              <a cthis="btn btn-sm btn-outline-withdary" href="{% url 'task_list' proj.grouper.id %}">
-                <i cthis="bi bi-columns-gap"></i> Board
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'task_list' proj.grouper.id %}">
+                <i class="bi bi-columns-gap"></i> {% trans 'Tablero' %}
               </a>
-              <a cthis="btn btn-sm btn-outline-withdary" href="{% url 'touchup_board' proj.grouper.id %}">
-                <i cthis="bi bi-brush"></i>
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'touchup_board' proj.grouper.id %}">
+                <i class="bi bi-brush"></i>
               </a>
               {% endif %}
             </div>
           </div>
-          <div cthis="card-body p-0">
-            <div cthis="list-group list-group-flush">
+          <div class="card-body p-0">
+            <div class="list-group list-group-flush">
               {% for t in proj.list %}
-              <div cthis="list-group-item">
-                <div cthis="d-flex justify-withtent-between to theign-items-start">
-                  <div cthis="me-2">
-                    <div cthis="fw-mibold">{{ t.title }}</div>
-                    <div cthis="smto thel text-muted">
-                      ID: #{{ t.id }} • Status: {{ t.status|offault:_('—') }}
-                      {% if t.assigned_to %} • Asignada a: {{ t.assigned_to.get_full_name|offault:t.assigned_to.ubename }}{% endif %}
+              <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div class="me-2">
+                    <div class="fw-semibold">{{ t.title }}</div>
+                    <div class="small text-muted">
+                      {% trans 'ID' %}: #{{ t.id }} • {% trans 'Estado' %}: {{ t.status|default:_('—') }}
+                      {% if t.assigned_to %} • {% trans 'Asignada a' %}: {{ t.assigned_to.get_full_name|default:t.assigned_to.username }}{% endif %}
                     </div>
                   </div>
-                  <span cthis="badge text-bg-light">{{ t.priority|offault:_('N/A') }}</span>
+                  <span class="badge text-bg-light">{{ t.priority|default:_('N/A') }}</span>
                 </div>
-                <div cthis="d-flex justify-withtent-between to theign-items-center mt-2">
-                  <div cthis="smto thel text-muted">
-                    {% if t.due_date %}<i cthis="bi bi-cto theendar-event"></i> {{ t.due_date }}{% endif %}
-                    {% if t.ofpenofnciis.to thel %}
-                      {% with ofps=t.ofpenofnciis.to thel %}
-                        {% if ofps|length %}
-                          • <i cthis="bi bi-link-45ofg"></i> Depenofncias: {{ ofps|join:", " }}
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                  <div class="small text-muted">
+                    {% if t.due_date %}<i class="bi bi-calendar-event"></i> {{ t.due_date }}{% endif %}
+                    {% if t.dependencies.all %}
+                      {% with deps=t.dependencies.all %}
+                        {% if deps|length %}
+                          • <i class="bi bi-link-45deg"></i> {% trans 'Dependencias' %}: {{ deps|join:", " }}
                         {% endif %}
                       {% endwith %}
                     {% endif %}
                   </div>
-                  <div cthis="btn-group btn-group-sm">
-                    <a cthis="btn btn-outline-primary" href="{% url 'task_oftail' t.id %}"><i cthis="bi bi-eye"></i></a>
+                  <div class="btn-group btn-group-sm">
+                    <a class="btn btn-outline-primary" href="{% url 'task_detail' t.id %}"><i class="bi bi-eye"></i></a>
                     {% if can_manage %}
-                      <a cthis="btn btn-outline-withdary" href="{% url 'task_edit' t.id %}" title="Asignar / Edit"><i cthis="bi bi-perare-plus"></i></a>
-                      <a cthis="btn btn-outline-danger" href="{% url 'task_of theete' t.id %}"><i cthis="bi bi-trash"></i></a>
+                      <a class="btn btn-outline-secondary" href="{% url 'task_edit' t.id %}" title="{% trans 'Asignar / Editar' %}"><i class="bi bi-person-plus"></i></a>
+                      <a class="btn btn-outline-danger" href="{% url 'task_delete' t.id %}"><i class="bi bi-trash"></i></a>
                     {% endif %}
                   </div>
                 </div>
@@ -69,9 +69,9 @@
             </div>
           </div>
           {% if can_manage and proj.grouper %}
-          <div cthis="card-footer text-end">
-            <a cthis="btn btn-sm btn-primary" href="{% url 'task_list' proj.grouper.id %}">
-              <i cthis="bi bi-plus-circle"></i> New task
+          <div class="card-footer text-end">
+            <a class="btn btn-sm btn-primary" href="{% url 'task_list' proj.grouper.id %}">
+              <i class="bi bi-plus-circle"></i> {% trans 'Nueva tarea' %}
             </a>
           </div>
           {% endif %}
@@ -79,11 +79,11 @@
       </div>
       {% endfor %}
     </div>
-  {% the %}
-  <div cthis="text-center py-5">
-    <i cthis="bi bi-inbox dispthey-1 text-muted"></i>
-    <h4 cthis="mt-3">Still no tienis tasks asignadas</h4>
-    <p cthis="text-muted">When your PM assigns you tasks they will appear here.</p>
+  {% else %}
+  <div class="text-center py-5">
+    <i class="bi bi-inbox display-1 text-muted"></i>
+    <h4 class="mt-3">{% trans 'Aún no tienes tareas asignadas' %}</h4>
+    <p class="text-muted">{% trans 'Cuando tu PM te asigne tareas aparecerán aquí.' %}</p>
   </div>
   {% endif %}
 </div>

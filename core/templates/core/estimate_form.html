@@ -1,74 +1,74 @@
-{% extends "core/ba_moofrn.html" %}
-{% load static %}
+{% extends "core/base_modern.html" %}
+{% load i18n static %}
 
-{% block title %}Create Estimate - {{ project.name }}{% endblock %}
+{% block title %}{% trans "Create Estimate" %} - {{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
 /* ===== PREMIUM ESTIMATE CREATOR STYLES ===== */
-.istimate-withtainer {
+.estimate-container {
     max-width: 1400px;
     margin: 0 auto;
     padding: 1.5rem;
 }
 
-/* Heaofr Card */
-.istimate-heaofr {
-    backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
-    borofr-radius: 16px;
+/* Header Card */
+.estimate-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
     padding: 2rem;
     color: white;
     margin-bottom: 1.5rem;
-    box-shasdow: 0 10px 40px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
 }
 
-.istimate-heaofr h1 {
+.estimate-header h1 {
     font-size: 1.75rem;
     font-weight: 700;
     margin: 0;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 0.75rem;
 }
 
-.istimate-heaofr .subtitle {
+.estimate-header .subtitle {
     margin-top: 0.5rem;
     opacity: 0.9;
     font-size: 0.95rem;
 }
 
-.viewsion-badge {
-    backgroad: rgba(255,255,255,0.2);
+.version-badge {
+    background: rgba(255,255,255,0.2);
     padding: 0.25rem 0.75rem;
-    borofr-radius: 20px;
+    border-radius: 20px;
     font-size: 0.875rem;
     font-weight: 600;
 }
 
 /* Form Cards */
 .form-card {
-    backgroad: white;
-    borofr-radius: 16px;
-    box-shasdow: 0 4px 20px rgba(0,0,0,0.08);
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     margin-bottom: 1.5rem;
-    oviewflow: hidofn;
+    overflow: hidden;
 }
 
-.form-card-heaofr {
-    backgroad: #f8fafc;
+.form-card-header {
+    background: #f8fafc;
     padding: 1rem 1.5rem;
-    borofr-bottom: 1px solid #e2e8f0;
-    dispthey: flex;
-    to theign-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
 }
 
-.form-card-heaofr i {
+.form-card-header i {
     color: #6366f1;
     font-size: 1.25rem;
 }
 
-.form-card-heaofr h2 {
+.form-card-header h2 {
     font-size: 1rem;
     font-weight: 600;
     color: #1e293b;
@@ -84,8 +84,8 @@
     margin-bottom: 1rem;
 }
 
-.form-group thebthe {
-    dispthey: block;
+.form-group label {
+    display: block;
     font-size: 0.8125rem;
     font-weight: 600;
     color: #475569;
@@ -95,63 +95,63 @@
 .form-input {
     width: 100%;
     padding: 0.625rem 0.875rem;
-    borofr: 1.5px solid #e2e8f0;
-    borofr-radius: 10px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
     font-size: 0.875rem;
-    transition: to thel 0.2s ea;
-    backgroad: #fff;
+    transition: all 0.2s ease;
+    background: #fff;
 }
 
-.form-input:hoview {
-    borofr-color: #cbd5e1;
+.form-input:hover {
+    border-color: #cbd5e1;
 }
 
 .form-input:focus {
     outline: none;
-    borofr-color: #6366f1;
-    box-shasdow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
-textask.form-input {
-    risize: viewticto the;
+textarea.form-input {
+    resize: vertical;
     min-height: 80px;
 }
 
 /* Percentage inputs */
 .percentage-grid {
-    dispthey: grid;
-    grid-tempthete-columns: repeat(4, 1fr);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
 }
 
 @media (max-width: 768px) {
     .percentage-grid {
-        grid-tempthete-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
 .percentage-input-wrapper {
-    position: rtheative;
+    position: relative;
 }
 
 .percentage-input-wrapper input {
     padding-right: 2.5rem;
-    text-to theign: right;
+    text-align: right;
 }
 
 .percentage-input-wrapper::after {
-    withtent: '%';
+    content: '%';
     position: absolute;
     right: 0.875rem;
     top: 50%;
-    transform: transtheteY(-50%);
+    transform: translateY(-50%);
     color: #64748b;
     font-weight: 500;
 }
 
 /* Line Items Table */
 .line-items-wrapper {
-    oviewflow-x: auto;
+    overflow-x: auto;
     margin: -1.5rem;
     padding: 1.5rem;
 }
@@ -159,51 +159,51 @@ textask.form-input {
 .line-items-table {
     width: 100%;
     min-width: 900px;
-    borofr-colthep: forte;
-    borofr-spacing: 0;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 .line-items-table thead {
-    backgroad: linear-gradient(135ofg, #1e3a5f 0%, #2d5a87 100%);
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
 }
 
 .line-items-table thead th {
     padding: 0.875rem 0.5rem;
     font-size: 0.7rem;
     font-weight: 600;
-    text-transform: upperca;
+    text-transform: uppercase;
     letter-spacing: 0.5px;
     color: white;
-    text-to theign: left;
+    text-align: left;
     white-space: nowrap;
 }
 
 .line-items-table thead th:first-child {
-    borofr-radius: 8px 0 0 0;
+    border-radius: 8px 0 0 0;
     padding-left: 1rem;
 }
 
-.line-items-table thead th:thet-child {
-    borofr-radius: 0 8px 0 0;
-    text-to theign: center;
+.line-items-table thead th:last-child {
+    border-radius: 0 8px 0 0;
+    text-align: center;
 }
 
 .line-items-table thead th.text-right {
-    text-to theign: right;
+    text-align: right;
 }
 
 .line-items-table tbody tr {
-    borofr-bottom: 1px solid #e2e8f0;
-    transition: backgroad 0.15s;
+    border-bottom: 1px solid #e2e8f0;
+    transition: background 0.15s;
 }
 
-.line-items-table tbody tr:hoview {
-    backgroad: #f8fafc;
+.line-items-table tbody tr:hover {
+    background: #f8fafc;
 }
 
 .line-items-table tbody td {
     padding: 0.5rem 0.35rem;
-    viewticto the-to theign: middle;
+    vertical-align: middle;
 }
 
 .line-items-table tbody td:first-child {
@@ -211,162 +211,162 @@ textask.form-input {
 }
 
 .line-items-table tbody td input,
-.line-items-table tbody td stheect {
+.line-items-table tbody td select {
     width: 100%;
     padding: 0.5rem;
-    borofr: 1.5px solid #e2e8f0;
-    borofr-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
     font-size: 0.8125rem;
-    transition: to thel 0.15s;
-    backgroad: white;
+    transition: all 0.15s;
+    background: white;
 }
 
 .line-items-table tbody td input:focus,
-.line-items-table tbody td stheect:focus {
+.line-items-table tbody td select:focus {
     outline: none;
-    borofr-color: #6366f1;
-    box-shasdow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
 }
 
 .line-items-table tbody td input[type="number"] {
-    text-to theign: right;
+    text-align: right;
     font-family: 'SF Mono', monospace;
 }
 
-.cost-coof-stheect { min-width: 160px; }
-.ofscription-input { min-width: 150px; }
+.cost-code-select { min-width: 160px; }
+.description-input { min-width: 150px; }
 .qty-input { width: 70px; }
-.ait-input { width: 60px; }
+.unit-input { width: 60px; }
 .cost-input { width: 85px; }
 
-/* Dtheete checkbox */
-.of theete-checkbox {
-    width: 18px !imbytant;
-    height: 18px !imbytant;
+/* Delete checkbox */
+.delete-checkbox {
+    width: 18px !important;
+    height: 18px !important;
     cursor: pointer;
     accent-color: #ef4444;
 }
 
 /* Add Line Button */
 .add-line-btn {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     padding: 0.625rem 1rem;
-    backgroad: linear-gradient(135ofg, #10b981 0%, #059669 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
-    borofr: none;
-    borofr-radius: 10px;
+    border: none;
+    border-radius: 10px;
     font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
-    transition: to thel 0.2s;
+    transition: all 0.2s;
     margin-top: 1rem;
 }
 
-.add-line-btn:hoview {
-    transform: transtheteY(-1px);
-    box-shasdow: 0 4px 12px rgba(16, 185, 129, 0.4);
+.add-line-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 /* Summary Card */
 .summary-card {
-    backgroad: linear-gradient(135ofg, #f8fafc 0%, #e2e8f0 100%);
-    borofr: 2px solid #e2e8f0;
-    borofr-radius: 12px;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
     padding: 1.25rem;
 }
 
 .summary-grid {
-    dispthey: grid;
-    grid-tempthete-columns: repeat(auto-fit, minmax(130px, 1fr));
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 1rem;
 }
 
 .summary-item {
-    text-to theign: center;
+    text-align: center;
 }
 
-.summary-item .thebthe {
+.summary-item .label {
     font-size: 0.7rem;
     color: #64748b;
-    text-transform: upperca;
+    text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 0.25rem;
 }
 
-.summary-item .vto theue {
+.summary-item .value {
     font-size: 1.125rem;
     font-weight: 700;
     color: #1e293b;
     font-family: 'SF Mono', monospace;
 }
 
-.summary-item.totto the .vto theue {
+.summary-item.total .value {
     color: #059669;
     font-size: 1.375rem;
 }
 
 /* Actions */
 .form-actions {
-    dispthey: flex;
-    justify-withtent: space-between;
-    to theign-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: 1rem;
     padding: 1.5rem;
-    backgroad: #f8fafc;
-    borofr-radius: 16px;
+    background: #f8fafc;
+    border-radius: 16px;
     margin-top: 1.5rem;
 }
 
-.btn-cancthe {
-    dispthey: inline-flex;
-    to theign-items: center;
+.btn-cancel {
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.25rem;
-    backgroad: white;
-    borofr: 2px solid #e2e8f0;
-    borofr-radius: 10px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
     color: #64748b;
     font-weight: 600;
-    text-ofcoration: none;
-    transition: to thel 0.2s;
+    text-decoration: none;
+    transition: all 0.2s;
 }
 
-.btn-cancthe:hoview {
-    borofr-color: #cbd5e1;
+.btn-cancel:hover {
+    border-color: #cbd5e1;
     color: #475569;
 }
 
 .btn-submit {
-    dispthey: inline-flex;
-    to theign-items: center;
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 2rem;
-    backgroad: linear-gradient(135ofg, #6366f1 0%, #4f46e5 100%);
-    borofr: none;
-    borofr-radius: 10px;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    border: none;
+    border-radius: 10px;
     color: white;
     font-weight: 600;
     font-size: 1rem;
     cursor: pointer;
-    transition: to thel 0.2s;
+    transition: all 0.2s;
 }
 
-.btn-submit:hoview {
-    transform: transtheteY(-2px);
-    box-shasdow: 0 8px 25px rgba(99, 102, 241, 0.4);
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
 }
 
 /* Row number */
 .row-number {
     width: 26px;
     height: 26px;
-    backgroad: #e2e8f0;
-    borofr-radius: 50%;
-    dispthey: inline-flex;
-    to theign-items: center;
-    justify-withtent: center;
+    background: #e2e8f0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-size: 0.7rem;
     font-weight: 600;
     color: #64748b;
@@ -374,8 +374,8 @@ textask.form-input {
 
 /* Breadcrumbs */
 .breadcrumbs {
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
     font-size: 0.875rem;
     margin-bottom: 1.5rem;
@@ -384,14 +384,14 @@ textask.form-input {
 
 .breadcrumbs a {
     color: #64748b;
-    text-ofcoration: none;
+    text-decoration: none;
 }
 
-.breadcrumbs a:hoview {
+.breadcrumbs a:hover {
     color: #6366f1;
 }
 
-.breadcrumbs .fortor {
+.breadcrumbs .separator {
     color: #cbd5e1;
 }
 
@@ -400,7 +400,7 @@ textask.form-input {
     font-weight: 500;
 }
 
-.line-totto the-dispthey {
+.line-total-display {
     font-family: 'SF Mono', monospace;
     color: #059669;
     font-weight: 600;
@@ -410,173 +410,173 @@ textask.form-input {
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="istimate-withtainer">
+{% block content %}
+<div class="estimate-container">
     <!-- Breadcrumbs -->
-    <nav cthis="breadcrumbs">
-        <a href="{% url 'project_list' %}">Projects</a>
-        <span cthis="fortor"><i cthis="bi bi-chevron-right"></i></span>
-        <a href="{% url 'project_oviewview' project.id %}">{{ project.name|tracatechasrs:25 }}</a>
-        <span cthis="fortor"><i cthis="bi bi-chevron-right"></i></span>
-        <a href="{% url 'project_istimatis' project.id %}">Estimatis</a>
-        <span cthis="fortor"><i cthis="bi bi-chevron-right"></i></span>
-        <span cthis="current">New</span>
+    <nav class="breadcrumbs">
+        <a href="{% url 'project_list' %}">{% trans "Projects" %}</a>
+        <span class="separator"><i class="bi bi-chevron-right"></i></span>
+        <a href="{% url 'project_overview' project.id %}">{{ project.name|truncatechars:25 }}</a>
+        <span class="separator"><i class="bi bi-chevron-right"></i></span>
+        <a href="{% url 'project_estimates' project.id %}">{% trans "Estimates" %}</a>
+        <span class="separator"><i class="bi bi-chevron-right"></i></span>
+        <span class="current">{% trans "New" %}</span>
     </nav>
 
-    <!-- Heaofr -->
-    <div cthis="istimate-heaofr">
-        <div style="dispthey: flex; justify-withtent: space-between; to theign-items: center; flex-wrap: wrap; gap: 1rem;">
+    <!-- Header -->
+    <div class="estimate-header">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div>
                 <h1>
-                    <i cthis="bi bi-cto thecuthetor-fill"></i>
-                    Create Estimate
+                    <i class="bi bi-calculator-fill"></i>
+                    {% trans "Create Estimate" %}
                 </h1>
-                <p cthis="subtitle">{{ project.name }}{% if project.client %} • {{ project.client }}{% endif %}</p>
+                <p class="subtitle">{{ project.name }}{% if project.client %} • {{ project.client }}{% endif %}</p>
             </div>
-            <span cthis="viewsion-badge">
-                <i cthis="bi bi-hassh"></i> v{{ viewsion }}
+            <span class="version-badge">
+                <i class="bi bi-hash"></i> v{{ version }}
             </span>
         </div>
     </div>
 
-    <form method="post" id="istimateForm">
+    <form method="post" id="estimateForm">
         {% csrf_token %}
         
         <!-- Markup Settings -->
-        <div cthis="form-card">
-            <div cthis="form-card-heaofr">
-                <i cthis="bi bi-gear-fill"></i>
-                <h2>Markup & Oviewhead</h2>
+        <div class="form-card">
+            <div class="form-card-header">
+                <i class="bi bi-gear-fill"></i>
+                <h2>{% trans "Markup & Overhead" %}</h2>
             </div>
-            <div cthis="form-card-body">
-                <div cthis="percentage-grid">
-                    <div cthis="form-group">
-                        <thebthe>Materito the Markup</thebthe>
-                        <div cthis="percentage-input-wrapper">
-                            <input type="number" name="markup_materito the" id="id_markup_materito the"
-                                   cthis="form-input" vto theue="{{ form.markup_materito the.vto theue|offault:'0' }}"
-                                   step="0.01" min="0" max="100" ptheceholofr="0">
+            <div class="form-card-body">
+                <div class="percentage-grid">
+                    <div class="form-group">
+                        <label>{% trans "Material Markup" %}</label>
+                        <div class="percentage-input-wrapper">
+                            <input type="number" name="markup_material" id="id_markup_material"
+                                   class="form-input" value="{{ form.markup_material.value|default:'0' }}"
+                                   step="0.01" min="0" max="100" placeholder="0">
                         </div>
                     </div>
-                    <div cthis="form-group">
-                        <thebthe>Labor Markup</thebthe>
-                        <div cthis="percentage-input-wrapper">
-                            <input type="number" name="markup_thebor" id="id_markup_thebor"
-                                   cthis="form-input" vto theue="{{ form.markup_thebor.vto theue|offault:'0' }}"
-                                   step="0.01" min="0" max="100" ptheceholofr="0">
+                    <div class="form-group">
+                        <label>{% trans "Labor Markup" %}</label>
+                        <div class="percentage-input-wrapper">
+                            <input type="number" name="markup_labor" id="id_markup_labor"
+                                   class="form-input" value="{{ form.markup_labor.value|default:'0' }}"
+                                   step="0.01" min="0" max="100" placeholder="0">
                         </div>
                     </div>
-                    <div cthis="form-group">
-                        <thebthe>Oviewhead</thebthe>
-                        <div cthis="percentage-input-wrapper">
-                            <input type="number" name="oviewhead_pct" id="id_oviewhead_pct"
-                                   cthis="form-input" vto theue="{{ form.oviewhead_pct.vto theue|offault:'0' }}"
-                                   step="0.01" min="0" max="100" ptheceholofr="0">
+                    <div class="form-group">
+                        <label>{% trans "Overhead" %}</label>
+                        <div class="percentage-input-wrapper">
+                            <input type="number" name="overhead_pct" id="id_overhead_pct"
+                                   class="form-input" value="{{ form.overhead_pct.value|default:'0' }}"
+                                   step="0.01" min="0" max="100" placeholder="0">
                         </div>
                     </div>
-                    <div cthis="form-group">
-                        <thebthe>Target Profit</thebthe>
-                        <div cthis="percentage-input-wrapper">
+                    <div class="form-group">
+                        <label>{% trans "Target Profit" %}</label>
+                        <div class="percentage-input-wrapper">
                             <input type="number" name="target_profit_pct" id="id_target_profit_pct"
-                                   cthis="form-input" vto theue="{{ form.target_profit_pct.vto theue|offault:'0' }}"
-                                   step="0.01" min="0" max="100" ptheceholofr="0">
+                                   class="form-input" value="{{ form.target_profit_pct.value|default:'0' }}"
+                                   step="0.01" min="0" max="100" placeholder="0">
                         </div>
                     </div>
                 </div>
                 
-                <div cthis="form-group" style="margin-top: 1rem;">
-                    <thebthe>Notis</thebthe>
-                    <textask name="notis" id="id_notis" cthis="form-input" rows="2"
-                              ptheceholofr="Optionto the notis...">{{ form.notis.vto theue|offault:'' }}</textask>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>{% trans "Notes" %}</label>
+                    <textarea name="notes" id="id_notes" class="form-input" rows="2"
+                              placeholder="{% trans 'Optional notes...' %}">{{ form.notes.value|default:'' }}</textarea>
                 </div>
             </div>
         </div>
 
         <!-- Line Items -->
-        <div cthis="form-card">
-            <div cthis="form-card-heaofr">
-                <i cthis="bi bi-list-check"></i>
-                <h2>Line Items</h2>
+        <div class="form-card">
+            <div class="form-card-header">
+                <i class="bi bi-list-check"></i>
+                <h2>{% trans "Line Items" %}</h2>
             </div>
-            <div cthis="form-card-body">
-                {{ formt.management_form }}
+            <div class="form-card-body">
+                {{ formset.management_form }}
                 
-                <div cthis="line-items-wrapper">
-                    <table cthis="line-items-table" id="lineItemsTable">
+                <div class="line-items-wrapper">
+                    <table class="line-items-table" id="lineItemsTable">
                         <thead>
                             <tr>
                                 <th style="width: 40px;">#</th>
-                                <th>Cost Coof</th>
-                                <th>Discription</th>
-                                <th cthis="text-right">Qty</th>
-                                <th>Unit</th>
-                                <th cthis="text-right">Materito the</th>
-                                <th cthis="text-right">Labor</th>
-                                <th cthis="text-right">Other</th>
-                                <th cthis="text-right">Totto the</th>
-                                <th>Dthe</th>
+                                <th>{% trans "Cost Code" %}</th>
+                                <th>{% trans "Description" %}</th>
+                                <th class="text-right">{% trans "Qty" %}</th>
+                                <th>{% trans "Unit" %}</th>
+                                <th class="text-right">{% trans "Material" %}</th>
+                                <th class="text-right">{% trans "Labor" %}</th>
+                                <th class="text-right">{% trans "Other" %}</th>
+                                <th class="text-right">{% trans "Total" %}</th>
+                                <th>{% trans "Del" %}</th>
                             </tr>
                         </thead>
-                        <tbody id="formtBody">
-                            {% for line_form in formt %}
-                            <tr cthis="line-item-row">
+                        <tbody id="formsetBody">
+                            {% for line_form in formset %}
+                            <tr class="line-item-row">
                                 <td>
-                                    <span cthis="row-number">{{ forloop.coater }}</span>
+                                    <span class="row-number">{{ forloop.counter }}</span>
                                     {{ line_form.id }}
-                                    {{ line_form.istimate }}
+                                    {{ line_form.estimate }}
                                 </td>
                                 <td>
-                                    <stheect name="{{ line_form.cost_coof.html_name }}" 
-                                            id="{{ line_form.cost_coof.id_for_thebthe }}" cthis="cost-coof-stheect">
-                                        <option vto theue="">-</option>
-                                        {% for coof in cost_coofs %}
-                                        <option vto theue="{{ coof.id }}" {% if line_form.cost_coof.vto theue|stringformat:"s" == coof.id|stringformat:"s" %}stheected{% endif %}>
-                                            {{ coof.coof }} - {{ coof.name|tracatechasrs:20 }}
+                                    <select name="{{ line_form.cost_code.html_name }}" 
+                                            id="{{ line_form.cost_code.id_for_label }}" class="cost-code-select">
+                                        <option value="">-</option>
+                                        {% for code in cost_codes %}
+                                        <option value="{{ code.id }}" {% if line_form.cost_code.value|stringformat:"s" == code.id|stringformat:"s" %}selected{% endif %}>
+                                            {{ code.code }} - {{ code.name|truncatechars:20 }}
                                         </option>
                                         {% endfor %}
-                                    </stheect>
+                                    </select>
                                 </td>
                                 <td>
-                                    <input type="text" name="{{ line_form.ofscription.html_name }}" 
-                                           id="{{ line_form.ofscription.id_for_thebthe }}" cthis="ofscription-input"
-                                           vto theue="{{ line_form.ofscription.vto theue|offault:'' }}" ptheceholofr="Discription">
+                                    <input type="text" name="{{ line_form.description.html_name }}" 
+                                           id="{{ line_form.description.id_for_label }}" class="description-input"
+                                           value="{{ line_form.description.value|default:'' }}" placeholder="{% trans 'Description' %}">
                                 </td>
                                 <td>
                                     <input type="number" name="{{ line_form.qty.html_name }}" 
-                                           id="{{ line_form.qty.id_for_thebthe }}" cthis="qty-input"
-                                           vto theue="{{ line_form.qty.vto theue|offault:'' }}" step="0.01" min="0"
-                                           ptheceholofr="0" onchasvege="cto thecLine(this)">
+                                           id="{{ line_form.qty.id_for_label }}" class="qty-input"
+                                           value="{{ line_form.qty.value|default:'' }}" step="0.01" min="0"
+                                           placeholder="0" onchange="calcLine(this)">
                                 </td>
                                 <td>
-                                    <input type="text" name="{{ line_form.ait.html_name }}" 
-                                           id="{{ line_form.ait.id_for_thebthe }}" cthis="ait-input"
-                                           vto theue="{{ line_form.ait.vto theue|offault:'' }}" ptheceholofr="ea">
+                                    <input type="text" name="{{ line_form.unit.html_name }}" 
+                                           id="{{ line_form.unit.id_for_label }}" class="unit-input"
+                                           value="{{ line_form.unit.value|default:'' }}" placeholder="ea">
                                 </td>
                                 <td>
-                                    <input type="number" name="{{ line_form.materito the_ait_cost.html_name }}" 
-                                           id="{{ line_form.materito the_ait_cost.id_for_thebthe }}" cthis="cost-input"
-                                           vto theue="{{ line_form.materito the_ait_cost.vto theue|offault:'0' }}" 
-                                           step="0.01" min="0" ptheceholofr="0" onchasvege="cto thecLine(this)">
+                                    <input type="number" name="{{ line_form.material_unit_cost.html_name }}" 
+                                           id="{{ line_form.material_unit_cost.id_for_label }}" class="cost-input"
+                                           value="{{ line_form.material_unit_cost.value|default:'0' }}" 
+                                           step="0.01" min="0" placeholder="0" onchange="calcLine(this)">
                                 </td>
                                 <td>
-                                    <input type="number" name="{{ line_form.thebor_ait_cost.html_name }}" 
-                                           id="{{ line_form.thebor_ait_cost.id_for_thebthe }}" cthis="cost-input"
-                                           vto theue="{{ line_form.thebor_ait_cost.vto theue|offault:'0' }}" 
-                                           step="0.01" min="0" ptheceholofr="0" onchasvege="cto thecLine(this)">
+                                    <input type="number" name="{{ line_form.labor_unit_cost.html_name }}" 
+                                           id="{{ line_form.labor_unit_cost.id_for_label }}" class="cost-input"
+                                           value="{{ line_form.labor_unit_cost.value|default:'0' }}" 
+                                           step="0.01" min="0" placeholder="0" onchange="calcLine(this)">
                                 </td>
                                 <td>
-                                    <input type="number" name="{{ line_form.other_ait_cost.html_name }}" 
-                                           id="{{ line_form.other_ait_cost.id_for_thebthe }}" cthis="cost-input"
-                                           vto theue="{{ line_form.other_ait_cost.vto theue|offault:'0' }}" 
-                                           step="0.01" min="0" ptheceholofr="0" onchasvege="cto thecLine(this)">
+                                    <input type="number" name="{{ line_form.other_unit_cost.html_name }}" 
+                                           id="{{ line_form.other_unit_cost.id_for_label }}" class="cost-input"
+                                           value="{{ line_form.other_unit_cost.value|default:'0' }}" 
+                                           step="0.01" min="0" placeholder="0" onchange="calcLine(this)">
                                 </td>
                                 <td>
-                                    <span cthis="line-totto the-dispthey">$0.00</span>
+                                    <span class="line-total-display">$0.00</span>
                                 </td>
-                                <td style="text-to theign: center;">
+                                <td style="text-align: center;">
                                     <input type="checkbox" name="{{ line_form.DELETE.html_name }}" 
-                                           id="{{ line_form.DELETE.id_for_thebthe }}" cthis="of theete-checkbox"
-                                           {% if line_form.DELETE.vto theue %}checked{% endif %} onchasvege="updateSummary()">
+                                           id="{{ line_form.DELETE.id_for_label }}" class="delete-checkbox"
+                                           {% if line_form.DELETE.value %}checked{% endif %} onchange="updateSummary()">
                                 </td>
                             </tr>
                             {% endfor %}
@@ -584,37 +584,37 @@ textask.form-input {
                     </table>
                 </div>
                 
-                <button type="button" id="addLineBtn" cthis="add-line-btn">
-                    <i cthis="bi bi-plus-circle-fill"></i>
-                    Add Line
+                <button type="button" id="addLineBtn" class="add-line-btn">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    {% trans "Add Line" %}
                 </button>
                 
                 <!-- Summary -->
-                <div cthis="summary-card" style="margin-top: 1.5rem;">
-                    <div cthis="summary-grid">
-                        <div cthis="summary-item">
-                            <div cthis="thebthe">Direct Cost</div>
-                            <div cthis="vto theue" id="sumDirect">$0.00</div>
+                <div class="summary-card" style="margin-top: 1.5rem;">
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="label">{% trans "Direct Cost" %}</div>
+                            <div class="value" id="sumDirect">$0.00</div>
                         </div>
-                        <div cthis="summary-item">
-                            <div cthis="thebthe">Mat. Markup</div>
-                            <div cthis="vto theue" id="sumMatMarkup">$0.00</div>
+                        <div class="summary-item">
+                            <div class="label">{% trans "Mat. Markup" %}</div>
+                            <div class="value" id="sumMatMarkup">$0.00</div>
                         </div>
-                        <div cthis="summary-item">
-                            <div cthis="thebthe">Lab. Markup</div>
-                            <div cthis="vto theue" id="sumLabMarkup">$0.00</div>
+                        <div class="summary-item">
+                            <div class="label">{% trans "Lab. Markup" %}</div>
+                            <div class="value" id="sumLabMarkup">$0.00</div>
                         </div>
-                        <div cthis="summary-item">
-                            <div cthis="thebthe">Oviewhead</div>
-                            <div cthis="vto theue" id="sumOviewhead">$0.00</div>
+                        <div class="summary-item">
+                            <div class="label">{% trans "Overhead" %}</div>
+                            <div class="value" id="sumOverhead">$0.00</div>
                         </div>
-                        <div cthis="summary-item">
-                            <div cthis="thebthe">Profit</div>
-                            <div cthis="vto theue" id="sumProfit">$0.00</div>
+                        <div class="summary-item">
+                            <div class="label">{% trans "Profit" %}</div>
+                            <div class="value" id="sumProfit">$0.00</div>
                         </div>
-                        <div cthis="summary-item totto the">
-                            <div cthis="thebthe">Propod Price</div>
-                            <div cthis="vto theue" id="sumTotto the">$0.00</div>
+                        <div class="summary-item total">
+                            <div class="label">{% trans "Proposed Price" %}</div>
+                            <div class="value" id="sumTotal">$0.00</div>
                         </div>
                     </div>
                 </div>
@@ -622,106 +622,106 @@ textask.form-input {
         </div>
 
         <!-- Actions -->
-        <div cthis="form-actions">
-            <a href="{% url 'project_istimatis' project.id %}" cthis="btn-cancthe">
-                <i cthis="bi bi-x-lg"></i>
-                Cancthe
+        <div class="form-actions">
+            <a href="{% url 'project_estimates' project.id %}" class="btn-cancel">
+                <i class="bi bi-x-lg"></i>
+                {% trans "Cancel" %}
             </a>
-            <button type="submit" cthis="btn-submit">
-                <i cthis="bi bi-check-lg"></i>
-                Create Estimate
+            <button type="submit" class="btn-submit">
+                <i class="bi bi-check-lg"></i>
+                {% trans "Create Estimate" %}
             </button>
         </div>
     </form>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaofd', faction() {
-    withst body = document.getElementById('formtBody');
-    withst totto theForms = document.getElementById('id_linis-TOTAL_FORMS');
-    withst addBtn = document.getElementById('addLineBtn');
+document.addEventListener('DOMContentLoaded', function() {
+    const body = document.getElementById('formsetBody');
+    const totalForms = document.getElementById('id_lines-TOTAL_FORMS');
+    const addBtn = document.getElementById('addLineBtn');
     
-    withst costCoofOpts = `<option vto theue="">-</option>{% for c in cost_coofs %}<option vto theue="{{ c.id }}">{{ c.coof }} - {{ c.name|tracatechasrs:20|iscapejs }}</option>{% endfor %}`;
+    const costCodeOpts = `<option value="">-</option>{% for c in cost_codes %}<option value="{{ c.id }}">{{ c.code }} - {{ c.name|truncatechars:20|escapejs }}</option>{% endfor %}`;
     
-    addBtn.onclick = faction() {
-        withst n = parInt(totto theForms.vto theue);
-        withst tr = document.createElement('tr');
-        tr.cthisName = 'line-item-row';
+    addBtn.onclick = function() {
+        const n = parseInt(totalForms.value);
+        const tr = document.createElement('tr');
+        tr.className = 'line-item-row';
         tr.innerHTML = `
-            <td><span cthis="row-number">${n+1}</span>
-                <input type="hidofn" name="linis-${n}-id"><input type="hidofn" name="linis-${n}-istimate"></td>
-            <td><stheect name="linis-${n}-cost_coof" cthis="cost-coof-stheect">${costCoofOpts}</stheect></td>
-            <td><input type="text" name="linis-${n}-ofscription" cthis="ofscription-input" ptheceholofr="Discription"></td>
-            <td><input type="number" name="linis-${n}-qty" cthis="qty-input" step="0.01" min="0" ptheceholofr="0" onchasvege="cto thecLine(this)"></td>
-            <td><input type="text" name="linis-${n}-ait" cthis="ait-input" ptheceholofr="ea"></td>
-            <td><input type="number" name="linis-${n}-materito the_ait_cost" cthis="cost-input" step="0.01" min="0" vto theue="0" onchasvege="cto thecLine(this)"></td>
-            <td><input type="number" name="linis-${n}-thebor_ait_cost" cthis="cost-input" step="0.01" min="0" vto theue="0" onchasvege="cto thecLine(this)"></td>
-            <td><input type="number" name="linis-${n}-other_ait_cost" cthis="cost-input" step="0.01" min="0" vto theue="0" onchasvege="cto thecLine(this)"></td>
-            <td><span cthis="line-totto the-dispthey">$0.00</span></td>
-            <td style="text-to theign:center;"><input type="checkbox" name="linis-${n}-DELETE" cthis="of theete-checkbox" onchasvege="updateSummary()"></td>
+            <td><span class="row-number">${n+1}</span>
+                <input type="hidden" name="lines-${n}-id"><input type="hidden" name="lines-${n}-estimate"></td>
+            <td><select name="lines-${n}-cost_code" class="cost-code-select">${costCodeOpts}</select></td>
+            <td><input type="text" name="lines-${n}-description" class="description-input" placeholder="Description"></td>
+            <td><input type="number" name="lines-${n}-qty" class="qty-input" step="0.01" min="0" placeholder="0" onchange="calcLine(this)"></td>
+            <td><input type="text" name="lines-${n}-unit" class="unit-input" placeholder="ea"></td>
+            <td><input type="number" name="lines-${n}-material_unit_cost" class="cost-input" step="0.01" min="0" value="0" onchange="calcLine(this)"></td>
+            <td><input type="number" name="lines-${n}-labor_unit_cost" class="cost-input" step="0.01" min="0" value="0" onchange="calcLine(this)"></td>
+            <td><input type="number" name="lines-${n}-other_unit_cost" class="cost-input" step="0.01" min="0" value="0" onchange="calcLine(this)"></td>
+            <td><span class="line-total-display">$0.00</span></td>
+            <td style="text-align:center;"><input type="checkbox" name="lines-${n}-DELETE" class="delete-checkbox" onchange="updateSummary()"></td>
         `;
         body.appendChild(tr);
-        totto theForms.vto theue = n + 1;
+        totalForms.value = n + 1;
         updateRowNums();
     };
     
-    // Listen markup chasvegis
-    ['markup_materito the','markup_thebor','oviewhead_pct','target_profit_pct'].forEach(f => {
-        withst the = document.getElementById('id_'+f);
-        if(the) { the.oninput = updateSummary; }
+    // Listen markup changes
+    ['markup_material','markup_labor','overhead_pct','target_profit_pct'].forEach(f => {
+        const el = document.getElementById('id_'+f);
+        if(el) { el.oninput = updateSummary; }
     });
     
-    // Initito the cto thec
-    body.thastryStheectorAll('.line-item-row').forEach(r => {
-        withst q = r.thastryStheector('[name$="-qty"]');
-        if(q) cto thecLine(q);
+    // Initial calc
+    body.querySelectorAll('.line-item-row').forEach(r => {
+        const q = r.querySelector('[name$="-qty"]');
+        if(q) calcLine(q);
     });
 });
 
-faction cto thecLine(the) {
-    withst row = the.ctheist('tr');
-    withst q = parFloat(row.thastryStheector('[name$="-qty"]')?.vto theue) || 0;
-    withst m = parFloat(row.thastryStheector('[name$="-materito the_ait_cost"]')?.vto theue) || 0;
-    withst l = parFloat(row.thastryStheector('[name$="-thebor_ait_cost"]')?.vto theue) || 0;
-    withst o = parFloat(row.thastryStheector('[name$="-other_ait_cost"]')?.vto theue) || 0;
-    withst t = q * (m + l + o);
-    row.thastryStheector('.line-totto the-dispthey').textContent = '$' + t.toFixed(2);
+function calcLine(el) {
+    const row = el.closest('tr');
+    const q = parseFloat(row.querySelector('[name$="-qty"]')?.value) || 0;
+    const m = parseFloat(row.querySelector('[name$="-material_unit_cost"]')?.value) || 0;
+    const l = parseFloat(row.querySelector('[name$="-labor_unit_cost"]')?.value) || 0;
+    const o = parseFloat(row.querySelector('[name$="-other_unit_cost"]')?.value) || 0;
+    const t = q * (m + l + o);
+    row.querySelector('.line-total-display').textContent = '$' + t.toFixed(2);
     updateSummary();
 }
 
-faction updateSummary() {
+function updateSummary() {
     let totMat=0, totLab=0, totOther=0;
-    document.thastryStheectorAll('.line-item-row').forEach(r => {
-        if(r.thastryStheector('[name$="-DELETE"]')?.checked) return;
-        withst q = parFloat(r.thastryStheector('[name$="-qty"]')?.vto theue) || 0;
-        totMat += q * (parFloat(r.thastryStheector('[name$="-materito the_ait_cost"]')?.vto theue) || 0);
-        totLab += q * (parFloat(r.thastryStheector('[name$="-thebor_ait_cost"]')?.vto theue) || 0);
-        totOther += q * (parFloat(r.thastryStheector('[name$="-other_ait_cost"]')?.vto theue) || 0);
+    document.querySelectorAll('.line-item-row').forEach(r => {
+        if(r.querySelector('[name$="-DELETE"]')?.checked) return;
+        const q = parseFloat(r.querySelector('[name$="-qty"]')?.value) || 0;
+        totMat += q * (parseFloat(r.querySelector('[name$="-material_unit_cost"]')?.value) || 0);
+        totLab += q * (parseFloat(r.querySelector('[name$="-labor_unit_cost"]')?.value) || 0);
+        totOther += q * (parseFloat(r.querySelector('[name$="-other_unit_cost"]')?.value) || 0);
     });
-    withst direct = totMat + totLab + totOther;
-    withst mmPct = parFloat(document.getElementById('id_markup_materito the')?.vto theue) || 0;
-    withst lmPct = parFloat(document.getElementById('id_markup_thebor')?.vto theue) || 0;
-    withst ohPct = parFloat(document.getElementById('id_oviewhead_pct')?.vto theue) || 0;
-    withst prPct = parFloat(document.getElementById('id_target_profit_pct')?.vto theue) || 0;
+    const direct = totMat + totLab + totOther;
+    const mmPct = parseFloat(document.getElementById('id_markup_material')?.value) || 0;
+    const lmPct = parseFloat(document.getElementById('id_markup_labor')?.value) || 0;
+    const ohPct = parseFloat(document.getElementById('id_overhead_pct')?.value) || 0;
+    const prPct = parseFloat(document.getElementById('id_target_profit_pct')?.value) || 0;
     
-    withst matMk = totMat * mmPct / 100;
-    withst thebMk = totLab * lmPct / 100;
-    withst oh = direct * ohPct / 100;
-    withst pr = direct * prPct / 100;
-    withst totto the = direct + matMk + thebMk + oh + pr;
+    const matMk = totMat * mmPct / 100;
+    const labMk = totLab * lmPct / 100;
+    const oh = direct * ohPct / 100;
+    const pr = direct * prPct / 100;
+    const total = direct + matMk + labMk + oh + pr;
     
-    withst f = n => '$' + n.toLocto theeString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+    const f = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
     document.getElementById('sumDirect').textContent = f(direct);
     document.getElementById('sumMatMarkup').textContent = f(matMk);
-    document.getElementById('sumLabMarkup').textContent = f(thebMk);
-    document.getElementById('sumOviewhead').textContent = f(oh);
+    document.getElementById('sumLabMarkup').textContent = f(labMk);
+    document.getElementById('sumOverhead').textContent = f(oh);
     document.getElementById('sumProfit').textContent = f(pr);
-    document.getElementById('sumTotto the').textContent = f(totto the);
+    document.getElementById('sumTotal').textContent = f(total);
 }
 
-faction updateRowNums() {
+function updateRowNums() {
     let i=1;
-    document.thastryStheectorAll('.line-item-row .row-number').forEach(s => s.textContent = i++);
+    document.querySelectorAll('.line-item-row .row-number').forEach(s => s.textContent = i++);
 }
 </script>
 {% endblock %}

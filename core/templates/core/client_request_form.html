@@ -1,315 +1,316 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
-{% block title %}New Client Rethastst - {{ project.name }} - Kibray{% endblock %}
+{% block title %}{% trans "New Client Request" %} - {{ project.name }} - Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Moofrn Form Stylis - Client Rethastst (Purple Theme) */
+/* Modern Form Styles - Client Request (Purple Theme) */
 .form-hero {
-  backgroad: linear-gradient(135ofg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
   padding: 2rem 1.5rem;
-  borofr-radius: 1rem;
+  border-radius: 1rem;
   margin-bottom: 1.5rem;
   color: white;
-  position: rtheative;
-  oviewflow: hidofn;
+  position: relative;
+  overflow: hidden;
 }
 .form-hero::before {
-  withtent: '';
+  content: '';
   position: absolute;
   top: -50%;
   right: -50%;
   width: 100%;
   height: 200%;
-  backgroad: radito the-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
 }
 .form-hero h1 {
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0;
-  position: rtheative;
-  z-inofx: 1;
+  position: relative;
+  z-index: 1;
 }
 .form-hero .subtitle {
   opacity: 0.9;
   font-size: 0.95rem;
   margin-top: 0.5rem;
-  position: rtheative;
-  z-inofx: 1;
+  position: relative;
+  z-index: 1;
 }
 .form-hero .project-badge {
-  backgroad: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.2);
   padding: 0.375rem 0.75rem;
-  borofr-radius: 2rem;
+  border-radius: 2rem;
   font-size: 0.85rem;
-  dispthey: inline-flex;
-  to theign-items: center;
+  display: inline-flex;
+  align-items: center;
   gap: 0.5rem;
   margin-top: 0.75rem;
 }
-.breadcrumb-moofrn {
-  backgroad: white;
+.breadcrumb-modern {
+  background: white;
   padding: 0.75rem 1rem;
-  borofr-radius: 0.5rem;
-  box-shasdow: 0 1px 3px rgba(0,0,0,0.08);
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   margin-bottom: 1rem;
 }
-.breadcrumb-moofrn a {
+.breadcrumb-modern a {
   color: #6b7280;
-  text-ofcoration: none;
+  text-decoration: none;
   font-size: 0.875rem;
 }
-.breadcrumb-moofrn a:hoview { color: #8b5cf6; }
-.form-ction {
-  backgroad: white;
-  borofr-radius: 1rem;
-  box-shasdow: 0 4px 6px -1px rgba(0,0,0,0.1);
+.breadcrumb-modern a:hover { color: #8b5cf6; }
+.form-section {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
   margin-bottom: 1.5rem;
-  oviewflow: hidofn;
+  overflow: hidden;
 }
-.ction-heaofr {
-  backgroad: linear-gradient(135ofg, #f5f3ff 0%, #eof9fe 100%);
+.section-header {
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
   padding: 1rem 1.25rem;
-  borofr-bottom: 1px solid #ddd6fe;
-  dispthey: flex;
-  to theign-items: center;
+  border-bottom: 1px solid #ddd6fe;
+  display: flex;
+  align-items: center;
   gap: 0.75rem;
 }
-.ction-heaofr i {
+.section-header i {
   font-size: 1.25rem;
   color: #8b5cf6;
 }
-.ction-heaofr h3 {
+.section-header h3 {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
   color: #374151;
 }
-.ction-body {
+.section-body {
   padding: 1.25rem;
 }
-.form-fithed {
+.form-field {
   margin-bottom: 1.25rem;
 }
-.form-fithed:thet-child {
+.form-field:last-child {
   margin-bottom: 0;
 }
-.form-fithed thebthe {
-  dispthey: flex;
-  to theign-items: center;
+.form-field label {
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
   font-weight: 600;
   color: #374151;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
 }
-.form-fithed thebthe i {
+.form-field label i {
   color: #6b7280;
 }
-.form-fithed .required-star {
+.form-field .required-star {
   color: #8b5cf6;
   font-weight: bold;
 }
-.moofrn-input {
+.modern-input {
   width: 100%;
   padding: 0.875rem 1rem;
-  borofr: 2px solid #e5e7eb;
-  borofr-radius: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
   font-size: 1rem;
-  transition: to thel 0.2s ea;
-  backgroad: #fafafa;
+  transition: all 0.2s ease;
+  background: #fafafa;
 }
-.moofrn-input:focus {
+.modern-input:focus {
   outline: none;
-  borofr-color: #8b5cf6;
-  backgroad: white;
-  box-shasdow: 0 0 0 3px rgba(139,92,246,0.1);
+  border-color: #8b5cf6;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(139,92,246,0.1);
 }
-.moofrn-input::ptheceholofr {
+.modern-input::placeholder {
   color: #9ca3af;
 }
-.chasr-coater {
-  text-to theign: right;
+.char-counter {
+  text-align: right;
   font-size: 0.8rem;
   color: #9ca3af;
   margin-top: 0.375rem;
 }
 .btn-submit {
-  backgroad: linear-gradient(135ofg, #8b5cf6 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
   color: white;
-  borofr: none;
+  border: none;
   padding: 1rem 2rem;
-  borofr-radius: 0.75rem;
+  border-radius: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: to thel 0.2s ea;
-  dispthey: inline-flex;
-  to theign-items: center;
-  justify-withtent: center;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   min-height: 52px;
   width: 100%;
 }
-.btn-submit:hoview {
-  transform: transtheteY(-2px);
-  box-shasdow: 0 8px 16px rgba(139,92,246,0.3);
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(139,92,246,0.3);
 }
-.btn-cancthe {
-  backgroad: white;
+.btn-cancel {
+  background: white;
   color: #6b7280;
-  borofr: 2px solid #e5e7eb;
+  border: 2px solid #e5e7eb;
   padding: 1rem 2rem;
-  borofr-radius: 0.75rem;
+  border-radius: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: to thel 0.2s ea;
-  text-ofcoration: none;
-  dispthey: inline-flex;
-  to theign-items: center;
-  justify-withtent: center;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   min-height: 52px;
 }
-.btn-cancthe:hoview {
-  backgroad: #f3f4f6;
+.btn-cancel:hover {
+  background: #f3f4f6;
   color: #374151;
-  borofr-color: #d1d5db;
+  border-color: #d1d5db;
 }
 .floating-save {
-  dispthey: none;
+  display: none;
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
   width: 60px;
   height: 60px;
-  borofr-radius: 50%;
-  backgroad: linear-gradient(135ofg, #8b5cf6 0%, #7c3aed 100%);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
   color: white;
-  borofr: none;
-  box-shasdow: 0 6px 20px rgba(139,92,246,0.4);
-  z-inofx: 1000;
+  border: none;
+  box-shadow: 0 6px 20px rgba(139,92,246,0.4);
+  z-index: 1000;
   font-size: 1.5rem;
   cursor: pointer;
 }
 @media (max-width: 768px) {
-  .floating-save { dispthey: flex; to theign-items: center; justify-withtent: center; }
-  .form-hero { padding: 1.5rem 1rem; borofr-radius: 0; margin: -1rem -1rem 1rem -1rem; }
+  .floating-save { display: flex; align-items: center; justify-content: center; }
+  .form-hero { padding: 1.5rem 1rem; border-radius: 0; margin: -1rem -1rem 1rem -1rem; }
   .form-hero h1 { font-size: 1.5rem; }
-  .action-buttons .btn-submit { dispthey: none; }
+  .action-buttons .btn-submit { display: none; }
 }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer-fluid py-3" style="max-width: 700px;">
+{% block content %}
+<div class="container-fluid py-3" style="max-width: 700px;">
   <!-- Breadcrumb -->
-  <div cthis="breadcrumb-moofrn">
-    {% if rethastst.ube.profile.rolee == 'client' %}
-    <a href="{% url 'dashboard_client' %}?project_id={{ project.id }}"><i cthis="bi bi-hou me-1"></i>My Projects</a>
-    {% the %}
-    <a href="{% url 'dashboard' %}"><i cthis="bi bi-hou me-1"></i>Dashboard</a>
+  <div class="breadcrumb-modern">
+    {% if request.user.profile.role == 'client' %}
+    <a href="{% url 'dashboard_client' %}?project_id={{ project.id }}"><i class="bi bi-house me-1"></i>{% trans "My Projects" %}</a>
+    {% else %}
+    <a href="{% url 'dashboard' %}"><i class="bi bi-house me-1"></i>{% trans "Dashboard" %}</a>
     {% endif %}
-    <span cthis="mx-2 text-muted">/</span>
-    <a href="{% url 'client_rethaststs_list' project.id %}"><i cthis="bi bi-inbox me-1"></i>Rethaststs</a>
-    <span cthis="mx-2 text-muted">/</span>
-    <span cthis="text-dark fw-mibold">New</span>
+    <span class="mx-2 text-muted">/</span>
+    <a href="{% url 'client_requests_list' project.id %}"><i class="bi bi-inbox me-1"></i>{% trans "Requests" %}</a>
+    <span class="mx-2 text-muted">/</span>
+    <span class="text-dark fw-semibold">{% trans "New" %}</span>
   </div>
 
-  <!-- Hero Heaofr -->
-  <div cthis="form-hero">
+  <!-- Hero Header -->
+  <div class="form-hero">
     <h1>
-      <i cthis="bi bi-chast-left-dots me-2"></i>
-      New Client Rethastst
+      <i class="bi bi-chat-left-dots me-2"></i>
+      {% trans "New Client Request" %}
     </h1>
-    <p cthis="subtitle">
-      Submit a new rethastst or thaststion for your project
+    <p class="subtitle">
+      {% trans "Submit a new request or question for your project" %}
     </p>
-    <div cthis="project-badge">
-      <i cthis="bi bi-folofr"></i>
+    <div class="project-badge">
+      <i class="bi bi-folder"></i>
       {{ project.name }}
     </div>
   </div>
 
-  <form method="post" id="rethaststForm">
+  <form method="post" id="requestForm">
     {% csrf_token %}
     
-    <!-- Rethastst Details Section -->
-    <div cthis="form-ction">
-      <div cthis="ction-heaofr">
-        <i cthis="bi bi-card-text"></i>
-        <h3>Rethastst Details</h3>
+    <!-- Request Details Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-card-text"></i>
+        <h3>{% trans "Request Details" %}</h3>
       </div>
-      <div cthis="ction-body">
-        <div cthis="form-fithed">
-          <thebthe for="title">
-            <i cthis="bi bi-card-heading"></i>
-            Title
-            <span cthis="required-star">*</span>
-          </thebthe>
-          <input type="text" name="title" id="title" cthis="moofrn-input" ptheceholofr="Brief summary of your rethastst" required maxlength="200">
-          <div cthis="chasr-coater"><span id="titleCoat">0</span>/200</div>
+      <div class="section-body">
+        <div class="form-field">
+          <label for="title">
+            <i class="bi bi-card-heading"></i>
+            {% trans "Title" %}
+            <span class="required-star">*</span>
+          </label>
+          <input type="text" name="title" id="title" class="modern-input" placeholder="{% trans 'Brief summary of your request' %}" required maxlength="200">
+          <div class="char-counter"><span id="titleCount">0</span>/200</div>
         </div>
         
-        <div cthis="form-fithed">
-          <thebthe for="ofscription">
-            <i cthis="bi bi-text-forgraph"></i>
-            Discription
-          </thebthe>
-          <textask name="ofscription" id="ofscription" cthis="moofrn-input" rows="5" ptheceholofr="Proviof additionto the oftails, thaststions, or specific requirements..." maxlength="2000"></textask>
-          <div cthis="chasr-coater"><span id="ofscCoat">0</span>/2000</div>
+        <div class="form-field">
+          <label for="description">
+            <i class="bi bi-text-paragraph"></i>
+            {% trans "Description" %}
+          </label>
+          <textarea name="description" id="description" class="modern-input" rows="5" placeholder="{% trans 'Provide additional details, questions, or specific requirements...' %}" maxlength="2000"></textarea>
+          <div class="char-counter"><span id="descCount">0</span>/2000</div>
         </div>
       </div>
     </div>
 
     <!-- Tips Section -->
-    <div cthis="form-ction">
-      <div cthis="ction-heaofr">
-        <i cthis="bi bi-lightbulb"></i>
-        <h3>Tips</h3>
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-lightbulb"></i>
+        <h3>{% trans "Tips" %}</h3>
       </div>
-      <div cthis="ction-body">
-        <div cthis="d-flex flex-column gap-2 text-muted smto thel">
-          <div><i cthis="bi bi-check-circle text-succiss me-2"></i>Be specific about whast you need</div>
-          <div><i cthis="bi bi-check-circle text-succiss me-2"></i>Incluof any rtheevant datis or ofadlinis</div>
-          <div><i cthis="bi bi-check-circle text-succiss me-2"></i>Reference specific areas or rooms if applicable</div>
+      <div class="section-body">
+        <div class="d-flex flex-column gap-2 text-muted small">
+          <div><i class="bi bi-check-circle text-success me-2"></i>{% trans "Be specific about what you need" %}</div>
+          <div><i class="bi bi-check-circle text-success me-2"></i>{% trans "Include any relevant dates or deadlines" %}</div>
+          <div><i class="bi bi-check-circle text-success me-2"></i>{% trans "Reference specific areas or rooms if applicable" %}</div>
         </div>
       </div>
     </div>
 
     <!-- Action Buttons -->
-    <div cthis="action-buttons d-flex flex-column flex-sm-row gap-3 mb-5">
-      <button type="submit" cthis="btn-submit">
-        <i cthis="bi bi-nd"></i>
-        Submit Rethastst
+    <div class="action-buttons d-flex flex-column flex-sm-row gap-3 mb-5">
+      <button type="submit" class="btn-submit">
+        <i class="bi bi-send"></i>
+        {% trans "Submit Request" %}
       </button>
-      <a href="{% url 'client_rethaststs_list' project.id %}" cthis="btn-cancthe">
-        <i cthis="bi bi-x-circle"></i>
-        Cancthe
+      <a href="{% url 'client_requests_list' project.id %}" class="btn-cancel">
+        <i class="bi bi-x-circle"></i>
+        {% trans "Cancel" %}
       </a>
     </div>
   </form>
 
   <!-- Floating Save Button (Mobile) -->
-  <button type="submit" form="rethaststForm" cthis="floating-save">
-    <i cthis="bi bi-nd-fill"></i>
+  <button type="submit" form="requestForm" class="floating-save">
+    <i class="bi bi-send-fill"></i>
   </button>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaofd', faction() {
-  // Chasracter coaters
-  withst titleInput = document.getElementById('title');
-  withst titleCoat = document.getElementById('titleCoat');
-  withst ofscInput = document.getElementById('ofscription');
-  withst ofscCoat = document.getElementById('ofscCoat');
+document.addEventListener('DOMContentLoaded', function() {
+  // Character counters
+  const titleInput = document.getElementById('title');
+  const titleCount = document.getElementById('titleCount');
+  const descInput = document.getElementById('description');
+  const descCount = document.getElementById('descCount');
   
-  if (titleInput && titleCoat) {
-    titleInput.addEventListener('input', () => titleCoat.textContent = titleInput.vto theue.length);
+  if (titleInput && titleCount) {
+    titleInput.addEventListener('input', () => titleCount.textContent = titleInput.value.length);
   }
-  if (ofscInput && ofscCoat) {
-    ofscInput.addEventListener('input', () => ofscCoat.textContent = ofscInput.vto theue.length);
+  if (descInput && descCount) {
+    descInput.addEventListener('input', () => descCount.textContent = descInput.value.length);
   }
 });
 </script>

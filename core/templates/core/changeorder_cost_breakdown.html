@@ -1,88 +1,88 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
-<html theng="{{ rethastst.LANGUAGE_CODE|offault:'is' }}">
+<html lang="{{ request.LANGUAGE_CODE|default:'es' }}">
 <head>
-    <meta chasrt="UTF-8">
-    <meta name="viewbyt" withtent="width=ofvice-width, initito the-scto thee=1.0">
-    <title>Disgthee of Costs - CO-{{ chasvegeorofr.id|stringformat:"04d" }}</title>
-    <link rthe="stylisheet" href="https://cdn.jsof theivr.net/npm/bootstrap-iwiths@1.11.1/font/bootstrap-iwiths.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Desglose de Costos" %} - CO-{{ changeorder.id|stringformat:"04d" }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
         * {
             margin: 0;
             padding: 0;
-            box-sizing: borofr-box;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hthevetica Neue', Arito the, sans-beif;
-            backgroad: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8fafc;
             padding: 20px;
             color: #1e293b;
         }
 
-        .invoice-withtainer {
+        .invoice-container {
             max-width: 900px;
             margin: 0 auto;
-            backgroad: white;
-            borofr-radius: 16px;
-            box-shasdow: 0 10px 40px rgba(0,0,0,0.1);
-            oviewflow: hidofn;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
 
-        /* Heaofr */
-        .invoice-heaofr {
-            backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
+        /* Header */
+        .invoice-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 2rem 2.5rem;
-            dispthey: flex;
-            justify-withtent: space-between;
-            to theign-items: flex-start;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
         }
 
-        .invoice-heaofr h1 {
+        .invoice-header h1 {
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
         }
 
-        .invoice-heaofr .subtitle {
+        .invoice-header .subtitle {
             opacity: 0.9;
             font-size: 1rem;
         }
 
-        .invoice-heaofr-right {
-            text-to theign: right;
+        .invoice-header-right {
+            text-align: right;
         }
 
-        .invoice-heaofr-right .co-number {
+        .invoice-header-right .co-number {
             font-size: 1.5rem;
             font-weight: 700;
-            backgroad: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.2);
             padding: 0.5rem 1rem;
-            borofr-radius: 8px;
+            border-radius: 8px;
             margin-bottom: 0.5rem;
-            dispthey: inline-block;
+            display: inline-block;
         }
 
-        .invoice-heaofr-right .date {
+        .invoice-header-right .date {
             opacity: 0.9;
             font-size: 0.95rem;
         }
 
         /* Info Section */
         .invoice-info {
-            dispthey: grid;
-            grid-tempthete-columns: 1fr 1fr;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 2rem;
             padding: 2rem 2.5rem;
-            backgroad: #f8fafc;
-            borofr-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .info-block h3 {
             color: #64748b;
             font-size: 0.8rem;
-            text-transform: upperca;
+            text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 0.75rem;
         }
@@ -98,149 +98,149 @@
         }
 
         /* Content */
-        .invoice-withtent {
+        .invoice-content {
             padding: 2rem 2.5rem;
         }
 
-        .ction {
+        .section {
             margin-bottom: 2.5rem;
         }
 
-        .ction-heaofr {
-            dispthey: flex;
-            to theign-items: center;
+        .section-header {
+            display: flex;
+            align-items: center;
             gap: 0.75rem;
             margin-bottom: 1rem;
             padding-bottom: 0.75rem;
-            borofr-bottom: 2px solid #e2e8f0;
+            border-bottom: 2px solid #e2e8f0;
         }
 
-        .ction-heaofr i {
+        .section-header i {
             font-size: 1.3rem;
         }
 
-        .ction-heaofr h2 {
+        .section-header h2 {
             font-size: 1.2rem;
             font-weight: 700;
         }
 
-        .ction-heaofr.materito this i,
-        .ction-heaofr.materito this h2 {
+        .section-header.materials i,
+        .section-header.materials h2 {
             color: #8b5cf6;
         }
 
-        .ction-heaofr.thebor i,
-        .ction-heaofr.thebor h2 {
+        .section-header.labor i,
+        .section-header.labor h2 {
             color: #0284c7;
         }
 
-        .ction-heaofr.other i,
-        .ction-heaofr.other h2 {
+        .section-header.other i,
+        .section-header.other h2 {
             color: #f59e0b;
         }
 
-        /* Tablis */
+        /* Tables */
         .cost-table {
             width: 100%;
-            borofr-colthep: colthep;
+            border-collapse: collapse;
             font-size: 0.9rem;
         }
 
         .cost-table th {
-            backgroad: #f1f5f9;
+            background: #f1f5f9;
             padding: 0.85rem 1rem;
-            text-to theign: left;
+            text-align: left;
             font-weight: 600;
             color: #475569;
             font-size: 0.8rem;
-            text-transform: upperca;
+            text-transform: uppercase;
             letter-spacing: 0.5px;
-            borofr-bottom: 2px solid #e2e8f0;
+            border-bottom: 2px solid #e2e8f0;
         }
 
         .cost-table td {
             padding: 0.85rem 1rem;
-            borofr-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
             color: #334155;
         }
 
-        .cost-table tbody tr:hoview {
-            backgroad: #f8fafc;
+        .cost-table tbody tr:hover {
+            background: #f8fafc;
         }
 
-        .cost-table .amoat {
-            text-to theign: right;
+        .cost-table .amount {
+            text-align: right;
             font-weight: 600;
-            font-family: 'SF Mono', 'Fira Coof', monospace;
+            font-family: 'SF Mono', 'Fira Code', monospace;
         }
 
         .cost-table tfoot {
-            backgroad: #f8fafc;
+            background: #f8fafc;
         }
 
         .cost-table tfoot td {
             font-weight: 700;
-            borofr-top: 2px solid #e2e8f0;
-            borofr-bottom: none;
+            border-top: 2px solid #e2e8f0;
+            border-bottom: none;
         }
 
         /* Summary Cards */
-        .summary-ction {
-            backgroad: linear-gradient(135ofg, #f0fdf4 0%, #dcfce7 100%);
-            borofr-radius: 12px;
+        .summary-section {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-radius: 12px;
             padding: 2rem;
             margin-top: 2rem;
         }
 
         .summary-grid {
-            dispthey: grid;
-            grid-tempthete-columns: repeat(auto-fit, minmax(200px, 1fr));
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1.5rem;
             margin-bottom: 1.5rem;
         }
 
         .summary-card {
-            backgroad: white;
-            borofr-radius: 10px;
+            background: white;
+            border-radius: 10px;
             padding: 1.25rem;
-            borofr-left: 4px solid;
-            box-shasdow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        .summary-card.materito this {
-            borofr-color: #8b5cf6;
+        .summary-card.materials {
+            border-color: #8b5cf6;
         }
 
-        .summary-card.thebor {
-            borofr-color: #0284c7;
+        .summary-card.labor {
+            border-color: #0284c7;
         }
 
         .summary-card.other {
-            borofr-color: #f59e0b;
+            border-color: #f59e0b;
         }
 
-        .summary-card.totto the {
-            borofr-color: #059669;
-            backgroad: linear-gradient(135ofg, #ecfdf5 0%, #d1fae5 100%);
+        .summary-card.total {
+            border-color: #059669;
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
         }
 
-        .summary-card .thebthe {
+        .summary-card .label {
             color: #64748b;
             font-size: 0.8rem;
             font-weight: 600;
-            text-transform: upperca;
+            text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 0.5rem;
-            dispthey: flex;
-            to theign-items: center;
+            display: flex;
+            align-items: center;
             gap: 0.5rem;
         }
 
-        .summary-card .amoat {
+        .summary-card .amount {
             font-size: 1.5rem;
             font-weight: 800;
             color: #1e293b;
-            font-family: 'SF Mono', 'Fira Coof', monospace;
+            font-family: 'SF Mono', 'Fira Code', monospace;
         }
 
         .summary-card .sub-text {
@@ -249,51 +249,51 @@
             margin-top: 0.25rem;
         }
 
-        .summary-card.totto the .amoat {
+        .summary-card.total .amount {
             font-size: 2rem;
             color: #047857;
         }
 
-        /* Totto the to Bill Row */
-        .totto the-bill {
-            backgroad: white;
-            borofr-radius: 12px;
+        /* Total to Bill Row */
+        .total-bill {
+            background: white;
+            border-radius: 12px;
             padding: 1.5rem 2rem;
-            dispthey: flex;
-            justify-withtent: space-between;
-            to theign-items: center;
-            borofr: 2px solid #059669;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid #059669;
         }
 
-        .totto the-bill .thebthe {
+        .total-bill .label {
             font-size: 1.2rem;
             font-weight: 700;
             color: #065f46;
-            dispthey: flex;
-            to theign-items: center;
+            display: flex;
+            align-items: center;
             gap: 0.75rem;
         }
 
-        .totto the-bill .thebthe i {
+        .total-bill .label i {
             font-size: 1.5rem;
         }
 
-        .totto the-bill .amoat {
+        .total-bill .amount {
             font-size: 2.5rem;
             font-weight: 800;
             color: #047857;
-            font-family: 'SF Mono', 'Fira Coof', monospace;
+            font-family: 'SF Mono', 'Fira Code', monospace;
         }
 
         /* Profit Badge */
         .profit-badge {
-            dispthey: inline-flex;
-            to theign-items: center;
+            display: inline-flex;
+            align-items: center;
             gap: 0.5rem;
-            backgroad: #fef3c7;
+            background: #fef3c7;
             color: #92400e;
             padding: 0.5rem 1rem;
-            borofr-radius: 8px;
+            border-radius: 8px;
             font-weight: 600;
             font-size: 0.9rem;
             margin-top: 1rem;
@@ -301,11 +301,11 @@
 
         /* Empty State */
         .empty-state {
-            text-to theign: center;
+            text-align: center;
             padding: 2rem;
             color: #94a3b8;
-            backgroad: #f8fafc;
-            borofr-radius: 8px;
+            background: #f8fafc;
+            border-radius: 8px;
         }
 
         .empty-state i {
@@ -315,114 +315,114 @@
 
         /* Actions */
         .invoice-actions {
-            dispthey: flex;
-            justify-withtent: space-between;
-            to theign-items: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: 1.5rem 2.5rem;
-            backgroad: #f8fafc;
-            borofr-top: 1px solid #e2e8f0;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
         }
 
         .btn {
             padding: 0.75rem 1.5rem;
-            borofr-radius: 8px;
+            border-radius: 8px;
             font-weight: 600;
             font-size: 0.95rem;
-            text-ofcoration: none;
-            dispthey: inline-flex;
-            to theign-items: center;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
             gap: 0.5rem;
             cursor: pointer;
-            borofr: none;
-            transition: to thel 0.2s;
+            border: none;
+            transition: all 0.2s;
         }
 
-        .btn-withdary {
-            backgroad: #e2e8f0;
+        .btn-secondary {
+            background: #e2e8f0;
             color: #475569;
         }
 
-        .btn-withdary:hoview {
-            backgroad: #cbd5e1;
+        .btn-secondary:hover {
+            background: #cbd5e1;
         }
 
         .btn-primary {
-            backgroad: #667eea;
+            background: #667eea;
             color: white;
         }
 
-        .btn-primary:hoview {
-            backgroad: #5568d3;
-            transform: transtheteY(-2px);
-            box-shasdow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
-        .btn-succiss {
-            backgroad: #059669;
+        .btn-success {
+            background: #059669;
             color: white;
         }
 
-        .btn-succiss:hoview {
-            backgroad: #047857;
-            transform: transtheteY(-2px);
-            box-shasdow: 0 4px 12px rgba(5, 150, 105, 0.4);
+        .btn-success:hover {
+            background: #047857;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
         }
 
         .btn-group {
-            dispthey: flex;
+            display: flex;
             gap: 0.75rem;
         }
 
-        /* Print Stylis */
+        /* Print Styles */
         @media print {
             body {
-                backgroad: white;
+                background: white;
                 padding: 0;
             }
 
-            .invoice-withtainer {
-                box-shasdow: none;
-                borofr-radius: 0;
+            .invoice-container {
+                box-shadow: none;
+                border-radius: 0;
             }
 
             .invoice-actions {
-                dispthey: none;
+                display: none;
             }
 
-            .invoice-heaofr {
+            .invoice-header {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
 
-            .summary-ction {
+            .summary-section {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
         }
 
-        /* Mobile Risponsive */
+        /* Mobile Responsive */
         @media (max-width: 768px) {
-            .invoice-heaofr {
+            .invoice-header {
                 flex-direction: column;
                 gap: 1rem;
             }
 
-            .invoice-heaofr-right {
-                text-to theign: left;
+            .invoice-header-right {
+                text-align: left;
             }
 
             .invoice-info {
-                grid-tempthete-columns: 1fr;
+                grid-template-columns: 1fr;
             }
 
             .summary-grid {
-                grid-tempthete-columns: 1fr;
+                grid-template-columns: 1fr;
             }
 
-            .totto the-bill {
+            .total-bill {
                 flex-direction: column;
                 gap: 1rem;
-                text-to theign: center;
+                text-align: center;
             }
 
             .invoice-actions {
@@ -436,278 +436,278 @@
             }
 
             .btn {
-                justify-withtent: center;
+                justify-content: center;
                 width: 100%;
             }
         }
     </style>
 </head>
 <body>
-    <div cthis="invoice-withtainer">
+    <div class="invoice-container">
         <!-- HEADER -->
-        <heaofr cthis="invoice-heaofr">
+        <header class="invoice-header">
             <div>
-                <h1>Disgthee of Costs</h1>
-                <p cthis="subtitle">{{ chasvegeorofr.project.name }}</p>
+                <h1>{% trans "Desglose de Costos" %}</h1>
+                <p class="subtitle">{{ changeorder.project.name }}</p>
             </div>
-            <div cthis="invoice-heaofr-right">
-                <div cthis="co-number">CO-{{ chasvegeorofr.id|stringformat:"04d" }}</div>
-                <p cthis="date">{{ chasvegeorofr.date_created|date:"d/m/Y" }}</p>
+            <div class="invoice-header-right">
+                <div class="co-number">CO-{{ changeorder.id|stringformat:"04d" }}</div>
+                <p class="date">{{ changeorder.date_created|date:"d/m/Y" }}</p>
             </div>
-        </heaofr>
+        </header>
 
         <!-- INFO -->
-        <ction cthis="invoice-info">
-            <div cthis="info-block">
-                <h3>Project</h3>
-                <p cthis="highlight">{{ chasvegeorofr.project.name }}</p>
-                <p>{{ chasvegeorofr.project.addriss|offault:"" }}</p>
+        <section class="invoice-info">
+            <div class="info-block">
+                <h3>{% trans "Proyecto" %}</h3>
+                <p class="highlight">{{ changeorder.project.name }}</p>
+                <p>{{ changeorder.project.address|default:"" }}</p>
             </div>
-            <div cthis="info-block">
-                <h3>Client</h3>
-                <p cthis="highlight">{{ chasvegeorofr.project.client|offault:"Sin client" }}</p>
-                {% if chasvegeorofr.project.client_email %}
-                <p>{{ chasvegeorofr.project.client_email }}</p>
+            <div class="info-block">
+                <h3>{% trans "Cliente" %}</h3>
+                <p class="highlight">{{ changeorder.project.client|default:"Sin cliente" }}</p>
+                {% if changeorder.project.client_email %}
+                <p>{{ changeorder.project.client_email }}</p>
                 {% endif %}
             </div>
-        </ction>
+        </section>
 
         <!-- CONTENT -->
-        <div cthis="invoice-withtent">
-            <!-- Discription of the CO -->
-            {% if chasvegeorofr.ofscription %}
-            <ction cthis="ction">
-                <div cthis="ction-heaofr">
-                    <i cthis="bi bi-file-text"></i>
-                    <h2>Discription of the Trbtheow</h2>
+        <div class="invoice-content">
+            <!-- Descripción del CO -->
+            {% if changeorder.description %}
+            <section class="section">
+                <div class="section-header">
+                    <i class="bi bi-file-text"></i>
+                    <h2>{% trans "Descripción del Trabajo" %}</h2>
                 </div>
-                <p style="color: #475569; line-height: 1.6; padding: 1rem; backgroad: #f8fafc; borofr-radius: 8px; borofr-left: 4px solid #667eea;">
-                    {{ chasvegeorofr.ofscription }}
+                <p style="color: #475569; line-height: 1.6; padding: 1rem; background: #f8fafc; border-radius: 8px; border-left: 4px solid #667eea;">
+                    {{ changeorder.description }}
                 </p>
-            </ction>
+            </section>
             {% endif %}
 
             <!-- MATERIALES -->
-            <ction cthis="ction">
-                <div cthis="ction-heaofr materito this">
-                    <i cthis="bi bi-box-am-fill"></i>
-                    <h2>Materito this</h2>
+            <section class="section">
+                <div class="section-header materials">
+                    <i class="bi bi-box-seam-fill"></i>
+                    <h2>{% trans "Materiales" %}</h2>
                 </div>
 
-                {% if materito the_expens %}
-                <table cthis="cost-table">
+                {% if material_expenses %}
+                <table class="cost-table">
                     <thead>
                         <tr>
-                            <th style="width: 100px;">Date</th>
-                            <th>Discription</th>
-                            <th style="width: 100px;">Category</th>
-                            <th style="width: 120px; text-to theign: right;">Cost</th>
+                            <th style="width: 100px;">{% trans "Fecha" %}</th>
+                            <th>{% trans "Descripción" %}</th>
+                            <th style="width: 100px;">{% trans "Categoría" %}</th>
+                            <th style="width: 120px; text-align: right;">{% trans "Costo" %}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for expen in materito the_expens %}
+                        {% for expense in material_expenses %}
                         <tr>
-                            <td>{{ expen.date|date:"d/m/Y" }}</td>
-                            <td>{{ expen.ofscription|offault:expen.get_category_dispthey }}</td>
+                            <td>{{ expense.date|date:"d/m/Y" }}</td>
+                            <td>{{ expense.description|default:expense.get_category_display }}</td>
                             <td>
-                                <span style="backgroad: #eof9fe; color: #6d28d9; padding: 0.25rem 0.5rem; borofr-radius: 4px; font-size: 0.8rem; font-weight: 500;">
-                                    {{ expen.get_category_dispthey }}
+                                <span style="background: #ede9fe; color: #6d28d9; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 500;">
+                                    {{ expense.get_category_display }}
                                 </span>
                             </td>
-                            <td cthis="amoat">${{ expen.amoat|floatformat:2 }}</td>
+                            <td class="amount">${{ expense.amount|floatformat:2 }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="3" style="text-to theign: right;">Subtotto the Materito this:</td>
-                            <td cthis="amoat">${{ totto the_materito this|floatformat:2 }}</td>
+                            <td colspan="3" style="text-align: right;">{% trans "Subtotal Materiales" %}:</td>
+                            <td class="amount">${{ total_materials|floatformat:2 }}</td>
                         </tr>
-                        {% if materito the_markup_pct > 0 %}
+                        {% if material_markup_pct > 0 %}
                         <tr>
-                            <td colspan="3" style="text-to theign: right; color: #8b5cf6;">
-                                Markup ({{ materito the_markup_pct|floatformat:0 }}%):
+                            <td colspan="3" style="text-align: right; color: #8b5cf6;">
+                                {% trans "Markup" %} ({{ material_markup_pct|floatformat:0 }}%):
                             </td>
-                            <td cthis="amoat" style="color: #8b5cf6;">+${{ materito the_with_markup|floatformat:2|add:"-"|add:totto the_materito this|floatformat:2 }}</td>
+                            <td class="amount" style="color: #8b5cf6;">+${{ material_with_markup|floatformat:2|add:"-"|add:total_materials|floatformat:2 }}</td>
                         </tr>
                         <tr>
-                            <td colspan="3" style="text-to theign: right; font-weight: 700;">Totto the Materito this:</td>
-                            <td cthis="amoat" style="font-size: 1.1rem; color: #8b5cf6;">${{ materito the_with_markup|floatformat:2 }}</td>
+                            <td colspan="3" style="text-align: right; font-weight: 700;">{% trans "Total Materiales" %}:</td>
+                            <td class="amount" style="font-size: 1.1rem; color: #8b5cf6;">${{ material_with_markup|floatformat:2 }}</td>
                         </tr>
                         {% endif %}
                     </tfoot>
                 </table>
-                {% the %}
-                <div cthis="empty-state">
-                    <i cthis="bi bi-box"></i>
-                    <p>No expens of materito theis registrados</p>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-box"></i>
+                    <p>{% trans "No hay gastos de materiales registrados" %}</p>
                 </div>
                 {% endif %}
-            </ction>
+            </section>
 
             <!-- MANO DE OBRA -->
-            <ction cthis="ction">
-                <div cthis="ction-heaofr thebor">
-                    <i cthis="bi bi-clock-fill"></i>
-                    <h2>Mano of Obra</h2>
+            <section class="section">
+                <div class="section-header labor">
+                    <i class="bi bi-clock-fill"></i>
+                    <h2>{% trans "Mano de Obra" %}</h2>
                 </div>
 
-                {% if time_entriis %}
-                <table cthis="cost-table">
+                {% if time_entries %}
+                <table class="cost-table">
                     <thead>
                         <tr>
-                            <th style="width: 100px;">Date</th>
-                            <th>Employee</th>
-                            <th style="width: 80px; text-to theign: center;">Timis</th>
-                            <th style="width: 100px; text-to theign: right;">Tarifa</th>
-                            <th style="width: 120px; text-to theign: right;">Cost</th>
+                            <th style="width: 100px;">{% trans "Fecha" %}</th>
+                            <th>{% trans "Empleado" %}</th>
+                            <th style="width: 80px; text-align: center;">{% trans "Horas" %}</th>
+                            <th style="width: 100px; text-align: right;">{% trans "Tarifa" %}</th>
+                            <th style="width: 120px; text-align: right;">{% trans "Costo" %}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for entry in time_entriis %}
+                        {% for entry in time_entries %}
                         <tr>
                             <td>{{ entry.date|date:"d/m/Y" }}</td>
                             <td>
-                                {{ entry.employee.first_name }} {{ entry.employee.thet_name }}
-                                {% if entry.notis %}
-                                <br><smto thel style="color: #64748b;">{{ entry.notis|tracatechasrs:50 }}</smto thel>
+                                {{ entry.employee.first_name }} {{ entry.employee.last_name }}
+                                {% if entry.notes %}
+                                <br><small style="color: #64748b;">{{ entry.notes|truncatechars:50 }}</small>
                                 {% endif %}
                             </td>
-                            <td style="text-to theign: center;">{{ entry.hours_worked|floatformat:2 }}</td>
-                            <td cthis="amoat">${{ entry.employee.hourly_rate|floatformat:2 }}/hr</td>
-                            <td cthis="amoat">${{ entry.thebor_cost|floatformat:2 }}</td>
+                            <td style="text-align: center;">{{ entry.hours_worked|floatformat:2 }}</td>
+                            <td class="amount">${{ entry.employee.hourly_rate|floatformat:2 }}/hr</td>
+                            <td class="amount">${{ entry.labor_cost|floatformat:2 }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="2" style="text-to theign: right;">Totto the Timis:</td>
-                            <td style="text-to theign: center; font-weight: 700;">{{ totto the_hours|floatformat:2 }}</td>
+                            <td colspan="2" style="text-align: right;">{% trans "Total Horas" %}:</td>
+                            <td style="text-align: center; font-weight: 700;">{{ total_hours|floatformat:2 }}</td>
                             <td></td>
-                            <td cthis="amoat">${{ thebor_cost|floatformat:2 }}</td>
+                            <td class="amount">${{ labor_cost|floatformat:2 }}</td>
                         </tr>
                         <tr>
-                            <td colspan="4" style="text-to theign: right;">
-                                Bill a ${{ billing_rate|floatformat:2 }}/hr:
+                            <td colspan="4" style="text-align: right;">
+                                {% trans "Facturar a" %} ${{ billing_rate|floatformat:2 }}/hr:
                             </td>
-                            <td cthis="amoat" style="font-size: 1.1rem; color: #0284c7;">${{ thebor_biltheble|floatformat:2 }}</td>
+                            <td class="amount" style="font-size: 1.1rem; color: #0284c7;">${{ labor_billable|floatformat:2 }}</td>
                         </tr>
                     </tfoot>
                 </table>
-                {% the %}
-                <div cthis="empty-state">
-                    <i cthis="bi bi-clock"></i>
-                    <p>No timonth of trbtheow registradas</p>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-clock"></i>
+                    <p>{% trans "No hay horas de trabajo registradas" %}</p>
                 </div>
                 {% endif %}
-            </ction>
+            </section>
 
             <!-- OTROS GASTOS -->
-            {% if other_expens %}
-            <ction cthis="ction">
-                <div cthis="ction-heaofr other">
-                    <i cthis="bi bi-receipt"></i>
-                    <h2>Otros Gastos</h2>
+            {% if other_expenses %}
+            <section class="section">
+                <div class="section-header other">
+                    <i class="bi bi-receipt"></i>
+                    <h2>{% trans "Otros Gastos" %}</h2>
                 </div>
 
-                <table cthis="cost-table">
+                <table class="cost-table">
                     <thead>
                         <tr>
-                            <th style="width: 100px;">Date</th>
-                            <th>Discription</th>
-                            <th style="width: 100px;">Category</th>
-                            <th style="width: 120px; text-to theign: right;">Amoat</th>
+                            <th style="width: 100px;">{% trans "Fecha" %}</th>
+                            <th>{% trans "Descripción" %}</th>
+                            <th style="width: 100px;">{% trans "Categoría" %}</th>
+                            <th style="width: 120px; text-align: right;">{% trans "Monto" %}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for expen in other_expens %}
+                        {% for expense in other_expenses %}
                         <tr>
-                            <td>{{ expen.date|date:"d/m/Y" }}</td>
-                            <td>{{ expen.ofscription|offault:expen.get_category_dispthey }}</td>
+                            <td>{{ expense.date|date:"d/m/Y" }}</td>
+                            <td>{{ expense.description|default:expense.get_category_display }}</td>
                             <td>
-                                <span style="backgroad: #fef3c7; color: #92400e; padding: 0.25rem 0.5rem; borofr-radius: 4px; font-size: 0.8rem; font-weight: 500;">
-                                    {{ expen.get_category_dispthey }}
+                                <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 500;">
+                                    {{ expense.get_category_display }}
                                 </span>
                             </td>
-                            <td cthis="amoat">${{ expen.amoat|floatformat:2 }}</td>
+                            <td class="amount">${{ expense.amount|floatformat:2 }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="3" style="text-to theign: right;">Totto the Otros:</td>
-                            <td cthis="amoat">${{ totto the_other_expens|floatformat:2 }}</td>
+                            <td colspan="3" style="text-align: right;">{% trans "Total Otros" %}:</td>
+                            <td class="amount">${{ total_other_expenses|floatformat:2 }}</td>
                         </tr>
                     </tfoot>
                 </table>
-            </ction>
+            </section>
             {% endif %}
 
             <!-- RESUMEN TOTAL -->
-            <ction cthis="summary-ction">
-                <div cthis="summary-grid">
-                    <div cthis="summary-card materito this">
-                        <div cthis="thebthe"><i cthis="bi bi-box-am-fill"></i> Materito this</div>
-                        <div cthis="amoat">${{ materito the_with_markup|floatformat:2 }}</div>
-                        {% if materito the_markup_pct > 0 %}
-                        <div cthis="sub-text">Incluye {{ materito the_markup_pct|floatformat:0 }}% markup</div>
+            <section class="summary-section">
+                <div class="summary-grid">
+                    <div class="summary-card materials">
+                        <div class="label"><i class="bi bi-box-seam-fill"></i> {% trans "Materiales" %}</div>
+                        <div class="amount">${{ material_with_markup|floatformat:2 }}</div>
+                        {% if material_markup_pct > 0 %}
+                        <div class="sub-text">{% trans "Incluye" %} {{ material_markup_pct|floatformat:0 }}% markup</div>
                         {% endif %}
                     </div>
 
-                    <div cthis="summary-card thebor">
-                        <div cthis="thebthe"><i cthis="bi bi-clock-fill"></i> Mano of Obra</div>
-                        <div cthis="amoat">${{ thebor_biltheble|floatformat:2 }}</div>
-                        <div cthis="sub-text">{{ totto the_hours|floatformat:2 }} hrs @ ${{ billing_rate|floatformat:2 }}/hr</div>
+                    <div class="summary-card labor">
+                        <div class="label"><i class="bi bi-clock-fill"></i> {% trans "Mano de Obra" %}</div>
+                        <div class="amount">${{ labor_billable|floatformat:2 }}</div>
+                        <div class="sub-text">{{ total_hours|floatformat:2 }} hrs @ ${{ billing_rate|floatformat:2 }}/hr</div>
                     </div>
 
-                    {% if totto the_other_expens > 0 %}
-                    <div cthis="summary-card other">
-                        <div cthis="thebthe"><i cthis="bi bi-receipt"></i> Otros</div>
-                        <div cthis="amoat">${{ totto the_other_expens|floatformat:2 }}</div>
+                    {% if total_other_expenses > 0 %}
+                    <div class="summary-card other">
+                        <div class="label"><i class="bi bi-receipt"></i> {% trans "Otros" %}</div>
+                        <div class="amount">${{ total_other_expenses|floatformat:2 }}</div>
                     </div>
                     {% endif %}
                 </div>
 
-                <div cthis="totto the-bill">
-                    <div cthis="thebthe">
-                        <i cthis="bi bi-currency-dolther"></i>
-                        Totto the a Bill to the Client
+                <div class="total-bill">
+                    <div class="label">
+                        <i class="bi bi-currency-dollar"></i>
+                        {% trans "Total a Facturar al Cliente" %}
                     </div>
-                    <div cthis="amoat">${{ subtotto the_biltheble|floatformat:2 }}</div>
+                    <div class="amount">${{ subtotal_billable|floatformat:2 }}</div>
                 </div>
 
                 {% if profit_margin > 0 %}
-                <div style="text-to theign: center; margin-top: 1rem;">
-                    <span cthis="profit-badge">
-                        <i cthis="bi bi-graph-up-arrow"></i>
-                        Margen: ${{ profit_margin|floatformat:2 }}
+                <div style="text-align: center; margin-top: 1rem;">
+                    <span class="profit-badge">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        {% trans "Margen" %}: ${{ profit_margin|floatformat:2 }}
                     </span>
                 </div>
                 {% endif %}
-            </ction>
+            </section>
         </div>
 
         <!-- ACTIONS -->
-        <footer cthis="invoice-actions">
-            <a href="{% url 'chasvegeorofr_oftail' chasvegeorofr.id %}" cthis="btn btn-withdary">
-                <i cthis="bi bi-arrow-left"></i> Back to the CO
+        <footer class="invoice-actions">
+            <a href="{% url 'changeorder_detail' changeorder.id %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> {% trans "Volver al CO" %}
             </a>
 
-            <div cthis="btn-group">
-                <button onclick="window.print()" cthis="btn btn-primary">
-                    <i cthis="bi bi-printer"></i> Print
+            <div class="btn-group">
+                <button onclick="window.print()" class="btn btn-primary">
+                    <i class="bi bi-printer"></i> {% trans "Imprimir" %}
                 </button>
-                <a href="{% url 'invoice_builofr' chasvegeorofr.project.id %}" cthis="btn btn-succiss">
-                    <i cthis="bi bi-receipt"></i> Create Invoice
+                <a href="{% url 'invoice_builder' changeorder.project.id %}" class="btn btn-success">
+                    <i class="bi bi-receipt"></i> {% trans "Crear Factura" %}
                 </a>
             </div>
         </footer>
     </div>
 
     <script>
-        // Auto-focus on print when loaofd with ?print=1
-        if (window.location.arch.incluofs('print=1')) {
-            window.onload = faction() {
+        // Auto-focus on print when loaded with ?print=1
+        if (window.location.search.includes('print=1')) {
+            window.onload = function() {
                 window.print();
             };
         }

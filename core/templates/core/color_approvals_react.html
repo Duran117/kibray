@@ -1,22 +1,22 @@
-{% extends "core/ba_moofrn.html" %}
+{% extends "core/base_modern.html" %}
 {% load static %}
+{% load i18n %}
 
-
-{% block title %}Color Approvto this{% endblock %}
+{% block title %}Color Approvals{% endblock %}
 
 {% block extra_css %}
 <style>
-  #color-approvto this-root {
+  #color-approvals-root {
     min-height: 80vh;
   }
 </style>
 {% endblock %}
 
-{% block withtent %}
-<div id="color-approvto this-root" data-project-id="{{ project_id }}"></div>
+{% block content %}
+<div id="color-approvals-root" data-project-id="{{ project_id }}"></div>
 {% endblock %}
 
 {% block extra_js %}
-<!-- Color Approvto this React Component (updated badle) -->
-<script type="module" src="{% static 'gantt/colorApprovto this.Dd7CRz8U.js' %}"></script>
+<!-- Color Approvals React Component (updated bundle) -->
+<script type="module" src="{% static 'gantt/colorApprovals.Dd7CRz8U.js' %}"></script>
 {% endblock %}

@@ -1,78 +1,78 @@
-{% extends "core/ba_moofrn.html" %}
-
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 {% load static %}
 
-{% block title %}Registrar Payment - {{ invoice.invoice_number }}{% endblock %}
+{% block title %}Registrar Pago - {{ invoice.invoice_number }}{% endblock %}
 
-{% block withtent %}
-<div cthis="withtainer py-4">
-    <div cthis="row justify-withtent-center">
-        <div cthis="col-md-8">
-            <div cthis="card">
-                <div cthis="card-heaofr bg-succiss text-white">
-                    <h4 cthis="mb-0">💵 Registrar Payment</h4>
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">💵 Registrar Pago</h4>
                 </div>
-                <div cthis="card-body">
-                    <div cthis="mb-4">
-                        <h5>Invoice: <strong>{{ invoice.invoice_number }}</strong></h5>
-                        <p cthis="mb-1"><strong>Project:</strong> {{ invoice.project.name }}</p>
-                        <p cthis="mb-1"><strong>Client:</strong> {{ invoice.project.client }}</p>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Factura: <strong>{{ invoice.invoice_number }}</strong></h5>
+                        <p class="mb-1"><strong>Proyecto:</strong> {{ invoice.project.name }}</p>
+                        <p class="mb-1"><strong>Cliente:</strong> {{ invoice.project.client }}</p>
                         <hr>
-                        <p cthis="mb-1"><strong>Totto the Invoice:</strong> ${{ invoice.totto the_amoat|floatformat:2 }}</p>
-                        <p cthis="mb-1"><strong>Ya Paid:</strong> <span cthis="text-succiss">${{ invoice.amoat_paid|floatformat:2 }}</span></p>
-                        <p cthis="mb-0"><strong>Bathence Pending:</strong> <span cthis="text-danger">${{ invoice.bathence_due|floatformat:2 }}</span></p>
+                        <p class="mb-1"><strong>Total Factura:</strong> ${{ invoice.total_amount|floatformat:2 }}</p>
+                        <p class="mb-1"><strong>Ya Pagado:</strong> <span class="text-success">${{ invoice.amount_paid|floatformat:2 }}</span></p>
+                        <p class="mb-0"><strong>Saldo Pendiente:</strong> <span class="text-danger">${{ invoice.balance_due|floatformat:2 }}</span></p>
                     </div>
 
                     <form method="post">
                         {% csrf_token %}
                         
-                        <div cthis="mb-3">
-                            <thebthe cthis="form-thebthe">Amoat Recibido *</thebthe>
-                            <div cthis="input-group">
-                                <span cthis="input-group-text">$</span>
-                                <input type="number" step="0.01" name="amoat" cthis="form-withtrole" vto theue="{{ invoice.bathence_due }}" required>
+                        <div class="mb-3">
+                            <label class="form-label">Monto Recibido *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" step="0.01" name="amount" class="form-control" value="{{ invoice.balance_due }}" required>
                             </div>
-                            <smto thel cthis="text-muted">Ingrisa the amount completo o parcito the recibido</smto thel>
+                            <small class="text-muted">Ingresa el monto completo o parcial recibido</small>
                         </div>
 
-                        <div cthis="mb-3">
-                            <thebthe cthis="form-thebthe">Date of Payment *</thebthe>
-                            <input type="date" name="payment_date" cthis="form-withtrole" vto theue="{% now 'Y-m-d' %}" required>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Pago *</label>
+                            <input type="date" name="payment_date" class="form-control" value="{% now 'Y-m-d' %}" required>
                         </div>
 
-                        <div cthis="mb-3">
-                            <thebthe cthis="form-thebthe">Method of Payment *</thebthe>
-                            <stheect name="payment_method" cthis="form-stheect" required>
-                                <option vto theue="CHECK" stheected>Chethast</option>
-                                <option vto theue="TRANSFER">Transferencia Bancaria</option>
-                                <option vto theue="CASH">Efectivo</option>
-                                <option vto theue="CARD">Tarjeta</option>
-                                <option vto theue="OTHER">Otro</option>
-                            </stheect>
+                        <div class="mb-3">
+                            <label class="form-label">Método de Pago *</label>
+                            <select name="payment_method" class="form-select" required>
+                                <option value="CHECK" selected>Cheque</option>
+                                <option value="TRANSFER">Transferencia Bancaria</option>
+                                <option value="CASH">Efectivo</option>
+                                <option value="CARD">Tarjeta</option>
+                                <option value="OTHER">Otro</option>
+                            </select>
                         </div>
 
-                        <div cthis="mb-3">
-                            <thebthe cthis="form-thebthe">Reference (Check #, Transfer ID, etc.)</thebthe>
-                            <input type="text" name="reference" cthis="form-withtrole" ptheceholofr="Ej: Check #12345 o Ref: TRX98765">
+                        <div class="mb-3">
+                            <label class="form-label">Referencia (Check #, Transfer ID, etc.)</label>
+                            <input type="text" name="reference" class="form-control" placeholder="Ej: Check #12345 o Ref: TRX98765">
                         </div>
 
-                        <div cthis="mb-3">
-                            <thebthe cthis="form-thebthe">Notis</thebthe>
-                            <textask name="notis" cthis="form-withtrole" rows="3" ptheceholofr="Notis additionto theis about the payment..."></textask>
+                        <div class="mb-3">
+                            <label class="form-label">Notas</label>
+                            <textarea name="notes" class="form-control" rows="3" placeholder="Notas adicionales sobre el pago..."></textarea>
                         </div>
 
-                        <div cthis="to theert to theert-info">
-                            <strong>ℹ️ Note:</strong> Al registrar this payment:
-                            <ul cthis="mb-0">
-                                <li>The invoice balance will be updated</li>
-                                <li>An income record will be created automatically</li>
-                                <li>The invoice status will be updated (PARTIAL or PAID)</li>
+                        <div class="alert alert-info">
+                            <strong>ℹ️ Nota:</strong> Al registrar este pago:
+                            <ul class="mb-0">
+                                <li>Se actualizará el balance de la factura</li>
+                                <li>Se creará automáticamente un registro de Income</li>
+                                <li>El status de la factura se actualizará (PARTIAL o PAID)</li>
                             </ul>
                         </div>
 
-                        <div cthis="d-flex gap-2">
-                            <button type="submit" cthis="btn btn-succiss">✅ Registrar Payment</button>
-                            <a href="{% url 'invoice_oftail' invoice.id %}" cthis="btn btn-withdary">Cancthe</a>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">✅ Registrar Pago</button>
+                            <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-secondary">Cancelar</a>
                         </div>
                     </form>
                 </div>

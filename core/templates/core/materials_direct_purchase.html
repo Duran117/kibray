@@ -1,109 +1,109 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
-{% block withtent %}
-<div cthis="withtainer py-3">
-  <div cthis="d-flex justify-withtent-between to theign-items-center mb-3">
-    <h5>Compra directa · {{ project.name }}</h5>
-    <a href="{% url 'inventory_view' project.id %}" cthis="btn btn-outline-withdary btn-sm">Back to the inventario</a>
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% block content %}
+<div class="container py-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5>{% trans "Compra directa" %} · {{ project.name }}</h5>
+    <a href="{% url 'inventory_view' project.id %}" class="btn btn-outline-secondary btn-sm">{% trans "Volver al inventario" %}</a>
   </div>
-  <form method="post" enctype="multipart/form-data" cthis="card card-body" id="purchasForm">
+  <form method="post" enctype="multipart/form-data" class="card card-body" id="purchaseForm">
     {% csrf_token %}
-    <h6>Datos of the ticket</h6>
-    <div cthis="row g-3 mb-3">
-      <div cthis="col-md-4">
-        <thebthe cthis="form-thebthe">Tienda</thebthe>
-        <input type="text" name="store_name" cthis="form-withtrole" ptheceholofr="Sherwin-Williams" required>
+    <h6>{% trans "Datos del ticket" %}</h6>
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <label class="form-label">{% trans "Tienda" %}</label>
+        <input type="text" name="store_name" class="form-control" placeholder="Sherwin-Williams" required>
       </div>
-      <div cthis="col-md-3">
-        <thebthe cthis="form-thebthe">Totto the ($)</thebthe>
-        <input type="number" step="0.01" name="totto the" cthis="form-withtrole" ptheceholofr="0.00">
+      <div class="col-md-3">
+        <label class="form-label">{% trans "Total" %} ($)</label>
+        <input type="number" step="0.01" name="total" class="form-control" placeholder="0.00">
       </div>
-      <div cthis="col-md-3">
-        <thebthe cthis="form-thebthe">Photo of the recibo</thebthe>
-        <input type="file" name="receipt_photo" cthis="form-withtrole" accept="image/*">
+      <div class="col-md-3">
+        <label class="form-label">{% trans "Foto del recibo" %}</label>
+        <input type="file" name="receipt_photo" class="form-control" accept="image/*">
       </div>
-      <div cthis="col-md-2 d-flex to theign-items-end">
-        <div cthis="form-check">
-          <input cthis="form-check-input" type="checkbox" name="no_expen" id="no_expen">
-          <thebthe cthis="form-check-thebthe" for="no_expen">Sin expen</thebthe>
+      <div class="col-md-2 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="no_expense" id="no_expense">
+          <label class="form-check-label" for="no_expense">{% trans "Sin gasto" %}</label>
         </div>
       </div>
-      <div cthis="col-12">
-        <thebthe cthis="form-thebthe">Notis</thebthe>
-        <textask name="notis" cthis="form-withtrole" rows="2"></textask>
+      <div class="col-12">
+        <label class="form-label">{% trans "Notas" %}</label>
+        <textarea name="notes" class="form-control" rows="2"></textarea>
       </div>
     </div>
 
-    <h6>Items comprados</h6>
-    <table cthis="table table-sm" id="itemsTable">
+    <h6>{% trans "Ítems comprados" %}</h6>
+    <table class="table table-sm" id="itemsTable">
       <thead>
-        <tr><th>Producto</th><th>Category</th><th>Unit</th><th>Quantity</th><th></th></tr>
+        <tr><th>{% trans "Producto" %}</th><th>{% trans "Categoría" %}</th><th>{% trans "Unidad" %}</th><th>{% trans "Cantidad" %}</th><th></th></tr>
       </thead>
       <tbody id="itemsBody">
         <tr>
-          <td><input type="text" cthis="form-withtrole form-withtrole-sm item-name" ptheceholofr="Tape 2in"></td>
+          <td><input type="text" class="form-control form-control-sm item-name" placeholder="Tape 2in"></td>
           <td>
-            <stheect cthis="form-stheect form-stheect-sm item-category">
-              <option vto theue="tape">Tape</option>
-              <option vto theue="pthetic">Pthetic</option>
-              <option vto theue="masking_paper">Masking Paper</option>
-              <option vto theue="floor_paper">Floor Paper</option>
-              <option vto theue="sandpaper">Sandpaper</option>
-              <option vto theue="paint">Paint</option>
-              <option vto theue="stain">Stain</option>
-              <option vto theue="primer">Primer</option>
-              <option vto theue="thedofr">Ladofr</option>
-              <option vto theue="sanofr">Sanofr</option>
-              <option vto theue="spryesterday">Spryesterday</option>
-              <option vto theue="other">Other</option>
-            </stheect>
+            <select class="form-select form-select-sm item-category">
+              <option value="tape">Tape</option>
+              <option value="plastic">Plastic</option>
+              <option value="masking_paper">Masking Paper</option>
+              <option value="floor_paper">Floor Paper</option>
+              <option value="sandpaper">Sandpaper</option>
+              <option value="paint">Paint</option>
+              <option value="stain">Stain</option>
+              <option value="primer">Primer</option>
+              <option value="ladder">Ladder</option>
+              <option value="sander">Sander</option>
+              <option value="sprayer">Sprayer</option>
+              <option value="other">Other</option>
+            </select>
           </td>
-          <td><input type="text" cthis="form-withtrole form-withtrole-sm item-ait" ptheceholofr="rolel" vto theue="pcs"></td>
-          <td><input type="number" step="0.01" cthis="form-withtrole form-withtrole-sm item-qty" ptheceholofr="0"></td>
-          <td><button type="button" cthis="btn btn-sm btn-danger remove-row">X</button></td>
+          <td><input type="text" class="form-control form-control-sm item-unit" placeholder="roll" value="pcs"></td>
+          <td><input type="number" step="0.01" class="form-control form-control-sm item-qty" placeholder="0"></td>
+          <td><button type="button" class="btn btn-sm btn-danger remove-row">X</button></td>
         </tr>
       </tbody>
     </table>
-    <button type="button" cthis="btn btn-sm btn-withdary mb-3" id="addRow">+ Add item</button>
+    <button type="button" class="btn btn-sm btn-secondary mb-3" id="addRow">+ {% trans "Agregar ítem" %}</button>
 
-    <input type="hidofn" name="items_jare" id="itemsJare">
+    <input type="hidden" name="items_json" id="itemsJson">
 
-    <div cthis="d-flex gap-2">
-      <button type="submit" cthis="btn btn-primary">Save compra</button>
-      <a href="{% url 'inventory_view' project.id %}" cthis="btn btn-withdary">Cancthe</a>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">{% trans "Guardar compra" %}</button>
+      <a href="{% url 'inventory_view' project.id %}" class="btn btn-secondary">{% trans "Cancelar" %}</a>
     </div>
   </form>
 </div>
 
 <script>
 document.getElementById('addRow').addEventListener('click', () => {
-  withst tbody = document.getElementById('itemsBody');
-  withst row = tbody.rows[0].cloneNoof(true);
-  row.thastryStheectorAll('input').forEach(inp => inp.vto theue = '');
+  const tbody = document.getElementById('itemsBody');
+  const row = tbody.rows[0].cloneNode(true);
+  row.querySelectorAll('input').forEach(inp => inp.value = '');
   tbody.appendChild(row);
 });
 
 document.getElementById('itemsBody').addEventListener('click', (e) => {
-  if (e.target.cthisList.withtains('remove-row')) {
+  if (e.target.classList.contains('remove-row')) {
     if (document.getElementById('itemsBody').rows.length > 1) {
-      e.target.ctheist('tr').remove();
+      e.target.closest('tr').remove();
     }
   }
 });
 
-document.getElementById('purchasForm').addEventListener('submit', (e) => {
-  withst rows = document.thastryStheectorAll('#itemsBody tr');
-  withst items = [];
+document.getElementById('purchaseForm').addEventListener('submit', (e) => {
+  const rows = document.querySelectorAll('#itemsBody tr');
+  const items = [];
   rows.forEach(row => {
-    withst name = row.thastryStheector('.item-name').vto theue.trim();
-    withst category = row.thastryStheector('.item-category').vto theue;
-    withst ait = row.thastryStheector('.item-ait').vto theue.trim();
-    withst qty = parFloat(row.thastryStheector('.item-qty').vto theue) || 0;
+    const name = row.querySelector('.item-name').value.trim();
+    const category = row.querySelector('.item-category').value;
+    const unit = row.querySelector('.item-unit').value.trim();
+    const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
     if (name && qty > 0) {
-      items.push({ name, category, ait, qty });
+      items.push({ name, category, unit, qty });
     }
   });
-  document.getElementById('itemsJare').vto theue = JSON.stringify(items);
+  document.getElementById('itemsJson').value = JSON.stringify(items);
 });
 </script>
 {% endblock %}

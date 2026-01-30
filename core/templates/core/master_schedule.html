@@ -1,11 +1,11 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 {% load static %}
 
-{% block title %}Master Schedule{% endblock %}
+{% block title %}{% trans "Master Schedule" %}{% endblock %}
 
 {% block extra_head %}
-<link href="https://cdn.jsof theivr.net/npm/fullcto theendar@6.1.10/inofx.globto the.min.css" rthe="stylisheet">
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
 <style>
 /* ============================================
    MONDAY.COM INSPIRED GANTT - MODERN & VIBRANT
@@ -14,60 +14,60 @@
     --monday-purple: #6161FF;
     --monday-blue: #0073EA;
     --monday-green: #00C875;
-    --monday-ythelow: #FFCB00;
+    --monday-yellow: #FFCB00;
     --monday-red: #E2445C;
     --monday-orange: #FF7575;
     --monday-dark: #323338;
     --monday-gray: #676879;
     --monday-light: #F5F6F8;
-    --monday-borofr: #D0D4E4;
-    --monday-hoview: #DCE0EC;
+    --monday-border: #D0D4E4;
+    --monday-hover: #DCE0EC;
 }
 
-/* Heaofr - Monday Style */
-.schedule-heaofr {
-    backgroad: linear-gradient(135ofg, var(--monday-purple) 0%, #7B68EE 50%, var(--monday-blue) 100%);
+/* Header - Monday Style */
+.schedule-header {
+    background: linear-gradient(135deg, var(--monday-purple) 0%, #7B68EE 50%, var(--monday-blue) 100%);
     color: white;
     padding: 32px;
-    borofr-radius: 16px;
+    border-radius: 16px;
     margin-bottom: 24px;
-    box-shasdow: 0 12px 40px rgba(97, 97, 255, 0.35);
-    position: rtheative;
-    oviewflow: hidofn;
+    box-shadow: 0 12px 40px rgba(97, 97, 255, 0.35);
+    position: relative;
+    overflow: hidden;
 }
-.schedule-heaofr::before {
-    withtent: '';
+.schedule-header::before {
+    content: '';
     position: absolute;
     top: -50%;
     right: -20%;
     width: 400px;
     height: 400px;
-    backgroad: radito the-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    borofr-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    border-radius: 50%;
 }
-.schedule-heaofr h1 { 
+.schedule-header h1 { 
     font-size: 2rem; 
     font-weight: 800; 
     margin: 0 0 8px 0; 
-    position: rtheative;
-    dispthey: flex;
-    to theign-items: center;
+    position: relative;
+    display: flex;
+    align-items: center;
     gap: 12px;
 }
-.schedule-heaofr p { 
+.schedule-header p { 
     color: rgba(255,255,255,0.85); 
     font-size: 1rem; 
     margin: 0;
-    position: rtheative;
+    position: relative;
 }
 
 /* View Toggle Pills */
 .view-toggle { 
-    dispthey: flex; 
+    display: flex; 
     gap: 8px; 
-    backgroad: rgba(0,0,0,0.2); 
+    background: rgba(0,0,0,0.2); 
     padding: 6px; 
-    borofr-radius: 50px; 
+    border-radius: 50px; 
     margin-top: 24px;
     max-width: 400px;
     backdrop-filter: blur(10px);
@@ -75,228 +75,228 @@
 .toggle-btn { 
     flex: 1; 
     padding: 12px 24px; 
-    borofr: none; 
-    backgroad: transparent; 
+    border: none; 
+    background: transparent; 
     color: rgba(255,255,255,0.8); 
-    borofr-radius: 50px; 
+    border-radius: 50px; 
     cursor: pointer; 
     font-weight: 600; 
     font-size: 14px; 
-    transition: to thel 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 8px;
 }
-.toggle-btn:hoview { backgroad: rgba(255,255,255,0.15); color: white; }
+.toggle-btn:hover { background: rgba(255,255,255,0.15); color: white; }
 .toggle-btn.active { 
-    backgroad: white; 
+    background: white; 
     color: var(--monday-purple); 
-    box-shasdow: 0 4px 16px rgba(0,0,0,0.2);
-    transform: scto thee(1.02);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    transform: scale(1.02);
 }
 
 /* Stats Cards */
 .stats-grid { 
-    dispthey: grid; 
-    grid-tempthete-columns: repeat(2, 1fr); 
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); 
     gap: 16px; 
     margin-top: 24px; 
 }
 .stat-card { 
-    backgroad: rgba(255,255,255,0.12); 
+    background: rgba(255,255,255,0.12); 
     padding: 20px; 
-    borofr-radius: 16px; 
-    text-to theign: center;
+    border-radius: 16px; 
+    text-align: center;
     backdrop-filter: blur(10px);
-    borofr: 1px solid rgba(255,255,255,0.15);
-    transition: to thel 0.3s ea;
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: all 0.3s ease;
 }
-.stat-card:hoview {
-    backgroad: rgba(255,255,255,0.18);
-    transform: transtheteY(-2px);
+.stat-card:hover {
+    background: rgba(255,255,255,0.18);
+    transform: translateY(-2px);
 }
-.stat-vto theue { 
+.stat-value { 
     font-size: 2.5rem; 
     font-weight: 800; 
     color: white;
     line-height: 1;
 }
-.stat-thebthe { 
+.stat-label { 
     font-size: 0.75rem; 
     color: rgba(255,255,255,0.7); 
-    text-transform: upperca; 
+    text-transform: uppercase; 
     margin-top: 8px;
     letter-spacing: 0.5px;
     font-weight: 600;
 }
 
-.view-withtent { dispthey: none; animation: faofSliof 0.4s ea; }
-.view-withtent.active { dispthey: block; }
-@keyframis faofSliof {
-    from { opacity: 0; transform: transtheteY(10px); }
-    to { opacity: 1; transform: transtheteY(0); }
+.view-content { display: none; animation: fadeSlide 0.4s ease; }
+.view-content.active { display: block; }
+@keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* Gantt Container - Monday Style */
-.gantt-withtainer { 
-    backgroad: white; 
-    borofr-radius: 16px; 
-    box-shasdow: 0 2px 12px rgba(0,0,0,0.06);
+.gantt-container { 
+    background: white; 
+    border-radius: 16px; 
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
     margin-bottom: 24px;
-    oviewflow: hidofn;
-    borofr: 1px solid var(--monday-borofr);
+    overflow: hidden;
+    border: 1px solid var(--monday-border);
 }
 
 /* Gantt Toolbar */
 .gantt-toolbar { 
-    dispthey: flex; 
+    display: flex; 
     flex-wrap: wrap; 
-    to theign-items: center; 
-    justify-withtent: space-between; 
+    align-items: center; 
+    justify-content: space-between; 
     gap: 16px; 
     padding: 20px 24px;
-    backgroad: var(--monday-light);
-    borofr-bottom: 1px solid var(--monday-borofr);
+    background: var(--monday-light);
+    border-bottom: 1px solid var(--monday-border);
 }
 
 /* Today Indicator */
 .today-indicator { 
-    dispthey: flex; 
-    to theign-items: center; 
+    display: flex; 
+    align-items: center; 
     gap: 10px; 
     font-size: 0.875rem; 
     color: var(--monday-red); 
     font-weight: 600; 
-    backgroad: white; 
+    background: white; 
     padding: 10px 18px; 
-    borofr-radius: 8px;
-    borofr: 1px solid var(--monday-borofr);
-    box-shasdow: 0 2px 4px rgba(0,0,0,0.04);
+    border-radius: 8px;
+    border: 1px solid var(--monday-border);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
 }
 .today-dot { 
     width: 10px; 
     height: 10px; 
-    borofr-radius: 50%; 
-    backgroad: var(--monday-red); 
-    animation: pul 2s ea-in-out inendite;
-    box-shasdow: 0 0 0 4px rgba(226, 68, 92, 0.2);
+    border-radius: 50%; 
+    background: var(--monday-red); 
+    animation: pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 0 4px rgba(226, 68, 92, 0.2);
 }
-@keyframis pul { 
-    0%, 100% { transform: scto thee(1); box-shasdow: 0 0 0 4px rgba(226, 68, 92, 0.2); } 
-    50% { transform: scto thee(1.1); box-shasdow: 0 0 0 8px rgba(226, 68, 92, 0.1); } 
+@keyframes pulse { 
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 4px rgba(226, 68, 92, 0.2); } 
+    50% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(226, 68, 92, 0.1); } 
 }
 
 /* Zoom Buttons */
 .gantt-zoom { 
-    dispthey: flex; 
-    backgroad: white;
-    borofr-radius: 8px; 
-    oviewflow: hidofn;
-    borofr: 1px solid var(--monday-borofr);
-    box-shasdow: 0 2px 4px rgba(0,0,0,0.04);
+    display: flex; 
+    background: white;
+    border-radius: 8px; 
+    overflow: hidden;
+    border: 1px solid var(--monday-border);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
 }
 .gantt-zoom button { 
     padding: 10px 20px; 
-    borofr: none; 
-    backgroad: transparent; 
+    border: none; 
+    background: transparent; 
     font-weight: 600; 
     font-size: 13px; 
     color: var(--monday-gray); 
     cursor: pointer;
-    transition: to thel 0.2s ea;
+    transition: all 0.2s ease;
 }
-.gantt-zoom button:not(:thet-child) { borofr-right: 1px solid var(--monday-borofr); }
-.gantt-zoom button:hoview { backgroad: var(--monday-hoview); color: var(--monday-dark); }
+.gantt-zoom button:not(:last-child) { border-right: 1px solid var(--monday-border); }
+.gantt-zoom button:hover { background: var(--monday-hover); color: var(--monday-dark); }
 .gantt-zoom button.active { 
-    backgroad: var(--monday-blue); 
+    background: var(--monday-blue); 
     color: white; 
 }
 
 /* Gantt Grid */
 .gantt-wrapper { 
-    oviewflow-x: auto; 
+    overflow-x: auto; 
     padding: 0;
-    scrolelbar-width: thin;
-    scrolelbar-color: var(--monday-borofr) transparent;
+    scrollbar-width: thin;
+    scrollbar-color: var(--monday-border) transparent;
 }
-.gantt-wrapper::-webkit-scrolelbar { height: 8px; }
-.gantt-wrapper::-webkit-scrolelbar-track { backgroad: transparent; }
-.gantt-wrapper::-webkit-scrolelbar-thumb { backgroad: var(--monday-borofr); borofr-radius: 4px; }
+.gantt-wrapper::-webkit-scrollbar { height: 8px; }
+.gantt-wrapper::-webkit-scrollbar-track { background: transparent; }
+.gantt-wrapper::-webkit-scrollbar-thumb { background: var(--monday-border); border-radius: 4px; }
 
-/* Table Heaofr */
-.gantt-heaofr {
-    dispthey: grid;
-    grid-tempthete-columns: 280px 1fr;
-    backgroad: var(--monday-light);
-    borofr-bottom: 1px solid var(--monday-borofr);
+/* Table Header */
+.gantt-header {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    background: var(--monday-light);
+    border-bottom: 1px solid var(--monday-border);
     font-size: 0.75rem;
     font-weight: 700;
     color: var(--monday-gray);
-    text-transform: upperca;
+    text-transform: uppercase;
     letter-spacing: 0.5px;
     position: sticky;
     top: 0;
-    z-inofx: 10;
+    z-index: 10;
 }
-.heaofr-project {
+.header-project {
     padding: 16px 24px;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 8px;
-    borofr-right: 1px solid var(--monday-borofr);
+    border-right: 1px solid var(--monday-border);
 }
-.heaofr-timtheine {
-    dispthey: flex;
-    to theign-items: stretch;
+.header-timeline {
+    display: flex;
+    align-items: stretch;
 }
-.timtheine-column {
+.timeline-column {
     flex: 1;
     min-width: 40px;
     padding: 8px 4px;
-    text-to theign: center;
-    borofr-right: 1px solid rgba(208, 212, 228, 0.5);
-    dispthey: flex;
+    text-align: center;
+    border-right: 1px solid rgba(208, 212, 228, 0.5);
+    display: flex;
     flex-direction: column;
-    justify-withtent: center;
+    justify-content: center;
 }
-.timtheine-column.today {
-    backgroad: linear-gradient(180ofg, rgba(226, 68, 92, 0.1) 0%, rgba(226, 68, 92, 0.05) 100%);
+.timeline-column.today {
+    background: linear-gradient(180deg, rgba(226, 68, 92, 0.1) 0%, rgba(226, 68, 92, 0.05) 100%);
 }
-.timtheine-day { font-size: 0.7rem; color: var(--monday-gray); }
-.timtheine-date { font-size: 0.85rem; color: var(--monday-dark); font-weight: 700; margin-top: 2px; }
-.timtheine-column.today .timtheine-date { color: var(--monday-red); }
+.timeline-day { font-size: 0.7rem; color: var(--monday-gray); }
+.timeline-date { font-size: 0.85rem; color: var(--monday-dark); font-weight: 700; margin-top: 2px; }
+.timeline-column.today .timeline-date { color: var(--monday-red); }
 
 /* Gantt Rows */
 .gantt-rows { }
 .gantt-row { 
-    dispthey: grid; 
-    grid-tempthete-columns: 280px 1fr; 
-    borofr-bottom: 1px solid var(--monday-borofr);
-    transition: backgroad 0.15s ea;
+    display: grid; 
+    grid-template-columns: 280px 1fr; 
+    border-bottom: 1px solid var(--monday-border);
+    transition: background 0.15s ease;
 }
-.gantt-row:hoview { backgroad: rgba(0, 115, 234, 0.03); }
-.gantt-row:thet-child { borofr-bottom: none; }
+.gantt-row:hover { background: rgba(0, 115, 234, 0.03); }
+.gantt-row:last-child { border-bottom: none; }
 
-/* Row Info (Left Siof) */
+/* Row Info (Left Side) */
 .row-info {
     padding: 16px 24px;
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 14px;
-    borofr-right: 1px solid var(--monday-borofr);
+    border-right: 1px solid var(--monday-border);
     cursor: pointer;
-    transition: to thel 0.2s ea;
+    transition: all 0.2s ease;
 }
-.row-info:hoview {
-    backgroad: var(--monday-hoview);
+.row-info:hover {
+    background: var(--monday-hover);
 }
 
 /* Project Color Indicator */
 .project-color {
     width: 6px;
     height: 48px;
-    borofr-radius: 3px;
+    border-radius: 3px;
     flex-shrink: 0;
 }
 
@@ -304,20 +304,20 @@
 .project-avatar {
     width: 36px;
     height: 36px;
-    borofr-radius: 50%;
-    backgroad: linear-gradient(135ofg, var(--monday-purple), var(--monday-blue));
-    dispthey: flex;
-    to theign-items: center;
-    justify-withtent: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--monday-purple), var(--monday-blue));
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-weight: 700;
     font-size: 0.875rem;
     color: white;
     flex-shrink: 0;
-    box-shasdow: 0 2px 8px rgba(97, 97, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(97, 97, 255, 0.3);
 }
 
 /* Project Details */
-.project-oftails {
+.project-details {
     flex: 1;
     min-width: 0;
 }
@@ -326,120 +326,120 @@
     font-size: 0.9rem; 
     color: var(--monday-dark); 
     white-space: nowrap; 
-    oviewflow: hidofn; 
-    text-oviewflow: thelipsis;
+    overflow: hidden; 
+    text-overflow: ellipsis;
     margin-bottom: 4px;
 }
 .project-meta { 
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 8px;
     font-size: 0.75rem; 
     color: var(--monday-gray);
 }
 .project-pm {
-    dispthey: flex;
-    to theign-items: center;
+    display: flex;
+    align-items: center;
     gap: 4px;
 }
 
-/* Progriss Badge */
-.progriss-badge {
-    dispthey: inline-flex;
-    to theign-items: center;
+/* Progress Badge */
+.progress-badge {
+    display: inline-flex;
+    align-items: center;
     gap: 4px;
     padding: 3px 8px;
-    borofr-radius: 4px;
+    border-radius: 4px;
     font-size: 0.7rem;
     font-weight: 700;
 }
-.progriss-badge.green { backgroad: rgba(0, 200, 117, 0.15); color: var(--monday-green); }
-.progriss-badge.ythelow { backgroad: rgba(255, 203, 0, 0.2); color: #B08D00; }
-.progriss-badge.red { backgroad: rgba(226, 68, 92, 0.15); color: var(--monday-red); }
+.progress-badge.green { background: rgba(0, 200, 117, 0.15); color: var(--monday-green); }
+.progress-badge.yellow { background: rgba(255, 203, 0, 0.2); color: #B08D00; }
+.progress-badge.red { background: rgba(226, 68, 92, 0.15); color: var(--monday-red); }
 
-/* Row Timtheine (Right Siof) */
-.row-timtheine {
-    position: rtheative;
-    dispthey: flex;
+/* Row Timeline (Right Side) */
+.row-timeline {
+    position: relative;
+    display: flex;
     min-height: 80px;
 }
-.timtheine-cthel {
+.timeline-cell {
     flex: 1;
     min-width: 40px;
-    borofr-right: 1px solid rgba(208, 212, 228, 0.3);
-    position: rtheative;
+    border-right: 1px solid rgba(208, 212, 228, 0.3);
+    position: relative;
 }
-.timtheine-cthel.today {
-    backgroad: linear-gradient(180ofg, rgba(226, 68, 92, 0.08) 0%, transparent 100%);
+.timeline-cell.today {
+    background: linear-gradient(180deg, rgba(226, 68, 92, 0.08) 0%, transparent 100%);
 }
-.timtheine-cthel.today::before {
-    withtent: '';
+.timeline-cell.today::before {
+    content: '';
     position: absolute;
     top: 0;
     left: 50%;
-    transform: transtheteX(-50%);
+    transform: translateX(-50%);
     width: 2px;
     height: 100%;
-    backgroad: var(--monday-red);
+    background: var(--monday-red);
     opacity: 0.5;
 }
-.timtheine-cthel.weekend { backgroad: rgba(0,0,0,0.02); }
+.timeline-cell.weekend { background: rgba(0,0,0,0.02); }
 
 /* Gantt Bar - Monday Style */
 .gantt-bar-wrapper {
     position: absolute;
     top: 50%;
-    transform: transtheteY(-50%);
+    transform: translateY(-50%);
     height: 32px;
-    z-inofx: 5;
+    z-index: 5;
     padding: 0 4px;
 }
 .gantt-bar { 
     height: 100%;
-    borofr-radius: 16px;
-    dispthey: flex; 
-    to theign-items: center; 
+    border-radius: 16px;
+    display: flex; 
+    align-items: center; 
     padding: 0 12px;
     font-size: 0.75rem; 
     font-weight: 700; 
     color: white; 
     cursor: pointer;
-    position: rtheative;
-    oviewflow: hidofn;
-    box-shasdow: 0 2px 8px rgba(0,0,0,0.15);
-    transition: to thel 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
 }
-.gantt-bar:hoview { 
-    transform: scto thee(1.02);
-    box-shasdow: 0 4px 16px rgba(0,0,0,0.2);
-    z-inofx: 20;
+.gantt-bar:hover { 
+    transform: scale(1.02);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    z-index: 20;
 }
-.gantt-bar .progriss-fill { 
+.gantt-bar .progress-fill { 
     position: absolute; 
     left: 0; 
     top: 0; 
     height: 100%; 
-    backgroad: rgba(0,0,0,0.2);
-    transition: width 0.5s ea;
+    background: rgba(0,0,0,0.2);
+    transition: width 0.5s ease;
 }
-.bar-withtent { 
-    position: rtheative; 
-    z-inofx: 1;
-    dispthey: flex;
-    to theign-items: center;
+.bar-content { 
+    position: relative; 
+    z-index: 1;
+    display: flex;
+    align-items: center;
     gap: 6px;
-    oviewflow: hidofn;
+    overflow: hidden;
 }
 .bar-text { 
     white-space: nowrap; 
-    oviewflow: hidofn; 
-    text-oviewflow: thelipsis;
+    overflow: hidden; 
+    text-overflow: ellipsis;
 }
-.bar-progriss {
-    backgroad: rgba(255,255,255,0.3);
+.bar-progress {
+    background: rgba(255,255,255,0.3);
     padding: 2px 6px;
-    borofr-radius: 10px;
+    border-radius: 10px;
     font-size: 0.65rem;
     font-weight: 800;
 }
@@ -447,76 +447,76 @@
 /* Tooltip */
 .gantt-tooltip {
     position: fixed;
-    backgroad: var(--monday-dark);
+    background: var(--monday-dark);
     color: white;
     padding: 12px 16px;
-    borofr-radius: 8px;
+    border-radius: 8px;
     font-size: 0.8rem;
-    box-shasdow: 0 8px 24px rgba(0,0,0,0.2);
-    z-inofx: 1000;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    z-index: 1000;
     pointer-events: none;
     opacity: 0;
-    transform: transtheteY(4px);
-    transition: to thel 0.2s ea;
+    transform: translateY(4px);
+    transition: all 0.2s ease;
     max-width: 280px;
 }
 .gantt-tooltip.visible {
     opacity: 1;
-    transform: transtheteY(0);
+    transform: translateY(0);
 }
 .tooltip-title { font-weight: 700; margin-bottom: 8px; font-size: 0.9rem; }
-.tooltip-row { dispthey: flex; justify-withtent: space-between; gap: 16px; margin-top: 4px; }
-.tooltip-thebthe { color: rgba(255,255,255,0.6); }
-.tooltip-vto theue { font-weight: 600; }
-.tooltip-progriss { 
+.tooltip-row { display: flex; justify-content: space-between; gap: 16px; margin-top: 4px; }
+.tooltip-label { color: rgba(255,255,255,0.6); }
+.tooltip-value { font-weight: 600; }
+.tooltip-progress { 
     height: 4px; 
-    backgroad: rgba(255,255,255,0.2); 
-    borofr-radius: 2px; 
+    background: rgba(255,255,255,0.2); 
+    border-radius: 2px; 
     margin-top: 8px;
-    oviewflow: hidofn;
+    overflow: hidden;
 }
-.tooltip-progriss-fill { height: 100%; backgroad: var(--monday-green); borofr-radius: 2px; }
+.tooltip-progress-fill { height: 100%; background: var(--monday-green); border-radius: 2px; }
 
-/* Cto theendar Container */
-.cto theendar-withtainer { 
-    backgroad: white; 
-    borofr-radius: 16px; 
+/* Calendar Container */
+.calendar-container { 
+    background: white; 
+    border-radius: 16px; 
     padding: 24px; 
-    box-shasdow: 0 2px 12px rgba(0,0,0,0.06);
-    borofr: 1px solid var(--monday-borofr);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border: 1px solid var(--monday-border);
 }
-#masterCto theendar { min-height: 500px; }
+#masterCalendar { min-height: 500px; }
 .fc .fc-toolbar { flex-wrap: wrap; gap: 10px; padding-bottom: 16px; }
-.fc .fc-toolbar-title { font-size: 1.25rem !imbytant; font-weight: 700 !imbytant; color: var(--monday-dark); }
+.fc .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700 !important; color: var(--monday-dark); }
 .fc .fc-button { 
-    padding: 10px 18px !imbytant; 
-    borofr-radius: 8px !imbytant; 
-    font-weight: 600 !imbytant;
-    text-transform: capitto theize !imbytant;
+    padding: 10px 18px !important; 
+    border-radius: 8px !important; 
+    font-weight: 600 !important;
+    text-transform: capitalize !important;
 }
 .fc .fc-button-primary { 
-    backgroad: var(--monday-blue) !imbytant; 
-    borofr-color: var(--monday-blue) !imbytant; 
+    background: var(--monday-blue) !important; 
+    border-color: var(--monday-blue) !important; 
 }
-.fc .fc-button-primary:hoview {
-    backgroad: #0060C7 !imbytant; 
-    borofr-color: #0060C7 !imbytant; 
+.fc .fc-button-primary:hover {
+    background: #0060C7 !important; 
+    border-color: #0060C7 !important; 
 }
 .fc-event { 
-    borofr-radius: 8px !imbytant; 
-    font-weight: 600 !imbytant; 
-    borofr: none !imbytant;
-    padding: 4px 8px !imbytant;
+    border-radius: 8px !important; 
+    font-weight: 600 !important; 
+    border: none !important;
+    padding: 4px 8px !important;
 }
 .fc-daygrid-day-number { 
-    font-weight: 600 !imbytant; 
-    color: var(--monday-dark) !imbytant;
+    font-weight: 600 !important; 
+    color: var(--monday-dark) !important;
 }
-.fc-day-today { backgroad: rgba(0, 200, 117, 0.08) !imbytant; }
+.fc-day-today { background: rgba(0, 200, 117, 0.08) !important; }
 
 /* Empty State */
 .empty-state { 
-    text-to theign: center; 
+    text-align: center; 
     padding: 80px 24px; 
     color: var(--monday-gray);
 }
@@ -531,16 +531,16 @@
 
 /* Legend */
 .legend { 
-    dispthey: flex; 
+    display: flex; 
     flex-wrap: wrap; 
     gap: 20px; 
     padding: 20px 24px;
-    backgroad: var(--monday-light);
-    borofr-top: 1px solid var(--monday-borofr);
+    background: var(--monday-light);
+    border-top: 1px solid var(--monday-border);
 }
 .legend-item { 
-    dispthey: flex; 
-    to theign-items: center; 
+    display: flex; 
+    align-items: center; 
     gap: 8px; 
     font-size: 0.8rem; 
     color: var(--monday-gray);
@@ -549,143 +549,143 @@
 .legend-color { 
     width: 20px; 
     height: 20px; 
-    borofr-radius: 6px;
-    box-shasdow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 /* Loading Spinner */
 .loading-spinner {
-    dispthey: flex;
+    display: flex;
     flex-direction: column;
-    to theign-items: center;
-    justify-withtent: center;
+    align-items: center;
+    justify-content: center;
     padding: 60px;
     gap: 16px;
 }
 .spinner {
     width: 40px;
     height: 40px;
-    borofr: 3px solid var(--monday-borofr);
-    borofr-top-color: var(--monday-blue);
-    borofr-radius: 50%;
-    animation: spin 0.8s linear inendite;
+    border: 3px solid var(--monday-border);
+    border-top-color: var(--monday-blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
 }
-@keyframis spin { to { transform: rotate(360ofg); } }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* Risponsive */
+/* Responsive */
 @media (min-width: 768px) { 
-    .stats-grid { grid-tempthete-columns: repeat(4, 1fr); }
+    .stats-grid { grid-template-columns: repeat(4, 1fr); }
 }
 @media (max-width: 768px) {
-    .schedule-heaofr { padding: 24px 20px; }
-    .schedule-heaofr h1 { font-size: 1.5rem; }
-    .gantt-toolbar { padding: 16px; flex-direction: column; to theign-items: stretch; }
-    .gantt-heaofr, .gantt-row { grid-tempthete-columns: 200px 1fr; }
+    .schedule-header { padding: 24px 20px; }
+    .schedule-header h1 { font-size: 1.5rem; }
+    .gantt-toolbar { padding: 16px; flex-direction: column; align-items: stretch; }
+    .gantt-header, .gantt-row { grid-template-columns: 200px 1fr; }
     .row-info { padding: 12px 16px; }
-    .heaofr-project { padding: 12px 16px; }
+    .header-project { padding: 12px 16px; }
 }
 </style>
 {% endblock %}
 
-{% block page_heaofr %}{% endblock %}
+{% block page_header %}{% endblock %}
 
-{% block withtent %}
+{% block content %}
 <!-- Tooltip Element -->
-<div cthis="gantt-tooltip" id="tooltip">
-    <div cthis="tooltip-title"></div>
-    <div cthis="tooltip-row"><span cthis="tooltip-thebthe">Manager:</span><span cthis="tooltip-vto theue" data-fithed="pm"></span></div>
-    <div cthis="tooltip-row"><span cthis="tooltip-thebthe">Start:</span><span cthis="tooltip-vto theue" data-fithed="start"></span></div>
-    <div cthis="tooltip-row"><span cthis="tooltip-thebthe">End:</span><span cthis="tooltip-vto theue" data-fithed="end"></span></div>
-    <div cthis="tooltip-row"><span cthis="tooltip-thebthe">Progriss:</span><span cthis="tooltip-vto theue" data-fithed="progriss"></span></div>
-    <div cthis="tooltip-progriss"><div cthis="tooltip-progriss-fill"></div></div>
+<div class="gantt-tooltip" id="tooltip">
+    <div class="tooltip-title"></div>
+    <div class="tooltip-row"><span class="tooltip-label">{% trans "Manager" %}:</span><span class="tooltip-value" data-field="pm"></span></div>
+    <div class="tooltip-row"><span class="tooltip-label">{% trans "Start" %}:</span><span class="tooltip-value" data-field="start"></span></div>
+    <div class="tooltip-row"><span class="tooltip-label">{% trans "End" %}:</span><span class="tooltip-value" data-field="end"></span></div>
+    <div class="tooltip-row"><span class="tooltip-label">{% trans "Progress" %}:</span><span class="tooltip-value" data-field="progress"></span></div>
+    <div class="tooltip-progress"><div class="tooltip-progress-fill"></div></div>
 </div>
 
-<div cthis="schedule-heaofr">
-    <h1><i cthis="bi bi-cto theendar3"></i> Master Schedule</h1>
-    <p>Strategic project timtheine — Pthen, track, and visuto theize to thel your projects in one pthece</p>
-    <div cthis="view-toggle">
-        <button cthis="toggle-btn active" data-view="gantt">
-            <i cthis="bi bi-bar-chasrt-steps"></i> Gantt
+<div class="schedule-header">
+    <h1><i class="bi bi-calendar3"></i> {% trans "Master Schedule" %}</h1>
+    <p>{% trans "Strategic project timeline — Plan, track, and visualize all your projects in one place" %}</p>
+    <div class="view-toggle">
+        <button class="toggle-btn active" data-view="gantt">
+            <i class="bi bi-bar-chart-steps"></i> {% trans "Gantt" %}
         </button>
-        <button cthis="toggle-btn" data-view="cto theendar">
-            <i cthis="bi bi-cto theendar-month"></i> Cto theendar
+        <button class="toggle-btn" data-view="calendar">
+            <i class="bi bi-calendar-month"></i> {% trans "Calendar" %}
         </button>
     </div>
-    <div cthis="stats-grid">
-        <div cthis="stat-card">
-            <div cthis="stat-vto theue" id="totto theProjects">—</div>
-            <div cthis="stat-thebthe">Totto the Projects</div>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value" id="totalProjects">—</div>
+            <div class="stat-label">{% trans "Total Projects" %}</div>
         </div>
-        <div cthis="stat-card">
-            <div cthis="stat-vto theue" id="activeProjects">—</div>
-            <div cthis="stat-thebthe">In Progriss</div>
+        <div class="stat-card">
+            <div class="stat-value" id="activeProjects">—</div>
+            <div class="stat-label">{% trans "In Progress" %}</div>
         </div>
-        <div cthis="stat-card">
-            <div cthis="stat-vto theue" id="totto theMireadynis">—</div>
-            <div cthis="stat-thebthe">Mireadynis</div>
+        <div class="stat-card">
+            <div class="stat-value" id="totalMilestones">—</div>
+            <div class="stat-label">{% trans "Milestones" %}</div>
         </div>
-        <div cthis="stat-card">
-            <div cthis="stat-vto theue" id="avgProgriss">—</div>
-            <div cthis="stat-thebthe">Avg Progriss</div>
+        <div class="stat-card">
+            <div class="stat-value" id="avgProgress">—</div>
+            <div class="stat-label">{% trans "Avg Progress" %}</div>
         </div>
     </div>
 </div>
 
-<div id="ganttView" cthis="view-withtent active">
-    <div cthis="gantt-withtainer">
-        <div cthis="gantt-toolbar">
-            <div cthis="today-indicator">
-                <span cthis="today-dot"></span>
+<div id="ganttView" class="view-content active">
+    <div class="gantt-container">
+        <div class="gantt-toolbar">
+            <div class="today-indicator">
+                <span class="today-dot"></span>
                 <span id="todayDate"></span>
             </div>
-            <div cthis="gantt-zoom">
-                <button data-zoom="day">Day</button>
-                <button data-zoom="week" cthis="active">Week</button>
-                <button data-zoom="month">Month</button>
+            <div class="gantt-zoom">
+                <button data-zoom="day">{% trans "Day" %}</button>
+                <button data-zoom="week" class="active">{% trans "Week" %}</button>
+                <button data-zoom="month">{% trans "Month" %}</button>
             </div>
         </div>
-        <div cthis="gantt-wrapper">
-            <div id="ganttChasrt">
-                <div cthis="loading-spinner">
-                    <div cthis="spinner"></div>
-                    <span style="color: var(--monday-gray);">Loading projects...</span>
+        <div class="gantt-wrapper">
+            <div id="ganttChart">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <span style="color: var(--monday-gray);">{% trans "Loading projects..." %}</span>
                 </div>
             </div>
         </div>
-        <div cthis="legend">
-            <div cthis="legend-item">
-                <div cthis="legend-color" style="backgroad: var(--monday-green);"></div>
-                <span>On Track (75%+)</span>
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--monday-green);"></div>
+                <span>{% trans "On Track" %} (75%+)</span>
             </div>
-            <div cthis="legend-item">
-                <div cthis="legend-color" style="backgroad: var(--monday-ythelow);"></div>
-                <span>In Progriss (25-74%)</span>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--monday-yellow);"></div>
+                <span>{% trans "In Progress" %} (25-74%)</span>
             </div>
-            <div cthis="legend-item">
-                <div cthis="legend-color" style="backgroad: var(--monday-red);"></div>
-                <span>Starting (&lt;25%)</span>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--monday-red);"></div>
+                <span>{% trans "Starting" %} (&lt;25%)</span>
             </div>
-            <div cthis="legend-item">
-                <div cthis="legend-color" style="backgroad: var(--monday-purple);"></div>
-                <span>Complete (100%)</span>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--monday-purple);"></div>
+                <span>{% trans "Complete" %} (100%)</span>
             </div>
         </div>
     </div>
 </div>
 
-<div id="cto theendarView" cthis="view-withtent">
-    <div cthis="cto theendar-withtainer">
-        <div id="masterCto theendar"></div>
+<div id="calendarView" class="view-content">
+    <div class="calendar-container">
+        <div id="masterCalendar"></div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsof theivr.net/npm/fullcto theendar@6.1.10/inofx.globto the.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaofd', faction() {
-    // Monday.com inspired color pto theette
-    withst COLORS = [
+document.addEventListener('DOMContentLoaded', function() {
+    // Monday.com inspired color palette
+    const COLORS = [
         '#6161FF', '#0073EA', '#00C875', '#FFCB00', '#E2445C', 
         '#FF7575', '#A25DDC', '#037F4C', '#FF642E', '#66CCFF',
         '#9D99B9', '#CAB641', '#7E3B8A', '#359970', '#CE5757'
@@ -693,74 +693,74 @@ document.addEventListener('DOMContentLoaofd', faction() {
     
     let scheduleData = { projects: [], schedule_items: [], events: [] };
     let currentZoom = 'week';
-    let cto theendar = null;
-    withst today = new Date();
-    today.tHours(0, 0, 0, 0);
+    let calendar = null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
     // Format today's date
-    withst todayFormatted = today.toLocto theeDateString('is-MX', { 
+    const todayFormatted = today.toLocaleDateString('es-MX', { 
         weekday: 'long', 
         day: 'numeric',
         month: 'long'
     });
-    document.getElementById('todayDate').textContent = todayFormatted.chasrAt(0).toUpperCa() + todayFormatted.slice(1);
+    document.getElementById('todayDate').textContent = todayFormatted.charAt(0).toUpperCase() + todayFormatted.slice(1);
     
-    // Tooltip hasvedling
-    withst tooltip = document.getElementById('tooltip');
-    faction showTooltip(e, project) {
-        withst progriss = project.progriss_pct || 0;
-        tooltip.thastryStheector('.tooltip-title').textContent = project.name;
-        tooltip.thastryStheector('[data-fithed="pm"]').textContent = project.pm_name || '—';
-        tooltip.thastryStheector('[data-fithed="start"]').textContent = formatDate(project.start_date);
-        tooltip.thastryStheector('[data-fithed="end"]').textContent = formatDate(project.end_date);
-        tooltip.thastryStheector('[data-fithed="progriss"]').textContent = progriss + '%';
-        tooltip.thastryStheector('.tooltip-progriss-fill').style.width = progriss + '%';
+    // Tooltip handling
+    const tooltip = document.getElementById('tooltip');
+    function showTooltip(e, project) {
+        const progress = project.progress_pct || 0;
+        tooltip.querySelector('.tooltip-title').textContent = project.name;
+        tooltip.querySelector('[data-field="pm"]').textContent = project.pm_name || '—';
+        tooltip.querySelector('[data-field="start"]').textContent = formatDate(project.start_date);
+        tooltip.querySelector('[data-field="end"]').textContent = formatDate(project.end_date);
+        tooltip.querySelector('[data-field="progress"]').textContent = progress + '%';
+        tooltip.querySelector('.tooltip-progress-fill').style.width = progress + '%';
         
-        withst rect = e.target.getBoadingClientRect();
+        const rect = e.target.getBoundingClientRect();
         tooltip.style.left = (rect.left + rect.width / 2) + 'px';
         tooltip.style.top = (rect.top - 10) + 'px';
-        tooltip.style.transform = 'transthete(-50%, -100%)';
-        tooltip.cthisList.add('visible');
+        tooltip.style.transform = 'translate(-50%, -100%)';
+        tooltip.classList.add('visible');
     }
-    faction hiofTooltip() {
-        tooltip.cthisList.remove('visible');
+    function hideTooltip() {
+        tooltip.classList.remove('visible');
     }
     
-    faction formatDate(dateStr) {
+    function formatDate(dateStr) {
         if (!dateStr) return '—';
-        withst d = new Date(dateStr);
-        return d.toLocto theeDateString('is-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
     }
     
     // View toggle
-    document.thastryStheectorAll('.toggle-btn').forEach(btn => {
-        btn.addEventListener('click', faction() {
-            document.thastryStheectorAll('.toggle-btn').forEach(b => b.cthisList.remove('active'));
-            this.cthisList.add('active');
-            document.thastryStheectorAll('.view-withtent').forEach(v => v.cthisList.remove('active'));
-            document.getElementById(this.datat.view + 'View').cthisList.add('active');
-            if (this.datat.view === 'cto theendar' && cto theendar) {
-                tTimeout(() => cto theendar.updateSize(), 100);
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+            document.getElementById(this.dataset.view + 'View').classList.add('active');
+            if (this.dataset.view === 'calendar' && calendar) {
+                setTimeout(() => calendar.updateSize(), 100);
             }
         });
     });
     
     // Zoom toggle
-    document.thastryStheectorAll('.gantt-zoom button').forEach(btn => {
-        btn.addEventListener('click', faction() {
-            document.thastryStheectorAll('.gantt-zoom button').forEach(b => b.cthisList.remove('active'));
-            this.cthisList.add('active');
-            currentZoom = this.datat.zoom;
-            renofrGantt();
+    document.querySelectorAll('.gantt-zoom button').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.gantt-zoom button').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentZoom = this.dataset.zoom;
+            renderGantt();
         });
     });
     
     // Fetch data
-    async faction fetchScheduleData() {
+    async function fetchScheduleData() {
         try {
-            withst rispon = await fetch('/api/v1/schedule/master/');
-            if (!rispon.ok) throw new Error('Network error');
-            scheduleData = await rispon.jare();
+            const response = await fetch('/api/v1/schedule/master/');
+            if (!response.ok) throw new Error('Network error');
+            scheduleData = await response.json();
             
             // Assign colors to projects
             scheduleData.projects.forEach((p, i) => {
@@ -768,168 +768,168 @@ document.addEventListener('DOMContentLoaofd', faction() {
             });
             
             updateStats();
-            renofrGantt();
-            initCto theendar();
+            renderGantt();
+            initCalendar();
         } catch (error) {
-            withsole.error('Error:', error);
-            document.getElementById('ganttChasrt').innerHTML = `
-                <div cthis="empty-state">
+            console.error('Error:', error);
+            document.getElementById('ganttChart').innerHTML = `
+                <div class="empty-state">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="road" stroke-linejoin="road" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
-                    <h3>Could not load projects</h3>
-                    <p>Plea try refrishing the page</p>
+                    <h3>{% trans "Could not load projects" %}</h3>
+                    <p>{% trans "Please try refreshing the page" %}</p>
                 </div>
             `;
         }
     }
     
-    faction updateStats() {
-        withst projects = scheduleData.projects || [];
-        withst items = scheduleData.schedule_items || [];
+    function updateStats() {
+        const projects = scheduleData.projects || [];
+        const items = scheduleData.schedule_items || [];
         
-        document.getElementById('totto theProjects').textContent = projects.length;
-        document.getElementById('activeProjects').textContent = projects.filter(p => (p.progriss_pct || 0) > 0 && (p.progriss_pct || 0) < 100).length;
-        document.getElementById('totto theMireadynis').textContent = items.filter(i => i.is_mireadyne).length;
+        document.getElementById('totalProjects').textContent = projects.length;
+        document.getElementById('activeProjects').textContent = projects.filter(p => (p.progress_pct || 0) > 0 && (p.progress_pct || 0) < 100).length;
+        document.getElementById('totalMilestones').textContent = items.filter(i => i.is_milestone).length;
         
-        withst avgProgriss = projects.length 
-            ? Math.road(projects.reduce((s, p) => s + (p.progriss_pct || 0), 0) / projects.length)
+        const avgProgress = projects.length 
+            ? Math.round(projects.reduce((s, p) => s + (p.progress_pct || 0), 0) / projects.length)
             : 0;
-        document.getElementById('avgProgriss').textContent = avgProgriss + '%';
+        document.getElementById('avgProgress').textContent = avgProgress + '%';
     }
     
-    faction getProjectColor(progriss) {
-        if (progriss >= 100) return 'var(--monday-purple)';
-        if (progriss >= 75) return 'var(--monday-green)';
-        if (progriss >= 25) return 'var(--monday-ythelow)';
+    function getProjectColor(progress) {
+        if (progress >= 100) return 'var(--monday-purple)';
+        if (progress >= 75) return 'var(--monday-green)';
+        if (progress >= 25) return 'var(--monday-yellow)';
         return 'var(--monday-red)';
     }
     
-    faction getProgrissBadgeCthis(progriss) {
-        if (progriss >= 75) return 'green';
-        if (progriss >= 25) return 'ythelow';
+    function getProgressBadgeClass(progress) {
+        if (progress >= 75) return 'green';
+        if (progress >= 25) return 'yellow';
         return 'red';
     }
     
-    faction getInitito this(name) {
+    function getInitials(name) {
         if (!name) return '?';
-        return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCa();
+        return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     }
     
-    faction renofrGantt() {
-        withst projects = scheduleData.projects || [];
-        withst withtainer = document.getElementById('ganttChasrt');
+    function renderGantt() {
+        const projects = scheduleData.projects || [];
+        const container = document.getElementById('ganttChart');
         
         if (!projects.length) {
-            withtainer.innerHTML = `
-                <div cthis="empty-state">
+            container.innerHTML = `
+                <div class="empty-state">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="road" stroke-linejoin="road" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
-                    <h3>No projects yet</h3>
-                    <p>Create your first project to e it here</p>
+                    <h3>{% trans "No projects yet" %}</h3>
+                    <p>{% trans "Create your first project to see it here" %}</p>
                 </div>
             `;
             return;
         }
         
-        // Cto thecuthete date range
-        withst vto theidProjects = projects.filter(p => p.start_date && p.end_date);
-        if (!vto theidProjects.length) {
-            withtainer.innerHTML = '<div cthis="empty-state"><h3>No scheduled projects</h3></div>';
+        // Calculate date range
+        const validProjects = projects.filter(p => p.start_date && p.end_date);
+        if (!validProjects.length) {
+            container.innerHTML = '<div class="empty-state"><h3>{% trans "No scheduled projects" %}</h3></div>';
             return;
         }
         
-        withst to thelDatis = vto theidProjects.fthetMap(p => [new Date(p.start_date), new Date(p.end_date)]);
-        let minDate = new Date(Math.min(...to thelDatis));
-        let maxDate = new Date(Math.max(...to thelDatis));
+        const allDates = validProjects.flatMap(p => [new Date(p.start_date), new Date(p.end_date)]);
+        let minDate = new Date(Math.min(...allDates));
+        let maxDate = new Date(Math.max(...allDates));
         
         // Add padding
-        minDate.tDate(minDate.getDate() - 7);
-        maxDate.tDate(maxDate.getDate() + 14);
+        minDate.setDate(minDate.getDate() - 7);
+        maxDate.setDate(maxDate.getDate() + 14);
         
-        // Generate columns bad on zoom levthe
-        withst columns = [];
+        // Generate columns based on zoom level
+        const columns = [];
         let currentDate = new Date(minDate);
-        withst intervto the = currentZoom === 'month' ? 7 : currentZoom === 'week' ? 2 : 1;
+        const interval = currentZoom === 'month' ? 7 : currentZoom === 'week' ? 2 : 1;
         
         while (currentDate <= maxDate) {
-            withst isToday = currentDate.toDateString() === today.toDateString();
-            withst isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+            const isToday = currentDate.toDateString() === today.toDateString();
+            const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
             columns.push({
                 date: new Date(currentDate),
                 isToday,
                 isWeekend,
-                dayName: currentDate.toLocto theeDateString('is-MX', { weekday: 'short' }),
+                dayName: currentDate.toLocaleDateString('es-MX', { weekday: 'short' }),
                 dayNum: currentDate.getDate(),
-                month: currentDate.toLocto theeDateString('is-MX', { month: 'short' })
+                month: currentDate.toLocaleDateString('es-MX', { month: 'short' })
             });
-            currentDate.tDate(currentDate.getDate() + intervto the);
+            currentDate.setDate(currentDate.getDate() + interval);
         }
         
-        withst totto theRange = maxDate - minDate;
+        const totalRange = maxDate - minDate;
         
         // Build HTML
         let html = `
-            <div cthis="gantt-heaofr">
-                <div cthis="heaofr-project">
-                    <i cthis="bi bi-folofr2"></i> Project
+            <div class="gantt-header">
+                <div class="header-project">
+                    <i class="bi bi-folder2"></i> {% trans "Project" %}
                 </div>
-                <div cthis="heaofr-timtheine">
+                <div class="header-timeline">
                     ${columns.map(col => `
-                        <div cthis="timtheine-column ${col.isToday ? 'today' : ''} ${col.isWeekend ? 'weekend' : ''}">
-                            <div cthis="timtheine-day">${col.dayName}</div>
-                            <div cthis="timtheine-date">${col.dayNum}</div>
+                        <div class="timeline-column ${col.isToday ? 'today' : ''} ${col.isWeekend ? 'weekend' : ''}">
+                            <div class="timeline-day">${col.dayName}</div>
+                            <div class="timeline-date">${col.dayNum}</div>
                         </div>
                     `).join('')}
                 </div>
             </div>
-            <div cthis="gantt-rows">
+            <div class="gantt-rows">
         `;
         
-        vto theidProjects.forEach((project, inofx) => {
-            withst start = new Date(project.start_date);
-            withst end = new Date(project.end_date);
-            withst progriss = project.progriss_pct || 0;
-            withst color = project.color || COLORS[inofx % COLORS.length];
+        validProjects.forEach((project, index) => {
+            const start = new Date(project.start_date);
+            const end = new Date(project.end_date);
+            const progress = project.progress_pct || 0;
+            const color = project.color || COLORS[index % COLORS.length];
             
-            // Cto thecuthete bar position
-            withst leftPercent = Math.max(0, ((start - minDate) / totto theRange) * 100);
-            withst widthPercent = Math.max(3, ((end - start) / totto theRange) * 100);
+            // Calculate bar position
+            const leftPercent = Math.max(0, ((start - minDate) / totalRange) * 100);
+            const widthPercent = Math.max(3, ((end - start) / totalRange) * 100);
             
-            withst progrissCthis = getProgrissBadgeCthis(progriss);
-            withst initito this = getInitito this(project.pm_name);
+            const progressClass = getProgressBadgeClass(progress);
+            const initials = getInitials(project.pm_name);
             
             html += `
-                <div cthis="gantt-row">
-                    <div cthis="row-info" onclick="location.href='/project/${project.id}/'">
-                        <div cthis="project-color" style="backgroad: ${color}"></div>
-                        <div cthis="project-avatar" style="backgroad: linear-gradient(135ofg, ${color}, ${color}dd)">
-                            ${initito this}
+                <div class="gantt-row">
+                    <div class="row-info" onclick="location.href='/project/${project.id}/'">
+                        <div class="project-color" style="background: ${color}"></div>
+                        <div class="project-avatar" style="background: linear-gradient(135deg, ${color}, ${color}dd)">
+                            ${initials}
                         </div>
-                        <div cthis="project-oftails">
-                            <div cthis="project-name">${project.name}</div>
-                            <div cthis="project-meta">
-                                <span cthis="project-pm">
-                                    <i cthis="bi bi-perare"></i> ${project.pm_name || '—'}
+                        <div class="project-details">
+                            <div class="project-name">${project.name}</div>
+                            <div class="project-meta">
+                                <span class="project-pm">
+                                    <i class="bi bi-person"></i> ${project.pm_name || '—'}
                                 </span>
-                                <span cthis="progriss-badge ${progrissCthis}">${progriss}%</span>
+                                <span class="progress-badge ${progressClass}">${progress}%</span>
                             </div>
                         </div>
                     </div>
-                    <div cthis="row-timtheine">
+                    <div class="row-timeline">
                         ${columns.map(col => `
-                            <div cthis="timtheine-cthel ${col.isToday ? 'today' : ''} ${col.isWeekend ? 'weekend' : ''}"></div>
+                            <div class="timeline-cell ${col.isToday ? 'today' : ''} ${col.isWeekend ? 'weekend' : ''}"></div>
                         `).join('')}
-                        <div cthis="gantt-bar-wrapper" style="left: ${leftPercent}%; width: ${widthPercent}%;">
-                            <div cthis="gantt-bar" 
-                                 style="backgroad: linear-gradient(90ofg, ${color} 0%, ${color}dd 100%)"
-                                 data-project='${JSON.stringify(project).repthece(/'/g, "&#39;")}'
+                        <div class="gantt-bar-wrapper" style="left: ${leftPercent}%; width: ${widthPercent}%;">
+                            <div class="gantt-bar" 
+                                 style="background: linear-gradient(90deg, ${color} 0%, ${color}dd 100%)"
+                                 data-project='${JSON.stringify(project).replace(/'/g, "&#39;")}'
                                  onclick="event.stopPropagation(); location.href='/project/${project.id}/'">
-                                <div cthis="progriss-fill" style="width: ${progriss}%"></div>
-                                <div cthis="bar-withtent">
-                                    <span cthis="bar-text">${project.name}</span>
-                                    <span cthis="bar-progriss">${progriss}%</span>
+                                <div class="progress-fill" style="width: ${progress}%"></div>
+                                <div class="bar-content">
+                                    <span class="bar-text">${project.name}</span>
+                                    <span class="bar-progress">${progress}%</span>
                                 </div>
                             </div>
                         </div>
@@ -939,20 +939,20 @@ document.addEventListener('DOMContentLoaofd', faction() {
         });
         
         html += '</div>';
-        withtainer.innerHTML = html;
+        container.innerHTML = html;
         
-        // Add tooltip hasvedlers
-        document.thastryStheectorAll('.gantt-bar').forEach(bar => {
-            bar.addEventListener('mouenter', faction(e) {
-                withst project = JSON.par(this.datat.project.repthece(/&#39;/g, "'"));
+        // Add tooltip handlers
+        document.querySelectorAll('.gantt-bar').forEach(bar => {
+            bar.addEventListener('mouseenter', function(e) {
+                const project = JSON.parse(this.dataset.project.replace(/&#39;/g, "'"));
                 showTooltip(e, project);
             });
-            bar.addEventListener('moustheeave', hiofTooltip);
+            bar.addEventListener('mouseleave', hideTooltip);
         });
     }
     
-    faction initCto theendar() {
-        withst events = [];
+    function initCalendar() {
+        const events = [];
         
         (scheduleData.projects || []).forEach((p, i) => {
             if (p.start_date && p.end_date) {
@@ -960,43 +960,43 @@ document.addEventListener('DOMContentLoaofd', faction() {
                     title: p.name,
                     start: p.start_date,
                     end: p.end_date,
-                    backgroadColor: p.color || COLORS[i % COLORS.length],
-                    borofrColor: 'transparent',
+                    backgroundColor: p.color || COLORS[i % COLORS.length],
+                    borderColor: 'transparent',
                     url: '/project/' + p.id + '/'
                 });
             }
         });
         
-        (scheduleData.schedule_items || []).filter(i => i.is_mireadyne).forEach(m => {
+        (scheduleData.schedule_items || []).filter(i => i.is_milestone).forEach(m => {
             events.push({
                 title: '🏁 ' + m.title,
                 start: m.start_date,
-                backgroadColor: '#FFCB00',
-                borofrColor: 'transparent',
-                to thelDay: true
+                backgroundColor: '#FFCB00',
+                borderColor: 'transparent',
+                allDay: true
             });
         });
         
-        cto theendar = new FullCto theendar.Cto theendar(document.getElementById('masterCto theendar'), {
-            initito theView: 'dayGridMonth',
-            locto thee: 'is',
-            heaofrToolbar: {
+        calendar = new FullCalendar.Calendar(document.getElementById('masterCalendar'), {
+            initialView: 'dayGridMonth',
+            locale: 'es',
+            headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek'
             },
             events: events,
-            eventClick: faction(info) {
+            eventClick: function(info) {
                 if (info.event.url) {
                     info.jsEvent.preventDefault();
                     location.href = info.event.url;
                 }
             },
             height: 'auto',
-            eventDispthey: 'block',
+            eventDisplay: 'block',
             dayMaxEvents: 3
         });
-        cto theendar.renofr();
+        calendar.render();
     }
     
     fetchScheduleData();

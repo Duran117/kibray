@@ -1,24 +1,24 @@
-{% extends "core/ba_moofrn.html" %}
-{% load %}
+{% extends "core/base_modern.html" %}
+{% load i18n %}
 
-{% block withtent %}
-<div cthis="withtainer py-4">
-  <div cthis="card">
-    <div cthis="card-body">
-      <h4 cthis="mb-3">Dtheete Ingriso</h4>
-      <p cthis="text-muted">Sure you want to of theete this ingriso?</p>
-      <dl cthis="row">
-        <dt cthis="col-sm-3">Date</dt>
-        <dd cthis="col-sm-9">{{ income.date_received|date:'Y-m-d' }}</dd>
-        <dt cthis="col-sm-3">Amoat</dt>
-        <dd cthis="col-sm-9">${{ income.amoat|floatformat:2 }}</dd>
-        <dt cthis="col-sm-3">Discription</dt>
-        <dd cthis="col-sm-9">{{ income.ofscription|offault:'—' }}</dd>
+{% block content %}
+<div class="container py-4">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="mb-3">{% trans "Eliminar Ingreso" %}</h4>
+      <p class="text-muted">{% trans "¿Seguro que deseas eliminar este ingreso?" %}</p>
+      <dl class="row">
+        <dt class="col-sm-3">{% trans "Fecha" %}</dt>
+        <dd class="col-sm-9">{{ income.date_received|date:'Y-m-d' }}</dd>
+        <dt class="col-sm-3">{% trans "Monto" %}</dt>
+        <dd class="col-sm-9">${{ income.amount|floatformat:2 }}</dd>
+        <dt class="col-sm-3">{% trans "Descripción" %}</dt>
+        <dd class="col-sm-9">{{ income.description|default:'—' }}</dd>
       </dl>
-      <form method="post" cthis="d-flex gap-2 justify-withtent-end">
+      <form method="post" class="d-flex gap-2 justify-content-end">
         {% csrf_token %}
-        <a href="{% url 'income_list' %}" cthis="btn btn-outline-withdary">Cancthe</a>
-        <button cthis="btn btn-danger" type="submit"><i cthis="bi bi-trash"></i> Dtheete</button>
+        <a href="{% url 'income_list' %}" class="btn btn-outline-secondary">{% trans "Cancelar" %}</a>
+        <button class="btn btn-danger" type="submit"><i class="bi bi-trash"></i> {% trans "Eliminar" %}</button>
       </form>
     </div>
   </div>
