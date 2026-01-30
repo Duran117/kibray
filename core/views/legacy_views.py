@@ -3508,33 +3508,8 @@ def damage_report_update_status(request, report_id):
     return JsonResponse({"error": gettext("Método no permitido")}, status=405)
 
 
-@login_required
-def design_chat(request, project_id):
-    """Chat colaborativo de diseño (simple poll)."""
-    from core.models import DesignChatMessage
-
-    project = get_object_or_404(Project, id=project_id)
-    if request.method == "POST":
-        msg = request.POST.get("message", "").strip()
-        image = request.FILES.get("image")
-        if msg or image:
-            DesignChatMessage.objects.create(
-                project=project, user=request.user, message=msg, image=image
-            )
-            return redirect("design_chat", project_id=project.id)
-    messages_qs = project.design_messages.select_related("user")[:200]
-    return render(
-        request,
-        "core/design_chat.html",
-        {
-            "project": project,
-            "messages": messages_qs,
-        },
-    )
-
-
 # =============================
-# Project Chat (group + direct)
+# Project Chat (Premium)
 # =============================
 
 
@@ -3568,58 +3543,11 @@ def _ensure_default_channels(project, user):
 
 
 @login_required
-def project_chat_index(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    group, direct = _ensure_default_channels(project, request.user)
-    return redirect("project_chat_room", project_id=project.id, channel_id=group.id)
-
-
-@login_required
-def project_chat_room(request, project_id, channel_id):
-    project = get_object_or_404(Project, id=project_id)
-    channel = get_object_or_404(ChatChannel, id=channel_id, project=project)
-    # Access control
-    if not (request.user.is_staff or channel.participants.filter(id=request.user.id).exists()):
-        messages.error(request, "No tienes acceso a este chat.")
-        return redirect("dashboard")
-
-    if request.method == "POST":
-        action = request.POST.get("action")
-        if action == "invite":
-            username = (request.POST.get("username") or "").strip()
-            from django.contrib.auth.models import User as DjangoUser
-
-            try:
-                u = DjangoUser.objects.get(username=username)
-                channel.participants.add(u)
-                messages.success(request, _("%(username)s invitado.") % {"username": username})
-                return redirect("project_chat_room", project_id=project.id, channel_id=channel.id)
-            except DjangoUser.DoesNotExist:
-                messages.error(request, "Usuario no encontrado.")
-        elif action == "send":
-            text = (request.POST.get("message") or "").strip()
-            link_url = (request.POST.get("link_url") or "").strip()
-            image = request.FILES.get("image")
-            if not text and not image and not link_url:
-                messages.error(request, "Mensaje vacío.")
-            else:
-                ChatMessage.objects.create(
-                    channel=channel, user=request.user, message=text, link_url=link_url, image=image
-                )
-                return redirect("project_chat_room", project_id=project.id, channel_id=channel.id)
-
-    messages_list = channel.messages.select_related("user")[:200]
-    channels = project.chat_channels.all().order_by("name")
-    return render(
-        request,
-        "core/project_chat_room.html",
-        {
-            "project": project,
-            "channel": channel,
-            "channels": channels,
-            "messages": messages_list,
-        },
-    )
+def chat_redirect_to_premium(request, project_id, channel_id=None):
+    """Redirect legacy chat URLs to premium chat."""
+    if channel_id:
+        return redirect("project_chat_premium_channel", project_id=project_id, channel_id=channel_id)
+    return redirect("project_chat_premium", project_id=project_id)
 
 
 @login_required

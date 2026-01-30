@@ -330,22 +330,17 @@ urlpatterns = [
         views.damage_report_update_status,
         name="damage_report_update_status",
     ),
-    # Design chat (legacy simple); new channel-based chat below
-    path("projects/<int:project_id>/design-chat/", views.design_chat, name="design_chat"),
-    # Channel-based project chat (legacy)
-    path("projects/<int:project_id>/chat/", views.project_chat_index, name="project_chat_index"),
-    path(
-        "projects/<int:project_id>/chat/<int:channel_id>/",
-        views.project_chat_room,
-        name="project_chat_room",
-    ),
-    # Premium Chat (new)
+    # Premium Chat - Main URLs
     path("projects/<int:project_id>/messages/", views.project_chat_premium, name="project_chat_premium"),
     path(
         "projects/<int:project_id>/messages/<int:channel_id>/",
         views.project_chat_premium,
         name="project_chat_premium_channel",
     ),
+    # Legacy chat URLs - Redirect to premium chat
+    path("projects/<int:project_id>/design-chat/", views.chat_redirect_to_premium, name="design_chat"),
+    path("projects/<int:project_id>/chat/", views.chat_redirect_to_premium, name="project_chat_index"),
+    path("projects/<int:project_id>/chat/<int:channel_id>/", views.chat_redirect_to_premium, name="project_chat_room"),
     # PDF resumen de proyecto
     path("project/<int:project_id>/pdf/", views.project_pdf_view, name="project_pdf"),
     # Crear entidades simples
