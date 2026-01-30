@@ -761,9 +761,9 @@ document.addEventListener('DOMContentLoaded', function() {
         plan: planId,
         x: x,
         y: y,
-        pin_type: 'note',  // Use 'note' to avoid auto-task creation
+        pin_type: 'task',  // Use 'task' type for task locations
         title: task.title,
-        description: 'Task location: ' + task.title,
+        description: description || 'Task location',
         linked_task: task.id,
         pin_color: '#3b82f6'
       };
@@ -809,7 +809,7 @@ document.addEventListener('DOMContentLoaded', function() {
       plan: planId,
       x: x,
       y: y,
-      pin_type: 'note',  // Use 'note' to avoid auto-task creation
+      pin_type: 'task',  // Use 'task' type for task locations
       title: linkingTaskTitle,
       description: 'Task location',
       linked_task: parseInt(taskId),

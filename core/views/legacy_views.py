@@ -2886,15 +2886,18 @@ def floor_plan_detail(request, plan_id):
 
 @login_required
 def floor_plan_touchup_view(request, plan_id):
-    """Display floor plan with ONLY touch-up pins (filtered view)"""
+    """Display floor plan with touch-up and task pins (work items view)"""
     import json
 
     from core.models import FloorPlan
 
     plan = get_object_or_404(FloorPlan, id=plan_id)
 
-    # Filter to show ONLY touchup pins
-    pins = plan.pins.filter(pin_type="touchup").select_related("color_sample", "linked_task").all()
+    # Filter pins that are work items: touchup OR have a linked_task
+    from django.db.models import Q
+    all_work_pins = plan.pins.filter(
+        Q(pin_type="touchup") | Q(linked_task__isnull=False)
+    ).select_related("color_sample", "linked_task", "created_by").distinct()
 
     color_samples = plan.project.color_samples.filter(status__in=["approved", "review"]).order_by(
         "-created_at"
@@ -2912,9 +2915,9 @@ def floor_plan_touchup_view(request, plan_id):
         profile and profile.role in ["project_manager", "admin", "superuser", "owner"]
     )
 
-    # Serialize pins data for JavaScript (only touchup pins)
+    # Serialize pins data for JavaScript
     pins_data = []
-    for pin in pins:
+    for pin in all_work_pins:
         pins_data.append(
             {
                 "id": pin.id,
@@ -2948,15 +2951,15 @@ def floor_plan_touchup_view(request, plan_id):
     ).order_by("-created_at")[:50]
 
     # Separate touchup pins and task pins for the template
-    touchup_pins = [p for p in pins if p.pin_type == "touchup"]
-    task_pins = plan.pins.filter(pin_type="task").select_related("color_sample", "linked_task").all()
+    touchup_pins = [p for p in all_work_pins if p.pin_type == "touchup"]
+    task_pins = [p for p in all_work_pins if p.pin_type != "touchup" and p.linked_task]
 
     return render(
         request,
         "core/floor_plan_touchup_view.html",
         {
             "plan": plan,
-            "pins": pins,
+            "pins": all_work_pins,
             "pins_json": pins_json,
             "touchup_pins": touchup_pins,
             "task_pins": task_pins,

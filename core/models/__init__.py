@@ -4751,6 +4751,7 @@ class PlanPin(models.Model):
     PIN_TYPES = [
         ("note", "Note"),
         ("touchup", "Touch-up"),
+        ("task", "Task"),
         ("color", "Color"),
         ("alert", "Alert"),
         ("damage", "Damage"),
