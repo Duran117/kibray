@@ -1,8 +1,7 @@
 {% extends "core/base_modern.html" %}
-{% load i18n %}
 {% load static %}
 
-{% block title %}{% trans "Chat" %} - {{ project.name }}{% endblock %}
+{% block title %}Chat - {{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -644,9 +643,9 @@
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
             <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
-            <li class="breadcrumb-item active">{% trans "Chat" %}</li>
+            <li class="breadcrumb-item active">Chat</li>
         </ol>
     </nav>
     
@@ -659,11 +658,11 @@
         <aside class="chat-sidebar" id="chatSidebar">
             <div class="chat-sidebar-header">
                 <h2><i class="bi bi-chat-dots me-2"></i>{{ project.name|truncatechars:20 }}</h2>
-                <p>{% trans "Project Chat" %}</p>
+                <p>Project Chat</p>
             </div>
             
             <div class="channels-list">
-                <div class="channel-section-title">{% trans "Channels" %}</div>
+                <div class="channel-section-title">Channels</div>
                 
                 {% for ch in channels %}
                 <a href="{% url 'project_chat_premium_channel' project.id ch.id %}" 
@@ -674,7 +673,7 @@
                     </div>
                     <div class="channel-info">
                         <div class="channel-name">{{ ch.name }}</div>
-                        <div class="channel-preview">{{ ch.participants.count }} {% trans "members" %}</div>
+                        <div class="channel-preview">{{ ch.participants.count }} members</div>
                     </div>
                     {% if ch.unread_count %}
                     <span class="channel-badge">{{ ch.unread_count }}</span>
@@ -689,7 +688,7 @@
                         <i class="bi bi-plus-lg"></i>
                     </div>
                     <div class="channel-info">
-                        <div class="channel-name">{% trans "New Channel" %}</div>
+                        <div class="channel-name">New Channel</div>
                     </div>
                 </button>
             </div>
@@ -710,22 +709,22 @@
                     <div>
                         <h3>{{ channel.name }}</h3>
                         <span class="chat-header-subtitle">
-                            {{ channel.participants.count }} {% trans "members" %}
+                            {{ channel.participants.count }} members
                             <span class="connection-status connected ms-2" id="connectionStatus">
                                 <span class="status-dot"></span>
-                                <span>{% trans "Connected" %}</span>
+                                <span>Connected</span>
                             </span>
                         </span>
                     </div>
                 </div>
                 <div class="chat-header-actions">
-                    <button class="chat-header-btn" onclick="showInviteModal()" title="{% trans 'Invite' %}">
+                    <button class="chat-header-btn" onclick="showInviteModal()" title="Invite">
                         <i class="bi bi-person-plus"></i>
                     </button>
-                    <button class="chat-header-btn" onclick="toggleSearch()" title="{% trans 'Search' %}">
+                    <button class="chat-header-btn" onclick="toggleSearch()" title="Search">
                         <i class="bi bi-search"></i>
                     </button>
-                    <button class="chat-header-btn" onclick="showSettingsModal()" title="{% trans 'Settings' %}">
+                    <button class="chat-header-btn" onclick="showSettingsModal()" title="Settings">
                         <i class="bi bi-gear"></i>
                     </button>
                 </div>
@@ -765,7 +764,7 @@
                             {% endif %}
                             {% if m.user.id == request.user.id and m.read_by.count > 0 %}
                             <div class="message-read-status">
-                                <i class="bi bi-check2-all"></i> {% trans "Read by" %} {{ m.read_by.count }}
+                                <i class="bi bi-check2-all"></i> Read by {{ m.read_by.count }}
                             </div>
                             {% endif %}
                         </div>
@@ -775,8 +774,8 @@
                 {% else %}
                 <div class="chat-empty">
                     <i class="bi bi-chat-square-text"></i>
-                    <h4>{% trans "No messages yet" %}</h4>
-                    <p>{% trans "Start the conversation by sending a message" %}</p>
+                    <h4>No messages yet</h4>
+                    <p>Start the conversation by sending a message</p>
                 </div>
                 {% endif %}
             </div>
@@ -786,7 +785,7 @@
                 <div class="typing-dots">
                     <span></span><span></span><span></span>
                 </div>
-                <span id="typingText">{% trans "Someone is typing..." %}</span>
+                <span id="typingText">Someone is typing...</span>
             </div>
             
             <!-- Input Area -->
@@ -798,16 +797,16 @@
                         <textarea name="message" 
                                   id="messageInput" 
                                   class="chat-input" 
-                                  placeholder="{% trans 'Type a message...' %}"
+                                  placeholder="Type a message..."
                                   rows="1"></textarea>
                         <div class="chat-input-actions">
                             <input type="file" name="image" id="imageInput" accept="image/*" style="display: none;">
                             <input type="url" name="link_url" id="linkInput" style="display: none;">
                             
-                            <button type="button" class="chat-input-btn" onclick="document.getElementById('imageInput').click()" title="{% trans 'Attach image' %}">
+                            <button type="button" class="chat-input-btn" onclick="document.getElementById('imageInput').click()" title="Attach image">
                                 <i class="bi bi-image"></i>
                             </button>
-                            <button type="button" class="chat-input-btn" id="voiceBtn" title="{% trans 'Voice input' %}">
+                            <button type="button" class="chat-input-btn" id="voiceBtn" title="Voice input">
                                 <i class="bi bi-mic"></i>
                             </button>
                             <button type="submit" class="chat-input-btn send" id="sendBtn" disabled>
@@ -823,14 +822,14 @@
     <!-- Invite Modal -->
     <div class="invite-modal" id="inviteModal">
         <div class="invite-modal-content">
-            <h4><i class="bi bi-person-plus me-2"></i>{% trans "Invite to Channel" %}</h4>
+            <h4><i class="bi bi-person-plus me-2"></i>Invite to Channel</h4>
             <form method="post" id="inviteForm">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="invite">
-                <input type="text" name="username" placeholder="{% trans 'Enter username' %}" required>
+                <input type="text" name="username" placeholder="Enter username" required>
                 <div class="invite-modal-actions">
-                    <button type="button" class="btn btn-outline-secondary" onclick="hideInviteModal()">{% trans "Cancel" %}</button>
-                    <button type="submit" class="btn btn-primary">{% trans "Invite" %}</button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="hideInviteModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Invite</button>
                 </div>
             </form>
         </div>
@@ -839,18 +838,18 @@
     <!-- Create Channel Modal -->
     <div class="invite-modal" id="createChannelModal">
         <div class="invite-modal-content">
-            <h4><i class="bi bi-plus-circle me-2"></i>{% trans "Create New Channel" %}</h4>
+            <h4><i class="bi bi-plus-circle me-2"></i>Create New Channel</h4>
             <form method="post" id="createChannelForm">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="create_channel">
-                <input type="text" name="channel_name" placeholder="{% trans 'Channel name' %}" required>
+                <input type="text" name="channel_name" placeholder="Channel name" required>
                 <select name="channel_type" class="form-select mb-3" style="width: 100%; padding: 12px 16px; border: 2px solid var(--chat-border); border-radius: 10px; font-size: 0.95rem;">
-                    <option value="group">{% trans "Group Channel" %}</option>
-                    <option value="direct">{% trans "Direct Messages" %}</option>
+                    <option value="group">Group Channel</option>
+                    <option value="direct">Direct Messages</option>
                 </select>
                 <div class="invite-modal-actions">
-                    <button type="button" class="btn btn-outline-secondary" onclick="hideCreateChannelModal()">{% trans "Cancel" %}</button>
-                    <button type="submit" class="btn btn-primary">{% trans "Create" %}</button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="hideCreateChannelModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
                 </div>
             </form>
         </div>
@@ -859,27 +858,27 @@
     <!-- Settings Modal -->
     <div class="invite-modal" id="settingsModal">
         <div class="invite-modal-content">
-            <h4><i class="bi bi-gear me-2"></i>{% trans "Channel Settings" %}</h4>
+            <h4><i class="bi bi-gear me-2"></i>Channel Settings</h4>
             <div class="mb-3">
-                <p class="mb-2"><strong>{% trans "Channel" %}:</strong> {{ channel.name }}</p>
-                <p class="mb-2"><strong>{% trans "Type" %}:</strong> {{ channel.channel_type }}</p>
-                <p class="mb-2"><strong>{% trans "Members" %}:</strong> {{ channel.participants.count }}</p>
-                <p class="mb-0"><strong>{% trans "Default" %}:</strong> {% if channel.is_default %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</p>
+                <p class="mb-2"><strong>Channel:</strong> {{ channel.name }}</p>
+                <p class="mb-2"><strong>Type:</strong> {{ channel.channel_type }}</p>
+                <p class="mb-2"><strong>Members:</strong> {{ channel.participants.count }}</p>
+                <p class="mb-0"><strong>Default:</strong> {% if channel.is_default %}Yes{% else %}No{% endif %}</p>
             </div>
             {% if not channel.is_default %}
-            <form method="post" id="deleteChannelForm" onsubmit="return confirm('{% trans 'Are you sure you want to delete this channel? All messages will be lost.' %}')">
+            <form method="post" id="deleteChannelForm" onsubmit="return confirm('Are you sure you want to delete this channel? All messages will be lost.')">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete_channel">
                 <div class="invite-modal-actions">
-                    <button type="button" class="btn btn-outline-secondary" onclick="hideSettingsModal()">{% trans "Close" %}</button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="hideSettingsModal()">Close</button>
                     <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash me-1"></i>{% trans "Delete Channel" %}
+                        <i class="bi bi-trash me-1"></i>Delete Channel
                     </button>
                 </div>
             </form>
             {% else %}
             <div class="invite-modal-actions">
-                <button type="button" class="btn btn-outline-secondary" onclick="hideSettingsModal()">{% trans "Close" %}</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="hideSettingsModal()">Close</button>
             </div>
             {% endif %}
         </div>
@@ -983,9 +982,9 @@
         statusEl.className = 'connection-status ' + status;
         
         const statusText = {
-            'connected': '{% trans "Connected" %}',
-            'disconnected': '{% trans "Disconnected" %}',
-            'connecting': '{% trans "Connecting..." %}',
+            'connected': 'Connected',
+            'disconnected': 'Disconnected',
+            'connecting': 'Connecting...',
         };
         
         statusEl.innerHTML = `
@@ -1010,10 +1009,10 @@
                 updateReadReceipt(data);
                 break;
             case 'user_joined':
-                showSystemMessage(`${data.username} {% trans "joined the chat" %}`);
+                showSystemMessage(`${data.username} joined the chat`);
                 break;
             case 'user_left':
-                showSystemMessage(`${data.username} {% trans "left the chat" %}`);
+                showSystemMessage(`${data.username} left the chat`);
                 break;
             case 'error':
                 showError(data.message);
@@ -1055,7 +1054,7 @@
     
     function showTypingIndicator(data) {
         if (data.user_id !== CONFIG.userId && data.is_typing) {
-            elements.typingText.textContent = `${data.username} {% trans "is typing..." %}`;
+            elements.typingText.textContent = `${data.username} is typing...`;
             elements.typingIndicator.classList.add('visible');
         } else {
             hideTypingIndicator();
@@ -1074,7 +1073,7 @@
                 const bubble = messageEl.querySelector('.message-bubble');
                 bubble.insertAdjacentHTML('afterend', `
                     <div class="message-read-status">
-                        <i class="bi bi-check2-all"></i> {% trans "Read" %}
+                        <i class="bi bi-check2-all"></i> Read
                     </div>
                 `);
             }
@@ -1234,7 +1233,7 @@
         });
     } else {
         elements.voiceBtn.disabled = true;
-        elements.voiceBtn.title = '{% trans "Voice input not supported" %}';
+        elements.voiceBtn.title = 'Voice input not supported';
     }
     
     // ═══════════════════════════════════════════════════════════════
@@ -1270,7 +1269,7 @@
     
     window.toggleSearch = function() {
         // Simple search implementation
-        const searchTerm = prompt('{% trans "Search messages:" %}');
+        const searchTerm = prompt('Search messages:');
         if (searchTerm && searchTerm.trim()) {
             const messages = document.querySelectorAll('.message-bubble');
             let found = false;
@@ -1285,7 +1284,7 @@
                 }
             });
             if (!found) {
-                alert('{% trans "No messages found" %}');
+                alert('No messages found');
             }
         }
     };
