@@ -725,7 +725,7 @@
                     <button class="chat-header-btn" onclick="toggleSearch()" title="{% trans 'Search' %}">
                         <i class="bi bi-search"></i>
                     </button>
-                    <button class="chat-header-btn" title="{% trans 'Settings' %}">
+                    <button class="chat-header-btn" onclick="showSettingsModal()" title="{% trans 'Settings' %}">
                         <i class="bi bi-gear"></i>
                     </button>
                 </div>
@@ -833,6 +833,55 @@
                     <button type="submit" class="btn btn-primary">{% trans "Invite" %}</button>
                 </div>
             </form>
+        </div>
+    </div>
+    
+    <!-- Create Channel Modal -->
+    <div class="invite-modal" id="createChannelModal">
+        <div class="invite-modal-content">
+            <h4><i class="bi bi-plus-circle me-2"></i>{% trans "Create New Channel" %}</h4>
+            <form method="post" id="createChannelForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_channel">
+                <input type="text" name="channel_name" placeholder="{% trans 'Channel name' %}" required>
+                <select name="channel_type" class="form-select mb-3" style="width: 100%; padding: 12px 16px; border: 2px solid var(--chat-border); border-radius: 10px; font-size: 0.95rem;">
+                    <option value="group">{% trans "Group Channel" %}</option>
+                    <option value="direct">{% trans "Direct Messages" %}</option>
+                </select>
+                <div class="invite-modal-actions">
+                    <button type="button" class="btn btn-outline-secondary" onclick="hideCreateChannelModal()">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Create" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div class="invite-modal" id="settingsModal">
+        <div class="invite-modal-content">
+            <h4><i class="bi bi-gear me-2"></i>{% trans "Channel Settings" %}</h4>
+            <div class="mb-3">
+                <p class="mb-2"><strong>{% trans "Channel" %}:</strong> {{ channel.name }}</p>
+                <p class="mb-2"><strong>{% trans "Type" %}:</strong> {{ channel.channel_type }}</p>
+                <p class="mb-2"><strong>{% trans "Members" %}:</strong> {{ channel.participants.count }}</p>
+                <p class="mb-0"><strong>{% trans "Default" %}:</strong> {% if channel.is_default %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</p>
+            </div>
+            {% if not channel.is_default %}
+            <form method="post" id="deleteChannelForm" onsubmit="return confirm('{% trans 'Are you sure you want to delete this channel? All messages will be lost.' %}')">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_channel">
+                <div class="invite-modal-actions">
+                    <button type="button" class="btn btn-outline-secondary" onclick="hideSettingsModal()">{% trans "Close" %}</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>{% trans "Delete Channel" %}
+                    </button>
+                </div>
+            </form>
+            {% else %}
+            <div class="invite-modal-actions">
+                <button type="button" class="btn btn-outline-secondary" onclick="hideSettingsModal()">{% trans "Close" %}</button>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -1204,19 +1253,59 @@
     };
     
     window.showCreateChannelModal = function() {
-        // TODO: Implement create channel modal
-        alert('{% trans "Create channel feature coming soon" %}');
+        document.getElementById('createChannelModal').classList.add('visible');
+    };
+    
+    window.hideCreateChannelModal = function() {
+        document.getElementById('createChannelModal').classList.remove('visible');
+    };
+    
+    window.showSettingsModal = function() {
+        document.getElementById('settingsModal').classList.add('visible');
+    };
+    
+    window.hideSettingsModal = function() {
+        document.getElementById('settingsModal').classList.remove('visible');
     };
     
     window.toggleSearch = function() {
-        // TODO: Implement search
-        alert('{% trans "Search feature coming soon" %}');
+        // Simple search implementation
+        const searchTerm = prompt('{% trans "Search messages:" %}');
+        if (searchTerm && searchTerm.trim()) {
+            const messages = document.querySelectorAll('.message-bubble');
+            let found = false;
+            messages.forEach(msg => {
+                msg.style.background = '';
+                if (msg.textContent.toLowerCase().includes(searchTerm.toLowerCase())) {
+                    msg.style.background = '#fef3c7';
+                    if (!found) {
+                        msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        found = true;
+                    }
+                }
+            });
+            if (!found) {
+                alert('{% trans "No messages found" %}');
+            }
+        }
     };
     
     // Close modal on outside click
     elements.inviteModal.addEventListener('click', function(e) {
         if (e.target === this) {
             hideInviteModal();
+        }
+    });
+    
+    document.getElementById('createChannelModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideCreateChannelModal();
+        }
+    });
+    
+    document.getElementById('settingsModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideSettingsModal();
         }
     });
     

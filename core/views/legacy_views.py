@@ -3655,7 +3655,22 @@ def project_chat_premium(request, project_id, channel_id=None):
     if request.method == "POST":
         action = request.POST.get("action")
         
-        if action == "create_channel":
+        if action == "send":
+            # Send message via HTTP (fallback when WebSocket not available)
+            text = (request.POST.get("message") or "").strip()
+            link_url = (request.POST.get("link_url") or "").strip() or ""
+            image = request.FILES.get("image")
+            if text or image or link_url:
+                ChatMessage.objects.create(
+                    channel=channel,
+                    user=request.user,
+                    message=text,
+                    link_url=link_url,
+                    image=image if image else None
+                )
+            return redirect("project_chat_premium_channel", project_id=project.id, channel_id=channel.id)
+        
+        elif action == "create_channel":
             channel_name = (request.POST.get("channel_name") or "").strip()
             channel_type = request.POST.get("channel_type", "group")
             if channel_name:
