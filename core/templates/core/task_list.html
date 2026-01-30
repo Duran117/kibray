@@ -3,12 +3,12 @@
 {% block content %}
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0"><i class="bi bi-list-task"></i> {% trans 'Tareas del Proyecto' %} – {{ project.name }}</h2>
+    <h2 class="mb-0"><i class="bi bi-list-task"></i> {% trans 'Project Tasks' %} – {{ project.name }}</h2>
     <div class="d-flex gap-2">
       {% if can_create %}
-      <a href="#crear" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle"></i> {% trans 'Nueva Tarea' %}</a>
+      <a href="#crear" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle"></i> {% trans 'New Task' %}</a>
       {% endif %}
-      <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> {% trans 'Volver' %}</a>
+      <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> {% trans 'Back' %}</a>
     </div>
   </div>
   
@@ -16,7 +16,7 @@
   <div class="card mb-3">
     <div class="card-header bg-light">
       <div class="d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="bi bi-funnel"></i> {% trans 'Filtros' %}</h5>
+        <h5 class="mb-0"><i class="bi bi-funnel"></i> {% trans 'Filters' %}</h5>
         <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
           <i class="bi bi-chevron-down"></i>
         </button>
@@ -26,29 +26,29 @@
       <div class="card-body">
         <form method="get" class="row g-3" id="filterForm">
           <div class="col-md-3">
-            <label for="filter-status" class="form-label"><i class="bi bi-flag"></i> {% trans 'Estado' %}</label>
+            <label for="filter-status" class="form-label"><i class="bi bi-flag"></i> {% trans 'Status' %}</label>
             <select name="status" id="filter-status" class="form-select">
-              <option value="">{% trans 'Todos' %}</option>
-              <option value="Pendiente" {% if request.GET.status == 'Pendiente' %}selected{% endif %}>{% trans 'Pendiente' %}</option>
-              <option value="En Progreso" {% if request.GET.status == 'En Progreso' %}selected{% endif %}>{% trans 'En Progreso' %}</option>
-              <option value="Completada" {% if request.GET.status == 'Completada' %}selected{% endif %}>{% trans 'Completada' %}</option>
-              <option value="Cancelada" {% if request.GET.status == 'Cancelada' %}selected{% endif %}>{% trans 'Cancelada' %}</option>
+              <option value="">{% trans 'All' %}</option>
+              <option value="Pendiente" {% if request.GET.status == 'Pendiente' %}selected{% endif %}>{% trans 'Pending' %}</option>
+              <option value="En Progreso" {% if request.GET.status == 'En Progreso' %}selected{% endif %}>{% trans 'In Progress' %}</option>
+              <option value="Completada" {% if request.GET.status == 'Completada' %}selected{% endif %}>{% trans 'Completed' %}</option>
+              <option value="Cancelada" {% if request.GET.status == 'Cancelada' %}selected{% endif %}>{% trans 'Cancelled' %}</option>
             </select>
           </div>
           <div class="col-md-3">
-            <label for="filter-priority" class="form-label"><i class="bi bi-exclamation-triangle"></i> {% trans 'Prioridad' %}</label>
+            <label for="filter-priority" class="form-label"><i class="bi bi-exclamation-triangle"></i> {% trans 'Priority' %}</label>
             <select name="priority" id="filter-priority" class="form-select">
-              <option value="">{% trans 'Todas' %}</option>
-              <option value="low" {% if request.GET.priority == 'low' %}selected{% endif %}>{% trans 'Baja' %}</option>
+              <option value="">{% trans 'All' %}</option>
+              <option value="low" {% if request.GET.priority == 'low' %}selected{% endif %}>{% trans 'Low' %}</option>
               <option value="normal" {% if request.GET.priority == 'normal' %}selected{% endif %}>{% trans 'Normal' %}</option>
-              <option value="high" {% if request.GET.priority == 'high' %}selected{% endif %}>{% trans 'Alta' %}</option>
-              <option value="urgent" {% if request.GET.priority == 'urgent' %}selected{% endif %}>{% trans 'Urgente' %}</option>
+              <option value="high" {% if request.GET.priority == 'high' %}selected{% endif %}>{% trans 'High' %}</option>
+              <option value="urgent" {% if request.GET.priority == 'urgent' %}selected{% endif %}>{% trans 'Urgent' %}</option>
             </select>
           </div>
           <div class="col-md-3">
-            <label for="filter-assigned" class="form-label"><i class="bi bi-person-check"></i> {% trans 'Asignado a' %}</label>
+            <label for="filter-assigned" class="form-label"><i class="bi bi-person-check"></i> {% trans 'Assigned To' %}</label>
             <select name="assigned_to" id="filter-assigned" class="form-select">
-              <option value="">{% trans 'Todos' %}</option>
+              <option value="">{% trans 'All' %}</option>
               {% for employee in employees %}
               <option value="{{ employee.id }}" {% if request.GET.assigned_to|stringformat:"s" == employee.id|stringformat:"s" %}selected{% endif %}>
                 {{ employee.get_full_name }}
@@ -57,17 +57,17 @@
             </select>
           </div>
           <div class="col-md-3">
-            <label for="filter-overdue" class="form-label"><i class="bi bi-calendar-x"></i> {% trans 'Fecha límite' %}</label>
+            <label for="filter-overdue" class="form-label"><i class="bi bi-calendar-x"></i> {% trans 'Due Date' %}</label>
             <select name="overdue" id="filter-overdue" class="form-select">
-              <option value="">{% trans 'Todas' %}</option>
-              <option value="yes" {% if request.GET.overdue == 'yes' %}selected{% endif %}>{% trans 'Vencidas' %}</option>
-              <option value="today" {% if request.GET.overdue == 'today' %}selected{% endif %}>{% trans 'Hoy' %}</option>
-              <option value="week" {% if request.GET.overdue == 'week' %}selected{% endif %}>{% trans 'Esta semana' %}</option>
+              <option value="">{% trans 'All' %}</option>
+              <option value="yes" {% if request.GET.overdue == 'yes' %}selected{% endif %}>{% trans 'Overdue' %}</option>
+              <option value="today" {% if request.GET.overdue == 'today' %}selected{% endif %}>{% trans 'Today' %}</option>
+              <option value="week" {% if request.GET.overdue == 'week' %}selected{% endif %}>{% trans 'This Week' %}</option>
             </select>
           </div>
           <div class="col-12">
-            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> {% trans 'Aplicar filtros' %}</button>
-            <a href="{% url 'task_list' project.id %}" class="btn btn-outline-secondary"><i class="bi bi-x-circle"></i> {% trans 'Limpiar' %}</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> {% trans 'Apply Filters' %}</button>
+            <a href="{% url 'task_list' project.id %}" class="btn btn-outline-secondary"><i class="bi bi-x-circle"></i> {% trans 'Clear' %}</a>
           </div>
         </form>
       </div>
@@ -76,7 +76,7 @@
   
   {% if can_create and form %}
   <div id="crear" class="card mb-4">
-    <div class="card-header"><i class="bi bi-plus-circle"></i> {% trans 'Crear nueva tarea' %}</div>
+    <div class="card-header"><i class="bi bi-plus-circle"></i> {% trans 'Create New Task' %}</div>
     <div class="card-body">
       <form method="post" enctype="multipart/form-data" class="row g-3">
         {% csrf_token %}
@@ -89,7 +89,7 @@
         <div class="col-md-4">{{ form.due_date.label_tag }}{{ form.due_date }}</div>
         <div class="col-md-6">{{ form.image.label_tag }}{{ form.image }}</div>
         <div class="col-md-6">{{ form.is_touchup.label_tag }}{{ form.is_touchup }}</div>
-        <div class="col-12"><button class="btn btn-primary">{% trans 'Guardar' %}</button></div>
+        <div class="col-12"><button class="btn btn-primary">{% trans 'Save' %}</button></div>
       </form>
     </div>
   </div>
@@ -101,17 +101,17 @@
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center">
         <div>
-          <strong id="selected-count">0</strong> {% trans 'tareas seleccionadas' %}
+          <strong id="selected-count">0</strong> {% trans 'tasks selected' %}
         </div>
         <div class="btn-group" role="group" id="bulk-actions" style="display: none;">
           <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkAssign()">
-            <i class="bi bi-person-check"></i> {% trans 'Asignar' %}
+            <i class="bi bi-person-check"></i> {% trans 'Assign' %}
           </button>
           <button type="button" class="btn btn-sm btn-outline-warning" onclick="bulkChangePriority()">
-            <i class="bi bi-exclamation-triangle"></i> {% trans 'Cambiar prioridad' %}
+            <i class="bi bi-exclamation-triangle"></i> {% trans 'Change Priority' %}
           </button>
           <button type="button" class="btn btn-sm btn-outline-info" onclick="bulkChangeStatus()">
-            <i class="bi bi-flag"></i> {% trans 'Cambiar estado' %}
+            <i class="bi bi-flag"></i> {% trans 'Change Status' %}
           </button>
         </div>
       </div>
@@ -129,12 +129,12 @@
           </th>
           {% endif %}
           <th>ID</th>
-          <th>{% trans 'Título' %}</th>
-          <th><i class="bi bi-exclamation-triangle"></i> {% trans 'Prioridad' %}</th>
-          <th><i class="bi bi-flag"></i> {% trans 'Estado' %}</th>
-          <th><i class="bi bi-person-check"></i> {% trans 'Asignado' %}</th>
-          <th><i class="bi bi-calendar-event"></i> {% trans 'Fecha límite' %}</th>
-          <th class="text-end">{% trans 'Acciones' %}</th>
+          <th>{% trans 'Title' %}</th>
+          <th><i class="bi bi-exclamation-triangle"></i> {% trans 'Priority' %}</th>
+          <th><i class="bi bi-flag"></i> {% trans 'Status' %}</th>
+          <th><i class="bi bi-person-check"></i> {% trans 'Assigned' %}</th>
+          <th><i class="bi bi-calendar-event"></i> {% trans 'Due Date' %}</th>
+          <th class="text-end">{% trans 'Actions' %}</th>
         </tr>
       </thead>
       <tbody>
@@ -149,7 +149,7 @@
           <td>
             <a href="{% url 'task_detail' t.id %}" class="text-decoration-none">{{ t.title }}</a>
             {% if t.dependencies.exists %}
-            <span class="badge bg-warning" title="{% trans 'Tiene dependencias' %}">
+            <span class="badge bg-warning" title="{% trans 'Has Dependencies' %}">
               <i class="bi bi-diagram-3"></i>
             </span>
             {% endif %}
@@ -169,22 +169,22 @@
             {% if t.due_date %}
               {{ t.due_date|date:"M d, Y" }}
               {% if t.due_date < today and t.status != 'Completada' %}
-                <span class="badge bg-danger">{% trans 'Vencida' %}</span>
+                <span class="badge bg-danger">{% trans 'Overdue' %}</span>
               {% endif %}
             {% else %}
               —
             {% endif %}
           </td>
           <td class="text-end">
-            <a href="{% url 'task_detail' t.id %}" class="btn btn-sm btn-outline-primary">{% trans 'Ver' %}</a>
+            <a href="{% url 'task_detail' t.id %}" class="btn btn-sm btn-outline-primary">{% trans 'View' %}</a>
             {% if can_create %}
-            <a href="{% url 'task_edit' t.id %}" class="btn btn-sm btn-outline-secondary">{% trans 'Editar' %}</a>
-            <a href="{% url 'task_delete' t.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('{% trans "¿Eliminar esta tarea?" %}')">{% trans 'Eliminar' %}</a>
+            <a href="{% url 'task_edit' t.id %}" class="btn btn-sm btn-outline-secondary">{% trans 'Edit' %}</a>
+            <a href="{% url 'task_delete' t.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('{% trans "Delete this task?" %}')">{% trans 'Delete' %}</a>
             {% endif %}
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="{% if can_create %}8{% else %}7{% endif %}" class="text-muted text-center py-4"><i class="bi bi-inbox me-2"></i>{% trans 'No hay tareas todavía.' %}</td></tr>
+        <tr><td colspan="{% if can_create %}8{% else %}7{% endif %}" class="text-muted text-center py-4"><i class="bi bi-inbox me-2"></i>{% trans 'No tasks yet.' %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -244,7 +244,7 @@ function getCookie(name) {
 async function bulkUpdate(action, value) {
   const taskIds = getSelectedTasks();
   if (taskIds.length === 0) {
-    alert('{% trans "Por favor selecciona al menos una tarea" %}');
+    alert('{% trans "Please select at least one task" %}');
     return;
   }
 
@@ -274,10 +274,10 @@ async function bulkUpdate(action, value) {
     }
 
     // Success
-    alert(`{% trans "Éxito" %}: ${data.updated_count} {% trans "tareas actualizadas" %}`);
+    alert(`{% trans "Success" %}: ${data.updated_count} {% trans "tasks updated" %}`);
     window.location.reload();
   } catch (error) {
-    alert('{% trans "Error de red" %}: ' + error.message);
+    alert('{% trans "Network error" %}: ' + error.message);
   }
 }
 
@@ -285,7 +285,7 @@ function bulkAssign() {
   const tasks = getSelectedTasks();
   if (tasks.length === 0) return;
   
-  const employee = prompt('{% trans "ID del empleado a asignar" %}:');
+  const employee = prompt('{% trans "Employee ID to assign" %}:');
   if (!employee) return;
   
   bulkUpdate('assign', employee);
@@ -295,7 +295,7 @@ function bulkChangePriority() {
   const tasks = getSelectedTasks();
   if (tasks.length === 0) return;
   
-  const priority = prompt('{% trans "Nueva prioridad (low/normal/high/urgent)" %}:');
+  const priority = prompt('{% trans "New priority (low/normal/high/urgent)" %}:');
   if (!priority) return;
   
   bulkUpdate('priority', priority);
@@ -305,7 +305,7 @@ function bulkChangeStatus() {
   const tasks = getSelectedTasks();
   if (tasks.length === 0) return;
   
-  const status = prompt('{% trans "Nuevo estado (Pendiente/En Progreso/Completada/Cancelada)" %}:');
+  const status = prompt('{% trans "New status (Pendiente/En Progreso/Completada/Cancelada)" %}:');
   if (!status) return;
   
   bulkUpdate('status', status);

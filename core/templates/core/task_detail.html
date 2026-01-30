@@ -9,7 +9,7 @@
       <!-- Breadcrumb -->
       <nav aria-label="breadcrumb" class="mb-2">
         <ol class="breadcrumb small mb-0">
-          <li class="breadcrumb-item"><a href="{% url 'task_command_center' %}" class="text-decoration-none">{% trans 'Tareas' %}</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'task_command_center' %}" class="text-decoration-none">{% trans 'Tasks' %}</a></li>
           {% if task.project %}
           <li class="breadcrumb-item"><a href="{% url 'project_overview' task.project.id %}" class="text-decoration-none">{{ task.project.name }}</a></li>
           {% endif %}
@@ -34,11 +34,11 @@
     <!-- Action Buttons -->
     <div class="d-flex gap-2">
       <a href="{% url 'task_command_center' %}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i> {% trans 'Regresar' %}
+        <i class="bi bi-arrow-left me-1"></i> {% trans 'Back' %}
       </a>
       {% if request.user.is_staff %}
       <a href="{% url 'task_edit' task.id %}" class="btn btn-primary">
-        <i class="bi bi-pencil me-1"></i> {% trans 'Editar' %}
+        <i class="bi bi-pencil me-1"></i> {% trans 'Edit' %}
       </a>
       {% endif %}
     </div>
@@ -51,13 +51,13 @@
       <!-- Description Card -->
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0"><i class="bi bi-file-text me-2"></i>{% trans 'Descripción' %}</h5>
+          <h5 class="mb-0"><i class="bi bi-file-text me-2"></i>{% trans 'Description' %}</h5>
         </div>
         <div class="card-body">
           {% if task.description %}
           <div class="text-body" style="white-space: pre-wrap;">{{ task.description }}</div>
           {% else %}
-          <p class="text-muted mb-0 fst-italic">{% trans 'Sin descripción disponible' %}</p>
+          <p class="text-muted mb-0 fst-italic">{% trans 'No description available' %}</p>
           {% endif %}
         </div>
       </div>
@@ -66,10 +66,10 @@
       {% if request.user.is_staff or employee and not task.is_touchup and task.assigned_to_id == employee.id %}
       <div class="card border-0 shadow-sm mb-4 border-start border-4 border-primary">
         <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0"><i class="bi bi-stopwatch me-2 text-primary"></i>{% trans 'Seguimiento de tiempo' %}</h5>
+          <h5 class="mb-0"><i class="bi bi-stopwatch me-2 text-primary"></i>{% trans 'Time Tracking' %}</h5>
         </div>
         <div class="card-body">
-          <p class="text-muted mb-3">{% trans 'Registra el tiempo que trabajas en esta tarea' %}</p>
+          <p class="text-muted mb-3">{% trans 'Record the time you spend working on this task' %}</p>
           
           <!-- Live Timer Display -->
           <div class="mb-3 p-3 bg-light rounded-3" id="live-timer-container" {% if not task.started_at %}style="display:none;"{% endif %}>
@@ -78,7 +78,7 @@
                 <span class="visually-hidden">Recording...</span>
               </div>
               <div>
-                <small class="text-muted d-block">{% trans 'Sesión actual' %}</small>
+                <small class="text-muted d-block">{% trans 'Current session' %}</small>
                 <h2 class="mb-0 font-monospace text-primary" id="live-timer">00:00:00</h2>
               </div>
             </div>
@@ -87,17 +87,17 @@
           <div class="d-flex flex-wrap gap-2 align-items-center">
             <div class="btn-group" role="group">
               <button type="button" class="btn btn-success px-4" id="btn-start-tracking" {% if task.started_at %}disabled{% endif %}>
-                <i class="bi bi-play-fill me-1"></i> {% trans 'Iniciar' %}
+                <i class="bi bi-play-fill me-1"></i> {% trans 'Start' %}
               </button>
               <button type="button" class="btn btn-warning px-4" id="btn-stop-tracking" {% if not task.started_at %}disabled{% endif %}>
-                <i class="bi bi-stop-fill me-1"></i> {% trans 'Detener' %}
+                <i class="bi bi-stop-fill me-1"></i> {% trans 'Stop' %}
               </button>
             </div>
             <span class="text-muted small" id="tracking-status">
               {% if task.started_at %}
-                <i class="bi bi-circle-fill text-success me-1"></i> {% trans 'Activo desde' %} {{ task.started_at|date:'H:i' }}
+                <i class="bi bi-circle-fill text-success me-1"></i> {% trans 'Active since' %} {{ task.started_at|date:'H:i' }}
               {% else %}
-                <i class="bi bi-circle text-secondary me-1"></i> {% trans 'Sin seguimiento activo' %}
+                <i class="bi bi-circle text-secondary me-1"></i> {% trans 'No active tracking' %}
               {% endif %}
             </span>
           </div>
@@ -109,7 +109,7 @@
       {% if task.images.exists or task.image %}
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-          <h5 class="mb-0"><i class="bi bi-images me-2"></i>{% trans 'Fotos' %}</h5>
+          <h5 class="mb-0"><i class="bi bi-images me-2"></i>{% trans 'Photos' %}</h5>
           <span class="badge bg-secondary">{{ task.images.count|default:1 }}</span>
         </div>
         <div class="card-body">
@@ -117,15 +117,15 @@
             {% if task.image %}
             <div class="col-6 col-md-4 col-lg-3">
               <a href="{{ task.image.url }}" target="_blank" class="d-block">
-                <img src="{{ task.image.url }}" alt="{% trans 'Imagen de tarea' %}" class="img-fluid rounded shadow-sm" style="height: 150px; width: 100%; object-fit: cover;">
+                <img src="{{ task.image.url }}" alt="{% trans 'Task image' %}" class="img-fluid rounded shadow-sm" style="height: 150px; width: 100%; object-fit: cover;">
               </a>
-              <small class="text-muted d-block mt-1">{% trans 'Imagen principal' %}</small>
+              <small class="text-muted d-block mt-1">{% trans 'Main image' %}</small>
             </div>
             {% endif %}
             {% for img in task.images.all %}
             <div class="col-6 col-md-4 col-lg-3">
               <a href="{{ img.image.url }}" target="_blank" class="d-block position-relative">
-                <img src="{{ img.image.url }}" alt="{{ img.caption|default:'Imagen' }}" class="img-fluid rounded shadow-sm" style="height: 150px; width: 100%; object-fit: cover;">
+                <img src="{{ img.image.url }}" alt="{{ img.caption|default:'Image' }}" class="img-fluid rounded shadow-sm" style="height: 150px; width: 100%; object-fit: cover;">
                 {% if img.is_current %}
                 <span class="position-absolute top-0 end-0 badge bg-success m-1"><i class="bi bi-check"></i></span>
                 {% endif %}
@@ -145,7 +145,7 @@
       {% if task.schedule_item_v2 %}
       <div class="card border-0 shadow-sm mb-4 border-start border-4 border-info">
         <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0"><i class="bi bi-calendar-range me-2 text-info"></i>{% trans 'Vinculado al Gantt' %}</h5>
+          <h5 class="mb-0"><i class="bi bi-calendar-range me-2 text-info"></i>{% trans 'Linked to Gantt' %}</h5>
         </div>
         <div class="card-body">
           <div class="d-flex align-items-center gap-3">
@@ -158,7 +158,7 @@
             {% if task.contribution_percent %}
             <div class="text-center">
               <div class="display-6 text-primary fw-bold">{{ task.contribution_percent }}%</div>
-              <small class="text-muted">{% trans 'Contribución' %}</small>
+              <small class="text-muted">{% trans 'Contribution' %}</small>
             </div>
             {% endif %}
           </div>
@@ -170,12 +170,12 @@
       {% if task.dependencies.exists %}
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>{% trans 'Dependencias' %}</h5>
+          <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>{% trans 'Dependencies' %}</h5>
         </div>
         <div class="card-body p-0">
           {% if not task.can_start %}
           <div class="alert alert-warning m-3 mb-0">
-            <i class="bi bi-exclamation-triangle me-1"></i> {% trans 'No puedes iniciar esta tarea hasta que se completen todas las dependencias' %}
+            <i class="bi bi-exclamation-triangle me-1"></i> {% trans 'You cannot start this task until all dependencies are completed' %}
           </div>
           {% endif %}
           <ul class="list-group list-group-flush">
@@ -202,7 +202,7 @@
       {% if task.status_changes.exists %}
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>{% trans 'Historial de cambios' %}</h5>
+          <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>{% trans 'Change History' %}</h5>
         </div>
         <div class="card-body p-0">
           <div class="timeline p-3">
@@ -219,7 +219,7 @@
                   <small class="text-muted">{{ change.changed_at|date:'M d, H:i' }}</small>
                 </div>
                 <small class="text-muted">
-                  {% if change.changed_by %}{% trans 'por' %} {{ change.changed_by.get_full_name|default:change.changed_by.username }}{% endif %}
+                  {% if change.changed_by %}{% trans 'by' %} {{ change.changed_by.get_full_name|default:change.changed_by.username }}{% endif %}
                   {% if change.notes %} — {{ change.notes }}{% endif %}
                 </small>
               </div>
@@ -238,13 +238,13 @@
       <!-- Task Info Card -->
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>{% trans 'Detalles' %}</h5>
+          <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>{% trans 'Details' %}</h5>
         </div>
         <div class="card-body p-0">
           <ul class="list-group list-group-flush">
             <!-- Project -->
             <li class="list-group-item d-flex justify-content-between">
-              <span class="text-muted"><i class="bi bi-folder me-2"></i>{% trans 'Proyecto' %}</span>
+              <span class="text-muted"><i class="bi bi-folder me-2"></i>{% trans 'Project' %}</span>
               <span class="fw-medium">
                 {% if task.project %}
                 <a href="{% url 'project_overview' task.project.id %}" class="text-decoration-none">{{ task.project.name }}</a>
@@ -254,7 +254,7 @@
             
             <!-- Assigned To -->
             <li class="list-group-item d-flex justify-content-between">
-              <span class="text-muted"><i class="bi bi-person me-2"></i>{% trans 'Asignado a' %}</span>
+              <span class="text-muted"><i class="bi bi-person me-2"></i>{% trans 'Assigned To' %}</span>
               <span class="fw-medium">
                 {% if task.assigned_to %}
                 <span class="d-inline-flex align-items-center">
@@ -269,7 +269,7 @@
             
             <!-- Due Date -->
             <li class="list-group-item d-flex justify-content-between">
-              <span class="text-muted"><i class="bi bi-calendar-event me-2"></i>{% trans 'Fecha límite' %}</span>
+              <span class="text-muted"><i class="bi bi-calendar-event me-2"></i>{% trans 'Due Date' %}</span>
               <span class="fw-medium {% if task.due_date and task.due_date < today and task.status != 'Completada' %}text-danger{% endif %}">
                 {% if task.due_date %}
                   {{ task.due_date|date:'M d, Y' }}
@@ -282,13 +282,13 @@
             
             <!-- Created -->
             <li class="list-group-item d-flex justify-content-between">
-              <span class="text-muted"><i class="bi bi-plus-circle me-2"></i>{% trans 'Creado' %}</span>
+              <span class="text-muted"><i class="bi bi-plus-circle me-2"></i>{% trans 'Created' %}</span>
               <span>{{ task.created_at|date:'M d, Y' }}</span>
             </li>
             
             <!-- Updated -->
             <li class="list-group-item d-flex justify-content-between">
-              <span class="text-muted"><i class="bi bi-pencil-square me-2"></i>{% trans 'Actualizado' %}</span>
+              <span class="text-muted"><i class="bi bi-pencil-square me-2"></i>{% trans 'Updated' %}</span>
               <span>{{ task.updated_at|date:'M d, Y' }}</span>
             </li>
             
@@ -296,7 +296,7 @@
             {% if task.is_touchup %}
             <li class="list-group-item">
               <span class="badge bg-warning text-dark w-100">
-                <i class="bi bi-brush me-1"></i>{% trans 'Esta es una tarea de retoque' %}
+                <i class="bi bi-brush me-1"></i>{% trans 'This is a touch-up task' %}
               </span>
             </li>
             {% endif %}
@@ -310,7 +310,7 @@
         <div class="card-body text-center py-4">
           <i class="bi bi-clock fs-1 text-primary mb-2 d-block"></i>
           <h3 class="mb-1 text-primary fw-bold" id="time-tracked">{{ task.get_time_tracked_hours }}</h3>
-          <small class="text-muted">{% trans 'horas trabajadas' %}</small>
+          <small class="text-muted">{% trans 'hours worked' %}</small>
         </div>
       </div>
       {% endif %}
@@ -319,15 +319,15 @@
       {% if request.user.is_staff %}
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>{% trans 'Acciones rápidas' %}</h5>
+          <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>{% trans 'Quick Actions' %}</h5>
         </div>
         <div class="card-body d-grid gap-2">
           <a href="{% url 'task_edit' task.id %}" class="btn btn-outline-primary">
-            <i class="bi bi-pencil me-1"></i> {% trans 'Editar tarea' %}
+            <i class="bi bi-pencil me-1"></i> {% trans 'Edit Task' %}
           </a>
           {% if task.project %}
           <a href="{% url 'project_overview' task.project.id %}" class="btn btn-outline-secondary">
-            <i class="bi bi-folder me-1"></i> {% trans 'Ver proyecto' %}
+            <i class="bi bi-folder me-1"></i> {% trans 'View Project' %}
           </a>
           {% endif %}
         </div>
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (data.success) {
           btnStart.disabled = true;
           btnStop.disabled = false;
-          trackingStatus.innerHTML = '<i class="bi bi-circle-fill text-success me-1"></i> {% trans "Activo" %}';
+          trackingStatus.innerHTML = '<i class="bi bi-circle-fill text-success me-1"></i> {% trans "Active" %}';
           
           // Start live timer
           startTime = data.started_at;
@@ -407,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .catch(error => {
         console.error('Error:', error);
-        alert('{% trans "Error al iniciar seguimiento" %}');
+        alert('{% trans "Error starting tracking" %}');
       });
     });
   }
@@ -429,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function() {
           if (timeTracked) {
             timeTracked.textContent = data.total_hours + ' hrs';
           }
-          trackingStatus.innerHTML = '<i class="bi bi-circle text-secondary me-1"></i> {% trans "Sin seguimiento activo" %}';
+          trackingStatus.innerHTML = '<i class="bi bi-circle text-secondary me-1"></i> {% trans "No active tracking" %}';
           
           // Stop live timer
           if (timerInterval) {
@@ -443,7 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
           
           // Show success toast with elapsed time
           const elapsed = Math.floor(data.elapsed_seconds / 60);
-          showToast(data.message + ' (' + elapsed + ' {% trans "minutos" %})', 'warning');
+          showToast(data.message + ' (' + elapsed + ' {% trans "minutes" %})', 'warning');
           
           // Reload page to show updated time
           setTimeout(function() { location.reload(); }, 2000);
@@ -453,7 +453,7 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .catch(error => {
         console.error('Error:', error);
-        alert('{% trans "Error al detener seguimiento" %}');
+        alert('{% trans "Error stopping tracking" %}');
       });
     });
   }
