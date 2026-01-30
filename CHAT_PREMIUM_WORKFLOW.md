@@ -106,13 +106,26 @@ daphne -b 127.0.0.1 -p 8001 kibray_backend.asgi:application
 
 ## 🔧 URLs del Sistema de Chat
 
-| URL | Vista | Template | Descripción |
-|-----|-------|----------|-------------|
-| `/projects/{id}/messages/` | `project_chat_premium` | `project_chat_premium.html` | **NUEVO** Chat premium |
-| `/projects/{id}/messages/{channel_id}/` | `project_chat_premium` | `project_chat_premium.html` | **NUEVO** Canal específico |
-| `/projects/{id}/chat/` | `project_chat_index` | Redirect | **LEGACY** Redirige a canal default |
-| `/projects/{id}/chat/{channel_id}/` | `project_chat_room` | `project_chat_room.html` | **LEGACY** Chat antiguo |
-| `/projects/{id}/design-chat/` | `design_chat` | `design_chat.html` | **LEGACY** Chat de diseño básico |
+| URL | Vista | Descripción |
+|-----|-------|-------------|
+| `/projects/{id}/messages/` | `project_chat_premium` | ✅ Chat premium (default channel) |
+| `/projects/{id}/messages/{channel_id}/` | `project_chat_premium` | ✅ Canal específico |
+| `/projects/{id}/chat/` | `chat_redirect_to_premium` | ↪️ Redirige a `/messages/` |
+| `/projects/{id}/chat/{channel_id}/` | `chat_redirect_to_premium` | ↪️ Redirige a `/messages/{id}/` |
+| `/projects/{id}/design-chat/` | `chat_redirect_to_premium` | ↪️ Redirige a `/messages/` |
+
+---
+
+## 🗑️ Código Legacy ELIMINADO
+
+### Templates Eliminados:
+- ~~`core/templates/core/project_chat_room.html`~~ ❌
+- ~~`core/templates/core/design_chat.html`~~ ❌
+
+### Vistas Eliminadas:
+- ~~`design_chat()`~~ ❌
+- ~~`project_chat_index()`~~ ❌
+- ~~`project_chat_room()`~~ ❌
 
 ---
 
@@ -151,21 +164,17 @@ daphne -b 127.0.0.1 -p 8001 kibray_backend.asgi:application
 
 ---
 
-## 📁 Archivos Relevantes
+## 📁 Archivos del Sistema de Chat
 
-### Nuevos (Premium)
-- `core/templates/core/project_chat_premium.html` - Template premium (1232 líneas)
-- `core/views/legacy_views.py` - Vista `project_chat_premium()` (línea ~3620)
-- `kibray_backend/urls.py` - URLs premium (líneas ~345)
+### Activos (Premium)
+- `core/templates/core/project_chat_premium.html` - Template premium (1321 líneas)
+- `core/views/legacy_views.py` - Vista `project_chat_premium()` + `chat_redirect_to_premium()`
+- `kibray_backend/urls.py` - URLs configuradas
 
-### Existentes (Backend)
+### Backend (Sin cambios)
 - `core/consumers.py` - WebSocket consumers (ProjectChatConsumer, DirectChatConsumer)
 - `core/routing.py` - WebSocket URL routing
 - `core/models/__init__.py` - ChatChannel, ChatMessage, ChatMention
-
-### Legacy (A eliminar después de testing)
-- `core/templates/core/project_chat_room.html` - Chat antiguo
-- `core/templates/core/design_chat.html` - Chat de diseño básico
 
 ---
 
