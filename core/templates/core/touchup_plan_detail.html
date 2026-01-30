@@ -11,9 +11,9 @@
         <div class="col-12">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'project_list' %}">Proyectos</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'project_list' %}">Projects</a></li>
                     <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'touchup_plans_list' project.id %}">Planos Touch-up</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'touchup_plans_list' project.id %}">Touch-up Plans</a></li>
                     <li class="breadcrumb-item active">{{ plan.name }}</li>
                 </ol>
             </nav>
@@ -30,11 +30,11 @@
                 <div>
                     {% if can_create %}
                     <button type="button" class="btn btn-primary" id="createTouchupBtn">
-                        <i class="bi bi-plus-circle"></i> Nuevo Touch-up
+                        <i class="bi bi-plus-circle"></i> New Touch-up
                     </button>
                     {% endif %}
                     <a href="{% url 'touchup_plans_list' project.id %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Volver
+                        <i class="bi bi-arrow-left"></i> Back
                     </a>
                 </div>
             </div>
@@ -46,8 +46,8 @@
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0">Plano con Touch-ups</h5>
-                    <small class="text-muted">Haz clic en el plano para agregar un touch-up</small>
+                    <h5 class="mb-0">Floor Plan with Touch-ups</h5>
+                    <small class="text-muted">Click on the floor plan to add a touch-up</small>
                 </div>
                 <div class="card-body p-0">
                     {% if plan.image %}
@@ -81,7 +81,7 @@
                     {% else %}
                     <div class="p-5 text-center text-muted">
                         <i class="bi bi-file-earmark-image" style="font-size: 4rem;"></i>
-                        <p class="mt-3">No hay imagen de plano disponible</p>
+                        <p class="mt-3">No floor plan image available</p>
                     </div>
                     {% endif %}
                 </div>
@@ -90,12 +90,12 @@
             <!-- Instructions -->
             <div class="card border-0 shadow-sm mt-3">
                 <div class="card-body">
-                    <h6 class="mb-2"><i class="bi bi-info-circle"></i> Instrucciones</h6>
+                    <h6 class="mb-2"><i class="bi bi-info-circle"></i> Instructions</h6>
                     <ul class="mb-0 small text-muted">
-                        <li><strong>PM/Admin:</strong> Haz clic en el plano para agregar un touch-up, asigna a un empleado</li>
-                        <li><strong>Empleado:</strong> Haz clic en el pin para ver detalles y completar el trabajo</li>
-                        <li><strong>Al completar:</strong> Sube una foto del trabajo terminado</li>
-                        <li>Los touch-ups completados desaparecen automáticamente y se guardan en el historial</li>
+                        <li><strong>PM/Admin:</strong> Click on the floor plan to add a touch-up, assign to an employee</li>
+                        <li><strong>Employee:</strong> Click on the pin to view details and complete the work</li>
+                        <li><strong>Upon completion:</strong> Upload a photo of the finished work</li>
+                        <li>Completed touch-ups automatically disappear and are saved in history</li>
                     </ul>
                 </div>
             </div>
@@ -136,7 +136,7 @@
                                 {% if touchup.assigned_to %}
                                 <div><i class="bi bi-person"></i> {{ touchup.assigned_to.get_full_name|default:touchup.assigned_to.username }}</div>
                                 {% else %}
-                                <div><i class="bi bi-person-x"></i> Sin asignar</div>
+                                <div><i class="bi bi-person-x"></i> Unassigned</div>
                                 {% endif %}
                                 
                                 {% if touchup.approved_color %}
@@ -149,7 +149,7 @@
                             <div class="mt-2">
                                 <button class="btn btn-sm btn-outline-primary view-touchup-btn" 
                                         data-touchup-id="{{ touchup.id }}">
-                                    <i class="bi bi-eye"></i> Ver Detalles
+                                    <i class="bi bi-eye"></i> View Details
                                 </button>
                             </div>
                         </div>
@@ -157,9 +157,9 @@
                     {% else %}
                         <div class="text-center text-muted py-5">
                             <i class="bi bi-brush" style="font-size: 2rem;"></i>
-                            <p class="mt-2 mb-0">No hay touch-ups en este plano</p>
+                            <p class="mt-2 mb-0">No touch-ups on this floor plan</p>
                             {% if can_create %}
-                            <p class="small">Haz clic en el plano para agregar uno</p>
+                            <p class="small">Click on the floor plan to add one</p>
                             {% endif %}
                         </div>
                     {% endif %}
@@ -174,14 +174,14 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="touchupModalTitle">Detalles del Touch-up</h5>
+                <h5 class="modal-title" id="touchupModalTitle">Touch-up Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="touchupModalBody">
                 <!-- Content loaded via AJAX -->
                 <div class="text-center py-5">
                     <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Cargando...</span>
+                        <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
             </div>
@@ -194,7 +194,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Crear Nuevo Touch-up</h5>
+                <h5 class="modal-title">Create New Touch-up</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="createTouchupForm" enctype="multipart/form-data">
@@ -206,21 +206,21 @@
                 <div class="modal-body">
                     <div class="alert alert-info">
                         <i class="bi bi-info-circle"></i> 
-                        Haz clic en el plano para seleccionar la ubicación del touch-up
+                        Click on the floor plan to select the touch-up location
                     </div>
                     
                     <div id="coordinatePreview" class="alert alert-success d-none">
                         <i class="bi bi-pin-map"></i> 
-                        Ubicación seleccionada: <span id="coordText"></span>
+                        Location selected: <span id="coordText"></span>
                     </div>
                     
                     <!-- Form fields will be loaded here -->
                     <div id="touchupFormFields"></div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary" id="submitTouchupBtn" disabled>
-                        <i class="bi bi-plus-circle"></i> Crear Touch-up
+                        <i class="bi bi-plus-circle"></i> Create Touch-up
                     </button>
                 </div>
             </form>
@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 renderTouchupDetails(data);
             })
             .catch(error => {
-                modalBody.innerHTML = '<div class="alert alert-danger">Error cargando detalles</div>';
+                modalBody.innerHTML = '<div class="alert alert-danger">Error loading details</div>';
             });
     }
     
@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="col-md-6 text-end">
                     ${touchup.can_close ? `
                         <button class="btn btn-success btn-sm" onclick="completeTouchup(${touchup.id})">
-                            <i class="bi bi-check-circle"></i> Completar
+                            <i class="bi bi-check-circle"></i> Complete
                         </button>
                     ` : ''}
                     ${touchup.can_edit ? `
@@ -345,18 +345,18 @@ document.addEventListener('DOMContentLoaded', function() {
             
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <p class="mb-1"><strong>Asignado a:</strong></p>
-                    <p>${touchup.assigned_to || 'Sin asignar'}</p>
+                    <p class="mb-1"><strong>Assigned To:</strong></p>
+                    <p>${touchup.assigned_to || 'Unassigned'}</p>
                 </div>
                 <div class="col-md-6">
-                    <p class="mb-1"><strong>Creado por:</strong></p>
+                    <p class="mb-1"><strong>Created By:</strong></p>
                     <p>${touchup.created_by || '-'}</p>
                 </div>
             </div>
             
             ${touchup.description ? `
                 <div class="mb-3">
-                    <p class="mb-1"><strong>Descripción:</strong></p>
+                    <p class="mb-1"><strong>Description:</strong></p>
                     <p>${touchup.description}</p>
                 </div>
             ` : ''}
@@ -370,21 +370,21 @@ document.addEventListener('DOMContentLoaded', function() {
             
             ${touchup.sheen ? `
                 <div class="mb-3">
-                    <p class="mb-1"><strong>Brillo:</strong></p>
+                    <p class="mb-1"><strong>Sheen:</strong></p>
                     <p>${touchup.sheen}</p>
                 </div>
             ` : ''}
             
             ${touchup.details ? `
                 <div class="mb-3">
-                    <p class="mb-1"><strong>Detalles:</strong></p>
+                    <p class="mb-1"><strong>Details:</strong></p>
                     <p>${touchup.details}</p>
                 </div>
             ` : ''}
             
             ${touchup.completion_photos.length > 0 ? `
                 <div class="mb-3">
-                    <p class="mb-1"><strong>Fotos de Finalización:</strong></p>
+                    <p class="mb-1"><strong>Completion Photos:</strong></p>
                     <div class="row g-2">
                         ${touchup.completion_photos.map(photo => `
                             <div class="col-6">
@@ -398,34 +398,34 @@ document.addEventListener('DOMContentLoaded', function() {
             ${touchup.status === 'completed' ? `
                 <hr>
                 <div class="mb-3">
-                    <p class="mb-1"><strong>Estado de Aprobación:</strong></p>
+                    <p class="mb-1"><strong>Approval Status:</strong></p>
                     ${touchup.approval_status === 'approved' ? `
                         <div class="alert alert-success mb-0">
-                            <i class="bi bi-check-circle"></i> Aprobado
-                            ${touchup.reviewed_by ? ` por ${touchup.reviewed_by}` : ''}
-                            ${touchup.reviewed_at ? ` el ${new Date(touchup.reviewed_at).toLocaleDateString()}` : ''}
+                            <i class="bi bi-check-circle"></i> Approved
+                            ${touchup.reviewed_by ? ` by ${touchup.reviewed_by}` : ''}
+                            ${touchup.reviewed_at ? ` on ${new Date(touchup.reviewed_at).toLocaleDateString()}` : ''}
                         </div>
                     ` : touchup.approval_status === 'rejected' ? `
                         <div class="alert alert-danger mb-0">
-                            <i class="bi bi-x-circle"></i> Rechazado
-                            ${touchup.reviewed_by ? ` por ${touchup.reviewed_by}` : ''}
-                            ${touchup.reviewed_at ? ` el ${new Date(touchup.reviewed_at).toLocaleDateString()}` : ''}
+                            <i class="bi bi-x-circle"></i> Rejected
+                            ${touchup.reviewed_by ? ` by ${touchup.reviewed_by}` : ''}
+                            ${touchup.reviewed_at ? ` on ${new Date(touchup.reviewed_at).toLocaleDateString()}` : ''}
                             ${touchup.rejection_reason ? `
                                 <hr class="my-2">
-                                <strong>Razón:</strong> ${touchup.rejection_reason}
+                                <strong>Reason:</strong> ${touchup.rejection_reason}
                             ` : ''}
                         </div>
                     ` : `
                         <span class="badge bg-warning text-dark">
-                            <i class="bi bi-clock"></i> Pendiente de Revisión
+                            <i class="bi bi-clock"></i> Pending Review
                         </span>
                         ${touchup.can_approve ? `
                             <div class="mt-3">
                                 <button class="btn btn-success btn-sm me-2" onclick="approveTouchup(${touchup.id})">
-                                    <i class="bi bi-check-circle"></i> Aprobar
+                                    <i class="bi bi-check-circle"></i> Approve
                                 </button>
                                 <button class="btn btn-danger btn-sm" onclick="rejectTouchup(${touchup.id})">
-                                    <i class="bi bi-x-circle"></i> Rechazar
+                                    <i class="bi bi-x-circle"></i> Reject
                                 </button>
                             </div>
                         ` : ''}
@@ -469,7 +469,7 @@ function completeTouchup(touchupId) {
 }
 
 function deleteTouchup(touchupId) {
-    if (confirm('¿Eliminar este touch-up?')) {
+    if (confirm('Delete this touch-up?')) {
         fetch(`/touchups/${touchupId}/delete/`, {
             method: 'POST',
             headers: {
@@ -486,12 +486,12 @@ function deleteTouchup(touchupId) {
 }
 
 async function approveTouchup(touchupId) {
-    if (!confirm('¿Aprobar este touch-up?')) return;
+    if (!confirm('Approve this touch-up?')) return;
     
     // Show loading state
     const modalBody = document.getElementById('touchupModalBody');
     const originalContent = modalBody.innerHTML;
-    modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2">Aprobando...</p></div>';
+    modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2">Approving...</p></div>';
     
     try {
         const response = await fetch(`/touchups/${touchupId}/approve/`, {
@@ -509,22 +509,22 @@ async function approveTouchup(touchupId) {
             loadTouchupDetails(touchupId);
         } else {
             modalBody.innerHTML = originalContent;
-            alert('Error: ' + (data.error || 'No se pudo aprobar'));
+            alert('Error: ' + (data.error || 'Could not approve'));
         }
     } catch (error) {
         modalBody.innerHTML = originalContent;
-        alert('Error de conexión');
+        alert('Connection error');
     }
 }
 
 async function rejectTouchup(touchupId) {
-    const reason = prompt('Indica la razón del rechazo:');
+    const reason = prompt('Enter the reason for rejection:');
     if (!reason || reason.trim() === '') return;
     
     // Show loading state
     const modalBody = document.getElementById('touchupModalBody');
     const originalContent = modalBody.innerHTML;
-    modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-danger"></div><p class="mt-2">Rechazando...</p></div>';
+    modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-danger"></div><p class="mt-2">Rejecting...</p></div>';
     
     try {
         const response = await fetch(`/touchups/${touchupId}/reject/`, {
@@ -543,11 +543,11 @@ async function rejectTouchup(touchupId) {
             loadTouchupDetails(touchupId);
         } else {
             modalBody.innerHTML = originalContent;
-            alert('Error: ' + (data.error || 'No se pudo rechazar'));
+            alert('Error: ' + (data.error || 'Could not reject'));
         }
     } catch (error) {
         modalBody.innerHTML = originalContent;
-        alert('Error de conexión');
+        alert('Connection error');
     }
 }
 
@@ -597,7 +597,7 @@ document.getElementById('completeTouchupForm')?.addEventListener('submit', funct
     // Show loading
     const submitBtn = this.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Completando...';
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Completing...';
     submitBtn.disabled = true;
     
     fetch(`/touchups/${touchupId}/complete/`, {
@@ -618,7 +618,7 @@ document.getElementById('completeTouchupForm')?.addEventListener('submit', funct
         }
     })
     .catch(error => {
-        alert('Error completando touch-up');
+        alert('Error completing touch-up');
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     });
@@ -631,7 +631,7 @@ document.getElementById('completeTouchupForm')?.addEventListener('submit', funct
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="bi bi-check-circle"></i> Completar Touch-up
+                    <i class="bi bi-check-circle"></i> Complete Touch-up
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -642,14 +642,14 @@ document.getElementById('completeTouchupForm')?.addEventListener('submit', funct
                 <div class="modal-body">
                     <div class="alert alert-info">
                         <i class="bi bi-info-circle"></i>
-                        <strong>Importante:</strong> Debes subir al menos una foto mostrando el trabajo completado.
-                        Puedes anotar las fotos para resaltar áreas específicas.
+                        <strong>Important:</strong> You must upload at least one photo showing the completed work.
+                        You can annotate the photos to highlight specific areas.
                     </div>
                     
                     <!-- Photo Upload -->
                     <div class="mb-4">
                         <label class="form-label fw-bold">
-                            <i class="bi bi-camera"></i> Fotos de Finalización *
+                            <i class="bi bi-camera"></i> Completion Photos *
                         </label>
                         <input type="file" 
                                class="form-control" 
@@ -659,7 +659,7 @@ document.getElementById('completeTouchupForm')?.addEventListener('submit', funct
                                multiple 
                                required>
                         <div class="form-text">
-                            Selecciona una o más fotos. Puedes agregar anotaciones después.
+                            Select one or more photos. You can add annotations afterwards.
                         </div>
                     </div>
                     
@@ -674,31 +674,31 @@ document.getElementById('completeTouchupForm')?.addEventListener('submit', funct
                                 data-bs-toggle="modal"
                                 data-bs-target="#photoAnnotationModal"
                                 disabled>
-                            <i class="bi bi-pencil-square"></i> Anotar Fotos
+                            <i class="bi bi-pencil-square"></i> Annotate Photos
                         </button>
                         <div class="form-text">
-                            Opcional: Agrega flechas, círculos o texto a las fotos para resaltar detalles
+                            Optional: Add arrows, circles or text to highlight details
                         </div>
                     </div>
                     
                     <!-- Notes -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">
-                            <i class="bi bi-chat-text"></i> Notas de Finalización
+                            <i class="bi bi-chat-text"></i> Completion Notes
                         </label>
                         <textarea class="form-control" 
                                   name="notes" 
                                   rows="3"
-                                  placeholder="Describe el trabajo realizado, materiales usados, observaciones, etc..."></textarea>
+                                  placeholder="Describe the work done, materials used, observations, etc..."></textarea>
                     </div>
                 </div>
                 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Cancelar
+                        Cancel
                     </button>
                     <button type="submit" class="btn btn-success">
-                        <i class="bi bi-check-circle"></i> Marcar como Completado
+                        <i class="bi bi-check-circle"></i> Mark as Completed
                     </button>
                 </div>
             </form>
@@ -712,7 +712,7 @@ document.getElementById('completeTouchupForm')?.addEventListener('submit', funct
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="bi bi-pencil-square"></i> Anotar Fotos de Finalización
+                    <i class="bi bi-pencil-square"></i> Annotate Completion Photos
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -723,7 +723,7 @@ document.getElementById('completeTouchupForm')?.addEventListener('submit', funct
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
-                    <i class="bi bi-check"></i> Guardar Anotaciones
+                    <i class="bi bi-check"></i> Save Annotations
                 </button>
             </div>
         </div>
@@ -747,7 +747,7 @@ document.getElementById('annotatePhotosBtn')?.addEventListener('click', function
             const editorDiv = document.createElement('div');
             editorDiv.className = 'mb-5';
             editorDiv.innerHTML = `
-                <h5 class="mb-3">Foto ${index + 1}: ${file.name}</h5>
+                <h5 class="mb-3">Photo ${index + 1}: ${file.name}</h5>
                 <div class="card">
                     <div class="card-body">
                         <!-- Toolbar -->
@@ -756,19 +756,19 @@ document.getElementById('annotatePhotosBtn')?.addEventListener('click', function
                                 <div class="col-auto">
                                     <div class="btn-group btn-group-sm" role="group">
                                         <button type="button" class="btn btn-outline-primary tool-btn active" data-canvas="${canvasId}" data-tool="brush">
-                                            <i class="bi bi-brush"></i> Pincel
+                                            <i class="bi bi-brush"></i> Brush
                                         </button>
                                         <button type="button" class="btn btn-outline-primary tool-btn" data-canvas="${canvasId}" data-tool="arrow">
-                                            <i class="bi bi-arrow-up-right"></i> Flecha
+                                            <i class="bi bi-arrow-up-right"></i> Arrow
                                         </button>
                                         <button type="button" class="btn btn-outline-primary tool-btn" data-canvas="${canvasId}" data-tool="rectangle">
-                                            <i class="bi bi-square"></i> Rectángulo
+                                            <i class="bi bi-square"></i> Rectangle
                                         </button>
                                         <button type="button" class="btn btn-outline-primary tool-btn" data-canvas="${canvasId}" data-tool="circle">
-                                            <i class="bi bi-circle"></i> Círculo
+                                            <i class="bi bi-circle"></i> Circle
                                         </button>
                                         <button type="button" class="btn btn-outline-primary tool-btn" data-canvas="${canvasId}" data-tool="text">
-                                            <i class="bi bi-fonts"></i> Texto
+                                            <i class="bi bi-fonts"></i> Text
                                         </button>
                                     </div>
                                 </div>
@@ -781,10 +781,10 @@ document.getElementById('annotatePhotosBtn')?.addEventListener('click', function
                                 </div>
                                 <div class="col-auto ms-auto">
                                     <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.annotator${index}.undo()">
-                                        <i class="bi bi-arrow-counterclockwise"></i> Deshacer
+                                        <i class="bi bi-arrow-counterclockwise"></i> Undo
                                     </button>
                                     <button type="button" class="btn btn-outline-danger btn-sm" onclick="window.annotator${index}.clear()">
-                                        <i class="bi bi-trash"></i> Limpiar
+                                        <i class="bi bi-trash"></i> Clear
                                     </button>
                                 </div>
                             </div>

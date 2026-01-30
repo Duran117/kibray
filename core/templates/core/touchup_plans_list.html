@@ -2,7 +2,7 @@
 {% load static %}
 {% load core_extras %}
 
-{% block title %}Planos Touch-up - {{ project.name }}{% endblock %}
+{% block title %}Touch-up Plans - {{ project.name }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -13,19 +13,19 @@
                 <div>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{% url 'project_list' %}">Proyectos</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'project_list' %}">Projects</a></li>
                             <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
-                            <li class="breadcrumb-item active">Planos Touch-up</li>
+                            <li class="breadcrumb-item active">Touch-up Plans</li>
                         </ol>
                     </nav>
                     <h2 class="mb-0">
-                        <i class="bi bi-brush"></i> Planos Touch-up
+                        <i class="bi bi-brush"></i> Touch-up Plans
                     </h2>
-                    <p class="text-muted">Gestiona trabajos de touch-up asignados por plano</p>
+                    <p class="text-muted">Manage touch-up work assigned by floor plan</p>
                 </div>
                 <div>
                     <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Volver al Proyecto
+                        <i class="bi bi-arrow-left"></i> Back to Project
                     </a>
                 </div>
             </div>
@@ -44,7 +44,7 @@
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted mb-1">Total Planos</h6>
+                            <h6 class="text-muted mb-1">Total Plans</h6>
                             <h3 class="mb-0">{{ plans.count }}</h3>
                         </div>
                     </div>
@@ -61,7 +61,7 @@
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted mb-1">Touch-ups Activos</h6>
+                            <h6 class="text-muted mb-1">Active Touch-ups</h6>
                             <h3 class="mb-0">
                                 {% with active_count=plans|sum_attr:'active_touchups' %}
                                     {{ active_count|default:0 }}
@@ -82,7 +82,7 @@
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted mb-1">Completados Hoy</h6>
+                            <h6 class="text-muted mb-1">Completed Today</h6>
                             <h3 class="mb-0">0</h3>
                         </div>
                     </div>
@@ -99,7 +99,7 @@
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted mb-1">Empleados Asignados</h6>
+                            <h6 class="text-muted mb-1">Assigned Employees</h6>
                             <h3 class="mb-0">-</h3>
                         </div>
                     </div>
@@ -133,11 +133,11 @@
                             <!-- Level badge -->
                             <div class="position-absolute bottom-0 start-0 m-3">
                                 {% if plan.level == 0 %}
-                                    <span class="badge bg-primary">Nivel 0</span>
+                                    <span class="badge bg-primary">Level 0</span>
                                 {% elif plan.level > 0 %}
-                                    <span class="badge bg-success">Nivel +{{ plan.level }}</span>
+                                    <span class="badge bg-success">Level +{{ plan.level }}</span>
                                 {% else %}
-                                    <span class="badge bg-secondary">Nivel {{ plan.level }}</span>
+                                    <span class="badge bg-secondary">Level {{ plan.level }}</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -163,9 +163,9 @@
                                 </div>
                                 <div>
                                     {% if plan.active_touchups > 0 %}
-                                        <span class="badge bg-warning text-dark">Activos</span>
+                                        <span class="badge bg-warning text-dark">Active</span>
                                     {% else %}
-                                        <span class="badge bg-secondary">Sin activos</span>
+                                        <span class="badge bg-secondary">No active</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -182,10 +182,10 @@
                 <div class="card border-0 shadow-sm">
                     <div class="card-body text-center py-5">
                         <i class="bi bi-file-earmark-image text-muted" style="font-size: 4rem;"></i>
-                        <h4 class="mt-3">No hay planos disponibles</h4>
-                        <p class="text-muted">Primero debes subir planos de piso para poder crear touch-ups</p>
+                        <h4 class="mt-3">No plans available</h4>
+                        <p class="text-muted">First you must upload floor plans to create touch-ups</p>
                         <a href="{% url 'floor_plan_list' project.id %}" class="btn btn-primary mt-3">
-                            <i class="bi bi-plus-circle"></i> Ir a Planos de Piso
+                            <i class="bi bi-plus-circle"></i> Go to Floor Plans
                         </a>
                     </div>
                 </div>
