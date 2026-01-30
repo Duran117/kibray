@@ -2934,6 +2934,23 @@ def floor_plan_touchup_view(request, plan_id):
 
     pin_form = PlanPinForm()
 
+    # Get employees for task assignment
+    from core.models import UserProfile
+    employees = UserProfile.objects.filter(
+        role__in=["project_manager", "admin", "designer", "field_worker"]
+    ).select_related("user").order_by("user__first_name", "user__last_name")
+
+    # Get existing tasks for linking (unlinked tasks without a pin)
+    from core.models import Task
+    unlinked_tasks = Task.objects.filter(
+        project=plan.project,
+        plan_pin__isnull=True  # Only tasks without a pin location
+    ).order_by("-created_at")[:50]
+
+    # Separate touchup pins and task pins for the template
+    touchup_pins = [p for p in pins if p.pin_type == "touchup"]
+    task_pins = plan.pins.filter(pin_type="task").select_related("color_sample", "linked_task").all()
+
     return render(
         request,
         "core/floor_plan_touchup_view.html",
@@ -2941,11 +2958,15 @@ def floor_plan_touchup_view(request, plan_id):
             "plan": plan,
             "pins": pins,
             "pins_json": pins_json,
+            "touchup_pins": touchup_pins,
+            "task_pins": task_pins,
             "color_samples": color_samples,
             "project": plan.project,
             "can_edit_pins": can_edit_pins,
             "can_delete": can_delete,
             "form": pin_form,
+            "employees": employees,
+            "unlinked_tasks": unlinked_tasks,
         },
     )
 

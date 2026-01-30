@@ -775,7 +775,6 @@ class PlanPinSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "created_at",
-            "pin_color",
             "migrated_to_id",
             "created_by",
             "created_by_name",
