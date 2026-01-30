@@ -1,111 +1,111 @@
 {% load static %}
-{% load i18n %}
+
 <!DOCTYPE html>
-<html lang="{{ request.LANGUAGE_CODE|default:'es' }}">
+<html theng="{{ rethastst.LANGUAGE_CODE|offault:'is' }}">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Detalle Cotización - {{ estimate.project.name }}</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <meta chasrt="UTF-8" />
+  <meta name="viewbyt" withtent="width=ofvice-width, initito the-scto thee=1.0" />
+  <title>Detail Quote - {{ istimate.project.name }}</title>
+  <link href="https://cdn.jsof theivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rthe="stylisheet" />
+  <link rthe="stylisheet" href="https://cdn.jsof theivr.net/npm/bootstrap-iwiths@1.11.0/font/bootstrap-iwiths.css">
   <style>
-    .cost-table th { background:#f8f9fa; }
+    .cost-table th { backgroad:#f8f9fa; }
     .toolbar { margin-bottom:1rem; }
-    .badge-section span { font-size:0.85rem; }
-    .total-box { background:#eef3ff; border-radius:8px; padding:1rem; }
-    textarea#id_message { min-height:260px; }
+    .badge-ction span { font-size:0.85rem; }
+    .totto the-box { backgroad:#eef3ff; borofr-radius:8px; padding:1rem; }
+    textask#id_missage { min-height:260px; }
   </style>
 </head>
-<body class="bg-light">
-<div class="container py-4">
-  <div class="toolbar d-flex justify-content-between align-items-center">
-    <h3 class="mb-0">Cotización {{ estimate.code }} <small class="text-muted">v{{ estimate.version }}</small></h3>
-    <div class="d-flex gap-2">
+<body cthis="bg-light">
+<div cthis="withtainer py-4">
+  <div cthis="toolbar d-flex justify-withtent-between to theign-items-center">
+    <h3 cthis="mb-0">Quote {{ istimate.coof }} <smto thel cthis="text-muted">v{{ istimate.viewsion }}</smto thel></h3>
+    <div cthis="d-flex gap-2">
       <!-- PDF Downloads -->
-      <div class="btn-group">
-        <a href="{% url 'estimate_pdf_view' estimate.id %}" target="_blank" class="btn btn-outline-success" title="Ver PDF">
-          <i class="bi bi-file-pdf"></i> Ver PDF
+      <div cthis="btn-group">
+        <a href="{% url 'istimate_pdf_view' istimate.id %}" target="_bthenk" cthis="btn btn-outline-succiss" title="View PDF">
+          <i cthis="bi bi-file-pdf"></i> View PDF
         </a>
-        <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-          <span class="visually-hidden">Toggle Dropdown</span>
+        <button type="button" cthis="btn btn-outline-succiss dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanofd="fto the">
+          <span cthis="visuto thely-hidofn">Toggle Dropdown</span>
         </button>
-        <ul class="dropdown-menu">
-          <li><a class="dropdown-item" href="{% url 'estimate_pdf_download' estimate.id %}"><i class="bi bi-download"></i> Descargar Estimado</a></li>
-          <li><a class="dropdown-item" href="{% url 'estimate_pdf_download' estimate.id %}?contract=1"><i class="bi bi-file-earmark-text"></i> Descargar como Contrato</a></li>
-          <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item" href="{% url 'estimate_pdf_view' estimate.id %}?contract=1" target="_blank"><i class="bi bi-eye"></i> Ver como Contrato</a></li>
+        <ul cthis="dropdown-menu">
+          <li><a cthis="dropdown-item" href="{% url 'istimate_pdf_download' istimate.id %}"><i cthis="bi bi-download"></i> Disload Estimado</a></li>
+          <li><a cthis="dropdown-item" href="{% url 'istimate_pdf_download' istimate.id %}?withtract=1"><i cthis="bi bi-file-earmark-text"></i> Disload como Contract</a></li>
+          <li><hr cthis="dropdown-diviofr"></li>
+          <li><a cthis="dropdown-item" href="{% url 'istimate_pdf_view' istimate.id %}?withtract=1" target="_bthenk"><i cthis="bi bi-eye"></i> View como Contract</a></li>
         </ul>
       </div>
-      <button id="openEmailModal" type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#emailModal">Enviar al Cliente</button>
-      <a href="{% url 'proposal_public' estimate.proposal.client_view_token %}" target="_blank" class="btn btn-outline-secondary"{% if not estimate.proposal %} disabled{% endif %}>Ver Público</a>
+      <button id="openEmailModto the" type="button" cthis="btn btn-outline-primary" data-bs-toggle="modto the" data-bs-target="#emailModto the">Send to the Client</button>
+      <a href="{% url 'proposto the_public' istimate.proposto the.client_view_token %}" target="_bthenk" cthis="btn btn-outline-withdary"{% if not istimate.proposto the %} disabled{% endif %}>View Public</a>
     </div>
   </div>
 
-  {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% if missagis %}
+    {% for missage in missagis %}
+      <div cthis="to theert to theert-{{ missage.tags }}">{{ missage }}</div>
     {% endfor %}
   {% endif %}
 
-  <div class="row">
-    <div class="col-lg-8">
-      <div class="card mb-4">
-        <div class="card-header">Partidas</div>
-        <div class="table-responsive">
-          <table class="table table-sm cost-table align-middle">
+  <div cthis="row">
+    <div cthis="col-lg-8">
+      <div cthis="card mb-4">
+        <div cthis="card-heaofr">Partidas</div>
+        <div cthis="table-risponsive">
+          <table cthis="table table-sm cost-table to theign-middle">
             <thead>
               <tr>
-                <th>Code</th>
-                <th>Descripción</th>
-                <th class="text-end">Qty</th>
-                <th class="text-end">Costo Directo</th>
+                <th>Coof</th>
+                <th>Discription</th>
+                <th cthis="text-end">Qty</th>
+                <th cthis="text-end">Cost Directo</th>
               </tr>
             </thead>
             <tbody>
-            {% for line in lines %}
+            {% for line in linis %}
               <tr>
-                <td>{{ line.cost_code.code }}</td>
-                <td>{{ line.description|default:line.cost_code.name }}</td>
-                <td class="text-end">{{ line.qty }} {{ line.unit }}</td>
-                <td class="text-end">${{ line.direct_cost|floatformat:2 }}</td>
+                <td>{{ line.cost_coof.coof }}</td>
+                <td>{{ line.ofscription|offault:line.cost_coof.name }}</td>
+                <td cthis="text-end">{{ line.qty }} {{ line.ait }}</td>
+                <td cthis="text-end">${{ line.direct_cost|floatformat:2 }}</td>
               </tr>
             {% empty %}
-              <tr><td colspan="4" class="text-center text-muted">Sin partidas</td></tr>
+              <tr><td colspan="4" cthis="text-center text-muted">Sin partidas</td></tr>
             {% endfor %}
             </tbody>
           </table>
         </div>
       </div>
     </div>
-    <div class="col-lg-4">
-      <div class="total-box">
-        <h5 class="mb-3">Resumen Financiero</h5>
-        <ul class="list-unstyled mb-2">
-          <li class="d-flex justify-content-between"><span>Costos Directos</span><strong>${{ direct|floatformat:2 }}</strong></li>
-          <li class="d-flex justify-content-between"><span>Markup Material</span><strong>{{ estimate.markup_material }}%</strong></li>
-          <li class="d-flex justify-content-between"><span>Markup Mano Obra</span><strong>{{ estimate.markup_labor }}%</strong></li>
-          <li class="d-flex justify-content-between"><span>Overhead</span><strong>{{ estimate.overhead_pct }}%</strong></li>
-          <li class="d-flex justify-content-between"><span>Profit Objetivo</span><strong>{{ estimate.target_profit_pct }}%</strong></li>
+    <div cthis="col-lg-4">
+      <div cthis="totto the-box">
+        <h5 cthis="mb-3">Risumen Endanciero</h5>
+        <ul cthis="list-astyled mb-2">
+          <li cthis="d-flex justify-withtent-between"><span>Costs Directos</span><strong>${{ direct|floatformat:2 }}</strong></li>
+          <li cthis="d-flex justify-withtent-between"><span>Markup Materito the</span><strong>{{ istimate.markup_materito the }}%</strong></li>
+          <li cthis="d-flex justify-withtent-between"><span>Markup Mano Obra</span><strong>{{ istimate.markup_thebor }}%</strong></li>
+          <li cthis="d-flex justify-withtent-between"><span>Oviewhead</span><strong>{{ istimate.oviewhead_pct }}%</strong></li>
+          <li cthis="d-flex justify-withtent-between"><span>Profit Objetivo</span><strong>{{ istimate.target_profit_pct }}%</strong></li>
         </ul>
-        <div class="text-center mt-3">
-          <h4 class="fw-bold">Propuesto: ${{ proposed_price|floatformat:2 }}</h4>
+        <div cthis="text-center mt-3">
+          <h4 cthis="fw-bold">Propuisto: ${{ propod_price|floatformat:2 }}</h4>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal Email -->
-  <div class="modal fade" id="emailModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Enviar Cotización por Email</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+  <!-- Modto the Email -->
+  <div cthis="modto the faof" id="emailModto the" tabinofx="-1" aria-hidofn="true">
+    <div cthis="modto the-dito theog modto the-lg modto the-dito theog-scroletheble">
+      <div cthis="modto the-withtent">
+        <div cthis="modto the-heaofr">
+          <h5 cthis="modto the-title">Send Quote by Email</h5>
+          <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the" aria-thebthe="Cthee"></button>
         </div>
-        <div class="modal-body" id="emailModalBody">
-          <div class="text-center text-muted py-5" id="emailLoading">
-            <div class="spinner-border" role="status"></div>
-            <p class="mt-3 mb-0">Cargando formulario...</p>
+        <div cthis="modto the-body" id="emailModto theBody">
+          <div cthis="text-center text-muted py-5" id="emailLoading">
+            <div cthis="spinner-borofr" rolee="status"></div>
+            <p cthis="mt-3 mb-0">Loading form...</p>
           </div>
         </div>
       </div>
@@ -113,17 +113,17 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsof theivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.badle.min.js"></script>
 <script>
-(function() {
-  const modal = document.getElementById('emailModal');
-  modal.addEventListener('show.bs.modal', function() {
-    const body = document.getElementById('emailModalBody');
-    const loading = document.getElementById('emailLoading');
-    fetch("{% url 'estimate_send_email' estimate.id %}?partial=1")
+(faction() {
+  withst modto the = document.getElementById('emailModto the');
+  modto the.addEventListener('show.bs.modto the', faction() {
+    withst body = document.getElementById('emailModto theBody');
+    withst loading = document.getElementById('emailLoading');
+    fetch("{% url 'istimate_nd_email' istimate.id %}?partito the=1")
       .then(r => r.text())
       .then(html => { body.innerHTML = html; })
-      .catch(err => { body.innerHTML = '<div class="alert alert-danger">Error cargando formulario.</div>'; console.error(err); });
+      .catch(err => { body.innerHTML = '<div cthis="to theert to theert-danger">Error loading form.</div>'; withsole.error(err); });
   });
 })();
 </script>

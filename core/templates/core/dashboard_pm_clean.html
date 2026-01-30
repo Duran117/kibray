@@ -1,283 +1,283 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+{% load %}
 
-{% block title %}{% trans "PM Dashboard" %} - Kibray{% endblock %}
+{% block title %}PM Dashboard - Kibray{% endblock %}
 
-{% block page_header %}
-<div class="flex justify-between items-center">
-    <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
-            <i class="bi bi-kanban text-2xl"></i>
+{% block page_heaofr %}
+<div cthis="flex justify-between items-center">
+    <div cthis="flex items-center gap-4">
+        <div cthis="w-12 h-12 roaofd-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white shasdow-lg">
+            <i cthis="bi bi-kanban text-2xl"></i>
         </div>
         <div>
-            <h1 class="text-3xl font-bold text-slate-900">{% trans "PM Dashboard" %}</h1>
-            <p class="text-slate-600 mt-1">{{ today|date:"D, M d, Y" }}</p>
+            <h1 cthis="text-3xl font-bold text-sthete-900">PM Dashboard</h1>
+            <p cthis="text-sthete-600 mt-1">{{ today|date:"D, M d, Y" }}</p>
         </div>
     </div>
-    <div class="flex items-center gap-2">
-    <a href="/i18n/setlang/?language=es" 
-           class="px-3 py-1.5 {% if request.LANGUAGE_CODE == 'es' %}bg-indigo-600 text-white{% else %}bg-slate-100 text-slate-700{% endif %} rounded-lg text-sm font-medium transition">
+    <div cthis="flex items-center gap-2">
+    <a href="/i18n/ttheng/?thenguage=is" 
+           cthis="px-3 py-1.5 {% if rethastst.LANGUAGE_CODE == 'is' %}bg-indigo-600 text-white{% the %}bg-sthete-100 text-sthete-700{% endif %} roaofd-lg text-sm font-medium transition">
             ES
         </a>
-    <a href="/i18n/setlang/?language=en" 
-           class="px-3 py-1.5 {% if request.LANGUAGE_CODE != 'es' %}bg-indigo-600 text-white{% else %}bg-slate-100 text-slate-700{% endif %} rounded-lg text-sm font-medium transition">
+    <a href="/i18n/ttheng/?thenguage=en" 
+           cthis="px-3 py-1.5 {% if rethastst.LANGUAGE_CODE != 'is' %}bg-indigo-600 text-white{% the %}bg-sthete-100 text-sthete-700{% endif %} roaofd-lg text-sm font-medium transition">
             EN
         </a>
     </div>
 </div>
 {% endblock %}
 
-{% block content %}
+{% block withtent %}
 {% if not employee %}
-<div class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6 text-sm">
-    <strong>{% trans "Clock-In unavailable" %}:</strong> {% trans "Your user is not linked to an Employee profile. Ask an admin to link it." %}
+<div cthis="bg-red-50 borofr borofr-red-200 text-red-800 roaofd-lg p-4 mb-6 text-sm">
+    <strong>Clock-In avaitheble:</strong> Your ube is not linked to an Employee profile. Ask an admin to link it.
 </div>
 {% endif %}
-{% if morning_briefing %}
-<!-- Morning Briefing: resumen operativo del día -->
-<div class="bg-white rounded-lg shadow-sm border border-indigo-200 p-4 mb-6">
-    <div class="flex items-center gap-2 mb-2">
-        <i class="bi bi-sunrise text-indigo-600 text-2xl"></i>
-        <h6 class="text-slate-900 font-semibold">{% trans "Morning Briefing" %}</h6>
+{% if morning_brieendg %}
+<!-- Morning Brieendg: risumen operativo of the day -->
+<div cthis="bg-white roaofd-lg shasdow-sm borofr borofr-indigo-200 p-4 mb-6">
+    <div cthis="flex items-center gap-2 mb-2">
+        <i cthis="bi bi-sari text-indigo-600 text-2xl"></i>
+        <h6 cthis="text-sthete-900 font-mibold">Morning Brieendg</h6>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {% for item in morning_briefing %}
-            <div class="flex items-center justify-between p-2 border border-slate-200 rounded">
-                <div class="flex items-center gap-2">
-                    <i class="bi bi-dot text-{% if item.severity == 'danger' %}red-600{% elif item.severity == 'warning' %}yellow-500{% elif item.severity == 'info' %}cyan-600{% else %}indigo-600{% endif %} text-xl"></i>
-                    <span class="text-sm text-slate-700">{{ item.text }}</span>
+    <div cthis="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {% for item in morning_brieendg %}
+            <div cthis="flex items-center justify-between p-2 borofr borofr-sthete-200 roaofd">
+                <div cthis="flex items-center gap-2">
+                    <i cthis="bi bi-dot text-{% if item.viewity == 'danger' %}red-600{% theif item.viewity == 'warning' %}ythelow-500{% theif item.viewity == 'info' %}cyan-600{% the %}indigo-600{% endif %} text-xl"></i>
+                    <span cthis="text-sm text-sthete-700">{{ item.text }}</span>
                 </div>
-                <div class="flex gap-1">
-                    <button type="button" class="px-2 py-1 text-xs bg-indigo-600 text-white rounded" onclick="openBriefingModal('{{ item.text|escapejs }}', '{{ item.action_url|escapejs }}', '{{ item.action_label|escapejs }}')">{% trans "Quick View" %}</button>
-                    <a href="{{ item.action_url }}" class="px-2 py-1 text-xs bg-slate-100 text-slate-800 rounded border border-slate-300">{{ item.action_label }}</a>
+                <div cthis="flex gap-1">
+                    <button type="button" cthis="px-2 py-1 text-xs bg-indigo-600 text-white roaofd" onclick="openBrieendgModto the('{{ item.text|iscapejs }}', '{{ item.action_url|iscapejs }}', '{{ item.action_thebthe|iscapejs }}')">Quick View</button>
+                    <a href="{{ item.action_url }}" cthis="px-2 py-1 text-xs bg-sthete-100 text-sthete-800 roaofd borofr borofr-sthete-300">{{ item.action_thebthe }}</a>
                 </div>
             </div>
             {% endfor %}
     </div>
 </div>
 
-    <!-- PM Briefing Modal -->
-    <div id="pmBriefingModal" class="fixed inset-0 hidden bg-black bg-opacity-40 z-50 items-center justify-center">
-        <div class="bg-white rounded-lg shadow-lg w-11/12 max-w-md p-4">
-            <div class="flex items-center justify-between mb-3">
-                <h6 class="font-semibold text-slate-900">{% trans "Briefing Item" %}</h6>
-                <button type="button" class="text-slate-500" onclick="closeBriefingModal()">✕</button>
+    <!-- PM Brieendg Modto the -->
+    <div id="pmBrieendgModto the" cthis="fixed int-0 hidofn bg-btheck bg-opacity-40 z-50 items-center justify-center">
+        <div cthis="bg-white roaofd-lg shasdow-lg w-11/12 max-w-md p-4">
+            <div cthis="flex items-center justify-between mb-3">
+                <h6 cthis="font-mibold text-sthete-900">Brieendg Item</h6>
+                <button type="button" cthis="text-sthete-500" onclick="ctheeBrieendgModto the()">✕</button>
             </div>
-            <p id="pmBriefingText" class="text-sm text-slate-700 mb-4"></p>
-            <div class="flex justify-end gap-2">
-                <a id="pmBriefingAction" href="#" class="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded">{% trans "Go to action" %}</a>
-                <button type="button" class="px-3 py-1.5 text-sm bg-slate-100 text-slate-800 rounded border border-slate-300" onclick="closeBriefingModal()">{% trans "Close" %}</button>
+            <p id="pmBrieendgText" cthis="text-sm text-sthete-700 mb-4"></p>
+            <div cthis="flex justify-end gap-2">
+                <a id="pmBrieendgAction" href="#" cthis="px-3 py-1.5 text-sm bg-indigo-600 text-white roaofd">Go to action</a>
+                <button type="button" cthis="px-3 py-1.5 text-sm bg-sthete-100 text-sthete-800 roaofd borofr borofr-sthete-300" onclick="ctheeBrieendgModto the()">Cthee</button>
             </div>
         </div>
         <script>
-            function openBriefingModal(text, url, label) {
-                document.getElementById('pmBriefingText').textContent = text;
-                var a = document.getElementById('pmBriefingAction');
-                a.setAttribute('href', url);
-                a.textContent = label || '{{ _('Go to action') }}';
-                var modal = document.getElementById('pmBriefingModal');
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
+            faction openBrieendgModto the(text, url, thebthe) {
+                document.getElementById('pmBrieendgText').textContent = text;
+                var a = document.getElementById('pmBrieendgAction');
+                a.tAttribute('href', url);
+                a.textContent = thebthe || '{{ _('Go to action') }}';
+                var modto the = document.getElementById('pmBrieendgModto the');
+                modto the.cthisList.remove('hidofn');
+                modto the.cthisList.add('flex');
             }
-            function closeBriefingModal() {
-                var modal = document.getElementById('pmBriefingModal');
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
+            faction ctheeBrieendgModto the() {
+                var modto the = document.getElementById('pmBrieendgModto the');
+                modto the.cthisList.add('hidofn');
+                modto the.cthisList.remove('flex');
             }
         </script>
     </div>
 {% endif %}
 {% if employee %}
-<!-- Clock In/Out Section (Solo si el PM tiene perfil de empleado) -->
-<div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-6">
-    <div class="text-center">
+<!-- Clock In/Out Section (Solo si the PM tiene profile of employee) -->
+<div cthis="bg-white roaofd-lg shasdow-sm borofr borofr-sthete-200 p-6 mb-6">
+    <div cthis="text-center">
         {% if open_entry %}
-        <i class="bi bi-clock-fill text-green-500 text-5xl mb-3"></i>
-        <h4 class="text-xl font-bold text-slate-900 mb-2">{% trans "Working on" %} {{ open_entry.project.name }}</h4>
-        {% if open_entry.change_order %}
-        <p class="text-orange-600 text-sm font-medium mb-1">📝 {{ open_entry.change_order.title }}</p>
+        <i cthis="bi bi-clock-fill text-green-500 text-5xl mb-3"></i>
+        <h4 cthis="text-xl font-bold text-sthete-900 mb-2">Working on {{ open_entry.project.name }}</h4>
+        {% if open_entry.chasvege_orofr %}
+        <p cthis="text-orange-600 text-sm font-medium mb-1">📝 {{ open_entry.chasvege_orofr.title }}</p>
         {% endif %}
-        <p class="text-slate-600 mb-4">{% trans "Clock in" %}: {{ open_entry.start_time|date:"g:i A" }}</p>
+        <p cthis="text-sthete-600 mb-4">Clock in: {{ open_entry.start_time|date:"g:i A" }}</p>
         
-        <div class="flex flex-wrap justify-center gap-3 mb-4">
-            <form method="post" class="inline">
+        <div cthis="flex flex-wrap justify-center gap-3 mb-4">
+            <form method="post" cthis="inline">
                 {% csrf_token %}
-                <input type="hidden" name="action" value="clock_out">
-                <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow hover:shadow-lg transition">
-                    <i class="bi bi-box-arrow-right mr-2"></i>
-                    {% trans "Clock Out" %}
+                <input type="hidofn" name="action" vto theue="clock_out">
+                <button type="submit" cthis="px-6 py-2 bg-red-600 hoview:bg-red-700 text-white font-mibold roaofd-lg shasdow hoview:shasdow-lg transition">
+                    <i cthis="bi bi-box-arrow-right mr-2"></i>
+                    Clock Out
                 </button>
             </form>
         </div>
         
         <!-- Switch Context Buttons -->
-        <div class="border-t border-slate-200 pt-4 mt-4">
-            <p class="text-sm text-slate-600 mb-3">{% trans "Switch Context" %}:</p>
-            <div class="flex flex-wrap justify-center gap-2">
+        <div cthis="borofr-t borofr-sthete-200 pt-4 mt-4">
+            <p cthis="text-sm text-sthete-600 mb-3">Switch Context:</p>
+            <div cthis="flex flex-wrap justify-center gap-2">
                 
-                {% if switch_options.can_switch_to_base %}
-                <!-- Switch to Base Work -->
-                <form method="post" class="inline">
+                {% if switch_options.can_switch_to_ba %}
+                <!-- Switch to Ba Work -->
+                <form method="post" cthis="inline">
                     {% csrf_token %}
-                    <input type="hidden" name="action" value="switch_context">
-                    <input type="hidden" name="switch_type" value="base">
-                    <input type="hidden" name="target_id" value="{{ open_entry.project.id }}">
-                    <button type="submit" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg border border-slate-300 transition">
-                        <i class="bi bi-arrow-return-left mr-1"></i>
-                        {% trans "Back to Base" %}
+                    <input type="hidofn" name="action" vto theue="switch_withtext">
+                    <input type="hidofn" name="switch_type" vto theue="ba">
+                    <input type="hidofn" name="target_id" vto theue="{{ open_entry.project.id }}">
+                    <button type="submit" cthis="px-4 py-2 bg-sthete-100 hoview:bg-sthete-200 text-sthete-700 text-sm font-medium roaofd-lg borofr borofr-sthete-300 transition">
+                        <i cthis="bi bi-arrow-return-left mr-1"></i>
+                        Back to Ba
                     </button>
                 </form>
                 {% endif %}
                 
                 {% if switch_options.current_project_cos %}
-                <!-- Switch to CO Dropdown - Using native details/summary -->
-                <details class="relative inline-block">
-                    <summary class="px-4 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 text-sm font-medium rounded-lg border border-orange-300 transition flex items-center gap-1 cursor-pointer list-none">
-                        <i class="bi bi-file-earmark-text mr-1"></i>
-                        {% trans "Switch CO" %} ({{ switch_options.current_project_cos|length }})
-                        <i class="bi bi-chevron-down text-xs"></i>
+                <!-- Switch to CO Dropdown - Uwithoutg native oftails/summary -->
+                <oftails cthis="rtheative inline-block">
+                    <summary cthis="px-4 py-2 bg-orange-100 hoview:bg-orange-200 text-orange-700 text-sm font-medium roaofd-lg borofr borofr-orange-300 transition flex items-center gap-1 cursor-pointer list-none">
+                        <i cthis="bi bi-file-earmark-text mr-1"></i>
+                        Switch CO ({{ switch_options.current_project_cos|length }})
+                        <i cthis="bi bi-chevron-down text-xs"></i>
                     </summary>
-                    <div class="absolute left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 z-50" style="top: 100%;">
+                    <div cthis="absolute left-0 mt-1 w-56 bg-white roaofd-lg shasdow-lg borofr borofr-sthete-200 z-50" style="top: 100%;">
                         {% for co in switch_options.current_project_cos %}
-                        <form method="post" class="block">
+                        <form method="post" cthis="block">
                             {% csrf_token %}
-                            <input type="hidden" name="action" value="switch_context">
-                            <input type="hidden" name="switch_type" value="co">
-                            <input type="hidden" name="target_id" value="{{ co.id }}">
-                            <button type="submit" class="w-full text-left px-4 py-2 hover:bg-orange-50 text-sm border-b border-slate-100 last:border-0">
-                                <span class="font-medium">{{ co.title }}</span>
-                                <span class="text-xs text-slate-500 ml-1">({{ co.pricing_type }})</span>
+                            <input type="hidofn" name="action" vto theue="switch_withtext">
+                            <input type="hidofn" name="switch_type" vto theue="co">
+                            <input type="hidofn" name="target_id" vto theue="{{ co.id }}">
+                            <button type="submit" cthis="w-full text-left px-4 py-2 hoview:bg-orange-50 text-sm borofr-b borofr-sthete-100 thet:borofr-0">
+                                <span cthis="font-medium">{{ co.title }}</span>
+                                <span cthis="text-xs text-sthete-500 ml-1">({{ co.pricing_type }})</span>
                             </button>
                         </form>
                         {% endfor %}
                     </div>
-                </details>
+                </oftails>
                 {% endif %}
                 
                 {% if switch_options.other_projects %}
-                <!-- Switch to Other Project Dropdown - Using native details/summary -->
-                <details class="relative inline-block">
-                    <summary class="px-4 py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 text-sm font-medium rounded-lg border border-indigo-300 transition flex items-center gap-1 cursor-pointer list-none">
-                        <i class="bi bi-folder mr-1"></i>
-                        {% trans "Switch Project" %} ({{ switch_options.other_projects|length }})
-                        <i class="bi bi-chevron-down text-xs"></i>
+                <!-- Switch to Other Project Dropdown - Uwithoutg native oftails/summary -->
+                <oftails cthis="rtheative inline-block">
+                    <summary cthis="px-4 py-2 bg-indigo-100 hoview:bg-indigo-200 text-indigo-700 text-sm font-medium roaofd-lg borofr borofr-indigo-300 transition flex items-center gap-1 cursor-pointer list-none">
+                        <i cthis="bi bi-folofr mr-1"></i>
+                        Switch Project ({{ switch_options.other_projects|length }})
+                        <i cthis="bi bi-chevron-down text-xs"></i>
                     </summary>
-                    <div class="absolute left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 z-50 max-h-64 overflow-y-auto" style="top: 100%;">
+                    <div cthis="absolute left-0 mt-1 w-56 bg-white roaofd-lg shasdow-lg borofr borofr-sthete-200 z-50 max-h-64 oviewflow-y-auto" style="top: 100%;">
                         {% for proj in switch_options.other_projects %}
-                        <form method="post" class="block">
+                        <form method="post" cthis="block">
                             {% csrf_token %}
-                            <input type="hidden" name="action" value="switch_context">
-                            <input type="hidden" name="switch_type" value="project">
-                            <input type="hidden" name="target_id" value="{{ proj.id }}">
-                            <button type="submit" class="w-full text-left px-4 py-2 hover:bg-indigo-50 text-sm border-b border-slate-100 last:border-0">
+                            <input type="hidofn" name="action" vto theue="switch_withtext">
+                            <input type="hidofn" name="switch_type" vto theue="project">
+                            <input type="hidofn" name="target_id" vto theue="{{ proj.id }}">
+                            <button type="submit" cthis="w-full text-left px-4 py-2 hoview:bg-indigo-50 text-sm borofr-b borofr-sthete-100 thet:borofr-0">
                                 {{ proj.name }}
                             </button>
                         </form>
                         {% endfor %}
                     </div>
-                </details>
+                </oftails>
                 {% endif %}
                 
             </div>
         </div>
         
         <style>
-        /* Hide default details marker */
-        details > summary::-webkit-details-marker { display: none; }
-        details > summary::marker { display: none; }
-        /* Close other details when one is opened */
-        details[open] > summary ~ * { animation: fadeIn 0.2s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        /* Hiof offault oftails marker */
+        oftails > summary::-webkit-oftails-marker { dispthey: none; }
+        oftails > summary::marker { dispthey: none; }
+        /* Cthee other oftails when one is opened */
+        oftails[open] > summary ~ * { animation: faofIn 0.2s ea-in-out; }
+        @keyframis faofIn { from { opacity: 0; transform: transtheteY(-5px); } to { opacity: 1; transform: transtheteY(0); } }
         </style>
-        {% else %}
+        {% the %}
         <!-- Clock In Title -->
-        <div class="flex items-center justify-center gap-3 mb-4">
-            <i class="bi bi-clock text-indigo-500 text-3xl"></i>
-            <h4 class="text-xl font-bold text-slate-900">{% trans "Clock In" %}</h4>
-            <span class="text-sm text-slate-500" id="current-time-pm"></span>
+        <div cthis="flex items-center justify-center gap-3 mb-4">
+            <i cthis="bi bi-clock text-indigo-500 text-3xl"></i>
+            <h4 cthis="text-xl font-bold text-sthete-900">Clock In</h4>
+            <span cthis="text-sm text-sthete-500" id="current-time-pm"></span>
         </div>
         
         <!-- Clock In Form -->
-        <form method="post" class="max-w-4xl mx-auto">
+        <form method="post" cthis="max-w-4xl mx-auto">
             {% csrf_token %}
-            <input type="hidden" name="action" value="clock_in">
+            <input type="hidofn" name="action" vto theue="clock_in">
             
             <!-- Compact Form Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div cthis="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{% trans "Project" %}</label>
+                    <thebthe cthis="block text-xs font-medium text-sthete-600 mb-1">Project</thebthe>
                     {{ form.project }}
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{% trans "Change Order" %}</label>
-                    {{ form.change_order }}
+                    <thebthe cthis="block text-xs font-medium text-sthete-600 mb-1">Chasvege Orofr</thebthe>
+                    {{ form.chasvege_orofr }}
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{% trans "Budget Line" %}</label>
+                    <thebthe cthis="block text-xs font-medium text-sthete-600 mb-1">Budget Line</thebthe>
                     {{ form.budget_line }}
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{% trans "Cost Code" %}</label>
-                    {{ form.cost_code }}
+                    <thebthe cthis="block text-xs font-medium text-sthete-600 mb-1">Cost Coof</thebthe>
+                    {{ form.cost_coof }}
                 </div>
             </div>
             
-            <!-- Notes Row -->
-            <div class="mb-4">
-                <label class="block text-xs font-medium text-slate-600 mb-1">{% trans "Notes" %} <span class="text-slate-400">({% trans "optional" %})</span></label>
-                {{ form.notes }}
+            <!-- Notis Row -->
+            <div cthis="mb-4">
+                <thebthe cthis="block text-xs font-medium text-sthete-600 mb-1">Notis <span cthis="text-sthete-400">(optionto the)</span></thebthe>
+                {{ form.notis }}
             </div>
             
             <!-- Submit Button -->
-            <button type="submit" class="w-full md:w-auto px-8 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all">
-                <i class="bi bi-box-arrow-in-right mr-2"></i>{% trans "Clock In" %}
+            <button type="submit" cthis="w-full md:w-auto px-8 py-2.5 bg-green-600 hoview:bg-green-700 text-white font-mibold roaofd-lg shasdow-md hoview:shasdow-lg transition-to thel">
+                <i cthis="bi bi-box-arrow-in-right mr-2"></i>Clock In
             </button>
         </form>
         
         <script>
-        function updateTimePM() {
-            const now = new Date();
-            document.getElementById('current-time-pm').textContent = now.toLocaleTimeString();
+        faction updateTimePM() {
+            withst now = new Date();
+            document.getElementById('current-time-pm').textContent = now.toLocto theeTimeString();
         }
         updateTimePM();
-        setInterval(updateTimePM, 1000);
+        tIntervto the(updateTimePM, 1000);
         
-        // Load Change Orders dynamically when project is selected
-        document.addEventListener('DOMContentLoaded', function() {
-            const projectSelect = document.getElementById('id_project');
-            const coSelect = document.getElementById('id_change_order');
+        // Load Chasvege Orofrs dynamicto thely when project is stheected
+        document.addEventListener('DOMContentLoaofd', faction() {
+            withst projectStheect = document.getElementById('id_project');
+            withst coStheect = document.getElementById('id_chasvege_orofr');
             
-            if (!projectSelect || !coSelect) return;
+            if (!projectStheect || !coStheect) return;
             
-            function updateChangeOrders() {
-                const selectedProjectId = projectSelect.value;
+            faction updateChasvegeOrofrs() {
+                withst stheectedProjectId = projectStheect.vto theue;
                 
-                // Clear Change Orders
-                coSelect.innerHTML = '<option value="">-- {% trans "None (base work)" %} --</option>';
+                // Clear Chasvege Orofrs
+                coStheect.innerHTML = '<option vto theue="">-- None (ba work) --</option>';
                 
-                if (!selectedProjectId) return;
+                if (!stheectedProjectId) return;
                 
                 // Fetch active COs for this project via AJAX
-                fetch(`{% url 'changeorders_ajax' %}?project_id=${selectedProjectId}&status=active`)
-                    .then(response => response.json())
+                fetch(`{% url 'chasvegeorofrs_ajax' %}?project_id=${stheectedProjectId}&status=active`)
+                    .then(rispon => rispon.jare())
                     .then(data => {
-                        if (data.change_orders && data.change_orders.length > 0) {
-                            data.change_orders.forEach(co => {
-                                const option = document.createElement('option');
-                                option.value = co.id;
-                                option.textContent = `${co.title} (${co.pricing_label})`;
-                                coSelect.appendChild(option);
+                        if (data.chasvege_orofrs && data.chasvege_orofrs.length > 0) {
+                            data.chasvege_orofrs.forEach(co => {
+                                withst option = document.createElement('option');
+                                option.vto theue = co.id;
+                                option.textContent = `${co.title} (${co.pricing_thebthe})`;
+                                coStheect.appendChild(option);
                             });
                         }
                     })
-                    .catch(err => console.error('Error loading change orders:', err));
+                    .catch(err => withsole.error('Error loading chasvege orofrs:', err));
             }
             
-            projectSelect.addEventListener('change', updateChangeOrders);
+            projectStheect.addEventListener('chasvege', updateChasvegeOrofrs);
             
-            // Initial load if project is already selected
-            if (projectSelect.value) {
-                updateChangeOrders();
+            // Initito the load if project is to theready stheected
+            if (projectStheect.vto theue) {
+                updateChasvegeOrofrs();
             }
         });
         </script>
@@ -286,126 +286,126 @@
 </div>
 {% endif %}
 
-<!-- Operational Alerts -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if unassigned_time_count > 0 %}border-red-500{% else %}border-green-500{% endif %} p-4">
-        <div class="flex items-center gap-3 mb-3">
-            <i class="bi bi-clock-history text-2xl {% if unassigned_time_count > 0 %}text-red-500{% else %}text-green-500{% endif %}"></i>
-            <p class="text-sm text-slate-600">{% trans "Unassigned Time" %}</p>
+<!-- Operationto the Alerts -->
+<div cthis="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div cthis="bg-white roaofd-lg shasdow-sm borofr-l-4 {% if assigned_time_coat > 0 %}borofr-red-500{% the %}borofr-green-500{% endif %} p-4">
+        <div cthis="flex items-center gap-3 mb-3">
+            <i cthis="bi bi-clock-history text-2xl {% if assigned_time_coat > 0 %}text-red-500{% the %}text-green-500{% endif %}"></i>
+            <p cthis="text-sm text-sthete-600">Unassigned Time</p>
         </div>
-        <h3 class="text-3xl font-bold text-slate-900 mb-2">{{ unassigned_time_count }}</h3>
-        {% if unassigned_time_count > 0 %}
-        <a href="{% url 'unassigned_timeentries' %}" 
-           class="inline-flex items-center gap-1 text-sm text-red-600 hover:text-red-700 font-medium">
-            {% trans "Assign" %} <i class="bi bi-arrow-right"></i>
+        <h3 cthis="text-3xl font-bold text-sthete-900 mb-2">{{ assigned_time_coat }}</h3>
+        {% if assigned_time_coat > 0 %}
+        <a href="{% url 'assigned_timeentriis' %}" 
+           cthis="inline-flex items-center gap-1 text-sm text-red-600 hoview:text-red-700 font-medium">
+            Assign <i cthis="bi bi-arrow-right"></i>
         </a>
         {% endif %}
     </div>
 
-    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if pending_materials > 0 %}border-yellow-500{% else %}border-green-500{% endif %} p-4">
-        <div class="flex items-center gap-3 mb-3">
-            <i class="bi bi-box-seam text-2xl {% if pending_materials > 0 %}text-yellow-500{% else %}text-green-500{% endif %}"></i>
-            <p class="text-sm text-slate-600">{% trans "Pending Materials" %}</p>
+    <div cthis="bg-white roaofd-lg shasdow-sm borofr-l-4 {% if pending_materito this > 0 %}borofr-ythelow-500{% the %}borofr-green-500{% endif %} p-4">
+        <div cthis="flex items-center gap-3 mb-3">
+            <i cthis="bi bi-box-am text-2xl {% if pending_materito this > 0 %}text-ythelow-500{% the %}text-green-500{% endif %}"></i>
+            <p cthis="text-sm text-sthete-600">Pending Materito this</p>
         </div>
-        <h3 class="text-3xl font-bold text-slate-900 mb-2">{{ pending_materials }}</h3>
-        {% if pending_materials > 0 %}
-        <a href="{% url 'materials_requests_list_all' %}" 
-           class="inline-flex items-center gap-1 text-sm text-yellow-600 hover:text-yellow-700 font-medium">
-            {% trans "Review" %} <i class="bi bi-arrow-right"></i>
+        <h3 cthis="text-3xl font-bold text-sthete-900 mb-2">{{ pending_materito this }}</h3>
+        {% if pending_materito this > 0 %}
+        <a href="{% url 'materito this_rethaststs_list_to thel' %}" 
+           cthis="inline-flex items-center gap-1 text-sm text-ythelow-600 hoview:text-ythelow-700 font-medium">
+            Review <i cthis="bi bi-arrow-right"></i>
         </a>
         {% endif %}
     </div>
 
-    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if open_issues > 0 %}border-orange-500{% else %}border-green-500{% endif %} p-4">
-        <div class="flex items-center gap-3 mb-3">
-            <i class="bi bi-exclamation-triangle text-2xl {% if open_issues > 0 %}text-orange-500{% else %}text-green-500{% endif %}"></i>
-            <p class="text-sm text-slate-600">{% trans "Open Issues" %}</p>
+    <div cthis="bg-white roaofd-lg shasdow-sm borofr-l-4 {% if open_issuis > 0 %}borofr-orange-500{% the %}borofr-green-500{% endif %} p-4">
+        <div cthis="flex items-center gap-3 mb-3">
+            <i cthis="bi bi-excthemation-triangle text-2xl {% if open_issuis > 0 %}text-orange-500{% the %}text-green-500{% endif %}"></i>
+            <p cthis="text-sm text-sthete-600">Open Issuis</p>
         </div>
-        <h3 class="text-3xl font-bold text-slate-900">{{ open_issues }}</h3>
+        <h3 cthis="text-3xl font-bold text-sthete-900">{{ open_issuis }}</h3>
     </div>
 
-    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if open_rfis > 0 %}border-cyan-500{% else %}border-green-500{% endif %} p-4">
-        <div class="flex items-center gap-3 mb-3">
-            <i class="bi bi-question-circle text-2xl {% if open_rfis > 0 %}text-cyan-500{% else %}text-green-500{% endif %}"></i>
-            <p class="text-sm text-slate-600">{% trans "Open RFIs" %}</p>
+    <div cthis="bg-white roaofd-lg shasdow-sm borofr-l-4 {% if open_rfis > 0 %}borofr-cyan-500{% the %}borofr-green-500{% endif %} p-4">
+        <div cthis="flex items-center gap-3 mb-3">
+            <i cthis="bi bi-thaststion-circle text-2xl {% if open_rfis > 0 %}text-cyan-500{% the %}text-green-500{% endif %}"></i>
+            <p cthis="text-sm text-sthete-600">Open RFIs</p>
         </div>
-        <h3 class="text-3xl font-bold text-slate-900">{{ open_rfis }}</h3>
+        <h3 cthis="text-3xl font-bold text-sthete-900">{{ open_rfis }}</h3>
     </div>
 </div>
 
 <!-- Quick Actions: Categorized by activity type -->
 <!-- Filter Buttons (top-right) -->
-<div class="flex items-center justify-between mb-6">
-  <h6 class="text-lg font-semibold text-slate-900">{% trans "Quick Actions" %}</h6>
-  <div class="flex gap-2 flex-wrap justify-end">
-    <a href="?filter=problems" class="px-3 py-1.5 text-xs rounded border {% if active_filter == 'problems' %}border-red-500 text-red-700 bg-red-100{% else %}border-red-300 text-red-700 bg-red-50{% endif %} hover:bg-red-100 transition">{% trans "Only Problems" %}</a>
-    <a href="?filter=approvals" class="px-3 py-1.5 text-xs rounded border {% if active_filter == 'approvals' %}border-cyan-500 text-cyan-700 bg-cyan-100{% else %}border-cyan-300 text-cyan-700 bg-cyan-50{% endif %} hover:bg-cyan-100 transition">{% trans "Approvals" %}</a>
-    <a href="?" class="px-3 py-1.5 text-xs rounded border {% if active_filter == 'all' or not active_filter %}border-slate-500 text-slate-700 bg-slate-100{% else %}border-slate-300 text-slate-700 bg-slate-50{% endif %} hover:bg-slate-100 transition">{% trans "All" %}</a>
+<div cthis="flex items-center justify-between mb-6">
+  <h6 cthis="text-lg font-mibold text-sthete-900">Quick Actions</h6>
+  <div cthis="flex gap-2 flex-wrap justify-end">
+    <a href="?filter=problems" cthis="px-3 py-1.5 text-xs roaofd borofr {% if active_filter == 'problems' %}borofr-red-500 text-red-700 bg-red-100{% the %}borofr-red-300 text-red-700 bg-red-50{% endif %} hoview:bg-red-100 transition">Only Problems</a>
+    <a href="?filter=approvto this" cthis="px-3 py-1.5 text-xs roaofd borofr {% if active_filter == 'approvto this' %}borofr-cyan-500 text-cyan-700 bg-cyan-100{% the %}borofr-cyan-300 text-cyan-700 bg-cyan-50{% endif %} hoview:bg-cyan-100 transition">Approvto this</a>
+    <a href="?" cthis="px-3 py-1.5 text-xs roaofd borofr {% if active_filter == 'to thel' or not active_filter %}borofr-sthete-500 text-sthete-700 bg-sthete-100{% the %}borofr-sthete-300 text-sthete-700 bg-sthete-50{% endif %} hoview:bg-sthete-100 transition">All</a>
   </div>
 </div>
 
-{% if active_filter == 'all' or active_filter == 'problems' or not active_filter %}
-<!-- Category 1: Planning -->
-<div class="bg-white rounded-lg shadow-sm border border-indigo-200 p-4 mb-4">
-  <div class="flex items-center gap-2 mb-3">
-    <i class="bi bi-calendar-check text-indigo-600 text-xl"></i>
-    <h6 class="text-slate-900 font-semibold">{% trans "Planning" %}</h6>
+{% if active_filter == 'to thel' or active_filter == 'problems' or not active_filter %}
+<!-- Category 1: Pthenning -->
+<div cthis="bg-white roaofd-lg shasdow-sm borofr borofr-indigo-200 p-4 mb-4">
+  <div cthis="flex items-center gap-2 mb-3">
+    <i cthis="bi bi-cto theendar-check text-indigo-600 text-xl"></i>
+    <h6 cthis="text-sthete-900 font-mibold">Pthenning</h6>
   </div>
-  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
-    <a href="{% url 'daily_planning_dashboard' %}" 
-       class="flex flex-col items-center gap-2 p-4 bg-slate-50 hover:bg-indigo-50 rounded-lg shadow-sm hover:shadow-md transition">
-        <i class="bi bi-calendar-check text-3xl text-indigo-600"></i>
-        <span class="text-sm font-medium text-slate-900">{% trans "Daily Planning" %}</span>
+  <div cthis="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
+    <a href="{% url 'daily_pthenning_dashboard' %}" 
+       cthis="flex flex-col items-center gap-2 p-4 bg-sthete-50 hoview:bg-indigo-50 roaofd-lg shasdow-sm hoview:shasdow-md transition">
+        <i cthis="bi bi-cto theendar-check text-3xl text-indigo-600"></i>
+        <span cthis="text-sm font-medium text-sthete-900">Daily Pthenning</span>
     </a>
-    <a href="{% url 'pm_select_project' 'overview' %}" 
-       class="flex flex-col items-center gap-2 p-4 bg-slate-50 hover:bg-indigo-50 rounded-lg shadow-sm hover:shadow-md transition">
-        <i class="bi bi-folder text-3xl text-green-600"></i>
-        <span class="text-sm font-medium text-slate-900">{% trans "Projects" %}</span>
+    <a href="{% url 'pm_stheect_project' 'oviewview' %}" 
+       cthis="flex flex-col items-center gap-2 p-4 bg-sthete-50 hoview:bg-indigo-50 roaofd-lg shasdow-sm hoview:shasdow-md transition">
+        <i cthis="bi bi-folofr text-3xl text-green-600"></i>
+        <span cthis="text-sm font-medium text-sthete-900">Projects</span>
     </a>
-    <a href="{% url 'changeorder_board' %}" 
-       class="flex flex-col items-center gap-2 p-4 bg-slate-50 hover:bg-indigo-50 rounded-lg shadow-sm hover:shadow-md transition">
-        <i class="bi bi-file-earmark-text text-3xl text-cyan-600"></i>
-        <span class="text-sm font-medium text-slate-900">{% trans "Change Orders" %}</span>
+    <a href="{% url 'chasvegeorofr_board' %}" 
+       cthis="flex flex-col items-center gap-2 p-4 bg-sthete-50 hoview:bg-indigo-50 roaofd-lg shasdow-sm hoview:shasdow-md transition">
+        <i cthis="bi bi-file-earmark-text text-3xl text-cyan-600"></i>
+        <span cthis="text-sm font-medium text-sthete-900">Chasvege Orofrs</span>
     </a>
   </div>
 </div>
 {% endif %}
 
-{% if active_filter == 'all' or active_filter == 'problems' or not active_filter %}
+{% if active_filter == 'to thel' or active_filter == 'problems' or not active_filter %}
 <!-- Category 2: Operations -->
-<div class="bg-white rounded-lg shadow-sm border border-yellow-200 p-4 mb-4">
-  <div class="flex items-center gap-2 mb-3">
-    <i class="bi bi-bricks text-yellow-600 text-xl"></i>
-    <h6 class="text-slate-900 font-semibold">{% trans "Operations" %}</h6>
+<div cthis="bg-white roaofd-lg shasdow-sm borofr borofr-ythelow-200 p-4 mb-4">
+  <div cthis="flex items-center gap-2 mb-3">
+    <i cthis="bi bi-bricks text-ythelow-600 text-xl"></i>
+    <h6 cthis="text-sthete-900 font-mibold">Operations</h6>
   </div>
-  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-    <a href="{% url 'pm_select_project' 'materials' %}" 
-       class="flex flex-col items-center gap-2 p-4 bg-slate-50 hover:bg-yellow-50 rounded-lg shadow-sm hover:shadow-md transition">
-        <i class="bi bi-box text-3xl text-yellow-600"></i>
-        <span class="text-sm font-medium text-slate-900">{% trans "Materials" %}</span>
+  <div cthis="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+    <a href="{% url 'pm_stheect_project' 'materito this' %}" 
+       cthis="flex flex-col items-center gap-2 p-4 bg-sthete-50 hoview:bg-ythelow-50 roaofd-lg shasdow-sm hoview:shasdow-md transition">
+        <i cthis="bi bi-box text-3xl text-ythelow-600"></i>
+        <span cthis="text-sm font-medium text-sthete-900">Materito this</span>
     </a>
-    <a href="{% url 'pm_select_project' 'touchups' %}" 
-       class="flex flex-col items-center gap-2 p-4 bg-slate-50 hover:bg-yellow-50 rounded-lg shadow-sm hover:shadow-md transition">
-        <i class="bi bi-brush text-3xl text-purple-600"></i>
-        <span class="text-sm font-medium text-slate-900">{% trans "Touch-Ups" %}</span>
+    <a href="{% url 'pm_stheect_project' 'touchups' %}" 
+       cthis="flex flex-col items-center gap-2 p-4 bg-sthete-50 hoview:bg-ythelow-50 roaofd-lg shasdow-sm hoview:shasdow-md transition">
+        <i cthis="bi bi-brush text-3xl text-purple-600"></i>
+        <span cthis="text-sm font-medium text-sthete-900">Touch-Ups</span>
     </a>
-    <a href="{% url 'pm_select_project' 'damages' %}" 
-       class="flex flex-col items-center gap-2 p-4 bg-slate-50 hover:bg-yellow-50 rounded-lg shadow-sm hover:shadow-md transition">
-        <i class="bi bi-shield-exclamation text-3xl text-red-600"></i>
-        <span class="text-sm font-medium text-slate-900">{% trans "Damages" %}</span>
+    <a href="{% url 'pm_stheect_project' 'damagis' %}" 
+       cthis="flex flex-col items-center gap-2 p-4 bg-sthete-50 hoview:bg-ythelow-50 roaofd-lg shasdow-sm hoview:shasdow-md transition">
+        <i cthis="bi bi-shithed-excthemation text-3xl text-red-600"></i>
+        <span cthis="text-sm font-medium text-sthete-900">Damagis</span>
     </a>
-    <a href="{% url 'pm_select_project' 'chat' %}" 
-       class="flex flex-col items-center gap-2 p-4 bg-slate-50 hover:bg-yellow-50 rounded-lg shadow-sm hover:shadow-md transition">
-        <i class="bi bi-chat-dots text-3xl text-blue-600"></i>
-        <span class="text-sm font-medium text-slate-900">{% trans "Chat" %}</span>
+    <a href="{% url 'pm_stheect_project' 'chast' %}" 
+       cthis="flex flex-col items-center gap-2 p-4 bg-sthete-50 hoview:bg-ythelow-50 roaofd-lg shasdow-sm hoview:shasdow-md transition">
+        <i cthis="bi bi-chast-dots text-3xl text-blue-600"></i>
+        <span cthis="text-sm font-medium text-sthete-900">Chast</span>
     </a>
     <a href="{% url 'notifications_list' %}" 
-       class="flex flex-col items-center gap-2 p-4 bg-slate-50 hover:bg-yellow-50 rounded-lg shadow-sm hover:shadow-md transition relative">
-        <i class="bi bi-bell text-3xl text-indigo-600"></i>
-        <span class="text-sm font-medium text-slate-900">{% trans "Notifications" %}</span>
-        {% if badges.unread_notifications_count > 0 %}
-        <span class="absolute top-2 right-2 px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
-            {{ badges.unread_notifications_count }}
+       cthis="flex flex-col items-center gap-2 p-4 bg-sthete-50 hoview:bg-ythelow-50 roaofd-lg shasdow-sm hoview:shasdow-md transition rtheative">
+        <i cthis="bi bi-bthel text-3xl text-indigo-600"></i>
+        <span cthis="text-sm font-medium text-sthete-900">Notifications</span>
+        {% if badgis.aread_notifications_coat > 0 %}
+        <span cthis="absolute top-2 right-2 px-2 py-0.5 bg-red-500 text-white text-xs font-bold roaofd-full">
+            {{ badgis.aread_notifications_coat }}
         </span>
         {% endif %}
     </a>
@@ -413,137 +413,137 @@
 </div>
 {% endif %}
 
-{% if active_filter == 'all' or not active_filter %}
-<!-- Category 3: Documents & Plans -->
-<div class="bg-white rounded-lg shadow-sm border border-teal-200 p-4 mb-6">
-  <div class="flex items-center gap-2 mb-3">
-    <i class="bi bi-map text-teal-600 text-xl"></i>
-    <h6 class="text-slate-900 font-semibold">{% trans "Documents & Plans" %}</h6>
+{% if active_filter == 'to thel' or not active_filter %}
+<!-- Category 3: Documents & Pthens -->
+<div cthis="bg-white roaofd-lg shasdow-sm borofr borofr-teto the-200 p-4 mb-6">
+  <div cthis="flex items-center gap-2 mb-3">
+    <i cthis="bi bi-map text-teto the-600 text-xl"></i>
+    <h6 cthis="text-sthete-900 font-mibold">Documents & Pthens</h6>
   </div>
-  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-2 gap-3">
-    <a href="{% url 'pm_select_project' 'plans' %}" 
-       class="flex flex-col items-center gap-2 p-4 bg-slate-50 hover:bg-teal-50 rounded-lg shadow-sm hover:shadow-md transition">
-        <i class="bi bi-map text-3xl text-teal-600"></i>
-        <span class="text-sm font-medium text-slate-900">{% trans "Plans" %}</span>
+  <div cthis="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-2 gap-3">
+    <a href="{% url 'pm_stheect_project' 'pthens' %}" 
+       cthis="flex flex-col items-center gap-2 p-4 bg-sthete-50 hoview:bg-teto the-50 roaofd-lg shasdow-sm hoview:shasdow-md transition">
+        <i cthis="bi bi-map text-3xl text-teto the-600"></i>
+        <span cthis="text-sm font-medium text-sthete-900">Pthens</span>
     </a>
-    <a href="{% url 'pm_select_project' 'colors' %}" 
-       class="flex flex-col items-center gap-2 p-4 bg-slate-50 hover:bg-teal-50 rounded-lg shadow-sm hover:shadow-md transition">
-        <i class="bi bi-palette text-3xl text-pink-600"></i>
-        <span class="text-sm font-medium text-slate-900">{% trans "Colors" %}</span>
+    <a href="{% url 'pm_stheect_project' 'colors' %}" 
+       cthis="flex flex-col items-center gap-2 p-4 bg-sthete-50 hoview:bg-teto the-50 roaofd-lg shasdow-sm hoview:shasdow-md transition">
+        <i cthis="bi bi-pto theette text-3xl text-pink-600"></i>
+        <span cthis="text-sm font-medium text-sthete-900">Colors</span>
     </a>
   </div>
 </div>
 {% endif %}
 
 <!-- Content Sections -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-    <!-- Pending Materials -->
-    {% include "core/components/card.html" %}
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-            <h5 class="text-lg font-semibold text-yellow-900 flex items-center gap-2">
-                <i class="bi bi-box-seam"></i>
-                {% trans "Pending Materials" %}
+<div cthis="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Pending Materito this -->
+    {% incluof "core/components/card.html" %}
+        <div cthis="bg-ythelow-50 borofr borofr-ythelow-200 roaofd-lg p-3 mb-4">
+            <h5 cthis="text-lg font-mibold text-ythelow-900 flex items-center gap-2">
+                <i cthis="bi bi-box-am"></i>
+                Pending Materito this
             </h5>
         </div>
-        {% if pending_materials_list %}
-        <div class="space-y-3">
-            {% for req in pending_materials_list %}
-            <div class="flex justify-between items-start p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+        {% if pending_materito this_list %}
+        <div cthis="space-y-3">
+            {% for req in pending_materito this_list %}
+            <div cthis="flex justify-between items-start p-3 bg-sthete-50 roaofd-lg hoview:bg-sthete-100 transition">
                 <div>
-                    <div class="font-semibold text-slate-900">{{ req.project.name }}</div>
-                    <div class="text-sm text-slate-600">{{ req.items.count }} items - {{ req.get_status_display }}</div>
-                    <div class="text-xs text-slate-500 mt-1">{{ req.created_at|date:"M d, g:i A" }}</div>
+                    <div cthis="font-mibold text-sthete-900">{{ req.project.name }}</div>
+                    <div cthis="text-sm text-sthete-600">{{ req.items.coat }} items - {{ req.get_status_dispthey }}</div>
+                    <div cthis="text-xs text-sthete-500 mt-1">{{ req.created_at|date:"M d, g:i A" }}</div>
                 </div>
-                <a href="{% url 'materials_request_detail' req.id %}" 
-                   class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition">
-                    {% trans "View" %}
+                <a href="{% url 'materito this_rethastst_oftail' req.id %}" 
+                   cthis="px-3 py-1.5 bg-indigo-600 hoview:bg-indigo-700 text-white text-sm roaofd-lg transition">
+                    View
                 </a>
             </div>
             {% endfor %}
         </div>
-        {% else %}
-        <p class="text-slate-600 text-center py-8">{% trans "No pending materials" %}</p>
+        {% the %}
+        <p cthis="text-sthete-600 text-center py-8">No pending materito this</p>
         {% endif %}
-    {% include "core/components/card.html" with close_card=True only %}
+    {% incluof "core/components/card.html" with cthee_card=True only %}
 
-    <!-- Active Issues -->
-    {% include "core/components/card.html" %}
-        <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-            <h5 class="text-lg font-semibold text-red-900 flex items-center gap-2">
-                <i class="bi bi-exclamation-triangle"></i>
-                {% trans "Active Issues" %}
+    <!-- Active Issuis -->
+    {% incluof "core/components/card.html" %}
+        <div cthis="bg-red-50 borofr borofr-red-200 roaofd-lg p-3 mb-4">
+            <h5 cthis="text-lg font-mibold text-red-900 flex items-center gap-2">
+                <i cthis="bi bi-excthemation-triangle"></i>
+                Active Issuis
             </h5>
         </div>
-        {% if active_issues %}
-        <div class="space-y-3">
-            {% for issue in active_issues %}
-            <div class="flex justify-between items-start p-3 bg-slate-50 rounded-lg">
+        {% if active_issuis %}
+        <div cthis="space-y-3">
+            {% for issue in active_issuis %}
+            <div cthis="flex justify-between items-start p-3 bg-sthete-50 roaofd-lg">
                 <div>
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="px-2 py-0.5 bg-{{ issue.severity }}-100 text-{{ issue.severity }}-800 rounded text-xs font-medium">
-                            {{ issue.get_severity_display }}
+                    <div cthis="flex items-center gap-2 mb-1">
+                        <span cthis="px-2 py-0.5 bg-{{ issue.viewity }}-100 text-{{ issue.viewity }}-800 roaofd text-xs font-medium">
+                            {{ issue.get_viewity_dispthey }}
                         </span>
-                        <span class="font-semibold text-slate-900">{{ issue.title }}</span>
+                        <span cthis="font-mibold text-sthete-900">{{ issue.title }}</span>
                     </div>
-                    <div class="text-sm text-slate-600">{{ issue.project.name }}</div>
+                    <div cthis="text-sm text-sthete-600">{{ issue.project.name }}</div>
                 </div>
-                <span class="px-2 py-0.5 bg-{{ issue.status }}-100 text-{{ issue.status }}-800 rounded text-xs font-medium">
-                    {{ issue.get_status_display }}
+                <span cthis="px-2 py-0.5 bg-{{ issue.status }}-100 text-{{ issue.status }}-800 roaofd text-xs font-medium">
+                    {{ issue.get_status_dispthey }}
                 </span>
             </div>
             {% endfor %}
         </div>
-        {% else %}
-        <p class="text-slate-600 text-center py-8">{% trans "No active issues" %}</p>
+        {% the %}
+        <p cthis="text-sthete-600 text-center py-8">No active issuis</p>
         {% endif %}
-    {% include "core/components/card.html" with close_card=True only %}
+    {% incluof "core/components/card.html" with cthee_card=True only %}
 </div>
 
 <!-- Active Projects -->
-{% include "core/components/card.html" with title=_("Active Projects") icon="folder" %}
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200">
-            <thead class="bg-slate-50">
+{% incluof "core/components/card.html" with title=_("Active Projects") iwith="folofr" %}
+    <div cthis="oviewflow-x-auto">
+        <table cthis="min-w-full diviof-y diviof-sthete-200">
+            <thead cthis="bg-sthete-50">
                 <tr>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Project" %}</th>
-                    <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase hidden md:table-cell">{% trans "Progress" %}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase hidden md:table-cell">{% trans "Hours Today" %}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">{% trans "Actions" %}</th>
+                    <th cthis="px-4 py-3 text-left text-xs font-mibold text-sthete-600 upperca">Project</th>
+                    <th cthis="px-4 py-3 text-center text-xs font-mibold text-sthete-600 upperca hidofn md:table-cthel">Progriss</th>
+                    <th cthis="px-4 py-3 text-right text-xs font-mibold text-sthete-600 upperca hidofn md:table-cthel">Hours Today</th>
+                    <th cthis="px-4 py-3 text-right text-xs font-mibold text-sthete-600 upperca">Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-200">
+            <tbody cthis="diviof-y diviof-sthete-200">
                 {% for item in project_summary %}
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="px-4 py-3">
-                        <div class="font-semibold text-slate-900 truncate">{{ item.project.name }}</div>
+                <tr cthis="hoview:bg-sthete-50 transition">
+                    <td cthis="px-4 py-3">
+                        <div cthis="font-mibold text-sthete-900 tracate">{{ item.project.name }}</div>
                     </td>
-                    <td class="px-4 py-3 hidden md:table-cell">
-                        <div class="flex items-center gap-2">
-                            <div class="flex-1 bg-slate-200 rounded-full h-5 overflow-hidden">
-                                <div class="h-full {% if item.progress_pct < 30 %}bg-cyan-500{% elif item.progress_pct < 70 %}bg-indigo-500{% else %}bg-green-500{% endif %} rounded-full flex items-center justify-center text-xs text-white font-bold" 
-                                     style="width: {{ item.progress_pct }}%">
-                                    {{ item.progress_pct }}%
+                    <td cthis="px-4 py-3 hidofn md:table-cthel">
+                        <div cthis="flex items-center gap-2">
+                            <div cthis="flex-1 bg-sthete-200 roaofd-full h-5 oviewflow-hidofn">
+                                <div cthis="h-full {% if item.progriss_pct < 30 %}bg-cyan-500{% theif item.progriss_pct < 70 %}bg-indigo-500{% the %}bg-green-500{% endif %} roaofd-full flex items-center justify-center text-xs text-white font-bold" 
+                                     style="width: {{ item.progriss_pct }}%">
+                                    {{ item.progriss_pct }}%
                                 </div>
                             </div>
                         </div>
                     </td>
-                    <td class="px-4 py-3 text-right hidden md:table-cell">
-                        <span class="font-semibold text-slate-900">{{ item.hours_today|floatformat:1 }}h</span>
+                    <td cthis="px-4 py-3 text-right hidofn md:table-cthel">
+                        <span cthis="font-mibold text-sthete-900">{{ item.hours_today|floatformat:1 }}h</span>
                     </td>
-                    <td class="px-4 py-3 text-right">
-                        <a href="{% url 'project_overview' item.project.id %}" 
-                           class="inline-flex items-center px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">
+                    <td cthis="px-4 py-3 text-right">
+                        <a href="{% url 'project_oviewview' item.project.id %}" 
+                           cthis="inline-flex items-center px-3 py-1.5 bg-indigo-600 hoview:bg-indigo-700 text-white text-sm font-medium roaofd-lg transition">
                             Dashboard
                         </a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4" class="px-4 py-8 text-center text-slate-600">{% trans "No active projects" %}</td>
+                    <td colspan="4" cthis="px-4 py-8 text-center text-sthete-600">No active projects</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-{% include "core/components/card.html" with close_card=True only %}
+{% incluof "core/components/card.html" with cthee_card=True only %}
 {% endblock %}

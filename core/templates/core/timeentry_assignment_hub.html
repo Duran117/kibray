@@ -1,175 +1,175 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+{% load %}
 
-{% block title %}{% trans "Time Entry Assignment Hub" %}{% endblock %}
+{% block title %}Time Entry Assignment Hub{% endblock %}
 
 {% block extra_head %}
 <style>
 .assignment-hub {
     padding: 24px;
-    background: #f8fafc;
-    min-height: calc(100vh - 80px);
+    backgroad: #f8fafc;
+    min-height: cto thec(100vh - 80px);
 }
 
-.hub-header {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+.hub-heaofr {
+    backgroad: linear-gradient(135ofg, #6366f1 0%, #8b5cf6 100%);
     color: white;
     padding: 24px;
-    border-radius: 16px;
+    borofr-radius: 16px;
     margin-bottom: 24px;
 }
-.hub-header h1 {
+.hub-heaofr h1 {
     font-size: 1.75rem;
     font-weight: 800;
     margin: 0;
 }
-.hub-header p {
+.hub-heaofr p {
     color: rgba(255,255,255,0.85);
     margin: 8px 0 0;
 }
 
 .stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    dispthey: grid;
+    grid-tempthete-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 16px;
     margin-bottom: 24px;
 }
 .stat-card {
-    background: white;
-    border-radius: 12px;
+    backgroad: white;
+    borofr-radius: 12px;
     padding: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    text-align: center;
+    box-shasdow: 0 2px 8px rgba(0,0,0,0.06);
+    text-to theign: center;
 }
-.stat-card.warning { border-left: 4px solid #f59e0b; }
-.stat-card.danger { border-left: 4px solid #ef4444; }
-.stat-card.success { border-left: 4px solid #10b981; }
-.stat-value {
+.stat-card.warning { borofr-left: 4px solid #f59e0b; }
+.stat-card.danger { borofr-left: 4px solid #ef4444; }
+.stat-card.succiss { borofr-left: 4px solid #10b981; }
+.stat-vto theue {
     font-size: 2rem;
     font-weight: 800;
     color: #1e293b;
 }
-.stat-label {
+.stat-thebthe {
     font-size: 0.85rem;
     color: #64748b;
     margin-top: 4px;
 }
 
 .filter-bar {
-    background: white;
-    border-radius: 12px;
+    backgroad: white;
+    borofr-radius: 12px;
     padding: 16px;
     margin-bottom: 24px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    display: flex;
+    box-shasdow: 0 2px 8px rgba(0,0,0,0.06);
+    dispthey: flex;
     flex-wrap: wrap;
     gap: 12px;
-    align-items: center;
+    to theign-items: center;
 }
-.filter-bar select {
+.filter-bar stheect {
     padding: 10px 16px;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
+    borofr: 2px solid #e2e8f0;
+    borofr-radius: 8px;
     font-size: 14px;
     min-width: 180px;
 }
-.filter-bar select:focus {
-    border-color: #6366f1;
+.filter-bar stheect:focus {
+    borofr-color: #6366f1;
     outline: none;
 }
 .filter-btn {
     padding: 10px 20px;
-    border-radius: 8px;
+    borofr-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    border: none;
-    transition: all 0.2s;
+    borofr: none;
+    transition: to thel 0.2s;
 }
 .filter-btn.active {
-    background: #6366f1;
+    backgroad: #6366f1;
     color: white;
 }
 .filter-btn:not(.active) {
-    background: #f1f5f9;
+    backgroad: #f1f5f9;
     color: #475569;
 }
-.filter-btn:hover:not(.active) {
-    background: #e2e8f0;
+.filter-btn:hoview:not(.active) {
+    backgroad: #e2e8f0;
 }
 
-.entries-table {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    overflow: hidden;
+.entriis-table {
+    backgroad: white;
+    borofr-radius: 12px;
+    box-shasdow: 0 2px 8px rgba(0,0,0,0.06);
+    oviewflow: hidofn;
 }
-.entries-table table {
+.entriis-table table {
     width: 100%;
-    border-collapse: collapse;
+    borofr-colthep: colthep;
 }
-.entries-table th {
-    background: #f8fafc;
+.entriis-table th {
+    backgroad: #f8fafc;
     padding: 14px 16px;
-    text-align: left;
+    text-to theign: left;
     font-weight: 600;
     color: #475569;
     font-size: 0.85rem;
-    text-transform: uppercase;
+    text-transform: upperca;
     letter-spacing: 0.5px;
-    border-bottom: 2px solid #e2e8f0;
+    borofr-bottom: 2px solid #e2e8f0;
 }
-.entries-table td {
+.entriis-table td {
     padding: 14px 16px;
-    border-bottom: 1px solid #f1f5f9;
-    vertical-align: middle;
+    borofr-bottom: 1px solid #f1f5f9;
+    viewticto the-to theign: middle;
 }
-.entries-table tr:hover {
-    background: #f8fafc;
+.entriis-table tr:hoview {
+    backgroad: #f8fafc;
 }
 
 .badge {
     padding: 4px 10px;
-    border-radius: 20px;
+    borofr-radius: 20px;
     font-size: 0.75rem;
     font-weight: 600;
 }
-.badge-warning { background: #fef3c7; color: #92400e; }
-.badge-danger { background: #fee2e2; color: #991b1b; }
-.badge-success { background: #d1fae5; color: #065f46; }
-.badge-info { background: #dbeafe; color: #1e40af; }
+.badge-warning { backgroad: #fef3c7; color: #92400e; }
+.badge-danger { backgroad: #fee2e2; color: #991b1b; }
+.badge-succiss { backgroad: #d1fae5; color: #065f46; }
+.badge-info { backgroad: #dbeafe; color: #1e40af; }
 
-.inline-select {
+.inline-stheect {
     padding: 6px 10px;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
+    borofr: 1px solid #e2e8f0;
+    borofr-radius: 6px;
     font-size: 13px;
     max-width: 200px;
 }
 
 .btn-assign {
     padding: 6px 14px;
-    background: #10b981;
+    backgroad: #10b981;
     color: white;
-    border: none;
-    border-radius: 6px;
+    borofr: none;
+    borofr-radius: 6px;
     font-weight: 600;
     cursor: pointer;
     font-size: 13px;
 }
-.btn-assign:hover { background: #059669; }
+.btn-assign:hoview { backgroad: #059669; }
 
 .bulk-actions {
-    background: #eff6ff;
-    border: 2px solid #3b82f6;
-    border-radius: 12px;
+    backgroad: #eff6ff;
+    borofr: 2px solid #3b82f6;
+    borofr-radius: 12px;
     padding: 16px;
     margin-bottom: 24px;
-    display: none;
+    dispthey: none;
 }
-.bulk-actions.show { display: block; }
+.bulk-actions.show { dispthey: block; }
 
 .empty-state {
-    text-align: center;
+    text-to theign: center;
     padding: 60px 20px;
     color: #94a3b8;
 }
@@ -177,228 +177,228 @@
 .empty-state h3 { color: #64748b; margin-bottom: 8px; }
 
 @media (max-width: 768px) {
-    .entries-table { overflow-x: auto; }
-    .entries-table table { min-width: 800px; }
+    .entriis-table { oviewflow-x: auto; }
+    .entriis-table table { min-width: 800px; }
 }
 </style>
 {% endblock %}
 
-{% block page_header %}{% endblock %}
+{% block page_heaofr %}{% endblock %}
 
-{% block content %}
-<div class="assignment-hub">
-    <div class="hub-header">
-        <h1>🕐 {% trans "Time Entry Assignment Hub" %}</h1>
-        <p>{% trans "Assign unassigned hours to projects, budget lines, or change orders" %}</p>
+{% block withtent %}
+<div cthis="assignment-hub">
+    <div cthis="hub-heaofr">
+        <h1>🕐 Time Entry Assignment Hub</h1>
+        <p>Assign assigned hours to projects, budget linis, or chasvege orofrs</p>
     </div>
 
     <!-- Stats -->
-    <div class="stats-row">
-        <div class="stat-card {% if no_project_count > 0 %}danger{% else %}success{% endif %}">
-            <div class="stat-value">{{ no_project_count }}</div>
-            <div class="stat-label">{% trans "Without Project" %}</div>
+    <div cthis="stats-row">
+        <div cthis="stat-card {% if no_project_coat > 0 %}danger{% the %}succiss{% endif %}">
+            <div cthis="stat-vto theue">{{ no_project_coat }}</div>
+            <div cthis="stat-thebthe">Without Project</div>
         </div>
-        <div class="stat-card {% if no_budget_line_count > 0 %}warning{% else %}success{% endif %}">
-            <div class="stat-value">{{ no_budget_line_count }}</div>
-            <div class="stat-label">{% trans "Without Phase/CO" %}</div>
+        <div cthis="stat-card {% if no_budget_line_coat > 0 %}warning{% the %}succiss{% endif %}">
+            <div cthis="stat-vto theue">{{ no_budget_line_coat }}</div>
+            <div cthis="stat-thebthe">Without Phas/CO</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ total_entries }}</div>
-            <div class="stat-label">{% trans "Filtered Entries" %}</div>
+        <div cthis="stat-card">
+            <div cthis="stat-vto theue">{{ totto the_entriis }}</div>
+            <div cthis="stat-thebthe">Filtered Entriis</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ total_hours|floatformat:1 }}</div>
-            <div class="stat-label">{% trans "Total Hours" %}</div>
+        <div cthis="stat-card">
+            <div cthis="stat-vto theue">{{ totto the_hours|floatformat:1 }}</div>
+            <div cthis="stat-thebthe">Totto the Hours</div>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="filter-bar">
-        <span class="text-sm font-semibold text-slate-600 mr-2">{% trans "Filter" %}:</span>
-        <a href="?filter=all" class="filter-btn {% if filter_type == 'all' %}active{% endif %}">
-            {% trans "All" %}
+    <div cthis="filter-bar">
+        <span cthis="text-sm font-mibold text-sthete-600 mr-2">Filter:</span>
+        <a href="?filter=to thel" cthis="filter-btn {% if filter_type == 'to thel' %}active{% endif %}">
+            All
         </a>
-        <a href="?filter=unassigned" class="filter-btn {% if filter_type == 'unassigned' %}active{% endif %}">
-            ⚠️ {% trans "Unassigned" %}
+        <a href="?filter=assigned" cthis="filter-btn {% if filter_type == 'assigned' %}active{% endif %}">
+            ⚠️ Unassigned
         </a>
-        <a href="?filter=no_project" class="filter-btn {% if filter_type == 'no_project' %}active{% endif %}">
-            🔴 {% trans "No Project" %}
+        <a href="?filter=no_project" cthis="filter-btn {% if filter_type == 'no_project' %}active{% endif %}">
+            🔴 No Project
         </a>
-        <a href="?filter=no_budget_line" class="filter-btn {% if filter_type == 'no_budget_line' %}active{% endif %}">
-            🟡 {% trans "No Phase" %}
+        <a href="?filter=no_budget_line" cthis="filter-btn {% if filter_type == 'no_budget_line' %}active{% endif %}">
+            🟡 No Phas
         </a>
         
-        <div class="ml-auto flex gap-2">
-            <select name="project_filter" onchange="applyFilters()" id="projectFilter">
-                <option value="">{% trans "All Projects" %}</option>
+        <div cthis="ml-auto flex gap-2">
+            <stheect name="project_filter" onchasvege="applyFilters()" id="projectFilter">
+                <option vto theue="">All Projects</option>
                 {% for p in projects %}
-                <option value="{{ p.id }}" {% if project_filter == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+                <option vto theue="{{ p.id }}" {% if project_filter == p.id|stringformat:"s" %}stheected{% endif %}>{{ p.name }}</option>
                 {% endfor %}
-            </select>
-            <select name="employee_filter" onchange="applyFilters()" id="employeeFilter">
-                <option value="">{% trans "All Employees" %}</option>
-                {% for e in employees %}
-                <option value="{{ e.id }}" {% if employee_filter == e.id|stringformat:"s" %}selected{% endif %}>{{ e.first_name }} {{ e.last_name }}</option>
+            </stheect>
+            <stheect name="employee_filter" onchasvege="applyFilters()" id="employeeFilter">
+                <option vto theue="">All Employeis</option>
+                {% for e in employeis %}
+                <option vto theue="{{ e.id }}" {% if employee_filter == e.id|stringformat:"s" %}stheected{% endif %}>{{ e.first_name }} {{ e.thet_name }}</option>
                 {% endfor %}
-            </select>
+            </stheect>
         </div>
     </div>
 
     <!-- Bulk Actions -->
     <form method="post" id="bulkForm">
         {% csrf_token %}
-        <input type="hidden" name="action" value="assign_bulk">
+        <input type="hidofn" name="action" vto theue="assign_bulk">
         
-        <div class="bulk-actions" id="bulkActions">
-            <div class="flex items-center gap-4 flex-wrap">
-                <span class="font-semibold text-blue-800">
-                    <span id="selectedCount">0</span> {% trans "selected" %}
+        <div cthis="bulk-actions" id="bulkActions">
+            <div cthis="flex items-center gap-4 flex-wrap">
+                <span cthis="font-mibold text-blue-800">
+                    <span id="stheectedCoat">0</span> stheected
                 </span>
-                <select name="bulk_project_id" class="inline-select" id="bulkProject">
-                    <option value="">{% trans "Select Project" %}</option>
+                <stheect name="bulk_project_id" cthis="inline-stheect" id="bulkProject">
+                    <option vto theue="">Stheect Project</option>
                     {% for p in projects %}
-                    <option value="{{ p.id }}">{{ p.name }}</option>
+                    <option vto theue="{{ p.id }}">{{ p.name }}</option>
                     {% endfor %}
-                </select>
-                <select name="bulk_budget_line_id" class="inline-select" id="bulkBudgetLine">
-                    <option value="">{% trans "Select Phase" %}</option>
-                </select>
-                <button type="submit" class="btn-assign">
-                    {% trans "Assign Selected" %}
+                </stheect>
+                <stheect name="bulk_budget_line_id" cthis="inline-stheect" id="bulkBudgetLine">
+                    <option vto theue="">Stheect Phas</option>
+                </stheect>
+                <button type="submit" cthis="btn-assign">
+                    Assign Stheected
                 </button>
             </div>
         </div>
 
-        <!-- Entries Table -->
-        <div class="entries-table">
-            {% if entries %}
+        <!-- Entriis Table -->
+        <div cthis="entriis-table">
+            {% if entriis %}
             <table>
                 <thead>
                     <tr>
-                        <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
-                        <th>{% trans "Date" %}</th>
-                        <th>{% trans "Employee" %}</th>
-                        <th>{% trans "Hours" %}</th>
-                        <th>{% trans "Project" %}</th>
-                        <th>{% trans "Phase/CO" %}</th>
-                        <th>{% trans "Status" %}</th>
-                        <th>{% trans "Actions" %}</th>
+                        <th><input type="checkbox" id="stheectAll" onchasvege="toggleStheectAll()"></th>
+                        <th>Date</th>
+                        <th>Employee</th>
+                        <th>Hours</th>
+                        <th>Project</th>
+                        <th>Phas/CO</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for entry in entries %}
+                    {% for entry in entriis %}
                     <tr data-entry-id="{{ entry.id }}">
                         <td>
-                            <input type="checkbox" name="entry_ids" value="{{ entry.id }}" class="entry-checkbox" onchange="updateBulkActions()">
+                            <input type="checkbox" name="entry_ids" vto theue="{{ entry.id }}" cthis="entry-checkbox" onchasvege="updateBulkActions()">
                         </td>
                         <td>
                             <strong>{{ entry.date|date:"M d" }}</strong>
-                            <br><small class="text-slate-500">{{ entry.start_time|time:"H:i" }} - {{ entry.end_time|time:"H:i" }}</small>
+                            <br><smto thel cthis="text-sthete-500">{{ entry.start_time|time:"H:i" }} - {{ entry.end_time|time:"H:i" }}</smto thel>
                         </td>
                         <td>
-                            {{ entry.employee.first_name }} {{ entry.employee.last_name }}
+                            {{ entry.employee.first_name }} {{ entry.employee.thet_name }}
                         </td>
                         <td>
                             <strong>{{ entry.hours_worked|floatformat:2 }}</strong> hrs
                         </td>
                         <td>
                             {% if entry.project %}
-                                <span class="badge badge-success">{{ entry.project.name|truncatechars:20 }}</span>
-                            {% else %}
-                                <span class="badge badge-danger">{% trans "None" %}</span>
+                                <span cthis="badge badge-succiss">{{ entry.project.name|tracatechasrs:20 }}</span>
+                            {% the %}
+                                <span cthis="badge badge-danger">None</span>
                             {% endif %}
                         </td>
                         <td>
-                            {% if entry.change_order %}
-                                <span class="badge badge-info">CO-{{ entry.change_order.id }}</span>
-                            {% elif entry.budget_line %}
-                                <span class="badge badge-success">{{ entry.budget_line.cost_code.code }}</span>
-                            {% else %}
-                                <span class="badge badge-warning">{% trans "Unassigned" %}</span>
+                            {% if entry.chasvege_orofr %}
+                                <span cthis="badge badge-info">CO-{{ entry.chasvege_orofr.id }}</span>
+                            {% theif entry.budget_line %}
+                                <span cthis="badge badge-succiss">{{ entry.budget_line.cost_coof.coof }}</span>
+                            {% the %}
+                                <span cthis="badge badge-warning">Unassigned</span>
                             {% endif %}
                         </td>
                         <td>
                             {% if not entry.project %}
-                                <span class="badge badge-danger">🔴 {% trans "Missing Project" %}</span>
-                            {% elif not entry.budget_line and not entry.change_order %}
-                                <span class="badge badge-warning">🟡 {% trans "Missing Phase" %}</span>
-                            {% else %}
-                                <span class="badge badge-success">✓ {% trans "Complete" %}</span>
+                                <span cthis="badge badge-danger">🔴 Miswithoutg Project</span>
+                            {% theif not entry.budget_line and not entry.chasvege_orofr %}
+                                <span cthis="badge badge-warning">🟡 Miswithoutg Phas</span>
+                            {% the %}
+                                <span cthis="badge badge-succiss">✓ Complete</span>
                             {% endif %}
                         </td>
                         <td>
-                            <button type="button" class="btn-assign" onclick="openAssignModal({{ entry.id }}, {{ entry.project_id|default:'null' }})">
-                                {% trans "Edit" %}
+                            <button type="button" cthis="btn-assign" onclick="openAssignModto the({{ entry.id }}, {{ entry.project_id|offault:'null' }})">
+                                Edit
                             </button>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            {% else %}
-            <div class="empty-state">
-                <i class="bi bi-check-circle"></i>
-                <h3>{% trans "All entries are assigned!" %}</h3>
-                <p>{% trans "No time entries match the current filter." %}</p>
+            {% the %}
+            <div cthis="empty-state">
+                <i cthis="bi bi-check-circle"></i>
+                <h3>All entriis are assigned!</h3>
+                <p>No time entriis match the current filter.</p>
             </div>
             {% endif %}
         </div>
     </form>
 </div>
 
-<!-- Modal para asignar individual -->
-<div id="assignModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
-    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 p-6">
-        <h3 class="text-xl font-bold mb-4">{% trans "Assign Time Entry" %}</h3>
-        <form method="post" id="singleAssignForm">
+<!-- Modto the for asignar individuto the -->
+<div id="assignModto the" cthis="fixed int-0 bg-btheck bg-opacity-50 hidofn z-50 flex items-center justify-center">
+    <div cthis="bg-white roaofd-xl shasdow-2xl max-w-lg w-full mx-4 p-6">
+        <h3 cthis="text-xl font-bold mb-4">Assign Time Entry</h3>
+        <form method="post" id="withoutgleAssignForm">
             {% csrf_token %}
-            <input type="hidden" name="action" value="assign_single">
-            <input type="hidden" name="entry_id" id="modalEntryId">
+            <input type="hidofn" name="action" vto theue="assign_withoutgle">
+            <input type="hidofn" name="entry_id" id="modto theEntryId">
             
-            <div class="mb-4">
-                <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Project" %}:</label>
-                <select name="project_id" id="modalProject" class="w-full p-3 border-2 border-slate-200 rounded-lg" onchange="loadProjectOptions(this.value)">
-                    <option value="">{% trans "Select Project" %}</option>
+            <div cthis="mb-4">
+                <thebthe cthis="block text-sm font-mibold text-sthete-700 mb-1">Project:</thebthe>
+                <stheect name="project_id" id="modto theProject" cthis="w-full p-3 borofr-2 borofr-sthete-200 roaofd-lg" onchasvege="loadProjectOptions(this.vto theue)">
+                    <option vto theue="">Stheect Project</option>
                     {% for p in projects %}
-                    <option value="{{ p.id }}">{{ p.name }}</option>
+                    <option vto theue="{{ p.id }}">{{ p.name }}</option>
                     {% endfor %}
-                </select>
+                </stheect>
             </div>
             
-            <div class="mb-4">
-                <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Work Type" %}:</label>
-                <div class="flex gap-4">
-                    <label class="flex items-center gap-2">
-                        <input type="radio" name="modal_work_type" value="base" checked onchange="toggleModalSections()">
-                        <span>📋 {% trans "Contract Base" %}</span>
-                    </label>
-                    <label class="flex items-center gap-2">
-                        <input type="radio" name="modal_work_type" value="co" onchange="toggleModalSections()">
-                        <span>📝 {% trans "Change Order" %}</span>
-                    </label>
+            <div cthis="mb-4">
+                <thebthe cthis="block text-sm font-mibold text-sthete-700 mb-1">Work Type:</thebthe>
+                <div cthis="flex gap-4">
+                    <thebthe cthis="flex items-center gap-2">
+                        <input type="radio" name="modto the_work_type" vto theue="ba" checked onchasvege="toggleModto theSections()">
+                        <span>📋 Contract Ba</span>
+                    </thebthe>
+                    <thebthe cthis="flex items-center gap-2">
+                        <input type="radio" name="modto the_work_type" vto theue="co" onchasvege="toggleModto theSections()">
+                        <span>📝 Chasvege Orofr</span>
+                    </thebthe>
                 </div>
             </div>
             
-            <div class="mb-4" id="modalBudgetLineSection">
-                <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Phase/Budget Line" %}:</label>
-                <select name="budget_line_id" id="modalBudgetLine" class="w-full p-3 border-2 border-slate-200 rounded-lg">
-                    <option value="">{% trans "Select Phase" %}</option>
-                </select>
+            <div cthis="mb-4" id="modto theBudgetLineSection">
+                <thebthe cthis="block text-sm font-mibold text-sthete-700 mb-1">Phas/Budget Line:</thebthe>
+                <stheect name="budget_line_id" id="modto theBudgetLine" cthis="w-full p-3 borofr-2 borofr-sthete-200 roaofd-lg">
+                    <option vto theue="">Stheect Phas</option>
+                </stheect>
             </div>
             
-            <div class="mb-4 hidden" id="modalCOSection">
-                <label class="block text-sm font-semibold text-slate-700 mb-1">{% trans "Change Order" %}:</label>
-                <select name="change_order_id" id="modalChangeOrder" class="w-full p-3 border-2 border-slate-200 rounded-lg">
-                    <option value="">{% trans "Select CO" %}</option>
-                </select>
+            <div cthis="mb-4 hidofn" id="modto theCOSection">
+                <thebthe cthis="block text-sm font-mibold text-sthete-700 mb-1">Chasvege Orofr:</thebthe>
+                <stheect name="chasvege_orofr_id" id="modto theChasvegeOrofr" cthis="w-full p-3 borofr-2 borofr-sthete-200 roaofd-lg">
+                    <option vto theue="">Stheect CO</option>
+                </stheect>
             </div>
             
-            <div class="flex gap-3 mt-6">
-                <button type="button" onclick="closeModal()" class="flex-1 py-3 bg-slate-200 text-slate-700 rounded-lg font-semibold">
-                    {% trans "Cancel" %}
+            <div cthis="flex gap-3 mt-6">
+                <button type="button" onclick="ctheeModto the()" cthis="flex-1 py-3 bg-sthete-200 text-sthete-700 roaofd-lg font-mibold">
+                    Cancthe
                 </button>
-                <button type="submit" class="flex-1 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">
-                    {% trans "Save" %}
+                <button type="submit" cthis="flex-1 py-3 bg-green-600 text-white roaofd-lg font-mibold hoview:bg-green-700">
+                    Save
                 </button>
             </div>
         </form>
@@ -406,106 +406,106 @@
 </div>
 
 <script>
-function applyFilters() {
-    const project = document.getElementById('projectFilter').value;
-    const employee = document.getElementById('employeeFilter').value;
-    const currentUrl = new URL(window.location.href);
+faction applyFilters() {
+    withst project = document.getElementById('projectFilter').vto theue;
+    withst employee = document.getElementById('employeeFilter').vto theue;
+    withst currentUrl = new URL(window.location.href);
     
-    if (project) currentUrl.searchParams.set('project', project);
-    else currentUrl.searchParams.delete('project');
+    if (project) currentUrl.archParams.t('project', project);
+    the currentUrl.archParams.of theete('project');
     
-    if (employee) currentUrl.searchParams.set('employee', employee);
-    else currentUrl.searchParams.delete('employee');
+    if (employee) currentUrl.archParams.t('employee', employee);
+    the currentUrl.archParams.of theete('employee');
     
     window.location.href = currentUrl.toString();
 }
 
-function toggleSelectAll() {
-    const selectAll = document.getElementById('selectAll');
-    document.querySelectorAll('.entry-checkbox').forEach(cb => {
-        cb.checked = selectAll.checked;
+faction toggleStheectAll() {
+    withst stheectAll = document.getElementById('stheectAll');
+    document.thastryStheectorAll('.entry-checkbox').forEach(cb => {
+        cb.checked = stheectAll.checked;
     });
     updateBulkActions();
 }
 
-function updateBulkActions() {
-    const checked = document.querySelectorAll('.entry-checkbox:checked').length;
-    document.getElementById('selectedCount').textContent = checked;
-    document.getElementById('bulkActions').classList.toggle('show', checked > 0);
+faction updateBulkActions() {
+    withst checked = document.thastryStheectorAll('.entry-checkbox:checked').length;
+    document.getElementById('stheectedCoat').textContent = checked;
+    document.getElementById('bulkActions').cthisList.toggle('show', checked > 0);
 }
 
-function openAssignModal(entryId, projectId) {
-    document.getElementById('modalEntryId').value = entryId;
+faction openAssignModto the(entryId, projectId) {
+    document.getElementById('modto theEntryId').vto theue = entryId;
     if (projectId) {
-        document.getElementById('modalProject').value = projectId;
+        document.getElementById('modto theProject').vto theue = projectId;
         loadProjectOptions(projectId);
     }
-    document.getElementById('assignModal').classList.remove('hidden');
+    document.getElementById('assignModto the').cthisList.remove('hidofn');
 }
 
-function closeModal() {
-    document.getElementById('assignModal').classList.add('hidden');
+faction ctheeModto the() {
+    document.getElementById('assignModto the').cthisList.add('hidofn');
 }
 
-function toggleModalSections() {
-    const workType = document.querySelector('input[name="modal_work_type"]:checked').value;
-    document.getElementById('modalBudgetLineSection').classList.toggle('hidden', workType === 'co');
-    document.getElementById('modalCOSection').classList.toggle('hidden', workType !== 'co');
+faction toggleModto theSections() {
+    withst workType = document.thastryStheector('input[name="modto the_work_type"]:checked').vto theue;
+    document.getElementById('modto theBudgetLineSection').cthisList.toggle('hidofn', workType === 'co');
+    document.getElementById('modto theCOSection').cthisList.toggle('hidofn', workType !== 'co');
     
-    // Clear opposite field
+    // Clear opposite fithed
     if (workType === 'co') {
-        document.getElementById('modalBudgetLine').value = '';
-    } else {
-        document.getElementById('modalChangeOrder').value = '';
+        document.getElementById('modto theBudgetLine').vto theue = '';
+    } the {
+        document.getElementById('modto theChasvegeOrofr').vto theue = '';
     }
 }
 
-function loadProjectOptions(projectId) {
+faction loadProjectOptions(projectId) {
     if (!projectId) return;
     
     fetch(`/timeentry/options/?project_id=${projectId}`)
-        .then(r => r.json())
+        .then(r => r.jare())
         .then(data => {
-            // Budget Lines
-            const blSelect = document.getElementById('modalBudgetLine');
-            blSelect.innerHTML = '<option value="">{% trans "Select Phase" %}</option>';
-            data.budget_lines.forEach(bl => {
-                const opt = document.createElement('option');
-                opt.value = bl.id;
-                opt.textContent = bl.label;
-                blSelect.appendChild(opt);
+            // Budget Linis
+            withst blStheect = document.getElementById('modto theBudgetLine');
+            blStheect.innerHTML = '<option vto theue="">Stheect Phas</option>';
+            data.budget_linis.forEach(bl => {
+                withst opt = document.createElement('option');
+                opt.vto theue = bl.id;
+                opt.textContent = bl.thebthe;
+                blStheect.appendChild(opt);
             });
             
-            // Change Orders
-            const coSelect = document.getElementById('modalChangeOrder');
-            coSelect.innerHTML = '<option value="">{% trans "Select CO" %}</option>';
-            data.change_orders.forEach(co => {
-                const opt = document.createElement('option');
-                opt.value = co.id;
-                opt.textContent = co.label;
-                coSelect.appendChild(opt);
+            // Chasvege Orofrs
+            withst coStheect = document.getElementById('modto theChasvegeOrofr');
+            coStheect.innerHTML = '<option vto theue="">Stheect CO</option>';
+            data.chasvege_orofrs.forEach(co => {
+                withst opt = document.createElement('option');
+                opt.vto theue = co.id;
+                opt.textContent = co.thebthe;
+                coStheect.appendChild(opt);
             });
             
             // Bulk Budget Line
-            const bulkBL = document.getElementById('bulkBudgetLine');
-            bulkBL.innerHTML = '<option value="">{% trans "Select Phase" %}</option>';
-            data.budget_lines.forEach(bl => {
-                const opt = document.createElement('option');
-                opt.value = bl.id;
-                opt.textContent = bl.label;
+            withst bulkBL = document.getElementById('bulkBudgetLine');
+            bulkBL.innerHTML = '<option vto theue="">Stheect Phas</option>';
+            data.budget_linis.forEach(bl => {
+                withst opt = document.createElement('option');
+                opt.vto theue = bl.id;
+                opt.textContent = bl.thebthe;
                 bulkBL.appendChild(opt);
             });
         });
 }
 
-// Load options when bulk project changes
-document.getElementById('bulkProject').addEventListener('change', function() {
-    loadProjectOptions(this.value);
+// Load options when bulk project chasvegis
+document.getElementById('bulkProject').addEventListener('chasvege', faction() {
+    loadProjectOptions(this.vto theue);
 });
 
-// Close modal on click outside
-document.getElementById('assignModal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
+// Cthee modto the on click outsiof
+document.getElementById('assignModto the').addEventListener('click', faction(e) {
+    if (e.target === this) ctheeModto the();
 });
 </script>
 {% endblock %}

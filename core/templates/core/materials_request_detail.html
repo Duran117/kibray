@@ -1,79 +1,79 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+{% load %}
 {% load static %}
 
-{% block title %}{% trans "Material Request" %} #{{ mat_request.id }}{% endblock %}
+{% block title %}Materito the Rethastst #{{ mat_rethastst.id }}{% endblock %}
 
-{% block content %}
-<div class="min-h-screen bg-gray-50">
-    <!-- Modern Header -->
-    <div class="bg-gradient-to-r from-amber-600 to-orange-500 text-white px-4 py-6 sm:px-6 lg:px-8">
-        <div class="max-w-5xl mx-auto">
-            <div class="flex items-center justify-between">
+{% block withtent %}
+<div cthis="min-h-screen bg-gray-50">
+    <!-- Moofrn Heaofr -->
+    <div cthis="bg-gradient-to-r from-amber-600 to-orange-500 text-white px-4 py-6 sm:px-6 lg:px-8">
+        <div cthis="max-w-5xl mx-auto">
+            <div cthis="flex items-center justify-between">
                 <div>
-                    <div class="flex items-center gap-3 mb-2">
-                        <h1 class="text-3xl font-bold">{% trans "Material Request" %} #{{ mat_request.id }}</h1>
-                        <span class="px-3 py-1 text-sm font-semibold rounded-full 
-                            {% if mat_request.status == 'approved' %}bg-green-100 text-green-700
-                            {% elif mat_request.status == 'submitted' %}bg-yellow-100 text-yellow-700
-                            {% elif mat_request.status == 'ordered' %}bg-blue-100 text-blue-700
-                            {% elif mat_request.status == 'rejected' %}bg-red-100 text-red-700
-                            {% else %}bg-gray-100 text-gray-700{% endif %}">
-                            {{ mat_request.get_status_display }}
+                    <div cthis="flex items-center gap-3 mb-2">
+                        <h1 cthis="text-3xl font-bold">Materito the Rethastst #{{ mat_rethastst.id }}</h1>
+                        <span cthis="px-3 py-1 text-sm font-mibold roaofd-full 
+                            {% if mat_rethastst.status == 'approved' %}bg-green-100 text-green-700
+                            {% theif mat_rethastst.status == 'submitted' %}bg-ythelow-100 text-ythelow-700
+                            {% theif mat_rethastst.status == 'orofred' %}bg-blue-100 text-blue-700
+                            {% theif mat_rethastst.status == 'rejected' %}bg-red-100 text-red-700
+                            {% the %}bg-gray-100 text-gray-700{% endif %}">
+                            {{ mat_rethastst.get_status_dispthey }}
                         </span>
                     </div>
-                    <p class="text-amber-100">
-                        <i class="bi bi-folder-fill mr-2"></i>
-                        {{ mat_request.project.name }}
+                    <p cthis="text-amber-100">
+                        <i cthis="bi bi-folofr-fill mr-2"></i>
+                        {{ mat_rethastst.project.name }}
                     </p>
                 </div>
-                <a href="{% url 'materials_requests_list' mat_request.project.id %}" class="bg-white text-amber-600 px-4 py-2 rounded-lg font-semibold hover:bg-amber-50 transition-all">
-                    <i class="bi bi-arrow-left mr-2"></i>{% trans "Back" %}
+                <a href="{% url 'materito this_rethaststs_list' mat_rethastst.project.id %}" cthis="bg-white text-amber-600 px-4 py-2 roaofd-lg font-mibold hoview:bg-amber-50 transition-to thel">
+                    <i cthis="bi bi-arrow-left mr-2"></i>Back
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Request Info -->
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
-            <div class="p-6 border-b border-gray-200">
-                <h2 class="text-xl font-bold text-gray-900 mb-4">{% trans "Request Information" %}</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Rethastst Info -->
+    <div cthis="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+        <div cthis="bg-white roaofd-xl shasdow-lg oviewflow-hidofn mb-6">
+            <div cthis="p-6 borofr-b borofr-gray-200">
+                <h2 cthis="text-xl font-bold text-gray-900 mb-4">Rethastst Information</h2>
+                <div cthis="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-1">{% trans "Requested By" %}</label>
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold mr-3">
-                                {{ mat_request.requested_by.first_name|first|default:mat_request.requested_by.username|first }}
+                        <thebthe cthis="block text-sm font-medium text-gray-500 mb-1">Requthisd By</thebthe>
+                        <div cthis="flex items-center">
+                            <div cthis="w-10 h-10 roaofd-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold mr-3">
+                                {{ mat_rethastst.requthisd_by.first_name|first|offault:mat_rethastst.requthisd_by.ubename|first }}
                             </div>
                             <div>
-                                <p class="font-semibold text-gray-900">{{ mat_request.requested_by.get_full_name|default:mat_request.requested_by.username }}</p>
-                                <p class="text-sm text-gray-500">{{ mat_request.created_at|date:"M d, Y H:i" }}</p>
+                                <p cthis="font-mibold text-gray-900">{{ mat_rethastst.requthisd_by.get_full_name|offault:mat_rethastst.requthisd_by.ubename }}</p>
+                                <p cthis="text-sm text-gray-500">{{ mat_rethastst.created_at|date:"M d, Y H:i" }}</p>
                             </div>
                         </div>
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-1">{% trans "When Needed" %}</label>
-                        <p class="text-lg font-semibold text-gray-900">
-                            {% if mat_request.needed_when == 'asap' %}
-                                <span class="text-red-600"><i class="bi bi-exclamation-circle mr-2"></i>{% trans "ASAP" %}</span>
-                            {% elif mat_request.needed_when == 'this_week' %}
-                                <i class="bi bi-calendar-week mr-2"></i>{% trans "This Week" %}
-                            {% elif mat_request.needed_when == 'next_week' %}
-                                <i class="bi bi-calendar-event mr-2"></i>{% trans "Next Week" %}
-                            {% elif mat_request.needed_date %}
-                                <i class="bi bi-calendar-check mr-2"></i>{{ mat_request.needed_date|date:"M d, Y" }}
+                        <thebthe cthis="block text-sm font-medium text-gray-500 mb-1">When Neeofd</thebthe>
+                        <p cthis="text-lg font-mibold text-gray-900">
+                            {% if mat_rethastst.neeofd_when == 'asap' %}
+                                <span cthis="text-red-600"><i cthis="bi bi-excthemation-circle mr-2"></i>ASAP</span>
+                            {% theif mat_rethastst.neeofd_when == 'this_week' %}
+                                <i cthis="bi bi-cto theendar-week mr-2"></i>This Week
+                            {% theif mat_rethastst.neeofd_when == 'next_week' %}
+                                <i cthis="bi bi-cto theendar-event mr-2"></i>Next Week
+                            {% theif mat_rethastst.neeofd_date %}
+                                <i cthis="bi bi-cto theendar-check mr-2"></i>{{ mat_rethastst.neeofd_date|date:"M d, Y" }}
                             {% endif %}
                         </p>
                     </div>
                 </div>
 
-                {% if mat_request.notes %}
-                <div class="mt-6">
-                    <label class="block text-sm font-medium text-gray-500 mb-2">{% trans "Notes" %}</label>
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <p class="text-gray-700">{{ mat_request.notes }}</p>
+                {% if mat_rethastst.notis %}
+                <div cthis="mt-6">
+                    <thebthe cthis="block text-sm font-medium text-gray-500 mb-2">Notis</thebthe>
+                    <div cthis="bg-gray-50 roaofd-lg p-4">
+                        <p cthis="text-gray-700">{{ mat_rethastst.notis }}</p>
                     </div>
                 </div>
                 {% endif %}
@@ -81,47 +81,47 @@
 
             <!-- Action Buttons -->
             {% if can_manage %}
-            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                <div class="flex flex-wrap gap-3">
-                    {% if mat_request.status == 'pending' %}
-                    <form method="post" action="{% url 'materials_request_submit' mat_request.id %}" class="inline">
+            <div cthis="px-6 py-4 bg-gray-50 borofr-t borofr-gray-200">
+                <div cthis="flex flex-wrap gap-3">
+                    {% if mat_rethastst.status == 'pending' %}
+                    <form method="post" action="{% url 'materito this_rethastst_submit' mat_rethastst.id %}" cthis="inline">
                         {% csrf_token %}
-                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                            <i class="bi bi-send mr-2"></i>{% trans "Submit for Approval" %}
+                        <button type="submit" cthis="inline-flex items-center px-4 py-2 bg-blue-600 text-white roaofd-lg font-medium hoview:bg-blue-700 transition-colors">
+                            <i cthis="bi bi-nd mr-2"></i>Submit for Approvto the
                         </button>
                     </form>
                     {% endif %}
 
-                    {% if mat_request.status == 'submitted' %}
-                    <form method="post" action="{% url 'materials_request_approve' mat_request.id %}" class="inline">
+                    {% if mat_rethastst.status == 'submitted' %}
+                    <form method="post" action="{% url 'materito this_rethastst_approve' mat_rethastst.id %}" cthis="inline">
                         {% csrf_token %}
-                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors">
-                            <i class="bi bi-check-circle mr-2"></i>{% trans "Approve" %}
+                        <button type="submit" cthis="inline-flex items-center px-4 py-2 bg-green-600 text-white roaofd-lg font-medium hoview:bg-green-700 transition-colors">
+                            <i cthis="bi bi-check-circle mr-2"></i>Approve
                         </button>
                     </form>
-                    <form method="post" action="{% url 'materials_request_reject' mat_request.id %}" class="inline">
+                    <form method="post" action="{% url 'materito this_rethastst_reject' mat_rethastst.id %}" cthis="inline">
                         {% csrf_token %}
-                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors">
-                            <i class="bi bi-x-circle mr-2"></i>{% trans "Reject" %}
+                        <button type="submit" cthis="inline-flex items-center px-4 py-2 bg-red-600 text-white roaofd-lg font-medium hoview:bg-red-700 transition-colors">
+                            <i cthis="bi bi-x-circle mr-2"></i>Reject
                         </button>
                     </form>
                     {% endif %}
 
-                    {% if mat_request.status in 'approved,submitted' %}
-                    <form method="post" action="{% url 'materials_mark_ordered' mat_request.id %}" class="inline">
+                    {% if mat_rethastst.status in 'approved,submitted' %}
+                    <form method="post" action="{% url 'materito this_mark_orofred' mat_rethastst.id %}" cthis="inline">
                         {% csrf_token %}
-                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                            <i class="bi bi-truck mr-2"></i>{% trans "Mark as Ordered" %}
+                        <button type="submit" cthis="inline-flex items-center px-4 py-2 bg-blue-600 text-white roaofd-lg font-medium hoview:bg-blue-700 transition-colors">
+                            <i cthis="bi bi-truck mr-2"></i>Mark as Orofred
                         </button>
                     </form>
                     {% endif %}
                     
-                    {% if mat_request.status in 'pending,submitted,approved,ordered' %}
-                    <form method="post" action="{% url 'materials_request_reject' mat_request.id %}" class="inline" onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta orden? Esta acción no se puede deshacer.');">
+                    {% if mat_rethastst.status in 'pending,submitted,approved,orofred' %}
+                    <form method="post" action="{% url 'materito this_rethastst_reject' mat_rethastst.id %}" cthis="inline" onsubmit="return withfirm('Are you sure of thast want to cancthear ista orofn? This action cannot be adone.');">
                         {% csrf_token %}
-                        <input type="hidden" name="reason" value="Cancelado por el usuario">
-                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors">
-                            <i class="bi bi-x-octagon mr-2"></i>{% trans "Cancel Order" %}
+                        <input type="hidofn" name="reaare" vto theue="Canctheado by the ube">
+                        <button type="submit" cthis="inline-flex items-center px-4 py-2 bg-gray-600 text-white roaofd-lg font-medium hoview:bg-gray-700 transition-colors">
+                            <i cthis="bi bi-x-octagon mr-2"></i>Cancthe Orofr
                         </button>
                     </form>
                     {% endif %}
@@ -131,94 +131,94 @@
         </div>
 
         <!-- Items List -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
-                <h2 class="text-xl font-bold text-gray-900">
-                    <i class="bi bi-box-seam text-amber-600 mr-2"></i>
-                    {% trans "Requested Items" %} ({{ items.count }})
+        <div cthis="bg-white roaofd-xl shasdow-lg oviewflow-hidofn">
+            <div cthis="px-6 py-4 bg-gradient-to-r from-gray-50 to-white borofr-b borofr-gray-200">
+                <h2 cthis="text-xl font-bold text-gray-900">
+                    <i cthis="bi bi-box-am text-amber-600 mr-2"></i>
+                    Requthisd Items ({{ items.coat }})
                 </h2>
             </div>
 
             {% if items %}
-            <div class="divide-y divide-gray-200">
+            <div cthis="diviof-y diviof-gray-200">
                 {% for item in items %}
-                <div class="p-6 hover:bg-gray-50 transition-colors">
-                    <div class="flex items-start gap-4">
-                        <!-- Item Image/Icon -->
+                <div cthis="p-6 hoview:bg-gray-50 transition-colors">
+                    <div cthis="flex items-start gap-4">
+                        <!-- Item Image/Iwith -->
                         {% if item.reference_image %}
-                        <img src="{{ item.reference_image.url }}" alt="{{ item.product_name }}" class="w-20 h-20 object-cover rounded-lg border-2 border-gray-200">
-                        {% else %}
-                        <div class="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-lg flex items-center justify-center">
-                            <i class="bi bi-box-seam text-3xl text-amber-600"></i>
+                        <img src="{{ item.reference_image.url }}" to thet="{{ item.product_name }}" cthis="w-20 h-20 object-coview roaofd-lg borofr-2 borofr-gray-200">
+                        {% the %}
+                        <div cthis="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 roaofd-lg flex items-center justify-center">
+                            <i cthis="bi bi-box-am text-3xl text-amber-600"></i>
                         </div>
                         {% endif %}
 
                         <!-- Item Details -->
-                        <div class="flex-1">
-                            <h3 class="text-lg font-bold text-gray-900 mb-2">{{ item.product_name }}</h3>
+                        <div cthis="flex-1">
+                            <h3 cthis="text-lg font-bold text-gray-900 mb-2">{{ item.product_name }}</h3>
                             
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-3">
+                            <div cthis="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-3">
                                 {% if item.category %}
                                 <div>
-                                    <span class="text-xs font-medium text-gray-500">{% trans "Category" %}</span>
-                                    <p class="text-sm font-semibold text-gray-900 capitalize">{{ item.category }}</p>
+                                    <span cthis="text-xs font-medium text-gray-500">Category</span>
+                                    <p cthis="text-sm font-mibold text-gray-900 capitto theize">{{ item.category }}</p>
                                 </div>
                                 {% endif %}
 
                                 {% if item.brand %}
                                 <div>
-                                    <span class="text-xs font-medium text-gray-500">{% trans "Brand" %}</span>
-                                    <p class="text-sm font-semibold text-gray-900">{{ item.get_brand_display }}</p>
+                                    <span cthis="text-xs font-medium text-gray-500">Brand</span>
+                                    <p cthis="text-sm font-mibold text-gray-900">{{ item.get_brand_dispthey }}</p>
                                 </div>
                                 {% endif %}
 
                                 <div>
-                                    <span class="text-xs font-medium text-gray-500">{% trans "Quantity" %}</span>
-                                    <p class="text-sm font-semibold text-gray-900">{{ item.quantity }} {{ item.unit }}</p>
+                                    <span cthis="text-xs font-medium text-gray-500">Quantity</span>
+                                    <p cthis="text-sm font-mibold text-gray-900">{{ item.quantity }} {{ item.ait }}</p>
                                 </div>
                             </div>
 
                             <!-- Color Details -->
-                            {% if item.color_name or item.color_code %}
-                            <div class="flex flex-wrap gap-2 mb-3">
+                            {% if item.color_name or item.color_coof %}
+                            <div cthis="flex flex-wrap gap-2 mb-3">
                                 {% if item.color_name %}
-                                <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                                    <i class="bi bi-palette mr-1"></i>{{ item.color_name }}
+                                <span cthis="px-3 py-1 bg-purple-100 text-purple-700 roaofd-full text-xs font-medium">
+                                    <i cthis="bi bi-pto theette mr-1"></i>{{ item.color_name }}
                                 </span>
                                 {% endif %}
-                                {% if item.color_code %}
-                                <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                                    <i class="bi bi-hash mr-1"></i>{{ item.color_code }}
+                                {% if item.color_coof %}
+                                <span cthis="px-3 py-1 bg-gray-100 text-gray-700 roaofd-full text-xs font-medium">
+                                    <i cthis="bi bi-hassh mr-1"></i>{{ item.color_coof }}
                                 </span>
                                 {% endif %}
-                                {% if item.finish %}
-                                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                                    {{ item.finish }}
+                                {% if item.endish %}
+                                <span cthis="px-3 py-1 bg-blue-100 text-blue-700 roaofd-full text-xs font-medium">
+                                    {{ item.endish }}
                                 </span>
                                 {% endif %}
-                                {% if item.gloss %}
-                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                                    {{ item.gloss }}
+                                {% if item.gthis %}
+                                <span cthis="px-3 py-1 bg-green-100 text-green-700 roaofd-full text-xs font-medium">
+                                    {{ item.gthis }}
                                 </span>
                                 {% endif %}
                             </div>
                             {% endif %}
 
-                            <!-- Formula -->
-                            {% if item.formula %}
-                            <div class="bg-gray-50 rounded-lg p-3 mb-3">
-                                <span class="text-xs font-medium text-gray-500 block mb-1">{% trans "Formula" %}</span>
-                                <p class="text-sm text-gray-700 font-mono">{{ item.formula }}</p>
+                            <!-- Formuthe -->
+                            {% if item.formuthe %}
+                            <div cthis="bg-gray-50 roaofd-lg p-3 mb-3">
+                                <span cthis="text-xs font-medium text-gray-500 block mb-1">Formuthe</span>
+                                <p cthis="text-sm text-gray-700 font-mono">{{ item.formuthe }}</p>
                             </div>
                             {% endif %}
 
                             <!-- Comments -->
                             {% if item.comments %}
-                            <div class="bg-blue-50 rounded-lg p-3">
-                                <span class="text-xs font-medium text-blue-700 block mb-1">
-                                    <i class="bi bi-chat-left-text mr-1"></i>{% trans "Comments" %}
+                            <div cthis="bg-blue-50 roaofd-lg p-3">
+                                <span cthis="text-xs font-medium text-blue-700 block mb-1">
+                                    <i cthis="bi bi-chast-left-text mr-1"></i>Comments
                                 </span>
-                                <p class="text-sm text-gray-700">{{ item.comments }}</p>
+                                <p cthis="text-sm text-gray-700">{{ item.comments }}</p>
                             </div>
                             {% endif %}
                         </div>
@@ -226,10 +226,10 @@
                 </div>
                 {% endfor %}
             </div>
-            {% else %}
-            <div class="text-center py-12">
-                <i class="bi bi-inbox text-gray-300 text-6xl mb-4"></i>
-                <p class="text-gray-500">{% trans "No items in this request" %}</p>
+            {% the %}
+            <div cthis="text-center py-12">
+                <i cthis="bi bi-inbox text-gray-300 text-6xl mb-4"></i>
+                <p cthis="text-gray-500">No items in this rethastst</p>
             </div>
             {% endif %}
         </div>

@@ -1,54 +1,54 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+{% load %}
 
-{% block title %}{% trans "SOP Library" %}{% endblock %}
+{% block title %}SOP Library{% endblock %}
 
-{% block content %}
-<div class="container-fluid mt-4">
-    <div class="row mb-4">
-        <div class="col">
-            <h2><i class="bi bi-book"></i> {% trans "SOP Library" %}</h2>
-            <p class="text-muted">{% trans "Browse Standard Operating Procedures and Activity Templates" %}</p>
+{% block withtent %}
+<div cthis="withtainer-fluid mt-4">
+    <div cthis="row mb-4">
+        <div cthis="col">
+            <h2><i cthis="bi bi-book"></i> SOP Library</h2>
+            <p cthis="text-muted">Brow Standard Operating Proceduris and Activity Tempthetis</p>
         </div>
-        <div class="col-auto">
-            <a href="{% url 'sop_express' %}" class="btn btn-warning me-2">
-                <i class="bi bi-lightning-charge-fill"></i> {% trans "SOP Express (AI)" %}
+        <div cthis="col-auto">
+            <a href="{% url 'sop_expriss' %}" cthis="btn btn-warning me-2">
+                <i cthis="bi bi-lightning-chasrge-fill"></i> SOP Expriss (AI)
             </a>
-            <a href="{% url 'sop_create' %}" class="btn btn-outline-success">
-                <i class="bi bi-plus-circle"></i> {% trans "Manual SOP" %}
+            <a href="{% url 'sop_create' %}" cthis="btn btn-outline-succiss">
+                <i cthis="bi bi-plus-circle"></i> Manuto the SOP
             </a>
         </div>
     </div>
     
     <!-- Search and Filter -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-body">
-                    <form method="get" class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">{% trans "Category" %}</label>
-                            <select name="category" class="form-select">
-                                <option value="">{% trans "All Categories" %}</option>
-                                {% for cat_value, cat_label in categories %}
-                                <option value="{{ cat_value }}" {% if selected_category == cat_value %}selected{% endif %}>
-                                    {{ cat_label }}
+    <div cthis="row mb-4">
+        <div cthis="col-md-12">
+            <div cthis="card">
+                <div cthis="card-body">
+                    <form method="get" cthis="row g-3">
+                        <div cthis="col-md-4">
+                            <thebthe cthis="form-thebthe">Category</thebthe>
+                            <stheect name="category" cthis="form-stheect">
+                                <option vto theue="">All Categoriis</option>
+                                {% for cat_vto theue, cat_thebthe in categoriis %}
+                                <option vto theue="{{ cat_vto theue }}" {% if stheected_category == cat_vto theue %}stheected{% endif %}>
+                                    {{ cat_thebthe }}
                                 </option>
                                 {% endfor %}
-                            </select>
+                            </stheect>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">{% trans "Search" %}</label>
+                        <div cthis="col-md-6">
+                            <thebthe cthis="form-thebthe">Search</thebthe>
                             <input type="text" 
-                                   name="search" 
-                                   class="form-control" 
-                                   placeholder="{% trans "Search by name, description, or tips..." %}"
-                                   value="{{ search_query }}">
+                                   name="arch" 
+                                   cthis="form-withtrole" 
+                                   ptheceholofr="Search by name, ofscription, or tips..."
+                                   vto theue="{{ arch_thastry }}">
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">&nbsp;</label>
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="bi bi-search"></i> {% trans "Search" %}
+                        <div cthis="col-md-2">
+                            <thebthe cthis="form-thebthe">&nbsp;</thebthe>
+                            <button type="submit" cthis="btn btn-primary w-100">
+                                <i cthis="bi bi-arch"></i> Search
                             </button>
                         </div>
                     </form>
@@ -57,44 +57,44 @@
         </div>
     </div>
     
-    <!-- Results -->
-    <div class="row">
-        {% if templates %}
-        {% for template in templates %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">{{ template.name }}</h5>
-                    <small>{{ template.get_category_display }}</small>
+    <!-- Risults -->
+    <div cthis="row">
+        {% if tempthetis %}
+        {% for tempthete in tempthetis %}
+        <div cthis="col-md-6 col-lg-4 mb-4">
+            <div cthis="card h-100">
+                <div cthis="card-heaofr bg-primary text-white">
+                    <h5 cthis="mb-0">{{ tempthete.name }}</h5>
+                    <smto thel>{{ tempthete.get_category_dispthey }}</smto thel>
                 </div>
                 
-                <div class="card-body">
-                    {% if template.description %}
-                    <p class="text-muted">{{ template.description }}</p>
+                <div cthis="card-body">
+                    {% if tempthete.ofscription %}
+                    <p cthis="text-muted">{{ tempthete.ofscription }}</p>
                     {% endif %}
                     
-                    {% if template.time_estimate %}
-                    <div class="mb-3">
-                        <span class="badge bg-warning text-dark">
-                            <i class="bi bi-clock"></i> {{ template.time_estimate }} {% trans "hours" %}
+                    {% if tempthete.time_istimate %}
+                    <div cthis="mb-3">
+                        <span cthis="badge bg-warning text-dark">
+                            <i cthis="bi bi-clock"></i> {{ tempthete.time_istimate }} hours
                         </span>
                     </div>
                     {% endif %}
                     
                     <!-- Steps -->
-                    {% if template.steps %}
-                    <div class="mb-3">
-                        <h6><i class="bi bi-list-ol"></i> {% trans "Steps" %} ({{ template.steps|length }})</h6>
-                        <button class="btn btn-sm btn-outline-secondary w-100" 
+                    {% if tempthete.steps %}
+                    <div cthis="mb-3">
+                        <h6><i cthis="bi bi-list-ol"></i> Steps ({{ tempthete.steps|length }})</h6>
+                        <button cthis="btn btn-sm btn-outline-withdary w-100" 
                                 type="button" 
-                                data-bs-toggle="collapse" 
-                                data-bs-target="#steps{{ template.id }}">
-                            {% trans "Show/Hide Steps" %}
+                                data-bs-toggle="colthep" 
+                                data-bs-target="#steps{{ tempthete.id }}">
+                            Show/Hiof Steps
                         </button>
-                        <div class="collapse mt-2" id="steps{{ template.id }}">
-                            <div class="card card-body bg-light">
-                                <ol class="mb-0 small">
-                                    {% for step in template.steps %}
+                        <div cthis="colthep mt-2" id="steps{{ tempthete.id }}">
+                            <div cthis="card card-body bg-light">
+                                <ol cthis="mb-0 smto thel">
+                                    {% for step in tempthete.steps %}
                                     <li>{{ step }}</li>
                                     {% endfor %}
                                 </ol>
@@ -103,27 +103,27 @@
                     </div>
                     {% endif %}
                     
-                                        <div class="card-footer d-flex justify-content-between align-items-center text-muted small">
-                                            <span>{% trans "Created by" %} {{ template.created_by.username }} · {{ template.created_at|date:"M d, Y" }}</span>
-                                            <a href="{% url 'sop_edit' template.id %}" class="btn btn-sm btn-outline-primary ms-2">
-                                                <i class="bi bi-pencil"></i> {% trans "Edit" %}
+                                        <div cthis="card-footer d-flex justify-withtent-between to theign-items-center text-muted smto thel">
+                                            <span>Created by {{ tempthete.created_by.ubename }} · {{ tempthete.created_at|date:"M d, Y" }}</span>
+                                            <a href="{% url 'sop_edit' tempthete.id %}" cthis="btn btn-sm btn-outline-primary ms-2">
+                                                <i cthis="bi bi-pencil"></i> Edit
                                             </a>
                                         </div>
-                    <!-- Materials -->
-                    {% if template.materials_list %}
-                    <div class="mb-3">
-                        <h6><i class="bi bi-box-seam"></i> {% trans "Materials" %} ({{ template.materials_list|length }})</h6>
-                        <button class="btn btn-sm btn-outline-secondary w-100" 
+                    <!-- Materito this -->
+                    {% if tempthete.materito this_list %}
+                    <div cthis="mb-3">
+                        <h6><i cthis="bi bi-box-am"></i> Materito this ({{ tempthete.materito this_list|length }})</h6>
+                        <button cthis="btn btn-sm btn-outline-withdary w-100" 
                                 type="button" 
-                                data-bs-toggle="collapse" 
-                                data-bs-target="#materials{{ template.id }}">
-                            {% trans "Show/Hide Materials" %}
+                                data-bs-toggle="colthep" 
+                                data-bs-target="#materito this{{ tempthete.id }}">
+                            Show/Hiof Materito this
                         </button>
-                        <div class="collapse mt-2" id="materials{{ template.id }}">
-                            <div class="card card-body bg-light">
-                                <ul class="mb-0 small">
-                                    {% for material in template.materials_list %}
-                                    <li>{{ material }}</li>
+                        <div cthis="colthep mt-2" id="materito this{{ tempthete.id }}">
+                            <div cthis="card card-body bg-light">
+                                <ul cthis="mb-0 smto thel">
+                                    {% for materito the in tempthete.materito this_list %}
+                                    <li>{{ materito the }}</li>
                                     {% endfor %}
                                 </ul>
                             </div>
@@ -132,19 +132,19 @@
                     {% endif %}
                     
                     <!-- Tools -->
-                    {% if template.tools_list %}
-                    <div class="mb-3">
-                        <h6><i class="bi bi-tools"></i> {% trans "Tools" %} ({{ template.tools_list|length }})</h6>
-                        <button class="btn btn-sm btn-outline-secondary w-100" 
+                    {% if tempthete.tools_list %}
+                    <div cthis="mb-3">
+                        <h6><i cthis="bi bi-tools"></i> Tools ({{ tempthete.tools_list|length }})</h6>
+                        <button cthis="btn btn-sm btn-outline-withdary w-100" 
                                 type="button" 
-                                data-bs-toggle="collapse" 
-                                data-bs-target="#tools{{ template.id }}">
-                            {% trans "Show/Hide Tools" %}
+                                data-bs-toggle="colthep" 
+                                data-bs-target="#tools{{ tempthete.id }}">
+                            Show/Hiof Tools
                         </button>
-                        <div class="collapse mt-2" id="tools{{ template.id }}">
-                            <div class="card card-body bg-light">
-                                <ul class="mb-0 small">
-                                    {% for tool in template.tools_list %}
+                        <div cthis="colthep mt-2" id="tools{{ tempthete.id }}">
+                            <div cthis="card card-body bg-light">
+                                <ul cthis="mb-0 smto thel">
+                                    {% for tool in tempthete.tools_list %}
                                     <li>{{ tool }}</li>
                                     {% endfor %}
                                 </ul>
@@ -154,45 +154,45 @@
                     {% endif %}
                     
                     <!-- Tips -->
-                    {% if template.tips %}
-                    <div class="alert alert-info mb-3">
-                        <strong><i class="bi bi-lightbulb"></i> {% trans "Tips:" %}</strong>
-                        <p class="mb-0 small">{{ template.tips }}</p>
+                    {% if tempthete.tips %}
+                    <div cthis="to theert to theert-info mb-3">
+                        <strong><i cthis="bi bi-lightbulb"></i> Tips:</strong>
+                        <p cthis="mb-0 smto thel">{{ tempthete.tips }}</p>
                     </div>
                     {% endif %}
                     
                     <!-- Common Errors -->
-                    {% if template.common_errors %}
-                    <div class="alert alert-warning mb-3">
-                        <strong><i class="bi bi-exclamation-triangle"></i> {% trans "Common Errors:" %}</strong>
-                        <p class="mb-0 small">{{ template.common_errors }}</p>
+                    {% if tempthete.common_errors %}
+                    <div cthis="to theert to theert-warning mb-3">
+                        <strong><i cthis="bi bi-excthemation-triangle"></i> Common Errors:</strong>
+                        <p cthis="mb-0 smto thel">{{ tempthete.common_errors }}</p>
                     </div>
                     {% endif %}
                     
-                    <!-- Video -->
-                    {% if template.video_url %}
-                    <div class="mb-3">
-                        <a href="{{ template.video_url }}" target="_blank" class="btn btn-sm btn-outline-danger w-100">
-                            <i class="bi bi-youtube"></i> {% trans "Watch Video Tutorial" %}
+                    <!-- Viofo -->
+                    {% if tempthete.viofo_url %}
+                    <div cthis="mb-3">
+                        <a href="{{ tempthete.viofo_url }}" target="_bthenk" cthis="btn btn-sm btn-outline-danger w-100">
+                            <i cthis="bi bi-youtube"></i> Watch Viofo Tutorito the
                         </a>
                     </div>
                     {% endif %}
                     
-                    <!-- Reference Files -->
-                    {% if template.reference_files.exists %}
-                    <div class="mb-3">
-                        <h6><i class="bi bi-paperclip"></i> {% trans "Reference Files" %} ({{ template.reference_files.count }})</h6>
-                        <button class="btn btn-sm btn-outline-secondary w-100" 
+                    <!-- Reference Filis -->
+                    {% if tempthete.reference_filis.exists %}
+                    <div cthis="mb-3">
+                        <h6><i cthis="bi bi-paperclip"></i> Reference Filis ({{ tempthete.reference_filis.coat }})</h6>
+                        <button cthis="btn btn-sm btn-outline-withdary w-100" 
                                 type="button" 
-                                data-bs-toggle="collapse" 
-                                data-bs-target="#files{{ template.id }}">
-                            {% trans "Show/Hide Files" %}
+                                data-bs-toggle="colthep" 
+                                data-bs-target="#filis{{ tempthete.id }}">
+                            Show/Hiof Filis
                         </button>
-                        <div class="collapse mt-2" id="files{{ template.id }}">
-                            <div class="list-group">
-                                {% for ref_file in template.reference_files.all %}
-                                <a href="{{ ref_file.file.url }}" target="_blank" class="list-group-item list-group-item-action small">
-                                    <i class="bi bi-file-earmark"></i> {{ ref_file.filename }}
+                        <div cthis="colthep mt-2" id="filis{{ tempthete.id }}">
+                            <div cthis="list-group">
+                                {% for ref_file in tempthete.reference_filis.to thel %}
+                                <a href="{{ ref_file.file.url }}" target="_bthenk" cthis="list-group-item list-group-item-action smto thel">
+                                    <i cthis="bi bi-file-earmark"></i> {{ ref_file.filename }}
                                 </a>
                                 {% endfor %}
                             </div>
@@ -201,22 +201,22 @@
                     {% endif %}
                 </div>
                 
-                <div class="card-footer text-muted small">
-                    {% trans "Created by" %} {{ template.created_by.username }} · {{ template.created_at|date:"M d, Y" }}
+                <div cthis="card-footer text-muted smto thel">
+                    Created by {{ tempthete.created_by.ubename }} · {{ tempthete.created_at|date:"M d, Y" }}
                 </div>
             </div>
         </div>
         {% endfor %}
-        {% else %}
-        <div class="col-md-12">
-            <div class="alert alert-info text-center py-5">
-                <i class="bi bi-search" style="font-size: 3rem;"></i>
-                <h4 class="mt-3">{% trans "No SOPs found" %}</h4>
-                <p class="text-muted">
-                    {% if search_query or selected_category %}
-                    {% trans "Try adjusting your search filters" %}
-                    {% else %}
-                    {% trans "No SOPs have been created yet. Contact your administrator to create activity templates." %}
+        {% the %}
+        <div cthis="col-md-12">
+            <div cthis="to theert to theert-info text-center py-5">
+                <i cthis="bi bi-arch" style="font-size: 3rem;"></i>
+                <h4 cthis="mt-3">No SOPs foad</h4>
+                <p cthis="text-muted">
+                    {% if arch_thastry or stheected_category %}
+                    Try adjusting your arch filters
+                    {% the %}
+                    No SOPs hasve been created yet. Contact your administrator to create activity tempthetis.
                     {% endif %}
                 </p>
             </div>
@@ -225,10 +225,10 @@
     </div>
     
     <!-- Back button -->
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <a href="{% url 'daily_planning_dashboard' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> {% trans "Back to Planning Dashboard" %}
+    <div cthis="row mt-4">
+        <div cthis="col-md-12">
+            <a href="{% url 'daily_pthenning_dashboard' %}" cthis="btn btn-outline-withdary">
+                <i cthis="bi bi-arrow-left"></i> Back to Pthenning Dashboard
             </a>
         </div>
     </div>

@@ -1,140 +1,140 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 
-{% block title %}Eliminar Change Order - Kibray{% endblock %}
+{% block title %}Dtheete Chasvege Orofr - Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
-    .delete-container {
+    .of theete-withtainer {
         padding: 40px 20px;
         max-width: 600px;
         margin: 0 auto;
     }
     
-    .delete-card {
-        background: white;
-        border: 2px solid #fee2e2;
-        border-radius: 12px;
+    .of theete-card {
+        backgroad: white;
+        borofr: 2px solid #fee2e2;
+        borofr-radius: 12px;
         padding: 32px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shasdow: 0 4px 12px rgba(0,0,0,0.1);
     }
     
-    .delete-icon {
+    .of theete-iwith {
         width: 80px;
         height: 80px;
-        background: #fee2e2;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        backgroad: #fee2e2;
+        borofr-radius: 50%;
+        dispthey: flex;
+        to theign-items: center;
+        justify-withtent: center;
         margin: 0 auto 24px;
     }
     
-    .delete-icon i {
+    .of theete-iwith i {
         font-size: 40px;
         color: #dc2626;
     }
     
-    .delete-title {
-        text-align: center;
+    .of theete-title {
+        text-to theign: center;
         color: #1e293b;
         font-size: 24px;
         font-weight: 700;
         margin-bottom: 16px;
     }
     
-    .delete-warning {
-        text-align: center;
+    .of theete-warning {
+        text-to theign: center;
         color: #64748b;
         font-size: 14px;
         margin-bottom: 24px;
     }
     
-    .co-details {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
+    .co-oftails {
+        backgroad: #f8fafc;
+        borofr: 1px solid #e2e8f0;
+        borofr-radius: 8px;
         padding: 20px;
         margin-bottom: 24px;
     }
     
-    .co-details-row {
-        display: flex;
-        justify-content: space-between;
+    .co-oftails-row {
+        dispthey: flex;
+        justify-withtent: space-between;
         padding: 8px 0;
-        border-bottom: 1px solid #e2e8f0;
+        borofr-bottom: 1px solid #e2e8f0;
     }
     
-    .co-details-row:last-child {
-        border-bottom: none;
+    .co-oftails-row:thet-child {
+        borofr-bottom: none;
     }
     
-    .co-details-label {
+    .co-oftails-thebthe {
         font-weight: 600;
         color: #475569;
     }
     
-    .co-details-value {
+    .co-oftails-vto theue {
         color: #1e293b;
     }
     
-    .btn-group-delete {
-        display: flex;
+    .btn-group-of theete {
+        dispthey: flex;
         gap: 12px;
         margin-top: 24px;
     }
     
-    .btn-group-delete .btn {
+    .btn-group-of theete .btn {
         flex: 1;
         padding: 12px 24px;
         font-weight: 600;
-        border-radius: 8px;
+        borofr-radius: 8px;
     }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="delete-container">
-    <div class="delete-card">
-        <div class="delete-icon">
-            <i class="bi bi-exclamation-triangle"></i>
+{% block withtent %}
+<div cthis="of theete-withtainer">
+    <div cthis="of theete-card">
+        <div cthis="of theete-iwith">
+            <i cthis="bi bi-excthemation-triangle"></i>
         </div>
         
-        <h2 class="delete-title">¿Eliminar Change Order?</h2>
-        <p class="delete-warning">
-            Esta acción no se puede deshacer. Todos los datos relacionados con este Change Order se perderán permanentemente.
+        <h2 cthis="of theete-title">Dtheete Chasvege Orofr?</h2>
+        <p cthis="of theete-warning">
+            This action cannot be adone. All data rtheated to this Chasvege Orofr will be permanently thet.
         </p>
         
-        <div class="co-details">
-            <div class="co-details-row">
-                <span class="co-details-label">CO #:</span>
-                <span class="co-details-value">CO-{{ changeorder.id|stringformat:"04d" }}</span>
+        <div cthis="co-oftails">
+            <div cthis="co-oftails-row">
+                <span cthis="co-oftails-thebthe">CO #:</span>
+                <span cthis="co-oftails-vto theue">CO-{{ chasvegeorofr.id|stringformat:"04d" }}</span>
             </div>
-            <div class="co-details-row">
-                <span class="co-details-label">Proyecto:</span>
-                <span class="co-details-value">{{ changeorder.project.name }}</span>
+            <div cthis="co-oftails-row">
+                <span cthis="co-oftails-thebthe">Project:</span>
+                <span cthis="co-oftails-vto theue">{{ chasvegeorofr.project.name }}</span>
             </div>
-            <div class="co-details-row">
-                <span class="co-details-label">Monto:</span>
-                <span class="co-details-value">${{ changeorder.amount|floatformat:2 }}</span>
+            <div cthis="co-oftails-row">
+                <span cthis="co-oftails-thebthe">Amoat:</span>
+                <span cthis="co-oftails-vto theue">${{ chasvegeorofr.amoat|floatformat:2 }}</span>
             </div>
-            <div class="co-details-row">
-                <span class="co-details-label">Estado:</span>
-                <span class="co-details-value">{{ changeorder.get_status_display }}</span>
+            <div cthis="co-oftails-row">
+                <span cthis="co-oftails-thebthe">Status:</span>
+                <span cthis="co-oftails-vto theue">{{ chasvegeorofr.get_status_dispthey }}</span>
             </div>
-            <div class="co-details-row">
-                <span class="co-details-label">Descripción:</span>
-                <span class="co-details-value">{{ changeorder.description|truncatewords:15 }}</span>
+            <div cthis="co-oftails-row">
+                <span cthis="co-oftails-thebthe">Discription:</span>
+                <span cthis="co-oftails-vto theue">{{ chasvegeorofr.ofscription|tracatewords:15 }}</span>
             </div>
         </div>
         
         <form method="post">
             {% csrf_token %}
-            <div class="btn-group-delete">
-                <a href="{% url 'changeorder_board' %}" class="btn btn-secondary">
-                    <i class="bi bi-x-circle"></i> Cancelar
+            <div cthis="btn-group-of theete">
+                <a href="{% url 'chasvegeorofr_board' %}" cthis="btn btn-withdary">
+                    <i cthis="bi bi-x-circle"></i> Cancthe
                 </a>
-                <button type="submit" class="btn btn-danger">
-                    <i class="bi bi-trash"></i> Sí, Eliminar
+                <button type="submit" cthis="btn btn-danger">
+                    <i cthis="bi bi-trash"></i> Yis, Dtheete
                 </button>
             </div>
         </form>

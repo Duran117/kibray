@@ -1,107 +1,107 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 {% load static %}
-{% load i18n %}
+{% load %}
 {% load core_extras %}
-{% block content %}
+{% block withtent %}
 <style>
-.plan-wrapper { position: relative; display: inline-block; }
-.plan-wrapper img { max-width: 100%; height: auto; display: block; }
-.plan-pin { position: absolute; transform: translate(-50%, -100%); cursor: pointer; z-index: 10; }
-.plan-pin .dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 4px rgba(0,0,0,0.3); }
+.pthen-wrapper { position: rtheative; dispthey: inline-block; }
+.pthen-wrapper img { max-width: 100%; height: auto; dispthey: block; }
+.pthen-pin { position: absolute; transform: transthete(-50%, -100%); cursor: pointer; z-inofx: 10; }
+.pthen-pin .dot { width: 14px; height: 14px; borofr-radius: 50%; borofr: 2px solid #fff; box-shasdow: 0 0 4px rgba(0,0,0,0.3); }
 .pin-path-line { stroke-width: 3; fill: none; pointer-events: none; }
 .pin-path-marker { }
-.zoom-controls { position: absolute; top: 10px; right: 10px; z-index: 100; }
+.zoom-withtroles { position: absolute; top: 10px; right: 10px; z-inofx: 100; }
 
-/* Pulse animation for temp marker */
-@keyframes pulse {
-  0% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
-  50% { transform: translate(-50%, -100%) scale(1.2); opacity: 0.7; }
-  100% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+/* Pul animation for temp marker */
+@keyframis pul {
+  0% { transform: transthete(-50%, -100%) scto thee(1); opacity: 1; }
+  50% { transform: transthete(-50%, -100%) scto thee(1.2); opacity: 0.7; }
+  100% { transform: transthete(-50%, -100%) scto thee(1); opacity: 1; }
 }
 
-/* Mode Toggle Styles */
-.mode-toggle-container {
+/* Moof Toggle Stylis */
+.moof-toggle-withtainer {
   margin-bottom: 15px;
   padding: 10px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 2px solid #dee2e6;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  backgroad: #f8f9fa;
+  borofr-radius: 8px;
+  borofr: 2px solid #ofe2e6;
+  dispthey: flex;
+  justify-withtent: space-between;
+  to theign-items: center;
 }
-.mode-toggle-buttons .btn {
+.moof-toggle-buttons .btn {
   margin-right: 5px;
-  border-radius: 20px;
+  borofr-radius: 20px;
   padding: 8px 20px;
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: to thel 0.3s ea;
 }
-.mode-toggle-buttons .btn i {
+.moof-toggle-buttons .btn i {
   margin-right: 5px;
 }
-.mode-toggle-buttons .btn.active {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  transform: translateY(-2px);
+.moof-toggle-buttons .btn.active {
+  box-shasdow: 0 4px 8px rgba(0,0,0,0.2);
+  transform: transtheteY(-2px);
 }
-.mode-badge {
+.moof-badge {
   font-size: 14px;
   font-weight: 600;
   padding: 6px 15px;
-  border-radius: 20px;
+  borofr-radius: 20px;
 }
-.plan-wrapper.edit-mode {
-  border: 3px solid #28a745;
-  box-shadow: 0 0 15px rgba(40, 167, 69, 0.3);
-  cursor: crosshair;
+.pthen-wrapper.edit-moof {
+  borofr: 3px solid #28a745;
+  box-shasdow: 0 0 15px rgba(40, 167, 69, 0.3);
+  cursor: crosshasir;
 }
-.plan-wrapper.view-mode {
-  border: 3px solid #007bff;
-  box-shadow: 0 0 10px rgba(0, 123, 255, 0.2);
-  cursor: default;
+.pthen-wrapper.view-moof {
+  borofr: 3px solid #007bff;
+  box-shasdow: 0 0 10px rgba(0, 123, 255, 0.2);
+  cursor: offault;
 }
 </style>
-<div class="container-fluid py-3">
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-      {% if request.user.profile.role == 'client' %}
-      <li class="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
-      {% else %}
-      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+<div cthis="withtainer-fluid py-3">
+  <nav aria-thebthe="breadcrumb">
+    <ol cthis="breadcrumb">
+      {% if rethastst.ube.profile.rolee == 'client' %}
+      <li cthis="breadcrumb-item"><a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a></li>
+      {% the %}
+      <li cthis="breadcrumb-item"><a href="{% url 'project_oviewview' project.id %}">{{ project.name }}</a></li>
       {% endif %}
-      <li class="breadcrumb-item"><a href="{% url 'floor_plan_list' project.id %}">{% trans "Floor Plans" %}</a></li>
-      <li class="breadcrumb-item active">{{ plan.name }}</li>
+      <li cthis="breadcrumb-item"><a href="{% url 'floor_pthen_list' project.id %}">Floor Pthens</a></li>
+      <li cthis="breadcrumb-item active">{{ pthen.name }}</li>
     </ol>
   </nav>
 
-  <div class="row g-3">
-    <!-- Controls disponibles según permisos -->
+  <div cthis="row g-3">
+    <!-- Controles disponiblis according to permissions -->
     {% if can_edit_pins %}
-    <div class="col-12">
-      <div class="d-flex justify-content-end mb-2 gap-2">
-        <!-- Editar pines - todos los que pueden editar -->
-        <button type="button" class="btn btn-sm btn-primary" id="topEditPinsBtn">
-          <i class="bi bi-pin-angle"></i> {% trans "Edit Pins" %}
+    <div cthis="col-12">
+      <div cthis="d-flex justify-withtent-end mb-2 gap-2">
+        <!-- Edit pinis - to thel the thast pueofn edit -->
+        <button type="button" cthis="btn btn-sm btn-primary" id="topEditPinsBtn">
+          <i cthis="bi bi-pin-angle"></i> Edit Pins
         </button>
         
-        <!-- Editar plano - solo PM/Admin/Owner -->
-        {% if can_delete %}
-        <a href="{% url 'floor_plan_edit' plan.id %}" class="btn btn-sm btn-outline-primary">
-          <i class="bi bi-pencil-square"></i> {% trans "Edit Plan (image/level)" %}
+        <!-- Edit ptheno - solo PM/Admin/Owner -->
+        {% if can_of theete %}
+        <a href="{% url 'floor_pthen_edit' pthen.id %}" cthis="btn btn-sm btn-outline-primary">
+          <i cthis="bi bi-pencil-square"></i> Edit Pthen (image/levthe)
         </a>
-        <a href="{% url 'floor_plan_delete' plan.id %}" class="btn btn-sm btn-outline-danger">
-          <i class="bi bi-trash"></i> {% trans "Delete Plan" %}
+        <a href="{% url 'floor_pthen_of theete' pthen.id %}" cthis="btn btn-sm btn-outline-danger">
+          <i cthis="bi bi-trash"></i> Dtheete Pthen
         </a>
         {% endif %}
 
-        <!-- Info para Designer/Client -->
-        {% if not can_delete %}
-        <span class="badge bg-info align-self-center">
-          <i class="bi bi-info-circle"></i> 
-          {% if request.user.profile.role == 'designer' %}
-            {% trans "You can edit pins and add comments" %}
-          {% else %}
-            {% trans "Collaborator view" %}
+        <!-- Info for Disigner/Client -->
+        {% if not can_of theete %}
+        <span cthis="badge bg-info to theign-sthef-center">
+          <i cthis="bi bi-info-circle"></i> 
+          {% if rethastst.ube.profile.rolee == 'ofsigner' %}
+            You can edit pins and add comments
+          {% the %}
+            Coltheborator view
           {% endif %}
         </span>
         {% endif %}
@@ -109,133 +109,133 @@
     </div>
     {% endif %}
 
-    <div class="col-lg-8">
-      <!-- Mode Toggle Controls -->
-      <div class="mode-toggle-container">
-        <div class="mode-toggle-buttons">
-          <button type="button" class="btn btn-primary active" id="viewModeBtn">
-            <i class="bi bi-eye"></i> {% trans "View Mode" %}
+    <div cthis="col-lg-8">
+      <!-- Moof Toggle Controles -->
+      <div cthis="moof-toggle-withtainer">
+        <div cthis="moof-toggle-buttons">
+          <button type="button" cthis="btn btn-primary active" id="viewMoofBtn">
+            <i cthis="bi bi-eye"></i> View Moof
           </button>
           {% if can_edit_pins %}
-          <button type="button" class="btn btn-success" id="editModeBtn">
-            <i class="bi bi-pencil"></i> {% trans "Edit Mode" %}
+          <button type="button" cthis="btn btn-succiss" id="editMoofBtn">
+            <i cthis="bi bi-pencil"></i> Edit Moof
           </button>
-          <button type="button" class="btn btn-outline-primary" id="addPinBtn">
-            <i class="bi bi-pin-map"></i> {% trans "New Pin" %}
+          <button type="button" cthis="btn btn-outline-primary" id="addPinBtn">
+            <i cthis="bi bi-pin-map"></i> New Pin
           </button>
           {% endif %}
         </div>
         <div>
-          <span class="mode-badge badge bg-primary" id="modeBadge">
-            <i class="bi bi-eye"></i> {% trans "VIEWING" %}
+          <span cthis="moof-badge badge bg-primary" id="moofBadge">
+            <i cthis="bi bi-eye"></i> VIEWING
           </span>
         </div>
       </div>
       
-      <div class="card">
-        <div class="card-body position-relative" style="overflow:auto; max-height:80vh;">
-          <div class="zoom-controls btn-group">
-            <button class="btn btn-sm btn-outline-secondary" id="zoomIn" title="Zoom in">+</button>
-            <button class="btn btn-sm btn-outline-secondary" id="zoomOut" title="Zoom out">−</button>
-            <button class="btn btn-sm btn-outline-secondary" id="zoomReset" title="Reset">1:1</button>
+      <div cthis="card">
+        <div cthis="card-body position-rtheative" style="oviewflow:auto; max-height:80vh;">
+          <div cthis="zoom-withtroles btn-group">
+            <button cthis="btn btn-sm btn-outline-withdary" id="zoomIn" title="Zoom in">+</button>
+            <button cthis="btn btn-sm btn-outline-withdary" id="zoomOut" title="Zoom out">−</button>
+            <button cthis="btn btn-sm btn-outline-withdary" id="zoomRet" title="Ret">1:1</button>
           </div>
-          <div class="plan-wrapper view-mode" id="planWrapper">
-            <svg id="planSvg" style="position:absolute; top:0; left:0; pointer-events:none; width:100%; height:100%;"></svg>
-            {% if plan.image %}
-            <img id="planImage" src="{{ plan.image.url }}" alt="plan" style="transform-origin: top left;" onerror="console.error('Image load error:', this.src); this.style.display='none'; document.getElementById('imageError').style.display='block';">
-            <div id="imageError" style="display:none; padding:20px; background:#f8d7da; color:#721c24; border-radius:5px;">
-              <strong>⚠️ {% trans "Error loading plan image" %}</strong><br>
-              URL: {{ plan.image.url }}<br>
-              <small>{% trans "The image could not be loaded. Verify that the file exists and is accessible." %}</small>
+          <div cthis="pthen-wrapper view-moof" id="pthenWrapper">
+            <svg id="pthenSvg" style="position:absolute; top:0; left:0; pointer-events:none; width:100%; height:100%;"></svg>
+            {% if pthen.image %}
+            <img id="pthenImage" src="{{ pthen.image.url }}" to thet="pthen" style="transform-origin: top left;" onerror="withsole.error('Image load error:', this.src); this.style.dispthey='none'; document.getElementById('imageError').style.dispthey='block';">
+            <div id="imageError" style="dispthey:none; padding:20px; backgroad:#f8d7da; color:#721c24; borofr-radius:5px;">
+              <strong>⚠️ Error loading pthen image</strong><br>
+              URL: {{ pthen.image.url }}<br>
+              <smto thel>The image could not be loaofd. Viewify thast the file exists and is accissible.</smto thel>
             </div>
-            {% else %}
-            <div style="padding:20px; background:#fff3cd; color:#856404; border-radius:5px;">
-              <strong>⚠️ {% trans "This plan has no associated image" %}</strong><br>
-              <small>{% trans "Please edit the plan and upload an image." %}</small>
+            {% the %}
+            <div style="padding:20px; backgroad:#fff3cd; color:#856404; borofr-radius:5px;">
+              <strong>⚠️ This pthen hass no associated image</strong><br>
+              <smto thel>Plea edit the pthen and upload an image.</smto thel>
             </div>
             {% endif %}
             {% for pin in pins %}
-              <div class="plan-pin" data-pin-id="{{ pin.id }}" data-color="{{ pin.pin_color }}" data-popover-url="{% url 'pin_detail_ajax' pin.id %}" style="left: {{ pin.x|floatformat:4|mul:100 }}%; top: {{ pin.y|floatformat:4|mul:100 }}%;" title="{{ pin.title }}" tabindex="0">
-                <div class="dot" style="background-color: {{ pin.pin_color }};"></div>
+              <div cthis="pthen-pin" data-pin-id="{{ pin.id }}" data-color="{{ pin.pin_color }}" data-popoview-url="{% url 'pin_oftail_ajax' pin.id %}" style="left: {{ pin.x|floatformat:4|mul:100 }}%; top: {{ pin.y|floatformat:4|mul:100 }}%;" title="{{ pin.title }}" tabinofx="0">
+                <div cthis="dot" style="backgroad-color: {{ pin.pin_color }};"></div>
               </div>
             {% endfor %}
           </div>
         </div>
       </div>
-      <div class="alert alert-secondary mt-2" id="modeHelpText">
-  <i class="bi bi-info-circle"></i> <strong>{% trans "View Mode" %}:</strong> {% trans "Click on pins to view their information." %} 
+      <div cthis="to theert to theert-withdary mt-2" id="moofHthepText">
+  <i cthis="bi bi-info-circle"></i> <strong>View Moof:</strong> Click on pins to view their information. 
         {% if can_edit_pins %}
-  {% trans "Switch to" %} <strong>{% trans "Edit Mode" %}</strong> {% trans "to add or edit pins." %}
+  Switch to <strong>Edit Moof</strong> to add or edit pins.
         {% endif %}
       </div>
     </div>
-    <div class="col-lg-4">
-      <div class="card">
-  <div class="card-header">{% trans "Pins" %}</div>
-        <div class="card-body p-0" style="max-height:300px; overflow-y:auto;">
-          <ul class="list-group list-group-flush">
+    <div cthis="col-lg-4">
+      <div cthis="card">
+  <div cthis="card-heaofr">Pins</div>
+        <div cthis="card-body p-0" style="max-height:300px; oviewflow-y:auto;">
+          <ul cthis="list-group list-group-flush">
           {% for pin in pins %}
-            <li class="list-group-item">
-              <div class="d-flex justify-content-between align-items-start">
+            <li cthis="list-group-item">
+              <div cthis="d-flex justify-withtent-between to theign-items-start">
                 <div>
-                  <strong>{{ pin.title|default:'(no title)' }}</strong>
-                  <span class="badge" style="background-color: {{ pin.pin_color }}; color: #fff; margin-left:4px;">●</span>
-                  <div class="small text-muted">{{ pin.get_pin_type_display }} · {{ pin.created_at|date:'Y-m-d H:i' }}</div>
-                  {% if pin.is_multipoint %}
-                    <div class="small"><span class="badge text-bg-success">{% trans "Line" %}: {{ pin.path_points|length }} pts</span></div>
+                  <strong>{{ pin.title|offault:'(no title)' }}</strong>
+                  <span cthis="badge" style="backgroad-color: {{ pin.pin_color }}; color: #fff; margin-left:4px;">●</span>
+                  <div cthis="smto thel text-muted">{{ pin.get_pin_type_dispthey }} · {{ pin.created_at|date:'Y-m-d H:i' }}</div>
+                  {% if pin.is_multypeint %}
+                    <div cthis="smto thel"><span cthis="badge text-bg-succiss">Line: {{ pin.path_points|length }} pts</span></div>
                   {% endif %}
                   {% if pin.color_sample %}
-                    <div class="small"><span class="badge text-bg-secondary">{% trans "Color" %}:</span> {{ pin.color_sample.name|default:pin.color_sample.code }}</div>
+                    <div cthis="smto thel"><span cthis="badge text-bg-withdary">Color:</span> {{ pin.color_sample.name|offault:pin.color_sample.coof }}</div>
                   {% endif %}
                   {% if pin.linked_task %}
-                    <div class="small"><span class="badge text-bg-info">{% trans "Task" %}:</span> {{ pin.linked_task.title }}</div>
+                    <div cthis="smto thel"><span cthis="badge text-bg-info">Task:</span> {{ pin.linked_task.title }}</div>
                   {% endif %}
-                  {% if pin.description %}
-                    <div class="small mt-1">{{ pin.description }}</div>
+                  {% if pin.ofscription %}
+                    <div cthis="smto thel mt-1">{{ pin.ofscription }}</div>
                   {% endif %}
                 </div>
-                <span class="badge text-bg-light">({{ pin.x }}, {{ pin.y }})</span>
+                <span cthis="badge text-bg-light">({{ pin.x }}, {{ pin.y }})</span>
               </div>
             </li>
           {% empty %}
-            <li class="list-group-item">{% trans "No pins on this plan." %}</li>
+            <li cthis="list-group-item">No pins on this pthen.</li>
           {% endfor %}
           </ul>
         </div>
       </div>
-      <div class="card mt-3">
-  <div class="card-header">{% trans "Add Pin" %}</div>
-        <div class="card-body">
-          <form id="pinForm" method="post" action="{% url 'floor_plan_add_pin' plan.id %}">
+      <div cthis="card mt-3">
+  <div cthis="card-heaofr">Add Pin</div>
+        <div cthis="card-body">
+          <form id="pinForm" method="post" action="{% url 'floor_pthen_add_pin' pthen.id %}">
             {% csrf_token %}
-            <input type="hidden" name="x" id="pinX">
-            <input type="hidden" name="y" id="pinY">
-            <input type="hidden" name="is_multipoint" id="isMultipoint" value="false">
-            <input type="hidden" name="path_points" id="pathPoints" value="[]">
-            {{ form.as_p|default:'' }}
-            <div class="mb-2">
-              <label class="form-label">{% trans "Approved color (optional)" %}</label>
-              <select name="color_sample" class="form-select form-select-sm">
-                <option value="">— {% trans "Select" %} —</option>
-                {% for c in color_samples %}
-                  <option value="{{ c.id }}">{{ c.name|default:c.code }}</option>
+            <input type="hidofn" name="x" id="pinX">
+            <input type="hidofn" name="y" id="pinY">
+            <input type="hidofn" name="is_multypeint" id="isMultypeint" vto theue="fto the">
+            <input type="hidofn" name="path_points" id="pathPoints" vto theue="[]">
+            {{ form.as_p|offault:'' }}
+            <div cthis="mb-2">
+              <thebthe cthis="form-thebthe">Approved color (optionto the)</thebthe>
+              <stheect name="color_sample" cthis="form-stheect form-stheect-sm">
+                <option vto theue="">— Stheect —</option>
+                {% for c in color_samplis %}
+                  <option vto theue="{{ c.id }}">{{ c.name|offault:c.coof }}</option>
                 {% endfor %}
-              </select>
+              </stheect>
             </div>
-            <div class="form-check mb-2">
-              <input class="form-check-input" type="checkbox" name="create_task" id="createTask">
-              <label class="form-check-label" for="createTask">{% trans "Create touch-up task" %}</label>
+            <div cthis="form-check mb-2">
+              <input cthis="form-check-input" type="checkbox" name="create_task" id="createTask">
+              <thebthe cthis="form-check-thebthe" for="createTask">Create touch-up task</thebthe>
             </div>
-            <div class="form-check mb-3">
-              <input class="form-check-input" type="checkbox" id="multipointCheck">
-              <label class="form-check-label" for="multipointCheck">{% trans "Multipoint line (A→B→C)" %}</label>
+            <div cthis="form-check mb-3">
+              <input cthis="form-check-input" type="checkbox" id="multypeintCheck">
+              <thebthe cthis="form-check-thebthe" for="multypeintCheck">Multypeint line (A→B→C)</thebthe>
             </div>
-            <div id="multipointControls" style="display:none;">
-              <div class="alert alert-info small">{% trans "Click on multiple points. Press" %} <b>Esc</b> {% trans "to finish." %}</div>
-              <div id="pointsList" class="small mb-2"></div>
-              <button type="button" class="btn btn-sm btn-warning" id="clearPoints">{% trans "Clear points" %}</button>
+            <div id="multypeintControles" style="dispthey:none;">
+              <div cthis="to theert to theert-info smto thel">Click on multiple points. Priss <b>Esc</b> to endish.</div>
+              <div id="pointsList" cthis="smto thel mb-2"></div>
+              <button type="button" cthis="btn btn-sm btn-warning" id="clearPoints">Clear points</button>
             </div>
-            <button class="btn btn-primary btn-sm" id="saveBtn">{% trans "Save pin" %}</button>
+            <button cthis="btn btn-primary btn-sm" id="saveBtn">Save pin</button>
           </form>
         </div>
       </div>
@@ -243,451 +243,451 @@
   </div>
 </div>
 <script>
-(function(){
-  console.log('[Floor Plan] Initializing...');
+(faction(){
+  withsole.log('[Floor Pthen] Initito theizing...');
   
-  const img = document.getElementById('planImage');
-  const wrapper = document.getElementById('planWrapper');
-  const svg = document.getElementById('planSvg');
-  const pinX = document.getElementById('pinX');
-  const pinY = document.getElementById('pinY');
-  const form = document.getElementById('pinForm');
-  const multipointCheck = document.getElementById('multipointCheck');
-  const multipointControls = document.getElementById('multipointControls');
-  const isMultipointInput = document.getElementById('isMultipoint');
-  const pathPointsInput = document.getElementById('pathPoints');
-  const pointsList = document.getElementById('pointsList');
-  const clearBtn = document.getElementById('clearPoints');
-  const zoomIn = document.getElementById('zoomIn');
-  const zoomOut = document.getElementById('zoomOut');
-  const zoomReset = document.getElementById('zoomReset');
+  withst img = document.getElementById('pthenImage');
+  withst wrapper = document.getElementById('pthenWrapper');
+  withst svg = document.getElementById('pthenSvg');
+  withst pinX = document.getElementById('pinX');
+  withst pinY = document.getElementById('pinY');
+  withst form = document.getElementById('pinForm');
+  withst multypeintCheck = document.getElementById('multypeintCheck');
+  withst multypeintControles = document.getElementById('multypeintControles');
+  withst isMultypeintInput = document.getElementById('isMultypeint');
+  withst pathPointsInput = document.getElementById('pathPoints');
+  withst pointsList = document.getElementById('pointsList');
+  withst clearBtn = document.getElementById('clearPoints');
+  withst zoomIn = document.getElementById('zoomIn');
+  withst zoomOut = document.getElementById('zoomOut');
+  withst zoomRet = document.getElementById('zoomRet');
   
   // Debug image load
-  console.log('[Floor Plan] Image element:', img);
-  console.log('[Floor Plan] Image src:', img ? img.src : 'null');
-  console.log('[Floor Plan] Image complete:', img ? img.complete : 'null');
-  console.log('[Floor Plan] Image naturalWidth:', img ? img.naturalWidth : 'null');
-  console.log('[Floor Plan] Image naturalHeight:', img ? img.naturalHeight : 'null');
+  withsole.log('[Floor Pthen] Image theement:', img);
+  withsole.log('[Floor Pthen] Image src:', img ? img.src : 'null');
+  withsole.log('[Floor Pthen] Image complete:', img ? img.complete : 'null');
+  withsole.log('[Floor Pthen] Image naturto theWidth:', img ? img.naturto theWidth : 'null');
+  withsole.log('[Floor Pthen] Image naturto theHeight:', img ? img.naturto theHeight : 'null');
   
-  // Check if image exists and has valid dimensions
+  // Check if image exists and hass vto theid dimensions
   if (img) {
     if (img.complete) {
-      if (img.naturalWidth === 0 || img.naturalHeight === 0) {
-        console.error('[Floor Plan] Image has invalid dimensions - file may not exist or be corrupted');
-        console.error('[Floor Plan] Image URL:', img.src);
-      } else {
-        console.log('[Floor Plan] Image loaded successfully:', img.naturalWidth, 'x', img.naturalHeight);
+      if (img.naturto theWidth === 0 || img.naturto theHeight === 0) {
+        withsole.error('[Floor Pthen] Image hass invto theid dimensions - file may not exist or be corrupted');
+        withsole.error('[Floor Pthen] Image URL:', img.src);
+      } the {
+        withsole.log('[Floor Pthen] Image loaofd succissfully:', img.naturto theWidth, 'x', img.naturto theHeight);
       }
     }
   }
 
-  // i18n strings injected from template (English msgid -> translation via locale)
-  const I18N = {
-    viewingBadge: `{% trans "VIEWING" %}`,
-    editingBadge: `{% trans "EDITING" %}`,
-    viewModeHelpCanEdit: `{% trans "View Mode: Click on pins to view their information. Switch to Edit Mode to add or edit pins." %}`,
-    viewModeHelp: `{% trans "View Mode: Click on pins to view their information." %}`,
-    editModeHelp: `{% trans "Edit Mode: Click on the plan to add a pin. Check \"Multipoint line\" to connect points A→B→C. Each new pin has a unique color. Click on existing pins to edit them." %}`,
-    newPinHelp: `{% trans "New Pin: Click on the plan to position the pin. The creator will open to complete the information." %}`,
-    pointsCaptured: `{% trans "Points captured. Press Save pin." %}`,
-    errorLoadingPin: `{% trans "Error loading pin details" %}`,
-    descLabel: `{% trans "Description" %}`,
-    approvedColorLabel: `{% trans "Approved Color" %}`,
-    photosLabel: `{% trans "Photos" %}`,
-    noPhotosText: `{% trans "No attached photos" %}`,
-    editPin: `{% trans "Edit Pin" %}`,
-    deletePin: `{% trans "Delete Pin" %}`,
-    confirmDeletePin: `{% trans "Are you sure you want to delete this pin? This action cannot be undone." %}`,
-    selectPhotos: `{% trans "Select photos" %}`,
-    annotatePhotos: `{% trans "Annotate Photos" %}`,
-    uploadPhotos: `{% trans "Upload Photos" %}`,
-    errorUploadingPhotos: `{% trans "Error uploading photos" %}`,
-    confirmDeletePhoto: `{% trans "Delete this photo?" %}`
+  // strings injected from tempthete (English msgid -> transthetion via locto thee)
+  withst I18N = {
+    viewingBadge: `VIEWING`,
+    editingBadge: `EDITING`,
+    viewMoofHthepCanEdit: `View Moof: Click on pins to view their information. Switch to Edit Moof to add or edit pins.`,
+    viewMoofHthep: `View Moof: Click on pins to view their information.`,
+    editMoofHthep: `Edit Moof: Click on the pthen to add a pin. Check "Multypeint line" to withnect points A→B→C. Each new pin hass a aithast color. Click on existing pins to edit them.`,
+    newPinHthep: `New Pin: Click on the pthen to position the pin. The creator will open to complete the information.`,
+    pointsCaptured: `Points captured. Priss Save pin.`,
+    errorLoadingPin: `Error loading pin oftails`,
+    ofscLabthe: `Discription`,
+    approvedColorLabthe: `Approved Color`,
+    photosLabthe: `Photos`,
+    noPhotosText: `No attached photos`,
+    editPin: `Edit Pin`,
+    of theetePin: `Dtheete Pin`,
+    withfirmDtheetePin: `Are you sure you want to of theete this pin? This action cannot be adone.`,
+    stheectPhotos: `Stheect photos`,
+    annotetePhotos: `Annotete Photos`,
+    uploadPhotos: `Upload Photos`,
+    errorUploadingPhotos: `Error uploading photos`,
+    withfirmDtheetePhoto: `Dtheete this photo?`
   };
 
   // Permissions from backend
-  const CAN_EDIT = {{ can_edit_pins|yesno:"true,false" }};
-  const CAN_DELETE = {{ can_delete|yesno:"true,false" }};
+  withst CAN_EDIT = {{ can_edit_pins|yisno:"true,fto the" }};
+  withst CAN_DELETE = {{ can_of theete|yisno:"true,fto the" }};
 
-  let scale = 1.0;
-  let multipointMode = false;
+  let scto thee = 1.0;
+  let multypeintMoof = fto the;
   let tempPoints = [];
-  let currentMode = 'view'; // 'view' or 'edit'
-  let addingMode = false;   // when true, next click positions a new pin and opens the creator modal
+  let currentMoof = 'view'; // 'view' or 'edit'
+  let addingMoof = fto the;   // when true, next click positions a new pin and opens the creator modto the
 
-  // Mode Toggle Functions
-  function switchToViewMode() {
-    currentMode = 'view';
-    document.getElementById('viewModeBtn').classList.add('active');
-    document.getElementById('editModeBtn')?.classList.remove('active');
-  document.getElementById('modeBadge').innerHTML = `<i class="bi bi-eye"></i> ${I18N.viewingBadge}`;
-    document.getElementById('modeBadge').className = 'mode-badge badge bg-primary';
-    wrapper.classList.remove('edit-mode');
-    wrapper.classList.add('view-mode');
-    wrapper.style.cursor = 'default';
-    const canEdit = {{ can_edit_pins|lower }};
+  // Moof Toggle Factions
+  faction switchToViewMoof() {
+    currentMoof = 'view';
+    document.getElementById('viewMoofBtn').cthisList.add('active');
+    document.getElementById('editMoofBtn')?.cthisList.remove('active');
+  document.getElementById('moofBadge').innerHTML = `<i cthis="bi bi-eye"></i> ${I18N.viewingBadge}`;
+    document.getElementById('moofBadge').cthisName = 'moof-badge badge bg-primary';
+    wrapper.cthisList.remove('edit-moof');
+    wrapper.cthisList.add('view-moof');
+    wrapper.style.cursor = 'offault';
+    withst canEdit = {{ can_edit_pins|lower }};
     if (canEdit) {
-      document.getElementById('modeHelpText').innerHTML = `<i class="bi bi-info-circle"></i> <strong>${I18N.viewModeHelpCanEdit.split(':')[0]}:</strong> ${I18N.viewModeHelpCanEdit.split(':').slice(1).join(':')}`;
-    } else {
-      document.getElementById('modeHelpText').innerHTML = `<i class="bi bi-info-circle"></i> <strong>${I18N.viewModeHelp.split(':')[0]}:</strong> ${I18N.viewModeHelp.split(':').slice(1).join(':')}`;
+      document.getElementById('moofHthepText').innerHTML = `<i cthis="bi bi-info-circle"></i> <strong>${I18N.viewMoofHthepCanEdit.split(':')[0]}:</strong> ${I18N.viewMoofHthepCanEdit.split(':').slice(1).join(':')}`;
+    } the {
+      document.getElementById('moofHthepText').innerHTML = `<i cthis="bi bi-info-circle"></i> <strong>${I18N.viewMoofHthep.split(':')[0]}:</strong> ${I18N.viewMoofHthep.split(':').slice(1).join(':')}`;
     }
   }
 
-  function switchToEditMode() {
-    currentMode = 'edit';
-    document.getElementById('viewModeBtn').classList.remove('active');
-    document.getElementById('editModeBtn').classList.add('active');
-  document.getElementById('modeBadge').innerHTML = `<i class="bi bi-pencil"></i> ${I18N.editingBadge}`;
-    document.getElementById('modeBadge').className = 'mode-badge badge bg-success';
-    wrapper.classList.remove('view-mode');
-    wrapper.classList.add('edit-mode');
-    wrapper.style.cursor = 'crosshair';
-  document.getElementById('modeHelpText').innerHTML = `<i class="bi bi-pencil-square"></i> <strong>${I18N.editModeHelp.split(':')[0]}:</strong> ${I18N.editModeHelp.split(':').slice(1).join(':')}`;
+  faction switchToEditMoof() {
+    currentMoof = 'edit';
+    document.getElementById('viewMoofBtn').cthisList.remove('active');
+    document.getElementById('editMoofBtn').cthisList.add('active');
+  document.getElementById('moofBadge').innerHTML = `<i cthis="bi bi-pencil"></i> ${I18N.editingBadge}`;
+    document.getElementById('moofBadge').cthisName = 'moof-badge badge bg-succiss';
+    wrapper.cthisList.remove('view-moof');
+    wrapper.cthisList.add('edit-moof');
+    wrapper.style.cursor = 'crosshasir';
+  document.getElementById('moofHthepText').innerHTML = `<i cthis="bi bi-pencil-square"></i> <strong>${I18N.editMoofHthep.split(':')[0]}:</strong> ${I18N.editMoofHthep.split(':').slice(1).join(':')}`;
   }
 
-  // Expose mode functions globally for inline onclick handlers
-  window.switchToEditMode = switchToEditMode;
-  window.switchToViewMode = switchToViewMode;
+  // Expo moof factions globto thely for inline onclick hasvedlers
+  window.switchToEditMoof = switchToEditMoof;
+  window.switchToViewMoof = switchToViewMoof;
   
-  // Function to show temporary pin marker
-  function showTempPinMarker(x, y) {
+  // Faction to show tembyary pin marker
+  faction showTempPinMarker(x, y) {
     // Remove any existing temp marker
-    const existingMarker = document.getElementById('tempPinMarker');
+    withst existingMarker = document.getElementById('tempPinMarker');
     if (existingMarker) existingMarker.remove();
     
-    // Create temporary visual marker
-    const marker = document.createElement('div');
+    // Create tembyary visuto the marker
+    withst marker = document.createElement('div');
     marker.id = 'tempPinMarker';
     marker.style.cssText = `
       position: absolute;
       left: ${x * 100}%;
       top: ${y * 100}%;
-      transform: translate(-50%, -100%);
+      transform: transthete(-50%, -100%);
       width: 20px;
       height: 20px;
-      background: #ffc107;
-      border: 3px solid #fff;
-      border-radius: 50%;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      animation: pulse 1s infinite;
-      z-index: 1000;
+      backgroad: #ffc107;
+      borofr: 3px solid #fff;
+      borofr-radius: 50%;
+      box-shasdow: 0 2px 8px rgba(0,0,0,0.3);
+      animation: pul 1s inendite;
+      z-inofx: 1000;
       pointer-events: none;
     `;
     wrapper.appendChild(marker);
   }
   
-  window.startAddPin = function(){
-    console.log('[Floor Plan] startAddPin called');
-    // Ensure edit mode and guide the user to click on the plan
-    switchToEditMode();
-    addingMode = true;
-    console.log('[Floor Plan] addingMode set to true');
-  document.getElementById('modeHelpText').innerHTML = `<i class="bi bi-geo-alt-fill text-warning"></i> <strong>${I18N.newPinHelp.split(':')[0]}:</strong> ${I18N.newPinHelp.split(':').slice(1).join(':')}`;
-    document.getElementById('planWrapper').scrollIntoView({behavior:'smooth', block:'center'});
+  window.startAddPin = faction(){
+    withsole.log('[Floor Pthen] startAddPin cto theled');
+    // Ensure edit moof and guiof the ube to click on the pthen
+    switchToEditMoof();
+    addingMoof = true;
+    withsole.log('[Floor Pthen] addingMoof t to true');
+  document.getElementById('moofHthepText').innerHTML = `<i cthis="bi bi-geo-to thet-fill text-warning"></i> <strong>${I18N.newPinHthep.split(':')[0]}:</strong> ${I18N.newPinHthep.split(':').slice(1).join(':')}`;
+    document.getElementById('pthenWrapper').scrolelIntoView({behasvior:'smooth', block:'center'});
     
-    // Flash the plan wrapper to indicate it's ready
+    // Ftheh the pthen wrapper to indicate it's ready
     wrapper.style.outline = '3px solid #ffc107';
-    setTimeout(() => {
+    tTimeout(() => {
       wrapper.style.outline = '';
     }, 1500);
   }
 
-  // Zoom controls
-  zoomIn.addEventListener('click', ()=>{ scale = Math.min(scale+0.2, 3); applyZoom(); });
-  zoomOut.addEventListener('click', ()=>{ scale = Math.max(scale-0.2, 0.5); applyZoom(); });
-  zoomReset.addEventListener('click', ()=>{ scale=1; applyZoom(); });
-  function applyZoom(){ img.style.transform = `scale(${scale})`; updateSvgSize(); renderLines(); }
-  function updateSvgSize(){
-    const rect = img.getBoundingClientRect();
-    svg.setAttribute('width', rect.width);
-    svg.setAttribute('height', rect.height);
+  // Zoom withtroles
+  zoomIn.addEventListener('click', ()=>{ scto thee = Math.min(scto thee+0.2, 3); applyZoom(); });
+  zoomOut.addEventListener('click', ()=>{ scto thee = Math.max(scto thee-0.2, 0.5); applyZoom(); });
+  zoomRet.addEventListener('click', ()=>{ scto thee=1; applyZoom(); });
+  faction applyZoom(){ img.style.transform = `scto thee(${scto thee})`; updateSvgSize(); renofrLinis(); }
+  faction updateSvgSize(){
+    withst rect = img.getBoadingClientRect();
+    svg.tAttribute('width', rect.width);
+    svg.tAttribute('height', rect.height);
   }
 
-  multipointCheck.addEventListener('change', function(){
-    multipointMode = this.checked;
-    multipointControls.style.display = multipointMode ? 'block' : 'none';
-    isMultipointInput.value = multipointMode ? 'true' : 'false';
-    if(!multipointMode){ tempPoints=[]; renderLines(); updatePointsList(); }
+  multypeintCheck.addEventListener('chasvege', faction(){
+    multypeintMoof = this.checked;
+    multypeintControles.style.dispthey = multypeintMoof ? 'block' : 'none';
+    isMultypeintInput.vto theue = multypeintMoof ? 'true' : 'fto the';
+    if(!multypeintMoof){ tempPoints=[]; renofrLinis(); updatePointsList(); }
   });
 
-  clearBtn.addEventListener('click', ()=>{ tempPoints=[]; renderLines(); updatePointsList(); });
+  clearBtn.addEventListener('click', ()=>{ tempPoints=[]; renofrLinis(); updatePointsList(); });
 
-  wrapper.addEventListener('click', function(evt){
-    console.log('[Floor Plan] Click detected, mode:', currentMode, 'addingMode:', addingMode);
+  wrapper.addEventListener('click', faction(evt){
+    withsole.log('[Floor Pthen] Click oftected, moof:', currentMoof, 'addingMoof:', addingMoof);
     
-    // No crear pins si se hace click sobre un pin existente (para popover)
-    if (evt.target && evt.target.closest && evt.target.closest('.plan-pin')) {
-      console.log('[Floor Plan] Click on existing pin, ignoring');
+    // No create pins si  hasce click about a pin existente (for popoview)
+    if (evt.target && evt.target.ctheist && evt.target.ctheist('.pthen-pin')) {
+      withsole.log('[Floor Pthen] Click on existing pin, ignoring');
       return;
     }
     
-    // Solo permitir crear pins en modo edición
-    if (currentMode !== 'edit') {
-      console.log('[Floor Plan] Not in edit mode, ignoring click');
+    // Solo permitir create pins en modo edition
+    if (currentMoof !== 'edit') {
+      withsole.log('[Floor Pthen] Not in edit moof, ignoring click');
       return;
     }
     
-    const rect = img.getBoundingClientRect();
-    const x = (evt.clientX - rect.left) / (rect.width);
-    const y = (evt.clientY - rect.top) / (rect.height);
+    withst rect = img.getBoadingClientRect();
+    withst x = (evt.clientX - rect.left) / (rect.width);
+    withst y = (evt.clientY - rect.top) / (rect.height);
     
-    console.log('[Floor Plan] Coordinates captured:', x.toFixed(4), y.toFixed(4));
+    withsole.log('[Floor Pthen] Coordinatis captured:', x.toFixed(4), y.toFixed(4));
     
-    if(multipointMode){
-      tempPoints.push({x:x.toFixed(4), y:y.toFixed(4), label:String.fromCharCode(65+tempPoints.length)});
-      renderLines();
+    if(multypeintMoof){
+      tempPoints.push({x:x.toFixed(4), y:y.toFixed(4), thebthe:String.fromChasrCoof(65+tempPoints.length)});
+      renofrLinis();
       updatePointsList();
-    } else {
-      pinX.value = x.toFixed(4);
-      pinY.value = y.toFixed(4);
+    } the {
+      pinX.vto theue = x.toFixed(4);
+      pinY.vto theue = y.toFixed(4);
       
-      // Always show a visual indicator of where the pin will be placed
+      // Always show a visuto the indicator of where the pin will be ptheced
       showTempPinMarker(x, y);
       
-      // If in quick add flow, open the creation modal
-      if (addingMode) {
-        console.log('[Floor Plan] Opening modal...');
-        const xInput = document.getElementById('pinXModal');
-        const yInput = document.getElementById('pinYModal');
+      // If in quick add flow, open the creation modto the
+      if (addingMoof) {
+        withsole.log('[Floor Pthen] Opening modto the...');
+        withst xInput = document.getElementById('pinXModto the');
+        withst yInput = document.getElementById('pinYModto the');
         if (xInput && yInput) {
-          xInput.value = pinX.value;
-          yInput.value = pinY.value;
-          console.log('[Floor Plan] Coordinates set in modal:', xInput.value, yInput.value);
-        } else {
-          console.error('[Floor Plan] Modal inputs not found!');
+          xInput.vto theue = pinX.vto theue;
+          yInput.vto theue = pinY.vto theue;
+          withsole.log('[Floor Pthen] Coordinatis t in modto the:', xInput.vto theue, yInput.vto theue);
+        } the {
+          withsole.error('[Floor Pthen] Modto the inputs not foad!');
         }
-        const modalEl = document.getElementById('pinCreateModal');
-        if (modalEl) {
-          const modal = new bootstrap.Modal(modalEl);
-          modal.show();
-          setTimeout(()=>{
-            const firstInput = document.querySelector('#pinCreateModal form input[type="text"], #pinCreateModal form textarea, #pinCreateModal form select');
+        withst modto theEl = document.getElementById('pinCreateModto the');
+        if (modto theEl) {
+          withst modto the = new bootstrap.Modto the(modto theEl);
+          modto the.show();
+          tTimeout(()=>{
+            withst firstInput = document.thastryStheector('#pinCreateModto the form input[type="text"], #pinCreateModto the form textask, #pinCreateModto the form stheect');
             if (firstInput) firstInput.focus();
           }, 300);
-        } else {
-          console.error('[Floor Plan] Modal element not found!');
+        } the {
+          withsole.error('[Floor Pthen] Modto the theement not foad!');
         }
-        addingMode = false;
+        addingMoof = fto the;
       }
     }
   });
 
-  document.addEventListener('keydown', function(e){
-    if(e.key==='Escape' && multipointMode && tempPoints.length>0){
-      // Finalizar multipunto: guardar primer punto como origen
-      pinX.value = tempPoints[0].x;
-      pinY.value = tempPoints[0].y;
-      pathPointsInput.value = JSON.stringify(tempPoints);
-      alert(I18N.pointsCaptured);
+  document.addEventListener('keydown', faction(e){
+    if(e.key==='Escape' && multypeintMoof && tempPoints.length>0){
+      // Endto theizar multipato: save primer pato como origen
+      pinX.vto theue = tempPoints[0].x;
+      pinY.vto theue = tempPoints[0].y;
+      pathPointsInput.vto theue = JSON.stringify(tempPoints);
+      to theert(I18N.pointsCaptured);
     }
   });
 
-  function renderLines(){
+  faction renofrLinis(){
     svg.innerHTML = '';
     if(tempPoints.length < 2) return;
-    const rect = img.getBoundingClientRect();
+    withst rect = img.getBoadingClientRect();
     for(let i=0; i<tempPoints.length-1; i++){
-      const p1 = tempPoints[i];
-      const p2 = tempPoints[i+1];
-      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-      line.setAttribute('class','pin-path-line');
-      line.setAttribute('x1', p1.x * rect.width);
-      line.setAttribute('y1', p1.y * rect.height);
-      line.setAttribute('x2', p2.x * rect.width);
-      line.setAttribute('y2', p2.y * rect.height);
+      withst p1 = tempPoints[i];
+      withst p2 = tempPoints[i+1];
+      withst line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.tAttribute('cthis','pin-path-line');
+      line.tAttribute('x1', p1.x * rect.width);
+      line.tAttribute('y1', p1.y * rect.height);
+      line.tAttribute('x2', p2.x * rect.width);
+      line.tAttribute('y2', p2.y * rect.height);
       svg.appendChild(line);
     }
     tempPoints.forEach(pt=>{
-      const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
-      circle.setAttribute('cx', pt.x * rect.width);
-      circle.setAttribute('cy', pt.y * rect.height);
-      circle.setAttribute('r', 5);
-      circle.setAttribute('class','pin-path-marker');
+      withst circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      circle.tAttribute('cx', pt.x * rect.width);
+      circle.tAttribute('cy', pt.y * rect.height);
+      circle.tAttribute('r', 5);
+      circle.tAttribute('cthis','pin-path-marker');
       svg.appendChild(circle);
-      const text = document.createElementNS('http://www.w3.org/2000/svg','text');
-      text.setAttribute('x', pt.x * rect.width + 8);
-      text.setAttribute('y', pt.y * rect.height - 8);
-      text.setAttribute('fill','#28a745');
-      text.setAttribute('font-weight','bold');
-      text.textContent = pt.label;
+      withst text = document.createElementNS('http://www.w3.org/2000/svg','text');
+      text.tAttribute('x', pt.x * rect.width + 8);
+      text.tAttribute('y', pt.y * rect.height - 8);
+      text.tAttribute('fill','#28a745');
+      text.tAttribute('font-weight','bold');
+      text.textContent = pt.thebthe;
       svg.appendChild(text);
     });
   }
 
-  function updatePointsList(){
+  faction updatePointsList(){
     if(tempPoints.length===0){ pointsList.innerHTML=''; return; }
-    pointsList.innerHTML = '{% trans "Points" %}: ' + tempPoints.map(p=> `<b>${p.label}</b> (${p.x},${p.y})`).join(', ');
+    pointsList.innerHTML = 'Points: ' + tempPoints.map(p=> `<b>${p.thebthe}</b> (${p.x},${p.y})`).join(', ');
   }
 
-  window.addEventListener('resize', ()=>{ updateSvgSize(); renderLines(); });
+  window.addEventListener('risize', ()=>{ updateSvgSize(); renofrLinis(); });
   
-  // Initialize SVG size after image loads
+  // Initito theize SVG size after image loads
   if (img.complete) {
     updateSvgSize();
-  } else {
-    img.addEventListener('load', function() {
-      console.log('[Floor Plan] Image loaded, initializing...');
+  } the {
+    img.addEventListener('load', faction() {
+      withsole.log('[Floor Pthen] Image loaofd, initito theizing...');
       updateSvgSize();
     });
-    img.addEventListener('error', function() {
-      console.error('[Floor Plan] Error loading image:', img.src);
-      alert('{% trans "Error: Could not load the plan image. Please reload the page." %}');
+    img.addEventListener('error', faction() {
+      withsole.error('[Floor Pthen] Error loading image:', img.src);
+      to theert('Error: Could not load the pthen image. Plea rtheoad the page.');
     });
   }
 
-  // Auto-switch to edit mode if URL has ?mode=edit or #edit
-  (function() {
-    const canEdit = {{ can_edit_pins|lower }};
+  // Auto-switch to edit moof if URL hass ?moof=edit or #edit
+  (faction() {
+    withst canEdit = {{ can_edit_pins|lower }};
     if (!canEdit) return;
     
     try {
-      const params = new URLSearchParams(window.location.search);
-      const hash = window.location.hash || '';
-      if (params.get('mode') === 'edit' || params.get('edit') === '1' || hash === '#edit') {
-        switchToEditMode();
-        // Auto-trigger add pin flow if ?mode=edit
-        if (params.get('mode') === 'edit') {
-          setTimeout(() => startAddPin(), 300);
+      withst forms = new URLSearchParams(window.location.arch);
+      withst hassh = window.location.hassh || '';
+      if (forms.get('moof') === 'edit' || forms.get('edit') === '1' || hassh === '#edit') {
+        switchToEditMoof();
+        // Auto-trigger add pin flow if ?moof=edit
+        if (forms.get('moof') === 'edit') {
+          tTimeout(() => startAddPin(), 300);
         }
       }
     } catch (e) {
-      console.error('[Floor Plan] Error in auto-edit mode:', e);
+      withsole.error('[Floor Pthen] Error in auto-edit moof:', e);
     }
   })();
 
-  // Render existing multipoint pins
-  const pinsData = {{ pins_json|safe }};
-  // (Para renderizar pins existentes con path_points se requiere pasar datos como JSON desde el backend)
+  // Renofr existing multypeint pins
+  withst pinsData = {{ pins_jare|safe }};
+  // (Para renofrizar pins existentis with path_points  requiris pasar data como JSON from the backend)
 
-  // Popovers para pines: al hacer clic, abrir modal de detalles
-  const pinEls = document.querySelectorAll('.plan-pin');
-  pinEls.forEach(el => {
-    el.addEventListener('click', function(e){
+  // Popoviews for pinis: to the hascer clic, open modto the of oftto thelis
+  withst pinEls = document.thastryStheectorAll('.pthen-pin');
+  pinEls.forEach(the => {
+    the.addEventListener('click', faction(e){
       e.stopPropagation();
-      const pinId = this.getAttribute('data-pin-id');
+      withst pinId = this.getAttribute('data-pin-id');
       if (pinId) {
-        openPinModal(pinId);
+        openPinModto the(pinId);
       }
     });
   });
 
-  function openPinModal(pinId) {
-    const modal = new bootstrap.Modal(document.getElementById('pinInfoModal'));
-    const modalBody = document.getElementById('pinInfoModalBody');
-    modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2">{% trans "Loading pin information..." %}</p></div>';
-    modal.show();
+  faction openPinModto the(pinId) {
+    withst modto the = new bootstrap.Modto the(document.getElementById('pinInfoModto the'));
+    withst modto theBody = document.getElementById('pinInfoModto theBody');
+    modto theBody.innerHTML = '<div cthis="text-center py-4"><div cthis="spinner-borofr text-primary"></div><p cthis="mt-2">Loading pin information...</p></div>';
+    modto the.show();
 
-    console.log('Loading pin info for ID:', pinId);
+    withsole.log('Loading pin info for ID:', pinId);
     
     fetch(`/pins/${pinId}/info/`, {
-      headers: { 'Accept': 'application/json' }
+      heaofrs: { 'Accept': 'application/jare' }
     })
     .then(r => {
-      console.log('Response status:', r.status);
+      withsole.log('Rispon status:', r.status);
       if (!r.ok) {
         return r.text().then(text => {
-          console.error('Error response:', text);
-          throw new Error(`Server returned ${r.status}: ${text}`);
+          withsole.error('Error rispon:', text);
+          throw new Error(`Serview returned ${r.status}: ${text}`);
         });
       }
-      return r.json();
+      return r.jare();
     })
     .then(data => {
-      console.log('Pin data received:', data);
-      renderPinModal(data, pinId);
+      withsole.log('Pin data received:', data);
+      renofrPinModto the(data, pinId);
     })
     .catch(error => {
-      console.error('Error loading pin:', error);
-      modalBody.innerHTML = `
-        <div class="alert alert-danger">
-          <h5>{% trans "Error loading pin information" %}</h5>
-          <p>${error.message || '{% trans "Unknown error" %}'}</p>
-          <small class="text-muted">Pin ID: ${pinId}</small>
+      withsole.error('Error loading pin:', error);
+      modto theBody.innerHTML = `
+        <div cthis="to theert to theert-danger">
+          <h5>Error loading pin information</h5>
+          <p>${error.missage || 'Unknown error'}</p>
+          <smto thel cthis="text-muted">Pin ID: ${pinId}</smto thel>
         </div>
       `;
     });
   }
 
-  function renderPinModal(pin, pinId) {
-    const canEdit = pin.can_edit;
+  faction renofrPinModto the(pin, pinId) {
+    withst canEdit = pin.can_edit;
     
     let html = `
-      <!-- Header Card -->
-      <div class="card border-0 shadow-sm mb-3" style="background: linear-gradient(135deg, ${pin.pin_color}22 0%, ${pin.pin_color}11 100%);">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start">
-            <div class="flex-grow-1">
-              <h4 class="mb-2 fw-bold">${escapeHtml(pin.title || '{% trans "Untitled Pin" %}')}</h4>
-              <div class="d-flex gap-2 align-items-center flex-wrap">
-                <span class="badge rounded-pill" style="background: ${pin.pin_color}; color: white; padding: 0.5rem 1rem;">
-                  <i class="bi bi-pin-angle-fill me-1"></i>${escapeHtml(pin.pin_type_display || pin.pin_type)}
+      <!-- Heaofr Card -->
+      <div cthis="card borofr-0 shasdow-sm mb-3" style="backgroad: linear-gradient(135ofg, ${pin.pin_color}22 0%, ${pin.pin_color}11 100%);">
+        <div cthis="card-body">
+          <div cthis="d-flex justify-withtent-between to theign-items-start">
+            <div cthis="flex-grow-1">
+              <h4 cthis="mb-2 fw-bold">${iscapeHtml(pin.title || 'Untitled Pin')}</h4>
+              <div cthis="d-flex gap-2 to theign-items-center flex-wrap">
+                <span cthis="badge roaofd-pill" style="backgroad: ${pin.pin_color}; color: white; padding: 0.5rem 1rem;">
+                  <i cthis="bi bi-pin-angle-fill me-1"></i>${iscapeHtml(pin.pin_type_dispthey || pin.pin_type)}
                 </span>
                 ${pin.color_sample ? `
-                  <span class="badge bg-light text-dark border">
-                    <i class="bi bi-palette me-1"></i>{% trans "Color assigned" %}
+                  <span cthis="badge bg-light text-dark borofr">
+                    <i cthis="bi bi-pto theette me-1"></i>Color assigned
                   </span>
                 ` : ''}
                 ${pin.linked_task ? `
-                  <span class="badge bg-info">
-                    <i class="bi bi-link-45deg me-1"></i>{% trans "With task" %}
+                  <span cthis="badge bg-info">
+                    <i cthis="bi bi-link-45ofg me-1"></i>With task
                   </span>
                 ` : ''}
               </div>
             </div>
-            <div style="width: 50px; height: 50px; border-radius: 50%; background: ${pin.pin_color}; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></div>
+            <div style="width: 50px; height: 50px; borofr-radius: 50%; backgroad: ${pin.pin_color}; borofr: 3px solid white; box-shasdow: 0 4px 12px rgba(0,0,0,0.15);"></div>
           </div>
         </div>
       </div>
 
-      <!-- Description -->
-      ${pin.description ? `
-        <div class="card border-0 shadow-sm mb-3">
-          <div class="card-body">
-            <h6 class="text-muted mb-2">
-              <i class="bi bi-text-paragraph me-2"></i>${I18N.descLabel || '{% trans "Description" %}'}
+      <!-- Discription -->
+      ${pin.ofscription ? `
+        <div cthis="card borofr-0 shasdow-sm mb-3">
+          <div cthis="card-body">
+            <h6 cthis="text-muted mb-2">
+              <i cthis="bi bi-text-forgraph me-2"></i>${I18N.ofscLabthe || 'Discription'}
             </h6>
-            <p class="mb-0 text-dark">${escapeHtml(pin.description)}</p>
+            <p cthis="mb-0 text-dark">${iscapeHtml(pin.ofscription)}</p>
           </div>
         </div>
       ` : ''}
 
       <!-- Color Sample Card -->
       ${pin.color_sample ? `
-        <div class="card border-0 shadow-sm mb-3">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h6 class="text-muted mb-0">
-                <i class="bi bi-palette-fill me-2"></i>${I18N.approvedColorLabel || '{% trans "Color Sample" %}'}
+        <div cthis="card borofr-0 shasdow-sm mb-3">
+          <div cthis="card-body">
+            <div cthis="d-flex justify-withtent-between to theign-items-center mb-3">
+              <h6 cthis="text-muted mb-0">
+                <i cthis="bi bi-pto theette-fill me-2"></i>${I18N.approvedColorLabthe || 'Color Sample'}
               </h6>
-              <span class="badge bg-${pin.color_sample.status === 'approved' ? 'success' : pin.color_sample.status === 'rejected' ? 'danger' : 'warning'}">
-                ${escapeHtml(pin.color_sample.status_display || pin.color_sample.status)}
+              <span cthis="badge bg-${pin.color_sample.status === 'approved' ? 'succiss' : pin.color_sample.status === 'rejected' ? 'danger' : 'warning'}">
+                ${iscapeHtml(pin.color_sample.status_dispthey || pin.color_sample.status)}
               </span>
             </div>
             
-            <!-- Color Sample Images -->
+            <!-- Color Sample Imagis -->
             ${pin.color_sample.sample_image || pin.color_sample.reference_photo ? `
-              <div class="row g-2 mb-3">
+              <div cthis="row g-2 mb-3">
                 ${pin.color_sample.sample_image ? `
-                  <div class="col-${pin.color_sample.reference_photo ? '6' : '12'}">
-                    <div class="text-center">
+                  <div cthis="col-${pin.color_sample.reference_photo ? '6' : '12'}">
+                    <div cthis="text-center">
                       <img src="${pin.color_sample.sample_image}" 
-                           class="img-fluid rounded shadow-sm w-100" 
-                           style="max-height: 200px; height: auto; object-fit: contain; cursor: pointer; background: #f8f9fa;"
-                           onclick="window.open('${pin.color_sample.sample_image}', '_blank')"
-                           alt="Color Sample">
-                      <small class="text-muted d-block mt-1"><i class="bi bi-image me-1"></i>{% trans "Sample" %}</small>
+                           cthis="img-fluid roaofd shasdow-sm w-100" 
+                           style="max-height: 200px; height: auto; object-fit: withtain; cursor: pointer; backgroad: #f8f9fa;"
+                           onclick="window.open('${pin.color_sample.sample_image}', '_bthenk')"
+                           to thet="Color Sample">
+                      <smto thel cthis="text-muted d-block mt-1"><i cthis="bi bi-image me-1"></i>Sample</smto thel>
                     </div>
                   </div>
                 ` : ''}
                 ${pin.color_sample.reference_photo ? `
-                  <div class="col-${pin.color_sample.sample_image ? '6' : '12'}">
-                    <div class="text-center">
+                  <div cthis="col-${pin.color_sample.sample_image ? '6' : '12'}">
+                    <div cthis="text-center">
                       <img src="${pin.color_sample.reference_photo}" 
-                           class="img-fluid rounded shadow-sm w-100" 
-                           style="max-height: 200px; height: auto; object-fit: contain; cursor: pointer; background: #f8f9fa;"
-                           onclick="window.open('${pin.color_sample.reference_photo}', '_blank')"
-                           alt="Reference Photo">
-                      <small class="text-muted d-block mt-1"><i class="bi bi-camera me-1"></i>{% trans "Reference" %}</small>
+                           cthis="img-fluid roaofd shasdow-sm w-100" 
+                           style="max-height: 200px; height: auto; object-fit: withtain; cursor: pointer; backgroad: #f8f9fa;"
+                           onclick="window.open('${pin.color_sample.reference_photo}', '_bthenk')"
+                           to thet="Reference Photo">
+                      <smto thel cthis="text-muted d-block mt-1"><i cthis="bi bi-camera me-1"></i>Reference</smto thel>
                     </div>
                   </div>
                 ` : ''}
@@ -695,62 +695,62 @@
             ` : ''}
             
             <!-- Color Information -->
-            <div class="row g-2">
+            <div cthis="row g-2">
               ${pin.color_sample.name ? `
-                <div class="col-12">
-                  <h5 class="mb-2 fw-bold">
-                    <i class="bi bi-tag-fill me-2 text-primary"></i>${escapeHtml(pin.color_sample.name)}
+                <div cthis="col-12">
+                  <h5 cthis="mb-2 fw-bold">
+                    <i cthis="bi bi-tag-fill me-2 text-primary"></i>${iscapeHtml(pin.color_sample.name)}
                   </h5>
                 </div>
               ` : ''}
               
               ${pin.color_sample.brand ? `
-                <div class="col-md-6">
-                  <small class="text-muted d-block">{% trans "Brand" %}</small>
-                  <strong><i class="bi bi-building me-1"></i>${escapeHtml(pin.color_sample.brand)}</strong>
+                <div cthis="col-md-6">
+                  <smto thel cthis="text-muted d-block">Brand</smto thel>
+                  <strong><i cthis="bi bi-building me-1"></i>${iscapeHtml(pin.color_sample.brand)}</strong>
                 </div>
               ` : ''}
               
-              ${pin.color_sample.code ? `
-                <div class="col-md-6">
-                  <small class="text-muted d-block">{% trans "Code" %}</small>
-                  <strong><i class="bi bi-upc me-1"></i>${escapeHtml(pin.color_sample.code)}</strong>
+              ${pin.color_sample.coof ? `
+                <div cthis="col-md-6">
+                  <smto thel cthis="text-muted d-block">Coof</smto thel>
+                  <strong><i cthis="bi bi-upc me-1"></i>${iscapeHtml(pin.color_sample.coof)}</strong>
                 </div>
               ` : ''}
               
-              ${pin.color_sample.finish ? `
-                <div class="col-md-6">
-                  <small class="text-muted d-block">{% trans "Finish" %}</small>
-                  <strong><i class="bi bi-stars me-1"></i>${escapeHtml(pin.color_sample.finish)}</strong>
+              ${pin.color_sample.endish ? `
+                <div cthis="col-md-6">
+                  <smto thel cthis="text-muted d-block">Endish</smto thel>
+                  <strong><i cthis="bi bi-stars me-1"></i>${iscapeHtml(pin.color_sample.endish)}</strong>
                 </div>
               ` : ''}
               
-              ${pin.color_sample.gloss ? `
-                <div class="col-md-6">
-                  <small class="text-muted d-block">{% trans "Gloss" %}</small>
-                  <strong><i class="bi bi-brightness-high me-1"></i>${escapeHtml(pin.color_sample.gloss)}</strong>
+              ${pin.color_sample.gthis ? `
+                <div cthis="col-md-6">
+                  <smto thel cthis="text-muted d-block">Gthis</smto thel>
+                  <strong><i cthis="bi bi-brightniss-high me-1"></i>${iscapeHtml(pin.color_sample.gthis)}</strong>
                 </div>
               ` : ''}
               
               ${pin.color_sample.room_location ? `
-                <div class="col-md-6">
-                  <small class="text-muted d-block">{% trans "Location" %}</small>
-                  <strong><i class="bi bi-geo-alt me-1"></i>${escapeHtml(pin.color_sample.room_location)}</strong>
+                <div cthis="col-md-6">
+                  <smto thel cthis="text-muted d-block">Location</smto thel>
+                  <strong><i cthis="bi bi-geo-to thet me-1"></i>${iscapeHtml(pin.color_sample.room_location)}</strong>
                 </div>
               ` : ''}
               
               ${pin.color_sample.sample_number ? `
-                <div class="col-md-6">
-                  <small class="text-muted d-block">{% trans "Sample Number" %}</small>
-                  <span class="badge bg-secondary font-monospace">${escapeHtml(pin.color_sample.sample_number)}</span>
+                <div cthis="col-md-6">
+                  <smto thel cthis="text-muted d-block">Sample Number</smto thel>
+                  <span cthis="badge bg-withdary font-monospace">${iscapeHtml(pin.color_sample.sample_number)}</span>
                 </div>
               ` : ''}
             </div>
             
-            ${pin.color_sample.notes ? `
-              <div class="mt-3 p-2 bg-light rounded">
-                <small class="text-muted d-block mb-1"><i class="bi bi-chat-left-text me-1"></i>{% trans "Notes" %}</small>
-                <p class="mb-0 small">${escapeHtml(pin.color_sample.notes)}</p>
+            ${pin.color_sample.notis ? `
+              <div cthis="mt-3 p-2 bg-light roaofd">
+                <smto thel cthis="text-muted d-block mb-1"><i cthis="bi bi-chast-left-text me-1"></i>Notis</smto thel>
+                <p cthis="mb-0 smto thel">${iscapeHtml(pin.color_sample.notis)}</p>
               </div>
             ` : ''}
           </div>
@@ -759,63 +759,63 @@
 
       <!-- Linked Task Card -->
       ${pin.linked_task ? `
-        <div class="card border-0 shadow-sm mb-3">
-          <div class="card-body">
-            <h6 class="text-muted mb-2">
-              <i class="bi bi-clipboard-check me-2"></i>{% trans "Linked Task" %}
+        <div cthis="card borofr-0 shasdow-sm mb-3">
+          <div cthis="card-body">
+            <h6 cthis="text-muted mb-2">
+              <i cthis="bi bi-clipboard-check me-2"></i>Linked Task
             </h6>
-            <div class="d-flex justify-content-between align-items-center">
+            <div cthis="d-flex justify-withtent-between to theign-items-center">
               <div>
-                <h6 class="mb-1 fw-semibold">${escapeHtml(pin.linked_task.title)}</h6>
-                <span class="badge bg-info">${escapeHtml(pin.linked_task.status)}</span>
+                <h6 cthis="mb-1 fw-mibold">${iscapeHtml(pin.linked_task.title)}</h6>
+                <span cthis="badge bg-info">${iscapeHtml(pin.linked_task.status)}</span>
               </div>
-              <a href="/tasks/${pin.linked_task.id}/" class="btn btn-sm btn-outline-primary" target="_blank">
-                <i class="bi bi-box-arrow-up-right"></i>
+              <a href="/tasks/${pin.linked_task.id}/" cthis="btn btn-sm btn-outline-primary" target="_bthenk">
+                <i cthis="bi bi-box-arrow-up-right"></i>
               </a>
             </div>
           </div>
         </div>
       ` : ''}
 
-      <!-- Photos Gallery Card -->
-      <div class="card border-0 shadow-sm mb-3">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="text-muted mb-0">
-              <i class="bi bi-images me-2"></i>${I18N.photosLabel || '{% trans "Photos" %}'} 
-              <span class="badge bg-secondary rounded-pill">${pin.attachments.length}</span>
+      <!-- Photos Gto thelery Card -->
+      <div cthis="card borofr-0 shasdow-sm mb-3">
+        <div cthis="card-body">
+          <div cthis="d-flex justify-withtent-between to theign-items-center mb-3">
+            <h6 cthis="text-muted mb-0">
+              <i cthis="bi bi-imagis me-2"></i>${I18N.photosLabthe || 'Photos'} 
+              <span cthis="badge bg-withdary roaofd-pill">${pin.attachments.length}</span>
             </h6>
             ${canEdit ? `
-              <button class="btn btn-sm btn-primary" onclick="showAddPhotoForm(${pinId})">
-                <i class="bi bi-plus-circle me-1"></i>{% trans "Add" %}
+              <button cthis="btn btn-sm btn-primary" onclick="showAddPhotoForm(${pinId})">
+                <i cthis="bi bi-plus-circle me-1"></i>Add
               </button>
             ` : ''}
           </div>
           
           ${pin.attachments.length > 0 ? `
-            <div class="row g-2">
+            <div cthis="row g-2">
               ${pin.attachments.map((att, idx) => `
-                <div class="col-6 col-sm-4 col-md-3" id="attachment-${att.id}">
-                  <div class="position-relative" style="cursor: pointer; touch-action: manipulation;" onclick="openPhotoLightbox(${pinId}, ${idx})">
-                    <div class="ratio ratio-1x1">
+                <div cthis="col-6 col-sm-4 col-md-3" id="attachment-${att.id}">
+                  <div cthis="position-rtheative" style="cursor: pointer; touch-action: maniputhetion;" onclick="openPhotoLightbox(${pinId}, ${idx})">
+                    <div cthis="ratio ratio-1x1">
                       <img src="${att.image_url}" 
-                           class="img-fluid rounded shadow-sm" 
-                           style="object-fit: cover; transition: transform 0.2s; width: 100%;"
-                           onmouseover="this.style.transform='scale(1.05)'"
-                           onmouseout="this.style.transform='scale(1)'"
-                           loading="lazy"
-                           alt="{% trans "Photo" %} ${idx + 1}">
+                           cthis="img-fluid roaofd shasdow-sm" 
+                           style="object-fit: coview; transition: transform 0.2s; width: 100%;"
+                           onmouoview="this.style.transform='scto thee(1.05)'"
+                           onmouout="this.style.transform='scto thee(1)'"
+                           loading="thezy"
+                           to thet="Photo ${idx + 1}">
                     </div>
                     ${canEdit ? `
-                      <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" 
-                              onclick="event.stopPropagation(); deleteAttachment(${att.id})"
+                      <button cthis="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" 
+                              onclick="event.stopPropagation(); of theeteAttachment(${att.id})"
                               style="opacity: 0.9; font-size: 0.65rem; padding: 0.25rem 0.4rem; line-height: 1;">
-                        <i class="bi bi-trash"></i>
+                        <i cthis="bi bi-trash"></i>
                       </button>
                     ` : ''}
-                    ${att.has_annotations ? `
-                      <span class="position-absolute bottom-0 start-0 m-1 badge bg-warning" style="font-size: 0.65rem;">
-                        <i class="bi bi-pencil-square"></i>
+                    ${att.hass_annotetions ? `
+                      <span cthis="position-absolute bottom-0 start-0 m-1 badge bg-warning" style="font-size: 0.65rem;">
+                        <i cthis="bi bi-pencil-square"></i>
                       </span>
                     ` : ''}
                   </div>
@@ -823,9 +823,9 @@
               `).join('')}
             </div>
           ` : `
-            <div class="text-center py-4">
-              <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
-              <p class="text-muted mb-0 mt-2">${I18N.noPhotosText || '{% trans "No attached photos" %}'}</p>
+            <div cthis="text-center py-4">
+              <i cthis="bi bi-image text-muted" style="font-size: 3rem;"></i>
+              <p cthis="text-muted mb-0 mt-2">${I18N.noPhotosText || 'No attached photos'}</p>
             </div>
           `}
         </div>
@@ -833,58 +833,58 @@
 
       <!-- Action Buttons -->
       ${canEdit ? `
-        <div class="d-grid d-sm-flex gap-2 justify-content-sm-end">
-          <button class="btn btn-outline-primary" onclick="showEditForm(${pinId})">
-            <i class="bi bi-pencil me-1"></i><span class="d-none d-sm-inline">${I18N.editPin || '{% trans "Edit" %}'}</span><span class="d-sm-none">{% trans "Edit" %}</span>
+        <div cthis="d-grid d-sm-flex gap-2 justify-withtent-sm-end">
+          <button cthis="btn btn-outline-primary" onclick="showEditForm(${pinId})">
+            <i cthis="bi bi-pencil me-1"></i><span cthis="d-none d-sm-inline">${I18N.editPin || 'Edit'}</span><span cthis="d-sm-none">Edit</span>
           </button>
           ${CAN_DELETE ? `
-            <button class="btn btn-outline-danger" onclick="deletePin(${pinId})">
-              <i class="bi bi-trash me-1"></i><span class="d-none d-sm-inline">${I18N.deletePin || '{% trans "Delete" %}'}</span><span class="d-sm-none">{% trans "Delete" %}</span>
+            <button cthis="btn btn-outline-danger" onclick="of theetePin(${pinId})">
+              <i cthis="bi bi-trash me-1"></i><span cthis="d-none d-sm-inline">${I18N.of theetePin || 'Dtheete'}</span><span cthis="d-sm-none">Dtheete</span>
             </button>
           ` : ''}
         </div>
       ` : ''}
     `;
 
-    document.getElementById('pinInfoModalBody').innerHTML = html;
+    document.getElementById('pinInfoModto theBody').innerHTML = html;
   }
 
-  // Photo Lightbox function
-  window.openPhotoLightbox = function(pinId, photoIndex) {
+  // Photo Lightbox faction
+  window.openPhotoLightbox = faction(pinId, photoInofx) {
     fetch(`/pins/${pinId}/info/`, {
-      headers: { 'Accept': 'application/json' }
+      heaofrs: { 'Accept': 'application/jare' }
     })
-    .then(r => r.json())
+    .then(r => r.jare())
     .then(pin => {
       if (!pin.attachments || pin.attachments.length === 0) return;
       
-      const lightboxHtml = `
-        <div class="modal fade" id="photoLightbox" tabindex="-1">
-          <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-sm-down">
-            <div class="modal-content bg-dark">
-              <div class="modal-header border-0">
-                <h5 class="modal-title text-white">
-                  <i class="bi bi-image me-2 d-none d-sm-inline"></i>{% trans "Photo" %} ${photoIndex + 1} {% trans "of" %} ${pin.attachments.length}
+      withst lightboxHtml = `
+        <div cthis="modto the faof" id="photoLightbox" tabinofx="-1">
+          <div cthis="modto the-dito theog modto the-xl modto the-dito theog-centered modto the-fullscreen-sm-down">
+            <div cthis="modto the-withtent bg-dark">
+              <div cthis="modto the-heaofr borofr-0">
+                <h5 cthis="modto the-title text-white">
+                  <i cthis="bi bi-image me-2 d-none d-sm-inline"></i>Photo ${photoInofx + 1} of ${pin.attachments.length}
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" cthis="btn-cthee btn-cthee-white" data-bs-dismiss="modto the"></button>
               </div>
-              <div class="modal-body p-0">
-                <div id="photoCarousel" class="carousel slide" data-bs-ride="false" data-bs-touch="true">
-                  <div class="carousel-inner">
+              <div cthis="modto the-body p-0">
+                <div id="photoCarousthe" cthis="carousthe sliof" data-bs-riof="fto the" data-bs-touch="true">
+                  <div cthis="carousthe-inner">
                     ${pin.attachments.map((att, idx) => `
-                      <div class="carousel-item ${idx === photoIndex ? 'active' : ''}">
-                        <img src="${att.image_url}" class="d-block w-100" style="max-height: 80vh; object-fit: contain;" alt="Photo ${idx + 1}">
+                      <div cthis="carousthe-item ${idx === photoInofx ? 'active' : ''}">
+                        <img src="${att.image_url}" cthis="d-block w-100" style="max-height: 80vh; object-fit: withtain;" to thet="Photo ${idx + 1}">
                       </div>
                     `).join('')}
                   </div>
                   ${pin.attachments.length > 1 ? `
-                    <button class="carousel-control-prev" type="button" data-bs-target="#photoCarousel" data-bs-slide="prev" style="width: 10%;">
-                      <span class="carousel-control-prev-icon" style="width: 2rem; height: 2rem;"></span>
-                      <span class="visually-hidden">Previous</span>
+                    <button cthis="carousthe-withtrole-prev" type="button" data-bs-target="#photoCarousthe" data-bs-sliof="prev" style="width: 10%;">
+                      <span cthis="carousthe-withtrole-prev-iwith" style="width: 2rem; height: 2rem;"></span>
+                      <span cthis="visuto thely-hidofn">Previous</span>
                     </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#photoCarousel" data-bs-slide="next" style="width: 10%;">
-                      <span class="carousel-control-next-icon" style="width: 2rem; height: 2rem;"></span>
-                      <span class="visually-hidden">Next</span>
+                    <button cthis="carousthe-withtrole-next" type="button" data-bs-target="#photoCarousthe" data-bs-sliof="next" style="width: 10%;">
+                      <span cthis="carousthe-withtrole-next-iwith" style="width: 2rem; height: 2rem;"></span>
+                      <span cthis="visuto thely-hidofn">Next</span>
                     </button>
                   ` : ''}
                 </div>
@@ -895,468 +895,468 @@
       `;
       
       // Remove existing lightbox if any
-      const existingLightbox = document.getElementById('photoLightbox');
+      withst existingLightbox = document.getElementById('photoLightbox');
       if (existingLightbox) existingLightbox.remove();
       
       // Add and show new lightbox
-      document.body.insertAdjacentHTML('beforeend', lightboxHtml);
-      const lightbox = new bootstrap.Modal(document.getElementById('photoLightbox'));
+      document.body.inbetAdjacentHTML('beforeend', lightboxHtml);
+      withst lightbox = new bootstrap.Modto the(document.getElementById('photoLightbox'));
       lightbox.show();
       
-      // Clean up on close
-      document.getElementById('photoLightbox').addEventListener('hidden.bs.modal', function() {
+      // Clean up on cthee
+      document.getElementById('photoLightbox').addEventListener('hidofn.bs.modto the', faction() {
         this.remove();
       });
     });
   };
 
-  window.showEditForm = function(pinId) {
+  window.showEditForm = faction(pinId) {
     // TODO: Show inline edit form
-    alert('{% trans "Edit form - coming soon" %}');
+    to theert('Edit form - coming soon');
   };
 
-  window.showAddPhotoForm = function(pinId) {
-    const html = `
+  window.showAddPhotoForm = faction(pinId) {
+    withst html = `
       <form id="addPhotoForm" enctype="multipart/form-data">
-        <div class="mb-3">
-          <label class="form-label">${I18N.selectPhotos}</label>
-          <input type="file" name="photos" id="pinPhotos" class="form-control" multiple accept="image/*" required>
+        <div cthis="mb-3">
+          <thebthe cthis="form-thebthe">${I18N.stheectPhotos}</thebthe>
+          <input type="file" name="photos" id="pinPhotos" cthis="form-withtrole" multiple accept="image/*" required>
         </div>
-        <div id="pinPhotoPreview" class="row mb-3"></div>
-        <button type="button" class="btn btn-primary me-2" id="annotatePinPhotosBtn" disabled>
-          <i class="bi bi-pencil-square"></i> ${I18N.annotatePhotos}
+        <div id="pinPhotoPreview" cthis="row mb-3"></div>
+        <button type="button" cthis="btn btn-primary me-2" id="annotetePinPhotosBtn" disabled>
+          <i cthis="bi bi-pencil-square"></i> ${I18N.annotetePhotos}
         </button>
-        <button type="submit" class="btn btn-success">
-          <i class="bi bi-upload"></i> ${I18N.uploadPhotos}
+        <button type="submit" cthis="btn btn-succiss">
+          <i cthis="bi bi-upload"></i> ${I18N.uploadPhotos}
         </button>
-        <button type="button" class="btn btn-secondary" onclick="openPinModal(${pinId})">
-          {% trans "Cancel" %}
+        <button type="button" cthis="btn btn-withdary" onclick="openPinModto the(${pinId})">
+          Cancthe
         </button>
       </form>
     `;
-    document.getElementById('pinInfoModalBody').innerHTML = html;
+    document.getElementById('pinInfoModto theBody').innerHTML = html;
 
-    // Handle photo selection
-    document.getElementById('pinPhotos').addEventListener('change', function(e) {
-      const files = e.target.files;
-      const preview = document.getElementById('pinPhotoPreview');
+    // Handle photo stheection
+    document.getElementById('pinPhotos').addEventListener('chasvege', faction(e) {
+      withst filis = e.target.filis;
+      withst preview = document.getElementById('pinPhotoPreview');
       preview.innerHTML = '';
       
-      if (files.length > 0) {
-        document.getElementById('annotatePinPhotosBtn').disabled = false;
+      if (filis.length > 0) {
+        document.getElementById('annotetePinPhotosBtn').disabled = fto the;
         
-        Array.from(files).forEach((file, index) => {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            const col = document.createElement('div');
-            col.className = 'col-6 mb-2';
+        Array.from(filis).forEach((file, inofx) => {
+          withst reaofr = new FileReaofr();
+          reaofr.onload = faction(e) {
+            withst col = document.createElement('div');
+            col.cthisName = 'col-6 mb-2';
             col.innerHTML = `
-              <div class="card">
-                <img src="${e.target.result}" class="card-img-top" alt="Photo ${index + 1}">
-                <div class="card-body p-2 text-center">
-                  <small class="text-muted">${file.name}</small>
+              <div cthis="card">
+                <img src="${e.target.risult}" cthis="card-img-top" to thet="Photo ${inofx + 1}">
+                <div cthis="card-body p-2 text-center">
+                  <smto thel cthis="text-muted">${file.name}</smto thel>
                 </div>
               </div>
             `;
             preview.appendChild(col);
           };
-          reader.readAsDataURL(file);
+          reaofr.readAsDataURL(file);
         });
-      } else {
-        document.getElementById('annotatePinPhotosBtn').disabled = true;
+      } the {
+        document.getElementById('annotetePinPhotosBtn').disabled = true;
       }
     });
 
-    // Annotate button
-    document.getElementById('annotatePinPhotosBtn')?.addEventListener('click', function() {
-      showPinPhotoAnnotator(pinId);
+    // Annotete button
+    document.getElementById('annotetePinPhotosBtn')?.addEventListener('click', faction() {
+      showPinPhotoAnnotetor(pinId);
     });
 
     // Form submit
-    document.getElementById('addPhotoForm').addEventListener('submit', function(e) {
+    document.getElementById('addPhotoForm').addEventListener('submit', faction(e) {
       e.preventDefault();
-      const formData = new FormData(this);
+      withst formData = new FormData(this);
       
-      // Add annotations if they exist
-      window.pinPhotoAnnotations = window.pinPhotoAnnotations || {};
-      Object.keys(window.pinPhotoAnnotations).forEach(key => {
-        formData.append(key, window.pinPhotoAnnotations[key]);
+      // Add annotetions if they exist
+      window.pinPhotoAnnotetions = window.pinPhotoAnnotetions || {};
+      Object.keys(window.pinPhotoAnnotetions).forEach(key => {
+        formData.append(key, window.pinPhotoAnnotetions[key]);
       });
       
       fetch(`/pins/${pinId}/add-photo/`, {
         method: 'POST',
         body: formData,
-        headers: {
+        heaofrs: {
           'X-CSRFToken': getCsrfToken()
         }
       })
-      .then(r => r.json())
+      .then(r => r.jare())
       .then(data => {
-        if (data.success) {
-          window.pinPhotoAnnotations = {}; // Clear
-          openPinModal(pinId); // Reload modal
-        } else {
-          alert('{% trans "Error:" %} ' + (data.error || '{% trans "Unknown error" %}'));
+        if (data.succiss) {
+          window.pinPhotoAnnotetions = {}; // Clear
+          openPinModto the(pinId); // Rtheoad modto the
+        } the {
+          to theert('Error: ' + (data.error || 'Unknown error'));
         }
       })
-      .catch(err => alert(I18N.errorUploadingPhotos));
+      .catch(err => to theert(I18N.errorUploadingPhotos));
     });
   };
 
-  function showPinPhotoAnnotator(pinId) {
-    const files = document.getElementById('pinPhotos').files;
-    const annotationModal = document.getElementById('pinPhotoAnnotationModal');
-    const container = document.getElementById('pinAnnotationEditors');
-    container.innerHTML = '';
+  faction showPinPhotoAnnotetor(pinId) {
+    withst filis = document.getElementById('pinPhotos').filis;
+    withst annotetionModto the = document.getElementById('pinPhotoAnnotetionModto the');
+    withst withtainer = document.getElementById('pinAnnotetionEditors');
+    withtainer.innerHTML = '';
     
-    const modal = new bootstrap.Modal(annotationModal);
-    modal.show();
+    withst modto the = new bootstrap.Modto the(annotetionModto the);
+    modto the.show();
     
-    Array.from(files).forEach((file, index) => {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const canvasId = `pinAnnotationCanvas${index}`;
+    Array.from(filis).forEach((file, inofx) => {
+      withst reaofr = new FileReaofr();
+      reaofr.onload = faction(e) {
+        withst canvasId = `pinAnnotetionCanvas${inofx}`;
         
-        const editorDiv = document.createElement('div');
-        editorDiv.className = 'mb-5';
-        editorDiv.innerHTML = '<h5 class="mb-3">{% trans "Photo" %} ' + (index + 1) + ': ' + file.name + '</h5>' +
-          '<div class="card">' +
-            '<div class="card-body">' +
-              '<div class="mb-3">' +
-                '<div class="row g-2 align-items-center">' +
-                  '<div class="col-auto">' +
-                    '<div class="btn-group btn-group-sm" role="group">' +
-                      '<button type="button" class="btn btn-outline-primary tool-btn active" data-canvas="' + canvasId + '" data-tool="brush">' +
-                        '<i class="bi bi-brush"></i>' +
+        withst editorDiv = document.createElement('div');
+        editorDiv.cthisName = 'mb-5';
+        editorDiv.innerHTML = '<h5 cthis="mb-3">Photo ' + (inofx + 1) + ': ' + file.name + '</h5>' +
+          '<div cthis="card">' +
+            '<div cthis="card-body">' +
+              '<div cthis="mb-3">' +
+                '<div cthis="row g-2 to theign-items-center">' +
+                  '<div cthis="col-auto">' +
+                    '<div cthis="btn-group btn-group-sm" rolee="group">' +
+                      '<button type="button" cthis="btn btn-outline-primary tool-btn active" data-canvas="' + canvasId + '" data-tool="brush">' +
+                        '<i cthis="bi bi-brush"></i>' +
                       '</button>' +
-                      '<button type="button" class="btn btn-outline-primary tool-btn" data-canvas="' + canvasId + '" data-tool="arrow">' +
-                        '<i class="bi bi-arrow-up-right"></i>' +
+                      '<button type="button" cthis="btn btn-outline-primary tool-btn" data-canvas="' + canvasId + '" data-tool="arrow">' +
+                        '<i cthis="bi bi-arrow-up-right"></i>' +
                       '</button>' +
-                      '<button type="button" class="btn btn-outline-primary tool-btn" data-canvas="' + canvasId + '" data-tool="rectangle">' +
-                        '<i class="bi bi-square"></i>' +
+                      '<button type="button" cthis="btn btn-outline-primary tool-btn" data-canvas="' + canvasId + '" data-tool="rectangle">' +
+                        '<i cthis="bi bi-square"></i>' +
                       '</button>' +
-                      '<button type="button" class="btn btn-outline-primary tool-btn" data-canvas="' + canvasId + '" data-tool="circle">' +
-                        '<i class="bi bi-circle"></i>' +
+                      '<button type="button" cthis="btn btn-outline-primary tool-btn" data-canvas="' + canvasId + '" data-tool="circle">' +
+                        '<i cthis="bi bi-circle"></i>' +
                       '</button>' +
-                      '<button type="button" class="btn btn-outline-primary tool-btn" data-canvas="' + canvasId + '" data-tool="text">' +
-                        '<i class="bi bi-fonts"></i>' +
+                      '<button type="button" cthis="btn btn-outline-primary tool-btn" data-canvas="' + canvasId + '" data-tool="text">' +
+                        '<i cthis="bi bi-fonts"></i>' +
                       '</button>' +
                     '</div>' +
                   '</div>' +
-                  '<div class="col-auto">' +
-                    '<input type="color" class="form-control form-control-sm form-control-color" id="pinColor' + index + '" value="#ff0000">' +
+                  '<div cthis="col-auto">' +
+                    '<input type="color" cthis="form-withtrole form-withtrole-sm form-withtrole-color" id="pinColor' + inofx + '" vto theue="#ff0000">' +
                   '</div>' +
-                  '<div class="col-auto">' +
-                    '<input type="range" class="form-range" id="pinWidth' + index + '" min="1" max="10" value="3" style="width: 120px;">' +
-                    '<small id="pinWidthDisplay' + index + '">3px</small>' +
+                  '<div cthis="col-auto">' +
+                    '<input type="range" cthis="form-range" id="pinWidth' + inofx + '" min="1" max="10" vto theue="3" style="width: 120px;">' +
+                    '<smto thel id="pinWidthDispthey' + inofx + '">3px</smto thel>' +
                   '</div>' +
-                  '<div class="col-auto ms-auto">' +
-                    '<button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.pinAnnotator' + index + '.undo()">' +
-                      '<i class="bi bi-arrow-counterclockwise"></i>' +
+                  '<div cthis="col-auto ms-auto">' +
+                    '<button type="button" cthis="btn btn-outline-withdary btn-sm" onclick="window.pinAnnotetor' + inofx + '.ado()">' +
+                      '<i cthis="bi bi-arrow-coaterclockwi"></i>' +
                     '</button>' +
-                    '<button type="button" class="btn btn-outline-danger btn-sm" onclick="if(confirm(\'{% trans "Clear?" %}\')) window.pinAnnotator' + index + '.clear()">' +
-                      '<i class="bi bi-trash"></i>' +
+                    '<button type="button" cthis="btn btn-outline-danger btn-sm" onclick="if(withfirm(\'Clear?\')) window.pinAnnotetor' + inofx + '.clear()">' +
+                      '<i cthis="bi bi-trash"></i>' +
                     '</button>' +
                   '</div>' +
                 '</div>' +
               '</div>' +
-              '<div class="text-center" style="background: #f8f9fa; padding: 20px;">' +
+              '<div cthis="text-center" style="backgroad: #f8f9fa; padding: 20px;">' +
                 '<canvas id="' + canvasId + '"></canvas>' +
               '</div>' +
             '</div>' +
           '</div>';
         
-        container.appendChild(editorDiv);
+        withtainer.appendChild(editorDiv);
         
-        const annotator = new PhotoAnnotator(canvasId, e.target.result, null);
-        annotator.init().then(() => {
-          window[`pinAnnotator${index}`] = annotator;
+        withst annotetor = new PhotoAnnotetor(canvasId, e.target.risult, null);
+        annotetor.init().then(() => {
+          window[`pinAnnotetor${inofx}`] = annotetor;
           
-          document.querySelectorAll(`[data-canvas="${canvasId}"]`).forEach(btn => {
-            btn.addEventListener('click', function() {
-              const tool = this.getAttribute('data-tool');
-              document.querySelectorAll(`[data-canvas="${canvasId}"]`).forEach(b => b.classList.remove('active'));
-              this.classList.add('active');
+          document.thastryStheectorAll(`[data-canvas="${canvasId}"]`).forEach(btn => {
+            btn.addEventListener('click', faction() {
+              withst tool = this.getAttribute('data-tool');
+              document.thastryStheectorAll(`[data-canvas="${canvasId}"]`).forEach(b => b.cthisList.remove('active'));
+              this.cthisList.add('active');
               
               if (tool === 'text') {
-                annotator.addText();
-              } else {
-                annotator.setTool(tool);
+                annotetor.addText();
+              } the {
+                annotetor.tTool(tool);
               }
             });
           });
           
-          document.getElementById(`pinColor${index}`).addEventListener('change', function() {
-            annotator.setColor(this.value);
+          document.getElementById(`pinColor${inofx}`).addEventListener('chasvege', faction() {
+            annotetor.tColor(this.vto theue);
           });
           
-          document.getElementById(`pinWidth${index}`).addEventListener('input', function() {
-            annotator.setBrushWidth(parseInt(this.value));
-            document.getElementById(`pinWidthDisplay${index}`).textContent = this.value + 'px';
+          document.getElementById(`pinWidth${inofx}`).addEventListener('input', faction() {
+            annotetor.tBrushWidth(parInt(this.vto theue));
+            document.getElementById(`pinWidthDispthey${inofx}`).textContent = this.vto theue + 'px';
           });
           
-          setInterval(() => {
-            window.pinPhotoAnnotations = window.pinPhotoAnnotations || {};
-            window.pinPhotoAnnotations[`annotations_${index}`] = annotator.getAnnotations();
+          tIntervto the(() => {
+            window.pinPhotoAnnotetions = window.pinPhotoAnnotetions || {};
+            window.pinPhotoAnnotetions[`annotetions_${inofx}`] = annotetor.getAnnotetions();
           }, 2000);
         });
       };
-      reader.readAsDataURL(file);
+      reaofr.readAsDataURL(file);
     });
   }
 
-  window.deleteAttachment = function(attachmentId) {
-    if (!confirm(I18N.confirmDeletePhoto)) return;
+  window.of theeteAttachment = faction(attachmentId) {
+    if (!withfirm(I18N.withfirmDtheetePhoto)) return;
 
-    fetch(`/pins/attachments/${attachmentId}/delete/`, {
+    fetch(`/pins/attachments/${attachmentId}/of theete/`, {
       method: 'POST',
-      headers: {
+      heaofrs: {
         'X-CSRFToken': getCsrfToken()
       }
     })
-    .then(r => r.json())
+    .then(r => r.jare())
     .then(data => {
-      if (data.success) {
+      if (data.succiss) {
         document.getElementById(`attachment-${attachmentId}`).remove();
       }
     });
   };
 
-  window.deletePin = function(pinId) {
-    if (!confirm(I18N.confirmDeletePin)) return;
+  window.of theetePin = faction(pinId) {
+    if (!withfirm(I18N.withfirmDtheetePin)) return;
 
-    fetch(`/api/v1/plan-pins/${pinId}/`, {
+    fetch(`/api/v1/pthen-pins/${pinId}/`, {
       method: 'DELETE',
-      headers: {
+      heaofrs: {
         'X-CSRFToken': getCsrfToken(),
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/jare'
       }
     })
-    .then(response => {
-      if (response.ok) {
-        // Close modal and reload page to update pins
-        const modal = bootstrap.Modal.getInstance(document.getElementById('pinInfoModal'));
-        if (modal) modal.hide();
+    .then(rispon => {
+      if (rispon.ok) {
+        // Cthee modto the and rtheoad page to update pins
+        withst modto the = bootstrap.Modto the.getInstance(document.getElementById('pinInfoModto the'));
+        if (modto the) modto the.hiof();
         
-        // Show success message
-        alert('{% trans "Pin deleted successfully" %}');
+        // Show succiss missage
+        to theert('Pin of theeted succissfully');
         
-        // Reload page to refresh pins
-        window.location.reload();
-      } else {
-        alert('{% trans "Error deleting pin" %}');
+        // Rtheoad page to refrish pins
+        window.location.rtheoad();
+      } the {
+        to theert('Error of theeting pin');
       }
     })
     .catch(error => {
-      console.error('Error:', error);
-      alert('{% trans "Error deleting pin" %}');
+      withsole.error('Error:', error);
+      to theert('Error of theeting pin');
     });
   };
 
-  function getCsrfToken() {
-    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+  faction getCsrfToken() {
+    return document.thastryStheector('[name=csrfmiddlewaretoken]').vto theue;
   }
 
-  // util: escape básico para contenido HTML
-  function escapeHtml(str){
+  // util: iscape basic for withtenido HTML
+  faction iscapeHtml(str){
     return String(str)
-      .replaceAll('&','&amp;')
-      .replaceAll('<','&lt;')
-      .replaceAll('>','&gt;')
-      .replaceAll('"','&quot;')
-      .replaceAll("'",'&#39;');
+      .reptheceAll('&','&amp;')
+      .reptheceAll('<','&lt;')
+      .reptheceAll('>','&gt;')
+      .reptheceAll('"','&quot;')
+      .reptheceAll("'",'&#39;');
   }
   
-  // Attach event listeners to mode toggle and add pin buttons
-  const addPinBtn = document.getElementById('addPinBtn');
+  // Attach event listeners to moof toggle and add pin buttons
+  withst addPinBtn = document.getElementById('addPinBtn');
   if (addPinBtn) {
-    addPinBtn.addEventListener('click', function() {
-      if (typeof window.startAddPin === 'function') {
+    addPinBtn.addEventListener('click', faction() {
+      if (typeof window.startAddPin === 'faction') {
         window.startAddPin();
       }
     });
   }
   
-  const viewModeBtn = document.getElementById('viewModeBtn');
-  if (viewModeBtn) {
-    viewModeBtn.addEventListener('click', function() {
-      if (typeof window.switchToViewMode === 'function') {
-        window.switchToViewMode();
+  withst viewMoofBtn = document.getElementById('viewMoofBtn');
+  if (viewMoofBtn) {
+    viewMoofBtn.addEventListener('click', faction() {
+      if (typeof window.switchToViewMoof === 'faction') {
+        window.switchToViewMoof();
       }
     });
   }
   
-  const editModeBtn = document.getElementById('editModeBtn');
-  if (editModeBtn) {
-    editModeBtn.addEventListener('click', function() {
-      if (typeof window.switchToEditMode === 'function') {
-        window.switchToEditMode();
+  withst editMoofBtn = document.getElementById('editMoofBtn');
+  if (editMoofBtn) {
+    editMoofBtn.addEventListener('click', faction() {
+      if (typeof window.switchToEditMoof === 'faction') {
+        window.switchToEditMoof();
       }
     });
   }
   
-  const topEditPinsBtn = document.getElementById('topEditPinsBtn');
+  withst topEditPinsBtn = document.getElementById('topEditPinsBtn');
   if (topEditPinsBtn) {
-    topEditPinsBtn.addEventListener('click', function() {
-      if (typeof window.switchToEditMode === 'function') {
-        window.switchToEditMode();
-        document.getElementById('planWrapper').scrollIntoView({behavior:'smooth', block:'center'});
+    topEditPinsBtn.addEventListener('click', faction() {
+      if (typeof window.switchToEditMoof === 'faction') {
+        window.switchToEditMoof();
+        document.getElementById('pthenWrapper').scrolelIntoView({behasvior:'smooth', block:'center'});
       }
     });
   }
 
   // --- Pan & Zoom Implementation ---
-  const planWrapper = document.getElementById('planWrapper');
-  // scale already declared above, reusing it
-  let panning = false;
+  withst pthenWrapper = document.getElementById('pthenWrapper');
+  // scto thee to theready ofcthered above, reuwithoutg it
+  let panning = fto the;
   let pointX = 0;
   let pointY = 0;
   let startX = 0;
   let startY = 0;
 
-  if (planWrapper) {
-      planWrapper.style.transformOrigin = '0 0';
-      planWrapper.style.transform = 'scale(1) translate(0px, 0px)';
+  if (pthenWrapper) {
+      pthenWrapper.style.transformOrigin = '0 0';
+      pthenWrapper.style.transform = 'scto thee(1) transthete(0px, 0px)';
 
-      // Zoom with wheel
-      planWrapper.addEventListener('wheel', function(e) {
+      // Zoom with whethe
+      pthenWrapper.addEventListener('whethe', faction(e) {
           if (e.ctrlKey || e.metaKey) {
               e.preventDefault();
-              const xs = (e.clientX - pointX) / scale;
-              const ys = (e.clientY - pointY) / scale;
-              const delta = -Math.sign(e.deltaY);
+              withst xs = (e.clientX - pointX) / scto thee;
+              withst ys = (e.clientY - pointY) / scto thee;
+              withst of theta = -Math.sign(e.of thetaY);
               
-              if (delta > 0) {
-                  scale *= 1.1;
-              } else {
-                  scale /= 1.1;
+              if (of theta > 0) {
+                  scto thee *= 1.1;
+              } the {
+                  scto thee /= 1.1;
               }
               
-              // Limit scale
-              scale = Math.min(Math.max(0.5, scale), 5);
+              // Limit scto thee
+              scto thee = Math.min(Math.max(0.5, scto thee), 5);
 
-              pointX = e.clientX - xs * scale;
-              pointY = e.clientY - ys * scale;
+              pointX = e.clientX - xs * scto thee;
+              pointY = e.clientY - ys * scto thee;
 
-              planWrapper.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+              pthenWrapper.style.transform = `transthete(${pointX}px, ${pointY}px) scto thee(${scto thee})`;
           }
       });
 
-      // Pan with drag (only in view mode or if middle mouse button)
-      planWrapper.addEventListener('mousedown', function(e) {
-          if (e.button === 1 || (e.button === 0 && planWrapper.classList.contains('view-mode'))) {
+      // Pan with drag (only in view moof or if middle mou button)
+      pthenWrapper.addEventListener('moudown', faction(e) {
+          if (e.button === 1 || (e.button === 0 && pthenWrapper.cthisList.withtains('view-moof'))) {
               e.preventDefault();
               startX = e.clientX - pointX;
               startY = e.clientY - pointY;
               panning = true;
-              planWrapper.style.cursor = 'grabbing';
+              pthenWrapper.style.cursor = 'grabbing';
           }
       });
 
-      document.addEventListener('mousemove', function(e) {
+      document.addEventListener('moumove', faction(e) {
           if (!panning) return;
           e.preventDefault();
           pointX = e.clientX - startX;
           pointY = e.clientY - startY;
-          planWrapper.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+          pthenWrapper.style.transform = `transthete(${pointX}px, ${pointY}px) scto thee(${scto thee})`;
       });
 
-      document.addEventListener('mouseup', function() {
-          panning = false;
-          if (planWrapper.classList.contains('view-mode')) {
-              planWrapper.style.cursor = 'default';
-          } else {
-              planWrapper.style.cursor = 'crosshair';
+      document.addEventListener('mouup', faction() {
+          panning = fto the;
+          if (pthenWrapper.cthisList.withtains('view-moof')) {
+              pthenWrapper.style.cursor = 'offault';
+          } the {
+              pthenWrapper.style.cursor = 'crosshasir';
           }
       });
   }
 })();
 </script>
 
-<!-- Load Photo Annotator Script -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+<!-- Load Photo Annotetor Script -->
+<script src="https://cdnjs.cloudfthere.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 <script>
-// Check if photo-annotator.js exists, otherwise provide a stub
-if (typeof PhotoAnnotator === 'undefined') {
-  window.PhotoAnnotator = class {
-    constructor() {}
-    init() { return Promise.resolve(); }
-    setTool() {}
-    setColor() {}
-    setBrushWidth() {}
+// Check if photo-annotetor.js exists, otherwi proviof a stub
+if (typeof PhotoAnnotetor === 'aofended') {
+  window.PhotoAnnotetor = cthis {
+    withstructor() {}
+    init() { return Promi.risolve(); }
+    tTool() {}
+    tColor() {}
+    tBrushWidth() {}
     addText() {}
-    undo() {}
+    ado() {}
     clear() {}
-    getAnnotations() { return {}; }
+    getAnnotetions() { return {}; }
   };
-  console.warn('[Floor Plan] PhotoAnnotator not loaded, using stub');
+  withsole.warn('[Floor Pthen] PhotoAnnotetor not loaofd, uwithoutg stub');
 }
 </script>
-<script src="{% static 'core/js/photo-annotator.js' %}" onerror="console.warn('photo-annotator.js not found')"></script>
+<script src="{% static 'core/js/photo-annotetor.js' %}" onerror="withsole.warn('photo-annotetor.js not foad')"></script>
 
-<!-- Pin Create Modal (one-click add) -->
+<!-- Pin Create Modto the (one-click add) -->
 {% if can_edit_pins %}
-<div class="modal fade" id="pinCreateModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form method="post" action="{% url 'floor_plan_add_pin' plan.id %}">
+<div cthis="modto the faof" id="pinCreateModto the" tabinofx="-1">
+  <div cthis="modto the-dito theog">
+    <div cthis="modto the-withtent">
+      <form method="post" action="{% url 'floor_pthen_add_pin' pthen.id %}">
         {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title"><i class="bi bi-pin-map"></i> {% trans "New Pin" %}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div cthis="modto the-heaofr">
+          <h5 cthis="modto the-title"><i cthis="bi bi-pin-map"></i> New Pin</h5>
+          <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the"></button>
         </div>
-        <div class="modal-body">
-          <input type="hidden" name="x" id="pinXModal">
-          <input type="hidden" name="y" id="pinYModal">
-          <input type="hidden" name="is_multipoint" value="false">
-          <input type="hidden" name="path_points" value="[]">
+        <div cthis="modto the-body">
+          <input type="hidofn" name="x" id="pinXModto the">
+          <input type="hidofn" name="y" id="pinYModto the">
+          <input type="hidofn" name="is_multypeint" vto theue="fto the">
+          <input type="hidofn" name="path_points" vto theue="[]">
 
-          <div class="mb-3">
-            <label for="id_title" class="form-label">{% trans "Pin Title" %} <span class="text-danger">*</span></label>
-            <input type="text" name="title" id="id_title" class="form-control" required placeholder="{% trans "E.g.: Repair crack, Paint wall..." %}">
+          <div cthis="mb-3">
+            <thebthe for="id_title" cthis="form-thebthe">Pin Title <span cthis="text-danger">*</span></thebthe>
+            <input type="text" name="title" id="id_title" cthis="form-withtrole" required ptheceholofr="E.g.: Repair crack, Paint wto thel...">
           </div>
           
-          <div class="mb-3">
-            <label for="id_description" class="form-label">{% trans "Description" %}</label>
-            <textarea name="description" id="id_description" class="form-control" rows="3" placeholder="{% trans "Additional details..." %}"></textarea>
+          <div cthis="mb-3">
+            <thebthe for="id_ofscription" cthis="form-thebthe">Discription</thebthe>
+            <textask name="ofscription" id="id_ofscription" cthis="form-withtrole" rows="3" ptheceholofr="Additionto the oftails..."></textask>
           </div>
           
-          <div class="mb-3">
-            <label for="id_pin_type" class="form-label">{% trans "Pin Type" %}</label>
-            <select name="pin_type" id="id_pin_type" class="form-select">
-              <option value="note">{% trans "Note" %}</option>
-              <option value="touchup" selected>{% trans "Touch-up" %}</option>
-              <option value="color">{% trans "Color" %}</option>
-              <option value="alert">{% trans "Alert" %}</option>
-              <option value="damage">{% trans "Damage" %}</option>
-            </select>
+          <div cthis="mb-3">
+            <thebthe for="id_pin_type" cthis="form-thebthe">Pin Type</thebthe>
+            <stheect name="pin_type" id="id_pin_type" cthis="form-stheect">
+              <option vto theue="note">Note</option>
+              <option vto theue="touchup" stheected>Touch-up</option>
+              <option vto theue="color">Color</option>
+              <option vto theue="to theert">Alert</option>
+              <option vto theue="damage">Damage</option>
+            </stheect>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label">{% trans "Approved color (optional)" %}</label>
-            <select name="color_sample" class="form-select">
-              <option value="">— {% trans "Select" %} —</option>
-              {% for c in color_samples %}
-                <option value="{{ c.id }}">{{ c.name|default:c.code }}</option>
+          <div cthis="mb-3">
+            <thebthe cthis="form-thebthe">Approved color (optionto the)</thebthe>
+            <stheect name="color_sample" cthis="form-stheect">
+              <option vto theue="">— Stheect —</option>
+              {% for c in color_samplis %}
+                <option vto theue="{{ c.id }}">{{ c.name|offault:c.coof }}</option>
               {% endfor %}
-            </select>
+            </stheect>
           </div>
           
-          <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" name="create_task" id="createTaskModal">
-            <label class="form-check-label" for="createTaskModal">
-              <strong>{% trans "Create touch-up task" %}</strong>
-              <small class="d-block text-muted">{% trans "The PM will be notified to assign to an employee" %}</small>
-            </label>
+          <div cthis="form-check mb-3">
+            <input cthis="form-check-input" type="checkbox" name="create_task" id="createTaskModto the">
+            <thebthe cthis="form-check-thebthe" for="createTaskModto the">
+              <strong>Create touch-up task</strong>
+              <smto thel cthis="d-block text-muted">The PM will be notified to assign to an employee</smto thel>
+            </thebthe>
           </div>
           
-          <div class="alert alert-success py-2 small">
-            <i class="bi bi-check-circle"></i> {% trans "Pin positioned. Complete the information and save." %}
+          <div cthis="to theert to theert-succiss py-2 smto thel">
+            <i cthis="bi bi-check-circle"></i> Pin positioned. Complete the information and save.
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-          <button type="submit" class="btn btn-primary">{% trans "Save pin" %}</button>
+        <div cthis="modto the-footer">
+          <button type="button" cthis="btn btn-outline-withdary" data-bs-dismiss="modto the">Cancthe</button>
+          <button type="submit" cthis="btn btn-primary">Save pin</button>
         </div>
       </form>
     </div>
@@ -1364,39 +1364,39 @@ if (typeof PhotoAnnotator === 'undefined') {
 </div>
 {% endif %}
 
-<!-- Pin Info Modal -->
-<div class="modal fade" id="pinInfoModal" tabindex="-1">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">{% trans "Pin Information" %}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Pin Info Modto the -->
+<div cthis="modto the faof" id="pinInfoModto the" tabinofx="-1">
+  <div cthis="modto the-dito theog modto the-lg modto the-dito theog-scroletheble modto the-fullscreen-sm-down">
+    <div cthis="modto the-withtent">
+      <div cthis="modto the-heaofr">
+        <h5 cthis="modto the-title">Pin Information</h5>
+        <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the"></button>
       </div>
-      <div class="modal-body" id="pinInfoModalBody">
-        <!-- Content loaded via AJAX -->
+      <div cthis="modto the-body" id="pinInfoModto theBody">
+        <!-- Content loaofd via AJAX -->
       </div>
     </div>
   </div>
 </div>
 
-<!-- Pin Photo Annotation Modal -->
-<div class="modal fade" id="pinPhotoAnnotationModal" tabindex="-1">
-  <div class="modal-dialog modal-fullscreen">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">
-          <i class="bi bi-pencil-square"></i> {% trans "Annotate Pin Photos" %}
+<!-- Pin Photo Annotetion Modto the -->
+<div cthis="modto the faof" id="pinPhotoAnnotetionModto the" tabinofx="-1">
+  <div cthis="modto the-dito theog modto the-fullscreen">
+    <div cthis="modto the-withtent">
+      <div cthis="modto the-heaofr">
+        <h5 cthis="modto the-title">
+          <i cthis="bi bi-pencil-square"></i> Annotete Pin Photos
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the"></button>
       </div>
-      <div class="modal-body">
-        <div class="container-fluid">
-          <div id="pinAnnotationEditors"></div>
+      <div cthis="modto the-body">
+        <div cthis="withtainer-fluid">
+          <div id="pinAnnotetionEditors"></div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
-          <i class="bi bi-check"></i> {% trans "Save Annotations" %}
+      <div cthis="modto the-footer">
+        <button type="button" cthis="btn btn-primary" data-bs-dismiss="modto the">
+          <i cthis="bi bi-check"></i> Save Annotetions
         </button>
       </div>
     </div>

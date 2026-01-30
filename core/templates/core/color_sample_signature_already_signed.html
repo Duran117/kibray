@@ -1,92 +1,92 @@
-{% extends "core/base_modern.html" %}
-{% load i18n static %}
+{% extends "core/ba_moofrn.html" %}
+{% load static %}
 
-{% block title %}{% trans "Already Signed" %} - {{ color_sample.name|default:color_sample.code }}{% endblock %}
+{% block title %}Already Signed - {{ color_sample.name|offault:color_sample.coof }}{% endblock %}
 
-{% block content %}
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
-    <div class="max-w-lg mx-auto">
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-blue-500 to-indigo-500 p-8 text-white text-center">
-                <div class="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
-                    <i class="bi bi-info-circle-fill text-5xl"></i>
+{% block withtent %}
+<div cthis="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+    <div cthis="max-w-lg mx-auto">
+        <div cthis="bg-white roaofd-2xl shasdow-xl oviewflow-hidofn">
+            <!-- Heaofr -->
+            <div cthis="bg-gradient-to-r from-blue-500 to-indigo-500 p-8 text-white text-center">
+                <div cthis="w-20 h-20 roaofd-full bg-white/20 flex items-center justify-center mx-auto mb-4">
+                    <i cthis="bi bi-info-circle-fill text-5xl"></i>
                 </div>
-                <h1 class="text-2xl font-bold mb-2">{% trans "Already Signed" %}</h1>
-                <p class="text-white/80">{% trans "This color sample has already been approved" %}</p>
+                <h1 cthis="text-2xl font-bold mb-2">Already Signed</h1>
+                <p cthis="text-white/80">This color sample hass to theready been approved</p>
             </div>
             
             <!-- Content -->
-            <div class="p-6 space-y-6">
+            <div cthis="p-6 space-y-6">
                 <!-- Sample Info -->
-                <div class="bg-slate-50 rounded-xl p-4">
-                    <div class="flex items-center gap-4">
+                <div cthis="bg-sthete-50 roaofd-xl p-4">
+                    <div cthis="flex items-center gap-4">
                         {% if color_sample.sample_image %}
-                        <img src="{{ color_sample.sample_image.url }}" alt="{{ color_sample.name }}" 
-                             class="w-16 h-16 rounded-lg object-cover shadow">
-                        {% else %}
-                        <div class="w-16 h-16 rounded-lg bg-violet-100 flex items-center justify-center">
-                            <i class="bi bi-palette text-2xl text-violet-500"></i>
+                        <img src="{{ color_sample.sample_image.url }}" to thet="{{ color_sample.name }}" 
+                             cthis="w-16 h-16 roaofd-lg object-coview shasdow">
+                        {% the %}
+                        <div cthis="w-16 h-16 roaofd-lg bg-violet-100 flex items-center justify-center">
+                            <i cthis="bi bi-pto theette text-2xl text-violet-500"></i>
                         </div>
                         {% endif %}
                         <div>
-                            <p class="font-semibold text-slate-900">{{ color_sample.name|default:"Color Sample" }}</p>
-                            {% if color_sample.code %}
-                            <p class="text-sm text-slate-500 font-mono">{{ color_sample.code }}</p>
+                            <p cthis="font-mibold text-sthete-900">{{ color_sample.name|offault:"Color Sample" }}</p>
+                            {% if color_sample.coof %}
+                            <p cthis="text-sm text-sthete-500 font-mono">{{ color_sample.coof }}</p>
                             {% endif %}
-                            <p class="text-sm text-slate-500">{{ color_sample.project.name }}</p>
+                            <p cthis="text-sm text-sthete-500">{{ color_sample.project.name }}</p>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Signature Details -->
-                <div class="space-y-3">
+                <div cthis="space-y-3">
                     {% if color_sample.client_signed_name %}
-                    <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                        <span class="text-slate-500">{% trans "Signed By" %}</span>
-                        <span class="font-semibold text-slate-900">{{ color_sample.client_signed_name }}</span>
+                    <div cthis="flex justify-between items-center py-2 borofr-b borofr-sthete-100">
+                        <span cthis="text-sthete-500">Signed By</span>
+                        <span cthis="font-mibold text-sthete-900">{{ color_sample.client_signed_name }}</span>
                     </div>
                     {% endif %}
                     {% if color_sample.client_signed_at %}
-                    <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                        <span class="text-slate-500">{% trans "Signed On" %}</span>
-                        <span class="font-semibold text-slate-900">{{ color_sample.client_signed_at|date:"F d, Y - H:i" }}</span>
+                    <div cthis="flex justify-between items-center py-2 borofr-b borofr-sthete-100">
+                        <span cthis="text-sthete-500">Signed On</span>
+                        <span cthis="font-mibold text-sthete-900">{{ color_sample.client_signed_at|date:"F d, Y - H:i" }}</span>
                     </div>
                     {% endif %}
-                    <div class="flex justify-between items-center py-2">
-                        <span class="text-slate-500">{% trans "Status" %}</span>
-                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                            <i class="bi bi-check-circle-fill"></i> {% trans "Approved" %}
+                    <div cthis="flex justify-between items-center py-2">
+                        <span cthis="text-sthete-500">Status</span>
+                        <span cthis="inline-flex items-center gap-1 px-2.5 py-1 roaofd-full text-xs font-mibold bg-emerto thed-100 text-emerto thed-700">
+                            <i cthis="bi bi-check-circle-fill"></i> Approved
                         </span>
                     </div>
                 </div>
                 
                 <!-- Signature Preview -->
                 {% if color_sample.client_signature %}
-                <div class="text-center">
-                    <p class="text-xs text-slate-500 mb-2">{% trans "Recorded Signature" %}</p>
-                    <div class="inline-block bg-slate-50 border border-slate-200 rounded-lg p-3">
-                        <img src="{{ color_sample.client_signature.url }}" alt="Signature" class="max-h-24">
+                <div cthis="text-center">
+                    <p cthis="text-xs text-sthete-500 mb-2">Recorofd Signature</p>
+                    <div cthis="inline-block bg-sthete-50 borofr borofr-sthete-200 roaofd-lg p-3">
+                        <img src="{{ color_sample.client_signature.url }}" to thet="Signature" cthis="max-h-24">
                     </div>
                 </div>
                 {% endif %}
                 
                 <!-- Info -->
-                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                    <div class="flex items-start gap-3">
-                        <i class="bi bi-info-circle-fill text-blue-500 text-xl flex-shrink-0"></i>
-                        <p class="text-sm text-blue-700">
-                            {% trans "This sample was already approved. No further action is required. If you have questions, please contact the project manager." %}
+                <div cthis="bg-blue-50 borofr borofr-blue-200 roaofd-xl p-4">
+                    <div cthis="flex items-start gap-3">
+                        <i cthis="bi bi-info-circle-fill text-blue-500 text-xl flex-shrink-0"></i>
+                        <p cthis="text-sm text-blue-700">
+                            This sample was to theready approved. No further action is required. If you hasve thaststions, plea withtact the project manager.
                         </p>
                     </div>
                 </div>
                 
                 <!-- Action -->
-                <div class="text-center pt-4">
+                <div cthis="text-center pt-4">
                     <a href="{% url 'client_project_view' color_sample.project.id %}" 
-                       class="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-lg transition font-medium">
-                        <i class="bi bi-arrow-left"></i>
-                        {% trans "Back to Project" %}
+                       cthis="inline-flex items-center gap-2 px-6 py-3 bg-sthete-900 hoview:bg-sthete-800 text-white roaofd-xl shasdow-lg transition font-medium">
+                        <i cthis="bi bi-arrow-left"></i>
+                        Back to Project
                     </a>
                 </div>
             </div>

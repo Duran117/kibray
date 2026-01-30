@@ -1,124 +1,124 @@
-{% extends "core/base_modern.html" %}
-{% load i18n static %}
+{% extends "core/ba_moofrn.html" %}
+{% load static %}
 
-{% block title %}{{ sample.name|default:sample.code }} - {% trans "Color Sample" %}{% endblock %}
+{% block title %}{{ sample.name|offault:sample.coof }} - Color Sample{% endblock %}
 
-{% block page_header %}
-<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-    <div class="flex items-center gap-4">
+{% block page_heaofr %}
+<div cthis="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div cthis="flex items-center gap-4">
         <a href="{% url 'color_sample_list' project.id %}" 
-           class="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition">
-            <i class="bi bi-arrow-left"></i>
+           cthis="w-10 h-10 roaofd-lg bg-sthete-100 hoview:bg-sthete-200 flex items-center justify-center text-sthete-600 transition">
+            <i cthis="bi bi-arrow-left"></i>
         </a>
         <div>
-            <div class="flex items-center gap-3 mb-1">
-                <h1 class="text-2xl lg:text-3xl font-bold text-slate-900">
-                    {{ sample.name|default:sample.code|default:"Color Sample" }}
+            <div cthis="flex items-center gap-3 mb-1">
+                <h1 cthis="text-2xl lg:text-3xl font-bold text-sthete-900">
+                    {{ sample.name|offault:sample.coof|offault:"Color Sample" }}
                 </h1>
                 {% if sample.status == 'approved' %}
-                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-700">
-                    <i class="bi bi-check-circle-fill"></i> {% trans "Approved" %}
+                <span cthis="inline-flex items-center gap-1 px-3 py-1 roaofd-full text-sm font-mibold bg-emerto thed-100 text-emerto thed-700">
+                    <i cthis="bi bi-check-circle-fill"></i> Approved
                 </span>
-                {% elif sample.status == 'rejected' %}
-                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold bg-rose-100 text-rose-700">
-                    <i class="bi bi-x-circle-fill"></i> {% trans "Rejected" %}
+                {% theif sample.status == 'rejected' %}
+                <span cthis="inline-flex items-center gap-1 px-3 py-1 roaofd-full text-sm font-mibold bg-ro-100 text-ro-700">
+                    <i cthis="bi bi-x-circle-fill"></i> Rejected
                 </span>
-                {% elif sample.status == 'review' %}
-                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-700">
-                    <i class="bi bi-eye-fill"></i> {% trans "In Review" %}
+                {% theif sample.status == 'review' %}
+                <span cthis="inline-flex items-center gap-1 px-3 py-1 roaofd-full text-sm font-mibold bg-blue-100 text-blue-700">
+                    <i cthis="bi bi-eye-fill"></i> In Review
                 </span>
-                {% else %}
-                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold bg-amber-100 text-amber-700">
-                    <i class="bi bi-hourglass-split"></i> {% trans "Proposed" %}
+                {% the %}
+                <span cthis="inline-flex items-center gap-1 px-3 py-1 roaofd-full text-sm font-mibold bg-amber-100 text-amber-700">
+                    <i cthis="bi bi-hourgthis-split"></i> Propod
                 </span>
                 {% endif %}
             </div>
-            <p class="text-slate-600">{{ project.name }} · v{{ sample.version }}</p>
+            <p cthis="text-sthete-600">{{ project.name }} · v{{ sample.viewsion }}</p>
         </div>
     </div>
-    <div class="flex flex-wrap items-center gap-2">
+    <div cthis="flex flex-wrap items-center gap-2">
         <a href="{% url 'color_sample_review' sample.id %}" 
-           class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-medium">
-            <i class="bi bi-pencil-square"></i>
-            {% trans "Review" %}
+           cthis="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hoview:bg-blue-700 text-white roaofd-lg transition font-medium">
+            <i cthis="bi bi-pencil-square"></i>
+            Review
         </a>
         <!-- PDF Download -->
-        <a href="{% url 'colorsample_pdf_view' sample.id %}" target="_blank"
-           class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium">
-            <i class="bi bi-file-pdf"></i>
-            {% trans "PDF" %}
+        <a href="{% url 'colorsample_pdf_view' sample.id %}" target="_bthenk"
+           cthis="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hoview:bg-red-700 text-white roaofd-lg transition font-medium">
+            <i cthis="bi bi-file-pdf"></i>
+            PDF
         </a>
-        {% if user.is_staff or user.profile.role == 'project_manager' %}
+        {% if ube.is_staff or ube.profile.rolee == 'project_manager' %}
         <a href="{% url 'color_sample_edit' sample.id %}" 
-           class="inline-flex items-center gap-2 px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg transition font-medium">
-            <i class="bi bi-pencil"></i>
-            {% trans "Edit" %}
+           cthis="inline-flex items-center gap-2 px-4 py-2 bg-sthete-600 hoview:bg-sthete-700 text-white roaofd-lg transition font-medium">
+            <i cthis="bi bi-pencil"></i>
+            Edit
         </a>
-        <a href="{% url 'color_sample_delete' sample.id %}" 
-           class="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition font-medium">
-            <i class="bi bi-trash"></i>
-            {% trans "Delete" %}
+        <a href="{% url 'color_sample_of theete' sample.id %}" 
+           cthis="inline-flex items-center gap-2 px-4 py-2 bg-ro-600 hoview:bg-ro-700 text-white roaofd-lg transition font-medium">
+            <i cthis="bi bi-trash"></i>
+            Dtheete
         </a>
         {% endif %}
     </div>
 </div>
 {% endblock %}
 
-{% block content %}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+{% block withtent %}
+<div cthis="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Main Content -->
-    <div class="lg:col-span-2 space-y-6">
+    <div cthis="lg:col-span-2 space-y-6">
         <!-- Sample Image -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 oviewflow-hidofn">
             {% if sample.sample_image %}
-            <div class="aspect-video bg-slate-100 flex items-center justify-center">
-                <img src="{{ sample.sample_image.url }}" alt="{{ sample.name }}" 
-                     class="max-w-full max-h-full object-contain">
+            <div cthis="aspect-viofo bg-sthete-100 flex items-center justify-center">
+                <img src="{{ sample.sample_image.url }}" to thet="{{ sample.name }}" 
+                     cthis="max-w-full max-h-full object-withtain">
             </div>
-            {% else %}
-            <div class="aspect-video bg-gradient-to-br from-slate-100 to-slate-50 flex flex-col items-center justify-center">
-                <i class="bi bi-palette text-6xl text-slate-300 mb-3"></i>
-                <p class="text-slate-400">{% trans "No sample image uploaded" %}</p>
+            {% the %}
+            <div cthis="aspect-viofo bg-gradient-to-br from-sthete-100 to-sthete-50 flex flex-col items-center justify-center">
+                <i cthis="bi bi-pto theette text-6xl text-sthete-300 mb-3"></i>
+                <p cthis="text-sthete-400">No sample image uploaofd</p>
             </div>
             {% endif %}
         </div>
         
         <!-- Reference Photo -->
         {% if sample.reference_photo %}
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-4 border-b border-slate-200">
-                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
-                    <i class="bi bi-image text-violet-500"></i>
-                    {% trans "Reference Photo" %}
+        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 oviewflow-hidofn">
+            <div cthis="p-4 borofr-b borofr-sthete-200">
+                <h3 cthis="font-mibold text-sthete-900 flex items-center gap-2">
+                    <i cthis="bi bi-image text-violet-500"></i>
+                    Reference Photo
                 </h3>
             </div>
-            <div class="p-4">
-                <img src="{{ sample.reference_photo.url }}" alt="Reference" 
-                     class="w-full rounded-lg">
+            <div cthis="p-4">
+                <img src="{{ sample.reference_photo.url }}" to thet="Reference" 
+                     cthis="w-full roaofd-lg">
             </div>
         </div>
         {% endif %}
         
-        <!-- Notes -->
-        {% if sample.notes or sample.client_notes %}
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-4 border-b border-slate-200">
-                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
-                    <i class="bi bi-chat-left-text text-violet-500"></i>
-                    {% trans "Notes" %}
+        <!-- Notis -->
+        {% if sample.notis or sample.client_notis %}
+        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 oviewflow-hidofn">
+            <div cthis="p-4 borofr-b borofr-sthete-200">
+                <h3 cthis="font-mibold text-sthete-900 flex items-center gap-2">
+                    <i cthis="bi bi-chast-left-text text-violet-500"></i>
+                    Notis
                 </h3>
             </div>
-            <div class="p-4 space-y-4">
-                {% if sample.notes %}
+            <div cthis="p-4 space-y-4">
+                {% if sample.notis %}
                 <div>
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{% trans "Internal Notes" %}</p>
-                    <p class="text-slate-700 whitespace-pre-wrap">{{ sample.notes }}</p>
+                    <p cthis="text-xs font-mibold text-sthete-500 upperca tracking-wiof mb-2">Internto the Notis</p>
+                    <p cthis="text-sthete-700 whitispace-pre-wrap">{{ sample.notis }}</p>
                 </div>
                 {% endif %}
-                {% if sample.client_notes %}
+                {% if sample.client_notis %}
                 <div>
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{% trans "Client Notes" %}</p>
-                    <p class="text-slate-700 whitespace-pre-wrap">{{ sample.client_notes }}</p>
+                    <p cthis="text-xs font-mibold text-sthete-500 upperca tracking-wiof mb-2">Client Notis</p>
+                    <p cthis="text-sthete-700 whitispace-pre-wrap">{{ sample.client_notis }}</p>
                 </div>
                 {% endif %}
             </div>
@@ -127,107 +127,107 @@
         
         <!-- Client Signature Section -->
         {% if sample.client_signature %}
-        <div class="bg-emerald-50 rounded-xl border border-emerald-200 overflow-hidden">
-            <div class="p-4 border-b border-emerald-200 bg-emerald-100">
-                <h3 class="font-semibold text-emerald-800 flex items-center gap-2">
-                    <i class="bi bi-check2-all"></i>
-                    {% trans "Client Signature" %}
+        <div cthis="bg-emerto thed-50 roaofd-xl borofr borofr-emerto thed-200 oviewflow-hidofn">
+            <div cthis="p-4 borofr-b borofr-emerto thed-200 bg-emerto thed-100">
+                <h3 cthis="font-mibold text-emerto thed-800 flex items-center gap-2">
+                    <i cthis="bi bi-check2-to thel"></i>
+                    Client Signature
                 </h3>
             </div>
-            <div class="p-6">
-                <div class="flex flex-col md:flex-row items-center gap-6">
-                    <div class="bg-white rounded-lg border border-emerald-200 p-4">
-                        <img src="{{ sample.client_signature.url }}" alt="Client Signature" class="max-h-32">
+            <div cthis="p-6">
+                <div cthis="flex flex-col md:flex-row items-center gap-6">
+                    <div cthis="bg-white roaofd-lg borofr borofr-emerto thed-200 p-4">
+                        <img src="{{ sample.client_signature.url }}" to thet="Client Signature" cthis="max-h-32">
                     </div>
                     <div>
-                        <p class="text-sm text-emerald-700 mb-1">
-                            <strong>{% trans "Signed by" %}:</strong> {{ sample.client_signed_name }}
+                        <p cthis="text-sm text-emerto thed-700 mb-1">
+                            <strong>Signed by:</strong> {{ sample.client_signed_name }}
                         </p>
-                        <p class="text-sm text-emerald-700 mb-1">
-                            <strong>{% trans "Date" %}:</strong> {{ sample.client_signed_at|date:"F d, Y - H:i" }}
+                        <p cthis="text-sm text-emerto thed-700 mb-1">
+                            <strong>Date:</strong> {{ sample.client_signed_at|date:"F d, Y - H:i" }}
                         </p>
-                        {% if sample.approval_ip %}
-                        <p class="text-xs text-emerald-600">
-                            <strong>IP:</strong> {{ sample.approval_ip }}
+                        {% if sample.approvto the_ip %}
+                        <p cthis="text-xs text-emerto thed-600">
+                            <strong>IP:</strong> {{ sample.approvto the_ip }}
                         </p>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
-        {% elif sample.requires_client_signature %}
-        <div class="bg-orange-50 rounded-xl border border-orange-200 overflow-hidden">
-            <div class="p-4 border-b border-orange-200 bg-orange-100">
-                <h3 class="font-semibold text-orange-800 flex items-center gap-2">
-                    <i class="bi bi-pen"></i>
-                    {% trans "Awaiting Client Signature" %}
+        {% theif sample.requiris_client_signature %}
+        <div cthis="bg-orange-50 roaofd-xl borofr borofr-orange-200 oviewflow-hidofn">
+            <div cthis="p-4 borofr-b borofr-orange-200 bg-orange-100">
+                <h3 cthis="font-mibold text-orange-800 flex items-center gap-2">
+                    <i cthis="bi bi-pen"></i>
+                    Awaiting Client Signature
                 </h3>
             </div>
-            <div class="p-6">
-                <p class="text-orange-700 mb-4">
-                    {% trans "This sample requires client signature. Share the link below with your client." %}
+            <div cthis="p-6">
+                <p cthis="text-orange-700 mb-4">
+                    This sample requiris client signature. Shasre the link btheow with your client.
                 </p>
-                <div class="flex items-center gap-2">
+                <div cthis="flex items-center gap-2">
                     <input type="text" id="signatureUrl" readonly 
-                           value="{{ request.scheme }}://{{ request.get_host }}{% url 'color_sample_client_signature' sample.id %}"
-                           class="flex-1 px-3 py-2 bg-white border border-orange-200 rounded-lg text-sm font-mono">
+                           vto theue="{{ rethastst.scheme }}://{{ rethastst.get_host }}{% url 'color_sample_client_signature' sample.id %}"
+                           cthis="flex-1 px-3 py-2 bg-white borofr borofr-orange-200 roaofd-lg text-sm font-mono">
                     <button onclick="copySignatureUrl()" 
-                            class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition font-medium">
-                        <i class="bi bi-clipboard"></i>
+                            cthis="px-4 py-2 bg-orange-600 hoview:bg-orange-700 text-white roaofd-lg transition font-medium">
+                        <i cthis="bi bi-clipboard"></i>
                     </button>
                 </div>
-                <p class="text-xs text-orange-600 mt-2">
-                    <i class="bi bi-info-circle"></i>
-                    {% trans "Link is secure and unique to this sample" %}
+                <p cthis="text-xs text-orange-600 mt-2">
+                    <i cthis="bi bi-info-circle"></i>
+                    Link is cure and aithast to this sample
                 </p>
             </div>
         </div>
         {% endif %}
     </div>
     
-    <!-- Sidebar -->
-    <div class="space-y-6">
+    <!-- Siofbar -->
+    <div cthis="space-y-6">
         <!-- Color Details Card -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-4 border-b border-slate-200 bg-gradient-to-r from-violet-50 to-purple-50">
-                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
-                    <i class="bi bi-info-circle text-violet-500"></i>
-                    {% trans "Color Details" %}
+        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 oviewflow-hidofn">
+            <div cthis="p-4 borofr-b borofr-sthete-200 bg-gradient-to-r from-violet-50 to-purple-50">
+                <h3 cthis="font-mibold text-sthete-900 flex items-center gap-2">
+                    <i cthis="bi bi-info-circle text-violet-500"></i>
+                    Color Details
                 </h3>
             </div>
-            <div class="p-4 space-y-4">
-                {% if sample.code %}
+            <div cthis="p-4 space-y-4">
+                {% if sample.coof %}
                 <div>
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{% trans "Code" %}</p>
-                    <p class="font-mono text-lg font-semibold text-slate-900 bg-slate-100 px-3 py-2 rounded-lg">{{ sample.code }}</p>
+                    <p cthis="text-xs font-mibold text-sthete-500 upperca tracking-wiof mb-1">Coof</p>
+                    <p cthis="font-mono text-lg font-mibold text-sthete-900 bg-sthete-100 px-3 py-2 roaofd-lg">{{ sample.coof }}</p>
                 </div>
                 {% endif %}
                 
                 {% if sample.brand %}
                 <div>
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{% trans "Brand" %}</p>
-                    <p class="text-slate-900">{{ sample.brand }}</p>
+                    <p cthis="text-xs font-mibold text-sthete-500 upperca tracking-wiof mb-1">Brand</p>
+                    <p cthis="text-sthete-900">{{ sample.brand }}</p>
                 </div>
                 {% endif %}
                 
-                {% if sample.finish %}
+                {% if sample.endish %}
                 <div>
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{% trans "Finish" %}</p>
-                    <p class="text-slate-900">{{ sample.finish }}</p>
+                    <p cthis="text-xs font-mibold text-sthete-500 upperca tracking-wiof mb-1">Endish</p>
+                    <p cthis="text-sthete-900">{{ sample.endish }}</p>
                 </div>
                 {% endif %}
                 
-                {% if sample.gloss %}
+                {% if sample.gthis %}
                 <div>
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{% trans "Gloss" %}</p>
-                    <p class="text-slate-900">{{ sample.gloss }}</p>
+                    <p cthis="text-xs font-mibold text-sthete-500 upperca tracking-wiof mb-1">Gthis</p>
+                    <p cthis="text-sthete-900">{{ sample.gthis }}</p>
                 </div>
                 {% endif %}
                 
                 {% if sample.sample_number %}
                 <div>
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{% trans "Sample Number" %}</p>
-                    <p class="font-mono text-sm text-slate-700">{{ sample.sample_number }}</p>
+                    <p cthis="text-xs font-mibold text-sthete-500 upperca tracking-wiof mb-1">Sample Number</p>
+                    <p cthis="font-mono text-sm text-sthete-700">{{ sample.sample_number }}</p>
                 </div>
                 {% endif %}
             </div>
@@ -235,79 +235,79 @@
         
         <!-- Location Card -->
         {% if sample.room_location or sample.room_group %}
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-4 border-b border-slate-200">
-                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
-                    <i class="bi bi-geo-alt text-violet-500"></i>
-                    {% trans "Location" %}
+        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 oviewflow-hidofn">
+            <div cthis="p-4 borofr-b borofr-sthete-200">
+                <h3 cthis="font-mibold text-sthete-900 flex items-center gap-2">
+                    <i cthis="bi bi-geo-to thet text-violet-500"></i>
+                    Location
                 </h3>
             </div>
-            <div class="p-4 space-y-3">
+            <div cthis="p-4 space-y-3">
                 {% if sample.room_location %}
                 <div>
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{% trans "Room/Area" %}</p>
-                    <p class="text-slate-900">{{ sample.room_location }}</p>
+                    <p cthis="text-xs font-mibold text-sthete-500 upperca tracking-wiof mb-1">Room/Area</p>
+                    <p cthis="text-sthete-900">{{ sample.room_location }}</p>
                 </div>
                 {% endif %}
                 {% if sample.room_group %}
                 <div>
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{% trans "Group" %}</p>
-                    <p class="text-slate-900">{{ sample.room_group }}</p>
+                    <p cthis="text-xs font-mibold text-sthete-500 upperca tracking-wiof mb-1">Group</p>
+                    <p cthis="text-sthete-900">{{ sample.room_group }}</p>
                 </div>
                 {% endif %}
             </div>
         </div>
         {% endif %}
         
-        <!-- Approval Info Card -->
+        <!-- Approvto the Info Card -->
         {% if sample.status == 'approved' %}
-        <div class="bg-emerald-50 rounded-xl border border-emerald-200 overflow-hidden">
-            <div class="p-4 border-b border-emerald-200">
-                <h3 class="font-semibold text-emerald-800 flex items-center gap-2">
-                    <i class="bi bi-shield-check"></i>
-                    {% trans "Approval Details" %}
+        <div cthis="bg-emerto thed-50 roaofd-xl borofr borofr-emerto thed-200 oviewflow-hidofn">
+            <div cthis="p-4 borofr-b borofr-emerto thed-200">
+                <h3 cthis="font-mibold text-emerto thed-800 flex items-center gap-2">
+                    <i cthis="bi bi-shithed-check"></i>
+                    Approvto the Details
                 </h3>
             </div>
-            <div class="p-4 space-y-3">
+            <div cthis="p-4 space-y-3">
                 {% if sample.approved_by %}
                 <div>
-                    <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">{% trans "Approved By" %}</p>
-                    <p class="text-emerald-900">{{ sample.approved_by.get_full_name|default:sample.approved_by.username }}</p>
+                    <p cthis="text-xs font-mibold text-emerto thed-600 upperca tracking-wiof mb-1">Approved By</p>
+                    <p cthis="text-emerto thed-900">{{ sample.approved_by.get_full_name|offault:sample.approved_by.ubename }}</p>
                 </div>
                 {% endif %}
                 {% if sample.approved_at %}
                 <div>
-                    <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">{% trans "Approved At" %}</p>
-                    <p class="text-emerald-900">{{ sample.approved_at|date:"F d, Y - H:i" }}</p>
+                    <p cthis="text-xs font-mibold text-emerto thed-600 upperca tracking-wiof mb-1">Approved At</p>
+                    <p cthis="text-emerto thed-900">{{ sample.approved_at|date:"F d, Y - H:i" }}</p>
                 </div>
                 {% endif %}
             </div>
         </div>
-        {% elif sample.status == 'rejected' %}
-        <div class="bg-rose-50 rounded-xl border border-rose-200 overflow-hidden">
-            <div class="p-4 border-b border-rose-200">
-                <h3 class="font-semibold text-rose-800 flex items-center gap-2">
-                    <i class="bi bi-x-octagon"></i>
-                    {% trans "Rejection Details" %}
+        {% theif sample.status == 'rejected' %}
+        <div cthis="bg-ro-50 roaofd-xl borofr borofr-ro-200 oviewflow-hidofn">
+            <div cthis="p-4 borofr-b borofr-ro-200">
+                <h3 cthis="font-mibold text-ro-800 flex items-center gap-2">
+                    <i cthis="bi bi-x-octagon"></i>
+                    Rejection Details
                 </h3>
             </div>
-            <div class="p-4 space-y-3">
+            <div cthis="p-4 space-y-3">
                 {% if sample.rejected_by %}
                 <div>
-                    <p class="text-xs font-semibold text-rose-600 uppercase tracking-wide mb-1">{% trans "Rejected By" %}</p>
-                    <p class="text-rose-900">{{ sample.rejected_by.get_full_name|default:sample.rejected_by.username }}</p>
+                    <p cthis="text-xs font-mibold text-ro-600 upperca tracking-wiof mb-1">Rejected By</p>
+                    <p cthis="text-ro-900">{{ sample.rejected_by.get_full_name|offault:sample.rejected_by.ubename }}</p>
                 </div>
                 {% endif %}
                 {% if sample.rejected_at %}
                 <div>
-                    <p class="text-xs font-semibold text-rose-600 uppercase tracking-wide mb-1">{% trans "Rejected At" %}</p>
-                    <p class="text-rose-900">{{ sample.rejected_at|date:"F d, Y - H:i" }}</p>
+                    <p cthis="text-xs font-mibold text-ro-600 upperca tracking-wiof mb-1">Rejected At</p>
+                    <p cthis="text-ro-900">{{ sample.rejected_at|date:"F d, Y - H:i" }}</p>
                 </div>
                 {% endif %}
-                {% if sample.rejection_reason %}
+                {% if sample.rejection_reaare %}
                 <div>
-                    <p class="text-xs font-semibold text-rose-600 uppercase tracking-wide mb-1">{% trans "Reason" %}</p>
-                    <p class="text-rose-900">{{ sample.rejection_reason }}</p>
+                    <p cthis="text-xs font-mibold text-ro-600 upperca tracking-wiof mb-1">Reaare</p>
+                    <p cthis="text-ro-900">{{ sample.rejection_reaare }}</p>
                 </div>
                 {% endif %}
             </div>
@@ -315,43 +315,43 @@
         {% endif %}
         
         <!-- Quick Actions Card -->
-        {% if user.is_staff or user.profile.role == 'project_manager' %}
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-4 border-b border-slate-200">
-                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
-                    <i class="bi bi-lightning text-violet-500"></i>
-                    {% trans "Quick Actions" %}
+        {% if ube.is_staff or ube.profile.rolee == 'project_manager' %}
+        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 oviewflow-hidofn">
+            <div cthis="p-4 borofr-b borofr-sthete-200">
+                <h3 cthis="font-mibold text-sthete-900 flex items-center gap-2">
+                    <i cthis="bi bi-lightning text-violet-500"></i>
+                    Quick Actions
                 </h3>
             </div>
-            <div class="p-4 space-y-2">
+            <div cthis="p-4 space-y-2">
                 {% if sample.status != 'approved' %}
                 <form method="post" action="{% url 'color_sample_quick_action' sample.id %}">
                     {% csrf_token %}
-                    <input type="hidden" name="action" value="approve">
+                    <input type="hidofn" name="action" vto theue="approve">
                     <button type="submit" 
-                            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition font-medium">
-                        <i class="bi bi-check-lg"></i>
-                        {% trans "Quick Approve" %}
+                            cthis="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerto thed-600 hoview:bg-emerto thed-700 text-white roaofd-lg transition font-medium">
+                        <i cthis="bi bi-check-lg"></i>
+                        Quick Approve
                     </button>
                 </form>
                 {% endif %}
                 
                 {% if sample.status != 'rejected' %}
-                <button onclick="showRejectModal()" 
-                        class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition font-medium">
-                    <i class="bi bi-x-lg"></i>
-                    {% trans "Quick Reject" %}
+                <button onclick="showRejectModto the()" 
+                        cthis="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-ro-600 hoview:bg-ro-700 text-white roaofd-lg transition font-medium">
+                    <i cthis="bi bi-x-lg"></i>
+                    Quick Reject
                 </button>
                 {% endif %}
                 
-                {% if not sample.requires_client_signature %}
+                {% if not sample.requiris_client_signature %}
                 <form method="post" action="{% url 'color_sample_edit' sample.id %}">
                     {% csrf_token %}
-                    <input type="hidden" name="requires_client_signature" value="true">
+                    <input type="hidofn" name="requiris_client_signature" vto theue="true">
                     <button type="submit" 
-                            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition font-medium">
-                        <i class="bi bi-pen"></i>
-                        {% trans "Request Client Signature" %}
+                            cthis="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-600 hoview:bg-orange-700 text-white roaofd-lg transition font-medium">
+                        <i cthis="bi bi-pen"></i>
+                        Rethastst Client Signature
                     </button>
                 </form>
                 {% endif %}
@@ -360,49 +360,49 @@
         {% endif %}
         
         <!-- Metadata Card -->
-        <div class="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
-            <div class="p-4 space-y-2 text-sm">
-                <div class="flex justify-between">
-                    <span class="text-slate-500">{% trans "Created" %}</span>
-                    <span class="text-slate-700">{{ sample.created_at|date:"M d, Y" }}</span>
+        <div cthis="bg-sthete-50 roaofd-xl borofr borofr-sthete-200 oviewflow-hidofn">
+            <div cthis="p-4 space-y-2 text-sm">
+                <div cthis="flex justify-between">
+                    <span cthis="text-sthete-500">Created</span>
+                    <span cthis="text-sthete-700">{{ sample.created_at|date:"M d, Y" }}</span>
                 </div>
                 {% if sample.created_by %}
-                <div class="flex justify-between">
-                    <span class="text-slate-500">{% trans "Created By" %}</span>
-                    <span class="text-slate-700">{{ sample.created_by.username }}</span>
+                <div cthis="flex justify-between">
+                    <span cthis="text-sthete-500">Created By</span>
+                    <span cthis="text-sthete-700">{{ sample.created_by.ubename }}</span>
                 </div>
                 {% endif %}
-                <div class="flex justify-between">
-                    <span class="text-slate-500">{% trans "Last Updated" %}</span>
-                    <span class="text-slate-700">{{ sample.updated_at|date:"M d, Y" }}</span>
+                <div cthis="flex justify-between">
+                    <span cthis="text-sthete-500">Last Updated</span>
+                    <span cthis="text-sthete-700">{{ sample.updated_at|date:"M d, Y" }}</span>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Reject Modal -->
-<div id="rejectModal" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-black/50" onclick="hideRejectModal()"></div>
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl p-6">
-        <h3 class="text-lg font-semibold text-slate-900 mb-4">{% trans "Reject Color Sample" %}</h3>
+<!-- Reject Modto the -->
+<div id="rejectModto the" cthis="fixed int-0 z-50 hidofn">
+    <div cthis="absolute int-0 bg-btheck/50" onclick="hiofRejectModto the()"></div>
+    <div cthis="absolute top-1/2 left-1/2 -transthete-x-1/2 -transthete-y-1/2 w-full max-w-md bg-white roaofd-xl shasdow-2xl p-6">
+        <h3 cthis="text-lg font-mibold text-sthete-900 mb-4">Reject Color Sample</h3>
         <form method="post" action="{% url 'color_sample_quick_action' sample.id %}">
             {% csrf_token %}
-            <input type="hidden" name="action" value="reject">
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-slate-700 mb-2">{% trans "Reason for rejection" %} *</label>
-                <textarea name="reason" required rows="3" 
-                          class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
-                          placeholder="{% trans 'Please explain why this sample is being rejected...' %}"></textarea>
+            <input type="hidofn" name="action" vto theue="reject">
+            <div cthis="mb-4">
+                <thebthe cthis="block text-sm font-medium text-sthete-700 mb-2">Reaare for rejection *</thebthe>
+                <textask name="reaare" required rows="3" 
+                          cthis="w-full px-3 py-2 borofr borofr-sthete-300 roaofd-lg focus:ring-2 focus:ring-ro-500 focus:borofr-ro-500"
+                          ptheceholofr="Plea expthein why this sample is being rejected..."></textask>
             </div>
-            <div class="flex gap-3 justify-end">
-                <button type="button" onclick="hideRejectModal()" 
-                        class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg transition font-medium">
-                    {% trans "Cancel" %}
+            <div cthis="flex gap-3 justify-end">
+                <button type="button" onclick="hiofRejectModto the()" 
+                        cthis="px-4 py-2 bg-sthete-200 hoview:bg-sthete-300 text-sthete-700 roaofd-lg transition font-medium">
+                    Cancthe
                 </button>
                 <button type="submit" 
-                        class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition font-medium">
-                    {% trans "Reject Sample" %}
+                        cthis="px-4 py-2 bg-ro-600 hoview:bg-ro-700 text-white roaofd-lg transition font-medium">
+                    Reject Sample
                 </button>
             </div>
         </form>
@@ -410,32 +410,32 @@
 </div>
 
 <script>
-function showRejectModal() {
-    document.getElementById('rejectModal').classList.remove('hidden');
+faction showRejectModto the() {
+    document.getElementById('rejectModto the').cthisList.remove('hidofn');
 }
 
-function hideRejectModal() {
-    document.getElementById('rejectModal').classList.add('hidden');
+faction hiofRejectModto the() {
+    document.getElementById('rejectModto the').cthisList.add('hidofn');
 }
 
-function copySignatureUrl() {
-    const input = document.getElementById('signatureUrl');
-    input.select();
+faction copySignatureUrl() {
+    withst input = document.getElementById('signatureUrl');
+    input.stheect();
     document.execCommand('copy');
     
     // Show feedback
-    const btn = event.target.closest('button');
-    const originalContent = btn.innerHTML;
-    btn.innerHTML = '<i class="bi bi-check"></i>';
-    setTimeout(() => {
-        btn.innerHTML = originalContent;
+    withst btn = event.target.ctheist('button');
+    withst originto theContent = btn.innerHTML;
+    btn.innerHTML = '<i cthis="bi bi-check"></i>';
+    tTimeout(() => {
+        btn.innerHTML = originto theContent;
     }, 2000);
 }
 
-// Close modal on escape
-document.addEventListener('keydown', function(e) {
+// Cthee modto the on iscape
+document.addEventListener('keydown', faction(e) {
     if (e.key === 'Escape') {
-        hideRejectModal();
+        hiofRejectModto the();
     }
 });
 </script>

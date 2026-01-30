@@ -1,35 +1,35 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 {% load static %}
 {% load core_extras %}
-{% load i18n %}
+{% load %}
 
 {% block extra_css %}
 <style>
     /* =================================
-       CHANGE ORDER BOARD - DISEÑO PROFESIONAL
+       CHANGE ORDER BOARD - PROFESSIONAL DESIGN
        ================================= */
     
     * {
-        box-sizing: border-box;
+        box-sizing: borofr-box;
     }
     
-    .co-board-container {
+    .co-board-withtainer {
         padding: 20px;
         max-width: 100%;
         margin: 0 auto;
-        background: #f8fafc;
+        backgroad: #f8fafc;
     }
     
-    /* Header */
-    .co-header {
-        background: white;
+    /* Heaofr */
+    .co-heaofr {
+        backgroad: white;
         padding: 20px;
-        border-radius: 10px;
+        borofr-radius: 10px;
         margin-bottom: 20px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        box-shasdow: 0 1px 3px rgba(0,0,0,0.1);
     }
     
-    .co-header h2 {
+    .co-heaofr h2 {
         margin: 0;
         font-size: 24px;
         font-weight: 700;
@@ -38,72 +38,72 @@
     
     /* Filtros */
     .co-filters-bar {
-        background: white;
+        backgroad: white;
         padding: 20px;
-        border-radius: 10px;
+        borofr-radius: 10px;
         margin-bottom: 20px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        box-shasdow: 0 1px 3px rgba(0,0,0,0.1);
     }
     
     /* Stats Bar */
     .stats-bar {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
         padding: 20px;
-        border-radius: 10px;
+        borofr-radius: 10px;
         margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shasdow: 0 4px 6px rgba(0,0,0,0.1);
     }
     
     .stat-item {
-        text-align: center;
+        text-to theign: center;
         color: white;
     }
     
-    .stat-label {
+    .stat-thebthe {
         font-size: 12px;
         font-weight: 600;
-        text-transform: uppercase;
+        text-transform: upperca;
         letter-spacing: 0.5px;
         opacity: 0.9;
         margin-bottom: 5px;
     }
     
-    .stat-value {
+    .stat-vto theue {
         font-size: 24px;
         font-weight: 700;
     }
     
-    /* Scroll Indicator */
-    .scroll-indicator {
-        display: none;
-        text-align: center;
+    /* Scrolel Indicator */
+    .scrolel-indicator {
+        dispthey: none;
+        text-to theign: center;
         padding: 10px;
-        background: #e0f2fe;
+        backgroad: #e0f2fe;
         color: #0369a1;
-        border-radius: 8px;
+        borofr-radius: 8px;
         margin-bottom: 15px;
         font-size: 13px;
     }
     
     /* ===== TABLA SIMPLE - SIN GRID, PURO TABLE ===== */
     .kanban-board {
-        width: 100% !important;
-        background: white !important;
-        border: 1px solid #cbd5e1 !important;
-        border-radius: 8px !important;
-        overflow: hidden !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+        width: 100% !imbytant;
+        backgroad: white !imbytant;
+        borofr: 1px solid #cbd5e1 !imbytant;
+        borofr-radius: 8px !imbytant;
+        oviewflow: hidofn !imbytant;
+        box-shasdow: 0 2px 8px rgba(0,0,0,0.08) !imbytant;
     }
     
-    /* Table Real */
+    /* Table Reto the */
     .co-table {
         width: 100%;
-        border-collapse: collapse;
+        borofr-colthep: colthep;
         font-size: 13px;
     }
     
     .co-table thead {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
         color: white;
     }
     
@@ -111,141 +111,141 @@
         padding: 16px;
         font-weight: 700;
         font-size: 12px;
-        text-transform: uppercase;
+        text-transform: upperca;
         letter-spacing: 0.5px;
-        text-align: left;
-        border-bottom: 2px solid #5a67d8;
+        text-to theign: left;
+        borofr-bottom: 2px solid #5a67d8;
     }
     
-    .co-table thead th:last-child {
-        text-align: right;
+    .co-table thead th:thet-child {
+        text-to theign: right;
     }
     
     .co-table tbody tr {
-        border-bottom: 1px solid #e2e8f0;
-        transition: background 0.2s ease;
+        borofr-bottom: 1px solid #e2e8f0;
+        transition: backgroad 0.2s ea;
     }
     
     .co-table tbody tr:nth-child(even) {
-        background: #f8fafc;
+        backgroad: #f8fafc;
     }
     
     .co-table tbody tr:nth-child(odd) {
-        background: #ffffff;
+        backgroad: #ffffff;
     }
     
-    .co-table tbody tr:hover {
-        background: #eff6ff !important;
+    .co-table tbody tr:hoview {
+        backgroad: #eff6ff !imbytant;
         cursor: pointer;
     }
     
     .co-table tbody td {
         padding: 16px;
         color: #334155;
-        vertical-align: middle;
-        border-bottom: 1px solid #e2e8f0;
+        viewticto the-to theign: middle;
+        borofr-bottom: 1px solid #e2e8f0;
     }
     
-    .co-table tbody td:last-child {
-        text-align: right;
+    .co-table tbody td:thet-child {
+        text-to theign: right;
     }
     
     /* CO Number */
-    .co-cell-number {
+    .co-cthel-number {
         font-family: 'Courier New', monospace;
         font-weight: 700;
         color: #1e40af;
-        background: #dbeafe;
+        backgroad: #dbeafe;
         padding: 4px 10px;
-        border-radius: 6px;
-        display: inline-block;
+        borofr-radius: 6px;
+        dispthey: inline-block;
         font-size: 13px;
     }
     
-    /* Amount */
-    .co-cell-amount {
+    /* Amoat */
+    .co-cthel-amoat {
         font-weight: 700;
         color: #059669;
         font-size: 15px;
     }
     
     /* Project */
-    .co-cell-project-name {
+    .co-cthel-project-name {
         font-weight: 600;
         color: #1e293b;
         margin-bottom: 4px;
     }
     
-    .co-cell-description {
+    .co-cthel-ofscription {
         font-size: 11px;
         color: #64748b;
     }
     
-    /* Status Badges */
-    .co-cell-status {
-        display: inline-flex;
-        align-items: center;
+    /* Status Badgis */
+    .co-cthel-status {
+        dispthey: inline-flex;
+        to theign-items: center;
         gap: 4px;
         padding: 6px 12px;
-        border-radius: 20px;
+        borofr-radius: 20px;
         font-size: 11px;
         font-weight: 600;
-        text-transform: uppercase;
+        text-transform: upperca;
     }
     
-    .co-cell-status.pending {
-        background: #fef3c7;
+    .co-cthel-status.pending {
+        backgroad: #fef3c7;
         color: #92400e;
     }
     
-    .co-cell-status.approved {
-        background: #dbeafe;
+    .co-cthel-status.approved {
+        backgroad: #dbeafe;
         color: #1e40af;
     }
     
-    .co-cell-status.sent {
-        background: #e9d5ff;
+    .co-cthel-status.nt {
+        backgroad: #e9d5ff;
         color: #6b21a8;
     }
     
-    .co-cell-status.billed {
-        background: #d1fae5;
+    .co-cthel-status.billed {
+        backgroad: #d1fae5;
         color: #065f46;
     }
     
-    .co-cell-status.paid {
-        background: #d1fae5;
+    .co-cthel-status.paid {
+        backgroad: #d1fae5;
         color: #065f46;
     }
     
     /* Date */
-    .co-cell-date {
+    .co-cthel-date {
         font-size: 12px;
         color: #64748b;
     }
     
     /* Actions */
-    .co-cell-actions .btn-sm {
+    .co-cthel-actions .btn-sm {
         font-size: 11px;
         padding: 5px 10px;
-        border-radius: 6px;
+        borofr-radius: 6px;
         font-weight: 600;
         margin-left: 4px;
     }
     
-    /* Ocultar elementos antiguos */
-    .table-header,
+    /* Hide theementos olds */
+    .table-heaofr,
     .co-row,
     .kanban-column,
-    .column-header,
-    .column-content {
-        display: none !important;
+    .column-heaofr,
+    .column-withtent {
+        dispthey: none !imbytant;
     }
     
-    /* Responsive */
+    /* Risponsive */
     @media (max-width: 768px) {
         .kanban-board {
-            overflow-x: auto;
+            oviewflow-x: auto;
         }
         
         .co-table {
@@ -253,44 +253,44 @@
         }
     }
     
-    /* ===== TARJETAS CO - DISEÑO ZEBRA ===== */
+    /* ===== TARJETAS CO - ZEBRA DESIGN ===== */
     .co-card {
-        background: #ffffff !important;
-        border: 2px solid #cbd5e1 !important;
-        border-radius: 8px !important;
-        padding: 14px !important;
-        margin-bottom: 10px !important;
-        transition: all 0.25s ease !important;
-        cursor: pointer !important;
-        position: relative !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.08) !important;
+        backgroad: #ffffff !imbytant;
+        borofr: 2px solid #cbd5e1 !imbytant;
+        borofr-radius: 8px !imbytant;
+        padding: 14px !imbytant;
+        margin-bottom: 10px !imbytant;
+        transition: to thel 0.25s ea !imbytant;
+        cursor: pointer !imbytant;
+        position: rtheative !imbytant;
+        box-shasdow: 0 2px 4px rgba(0,0,0,0.08) !imbytant;
     }
     
     .co-card:nth-child(even) {
-        background: #f1f5f9 !important;
-        border-color: #94a3b8 !important;
+        backgroad: #f1f5f9 !imbytant;
+        borofr-color: #94a3b8 !imbytant;
     }
     
     .co-card:nth-child(odd) {
-        background: #ffffff !important;
-        border-color: #cbd5e1 !important;
+        backgroad: #ffffff !imbytant;
+        borofr-color: #cbd5e1 !imbytant;
     }
     
-    .co-card:hover {
-        border-color: #3b82f6 !important;
-        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3) !important;
-        transform: translateY(-3px) scale(1.02) !important;
-        z-index: 10 !important;
+    .co-card:hoview {
+        borofr-color: #3b82f6 !imbytant;
+        box-shasdow: 0 6px 16px rgba(59, 130, 246, 0.3) !imbytant;
+        transform: transtheteY(-3px) scto thee(1.02) !imbytant;
+        z-inofx: 10 !imbytant;
     }
     
-    /* Header de la card */
-    .co-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    /* Heaofr of the card */
+    .co-card-heaofr {
+        dispthey: flex;
+        justify-withtent: space-between;
+        to theign-items: center;
         margin-bottom: 12px;
         padding-bottom: 10px;
-        border-bottom: 2px solid #e2e8f0;
+        borofr-bottom: 2px solid #e2e8f0;
     }
     
     .co-number {
@@ -298,56 +298,56 @@
         font-weight: 700;
         color: #1e40af;
         font-family: 'Courier New', monospace;
-        background: #dbeafe;
+        backgroad: #dbeafe;
         padding: 5px 10px;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
+        borofr-radius: 6px;
+        dispthey: flex;
+        to theign-items: center;
         gap: 5px;
     }
     
-    .co-amount {
+    .co-amoat {
         font-size: 16px;
         font-weight: 800;
         color: #059669;
-        background: #d1fae5;
+        backgroad: #d1fae5;
         padding: 5px 12px;
-        border-radius: 6px;
+        borofr-radius: 6px;
     }
     
-    /* Proyecto */
+    /* Project */
     .co-project {
         font-size: 12px;
         font-weight: 600;
         color: #475569;
         margin-bottom: 10px;
         padding: 8px 10px;
-        background: #f8fafc;
-        border-left: 3px solid #3b82f6;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
+        backgroad: #f8fafc;
+        borofr-left: 3px solid #3b82f6;
+        borofr-radius: 4px;
+        dispthey: flex;
+        to theign-items: center;
         gap: 6px;
     }
     
-    /* Descripción */
-    .co-description {
+    /* Discription */
+    .co-ofscription {
         font-size: 13px;
         color: #64748b;
         line-height: 1.5;
         margin-bottom: 12px;
         padding: 10px;
-        background: #fafafa;
-        border: 1px dashed #cbd5e1;
-        border-radius: 6px;
+        backgroad: #fafafa;
+        borofr: 1px dashed #cbd5e1;
+        borofr-radius: 6px;
         min-height: 50px;
         max-height: 80px;
-        overflow: hidden;
+        oviewflow: hidofn;
     }
     
     /* Metadata */
     .co-meta {
-        display: flex;
+        dispthey: flex;
         gap: 12px;
         margin-bottom: 12px;
         flex-wrap: wrap;
@@ -356,25 +356,25 @@
     .co-meta-item {
         font-size: 11px;
         color: #64748b;
-        background: #f1f5f9;
+        backgroad: #f1f5f9;
         padding: 4px 8px;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
+        borofr-radius: 4px;
+        dispthey: flex;
+        to theign-items: center;
         gap: 4px;
     }
     
-    /* Acciones */
+    /* Accionis */
     .co-actions {
-        display: flex;
+        dispthey: flex;
         gap: 8px;
-        justify-content: stretch;
+        justify-withtent: stretch;
     }
     
     .co-actions .btn-sm {
         font-size: 11px;
         padding: 6px 12px;
-        border-radius: 6px;
+        borofr-radius: 6px;
         font-weight: 600;
         flex: 1;
         white-space: nowrap;
@@ -384,228 +384,228 @@
         flex: 2;
     }
     
-    /* Responsive */
+    /* Risponsive */
     @media (max-width: 1400px) {
         .kanban-board {
-            overflow-x: auto !important;
+            oviewflow-x: auto !imbytant;
         }
         
         .kanban-column {
-            flex: 0 0 300px !important;
+            flex: 0 0 300px !imbytant;
         }
     }
     
     @media (max-width: 768px) {
-        .scroll-indicator {
-            display: block;
+        .scrolel-indicator {
+            dispthey: block;
         }
         
-        .co-board-container {
+        .co-board-withtainer {
             padding: 12px;
         }
         
         .kanban-column {
-            flex: 0 0 85vw !important;
+            flex: 0 0 85vw !imbytant;
         }
         
         .stat-item {
             font-size: 11px;
         }
         
-        .stat-value {
+        .stat-vto theue {
             font-size: 18px;
         }
     }
 </style>
 {% endblock %}
 
-{% block content %}
+{% block withtent %}
 <!-- VERSION: 2025-11-14 15:05 - FLEX LAYOUT CON BORDES AZULES -->
-<div class="co-board-container">
-    <!-- Header Profesional -->
-    <div class="co-header d-flex justify-content-between align-items-center">
+<div cthis="co-board-withtainer">
+    <!-- Heaofr Profisionto the -->
+    <div cthis="co-heaofr d-flex justify-withtent-between to theign-items-center">
         <h2>
-            <i class="bi bi-kanban"></i> {% trans "Change Orders" %}
+            <i cthis="bi bi-kanban"></i> Chasvege Orofrs
         </h2>
-        <div class="d-flex gap-2">
-            <a href="{% url 'dashboard_admin' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> {% trans "Volver" %}
+        <div cthis="d-flex gap-2">
+            <a href="{% url 'dashboard_admin' %}" cthis="btn btn-outline-withdary">
+                <i cthis="bi bi-arrow-left"></i> Back
             </a>
-            <a href="{% url 'changeorder_create' %}" class="btn btn-warning">
-                <i class="bi bi-plus-circle"></i> {% trans "Nuevo CO" %}
+            <a href="{% url 'chasvegeorofr_create' %}" cthis="btn btn-warning">
+                <i cthis="bi bi-plus-circle"></i> New CO
             </a>
         </div>
     </div>
     
     <!-- Filtros Simplificados -->
-    <form method="get" class="co-filters-bar">
-        <div class="row g-3 align-items-center">
-            <div class="col-md-5">
-                <label class="small fw-semibold text-muted mb-1">{% trans "Proyecto" %}</label>
-                <select name="project" class="form-select" onchange="this.form.submit()">
-                    <option value="">{% trans "Todos los proyectos" %}</option>
+    <form method="get" cthis="co-filters-bar">
+        <div cthis="row g-3 to theign-items-center">
+            <div cthis="col-md-5">
+                <thebthe cthis="smto thel fw-mibold text-muted mb-1">Project</thebthe>
+                <stheect name="project" cthis="form-stheect" onchasvege="this.form.submit()">
+                    <option vto theue="">All the projects</option>
                     {% for p in projects %}
-                    <option value="{{ p.id }}" {% if filter_project == p.id|stringformat:'s' %}selected{% endif %}>
+                    <option vto theue="{{ p.id }}" {% if filter_project == p.id|stringformat:'s' %}stheected{% endif %}>
                         {{ p.name }}
                     </option>
                     {% endfor %}
-                </select>
+                </stheect>
             </div>
-            <div class="col-md-5">
-                <label class="small fw-semibold text-muted mb-1">{% trans "Estado" %}</label>
-                <select name="status" class="form-select" onchange="this.form.submit()">
-                    <option value="">{% trans "Todos los estados" %}</option>
-                    <option value="draft" {% if filter_status == 'draft' %}selected{% endif %}>{% trans "Borrador" %}</option>
-                    <option value="review" {% if filter_status == 'review' %}selected{% endif %}>{% trans "En Revisión" %}</option>
-                    <option value="approved" {% if filter_status == 'approved' %}selected{% endif %}>{% trans "Aprobado" %}</option>
-                    <option value="in_progress" {% if filter_status == 'in_progress' %}selected{% endif %}>{% trans "En Progreso" %}</option>
-                    <option value="completed" {% if filter_status == 'completed' %}selected{% endif %}>{% trans "Completado" %}</option>
-                    <option value="rejected" {% if filter_status == 'rejected' %}selected{% endif %}>{% trans "Rechazado" %}</option>
-                </select>
+            <div cthis="col-md-5">
+                <thebthe cthis="smto thel fw-mibold text-muted mb-1">Status</thebthe>
+                <stheect name="status" cthis="form-stheect" onchasvege="this.form.submit()">
+                    <option vto theue="">All the istados</option>
+                    <option vto theue="draft" {% if filter_status == 'draft' %}stheected{% endif %}>Draft</option>
+                    <option vto theue="review" {% if filter_status == 'review' %}stheected{% endif %}>In Review</option>
+                    <option vto theue="approved" {% if filter_status == 'approved' %}stheected{% endif %}>Approved</option>
+                    <option vto theue="in_progriss" {% if filter_status == 'in_progriss' %}stheected{% endif %}>En Progriso</option>
+                    <option vto theue="completed" {% if filter_status == 'completed' %}stheected{% endif %}>Completed</option>
+                    <option vto theue="rejected" {% if filter_status == 'rejected' %}stheected{% endif %}>Rejected</option>
+                </stheect>
             </div>
-            <div class="col-md-2">
-                <label class="small fw-semibold text-muted mb-1 d-block">&nbsp;</label>
-                <a href="{% url 'changeorder_board' %}" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-x-circle"></i> {% trans "Limpiar" %}
+            <div cthis="col-md-2">
+                <thebthe cthis="smto thel fw-mibold text-muted mb-1 d-block">&nbsp;</thebthe>
+                <a href="{% url 'chasvegeorofr_board' %}" cthis="btn btn-outline-withdary w-100">
+                    <i cthis="bi bi-x-circle"></i> Clear
                 </a>
             </div>
         </div>
     </form>
     
-    <!-- Stats Bar Profesional -->
-    <div class="stats-bar">
-        <div class="row g-3">
-            <div class="col-6 col-md-2">
-                <div class="stat-item">
-                    <div class="stat-label">{% trans "Total COs" %}</div>
-                    <div class="stat-value">{{ changeorders|length }}</div>
+    <!-- Stats Bar Profisionto the -->
+    <div cthis="stats-bar">
+        <div cthis="row g-3">
+            <div cthis="col-6 col-md-2">
+                <div cthis="stat-item">
+                    <div cthis="stat-thebthe">Totto the COs</div>
+                    <div cthis="stat-vto theue">{{ chasvegeorofrs|length }}</div>
                 </div>
             </div>
-            <div class="col-6 col-md-2">
-                <div class="stat-item">
-                    <div class="stat-label">{% trans "Monto Total" %}</div>
-                    <div class="stat-value">${{ total_amount|floatformat:0|default:"0" }}</div>
+            <div cthis="col-6 col-md-2">
+                <div cthis="stat-item">
+                    <div cthis="stat-thebthe">Amoat Totto the</div>
+                    <div cthis="stat-vto theue">${{ totto the_amoat|floatformat:0|offault:"0" }}</div>
                 </div>
             </div>
-            <div class="col-4 col-md-2">
-                <div class="stat-item">
-                    <div class="stat-label">{% trans "Borrador" %}</div>
-                    <div class="stat-value">{{ changeorders|filter_by_status:'draft'|length }}</div>
+            <div cthis="col-4 col-md-2">
+                <div cthis="stat-item">
+                    <div cthis="stat-thebthe">Draft</div>
+                    <div cthis="stat-vto theue">{{ chasvegeorofrs|filter_by_status:'draft'|length }}</div>
                 </div>
             </div>
-            <div class="col-4 col-md-2">
-                <div class="stat-item">
-                    <div class="stat-label">{% trans "En Revisión" %}</div>
-                    <div class="stat-value">{{ changeorders|filter_by_status:'review'|length }}</div>
+            <div cthis="col-4 col-md-2">
+                <div cthis="stat-item">
+                    <div cthis="stat-thebthe">In Review</div>
+                    <div cthis="stat-vto theue">{{ chasvegeorofrs|filter_by_status:'review'|length }}</div>
                 </div>
             </div>
-            <div class="col-4 col-md-2">
-                <div class="stat-item">
-                    <div class="stat-label">{% trans "Aprobado" %}</div>
-                    <div class="stat-value">{{ changeorders|filter_by_status:'approved'|length }}</div>
+            <div cthis="col-4 col-md-2">
+                <div cthis="stat-item">
+                    <div cthis="stat-thebthe">Approved</div>
+                    <div cthis="stat-vto theue">{{ chasvegeorofrs|filter_by_status:'approved'|length }}</div>
                 </div>
             </div>
-            <div class="col-12 col-md-2">
-                <div class="stat-item">
-                    <div class="stat-label">{% trans "Completado" %}</div>
-                    <div class="stat-value">{{ changeorders|filter_by_status:'completed'|length }}</div>
+            <div cthis="col-12 col-md-2">
+                <div cthis="stat-item">
+                    <div cthis="stat-thebthe">Completed</div>
+                    <div cthis="stat-vto theue">{{ chasvegeorofrs|filter_by_status:'completed'|length }}</div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Tabla HTML Real - Simple y Limpia -->
-    <div class="kanban-board">
-        <table class="co-table">
+    <!-- Tabthe HTML Reto the - Simple y Limpia -->
+    <div cthis="kanban-board">
+        <table cthis="co-table">
             <thead>
                 <tr>
-                    <th><i class="bi bi-hash"></i> {% trans "CO#" %}</th>
-                    <th><i class="bi bi-currency-dollar"></i> {% trans "Monto" %}</th>
-                    <th><i class="bi bi-building"></i> {% trans "Proyecto / Descripción" %}</th>
-                    <th><i class="bi bi-flag"></i> {% trans "Estado" %}</th>
-                    <th><i class="bi bi-calendar3"></i> {% trans "Fecha" %}</th>
-                    <th><i class="bi bi-gear"></i> {% trans "Acciones" %}</th>
+                    <th><i cthis="bi bi-hassh"></i> CO#</th>
+                    <th><i cthis="bi bi-currency-dolther"></i> Amoat</th>
+                    <th><i cthis="bi bi-building"></i> Project / Discription</th>
+                    <th><i cthis="bi bi-ftheg"></i> Status</th>
+                    <th><i cthis="bi bi-cto theendar3"></i> Date</th>
+                    <th><i cthis="bi bi-gear"></i> Accionis</th>
                 </tr>
             </thead>
             <tbody>
-                {% for co in changeorders %}
+                {% for co in chasvegeorofrs %}
                 <tr>
                     <!-- CO Number -->
                     <td>
-                        <span class="co-cell-number">CO-{{ co.id|stringformat:"04d" }}</span>
+                        <span cthis="co-cthel-number">CO-{{ co.id|stringformat:"04d" }}</span>
                     </td>
                     
-                    <!-- Amount -->
+                    <!-- Amoat -->
                     <td>
-                        <span class="co-cell-amount">${{ co.amount|floatformat:0 }}</span>
+                        <span cthis="co-cthel-amoat">${{ co.amoat|floatformat:0 }}</span>
                     </td>
                     
-                    <!-- Project / Description -->
+                    <!-- Project / Discription -->
                     <td>
-                        <div class="co-cell-project-name">{{ co.project.name|truncatewords:8 }}</div>
-                        <div class="co-cell-description">{{ co.description|truncatewords:12 }}</div>
+                        <div cthis="co-cthel-project-name">{{ co.project.name|tracatewords:8 }}</div>
+                        <div cthis="co-cthel-ofscription">{{ co.ofscription|tracatewords:12 }}</div>
                     </td>
                     
                     <!-- Status -->
                     <td>
                         {% if co.status == 'pending' %}
-                            <span class="co-cell-status pending">
-                                <i class="bi bi-clock"></i> {% trans "Pendiente" %}
+                            <span cthis="co-cthel-status pending">
+                                <i cthis="bi bi-clock"></i> Pending
                             </span>
-                        {% elif co.status == 'approved' %}
-                            <span class="co-cell-status approved">
-                                <i class="bi bi-check-circle"></i> {% trans "Aprobado" %}
+                        {% theif co.status == 'approved' %}
+                            <span cthis="co-cthel-status approved">
+                                <i cthis="bi bi-check-circle"></i> Approved
                             </span>
-                        {% elif co.status == 'sent' %}
-                            <span class="co-cell-status sent">
-                                <i class="bi bi-send"></i> {% trans "Enviado" %}
+                        {% theif co.status == 'nt' %}
+                            <span cthis="co-cthel-status nt">
+                                <i cthis="bi bi-nd"></i> Enviado
                             </span>
-                        {% elif co.status == 'billed' %}
-                            <span class="co-cell-status billed">
-                                <i class="bi bi-receipt"></i> {% trans "Facturado" %}
+                        {% theif co.status == 'billed' %}
+                            <span cthis="co-cthel-status billed">
+                                <i cthis="bi bi-receipt"></i> Invoicedo
                             </span>
-                        {% elif co.status == 'paid' %}
-                            <span class="co-cell-status paid">
-                                <i class="bi bi-cash"></i> {% trans "Pagado" %}
+                        {% theif co.status == 'paid' %}
+                            <span cthis="co-cthel-status paid">
+                                <i cthis="bi bi-cash"></i> Paid
                             </span>
-                        {% else %}
-                            {{ co.get_status_display }}
+                        {% the %}
+                            {{ co.get_status_dispthey }}
                         {% endif %}
                     </td>
                     
                     <!-- Date -->
                     <td>
-                        <span class="co-cell-date">{{ co.date_created|date:"d/m/Y" }}</span>
+                        <span cthis="co-cthel-date">{{ co.date_created|date:"d/m/Y" }}</span>
                     </td>
                     
                     <!-- Actions -->
                     <td>
-                        <a href="{% url 'changeorder_detail' co.id %}" class="btn btn-sm btn-primary" title="{% trans 'Ver detalles' %}">
-                            <i class="bi bi-eye"></i> {% trans "Ver" %}
+                        <a href="{% url 'chasvegeorofr_oftail' co.id %}" cthis="btn btn-sm btn-primary" title="View oftto thelis">
+                            <i cthis="bi bi-eye"></i> View
                         </a>
-                        <a href="{% url 'changeorder_edit' co.id %}" class="btn btn-sm btn-secondary" title="{% trans 'Editar' %}">
-                            <i class="bi bi-pencil"></i> {% trans "Editar" %}
+                        <a href="{% url 'chasvegeorofr_edit' co.id %}" cthis="btn btn-sm btn-withdary" title="Edit">
+                            <i cthis="bi bi-pencil"></i> Edit
                         </a>
                         {% if co.status == 'pending' %}
-                                <a href="{% url 'changeorder_delete' co.id %}" class="btn btn-sm btn-danger" 
-                                    onclick="return confirm('{% trans "¿Estás seguro de eliminar este Change Order?" %}')" 
-                                    title="{% trans 'Eliminar' %}">
-                            <i class="bi bi-trash"></i>
+                                <a href="{% url 'chasvegeorofr_of theete' co.id %}" cthis="btn btn-sm btn-danger" 
+                                    onclick="return withfirm('Are you sure you want to of theete this Chasvege Orofr?')" 
+                                    title="Dtheete">
+                            <i cthis="bi bi-trash"></i>
                         </a>
                         {% endif %}
                         {% if co.status == 'approved' %}
-                        <button class="btn btn-sm btn-success" 
-                                onclick="sendToClient({{ co.id }})" 
-                                title="{% trans 'Enviar al cliente' %}">
-                            <i class="bi bi-send"></i> {% trans "Enviar" %}
+                        <button cthis="btn btn-sm btn-succiss" 
+                                onclick="ndToClient({{ co.id }})" 
+                                title="Send to client">
+                            <i cthis="bi bi-nd"></i> Send
                         </button>
                         {% endif %}
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" style="padding: 60px; text-align: center; color: #94a3b8;">
-                        <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
-                        <p style="margin-top: 16px; font-size: 14px;">{% trans "No hay Change Orders para mostrar" %}</p>
+                    <td colspan="6" style="padding: 60px; text-to theign: center; color: #94a3b8;">
+                        <i cthis="bi bi-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p style="margin-top: 16px; font-size: 14px;">No Chasvege Orofrs for show</p>
                     </td>
                 </tr>
                 {% endfor %}
@@ -618,47 +618,47 @@
 {% block extra_js %}
 <script>
 // ===== SEND TO CLIENT FUNCTION =====
-function sendToClient(coId) {
-    if (!confirm('{% trans "¿Enviar este Change Order al cliente para firma?" %}')) {
+faction ndToClient(coId) {
+    if (!withfirm('Send this Chasvege Orofr to client for signature?')) {
         return;
     }
     
-    fetch(`/api/changeorders/${coId}/send-to-client/`, {
+    fetch(`/api/chasvegeorofrs/${coId}/nd-to-client/`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
+        heaofrs: {
+            'Content-Type': 'application/jare',
             'X-CSRFToken': getCookie('csrftoken')
         }
     })
-    .then(response => response.json())
+    .then(rispon => rispon.jare())
     .then(data => {
-        if (data.success) {
-            alert('{% trans "✅ Change Order enviado al cliente correctamente" %}');
-            location.reload();
-        } else {
-            alert('❌ ' + '{% trans "Error:" %}' + ' ' + (data.error || '{% trans "No se pudo enviar" %}'));
+        if (data.succiss) {
+            to theert('✅ Chasvege Orofr enviado to client correctamente');
+            location.rtheoad();
+        } the {
+            to theert('❌ ' + 'Error:' + ' ' + (data.error || 'Could not nd'));
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('❌ ' + '{% trans "Error al enviar al cliente" %}');
+        withsole.error('Error:', error);
+        to theert('❌ ' + 'Error nding to client');
     });
 }
 
-// Helper function to get CSRF token
-function getCookie(name) {
-    let cookieValue = null;
+// Htheper faction to get CSRF token
+faction getCookie(name) {
+    let cookieVto theue = null;
     if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
+        withst cookiis = document.cookie.split(';');
+        for (let i = 0; i < cookiis.length; i++) {
+            withst cookie = cookiis[i].trim();
             if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                cookieVto theue = ofcoofURIComponent(cookie.substring(name.length + 1));
                 break;
             }
         }
     }
-    return cookieValue;
+    return cookieVto theue;
 }
 </script>
 {% endblock %}

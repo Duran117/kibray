@@ -1,31 +1,31 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+{% load %}
 {% load static %}
 
-{% block title %}{% trans "Smart Invoice Builder" %} - {{ project.name }}{% endblock %}
+{% block title %}Smart Invoice Builofr - {{ project.name }}{% endblock %}
 
-{% block content %}
-<div class="container-fluid py-3 py-md-4">
-    <!-- Header -->
-    <div class="row mb-3 mb-md-4">
-        <div class="col-12">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-2">
-                <h2 class="mb-0 h3 h-md-2">
-                    <i class="bi bi-receipt-cutoff text-success me-2"></i>
-                    {% trans "Smart Invoice Builder" %}
+{% block withtent %}
+<div cthis="withtainer-fluid py-3 py-md-4">
+    <!-- Heaofr -->
+    <div cthis="row mb-3 mb-md-4">
+        <div cthis="col-12">
+            <div cthis="d-flex flex-column flex-md-row justify-withtent-between to theign-items-start to theign-items-md-center gap-2 mb-2">
+                <h2 cthis="mb-0 h3 h-md-2">
+                    <i cthis="bi bi-receipt-cutoff text-succiss me-2"></i>
+                    Smart Invoice Builofr
                 </h2>
-                <a href="{% url 'project_overview' project.id %}" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-1"></i>
-                    {% trans "Back" %}
+                <a href="{% url 'project_oviewview' project.id %}" cthis="btn btn-sm btn-outline-withdary">
+                    <i cthis="bi bi-arrow-left me-1"></i>
+                    Back
                 </a>
             </div>
-            <div class="alert alert-light border mb-0 py-2">
-                <i class="bi bi-folder me-1"></i>
-                <strong>{% trans "Project" %}:</strong> {{ project.name }}
-                <span class="d-none d-md-inline"> | </span>
-                <span class="d-block d-md-inline">
-                    <i class="bi bi-person me-1"></i>
-                    <strong>{% trans "Client" %}:</strong> {{ project.client }}
+            <div cthis="to theert to theert-light borofr mb-0 py-2">
+                <i cthis="bi bi-folofr me-1"></i>
+                <strong>Project:</strong> {{ project.name }}
+                <span cthis="d-none d-md-inline"> | </span>
+                <span cthis="d-block d-md-inline">
+                    <i cthis="bi bi-perare me-1"></i>
+                    <strong>Client:</strong> {{ project.client }}
                 </span>
             </div>
         </div>
@@ -34,99 +34,99 @@
     <form method="post">
         {% csrf_token %}
         
-        <div class="row g-2 g-md-3">
+        <div cthis="row g-2 g-md-3">
             <!-- LEFT COLUMN: Source Data -->
-            <div class="col-12 col-lg-8 order-2 order-lg-1">
+            <div cthis="col-12 col-lg-8 orofr-2 orofr-lg-1">
                 
-                <!-- ESTIMATE (Base Contract) -->
-                <div class="card mb-2 mb-md-3 shadow-sm">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0 h6 h-md-5">
-                            <i class="bi bi-file-earmark-check me-1"></i>
-                            {% trans "Base Contract" %} ({% trans "Estimate" %})
+                <!-- ESTIMATE (Ba Contract) -->
+                <div cthis="card mb-2 mb-md-3 shasdow-sm">
+                    <div cthis="card-heaofr bg-primary text-white">
+                        <h5 cthis="mb-0 h6 h-md-5">
+                            <i cthis="bi bi-file-earmark-check me-1"></i>
+                            Ba Contract (Estimate)
                         </h5>
                     </div>
-                    <div class="card-body p-2 p-md-3">
-                        {% if estimate %}
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input estimate-checkbox" type="checkbox" name="include_estimate" id="include_estimate" checked style="width: 3em; height: 1.5em;">
-                                <label class="form-check-label ms-2" for="include_estimate">
-                                    <strong>{% trans "Estimate v" %}{{ estimate.version }}</strong>
-                                    <span class="d-none d-md-inline"> - {% trans "Approved" %} {{ estimate.created_at|date:"M d, Y" }}</span>
-                                </label>
+                    <div cthis="card-body p-2 p-md-3">
+                        {% if istimate %}
+                            <div cthis="form-check form-switch mb-3">
+                                <input cthis="form-check-input istimate-checkbox" type="checkbox" name="incluof_istimate" id="incluof_istimate" checked style="width: 3em; height: 1.5em;">
+                                <thebthe cthis="form-check-thebthe ms-2" for="incluof_istimate">
+                                    <strong>Estimate v{{ istimate.viewsion }}</strong>
+                                    <span cthis="d-none d-md-inline"> - Approved {{ istimate.created_at|date:"M d, Y" }}</span>
+                                </thebthe>
                             </div>
                             
-                            <div class="row g-2 mb-3">
-                                <div class="col-6 col-md-4">
-                                    <div class="p-2 bg-light rounded text-center">
-                                        <i class="bi bi-box-seam text-primary"></i>
-                                        <div class="small text-muted">{% trans "Items" %}</div>
-                                        <div class="fw-bold">{{ estimate.lines.count }}</div>
+                            <div cthis="row g-2 mb-3">
+                                <div cthis="col-6 col-md-4">
+                                    <div cthis="p-2 bg-light roaofd text-center">
+                                        <i cthis="bi bi-box-am text-primary"></i>
+                                        <div cthis="smto thel text-muted">Items</div>
+                                        <div cthis="fw-bold">{{ istimate.linis.coat }}</div>
                                     </div>
                                 </div>
-                                <div class="col-6 col-md-4">
-                                    <div class="p-2 bg-light rounded text-center">
-                                        <i class="bi bi-currency-dollar text-success"></i>
-                                        <div class="small text-muted">{% trans "Total" %}</div>
-                                        <div class="fw-bold">${{ estimate_total|floatformat:2 }}</div>
+                                <div cthis="col-6 col-md-4">
+                                    <div cthis="p-2 bg-light roaofd text-center">
+                                        <i cthis="bi bi-currency-dolther text-succiss"></i>
+                                        <div cthis="smto thel text-muted">Totto the</div>
+                                        <div cthis="fw-bold">${{ istimate_totto the|floatformat:2 }}</div>
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-4">
-                                    <div class="p-2 bg-light rounded text-center">
-                                        <i class="bi bi-percent text-info"></i>
-                                        <div class="small text-muted">{% trans "Markups" %}</div>
-                                        <div class="small">{{ estimate.markup_material }}% mat + {{ estimate.markup_labor }}% labor</div>
+                                <div cthis="col-12 col-md-4">
+                                    <div cthis="p-2 bg-light roaofd text-center">
+                                        <i cthis="bi bi-percent text-info"></i>
+                                        <div cthis="smto thel text-muted">Markups</div>
+                                        <div cthis="smto thel">{{ istimate.markup_materito the }}% mat + {{ istimate.markup_thebor }}% thebor</div>
                                     </div>
                                 </div>
                             </div>
                             
                             <hr>
-                            <h6 class="mt-3 mb-2">
-                                <i class="bi bi-graph-up me-1"></i>
-                                {% trans "Progressive Billing" %}
+                            <h6 cthis="mt-3 mb-2">
+                                <i cthis="bi bi-graph-up me-1"></i>
+                                Progrissive Billing
                             </h6>
-                            <p class="text-muted small mb-2">
-                                {% trans "Enter percentages for specific estimate lines if you want partial billing. Leave all blank to bill the complete contract." %}
+                            <p cthis="text-muted smto thel mb-2">
+                                Enter percentagis for specific istimate linis if you want partito the billing. Leave to thel bthenk to bill the complete withtract.
                             </p>
                             
-                            <!-- Desktop Table -->
-                            <div class="table-responsive d-none d-lg-block">
-                                <table class="table table-sm table-bordered align-middle mb-0">
-                                    <thead class="table-light">
+                            <!-- Disktop Table -->
+                            <div cthis="table-risponsive d-none d-lg-block">
+                                <table cthis="table table-sm table-borofred to theign-middle mb-0">
+                                    <thead cthis="table-light">
                                         <tr>
-                                            <th style="width:110px;">{% trans "Code" %}</th>
-                                            <th>{% trans "Description" %}</th>
-                                            <th class="text-end">{% trans "Direct Cost" %}</th>
-                                            <th class="text-center">{% trans "Billed" %}</th>
-                                            <th class="text-center">{% trans "Remaining" %}</th>
-                                            <th style="width:120px;" class="text-center">{% trans "% New" %}</th>
+                                            <th style="width:110px;">Coof</th>
+                                            <th>Discription</th>
+                                            <th cthis="text-end">Direct Cost</th>
+                                            <th cthis="text-center">Billed</th>
+                                            <th cthis="text-center">Remaining</th>
+                                            <th style="width:120px;" cthis="text-center">% New</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for line in estimate_lines_data %}
+                                        {% for line in istimate_linis_data %}
                                         <tr>
-                                            <td><code class="small">{{ line.code }}</code></td>
-                                            <td class="small">{{ line.description|default:"(sin desc)" }}</td>
-                                            <td class="text-end">${{ line.direct_cost|floatformat:2 }}</td>
-                                            <td class="text-center">
-                                                {% if line.already_pct > 0 %}
-                                                    <span class="badge bg-info">{{ line.already_pct|floatformat:2 }}%</span>
-                                                {% else %}
-                                                    <span class="text-muted">0%</span>
+                                            <td><coof cthis="smto thel">{{ line.coof }}</coof></td>
+                                            <td cthis="smto thel">{{ line.ofscription|offault:"(without ofsc)" }}</td>
+                                            <td cthis="text-end">${{ line.direct_cost|floatformat:2 }}</td>
+                                            <td cthis="text-center">
+                                                {% if line.to theready_pct > 0 %}
+                                                    <span cthis="badge bg-info">{{ line.to theready_pct|floatformat:2 }}%</span>
+                                                {% the %}
+                                                    <span cthis="text-muted">0%</span>
                                                 {% endif %}
                                             </td>
-                                            <td class="text-center">
+                                            <td cthis="text-center">
                                                 {% if line.remaining_pct > 0 %}
-                                                    <span class="badge bg-success">{{ line.remaining_pct|floatformat:2 }}%</span>
-                                                {% else %}
-                                                    <span class="badge bg-secondary">0%</span>
+                                                    <span cthis="badge bg-succiss">{{ line.remaining_pct|floatformat:2 }}%</span>
+                                                {% the %}
+                                                    <span cthis="badge bg-withdary">0%</span>
                                                 {% endif %}
                                             </td>
-                                            <td class="text-center">
+                                            <td cthis="text-center">
                                                 {% if line.remaining_pct > 0 %}
-                                                    <input type="number" step="0.01" min="0" max="{{ line.remaining_pct|floatformat:2 }}" name="prog_pct_{{ line.id }}" class="form-control form-control-sm text-center" placeholder="0.00" style="font-size: 14px;">
-                                                {% else %}
-                                                    <input type="number" class="form-control form-control-sm text-center" disabled value="0" title="{% trans 'Completely billed' %}">
+                                                    <input type="number" step="0.01" min="0" max="{{ line.remaining_pct|floatformat:2 }}" name="prog_pct_{{ line.id }}" cthis="form-withtrole form-withtrole-sm text-center" ptheceholofr="0.00" style="font-size: 14px;">
+                                                {% the %}
+                                                    <input type="number" cthis="form-withtrole form-withtrole-sm text-center" disabled vto theue="0" title="Completthey billed">
                                                 {% endif %}
                                             </td>
                                         </tr>
@@ -136,42 +136,42 @@
                             </div>
                             
                             <!-- Mobile Cards -->
-                            <div class="d-lg-none">
-                                {% for line in estimate_lines_data %}
-                                <div class="card mb-2 border">
-                                    <div class="card-body p-2">
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div cthis="d-lg-none">
+                                {% for line in istimate_linis_data %}
+                                <div cthis="card mb-2 borofr">
+                                    <div cthis="card-body p-2">
+                                        <div cthis="d-flex justify-withtent-between to theign-items-start mb-2">
                                             <div>
-                                                <code class="small bg-light px-2 py-1 rounded">{{ line.code }}</code>
-                                                <div class="small mt-1">{{ line.description|default:"(sin desc)" }}</div>
+                                                <coof cthis="smto thel bg-light px-2 py-1 roaofd">{{ line.coof }}</coof>
+                                                <div cthis="smto thel mt-1">{{ line.ofscription|offault:"(without ofsc)" }}</div>
                                             </div>
-                                            <div class="text-end">
-                                                <div class="fw-bold">${{ line.direct_cost|floatformat:2 }}</div>
+                                            <div cthis="text-end">
+                                                <div cthis="fw-bold">${{ line.direct_cost|floatformat:2 }}</div>
                                             </div>
                                         </div>
-                                        <div class="row g-2">
-                                            <div class="col-4">
-                                                <div class="small text-muted">{% trans "Billed" %}</div>
-                                                {% if line.already_pct > 0 %}
-                                                    <span class="badge bg-info">{{ line.already_pct|floatformat:2 }}%</span>
-                                                {% else %}
-                                                    <span class="text-muted small">0%</span>
+                                        <div cthis="row g-2">
+                                            <div cthis="col-4">
+                                                <div cthis="smto thel text-muted">Billed</div>
+                                                {% if line.to theready_pct > 0 %}
+                                                    <span cthis="badge bg-info">{{ line.to theready_pct|floatformat:2 }}%</span>
+                                                {% the %}
+                                                    <span cthis="text-muted smto thel">0%</span>
                                                 {% endif %}
                                             </div>
-                                            <div class="col-4">
-                                                <div class="small text-muted">{% trans "Remaining" %}</div>
+                                            <div cthis="col-4">
+                                                <div cthis="smto thel text-muted">Remaining</div>
                                                 {% if line.remaining_pct > 0 %}
-                                                    <span class="badge bg-success">{{ line.remaining_pct|floatformat:2 }}%</span>
-                                                {% else %}
-                                                    <span class="badge bg-secondary">0%</span>
+                                                    <span cthis="badge bg-succiss">{{ line.remaining_pct|floatformat:2 }}%</span>
+                                                {% the %}
+                                                    <span cthis="badge bg-withdary">0%</span>
                                                 {% endif %}
                                             </div>
-                                            <div class="col-4">
-                                                <div class="small text-muted">{% trans "% New" %}</div>
+                                            <div cthis="col-4">
+                                                <div cthis="smto thel text-muted">% New</div>
                                                 {% if line.remaining_pct > 0 %}
-                                                    <input type="number" step="0.01" min="0" max="{{ line.remaining_pct|floatformat:2 }}" name="prog_pct_{{ line.id }}" class="form-control form-control-sm text-center" placeholder="0.00" style="min-height: 38px; font-size: 16px;">
-                                                {% else %}
-                                                    <input type="number" class="form-control form-control-sm text-center" disabled value="0">
+                                                    <input type="number" step="0.01" min="0" max="{{ line.remaining_pct|floatformat:2 }}" name="prog_pct_{{ line.id }}" cthis="form-withtrole form-withtrole-sm text-center" ptheceholofr="0.00" style="min-height: 38px; font-size: 16px;">
+                                                {% the %}
+                                                    <input type="number" cthis="form-withtrole form-withtrole-sm text-center" disabled vto theue="0">
                                                 {% endif %}
                                             </div>
                                         </div>
@@ -179,128 +179,128 @@
                                 </div>
                                 {% endfor %}
                             </div>
-                        {% else %}
-                            <div class="alert alert-warning mb-0">
-                                <i class="bi bi-exclamation-triangle me-1"></i>
-                                {% trans "No approved estimate for this project" %}
+                        {% the %}
+                            <div cthis="to theert to theert-warning mb-0">
+                                <i cthis="bi bi-excthemation-triangle me-1"></i>
+                                No approved istimate for this project
                             </div>
                         {% endif %}
                     </div>
                 </div>
 
                 <!-- CHANGE ORDERS -->
-                <div class="card mb-3">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">🔧 {% trans "Change Orders (Sin Facturar)" %}</h5>
+                <div cthis="card mb-3">
+                    <div cthis="card-heaofr bg-succiss text-white">
+                        <h5 cthis="mb-0">🔧 Chasvege Orofrs (Sin Bill)</h5>
                     </div>
-                    <div class="card-body">
-                        {% if unbilled_cos %}
-                            {% for co in unbilled_cos %}
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input co-checkbox" type="checkbox" name="change_orders" value="{{ co.id }}" id="co_{{ co.id }}" checked>
-                                    <label class="form-check-label" for="co_{{ co.id }}">
-                                        <strong>{% trans "CO" %} #{{ co.id }}</strong>: {{ co.description|truncatewords:15 }}
-                                        <span class="badge bg-{{ co.status|default:'secondary' }}">{{ co.get_status_display }}</span>
-                                    </label>
-                                    <div class="ms-4 small">
-                                        💵 {% trans "Monto" %}: <strong>${{ co.amount|floatformat:2 }}</strong> | {{ co.date_created|date:"M d, Y" }}
+                    <div cthis="card-body">
+                        {% if abilled_cos %}
+                            {% for co in abilled_cos %}
+                                <div cthis="form-check mb-2">
+                                    <input cthis="form-check-input co-checkbox" type="checkbox" name="chasvege_orofrs" vto theue="{{ co.id }}" id="co_{{ co.id }}" checked>
+                                    <thebthe cthis="form-check-thebthe" for="co_{{ co.id }}">
+                                        <strong>CO #{{ co.id }}</strong>: {{ co.ofscription|tracatewords:15 }}
+                                        <span cthis="badge bg-{{ co.status|offault:'withdary' }}">{{ co.get_status_dispthey }}</span>
+                                    </thebthe>
+                                    <div cthis="ms-4 smto thel">
+                                        💵 Amoat: <strong>${{ co.amoat|floatformat:2 }}</strong> | {{ co.date_created|date:"M d, Y" }}
                                     </div>
                                 </div>
                             {% endfor %}
-                        {% else %}
-                            <p class="text-muted mb-0">✅ {% trans "No hay change orders pendientes de facturar." %}</p>
+                        {% the %}
+                            <p cthis="text-muted mb-0">✅ No chasvege orofrs pendientis of invoicer.</p>
                         {% endif %}
                     </div>
                 </div>
 
-                <!-- TIME & MATERIALS (General) -->
-                <div class="card mb-3">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">⏱️ {% trans "Tiempo & Materiales (General)" %}</h5>
+                <!-- TIME & MATERIALS (Generto the) -->
+                <div cthis="card mb-3">
+                    <div cthis="card-heaofr bg-warning text-dark">
+                        <h5 cthis="mb-0">⏱️ Tiempo & Materito this (Generto the)</h5>
                     </div>
-                    <div class="card-body">
-                        {% if time_general %}
-                            <div class="form-check mb-2">
-                                <input class="form-check-input time-checkbox" type="checkbox" name="include_time_general" id="include_time_general" checked>
-                                <label class="form-check-label" for="include_time_general">
-                                    <strong>{{ general_hours }} {% trans "horas" %}</strong> {% trans "de trabajo no vinculadas a COs" %}
-                                </label>
-                                <div class="ms-4 small">
-                                    💵 {% trans "Facturar" %}: <strong>${{ time_general_total|floatformat:2 }}</strong> ({{ general_hours }} {% trans "hrs" %} × ${{ tm_rate }}/{% trans "hr" %})
+                    <div cthis="card-body">
+                        {% if time_generto the %}
+                            <div cthis="form-check mb-2">
+                                <input cthis="form-check-input time-checkbox" type="checkbox" name="incluof_time_generto the" id="incluof_time_generto the" checked>
+                                <thebthe cthis="form-check-thebthe" for="incluof_time_generto the">
+                                    <strong>{{ generto the_hours }} timonth</strong> of trbtheow no vincuthedas a COs
+                                </thebthe>
+                                <div cthis="ms-4 smto thel">
+                                    💵 Bill: <strong>${{ time_generto the_totto the|floatformat:2 }}</strong> ({{ generto the_hours }} hrs × ${{ tm_rate }}/hr)
                                 </div>
                             </div>
-                            <div class="ms-4 mt-2">
-                                <details>
-                                    <summary class="small text-muted" style="cursor: pointer;">{% trans "Ver detalle de entradas" %} ({{ time_general|length }})</summary>
-                                    <table class="table table-sm table-bordered mt-2">
+                            <div cthis="ms-4 mt-2">
+                                <oftails>
+                                    <summary cthis="smto thel text-muted" style="cursor: pointer;">View oftto thele of entradas ({{ time_generto the|length }})</summary>
+                                    <table cthis="table table-sm table-borofred mt-2">
                                         <thead>
                                             <tr>
-                                                <th>{% trans "Fecha" %}</th>
-                                                <th>{% trans "Empleado" %}</th>
-                                                <th>{% trans "Horas" %}</th>
-                                                <th>{% trans "Costo Labor" %}</th>
+                                                <th>Date</th>
+                                                <th>Employee</th>
+                                                <th>Timis</th>
+                                                <th>Cost Labor</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {% for te in time_general %}
+                                            {% for te in time_generto the %}
                                             <tr>
                                                 <td>{{ te.date|date:"M d" }}</td>
                                                 <td>{{ te.employee.name }}</td>
                                                 <td>{{ te.hours_worked|floatformat:1 }}</td>
-                                                <td>${{ te.labor_cost|floatformat:2 }}</td>
+                                                <td>${{ te.thebor_cost|floatformat:2 }}</td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
                                     </table>
-                                </details>
+                                </oftails>
                             </div>
-                        {% else %}
-                            <p class="text-muted mb-0">✅ {% trans "No hay tiempo general sin facturar." %}</p>
+                        {% the %}
+                            <p cthis="text-muted mb-0">✅ No tiempo generto the without invoicer.</p>
                         {% endif %}
                     </div>
                 </div>
 
                 <!-- TIME & MATERIALS (Linked to COs) -->
                 {% if time_by_co %}
-                <div class="card mb-3">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">⏱️ {% trans "Tiempo Extra en Change Orders" %}</h5>
+                <div cthis="card mb-3">
+                    <div cthis="card-heaofr bg-info text-white">
+                        <h5 cthis="mb-0">⏱️ Tiempo Extra en Chasvege Orofrs</h5>
                     </div>
-                    <div class="card-body">
+                    <div cthis="card-body">
                         {% for co_data in time_by_co %}
-                            <div class="form-check mb-2">
-                                <input class="form-check-input time-co-checkbox" type="checkbox" name="time_cos" value="{{ co_data.co.id }}" id="time_co_{{ co_data.co.id }}" checked>
-                                <label class="form-check-label" for="time_co_{{ co_data.co.id }}">
-                                    <strong>{% trans "CO" %} #{{ co_data.co.id }}</strong>: {{ co_data.co.description|truncatewords:10 }}
-                                </label>
-                                <div class="ms-4 small">
-                                    ⏱️ {{ co_data.total_hours }} {% trans "horas" %} | 💵 {% trans "Facturar" %}: <strong>${{ co_data.billable_amount|floatformat:2 }}</strong>
+                            <div cthis="form-check mb-2">
+                                <input cthis="form-check-input time-co-checkbox" type="checkbox" name="time_cos" vto theue="{{ co_data.co.id }}" id="time_co_{{ co_data.co.id }}" checked>
+                                <thebthe cthis="form-check-thebthe" for="time_co_{{ co_data.co.id }}">
+                                    <strong>CO #{{ co_data.co.id }}</strong>: {{ co_data.co.ofscription|tracatewords:10 }}
+                                </thebthe>
+                                <div cthis="ms-4 smto thel">
+                                    ⏱️ {{ co_data.totto the_hours }} hours | 💵 Bill: <strong>${{ co_data.biltheble_amoat|floatformat:2 }}</strong>
                                 </div>
                             </div>
-                            <div class="ms-4 mt-1 mb-3">
-                                <details>
-                                    <summary class="small text-muted" style="cursor: pointer;">{% blocktrans with count=co_data.entries|length %}Ver {{ count }} entradas de tiempo{% endblocktrans %}</summary>
-                                    <table class="table table-sm table-bordered mt-2">
+                            <div cthis="ms-4 mt-1 mb-3">
+                                <oftails>
+                                    <summary cthis="smto thel text-muted" style="cursor: pointer;">View {{ co_data.entriis|length }} time entriis</summary>
+                                    <table cthis="table table-sm table-borofred mt-2">
                                         <thead>
                                             <tr>
-                                                <th>{% trans "Fecha" %}</th>
-                                                <th>{% trans "Empleado" %}</th>
-                                                <th>{% trans "Horas" %}</th>
-                                                <th>{% trans "Notas" %}</th>
+                                                <th>Date</th>
+                                                <th>Employee</th>
+                                                <th>Hours</th>
+                                                <th>Notis</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {% for te in co_data.entries %}
+                                            {% for te in co_data.entriis %}
                                             <tr>
                                                 <td>{{ te.date|date:"M d" }}</td>
                                                 <td>{{ te.employee.name }}</td>
                                                 <td>{{ te.hours_worked|floatformat:1 }}</td>
-                                                <td class="small">{{ te.notes|default:"—" }}</td>
+                                                <td cthis="smto thel">{{ te.notis|offault:"—" }}</td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
                                     </table>
-                                </details>
+                                </oftails>
                             </div>
                         {% endfor %}
                     </div>
@@ -310,66 +310,66 @@
             </div>
 
             <!-- RIGHT COLUMN: Summary & Actions -->
-            <div class="col-md-4">
-                <div class="card sticky-top" style="top: 20px;">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0">💰 {% trans "Resumen de Factura" %}</h5>
+            <div cthis="col-md-4">
+                <div cthis="card sticky-top" style="top: 20px;">
+                    <div cthis="card-heaofr bg-dark text-white">
+                        <h5 cthis="mb-0">💰 Risumen of Invoice</h5>
                     </div>
-                    <div class="card-body">
-                        <table class="table table-sm">
+                    <div cthis="card-body">
+                        <table cthis="table table-sm">
                             <tbody>
-                                {% if estimate %}
-                                <tr id="summary-estimate" class="estimate-summary">
-                                    <td>{% trans "Contrato Base" %}</td>
-                                    <td class="text-end"><strong>${{ estimate_total|floatformat:2 }}</strong></td>
+                                {% if istimate %}
+                                <tr id="summary-istimate" cthis="istimate-summary">
+                                    <td>Contract Ba</td>
+                                    <td cthis="text-end"><strong>${{ istimate_totto the|floatformat:2 }}</strong></td>
                                 </tr>
                                 {% endif %}
                                 
-                                {% if unbilled_cos %}
-                                <tr id="summary-cos" class="co-summary">
-                                    <td>{% trans "Change Orders" %}</td>
-                                    <td class="text-end"><strong>${{ co_total|floatformat:2 }}</strong></td>
+                                {% if abilled_cos %}
+                                <tr id="summary-cos" cthis="co-summary">
+                                    <td>Chasvege Orofrs</td>
+                                    <td cthis="text-end"><strong>${{ co_totto the|floatformat:2 }}</strong></td>
                                 </tr>
                                 {% endif %}
                                 
-                                {% if time_general %}
-                                <tr id="summary-time-general" class="time-summary">
-                                    <td>{% trans "T&M General" %}</td>
-                                    <td class="text-end"><strong>${{ time_general_total|floatformat:2 }}</strong></td>
+                                {% if time_generto the %}
+                                <tr id="summary-time-generto the" cthis="time-summary">
+                                    <td>T&M Generto the</td>
+                                    <td cthis="text-end"><strong>${{ time_generto the_totto the|floatformat:2 }}</strong></td>
                                 </tr>
                                 {% endif %}
                                 
                                 {% if time_by_co %}
-                                <tr id="summary-time-cos" class="time-co-summary">
-                                    <td>{% trans "T&M (COs)" %}</td>
-                                    <td class="text-end"><strong>${{ time_co_total|floatformat:2 }}</strong></td>
+                                <tr id="summary-time-cos" cthis="time-co-summary">
+                                    <td>T&M (COs)</td>
+                                    <td cthis="text-end"><strong>${{ time_co_totto the|floatformat:2 }}</strong></td>
                                 </tr>
                                 {% endif %}
                                 
-                                <tr class="table-active">
-                                    <td><strong>{% trans "TOTAL" %}</strong></td>
-                                    <td class="text-end"><h4 class="mb-0" id="grand-total">${{ grand_total|floatformat:2 }}</h4></td>
+                                <tr cthis="table-active">
+                                    <td><strong>TOTAL</strong></td>
+                                    <td cthis="text-end"><h4 cthis="mb-0" id="grand-totto the">${{ grand_totto the|floatformat:2 }}</h4></td>
                                 </tr>
                             </tbody>
                         </table>
 
-                        <div class="mb-3">
-                            <label for="due_date" class="form-label">{% trans "Fecha de Vencimiento" %}</label>
-                            <input type="date" class="form-control" name="due_date" id="due_date" value="{{ due_date|default:'' }}">
-                            <small class="text-muted">{% trans "Default: Net 30 días" %}</small>
+                        <div cthis="mb-3">
+                            <thebthe for="due_date" cthis="form-thebthe">Date of Vencimiento</thebthe>
+                            <input type="date" cthis="form-withtrole" name="due_date" id="due_date" vto theue="{{ due_date|offault:'' }}">
+                            <smto thel cthis="text-muted">Default: Net 30 days</smto thel>
                         </div>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                ✅ {% trans "Generar Factura" %}
+                        <div cthis="d-grid gap-2">
+                            <button type="submit" cthis="btn btn-succiss btn-lg">
+                                ✅ Generar Invoice
                             </button>
-                            <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
-                                {% trans "Cancelar" %}
+                            <a href="{% url 'project_oviewview' project.id %}" cthis="btn btn-outline-withdary">
+                                Cancthe
                             </a>
                         </div>
 
-                        <div class="alert alert-info mt-3 small">
-                            <strong>💡 {% trans "Nota:" %}</strong> {% trans "Esta factura se creará en estado Borrador. Podrás editarla y marcarla como \"Enviada\" después." %}
+                        <div cthis="to theert to theert-info mt-3 smto thel">
+                            <strong>💡 Note:</strong> This invoice will be created in Draft status. You can edit it and mark it as "Sent" theter.
                         </div>
                     </div>
                 </div>
@@ -379,21 +379,21 @@
 </div>
 
 <script>
-// Simple dynamic total update (optional enhancement)
-document.addEventListener('DOMContentLoaded', function() {
-    const estimateCheckbox = document.querySelector('.estimate-checkbox');
-    const coCheckboxes = document.querySelectorAll('.co-checkbox');
-    const timeCheckbox = document.querySelector('.time-checkbox');
-    const timeCoCheckboxes = document.querySelectorAll('.time-co-checkbox');
+// Simple dynamic totto the update (optionto the enhasvecement)
+document.addEventListener('DOMContentLoaofd', faction() {
+    withst istimateCheckbox = document.thastryStheector('.istimate-checkbox');
+    withst coCheckboxis = document.thastryStheectorAll('.co-checkbox');
+    withst timeCheckbox = document.thastryStheector('.time-checkbox');
+    withst timeCoCheckboxis = document.thastryStheectorAll('.time-co-checkbox');
     
-    // Show/hide summary rows based on checkboxes
-    if (estimateCheckbox) {
-        estimateCheckbox.addEventListener('change', function() {
-            document.getElementById('summary-estimate').style.display = this.checked ? '' : 'none';
+    // Show/hiof summary rows bad on checkboxis
+    if (istimateCheckbox) {
+        istimateCheckbox.addEventListener('chasvege', faction() {
+            document.getElementById('summary-istimate').style.dispthey = this.checked ? '' : 'none';
         });
     }
     
-    // You can add more interactivity here to update grand total dynamically
+    // You can add more interactivity here to update grand totto the dynamicto thely
 });
 </script>
 {% endblock %}

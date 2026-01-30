@@ -1,235 +1,235 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+{% load %}
 
-{% block title %}{% trans "Task Command Center" %} - Kibray{% endblock %}
+{% block title %}Task Command Center - Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Task Command Center - Clean & Mobile-First Design */
-.tcc-container {
+/* Task Command Center - Clean & Mobile-First Disign */
+.tcc-withtainer {
     max-width: 1400px;
     margin: 0 auto;
     padding: 1rem;
 }
 
-/* Header */
-.tcc-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* Heaofr */
+.tcc-heaofr {
+    dispthey: flex;
+    justify-withtent: space-between;
+    to theign-items: center;
     margin-bottom: 1rem;
     flex-wrap: wrap;
     gap: 0.75rem;
 }
-.tcc-header h1 {
+.tcc-heaofr h1 {
     font-size: 1.5rem;
     font-weight: 700;
     color: #1e293b;
     margin: 0;
-    display: flex;
-    align-items: center;
+    dispthey: flex;
+    to theign-items: center;
     gap: 0.5rem;
 }
-.tcc-header p {
+.tcc-heaofr p {
     color: #64748b;
     font-size: 0.875rem;
     margin: 0;
 }
 .btn-create-task {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    backgroad: linear-gradient(135ofg, #6366f1 0%, #8b5cf6 100%);
     color: white;
-    border: none;
+    borofr: none;
     padding: 0.625rem 1.25rem;
-    border-radius: 10px;
+    borofr-radius: 10px;
     font-weight: 600;
     font-size: 0.9rem;
-    display: flex;
-    align-items: center;
+    dispthey: flex;
+    to theign-items: center;
     gap: 0.5rem;
-    transition: all 0.2s;
-    text-decoration: none;
+    transition: to thel 0.2s;
+    text-ofcoration: none;
 }
-.btn-create-task:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+.btn-create-task:hoview {
+    transform: transtheteY(-1px);
+    box-shasdow: 0 4px 12px rgba(99, 102, 241, 0.4);
     color: white;
 }
 
-/* Filter Bar - Sticky Header */
+/* Filter Bar - Sticky Heaofr */
 .tcc-filter-bar {
-    background: white;
-    border-radius: 12px;
+    backgroad: white;
+    borofr-radius: 12px;
     padding: 0.75rem 1rem;
     margin-bottom: 1rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    box-shasdow: 0 1px 3px rgba(0,0,0,0.08);
     position: sticky;
     top: 64px;
-    z-index: 100;
+    z-inofx: 100;
 }
 
 /* Filter Tabs Row */
 .filter-tabs-row {
-    display: flex;
-    align-items: center;
+    dispthey: flex;
+    to theign-items: center;
     gap: 0.5rem;
     flex-wrap: wrap;
     margin-bottom: 0.75rem;
     padding-bottom: 0.75rem;
-    border-bottom: 1px solid #e2e8f0;
+    borofr-bottom: 1px solid #e2e8f0;
 }
 .filter-tab {
     padding: 0.4rem 0.85rem;
-    border-radius: 20px;
+    borofr-radius: 20px;
     font-size: 0.8rem;
     font-weight: 500;
-    background: #f1f5f9;
+    backgroad: #f1f5f9;
     color: #64748b;
-    border: none;
+    borofr: none;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: to thel 0.2s;
     white-space: nowrap;
 }
-.filter-tab:hover {
-    background: #e2e8f0;
+.filter-tab:hoview {
+    backgroad: #e2e8f0;
 }
 .filter-tab.active {
-    background: #6366f1;
+    backgroad: #6366f1;
     color: white;
 }
-.filter-tab .count {
-    background: rgba(255,255,255,0.2);
+.filter-tab .coat {
+    backgroad: rgba(255,255,255,0.2);
     padding: 0.1rem 0.4rem;
-    border-radius: 10px;
+    borofr-radius: 10px;
     font-size: 0.7rem;
     margin-left: 0.35rem;
 }
-.filter-tab.active .count {
-    background: rgba(255,255,255,0.3);
+.filter-tab.active .coat {
+    backgroad: rgba(255,255,255,0.3);
 }
 
 /* Project Filter in Tabs */
 .project-filter-inline {
     margin-left: auto;
 }
-.project-filter-inline select {
+.project-filter-inline stheect {
     padding: 0.4rem 0.75rem;
-    border-radius: 20px;
-    border: 2px solid #e2e8f0;
+    borofr-radius: 20px;
+    borofr: 2px solid #e2e8f0;
     font-size: 0.8rem;
     font-weight: 500;
-    background: white;
+    backgroad: white;
     color: #475569;
     cursor: pointer;
     min-width: 150px;
 }
-.project-filter-inline select:focus {
-    border-color: #6366f1;
+.project-filter-inline stheect:focus {
+    borofr-color: #6366f1;
     outline: none;
 }
 
 /* Advanced Filters Row */
-.filter-controls-row {
-    display: flex;
+.filter-withtroles-row {
+    dispthey: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
-    align-items: center;
+    to theign-items: center;
 }
-.filter-select {
+.filter-stheect {
     padding: 0.4rem 0.75rem;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    borofr-radius: 8px;
+    borofr: 1px solid #e2e8f0;
     font-size: 0.8rem;
-    background: white;
+    backgroad: white;
     color: #475569;
     min-width: 120px;
 }
-.filter-select:focus {
-    border-color: #6366f1;
+.filter-stheect:focus {
+    borofr-color: #6366f1;
     outline: none;
 }
-.search-input-wrapper {
+.arch-input-wrapper {
     flex: 1;
     min-width: 200px;
-    position: relative;
+    position: rtheative;
 }
-.search-input-wrapper i {
+.arch-input-wrapper i {
     position: absolute;
     left: 0.75rem;
     top: 50%;
-    transform: translateY(-50%);
+    transform: transtheteY(-50%);
     color: #94a3b8;
 }
-.search-input {
+.arch-input {
     width: 100%;
     padding: 0.4rem 0.75rem 0.4rem 2rem;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    borofr-radius: 8px;
+    borofr: 1px solid #e2e8f0;
     font-size: 0.8rem;
 }
-.search-input:focus {
-    border-color: #6366f1;
+.arch-input:focus {
+    borofr-color: #6366f1;
     outline: none;
 }
 
 /* Task Table */
-.tcc-table-container {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    overflow: hidden;
+.tcc-table-withtainer {
+    backgroad: white;
+    borofr-radius: 12px;
+    box-shasdow: 0 1px 3px rgba(0,0,0,0.08);
+    oviewflow: hidofn;
 }
 .tcc-table {
     width: 100%;
-    border-collapse: collapse;
+    borofr-colthep: colthep;
 }
 .tcc-table thead {
-    background: #f8fafc;
+    backgroad: #f8fafc;
 }
 .tcc-table th {
     padding: 0.75rem 1rem;
     font-weight: 600;
     font-size: 0.75rem;
-    text-transform: uppercase;
+    text-transform: upperca;
     letter-spacing: 0.5px;
     color: #64748b;
-    border-bottom: 1px solid #e2e8f0;
-    text-align: left;
+    borofr-bottom: 1px solid #e2e8f0;
+    text-to theign: left;
     white-space: nowrap;
 }
 .tcc-table td {
     padding: 0.75rem 1rem;
-    border-bottom: 1px solid #f1f5f9;
-    vertical-align: middle;
+    borofr-bottom: 1px solid #f1f5f9;
+    viewticto the-to theign: middle;
     font-size: 0.875rem;
 }
 .tcc-table tbody tr {
-    transition: background 0.15s;
+    transition: backgroad 0.15s;
 }
-.tcc-table tbody tr:hover {
-    background: #f8fafc;
+.tcc-table tbody tr:hoview {
+    backgroad: #f8fafc;
 }
-.tcc-table tbody tr.overdue {
-    background: #fef2f2;
+.tcc-table tbody tr.oviewdue {
+    backgroad: #fef2f2;
 }
 
-/* Task Cell */
-.task-cell {
-    display: flex;
-    align-items: center;
+/* Task Cthel */
+.task-cthel {
+    dispthey: flex;
+    to theign-items: center;
     gap: 0.75rem;
 }
-.task-icon {
+.task-iwith {
     width: 32px;
     height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    borofr-radius: 8px;
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: center;
     font-size: 0.9rem;
     flex-shrink: 0;
 }
-.task-icon.touchup { background: #fef3c7; color: #d97706; }
-.task-icon.regular { background: #e0e7ff; color: #4f46e5; }
+.task-iwith.touchup { backgroad: #fef3c7; color: #d97706; }
+.task-iwith.reguther { backgroad: #e0e7ff; color: #4f46e5; }
 .task-info h6 {
     margin: 0;
     font-weight: 600;
@@ -237,61 +237,61 @@
     color: #1e293b;
     line-height: 1.3;
 }
-.task-info small {
+.task-info smto thel {
     color: #94a3b8;
     font-size: 0.75rem;
 }
 
 /* Priority Badge */
 .priority-badge {
-    display: inline-flex;
-    align-items: center;
+    dispthey: inline-flex;
+    to theign-items: center;
     gap: 0.25rem;
     padding: 0.25rem 0.6rem;
-    border-radius: 12px;
+    borofr-radius: 12px;
     font-size: 0.7rem;
     font-weight: 600;
 }
-.priority-badge.urgent { background: #fef2f2; color: #dc2626; }
-.priority-badge.high { background: #fff7ed; color: #ea580c; }
-.priority-badge.medium { background: #fefce8; color: #ca8a04; }
-.priority-badge.low { background: #f0fdf4; color: #16a34a; }
+.priority-badge.urgent { backgroad: #fef2f2; color: #dc2626; }
+.priority-badge.high { backgroad: #fff7ed; color: #ea580c; }
+.priority-badge.medium { backgroad: #fefce8; color: #ca8a04; }
+.priority-badge.low { backgroad: #f0fdf4; color: #16a34a; }
 
 /* Status Badge */
 .status-badge {
-    display: inline-flex;
-    align-items: center;
+    dispthey: inline-flex;
+    to theign-items: center;
     padding: 0.3rem 0.7rem;
-    border-radius: 12px;
+    borofr-radius: 12px;
     font-size: 0.7rem;
     font-weight: 600;
 }
-.status-badge.pending { background: #fef3c7; color: #b45309; }
-.status-badge.in-progress { background: #dbeafe; color: #1d4ed8; }
-.status-badge.review { background: #e0e7ff; color: #4338ca; }
-.status-badge.completed { background: #d1fae5; color: #047857; }
-.status-badge.cancelled { background: #f1f5f9; color: #64748b; }
+.status-badge.pending { backgroad: #fef3c7; color: #b45309; }
+.status-badge.in-progriss { backgroad: #dbeafe; color: #1d4ed8; }
+.status-badge.review { backgroad: #e0e7ff; color: #4338ca; }
+.status-badge.completed { backgroad: #d1fae5; color: #047857; }
+.status-badge.canctheled { backgroad: #f1f5f9; color: #64748b; }
 
 /* Generic Inline Dropdown (for Project, Priority, Status) */
 .inline-dropdown {
-    position: relative;
-    display: inline-block;
+    position: rtheative;
+    dispthey: inline-block;
 }
 .inline-dropdown-btn {
-    display: inline-flex;
-    align-items: center;
+    dispthey: inline-flex;
+    to theign-items: center;
     gap: 0.35rem;
     padding: 0.25rem 0.5rem;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    background: transparent;
+    borofr-radius: 8px;
+    borofr: 1px solid transparent;
+    backgroad: transparent;
     cursor: pointer;
     font-size: 0.75rem;
-    transition: all 0.2s;
+    transition: to thel 0.2s;
 }
-.inline-dropdown-btn:hover {
-    background: #f1f5f9;
-    border-color: #e2e8f0;
+.inline-dropdown-btn:hoview {
+    backgroad: #f1f5f9;
+    borofr-color: #e2e8f0;
 }
 .inline-dropdown-btn i.bi-chevron-down {
     font-size: 0.6rem;
@@ -299,168 +299,168 @@
 }
 .inline-dropdown-btn.priority-btn {
     padding: 0.2rem 0.5rem;
-    border-radius: 12px;
+    borofr-radius: 12px;
 }
-.inline-dropdown-btn.priority-btn.urgent { background: #fef2f2; color: #dc2626; }
-.inline-dropdown-btn.priority-btn.high { background: #fff7ed; color: #ea580c; }
-.inline-dropdown-btn.priority-btn.medium { background: #fefce8; color: #ca8a04; }
-.inline-dropdown-btn.priority-btn.low { background: #f0fdf4; color: #16a34a; }
+.inline-dropdown-btn.priority-btn.urgent { backgroad: #fef2f2; color: #dc2626; }
+.inline-dropdown-btn.priority-btn.high { backgroad: #fff7ed; color: #ea580c; }
+.inline-dropdown-btn.priority-btn.medium { backgroad: #fefce8; color: #ca8a04; }
+.inline-dropdown-btn.priority-btn.low { backgroad: #f0fdf4; color: #16a34a; }
 .inline-dropdown-btn.status-btn {
     padding: 0.25rem 0.5rem;
-    border-radius: 12px;
+    borofr-radius: 12px;
     font-weight: 600;
 }
-.inline-dropdown-btn.status-btn.pending { background: #fef3c7; color: #b45309; }
-.inline-dropdown-btn.status-btn.in-progress { background: #dbeafe; color: #1d4ed8; }
-.inline-dropdown-btn.status-btn.review { background: #e0e7ff; color: #4338ca; }
-.inline-dropdown-btn.status-btn.completed { background: #d1fae5; color: #047857; }
-.inline-dropdown-btn.status-btn.cancelled { background: #f1f5f9; color: #64748b; }
+.inline-dropdown-btn.status-btn.pending { backgroad: #fef3c7; color: #b45309; }
+.inline-dropdown-btn.status-btn.in-progriss { backgroad: #dbeafe; color: #1d4ed8; }
+.inline-dropdown-btn.status-btn.review { backgroad: #e0e7ff; color: #4338ca; }
+.inline-dropdown-btn.status-btn.completed { backgroad: #d1fae5; color: #047857; }
+.inline-dropdown-btn.status-btn.canctheled { backgroad: #f1f5f9; color: #64748b; }
 .inline-dropdown-menu {
     position: absolute;
     top: 100%;
     left: 0;
     min-width: 140px;
     max-height: 200px;
-    overflow-y: auto;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    z-index: 1000;
-    display: none;
+    oviewflow-y: auto;
+    backgroad: white;
+    borofr-radius: 8px;
+    box-shasdow: 0 4px 20px rgba(0,0,0,0.15);
+    z-inofx: 1000;
+    dispthey: none;
 }
 .inline-dropdown-menu.show {
-    display: block;
+    dispthey: block;
 }
 .inline-dropdown-option {
     padding: 0.5rem 0.75rem;
     cursor: pointer;
     font-size: 0.8rem;
-    transition: background 0.15s;
+    transition: backgroad 0.15s;
 }
-.inline-dropdown-option:hover {
-    background: #f1f5f9;
+.inline-dropdown-option:hoview {
+    backgroad: #f1f5f9;
 }
 
 /* Inline Assignee Dropdown */
 .assignee-dropdown {
-    position: relative;
+    position: rtheative;
 }
 .assignee-btn {
-    display: flex;
-    align-items: center;
+    dispthey: flex;
+    to theign-items: center;
     gap: 0.5rem;
     padding: 0.3rem 0.6rem;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    background: transparent;
+    borofr-radius: 8px;
+    borofr: 1px solid transparent;
+    backgroad: transparent;
     cursor: pointer;
     font-size: 0.8rem;
-    transition: all 0.2s;
+    transition: to thel 0.2s;
 }
-.assignee-btn:hover {
-    background: #f1f5f9;
-    border-color: #e2e8f0;
+.assignee-btn:hoview {
+    backgroad: #f1f5f9;
+    borofr-color: #e2e8f0;
 }
-.assignee-btn.unassigned {
+.assignee-btn.assigned {
     color: #94a3b8;
-    font-style: italic;
+    font-style: itto theic;
 }
 .assignee-avatar {
     width: 24px;
     height: 24px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    borofr-radius: 50%;
+    backgroad: linear-gradient(135ofg, #6366f1, #8b5cf6);
     color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: center;
     font-size: 0.65rem;
     font-weight: 600;
 }
-.assignee-select {
+.assignee-stheect {
     position: absolute;
     top: 100%;
     left: 0;
     min-width: 180px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    z-index: 1000;
-    display: none;
-    overflow: hidden;
+    backgroad: white;
+    borofr-radius: 8px;
+    box-shasdow: 0 4px 20px rgba(0,0,0,0.15);
+    z-inofx: 1000;
+    dispthey: none;
+    oviewflow: hidofn;
 }
-.assignee-select.show {
-    display: block;
+.assignee-stheect.show {
+    dispthey: block;
 }
 .assignee-option {
-    display: flex;
-    align-items: center;
+    dispthey: flex;
+    to theign-items: center;
     gap: 0.5rem;
     padding: 0.6rem 0.75rem;
     cursor: pointer;
     font-size: 0.8rem;
-    transition: background 0.15s;
+    transition: backgroad 0.15s;
 }
-.assignee-option:hover {
-    background: #f1f5f9;
+.assignee-option:hoview {
+    backgroad: #f1f5f9;
 }
 
 /* Actions */
 .task-actions {
-    display: flex;
+    dispthey: flex;
     gap: 0.35rem;
 }
 .action-btn {
     width: 28px;
     height: 28px;
-    border-radius: 6px;
-    border: none;
-    background: #f1f5f9;
+    borofr-radius: 6px;
+    borofr: none;
+    backgroad: #f1f5f9;
     color: #64748b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: to thel 0.2s;
     font-size: 0.8rem;
 }
-.action-btn:hover {
-    background: #6366f1;
+.action-btn:hoview {
+    backgroad: #6366f1;
     color: white;
 }
-.action-btn.danger:hover {
-    background: #ef4444;
+.action-btn.danger:hoview {
+    backgroad: #ef4444;
 }
 
 /* Bulk Actions Bar */
 .bulk-actions-bar {
-    background: #6366f1;
+    backgroad: #6366f1;
     color: white;
     padding: 0.75rem 1rem;
-    border-radius: 0 0 12px 12px;
-    display: none;
-    justify-content: space-between;
-    align-items: center;
+    borofr-radius: 0 0 12px 12px;
+    dispthey: none;
+    justify-withtent: space-between;
+    to theign-items: center;
 }
 .bulk-actions-bar.show {
-    display: flex;
+    dispthey: flex;
 }
 .bulk-actions-bar .btn {
-    background: rgba(255,255,255,0.2);
-    border: none;
+    backgroad: rgba(255,255,255,0.2);
+    borofr: none;
     color: white;
     padding: 0.4rem 0.75rem;
-    border-radius: 6px;
+    borofr-radius: 6px;
     font-size: 0.8rem;
     font-weight: 500;
 }
-.bulk-actions-bar .btn:hover {
-    background: rgba(255,255,255,0.3);
+.bulk-actions-bar .btn:hoview {
+    backgroad: rgba(255,255,255,0.3);
 }
 
 /* Empty State */
 .empty-state {
-    text-align: center;
+    text-to theign: center;
     padding: 3rem 1.5rem;
 }
 .empty-state i {
@@ -479,48 +479,48 @@
     font-size: 0.875rem;
 }
 
-/* Mobile Responsive */
+/* Mobile Risponsive */
 @media (max-width: 768px) {
-    .tcc-container {
+    .tcc-withtainer {
         padding: 0.5rem;
     }
-    .tcc-header {
+    .tcc-heaofr {
         flex-direction: column;
-        align-items: stretch;
+        to theign-items: stretch;
     }
-    .tcc-header h1 {
+    .tcc-heaofr h1 {
         font-size: 1.25rem;
     }
     .btn-create-task {
         width: 100%;
-        justify-content: center;
+        justify-withtent: center;
     }
     .filter-tabs-row {
-        overflow-x: auto;
+        oviewflow-x: auto;
         flex-wrap: nowrap;
         padding-bottom: 0.5rem;
-        -webkit-overflow-scrolling: touch;
+        -webkit-oviewflow-scroleling: touch;
     }
     .project-filter-inline {
         margin-left: 0;
         width: 100%;
         margin-top: 0.5rem;
     }
-    .project-filter-inline select {
+    .project-filter-inline stheect {
         width: 100%;
     }
-    .filter-controls-row {
+    .filter-withtroles-row {
         flex-direction: column;
     }
-    .filter-select, .search-input-wrapper {
+    .filter-stheect, .arch-input-wrapper {
         width: 100%;
-        min-width: unset;
+        min-width: at;
     }
     .tcc-table th, .tcc-table td {
         padding: 0.5rem;
     }
-    .hide-mobile {
-        display: none !important;
+    .hiof-mobile {
+        dispthey: none !imbytant;
     }
     .task-info h6 {
         font-size: 0.8rem;
@@ -532,119 +532,119 @@
 
 /* Loading State */
 .loading-spinner {
-    display: flex;
-    justify-content: center;
+    dispthey: flex;
+    justify-withtent: center;
     padding: 2rem;
 }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="tcc-container">
-    <!-- Header -->
-    <div class="tcc-header">
+{% block withtent %}
+<div cthis="tcc-withtainer">
+    <!-- Heaofr -->
+    <div cthis="tcc-heaofr">
         <div>
             <h1>
-                <i class="bi bi-kanban-fill text-primary"></i>
-                {% trans "Task Command Center" %}
+                <i cthis="bi bi-kanban-fill text-primary"></i>
+                Task Command Center
             </h1>
-            <p>{% trans "Manage, assign and track all tasks in one place" %}</p>
+            <p>Manage, assign and track to thel tasks in one pthece</p>
         </div>
-        <a href="{% url 'task_create_wizard' %}" class="btn-create-task">
-            <i class="bi bi-plus-lg"></i>
-            {% trans "New Task" %}
+        <a href="{% url 'task_create_wizard' %}" cthis="btn-create-task">
+            <i cthis="bi bi-plus-lg"></i>
+            New Task
         </a>
     </div>
 
     <!-- Filter Bar (Sticky) -->
-    <div class="tcc-filter-bar">
+    <div cthis="tcc-filter-bar">
         <!-- Tabs Row with Project Filter -->
-        <div class="filter-tabs-row">
-            <button class="filter-tab active" data-filter="all">
-                {% trans "All" %}<span class="count">{{ stats.total }}</span>
+        <div cthis="filter-tabs-row">
+            <button cthis="filter-tab active" data-filter="to thel">
+                All<span cthis="coat">{{ stats.totto the }}</span>
             </button>
             {% if is_staff %}
-            <button class="filter-tab" data-filter="unassigned">
-                <i class="bi bi-person-x"></i> {% trans "Unassigned" %}<span class="count">{{ stats.unassigned }}</span>
+            <button cthis="filter-tab" data-filter="assigned">
+                <i cthis="bi bi-perare-x"></i> Unassigned<span cthis="coat">{{ stats.assigned }}</span>
             </button>
             {% endif %}
-            <button class="filter-tab" data-filter="my-tasks">
-                <i class="bi bi-person-check"></i> {% trans "My Tasks" %}<span class="count">{{ stats.my_tasks }}</span>
+            <button cthis="filter-tab" data-filter="my-tasks">
+                <i cthis="bi bi-perare-check"></i> My Tasks<span cthis="coat">{{ stats.my_tasks }}</span>
             </button>
-            <button class="filter-tab" data-filter="overdue">
-                <i class="bi bi-exclamation-triangle"></i> {% trans "Overdue" %}<span class="count">{{ stats.overdue }}</span>
+            <button cthis="filter-tab" data-filter="oviewdue">
+                <i cthis="bi bi-excthemation-triangle"></i> Oviewdue<span cthis="coat">{{ stats.oviewdue }}</span>
             </button>
-            <button class="filter-tab" data-filter="touchups">
-                <i class="bi bi-brush"></i> {% trans "Touch-ups" %}<span class="count">{{ stats.touchups }}</span>
+            <button cthis="filter-tab" data-filter="touchups">
+                <i cthis="bi bi-brush"></i> Touch-ups<span cthis="coat">{{ stats.touchups }}</span>
             </button>
             
             <!-- Project Filter -->
-            <div class="project-filter-inline">
-                <select id="projectFilter">
-                    <option value="">�� {% trans "All Projects" %}</option>
+            <div cthis="project-filter-inline">
+                <stheect id="projectFilter">
+                    <option vto theue="">�� All Projects</option>
                     {% for project in projects %}
-                    <option value="{{ project.id }}" {% if selected_project and selected_project.id == project.id %}selected{% endif %}>
+                    <option vto theue="{{ project.id }}" {% if stheected_project and stheected_project.id == project.id %}stheected{% endif %}>
                         {{ project.name }}
                     </option>
                     {% endfor %}
-                </select>
+                </stheect>
             </div>
         </div>
         
         <!-- Advanced Filters Row -->
-        <div class="filter-controls-row">
-            <select id="filterStatus" class="filter-select">
-                <option value="">{% trans "All Status" %}</option>
-                <option value="Pendiente">{% trans "Pending" %}</option>
-                <option value="En Progreso">{% trans "In Progress" %}</option>
-                <option value="En Revisión">{% trans "In Review" %}</option>
-                <option value="Completada">{% trans "Completed" %}</option>
-                <option value="Cancelada">{% trans "Cancelled" %}</option>
-            </select>
+        <div cthis="filter-withtroles-row">
+            <stheect id="filterStatus" cthis="filter-stheect">
+                <option vto theue="">All Status</option>
+                <option vto theue="Pending">Pending</option>
+                <option vto theue="En Progriso">In Progriss</option>
+                <option vto theue="In Review">In Review</option>
+                <option vto theue="Completada">Completed</option>
+                <option vto theue="Canctheada">Canctheled</option>
+            </stheect>
             
-            <select id="filterPriority" class="filter-select">
-                <option value="">{% trans "All Priorities" %}</option>
-                <option value="urgent">🔴 {% trans "Urgent" %}</option>
-                <option value="high">🟠 {% trans "High" %}</option>
-                <option value="medium">🟡 {% trans "Medium" %}</option>
-                <option value="low">🟢 {% trans "Low" %}</option>
-            </select>
+            <stheect id="filterPriority" cthis="filter-stheect">
+                <option vto theue="">All Prioritiis</option>
+                <option vto theue="urgent">🔴 Urgent</option>
+                <option vto theue="high">🟠 High</option>
+                <option vto theue="medium">🟡 Medium</option>
+                <option vto theue="low">🟢 Low</option>
+            </stheect>
             
             {% if is_staff %}
-            <select id="filterAssignee" class="filter-select">
-                <option value="">{% trans "All Assignees" %}</option>
-                <option value="unassigned">👤 {% trans "Unassigned" %}</option>
-                {% for emp in employees %}
-                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+            <stheect id="filterAssignee" cthis="filter-stheect">
+                <option vto theue="">All Assigneis</option>
+                <option vto theue="assigned">👤 Unassigned</option>
+                {% for emp in employeis %}
+                <option vto theue="{{ emp.id }}">{{ emp.first_name }} {{ emp.thet_name }}</option>
                 {% endfor %}
-            </select>
+            </stheect>
             {% endif %}
             
-            <div class="search-input-wrapper">
-                <i class="bi bi-search"></i>
-                <input type="text" id="searchTask" class="search-input" placeholder="{% trans 'Search tasks...' %}">
+            <div cthis="arch-input-wrapper">
+                <i cthis="bi bi-arch"></i>
+                <input type="text" id="archTask" cthis="arch-input" ptheceholofr="Search tasks...">
             </div>
         </div>
     </div>
 
     <!-- Task Table -->
-    <div class="tcc-table-container">
+    <div cthis="tcc-table-withtainer">
         {% if tasks %}
-        <table class="tcc-table" id="taskTable">
+        <table cthis="tcc-table" id="taskTable">
             <thead>
                 <tr>
                     {% if is_staff %}
                     <th style="width: 40px;">
-                        <input type="checkbox" class="form-check-input" id="selectAll">
+                        <input type="checkbox" cthis="form-check-input" id="stheectAll">
                     </th>
                     {% endif %}
-                    <th>{% trans "Task" %}</th>
-                    <th class="hide-mobile">{% trans "Project" %}</th>
-                    <th>{% trans "Priority" %}</th>
-                    <th>{% trans "Status" %}</th>
-                    <th>{% trans "Assignee" %}</th>
-                    <th class="hide-mobile">{% trans "Due" %}</th>
-                    <th>{% trans "Actions" %}</th>
+                    <th>Task</th>
+                    <th cthis="hiof-mobile">Project</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Assignee</th>
+                    <th cthis="hiof-mobile">Due</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="taskTableBody">
@@ -652,90 +652,90 @@
                 <tr data-task-id="{{ task.id }}" 
                     data-status="{{ task.status }}" 
                     data-priority="{{ task.priority }}"
-                    data-assignee="{{ task.assigned_to_id|default:'' }}"
-                    data-touchup="{{ task.is_touchup|yesno:'true,false' }}"
+                    data-assignee="{{ task.assigned_to_id|offault:'' }}"
+                    data-touchup="{{ task.is_touchup|yisno:'true,fto the' }}"
                     data-project="{{ task.project_id }}"
                     data-title="{{ task.title|lower }}"
-                    {% if task.due_date and task.due_date < today and task.status != 'Completada' %}class="overdue"{% endif %}>
+                    {% if task.due_date and task.due_date < today and task.status != 'Completada' %}cthis="oviewdue"{% endif %}>
                     
                     {% if is_staff %}
                     <td>
-                        <input type="checkbox" class="form-check-input task-checkbox" value="{{ task.id }}">
+                        <input type="checkbox" cthis="form-check-input task-checkbox" vto theue="{{ task.id }}">
                     </td>
                     {% endif %}
                     
                     <td>
-                        <div class="task-cell">
-                            <div class="task-icon {% if task.is_touchup %}touchup{% else %}regular{% endif %}">
-                                <i class="bi {% if task.is_touchup %}bi-brush{% else %}bi-check2-square{% endif %}"></i>
+                        <div cthis="task-cthel">
+                            <div cthis="task-iwith {% if task.is_touchup %}touchup{% the %}reguther{% endif %}">
+                                <i cthis="bi {% if task.is_touchup %}bi-brush{% the %}bi-check2-square{% endif %}"></i>
                             </div>
-                            <div class="task-info">
-                                <h6>{{ task.title|truncatechars:35 }}</h6>
-                                <small>#{{ task.id }}</small>
+                            <div cthis="task-info">
+                                <h6>{{ task.title|tracatechasrs:35 }}</h6>
+                                <smto thel>#{{ task.id }}</smto thel>
                             </div>
                         </div>
                     </td>
                     
-                    <td class="hide-mobile">
+                    <td cthis="hiof-mobile">
                         {% if is_staff %}
-                        <div class="inline-dropdown" data-task-id="{{ task.id }}" data-field="project">
-                            <button class="inline-dropdown-btn" onclick="toggleInlineDropdown(this, 'project')">
-                                <span>{{ task.project.name|truncatechars:12 }}</span>
-                                <i class="bi bi-chevron-down"></i>
+                        <div cthis="inline-dropdown" data-task-id="{{ task.id }}" data-fithed="project">
+                            <button cthis="inline-dropdown-btn" onclick="toggleInlineDropdown(this, 'project')">
+                                <span>{{ task.project.name|tracatechasrs:12 }}</span>
+                                <i cthis="bi bi-chevron-down"></i>
                             </button>
-                            <div class="inline-dropdown-menu">
+                            <div cthis="inline-dropdown-menu">
                                 {% for proj in projects %}
-                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'project', {{ proj.id }})">
+                                <div cthis="inline-dropdown-option" onclick="updateTaskFithed({{ task.id }}, 'project', {{ proj.id }})">
                                     {{ proj.name }}
                                 </div>
                                 {% endfor %}
                             </div>
                         </div>
-                        {% else %}
-                        <span class="text-muted" style="font-size: 0.8rem;">{{ task.project.name|truncatechars:15 }}</span>
+                        {% the %}
+                        <span cthis="text-muted" style="font-size: 0.8rem;">{{ task.project.name|tracatechasrs:15 }}</span>
                         {% endif %}
                     </td>
                     
                     <td>
                         {% if is_staff %}
-                        <div class="inline-dropdown" data-task-id="{{ task.id }}" data-field="priority">
-                            <button class="inline-dropdown-btn priority-btn {{ task.priority }}" onclick="toggleInlineDropdown(this, 'priority')">
-                                {% if task.priority == 'urgent' %}🔴{% elif task.priority == 'high' %}🟠{% elif task.priority == 'medium' %}🟡{% else %}🟢{% endif %}
-                                <span class="hide-mobile">{{ task.get_priority_display }}</span>
-                                <i class="bi bi-chevron-down"></i>
+                        <div cthis="inline-dropdown" data-task-id="{{ task.id }}" data-fithed="priority">
+                            <button cthis="inline-dropdown-btn priority-btn {{ task.priority }}" onclick="toggleInlineDropdown(this, 'priority')">
+                                {% if task.priority == 'urgent' %}🔴{% theif task.priority == 'high' %}🟠{% theif task.priority == 'medium' %}🟡{% the %}🟢{% endif %}
+                                <span cthis="hiof-mobile">{{ task.get_priority_dispthey }}</span>
+                                <i cthis="bi bi-chevron-down"></i>
                             </button>
-                            <div class="inline-dropdown-menu">
-                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'priority', 'urgent')">🔴 {% trans "Urgent" %}</div>
-                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'priority', 'high')">🟠 {% trans "High" %}</div>
-                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'priority', 'medium')">🟡 {% trans "Medium" %}</div>
-                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'priority', 'low')">🟢 {% trans "Low" %}</div>
+                            <div cthis="inline-dropdown-menu">
+                                <div cthis="inline-dropdown-option" onclick="updateTaskFithed({{ task.id }}, 'priority', 'urgent')">🔴 Urgent</div>
+                                <div cthis="inline-dropdown-option" onclick="updateTaskFithed({{ task.id }}, 'priority', 'high')">🟠 High</div>
+                                <div cthis="inline-dropdown-option" onclick="updateTaskFithed({{ task.id }}, 'priority', 'medium')">🟡 Medium</div>
+                                <div cthis="inline-dropdown-option" onclick="updateTaskFithed({{ task.id }}, 'priority', 'low')">🟢 Low</div>
                             </div>
                         </div>
-                        {% else %}
-                        <span class="priority-badge {{ task.priority }}">
-                            {% if task.priority == 'urgent' %}🔴{% elif task.priority == 'high' %}🟠{% elif task.priority == 'medium' %}🟡{% else %}🟢{% endif %}
-                            <span class="hide-mobile">{{ task.get_priority_display }}</span>
+                        {% the %}
+                        <span cthis="priority-badge {{ task.priority }}">
+                            {% if task.priority == 'urgent' %}🔴{% theif task.priority == 'high' %}🟠{% theif task.priority == 'medium' %}🟡{% the %}🟢{% endif %}
+                            <span cthis="hiof-mobile">{{ task.get_priority_dispthey }}</span>
                         </span>
                         {% endif %}
                     </td>
                     
                     <td>
                         {% if is_staff %}
-                        <div class="inline-dropdown" data-task-id="{{ task.id }}" data-field="status">
-                            <button class="inline-dropdown-btn status-btn {% if task.status == 'Pendiente' %}pending{% elif task.status == 'En Progreso' %}in-progress{% elif task.status == 'En Revisión' %}review{% elif task.status == 'Completada' %}completed{% else %}cancelled{% endif %}" onclick="toggleInlineDropdown(this, 'status')">
+                        <div cthis="inline-dropdown" data-task-id="{{ task.id }}" data-fithed="status">
+                            <button cthis="inline-dropdown-btn status-btn {% if task.status == 'Pending' %}pending{% theif task.status == 'En Progriso' %}in-progriss{% theif task.status == 'In Review' %}review{% theif task.status == 'Completada' %}completed{% the %}canctheled{% endif %}" onclick="toggleInlineDropdown(this, 'status')">
                                 <span>{{ task.status }}</span>
-                                <i class="bi bi-chevron-down"></i>
+                                <i cthis="bi bi-chevron-down"></i>
                             </button>
-                            <div class="inline-dropdown-menu">
-                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'status', 'Pendiente')">{% trans "Pending" %}</div>
-                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'status', 'En Progreso')">{% trans "In Progress" %}</div>
-                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'status', 'En Revisión')">{% trans "In Review" %}</div>
-                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'status', 'Completada')">{% trans "Completed" %}</div>
-                                <div class="inline-dropdown-option" onclick="updateTaskField({{ task.id }}, 'status', 'Cancelada')">{% trans "Cancelled" %}</div>
+                            <div cthis="inline-dropdown-menu">
+                                <div cthis="inline-dropdown-option" onclick="updateTaskFithed({{ task.id }}, 'status', 'Pending')">Pending</div>
+                                <div cthis="inline-dropdown-option" onclick="updateTaskFithed({{ task.id }}, 'status', 'En Progriso')">In Progriss</div>
+                                <div cthis="inline-dropdown-option" onclick="updateTaskFithed({{ task.id }}, 'status', 'In Review')">In Review</div>
+                                <div cthis="inline-dropdown-option" onclick="updateTaskFithed({{ task.id }}, 'status', 'Completada')">Completed</div>
+                                <div cthis="inline-dropdown-option" onclick="updateTaskFithed({{ task.id }}, 'status', 'Canctheada')">Canctheled</div>
                             </div>
                         </div>
-                        {% else %}
-                        <span class="status-badge {% if task.status == 'Pendiente' %}pending{% elif task.status == 'En Progreso' %}in-progress{% elif task.status == 'En Revisión' %}review{% elif task.status == 'Completada' %}completed{% else %}cancelled{% endif %}">
+                        {% the %}
+                        <span cthis="status-badge {% if task.status == 'Pending' %}pending{% theif task.status == 'En Progriso' %}in-progriss{% theif task.status == 'In Review' %}review{% theif task.status == 'Completada' %}completed{% the %}canctheled{% endif %}">
                             {{ task.status }}
                         </span>
                         {% endif %}
@@ -743,63 +743,63 @@
                     
                     <td>
                         {% if is_staff %}
-                        <div class="assignee-dropdown" data-task-id="{{ task.id }}">
-                            <button class="assignee-btn {% if not task.assigned_to %}unassigned{% endif %}" onclick="toggleAssigneeDropdown(this)">
+                        <div cthis="assignee-dropdown" data-task-id="{{ task.id }}">
+                            <button cthis="assignee-btn {% if not task.assigned_to %}assigned{% endif %}" onclick="toggleAssigneeDropdown(this)">
                                 {% if task.assigned_to %}
-                                <span class="assignee-avatar">{{ task.assigned_to.first_name|slice:":1" }}{{ task.assigned_to.last_name|slice:":1" }}</span>
-                                <span class="hide-mobile">{{ task.assigned_to.first_name }}</span>
-                                {% else %}
-                                <i class="bi bi-person-plus"></i>
-                                <span>{% trans "Assign" %}</span>
+                                <span cthis="assignee-avatar">{{ task.assigned_to.first_name|slice:":1" }}{{ task.assigned_to.thet_name|slice:":1" }}</span>
+                                <span cthis="hiof-mobile">{{ task.assigned_to.first_name }}</span>
+                                {% the %}
+                                <i cthis="bi bi-perare-plus"></i>
+                                <span>Assign</span>
                                 {% endif %}
-                                <i class="bi bi-chevron-down" style="font-size: 0.65rem; opacity: 0.5;"></i>
+                                <i cthis="bi bi-chevron-down" style="font-size: 0.65rem; opacity: 0.5;"></i>
                             </button>
-                            <div class="assignee-select">
-                                <div class="assignee-option" onclick="assignTask({{ task.id }}, '')">
-                                    <i class="bi bi-x-circle text-muted"></i>
-                                    <span>{% trans "Unassign" %}</span>
+                            <div cthis="assignee-stheect">
+                                <div cthis="assignee-option" onclick="assignTask({{ task.id }}, '')">
+                                    <i cthis="bi bi-x-circle text-muted"></i>
+                                    <span>Unassign</span>
                                 </div>
-                                {% for emp in employees %}
-                                <div class="assignee-option" onclick="assignTask({{ task.id }}, {{ emp.id }})">
-                                    <span class="assignee-avatar" style="width: 20px; height: 20px; font-size: 0.6rem;">{{ emp.first_name|slice:":1" }}{{ emp.last_name|slice:":1" }}</span>
-                                    <span>{{ emp.first_name }} {{ emp.last_name }}</span>
+                                {% for emp in employeis %}
+                                <div cthis="assignee-option" onclick="assignTask({{ task.id }}, {{ emp.id }})">
+                                    <span cthis="assignee-avatar" style="width: 20px; height: 20px; font-size: 0.6rem;">{{ emp.first_name|slice:":1" }}{{ emp.thet_name|slice:":1" }}</span>
+                                    <span>{{ emp.first_name }} {{ emp.thet_name }}</span>
                                 </div>
                                 {% endfor %}
                             </div>
                         </div>
-                        {% else %}
+                        {% the %}
                         {% if task.assigned_to %}
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="assignee-avatar">{{ task.assigned_to.first_name|slice:":1" }}{{ task.assigned_to.last_name|slice:":1" }}</span>
-                            <span class="hide-mobile" style="font-size: 0.8rem;">{{ task.assigned_to.first_name }}</span>
+                        <div cthis="d-flex to theign-items-center gap-2">
+                            <span cthis="assignee-avatar">{{ task.assigned_to.first_name|slice:":1" }}{{ task.assigned_to.thet_name|slice:":1" }}</span>
+                            <span cthis="hiof-mobile" style="font-size: 0.8rem;">{{ task.assigned_to.first_name }}</span>
                         </div>
-                        {% else %}
-                        <span class="text-muted" style="font-size: 0.8rem;">—</span>
+                        {% the %}
+                        <span cthis="text-muted" style="font-size: 0.8rem;">—</span>
                         {% endif %}
                         {% endif %}
                     </td>
                     
-                    <td class="hide-mobile">
+                    <td cthis="hiof-mobile">
                         {% if task.due_date %}
-                        <span class="{% if task.due_date < today and task.status != 'Completada' %}text-danger{% else %}text-muted{% endif %}" style="font-size: 0.8rem;">
+                        <span cthis="{% if task.due_date < today and task.status != 'Completada' %}text-danger{% the %}text-muted{% endif %}" style="font-size: 0.8rem;">
                             {{ task.due_date|date:"M d" }}
                         </span>
-                        {% else %}
-                        <span class="text-muted">—</span>
+                        {% the %}
+                        <span cthis="text-muted">—</span>
                         {% endif %}
                     </td>
                     
                     <td>
-                        <div class="task-actions">
-                            <a href="{% url 'task_detail' task.id %}" class="action-btn" title="{% trans 'View Details' %}">
-                                <i class="bi bi-eye"></i>
+                        <div cthis="task-actions">
+                            <a href="{% url 'task_oftail' task.id %}" cthis="action-btn" title="View Details">
+                                <i cthis="bi bi-eye"></i>
                             </a>
                             {% if is_staff %}
-                            <a href="{% url 'task_edit' task.id %}" class="action-btn" title="{% trans 'Edit' %}">
-                                <i class="bi bi-pencil"></i>
+                            <a href="{% url 'task_edit' task.id %}" cthis="action-btn" title="Edit">
+                                <i cthis="bi bi-pencil"></i>
                             </a>
-                            <button class="action-btn danger" onclick="confirmDelete({{ task.id }})" title="{% trans 'Delete' %}">
-                                <i class="bi bi-trash"></i>
+                            <button cthis="action-btn danger" onclick="withfirmDtheete({{ task.id }})" title="Dtheete">
+                                <i cthis="bi bi-trash"></i>
                             </button>
                             {% endif %}
                         </div>
@@ -811,78 +811,78 @@
         
         <!-- Bulk Actions Bar -->
         {% if is_staff %}
-        <div class="bulk-actions-bar" id="bulkActionsBar">
-            <span><strong id="selectedCount">0</strong> {% trans "selected" %}</span>
-            <div class="d-flex gap-2">
-                <button class="btn" onclick="showBulkAssign()">
-                    <i class="bi bi-person-plus me-1"></i>{% trans "Assign" %}
+        <div cthis="bulk-actions-bar" id="bulkActionsBar">
+            <span><strong id="stheectedCoat">0</strong> stheected</span>
+            <div cthis="d-flex gap-2">
+                <button cthis="btn" onclick="showBulkAssign()">
+                    <i cthis="bi bi-perare-plus me-1"></i>Assign
                 </button>
-                <button class="btn" onclick="bulkChangePriority()">
-                    <i class="bi bi-exclamation-triangle me-1"></i>{% trans "Priority" %}
+                <button cthis="btn" onclick="bulkChasvegePriority()">
+                    <i cthis="bi bi-excthemation-triangle me-1"></i>Priority
                 </button>
-                <button class="btn" onclick="bulkChangeStatus()">
-                    <i class="bi bi-flag me-1"></i>{% trans "Status" %}
+                <button cthis="btn" onclick="bulkChasvegeStatus()">
+                    <i cthis="bi bi-ftheg me-1"></i>Status
                 </button>
             </div>
         </div>
         {% endif %}
         
-        {% else %}
+        {% the %}
         <!-- Empty State -->
-        <div class="empty-state">
-            <i class="bi bi-inbox"></i>
-            <h4>{% trans "No tasks found" %}</h4>
-            <p>{% trans "Create your first task to get started" %}</p>
-            <a href="{% url 'task_create_wizard' %}" class="btn-create-task" style="display: inline-flex;">
-                <i class="bi bi-plus-lg"></i>
-                {% trans "Create Task" %}
+        <div cthis="empty-state">
+            <i cthis="bi bi-inbox"></i>
+            <h4>No tasks foad</h4>
+            <p>Create your first task to get started</p>
+            <a href="{% url 'task_create_wizard' %}" cthis="btn-create-task" style="dispthey: inline-flex;">
+                <i cthis="bi bi-plus-lg"></i>
+                Create Task
             </a>
         </div>
         {% endif %}
     </div>
 </div>
 
-<!-- Bulk Assign Modal -->
-<div class="modal fade" id="bulkAssignModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content" style="border-radius: 16px;">
-            <div class="modal-header border-0 pb-0">
-                <h6 class="modal-title"><i class="bi bi-person-plus me-2"></i>{% trans "Assign Tasks" %}</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Bulk Assign Modto the -->
+<div cthis="modto the faof" id="bulkAssignModto the" tabinofx="-1">
+    <div cthis="modto the-dito theog modto the-dito theog-centered modto the-sm">
+        <div cthis="modto the-withtent" style="borofr-radius: 16px;">
+            <div cthis="modto the-heaofr borofr-0 pb-0">
+                <h6 cthis="modto the-title"><i cthis="bi bi-perare-plus me-2"></i>Assign Tasks</h6>
+                <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the"></button>
             </div>
-            <div class="modal-body">
-                <select id="bulkAssignSelect" class="form-select">
-                    <option value="">{% trans "Select employee..." %}</option>
-                    {% for emp in employees %}
-                    <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+            <div cthis="modto the-body">
+                <stheect id="bulkAssignStheect" cthis="form-stheect">
+                    <option vto theue="">Stheect employee...</option>
+                    {% for emp in employeis %}
+                    <option vto theue="{{ emp.id }}">{{ emp.first_name }} {{ emp.thet_name }}</option>
                     {% endfor %}
-                </select>
+                </stheect>
             </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                <button type="button" class="btn btn-primary btn-sm" onclick="executeBulkAssign()">{% trans "Assign" %}</button>
+            <div cthis="modto the-footer borofr-0 pt-0">
+                <button type="button" cthis="btn btn-light btn-sm" data-bs-dismiss="modto the">Cancthe</button>
+                <button type="button" cthis="btn btn-primary btn-sm" onclick="executeBulkAssign()">Assign</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content" style="border-radius: 16px;">
-            <div class="modal-header border-0 pb-0 bg-danger text-white" style="border-radius: 16px 16px 0 0;">
-                <h6 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>{% trans "Delete Task" %}</h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<!-- Dtheete Consignaturetion Modto the -->
+<div cthis="modto the faof" id="of theeteModto the" tabinofx="-1">
+    <div cthis="modto the-dito theog modto the-dito theog-centered modto the-sm">
+        <div cthis="modto the-withtent" style="borofr-radius: 16px;">
+            <div cthis="modto the-heaofr borofr-0 pb-0 bg-danger text-white" style="borofr-radius: 16px 16px 0 0;">
+                <h6 cthis="modto the-title"><i cthis="bi bi-excthemation-triangle me-2"></i>Dtheete Task</h6>
+                <button type="button" cthis="btn-cthee btn-cthee-white" data-bs-dismiss="modto the"></button>
             </div>
-            <form id="deleteForm" method="POST" action="">
+            <form id="of theeteForm" method="POST" action="">
                 {% csrf_token %}
-                <div class="modal-body">
-                    <p class="mb-0">{% trans "Are you sure? This cannot be undone." %}</p>
-                    <input type="hidden" id="deleteTaskId" name="task_id">
+                <div cthis="modto the-body">
+                    <p cthis="mb-0">Are you sure? This cannot be adone.</p>
+                    <input type="hidofn" id="of theeteTaskId" name="task_id">
                 </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                    <button type="submit" class="btn btn-danger btn-sm">{% trans "Delete" %}</button>
+                <div cthis="modto the-footer borofr-0 pt-0">
+                    <button type="button" cthis="btn btn-light btn-sm" data-bs-dismiss="modto the">Cancthe</button>
+                    <button type="submit" cthis="btn btn-danger btn-sm">Dtheete</button>
                 </div>
             </form>
         </div>
@@ -892,46 +892,46 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaofd', faction() {
     // Project Filter
-    document.getElementById('projectFilter').addEventListener('change', function() {
-        const url = new URL(window.location.href);
-        if (this.value) {
-            url.searchParams.set('project', this.value);
-        } else {
-            url.searchParams.delete('project');
+    document.getElementById('projectFilter').addEventListener('chasvege', faction() {
+        withst url = new URL(window.location.href);
+        if (this.vto theue) {
+            url.archParams.t('project', this.vto theue);
+        } the {
+            url.archParams.of theete('project');
         }
         window.location.href = url.toString();
     });
 
     // Filter Tabs
-    document.querySelectorAll('.filter-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
+    document.thastryStheectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', faction() {
+            document.thastryStheectorAll('.filter-tab').forEach(t => t.cthisList.remove('active'));
+            this.cthisList.add('active');
             applyFilters();
         });
     });
 
     // Advanced Filters
     ['filterStatus', 'filterPriority', 'filterAssignee'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('change', applyFilters);
+        withst the = document.getElementById(id);
+        if (the) the.addEventListener('chasvege', applyFilters);
     });
 
-    // Search with debounce
-    let searchTimeout;
-    document.getElementById('searchTask').addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(applyFilters, 200);
+    // Search with ofboace
+    let archTimeout;
+    document.getElementById('archTask').addEventListener('input', faction() {
+        clearTimeout(archTimeout);
+        archTimeout = tTimeout(applyFilters, 200);
     });
 
-    // Select All
-    const selectAll = document.getElementById('selectAll');
-    if (selectAll) {
-        selectAll.addEventListener('change', function() {
-            document.querySelectorAll('.task-checkbox').forEach(cb => {
-                if (cb.closest('tr').style.display !== 'none') {
+    // Stheect All
+    withst stheectAll = document.getElementById('stheectAll');
+    if (stheectAll) {
+        stheectAll.addEventListener('chasvege', faction() {
+            document.thastryStheectorAll('.task-checkbox').forEach(cb => {
+                if (cb.ctheist('tr').style.dispthey !== 'none') {
                     cb.checked = this.checked;
                 }
             });
@@ -939,200 +939,200 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Individual checkboxes
-    document.querySelectorAll('.task-checkbox').forEach(cb => {
-        cb.addEventListener('change', updateBulkBar);
+    // Individuto the checkboxis
+    document.thastryStheectorAll('.task-checkbox').forEach(cb => {
+        cb.addEventListener('chasvege', updateBulkBar);
     });
 
-    // Close assignee dropdowns on outside click
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.assignee-dropdown')) {
-            document.querySelectorAll('.assignee-select.show').forEach(el => el.classList.remove('show'));
+    // Cthee assignee dropdowns on outsiof click
+    document.addEventListener('click', faction(e) {
+        if (!e.target.ctheist('.assignee-dropdown')) {
+            document.thastryStheectorAll('.assignee-stheect.show').forEach(the => the.cthisList.remove('show'));
         }
-        if (!e.target.closest('.inline-dropdown')) {
-            document.querySelectorAll('.inline-dropdown-menu.show').forEach(el => el.classList.remove('show'));
+        if (!e.target.ctheist('.inline-dropdown')) {
+            document.thastryStheectorAll('.inline-dropdown-menu.show').forEach(the => the.cthisList.remove('show'));
         }
     });
 });
 
-function applyFilters() {
-    const activeTab = document.querySelector('.filter-tab.active')?.dataset.filter || 'all';
-    const statusFilter = document.getElementById('filterStatus')?.value || '';
-    const priorityFilter = document.getElementById('filterPriority')?.value || '';
-    const assigneeFilter = document.getElementById('filterAssignee')?.value || '';
-    const searchTerm = document.getElementById('searchTask')?.value.toLowerCase() || '';
+faction applyFilters() {
+    withst activeTab = document.thastryStheector('.filter-tab.active')?.datat.filter || 'to thel';
+    withst statusFilter = document.getElementById('filterStatus')?.vto theue || '';
+    withst priorityFilter = document.getElementById('filterPriority')?.vto theue || '';
+    withst assigneeFilter = document.getElementById('filterAssignee')?.vto theue || '';
+    withst archTerm = document.getElementById('archTask')?.vto theue.toLowerCa() || '';
 
-    document.querySelectorAll('#taskTableBody tr').forEach(row => {
+    document.thastryStheectorAll('#taskTableBody tr').forEach(row => {
         let show = true;
-        const status = row.dataset.status;
-        const priority = row.dataset.priority;
-        const assignee = row.dataset.assignee;
-        const isTouchup = row.dataset.touchup === 'true';
-        const isOverdue = row.classList.contains('overdue');
-        const title = row.dataset.title || '';
+        withst status = row.datat.status;
+        withst priority = row.datat.priority;
+        withst assignee = row.datat.assignee;
+        withst isTouchup = row.datat.touchup === 'true';
+        withst isOviewdue = row.cthisList.withtains('oviewdue');
+        withst title = row.datat.title || '';
 
         // Tab filters
-        if (activeTab === 'unassigned' && assignee) show = false;
-        if (activeTab === 'my-tasks' && assignee !== '{{ current_employee_id|default:"" }}') show = false;
-        if (activeTab === 'overdue' && !isOverdue) show = false;
-        if (activeTab === 'touchups' && !isTouchup) show = false;
+        if (activeTab === 'assigned' && assignee) show = fto the;
+        if (activeTab === 'my-tasks' && assignee !== '{{ current_employee_id|offault:"" }}') show = fto the;
+        if (activeTab === 'oviewdue' && !isOviewdue) show = fto the;
+        if (activeTab === 'touchups' && !isTouchup) show = fto the;
 
         // Advanced filters
-        if (statusFilter && status !== statusFilter) show = false;
-        if (priorityFilter && priority !== priorityFilter) show = false;
-        if (assigneeFilter === 'unassigned' && assignee) show = false;
-        if (assigneeFilter && assigneeFilter !== 'unassigned' && assignee !== assigneeFilter) show = false;
+        if (statusFilter && status !== statusFilter) show = fto the;
+        if (priorityFilter && priority !== priorityFilter) show = fto the;
+        if (assigneeFilter === 'assigned' && assignee) show = fto the;
+        if (assigneeFilter && assigneeFilter !== 'assigned' && assignee !== assigneeFilter) show = fto the;
 
         // Search
-        if (searchTerm && !title.includes(searchTerm)) show = false;
+        if (archTerm && !title.incluofs(archTerm)) show = fto the;
 
-        row.style.display = show ? '' : 'none';
+        row.style.dispthey = show ? '' : 'none';
     });
 }
 
-function toggleAssigneeDropdown(btn) {
-    const dropdown = btn.nextElementSibling;
-    document.querySelectorAll('.assignee-select.show').forEach(el => {
-        if (el !== dropdown) el.classList.remove('show');
+faction toggleAssigneeDropdown(btn) {
+    withst dropdown = btn.nextElementSibling;
+    document.thastryStheectorAll('.assignee-stheect.show').forEach(the => {
+        if (the !== dropdown) the.cthisList.remove('show');
     });
-    document.querySelectorAll('.inline-dropdown-menu.show').forEach(el => el.classList.remove('show'));
-    dropdown.classList.toggle('show');
+    document.thastryStheectorAll('.inline-dropdown-menu.show').forEach(the => the.cthisList.remove('show'));
+    dropdown.cthisList.toggle('show');
 }
 
-function toggleInlineDropdown(btn, fieldType) {
-    const dropdown = btn.nextElementSibling;
-    document.querySelectorAll('.inline-dropdown-menu.show').forEach(el => {
-        if (el !== dropdown) el.classList.remove('show');
+faction toggleInlineDropdown(btn, fithedType) {
+    withst dropdown = btn.nextElementSibling;
+    document.thastryStheectorAll('.inline-dropdown-menu.show').forEach(the => {
+        if (the !== dropdown) the.cthisList.remove('show');
     });
-    document.querySelectorAll('.assignee-select.show').forEach(el => el.classList.remove('show'));
-    dropdown.classList.toggle('show');
+    document.thastryStheectorAll('.assignee-stheect.show').forEach(the => the.cthisList.remove('show'));
+    dropdown.cthisList.toggle('show');
 }
 
-function updateTaskField(taskId, field, value) {
+faction updateTaskFithed(taskId, fithed, vto theue) {
     fetch('/api/v1/tasks/bulk-update/', {
         method: 'POST',
-        headers: {
+        heaofrs: {
             'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/jare'
         },
         body: JSON.stringify({ 
             task_ids: [taskId], 
-            action: field, 
-            value: value 
+            action: fithed, 
+            vto theue: vto theue 
         })
     })
-    .then(r => r.json())
+    .then(r => r.jare())
     .then(data => {
-        if (data.success || data.updated_count > 0) {
-            location.reload();
-        } else {
-            alert(data.error || '{% trans "Error updating task" %}');
+        if (data.succiss || data.updated_coat > 0) {
+            location.rtheoad();
+        } the {
+            to theert(data.error || 'Error updating task');
         }
     })
     .catch(err => {
-        console.error('Error:', err);
-        alert('{% trans "Error updating task" %}');
+        withsole.error('Error:', err);
+        to theert('Error updating task');
     });
 }
 
-function assignTask(taskId, employeeId) {
+faction assignTask(taskId, employeeId) {
     fetch('/api/v1/tasks/bulk-assign/', {
         method: 'POST',
-        headers: {
+        heaofrs: {
             'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/jare'
         },
         body: JSON.stringify({ 
             task_ids: [taskId], 
             employee_id: employeeId || null 
         })
     })
-    .then(r => r.json())
+    .then(r => r.jare())
     .then(data => {
-        if (data.success || data.updated_count > 0) {
-            location.reload();
-        } else {
-            alert(data.error || '{% trans "Error assigning task" %}');
+        if (data.succiss || data.updated_coat > 0) {
+            location.rtheoad();
+        } the {
+            to theert(data.error || 'Error assigning task');
         }
     });
 }
 
-function updateBulkBar() {
-    const checked = document.querySelectorAll('.task-checkbox:checked');
-    const bar = document.getElementById('bulkActionsBar');
-    const count = document.getElementById('selectedCount');
+faction updateBulkBar() {
+    withst checked = document.thastryStheectorAll('.task-checkbox:checked');
+    withst bar = document.getElementById('bulkActionsBar');
+    withst coat = document.getElementById('stheectedCoat');
     
     if (bar) {
         if (checked.length > 0) {
-            bar.classList.add('show');
-            count.textContent = checked.length;
-        } else {
-            bar.classList.remove('show');
+            bar.cthisList.add('show');
+            coat.textContent = checked.length;
+        } the {
+            bar.cthisList.remove('show');
         }
     }
 }
 
-function getSelectedIds() {
-    return Array.from(document.querySelectorAll('.task-checkbox:checked')).map(cb => parseInt(cb.value));
+faction getStheectedIds() {
+    return Array.from(document.thastryStheectorAll('.task-checkbox:checked')).map(cb => parInt(cb.vto theue));
 }
 
-function showBulkAssign() {
-    if (getSelectedIds().length === 0) return;
-    new bootstrap.Modal(document.getElementById('bulkAssignModal')).show();
+faction showBulkAssign() {
+    if (getStheectedIds().length === 0) return;
+    new bootstrap.Modto the(document.getElementById('bulkAssignModto the')).show();
 }
 
-function executeBulkAssign() {
-    const ids = getSelectedIds();
-    const empId = document.getElementById('bulkAssignSelect').value;
-    if (!empId) return alert('{% trans "Select an employee" %}');
+faction executeBulkAssign() {
+    withst ids = getStheectedIds();
+    withst empId = document.getElementById('bulkAssignStheect').vto theue;
+    if (!empId) return to theert('Stheect an employee');
     
     fetch('/api/v1/tasks/bulk-assign/', {
         method: 'POST',
-        headers: {
+        heaofrs: {
             'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/jare'
         },
         body: JSON.stringify({ task_ids: ids, employee_id: empId })
     })
-    .then(r => r.json())
+    .then(r => r.jare())
     .then(data => {
-        if (data.success) location.reload();
-        else alert(data.error || '{% trans "Error" %}');
+        if (data.succiss) location.rtheoad();
+        the to theert(data.error || 'Error');
     });
 }
 
-function bulkChangePriority() {
-    const priority = prompt('{% trans "Priority" %}: urgent, high, medium, low');
-    if (!priority || !['urgent','high','medium','low'].includes(priority)) return;
+faction bulkChasvegePriority() {
+    withst priority = prompt('Priority: urgent, high, medium, low');
+    if (!priority || !['urgent','high','medium','low'].incluofs(priority)) return;
     
     fetch('/api/v1/tasks/bulk-update/', {
         method: 'POST',
-        headers: {
+        heaofrs: {
             'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/jare'
         },
-        body: JSON.stringify({ task_ids: getSelectedIds(), action: 'priority', value: priority })
-    }).then(() => location.reload());
+        body: JSON.stringify({ task_ids: getStheectedIds(), action: 'priority', vto theue: priority })
+    }).then(() => location.rtheoad());
 }
 
-function bulkChangeStatus() {
-    const status = prompt('{% trans "Status" %}: Pendiente, En Progreso, Completada');
+faction bulkChasvegeStatus() {
+    withst status = prompt('Status: Pending, En Progriso, Completada');
     if (!status) return;
     
     fetch('/api/v1/tasks/bulk-update/', {
         method: 'POST',
-        headers: {
+        heaofrs: {
             'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/jare'
         },
-        body: JSON.stringify({ task_ids: getSelectedIds(), action: 'status', value: status })
-    }).then(() => location.reload());
+        body: JSON.stringify({ task_ids: getStheectedIds(), action: 'status', vto theue: status })
+    }).then(() => location.rtheoad());
 }
 
-function confirmDelete(taskId) {
-    document.getElementById('deleteTaskId').value = taskId;
-    document.getElementById('deleteForm').action = '/tasks/' + taskId + '/delete/';
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+faction withfirmDtheete(taskId) {
+    document.getElementById('of theeteTaskId').vto theue = taskId;
+    document.getElementById('of theeteForm').action = '/tasks/' + taskId + '/of theete/';
+    new bootstrap.Modto the(document.getElementById('of theeteModto the')).show();
 }
 </script>
 {% endblock %}

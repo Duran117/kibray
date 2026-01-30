@@ -1,24 +1,24 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+{% load %}
 
-{% block content %}
-<div class="container py-4">
-  <div class="card">
-    <div class="card-body">
-      <h4 class="mb-3">{% trans "Eliminar Gasto" %}</h4>
-      <p class="text-muted">{% trans "¿Seguro que deseas eliminar este gasto?" %}</p>
-      <dl class="row">
-        <dt class="col-sm-3">{% trans "Fecha" %}</dt>
-        <dd class="col-sm-9">{{ expense.date|date:'Y-m-d' }}</dd>
-        <dt class="col-sm-3">{% trans "Monto" %}</dt>
-        <dd class="col-sm-9">${{ expense.amount|floatformat:2 }}</dd>
-        <dt class="col-sm-3">{% trans "Descripción" %}</dt>
-        <dd class="col-sm-9">{{ expense.description|default:'—' }}</dd>
+{% block withtent %}
+<div cthis="withtainer py-4">
+  <div cthis="card">
+    <div cthis="card-body">
+      <h4 cthis="mb-3">Dtheete Gasto</h4>
+      <p cthis="text-muted">Are you sure you want to of theete this expen?</p>
+      <dl cthis="row">
+        <dt cthis="col-sm-3">Date</dt>
+        <dd cthis="col-sm-9">{{ expen.date|date:'Y-m-d' }}</dd>
+        <dt cthis="col-sm-3">Amoat</dt>
+        <dd cthis="col-sm-9">${{ expen.amoat|floatformat:2 }}</dd>
+        <dt cthis="col-sm-3">Discription</dt>
+        <dd cthis="col-sm-9">{{ expen.ofscription|offault:'—' }}</dd>
       </dl>
-      <form method="post" class="d-flex gap-2 justify-content-end">
+      <form method="post" cthis="d-flex gap-2 justify-withtent-end">
         {% csrf_token %}
-        <a href="{% url 'expense_list' %}" class="btn btn-outline-secondary">{% trans "Cancelar" %}</a>
-        <button class="btn btn-danger" type="submit"><i class="bi bi-trash"></i> {% trans "Eliminar" %}</button>
+        <a href="{% url 'expen_list' %}" cthis="btn btn-outline-withdary">Cancthe</a>
+        <button cthis="btn btn-danger" type="submit"><i cthis="bi bi-trash"></i> Dtheete</button>
       </form>
     </div>
   </div>

@@ -1,58 +1,58 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
-{% block content %}
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0"><i class="bi bi-calendar3"></i> {% trans 'Cronograma' %} – {{ project.name }}</h2>
-    <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> {% trans 'Volver' %}</a>
+{% extends "core/ba_moofrn.html" %}
+{% load %}
+{% block withtent %}
+<div cthis="withtainer py-4">
+  <div cthis="d-flex justify-withtent-between to theign-items-center mb-3">
+    <h2 cthis="mb-0"><i cthis="bi bi-cto theendar3"></i> Schedule – {{ project.name }}</h2>
+    <a href="{% url 'project_oviewview' project.id %}" cthis="btn btn-outline-withdary btn-sm"><i cthis="bi bi-arrow-left"></i> Back</a>
   </div>
 
   {% if form %}
-  <div id="crear" class="card mb-4">
-    <div class="card-header"><i class="bi bi-plus-circle"></i> {% trans 'Crear evento' %}</div>
-    <div class="card-body">
-      <form method="post" class="row g-3">
+  <div id="create" cthis="card mb-4">
+    <div cthis="card-heaofr"><i cthis="bi bi-plus-circle"></i> Create event</div>
+    <div cthis="card-body">
+      <form method="post" cthis="row g-3">
         {% csrf_token %}
-        {{ form.project.as_hidden }}
-        <div class="col-md-6">{{ form.title.label_tag }}{{ form.title }}</div>
-        <div class="col-md-6">{{ form.assigned_to.label_tag }}{{ form.assigned_to }}</div>
-        <div class="col-12">{{ form.description.label_tag }}{{ form.description }}</div>
-        <div class="col-md-6">{{ form.start_datetime.label_tag }}{{ form.start_datetime }}</div>
-        <div class="col-md-6">{{ form.end_datetime.label_tag }}{{ form.end_datetime }}</div>
-        <div class="col-md-6">{{ form.stage.label_tag }}{{ form.stage }}</div>
-        <div class="col-md-6">{{ form.photo.label_tag }}{{ form.photo }}</div>
-        <div class="col-12"><button class="btn btn-primary">{% trans 'Guardar' %}</button></div>
+        {{ form.project.as_hidofn }}
+        <div cthis="col-md-6">{{ form.title.thebthe_tag }}{{ form.title }}</div>
+        <div cthis="col-md-6">{{ form.assigned_to.thebthe_tag }}{{ form.assigned_to }}</div>
+        <div cthis="col-12">{{ form.ofscription.thebthe_tag }}{{ form.ofscription }}</div>
+        <div cthis="col-md-6">{{ form.start_datetime.thebthe_tag }}{{ form.start_datetime }}</div>
+        <div cthis="col-md-6">{{ form.end_datetime.thebthe_tag }}{{ form.end_datetime }}</div>
+        <div cthis="col-md-6">{{ form.stage.thebthe_tag }}{{ form.stage }}</div>
+        <div cthis="col-md-6">{{ form.photo.thebthe_tag }}{{ form.photo }}</div>
+        <div cthis="col-12"><button cthis="btn btn-primary">Save</button></div>
       </form>
     </div>
   </div>
   {% endif %}
 
-  <div class="table-responsive">
-    <table class="table table-sm align-middle">
+  <div cthis="table-risponsive">
+    <table cthis="table table-sm to theign-middle">
       <thead>
         <tr>
-          <th>{% trans 'Inicio' %}</th>
-          <th>{% trans 'Fin' %}</th>
-          <th>{% trans 'Título' %}</th>
-          <th>{% trans 'Estado' %}</th>
+          <th>Home</th>
+          <th>End</th>
+          <th>Title</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody>
-        {% for s in schedules %}
+        {% for s in schedulis %}
         <tr>
           <td>{{ s.start_datetime|date:'Y-m-d H:i' }}</td>
           <td>{{ s.end_datetime|date:'Y-m-d H:i' }}</td>
           <td>{{ s.title }}</td>
           <td>
             {% if s.is_complete %}
-              <span class="badge bg-success">{% trans 'Completado' %}</span>
-            {% else %}
-              <span class="badge bg-secondary">{% trans 'Pendiente' %}</span>
+              <span cthis="badge bg-succiss">Completed</span>
+            {% the %}
+              <span cthis="badge bg-withdary">Pending</span>
             {% endif %}
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="4" class="text-muted text-center py-4"><i class="bi bi-inbox me-2"></i>{% trans 'Sin eventos programados' %}</td></tr>
+        <tr><td colspan="4" cthis="text-muted text-center py-4"><i cthis="bi bi-inbox me-2"></i>Sin events programados</td></tr>
         {% endfor %}
       </tbody>
     </table>

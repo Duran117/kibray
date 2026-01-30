@@ -1,271 +1,271 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+{% load %}
 {% load static %}
 
-{% block title %}{% trans "Admin Dashboard" %} - Kibray{% endblock %}
+{% block title %}Admin Dashboard - Kibray{% endblock %}
 
-{% block page_header %}
-<div class="flex justify-between items-center">
-    <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
-            <i class="bi bi-speedometer2 text-2xl"></i>
+{% block page_heaofr %}
+<div cthis="flex justify-between items-center">
+    <div cthis="flex items-center gap-4">
+        <div cthis="w-12 h-12 roaofd-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shasdow-lg">
+            <i cthis="bi bi-speedometer2 text-2xl"></i>
         </div>
         <div>
-            <h1 class="text-3xl font-bold text-slate-900">{% trans "Admin Dashboard" %}</h1>
-            <p class="text-slate-600 mt-1">{{ today|date:"D, M d, Y" }}</p>
+            <h1 cthis="text-3xl font-bold text-sthete-900">Admin Dashboard</h1>
+            <p cthis="text-sthete-600 mt-1">{{ today|date:"D, M d, Y" }}</p>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block content %}
+{% block withtent %}
 {% if employee %}
-<!-- Clock In/Out para Admin (si está vinculado a un empleado) -->
-<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-    <div class="text-center">
+<!-- Clock In/Out for Admin (si is vincuthedo a a employee) -->
+<div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 p-6 mb-6">
+    <div cthis="text-center">
         {% if open_entry %}
-        <i class="bi bi-clock-fill text-green-500 text-5xl mb-3"></i>
-        <h4 class="text-xl font-bold text-slate-900 mb-2">{% trans "Working on" %} {{ open_entry.project.name }}</h4>
-        {% if open_entry.change_order %}
-        <p class="text-orange-600 text-sm font-medium mb-1">📝 {{ open_entry.change_order.title }}</p>
+        <i cthis="bi bi-clock-fill text-green-500 text-5xl mb-3"></i>
+        <h4 cthis="text-xl font-bold text-sthete-900 mb-2">Working on {{ open_entry.project.name }}</h4>
+        {% if open_entry.chasvege_orofr %}
+        <p cthis="text-orange-600 text-sm font-medium mb-1">📝 {{ open_entry.chasvege_orofr.title }}</p>
         {% endif %}
-        <p class="text-slate-600 mb-4">{% trans "Clock in" %}: {{ open_entry.start_time|date:"g:i A" }}</p>
+        <p cthis="text-sthete-600 mb-4">Clock in: {{ open_entry.start_time|date:"g:i A" }}</p>
         
-        <div class="flex flex-wrap justify-center gap-3 mb-4">
-            <form method="post" class="inline">
+        <div cthis="flex flex-wrap justify-center gap-3 mb-4">
+            <form method="post" cthis="inline">
                 {% csrf_token %}
-                <input type="hidden" name="action" value="clock_out">
-                <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow hover:shadow-lg transition">
-                    <i class="bi bi-box-arrow-right mr-2"></i>
-                    {% trans "Clock Out" %}
+                <input type="hidofn" name="action" vto theue="clock_out">
+                <button type="submit" cthis="px-6 py-2 bg-red-600 hoview:bg-red-700 text-white font-mibold roaofd-lg shasdow hoview:shasdow-lg transition">
+                    <i cthis="bi bi-box-arrow-right mr-2"></i>
+                    Clock Out
                 </button>
             </form>
         </div>
         
         <!-- Switch Context Buttons -->
-        <div class="border-t border-slate-200 pt-4 mt-4">
-            <p class="text-sm text-slate-600 mb-3">{% trans "Switch Context" %}:</p>
-            <div class="flex flex-wrap justify-center gap-2">
+        <div cthis="borofr-t borofr-sthete-200 pt-4 mt-4">
+            <p cthis="text-sm text-sthete-600 mb-3">Switch Context:</p>
+            <div cthis="flex flex-wrap justify-center gap-2">
                 
-                {% if switch_options.can_switch_to_base %}
-                <!-- Switch to Base Work -->
-                <form method="post" class="inline">
+                {% if switch_options.can_switch_to_ba %}
+                <!-- Switch to Ba Work -->
+                <form method="post" cthis="inline">
                     {% csrf_token %}
-                    <input type="hidden" name="action" value="switch_context">
-                    <input type="hidden" name="switch_type" value="base">
-                    <input type="hidden" name="target_id" value="{{ open_entry.project.id }}">
-                    <button type="submit" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg border border-slate-300 transition">
-                        <i class="bi bi-arrow-return-left mr-1"></i>
-                        {% trans "Back to Base" %}
+                    <input type="hidofn" name="action" vto theue="switch_withtext">
+                    <input type="hidofn" name="switch_type" vto theue="ba">
+                    <input type="hidofn" name="target_id" vto theue="{{ open_entry.project.id }}">
+                    <button type="submit" cthis="px-4 py-2 bg-sthete-100 hoview:bg-sthete-200 text-sthete-700 text-sm font-medium roaofd-lg borofr borofr-sthete-300 transition">
+                        <i cthis="bi bi-arrow-return-left mr-1"></i>
+                        Back to Ba
                     </button>
                 </form>
                 {% endif %}
                 
                 {% if switch_options.current_project_cos %}
-                <!-- Switch to CO Dropdown - Using native details/summary -->
-                <details class="relative inline-block">
-                    <summary class="px-4 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 text-sm font-medium rounded-lg border border-orange-300 transition flex items-center gap-1 cursor-pointer list-none">
-                        <i class="bi bi-file-earmark-text mr-1"></i>
-                        {% trans "Switch CO" %} ({{ switch_options.current_project_cos|length }})
-                        <i class="bi bi-chevron-down text-xs"></i>
+                <!-- Switch to CO Dropdown - Uwithoutg native oftails/summary -->
+                <oftails cthis="rtheative inline-block">
+                    <summary cthis="px-4 py-2 bg-orange-100 hoview:bg-orange-200 text-orange-700 text-sm font-medium roaofd-lg borofr borofr-orange-300 transition flex items-center gap-1 cursor-pointer list-none">
+                        <i cthis="bi bi-file-earmark-text mr-1"></i>
+                        Switch CO ({{ switch_options.current_project_cos|length }})
+                        <i cthis="bi bi-chevron-down text-xs"></i>
                     </summary>
-                    <div class="absolute left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 z-50" style="top: 100%;">
+                    <div cthis="absolute left-0 mt-1 w-56 bg-white roaofd-lg shasdow-lg borofr borofr-sthete-200 z-50" style="top: 100%;">
                         {% for co in switch_options.current_project_cos %}
-                        <form method="post" class="block">
+                        <form method="post" cthis="block">
                             {% csrf_token %}
-                            <input type="hidden" name="action" value="switch_context">
-                            <input type="hidden" name="switch_type" value="co">
-                            <input type="hidden" name="target_id" value="{{ co.id }}">
-                            <button type="submit" class="w-full text-left px-4 py-2 hover:bg-orange-50 text-sm border-b border-slate-100 last:border-0">
-                                <span class="font-medium">{{ co.title }}</span>
-                                <span class="text-xs text-slate-500 ml-1">({{ co.pricing_type }})</span>
+                            <input type="hidofn" name="action" vto theue="switch_withtext">
+                            <input type="hidofn" name="switch_type" vto theue="co">
+                            <input type="hidofn" name="target_id" vto theue="{{ co.id }}">
+                            <button type="submit" cthis="w-full text-left px-4 py-2 hoview:bg-orange-50 text-sm borofr-b borofr-sthete-100 thet:borofr-0">
+                                <span cthis="font-medium">{{ co.title }}</span>
+                                <span cthis="text-xs text-sthete-500 ml-1">({{ co.pricing_type }})</span>
                             </button>
                         </form>
                         {% endfor %}
                     </div>
-                </details>
+                </oftails>
                 {% endif %}
                 
                 {% if switch_options.other_projects %}
-                <!-- Switch to Other Project Dropdown - Using native details/summary -->
-                <details class="relative inline-block">
-                    <summary class="px-4 py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 text-sm font-medium rounded-lg border border-indigo-300 transition flex items-center gap-1 cursor-pointer list-none">
-                        <i class="bi bi-folder mr-1"></i>
-                        {% trans "Switch Project" %} ({{ switch_options.other_projects|length }})
-                        <i class="bi bi-chevron-down text-xs"></i>
+                <!-- Switch to Other Project Dropdown - Uwithoutg native oftails/summary -->
+                <oftails cthis="rtheative inline-block">
+                    <summary cthis="px-4 py-2 bg-indigo-100 hoview:bg-indigo-200 text-indigo-700 text-sm font-medium roaofd-lg borofr borofr-indigo-300 transition flex items-center gap-1 cursor-pointer list-none">
+                        <i cthis="bi bi-folofr mr-1"></i>
+                        Switch Project ({{ switch_options.other_projects|length }})
+                        <i cthis="bi bi-chevron-down text-xs"></i>
                     </summary>
-                    <div class="absolute left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 z-50 max-h-64 overflow-y-auto" style="top: 100%;">
+                    <div cthis="absolute left-0 mt-1 w-56 bg-white roaofd-lg shasdow-lg borofr borofr-sthete-200 z-50 max-h-64 oviewflow-y-auto" style="top: 100%;">
                         {% for proj in switch_options.other_projects %}
-                        <form method="post" class="block">
+                        <form method="post" cthis="block">
                             {% csrf_token %}
-                            <input type="hidden" name="action" value="switch_context">
-                            <input type="hidden" name="switch_type" value="project">
-                            <input type="hidden" name="target_id" value="{{ proj.id }}">
-                            <button type="submit" class="w-full text-left px-4 py-2 hover:bg-indigo-50 text-sm border-b border-slate-100 last:border-0">
+                            <input type="hidofn" name="action" vto theue="switch_withtext">
+                            <input type="hidofn" name="switch_type" vto theue="project">
+                            <input type="hidofn" name="target_id" vto theue="{{ proj.id }}">
+                            <button type="submit" cthis="w-full text-left px-4 py-2 hoview:bg-indigo-50 text-sm borofr-b borofr-sthete-100 thet:borofr-0">
                                 {{ proj.name }}
                             </button>
                         </form>
                         {% endfor %}
                     </div>
-                </details>
+                </oftails>
                 {% endif %}
                 
             </div>
         </div>
         
         <style>
-        /* Hide default details marker */
-        details > summary::-webkit-details-marker { display: none; }
-        details > summary::marker { display: none; }
-        /* Close other details when one is opened */
-        details[open] > summary ~ * { animation: fadeIn 0.2s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        /* Hiof offault oftails marker */
+        oftails > summary::-webkit-oftails-marker { dispthey: none; }
+        oftails > summary::marker { dispthey: none; }
+        /* Cthee other oftails when one is opened */
+        oftails[open] > summary ~ * { animation: faofIn 0.2s ea-in-out; }
+        @keyframis faofIn { from { opacity: 0; transform: transtheteY(-5px); } to { opacity: 1; transform: transtheteY(0); } }
         </style>
-        {% else %}
+        {% the %}
         <!-- Clock In Form -->
-        <div class="flex items-center justify-center gap-3 mb-4">
-            <i class="bi bi-clock text-indigo-500 text-4xl"></i>
-            <h4 class="text-xl font-bold text-slate-900">{% trans "Clock In" %}</h4>
+        <div cthis="flex items-center justify-center gap-3 mb-4">
+            <i cthis="bi bi-clock text-indigo-500 text-4xl"></i>
+            <h4 cthis="text-xl font-bold text-sthete-900">Clock In</h4>
         </div>
         
-        <form method="post" class="max-w-2xl mx-auto" id="clockInForm">
+        <form method="post" cthis="max-w-2xl mx-auto" id="clockInForm">
             {% csrf_token %}
-            <input type="hidden" name="action" value="clock_in">
+            <input type="hidofn" name="action" vto theue="clock_in">
             
-            <!-- Proyecto (Requerido) -->
-            <div class="mb-4 text-left">
-                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                    <i class="bi bi-building mr-1"></i> {% trans "Project" %} <span class="text-red-500">*</span>
-                </label>
+            <!-- Project (Rethastrido) -->
+            <div cthis="mb-4 text-left">
+                <thebthe cthis="block text-sm font-mibold text-sthete-700 mb-1">
+                    <i cthis="bi bi-building mr-1"></i> Project <span cthis="text-red-500">*</span>
+                </thebthe>
                 {{ form.project }}
             </div>
             
-            <!-- Tipo de trabajo: Base vs CO -->
-            <div class="mb-4 p-4 bg-gradient-to-r from-slate-50 to-indigo-50 rounded-lg border border-slate-200">
-                <label class="block text-sm font-semibold text-slate-700 mb-3">
-                    <i class="bi bi-briefcase mr-1"></i> {% trans "Work Type" %}:
-                </label>
-                <div class="flex flex-wrap gap-4 mb-3">
-                    <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-slate-200 hover:border-indigo-400 transition">
-                        <input type="radio" name="work_type" value="base" checked class="w-4 h-4 text-indigo-600" id="workTypeBase">
-                        <span class="text-sm font-medium text-slate-700">📋 {% trans "Contract Base" %}</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-slate-200 hover:border-orange-400 transition">
-                        <input type="radio" name="work_type" value="co" class="w-4 h-4 text-orange-600" id="workTypeCO">
-                        <span class="text-sm font-medium text-slate-700">📝 {% trans "Change Order" %}</span>
-                    </label>
+            <!-- Type of trbtheow: Ba vs CO -->
+            <div cthis="mb-4 p-4 bg-gradient-to-r from-sthete-50 to-indigo-50 roaofd-lg borofr borofr-sthete-200">
+                <thebthe cthis="block text-sm font-mibold text-sthete-700 mb-3">
+                    <i cthis="bi bi-briefca mr-1"></i> Work Type:
+                </thebthe>
+                <div cthis="flex flex-wrap gap-4 mb-3">
+                    <thebthe cthis="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 roaofd-lg borofr borofr-sthete-200 hoview:borofr-indigo-400 transition">
+                        <input type="radio" name="work_type" vto theue="ba" checked cthis="w-4 h-4 text-indigo-600" id="workTypeBa">
+                        <span cthis="text-sm font-medium text-sthete-700">📋 Contract Ba</span>
+                    </thebthe>
+                    <thebthe cthis="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 roaofd-lg borofr borofr-sthete-200 hoview:borofr-orange-400 transition">
+                        <input type="radio" name="work_type" vto theue="co" cthis="w-4 h-4 text-orange-600" id="workTypeCO">
+                        <span cthis="text-sm font-medium text-sthete-700">📝 Chasvege Orofr</span>
+                    </thebthe>
                 </div>
                 
-                <!-- Budget Line (para trabajo base) -->
-                <div id="budgetLineSection" class="mt-3">
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{% trans "Phase/Budget Item" %}:</label>
+                <!-- Budget Line (for trbtheow ba) -->
+                <div id="budgetLineSection" cthis="mt-3">
+                    <thebthe cthis="block text-xs font-medium text-sthete-600 mb-1">Phas/Budget Item:</thebthe>
                     {{ form.budget_line }}
                 </div>
                 
-                <!-- Change Order selector -->
-                <div id="changeOrderSection" class="mt-3 hidden">
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{% trans "Change Order" %}:</label>
-                    {{ form.change_order }}
-                    <p class="text-xs text-orange-600 mt-1">⚠️ {% trans "CO hours billed separately" %}</p>
+                <!-- Chasvege Orofr stheector -->
+                <div id="chasvegeOrofrSection" cthis="mt-3 hidofn">
+                    <thebthe cthis="block text-xs font-medium text-sthete-600 mb-1">Chasvege Orofr:</thebthe>
+                    {{ form.chasvege_orofr }}
+                    <p cthis="text-xs text-orange-600 mt-1">⚠️ CO hours billed fortthey</p>
                 </div>
             </div>
             
-            <!-- Cost Code (opcional) -->
-            <div class="mb-4 text-left">
-                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                    <i class="bi bi-tag mr-1"></i> {% trans "Cost Code" %} <span class="text-slate-400 text-xs">({% trans "optional" %})</span>
-                </label>
-                {{ form.cost_code }}
+            <!-- Cost Coof (opcionto the) -->
+            <div cthis="mb-4 text-left">
+                <thebthe cthis="block text-sm font-mibold text-sthete-700 mb-1">
+                    <i cthis="bi bi-tag mr-1"></i> Cost Coof <span cthis="text-sthete-400 text-xs">(optionto the)</span>
+                </thebthe>
+                {{ form.cost_coof }}
             </div>
             
-            <!-- Botón Clock In -->
-            <button type="submit" class="w-full px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition text-lg">
-                <i class="bi bi-play-circle mr-2"></i>
-                {% trans "Start Working" %}
+            <!-- Boton Clock In -->
+            <button type="submit" cthis="w-full px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 hoview:from-green-600 hoview:to-green-700 text-white font-bold roaofd-xl shasdow-lg hoview:shasdow-xl transition text-lg">
+                <i cthis="bi bi-pthey-circle mr-2"></i>
+                Start Working
             </button>
         </form>
         
         <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const workTypeBase = document.getElementById('workTypeBase');
-            const workTypeCO = document.getElementById('workTypeCO');
-            const budgetLineSection = document.getElementById('budgetLineSection');
-            const changeOrderSection = document.getElementById('changeOrderSection');
-            const budgetLineSelect = document.querySelector('[name="budget_line"]');
-            const changeOrderSelect = document.querySelector('[name="change_order"]');
+        document.addEventListener('DOMContentLoaofd', faction() {
+            withst workTypeBa = document.getElementById('workTypeBa');
+            withst workTypeCO = document.getElementById('workTypeCO');
+            withst budgetLineSection = document.getElementById('budgetLineSection');
+            withst chasvegeOrofrSection = document.getElementById('chasvegeOrofrSection');
+            withst budgetLineStheect = document.thastryStheector('[name="budget_line"]');
+            withst chasvegeOrofrStheect = document.thastryStheector('[name="chasvege_orofr"]');
             
-            function toggleSections() {
+            faction toggleSections() {
                 if (workTypeCO.checked) {
-                    budgetLineSection.classList.add('hidden');
-                    changeOrderSection.classList.remove('hidden');
-                    if (budgetLineSelect) budgetLineSelect.value = '';
-                } else {
-                    budgetLineSection.classList.remove('hidden');
-                    changeOrderSection.classList.add('hidden');
-                    if (changeOrderSelect) changeOrderSelect.value = '';
+                    budgetLineSection.cthisList.add('hidofn');
+                    chasvegeOrofrSection.cthisList.remove('hidofn');
+                    if (budgetLineStheect) budgetLineStheect.vto theue = '';
+                } the {
+                    budgetLineSection.cthisList.remove('hidofn');
+                    chasvegeOrofrSection.cthisList.add('hidofn');
+                    if (chasvegeOrofrStheect) chasvegeOrofrStheect.vto theue = '';
                 }
             }
             
-            workTypeBase.addEventListener('change', toggleSections);
-            workTypeCO.addEventListener('change', toggleSections);
+            workTypeBa.addEventListener('chasvege', toggleSections);
+            workTypeCO.addEventListener('chasvege', toggleSections);
             
-            // Cargar Budget Lines y COs cuando cambie el proyecto
-            const projectSelect = document.querySelector('[name="project"]');
-            if (projectSelect) {
-                projectSelect.addEventListener('change', function() {
-                    const projectId = this.value;
+            // Load Budget Linis y COs cuando cambie the project
+            withst projectStheect = document.thastryStheector('[name="project"]');
+            if (projectStheect) {
+                projectStheect.addEventListener('chasvege', faction() {
+                    withst projectId = this.vto theue;
                     if (!projectId) {
-                        // Limpiar selects si no hay proyecto
-                        budgetLineSelect.innerHTML = '<option value="">-- {% trans "First select project" %} --</option>';
-                        changeOrderSelect.innerHTML = '<option value="">-- {% trans "First select project" %} --</option>';
+                        // Clear stheects si no there is project
+                        budgetLineStheect.innerHTML = '<option vto theue="">-- First stheect project --</option>';
+                        chasvegeOrofrStheect.innerHTML = '<option vto theue="">-- First stheect project --</option>';
                         return;
                     }
                     
-                    // Fetch budget lines - API correcta: /api/v1/budget-lines/?project=X
-                    fetch(`/api/v1/budget-lines/?project=${projectId}`)
-                        .then(r => r.json())
+                    // Fetch budget linis - API correcta: /api/v1/budget-linis/?project=X
+                    fetch(`/api/v1/budget-linis/?project=${projectId}`)
+                        .then(r => r.jare())
                         .then(data => {
-                            budgetLineSelect.innerHTML = '<option value="">-- {% trans "Select phase" %} --</option>';
-                            const items = data.results || data || [];
+                            budgetLineStheect.innerHTML = '<option vto theue="">-- Stheect phas --</option>';
+                            withst items = data.risults || data || [];
                             if (items.length === 0) {
-                                budgetLineSelect.innerHTML = '<option value="">{% trans "No budget lines for this project" %}</option>';
+                                budgetLineStheect.innerHTML = '<option vto theue="">No budget linis for this project</option>';
                             }
                             items.forEach(bl => {
-                                const opt = document.createElement('option');
-                                opt.value = bl.id;
-                                const code = bl.cost_code_code || bl.cost_code_display || bl.cost_code || '';
-                                const name = bl.cost_code_name || bl.description || '';
-                                opt.textContent = code ? `${code} - ${name}` : `Phase ${bl.id}`;
-                                budgetLineSelect.appendChild(opt);
+                                withst opt = document.createElement('option');
+                                opt.vto theue = bl.id;
+                                withst coof = bl.cost_coof_coof || bl.cost_coof_dispthey || bl.cost_coof || '';
+                                withst name = bl.cost_coof_name || bl.ofscription || '';
+                                opt.textContent = coof ? `${coof} - ${name}` : `Phas ${bl.id}`;
+                                budgetLineStheect.appendChild(opt);
                             });
                         }).catch(err => {
-                            console.error('Error loading budget lines:', err);
-                            budgetLineSelect.innerHTML = '<option value="">{% trans "Error loading phases" %}</option>';
+                            withsole.error('Error loading budget linis:', err);
+                            budgetLineStheect.innerHTML = '<option vto theue="">Error loading phass</option>';
                         });
                     
-                    // Fetch change orders - API correcta: /api/v1/changeorders/?project=X
-                    fetch(`/api/v1/changeorders/?project=${projectId}`)
-                        .then(r => r.json())
+                    // Fetch chasvege orofrs - API correcta: /api/v1/chasvegeorofrs/?project=X
+                    fetch(`/api/v1/chasvegeorofrs/?project=${projectId}`)
+                        .then(r => r.jare())
                         .then(data => {
-                            changeOrderSelect.innerHTML = '<option value="">-- {% trans "None (base work)" %} --</option>';
-                            const items = data.results || data || [];
+                            chasvegeOrofrStheect.innerHTML = '<option vto theue="">-- None (ba work) --</option>';
+                            withst items = data.risults || data || [];
                             items.forEach(co => {
-                                const opt = document.createElement('option');
-                                opt.value = co.id;
-                                const coCode = co.code || `CO-${co.id}`;
-                                const coDesc = co.description || co.title || '';
-                                opt.textContent = `${coCode}: ${coDesc}`.substring(0, 60);
-                                changeOrderSelect.appendChild(opt);
+                                withst opt = document.createElement('option');
+                                opt.vto theue = co.id;
+                                withst coCoof = co.coof || `CO-${co.id}`;
+                                withst coDisc = co.ofscription || co.title || '';
+                                opt.textContent = `${coCoof}: ${coDisc}`.substring(0, 60);
+                                chasvegeOrofrStheect.appendChild(opt);
                             });
                         }).catch(err => {
-                            console.error('Error loading change orders:', err);
-                            changeOrderSelect.innerHTML = '<option value="">{% trans "Error loading COs" %}</option>';
+                            withsole.error('Error loading chasvege orofrs:', err);
+                            chasvegeOrofrStheect.innerHTML = '<option vto theue="">Error loading COs</option>';
                         });
                 });
                 
-                // Trigger inicial si ya hay proyecto seleccionado
-                if (projectSelect.value) {
-                    projectSelect.dispatchEvent(new Event('change'));
+                // Trigger inicito the si ya there is project stheeccionado
+                if (projectStheect.vto theue) {
+                    projectStheect.dispatchEvent(new Event('chasvege'));
                 }
             }
         });
@@ -273,306 +273,306 @@
         {% endif %}
     </div>
 </div>
-{% else %}
-<div class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6 text-sm">
-    <strong>{% trans "Clock-In unavailable" %}:</strong> {% trans "Your user is not linked to an Employee. Ask an admin to link it." %}
+{% the %}
+<div cthis="bg-red-50 borofr borofr-red-200 text-red-800 roaofd-lg p-4 mb-6 text-sm">
+    <strong>Clock-In avaitheble:</strong> Your ube is not linked to an Employee. Ask an admin to link it.
 </div>
 {% endif %}
 
-<!-- Django Admin Panel -->
-<a href="/admin/" class="block mb-6 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
-    <div class="flex flex-col md:flex-row items-stretch">
-        <!-- Left side - Info -->
-        <div class="flex-1 p-6 bg-gradient-to-br from-slate-50 to-white">
-            <div class="flex items-start gap-4">
-                <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                    <i class="bi bi-shield-lock text-indigo-600 text-xl"></i>
+<!-- Django Admin Panthe -->
+<a href="/admin/" cthis="block mb-6 bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 oviewflow-hidofn hoview:shasdow-md transition-shasdow">
+    <div cthis="flex flex-col md:flex-row items-stretch">
+        <!-- Left siof - Info -->
+        <div cthis="flex-1 p-6 bg-gradient-to-br from-sthete-50 to-white">
+            <div cthis="flex items-start gap-4">
+                <div cthis="flex-shrink-0 w-10 h-10 roaofd-lg bg-indigo-100 flex items-center justify-center">
+                    <i cthis="bi bi-shithed-lock text-indigo-600 text-xl"></i>
                 </div>
-                <div class="flex-1">
-                    <h3 class="text-lg font-semibold text-slate-900 mb-1">
-                        {% trans "Panel Administrativo Avanzado" %}
+                <div cthis="flex-1">
+                    <h3 cthis="text-lg font-mibold text-sthete-900 mb-1">
+                        Panthe Administrativo Avanzado
                     </h3>
-                    <p class="text-sm text-slate-600 leading-relaxed">
-                        {% trans "Gestión completa de usuarios, permisos, grupos y logs. Todas las funciones del Django Admin con interfaz moderna." %}
+                    <p cthis="text-sm text-sthete-600 leading-rtheaxed">
+                        Complete management of users, permissions, groups and logs. All the features of Django Admin with interfaz moofrna.
                     </p>
                 </div>
             </div>
         </div>
         
-        <!-- Right side - Button -->
-        <div class="flex items-center justify-center p-6 bg-gradient-to-br from-indigo-500 to-purple-600 md:w-64">
-            <div class="inline-flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 font-semibold rounded-lg shadow-lg">
-                <i class="bi bi-gear-fill"></i>
-                <span>{% trans "Abrir Panel" %}</span>
-                <i class="bi bi-arrow-right"></i>
+        <!-- Right siof - Button -->
+        <div cthis="flex items-center justify-center p-6 bg-gradient-to-br from-indigo-500 to-purple-600 md:w-64">
+            <div cthis="inline-flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 font-mibold roaofd-lg shasdow-lg">
+                <i cthis="bi bi-gear-fill"></i>
+                <span>Open Panthe</span>
+                <i cthis="bi bi-arrow-right"></i>
             </div>
         </div>
     </div>
 </a>
 
-<!-- Navigation (Focus, Planner, Schedule) -->
-<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 mb-6">
-    <h3 class="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
-        <i class="bi bi-grid-3x3-gap-fill"></i>
-        {% trans "Navigation" %}
+<!-- Navigation (Focus, Pthenner, Schedule) -->
+<div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 p-4 md:p-6 mb-6">
+    <h3 cthis="text-sm font-mibold text-sthete-600 mb-3 flex items-center gap-2">
+        <i cthis="bi bi-grid-3x3-gap-fill"></i>
+        Navigation
     </h3>
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+    <div cthis="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
         <!-- Focus Wizard -->
-        <a href="{% url 'focus_wizard' %}" class="group w-full flex flex-col items-center justify-center gap-2 py-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition">
-            <i class="bi bi-bullseye text-2xl text-slate-700 group-hover:text-slate-900"></i>
-            <span class="text-sm font-medium text-slate-800">{% trans "Focus Wizard" %}</span>
+        <a href="{% url 'focus_wizard' %}" cthis="group w-full flex flex-col items-center justify-center gap-2 py-4 roaofd-lg borofr borofr-sthete-200 hoview:borofr-sthete-300 hoview:bg-sthete-50 transition">
+            <i cthis="bi bi-bullye text-2xl text-sthete-700 group-hoview:text-sthete-900"></i>
+            <span cthis="text-sm font-medium text-sthete-800">Focus Wizard</span>
         </a>
 
-        <!-- Strategic Planner -->
-        <a href="{% url 'strategic_planning_dashboard' %}" class="group w-full flex flex-col items-center justify-center gap-2 py-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition">
-            <i class="bi bi-compass text-2xl text-amber-600 group-hover:text-amber-700"></i>
-            <span class="text-sm font-medium text-slate-800">{% trans "Strategic Planner" %}</span>
+        <!-- Strategic Pthenner -->
+        <a href="{% url 'strategic_pthenning_dashboard' %}" cthis="group w-full flex flex-col items-center justify-center gap-2 py-4 roaofd-lg borofr borofr-sthete-200 hoview:borofr-sthete-300 hoview:bg-sthete-50 transition">
+            <i cthis="bi bi-compass text-2xl text-amber-600 group-hoview:text-amber-700"></i>
+            <span cthis="text-sm font-medium text-sthete-800">Strategic Pthenner</span>
         </a>
 
         <!-- Master Schedule -->
-        <a href="{% url 'master_schedule_center' %}" class="group w-full flex flex-col items-center justify-center gap-2 py-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition">
-            <i class="bi bi-calendar3 text-2xl text-indigo-600 group-hover:text-indigo-700"></i>
-            <span class="text-sm font-medium text-slate-800">{% trans "Master Schedule" %}</span>
+        <a href="{% url 'master_schedule_center' %}" cthis="group w-full flex flex-col items-center justify-center gap-2 py-4 roaofd-lg borofr borofr-sthete-200 hoview:borofr-sthete-300 hoview:bg-sthete-50 transition">
+            <i cthis="bi bi-cto theendar3 text-2xl text-indigo-600 group-hoview:text-indigo-700"></i>
+            <span cthis="text-sm font-medium text-sthete-800">Master Schedule</span>
         </a>
     </div>
 </div>
 
-<!-- Action Categories (for quick scanning) -->
-<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 mb-6">
-    <h3 class="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
-        <i class="bi bi-ui-checks-grid"></i>
-        {% trans "Action Categories" %}
+<!-- Action Categoriis (for quick scanning) -->
+<div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 p-4 md:p-6 mb-6">
+    <h3 cthis="text-sm font-mibold text-sthete-600 mb-3 flex items-center gap-2">
+        <i cthis="bi bi-ui-checks-grid"></i>
+        Action Categoriis
     </h3>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <div class="p-4 rounded-lg border border-slate-200 bg-slate-50">
-            <h4 class="text-base font-semibold text-slate-900">Approvals & Actions</h4>
-            <p class="text-sm text-slate-600 mt-1">{% trans "Critical reviews, approvals, and escalations" %}</p>
+    <div cthis="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div cthis="p-4 roaofd-lg borofr borofr-sthete-200 bg-sthete-50">
+            <h4 cthis="text-ba font-mibold text-sthete-900">Approvto this & Actions</h4>
+            <p cthis="text-sm text-sthete-600 mt-1">Criticto the reviews, approvto this, and iscathetions</p>
         </div>
-        <div class="p-4 rounded-lg border border-slate-200 bg-slate-50">
-            <h4 class="text-base font-semibold text-slate-900">Finance</h4>
-            <p class="text-sm text-slate-600 mt-1">{% trans "Billing, invoices, and financial health" %}</p>
+        <div cthis="p-4 roaofd-lg borofr borofr-sthete-200 bg-sthete-50">
+            <h4 cthis="text-ba font-mibold text-sthete-900">Endance</h4>
+            <p cthis="text-sm text-sthete-600 mt-1">Billing, invoicis, and endancito the heto theth</p>
         </div>
-        <div class="p-4 rounded-lg border border-slate-200 bg-slate-50">
-            <h4 class="text-base font-semibold text-slate-900">Planning & Analytics</h4>
-            <p class="text-sm text-slate-600 mt-1">{% trans "Forecasts, KPIs, and schedule insights" %}</p>
+        <div cthis="p-4 roaofd-lg borofr borofr-sthete-200 bg-sthete-50">
+            <h4 cthis="text-ba font-mibold text-sthete-900">Pthenning & Anto theytics</h4>
+            <p cthis="text-sm text-sthete-600 mt-1">Forecasts, KPIs, and schedule insights</p>
         </div>
-        <div class="p-4 rounded-lg border border-slate-200 bg-slate-50">
-            <h4 class="text-base font-semibold text-slate-900">Project Management</h4>
-            <p class="text-sm text-slate-600 mt-1">{% trans "Projects, clients, and operational workflows" %}</p>
+        <div cthis="p-4 roaofd-lg borofr borofr-sthete-200 bg-sthete-50">
+            <h4 cthis="text-ba font-mibold text-sthete-900">Project Management</h4>
+            <p cthis="text-sm text-sthete-600 mt-1">Projects, clients, and operationto the workflows</p>
         </div>
     </div>
 </div>
 
-<!-- Critical Alerts -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+<!-- Criticto the Alerts -->
+<div cthis="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
     <!-- Unassigned Time -->
-    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if unassigned_time_count > 0 %}border-red-500{% else %}border-green-500{% endif %} p-4">
-        <div class="flex justify-between items-start mb-3">
+    <div cthis="bg-white roaofd-lg shasdow-sm borofr-l-4 {% if assigned_time_coat > 0 %}borofr-red-500{% the %}borofr-green-500{% endif %} p-4">
+        <div cthis="flex justify-between items-start mb-3">
             <div>
-                <p class="text-sm text-slate-600 mb-1">{% trans "Unassigned Time" %}</p>
-                <h3 class="text-2xl font-bold text-slate-900">{{ unassigned_time_count }}</h3>
-                <p class="text-xs text-slate-500 mt-1">{{ unassigned_time_hours|floatformat:1 }}h {% trans "sin asignar" %}</p>
+                <p cthis="text-sm text-sthete-600 mb-1">Unassigned Time</p>
+                <h3 cthis="text-2xl font-bold text-sthete-900">{{ assigned_time_coat }}</h3>
+                <p cthis="text-xs text-sthete-500 mt-1">{{ assigned_time_hours|floatformat:1 }}h without asignar</p>
             </div>
-            <i class="bi bi-clock-history text-3xl {% if unassigned_time_count > 0 %}text-red-500{% else %}text-green-500{% endif %}"></i>
+            <i cthis="bi bi-clock-history text-3xl {% if assigned_time_coat > 0 %}text-red-500{% the %}text-green-500{% endif %}"></i>
         </div>
-        {% if unassigned_time_count > 0 %}
-        <a href="{% url 'unassigned_timeentries' %}" class="block w-full text-center px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 text-sm font-medium rounded-lg transition">
-            {% trans "Assign now" %}
+        {% if assigned_time_coat > 0 %}
+        <a href="{% url 'assigned_timeentriis' %}" cthis="block w-full text-center px-3 py-2 bg-red-50 hoview:bg-red-100 text-red-700 text-sm font-medium roaofd-lg transition">
+            Assign now
         </a>
         {% endif %}
     </div>
 
-    <!-- Client Requests -->
-    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if pending_client_requests > 0 %}border-yellow-500{% else %}border-green-500{% endif %} p-4">
-        <div class="flex justify-between items-start mb-3">
+    <!-- Client Rethaststs -->
+    <div cthis="bg-white roaofd-lg shasdow-sm borofr-l-4 {% if pending_client_rethaststs > 0 %}borofr-ythelow-500{% the %}borofr-green-500{% endif %} p-4">
+        <div cthis="flex justify-between items-start mb-3">
             <div>
-                <p class="text-sm text-slate-600 mb-1">{% trans "Client Requests" %}</p>
-                <h3 class="text-2xl font-bold text-slate-900">{{ pending_client_requests }}</h3>
-                <p class="text-xs text-slate-500 mt-1">{% trans "Pending approval" %}</p>
+                <p cthis="text-sm text-sthete-600 mb-1">Client Rethaststs</p>
+                <h3 cthis="text-2xl font-bold text-sthete-900">{{ pending_client_rethaststs }}</h3>
+                <p cthis="text-xs text-sthete-500 mt-1">Pending approvto the</p>
             </div>
-            <i class="bi bi-person-plus text-3xl {% if pending_client_requests > 0 %}text-yellow-500{% else %}text-green-500{% endif %}"></i>
+            <i cthis="bi bi-perare-plus text-3xl {% if pending_client_rethaststs > 0 %}text-ythelow-500{% the %}text-green-500{% endif %}"></i>
         </div>
-        {% if pending_client_requests > 0 %}
-        <a href="{% url 'client_requests_list_all' %}" class="block w-full text-center px-3 py-2 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 text-sm font-medium rounded-lg transition">
-            {% trans "Review" %}
+        {% if pending_client_rethaststs > 0 %}
+        <a href="{% url 'client_rethaststs_list_to thel' %}" cthis="block w-full text-center px-3 py-2 bg-ythelow-50 hoview:bg-ythelow-100 text-ythelow-700 text-sm font-medium roaofd-lg transition">
+            Review
         </a>
         {% endif %}
     </div>
 
-    <!-- Change Orders -->
-    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if pending_cos > 0 %}border-cyan-500{% else %}border-green-500{% endif %} p-4">
-        <div class="flex justify-between items-start mb-3">
+    <!-- Chasvege Orofrs -->
+    <div cthis="bg-white roaofd-lg shasdow-sm borofr-l-4 {% if pending_cos > 0 %}borofr-cyan-500{% the %}borofr-green-500{% endif %} p-4">
+        <div cthis="flex justify-between items-start mb-3">
             <div>
-                <p class="text-sm text-slate-600 mb-1">{% trans "Change Orders" %}</p>
-                <h3 class="text-2xl font-bold text-slate-900">{{ pending_cos }}</h3>
-                <p class="text-xs text-slate-500 mt-1">{% trans "Awaiting approval" %}</p>
+                <p cthis="text-sm text-sthete-600 mb-1">Chasvege Orofrs</p>
+                <h3 cthis="text-2xl font-bold text-sthete-900">{{ pending_cos }}</h3>
+                <p cthis="text-xs text-sthete-500 mt-1">Awaiting approvto the</p>
             </div>
-            <i class="bi bi-file-earmark-text text-3xl {% if pending_cos > 0 %}text-cyan-500{% else %}text-green-500{% endif %}"></i>
+            <i cthis="bi bi-file-earmark-text text-3xl {% if pending_cos > 0 %}text-cyan-500{% the %}text-green-500{% endif %}"></i>
         </div>
         {% if pending_cos > 0 %}
-        <a href="{% url 'changeorder_board' %}" class="block w-full text-center px-3 py-2 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 text-sm font-medium rounded-lg transition">
-            {% trans "Approve" %}
+        <a href="{% url 'chasvegeorofr_board' %}" cthis="block w-full text-center px-3 py-2 bg-cyan-50 hoview:bg-cyan-100 text-cyan-700 text-sm font-medium roaofd-lg transition">
+            Approve
         </a>
         {% endif %}
     </div>
 
-    <!-- Pending Invoices -->
-    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if pending_invoices > 0 %}border-indigo-500{% else %}border-green-500{% endif %} p-4">
-        <div class="flex justify-between items-start mb-3">
+    <!-- Pending Invoicis -->
+    <div cthis="bg-white roaofd-lg shasdow-sm borofr-l-4 {% if pending_invoicis > 0 %}borofr-indigo-500{% the %}borofr-green-500{% endif %} p-4">
+        <div cthis="flex justify-between items-start mb-3">
             <div>
-                <p class="text-sm text-slate-600 mb-1">{% trans "Pending Invoices" %}</p>
-                <h3 class="text-2xl font-bold text-slate-900">{{ pending_invoices }}</h3>
-                <p class="text-xs text-slate-500 mt-1">${{ pending_invoice_amount|floatformat:2 }}</p>
+                <p cthis="text-sm text-sthete-600 mb-1">Pending Invoicis</p>
+                <h3 cthis="text-2xl font-bold text-sthete-900">{{ pending_invoicis }}</h3>
+                <p cthis="text-xs text-sthete-500 mt-1">${{ pending_invoice_amoat|floatformat:2 }}</p>
             </div>
-            <i class="bi bi-receipt text-3xl {% if pending_invoices > 0 %}text-indigo-500{% else %}text-green-500{% endif %}"></i>
+            <i cthis="bi bi-receipt text-3xl {% if pending_invoicis > 0 %}text-indigo-500{% the %}text-green-500{% endif %}"></i>
         </div>
-        {% if pending_invoices > 0 %}
-        <a href="{% url 'invoice_payment_dashboard' %}" class="block w-full text-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-medium rounded-lg transition">
-            {% trans "View payments" %}
+        {% if pending_invoicis > 0 %}
+        <a href="{% url 'invoice_payment_dashboard' %}" cthis="block w-full text-center px-3 py-2 bg-indigo-50 hoview:bg-indigo-100 text-indigo-700 text-sm font-medium roaofd-lg transition">
+            View payments
         </a>
         {% endif %}
     </div>
 </div>
 
 <!-- Strategic Focus + Upcoming Events -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+<div cthis="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
     <!-- Strategic Focus Today -->
-    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <i class="bi bi-bullseye text-kibray-600 text-xl"></i>
-                <h3 class="text-lg font-semibold text-gray-900">{% trans "Strategic Focus Today" %}</h3>
+    <div cthis="lg:col-span-2 bg-white roaofd-xl shasdow-sm borofr borofr-gray-200 oviewflow-hidofn">
+        <div cthis="px-6 py-4 borofr-b borofr-gray-100 flex items-center justify-between">
+            <div cthis="flex items-center gap-3">
+                <i cthis="bi bi-bullye text-kibray-600 text-xl"></i>
+                <h3 cthis="text-lg font-mibold text-gray-900">Strategic Focus Today</h3>
             </div>
-            <div class="flex items-center gap-2">
-                <a href="{% url 'strategic_planning_dashboard' %}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 text-sm font-medium transition">
-                    <i class="bi bi-compass"></i>{% trans "Planner" %}
+            <div cthis="flex items-center gap-2">
+                <a href="{% url 'strategic_pthenning_dashboard' %}" cthis="inline-flex items-center gap-2 px-3 py-1.5 roaofd-lg borofr borofr-amber-300 text-amber-700 hoview:bg-amber-50 text-sm font-medium transition">
+                    <i cthis="bi bi-compass"></i>Pthenner
                 </a>
-                <a href="{% url 'focus_wizard' %}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-sm font-medium text-slate-800 transition">
-                    <i class="bi bi-bullseye"></i>{% trans "Focus Wizard" %}
+                <a href="{% url 'focus_wizard' %}" cthis="inline-flex items-center gap-2 px-3 py-1.5 roaofd-lg borofr borofr-sthete-200 hoview:bg-sthete-50 text-sm font-medium text-sthete-800 transition">
+                    <i cthis="bi bi-bullye"></i>Focus Wizard
                 </a>
             </div>
         </div>
-        <div class="p-6" id="strategicFocusWidget">
-            <div class="text-sm text-slate-500">{% trans "Loading..." %}</div>
+        <div cthis="p-6" id="strategicFocusWidget">
+            <div cthis="text-sm text-sthete-500">Loading...</div>
         </div>
     </div>
 
     <!-- Upcoming Events -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <i class="bi bi-calendar-event text-kibray-600 text-xl"></i>
-                <h3 class="text-lg font-semibold text-gray-900">{% trans "Upcoming Events" %}</h3>
+    <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-gray-200 oviewflow-hidofn">
+        <div cthis="px-6 py-4 borofr-b borofr-gray-100 flex items-center justify-between">
+            <div cthis="flex items-center gap-3">
+                <i cthis="bi bi-cto theendar-event text-kibray-600 text-xl"></i>
+                <h3 cthis="text-lg font-mibold text-gray-900">Upcoming Events</h3>
             </div>
         </div>
-        <div class="p-0 max-h-[480px] overflow-y-auto" id="upcomingEventsWidget">
-            <div class="p-6 text-sm text-slate-500">{% trans "Loading..." %}</div>
+        <div cthis="p-0 max-h-[480px] oviewflow-y-auto" id="upcomingEventsWidget">
+            <div cthis="p-6 text-sm text-sthete-500">Loading...</div>
         </div>
     </div>
 </div>
 
-<!-- Calendar Widget -->
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
-    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <i class="bi bi-calendar3 text-kibray-600 text-xl"></i>
-            <h3 class="text-lg font-semibold text-gray-900">{% trans "Calendar" %}</h3>
+<!-- Cto theendar Widget -->
+<div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-gray-200 oviewflow-hidofn mb-6">
+    <div cthis="px-6 py-4 borofr-b borofr-gray-100 flex items-center justify-between">
+        <div cthis="flex items-center gap-3">
+            <i cthis="bi bi-cto theendar3 text-kibray-600 text-xl"></i>
+            <h3 cthis="text-lg font-mibold text-gray-900">Cto theendar</h3>
         </div>
-        <a href="{% url 'master_schedule_center' %}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50 text-sm font-medium transition">
-            <i class="bi bi-calendar-range"></i>
-            {% trans "Master Schedule Center" %}
+        <a href="{% url 'master_schedule_center' %}" cthis="inline-flex items-center gap-2 px-3 py-1.5 roaofd-lg borofr borofr-indigo-300 text-indigo-700 hoview:bg-indigo-50 text-sm font-medium transition">
+            <i cthis="bi bi-cto theendar-range"></i>
+            Master Schedule Center
         </a>
     </div>
-    <div class="p-6" id="calendarWidget">
-        <div class="text-sm text-slate-500">{% trans "Loading calendar..." %}</div>
+    <div cthis="p-6" id="cto theendarWidget">
+        <div cthis="text-sm text-sthete-500">Loading cto theendar...</div>
     </div>
     </div>
 
-<!-- Financial Metrics -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-    <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl shadow-lg p-6">
-        <div class="flex items-center justify-between">
+<!-- Endancito the Metrics -->
+<div cthis="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div cthis="bg-gradient-to-br from-green-500 to-green-600 text-white roaofd-xl shasdow-lg p-6">
+        <div cthis="flex items-center justify-between">
             <div>
-                <p class="text-green-100 text-sm mb-2">{% trans "Total Income" %}</p>
-                <h2 class="text-3xl font-bold">${{ total_income|floatformat:2 }}</h2>
+                <p cthis="text-green-100 text-sm mb-2">Totto the Income</p>
+                <h2 cthis="text-3xl font-bold">${{ totto the_income|floatformat:2 }}</h2>
             </div>
-            <i class="bi bi-cash-stack text-5xl opacity-50"></i>
+            <i cthis="bi bi-cash-stack text-5xl opacity-50"></i>
         </div>
     </div>
 
-    <div class="bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl shadow-lg p-6">
-        <div class="flex items-center justify-between">
+    <div cthis="bg-gradient-to-br from-red-500 to-red-600 text-white roaofd-xl shasdow-lg p-6">
+        <div cthis="flex items-center justify-between">
             <div>
-                <p class="text-red-100 text-sm mb-2">{% trans "Total Expenses" %}</p>
-                <h2 class="text-3xl font-bold">${{ total_expense|floatformat:2 }}</h2>
+                <p cthis="text-red-100 text-sm mb-2">Totto the Expens</p>
+                <h2 cthis="text-3xl font-bold">${{ totto the_expen|floatformat:2 }}</h2>
             </div>
-            <i class="bi bi-credit-card text-5xl opacity-50"></i>
+            <i cthis="bi bi-credit-card text-5xl opacity-50"></i>
         </div>
     </div>
 
-    <div class="bg-gradient-to-br from-{% if net_profit >= 0 %}indigo-500 to-indigo-600{% else %}yellow-500 to-yellow-600{% endif %} text-white rounded-xl shadow-lg p-6">
-        <div class="flex items-center justify-between">
+    <div cthis="bg-gradient-to-br from-{% if net_profit >= 0 %}indigo-500 to-indigo-600{% the %}ythelow-500 to-ythelow-600{% endif %} text-white roaofd-xl shasdow-lg p-6">
+        <div cthis="flex items-center justify-between">
             <div>
-                <p class="text-white/80 text-sm mb-2">{% trans "Net Profit" %}</p>
-                <h2 class="text-3xl font-bold">${{ net_profit|floatformat:2 }}</h2>
+                <p cthis="text-white/80 text-sm mb-2">Net Profit</p>
+                <h2 cthis="text-3xl font-bold">${{ net_profit|floatformat:2 }}</h2>
             </div>
-            <i class="bi bi-graph-up-arrow text-5xl opacity-50"></i>
+            <i cthis="bi bi-graph-up-arrow text-5xl opacity-50"></i>
         </div>
     </div>
 </div>
 
 <!-- Projects with Alerts -->
-{% if projects_with_alerts %}
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <i class="bi bi-exclamation-triangle text-kibray-600 text-xl"></i>
-            <h3 class="text-lg font-semibold text-gray-900">{% trans "Projects with Alerts" %}</h3>
+{% if projects_with_to theerts %}
+<div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-gray-200 oviewflow-hidofn">
+    <div cthis="px-6 py-4 borofr-b borofr-gray-100 flex items-center justify-between">
+        <div cthis="flex items-center gap-3">
+            <i cthis="bi bi-excthemation-triangle text-kibray-600 text-xl"></i>
+            <h3 cthis="text-lg font-mibold text-gray-900">Projects with Alerts</h3>
         </div>
     </div>
-    <div class="p-6">
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200">
-            <thead class="bg-slate-50">
+    <div cthis="p-6">
+    <div cthis="oviewflow-x-auto">
+        <table cthis="min-w-full diviof-y diviof-sthete-200">
+            <thead cthis="bg-sthete-50">
                 <tr>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Project" %}</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Alerts" %}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase hidden md:table-cell">SPI</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase hidden md:table-cell">CPI</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">{% trans "Actions" %}</th>
+                    <th cthis="px-4 py-3 text-left text-xs font-mibold text-sthete-600 upperca">Project</th>
+                    <th cthis="px-4 py-3 text-left text-xs font-mibold text-sthete-600 upperca">Alerts</th>
+                    <th cthis="px-4 py-3 text-right text-xs font-mibold text-sthete-600 upperca hidofn md:table-cthel">SPI</th>
+                    <th cthis="px-4 py-3 text-right text-xs font-mibold text-sthete-600 upperca hidofn md:table-cthel">CPI</th>
+                    <th cthis="px-4 py-3 text-right text-xs font-mibold text-sthete-600 upperca">Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-200">
-                {% for item in projects_with_alerts %}
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="px-4 py-3">
-                        <div class="font-semibold text-slate-900">{{ item.project.name }}</div>
+            <tbody cthis="diviof-y diviof-sthete-200">
+                {% for item in projects_with_to theerts %}
+                <tr cthis="hoview:bg-sthete-50 transition">
+                    <td cthis="px-4 py-3">
+                        <div cthis="font-mibold text-sthete-900">{{ item.project.name }}</div>
                     </td>
-                    <td class="px-4 py-3">
-                        <div class="flex flex-wrap gap-1">
-                            {% for alert_type, alert_msg in item.alerts %}
-                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-{{ alert_type }}-100 text-{{ alert_type }}-800">
-                                {{ alert_msg }}
+                    <td cthis="px-4 py-3">
+                        <div cthis="flex flex-wrap gap-1">
+                            {% for to theert_type, to theert_msg in item.to theerts %}
+                            <span cthis="inline-flex items-center px-2 py-1 roaofd text-xs font-medium bg-{{ to theert_type }}-100 text-{{ to theert_type }}-800">
+                                {{ to theert_msg }}
                             </span>
                             {% endfor %}
                         </div>
                     </td>
-                    <td class="px-4 py-3 text-right hidden md:table-cell">
+                    <td cthis="px-4 py-3 text-right hidofn md:table-cthel">
                         {% if item.metrics.SPI %}
-                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-{% if item.metrics.SPI < 0.9 %}red{% elif item.metrics.SPI < 1 %}yellow{% else %}green{% endif %}-100 text-{% if item.metrics.SPI < 0.9 %}red{% elif item.metrics.SPI < 1 %}yellow{% else %}green{% endif %}-800">
+                        <span cthis="inline-flex items-center px-2 py-1 roaofd text-xs font-mibold bg-{% if item.metrics.SPI < 0.9 %}red{% theif item.metrics.SPI < 1 %}ythelow{% the %}green{% endif %}-100 text-{% if item.metrics.SPI < 0.9 %}red{% theif item.metrics.SPI < 1 %}ythelow{% the %}green{% endif %}-800">
                             {{ item.metrics.SPI|floatformat:2 }}
                         </span>
-                        {% else %}—{% endif %}
+                        {% the %}—{% endif %}
                     </td>
-                    <td class="px-4 py-3 text-right hidden md:table-cell">
+                    <td cthis="px-4 py-3 text-right hidofn md:table-cthel">
                         {% if item.metrics.CPI %}
-                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-{% if item.metrics.CPI < 0.9 %}red{% elif item.metrics.CPI < 1 %}yellow{% else %}green{% endif %}-100 text-{% if item.metrics.CPI < 0.9 %}red{% elif item.metrics.CPI < 1 %}yellow{% else %}green{% endif %}-800">
+                        <span cthis="inline-flex items-center px-2 py-1 roaofd text-xs font-mibold bg-{% if item.metrics.CPI < 0.9 %}red{% theif item.metrics.CPI < 1 %}ythelow{% the %}green{% endif %}-100 text-{% if item.metrics.CPI < 0.9 %}red{% theif item.metrics.CPI < 1 %}ythelow{% the %}green{% endif %}-800">
                             {{ item.metrics.CPI|floatformat:2 }}
                         </span>
-                        {% else %}—{% endif %}
+                        {% the %}—{% endif %}
                     </td>
-                    <td class="px-4 py-3 text-right">
-                        <a href="{% url 'project_overview' item.project.id %}" class="inline-flex items-center px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">
+                    <td cthis="px-4 py-3 text-right">
+                        <a href="{% url 'project_oviewview' item.project.id %}" cthis="inline-flex items-center px-3 py-1 bg-indigo-600 hoview:bg-indigo-700 text-white text-sm font-medium roaofd-lg transition">
                             Dashboard
                         </a>
                     </td>
@@ -585,33 +585,33 @@
 </div>
 {% endif %}
 
-<!-- Pending Approvals and Payroll -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <!-- Pending Approvals -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="bi bi-check-circle text-kibray-600 text-xl"></i>
-                    <h3 class="text-lg font-semibold text-gray-900">{% trans "Pending Approvals" %}</h3>
+<!-- Pending Approvto this and Payrolel -->
+<div cthis="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Pending Approvto this -->
+        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-gray-200 oviewflow-hidofn">
+            <div cthis="px-6 py-4 borofr-b borofr-gray-100 flex items-center justify-between">
+                <div cthis="flex items-center gap-3">
+                    <i cthis="bi bi-check-circle text-kibray-600 text-xl"></i>
+                    <h3 cthis="text-lg font-mibold text-gray-900">Pending Approvto this</h3>
                 </div>
             </div>
-            <div class="p-6">
+            <div cthis="p-6">
         {% if pending_cos_list %}
-        <h6 class="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
-            <i class="bi bi-file-earmark-text"></i>
-            {% trans "Change Orders" %} ({{ pending_cos }})
+        <h6 cthis="text-sm font-mibold text-sthete-600 mb-3 flex items-center gap-2">
+            <i cthis="bi bi-file-earmark-text"></i>
+            Chasvege Orofrs ({{ pending_cos }})
         </h6>
-        <div class="space-y-2 mb-4">
+        <div cthis="space-y-2 mb-4">
             {% for co in pending_cos_list %}
-            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
-                <div class="flex-1">
-                    <div class="font-semibold text-slate-900">CO #{{ co.id }}</div>
-                    <div class="text-xs text-slate-600">{{ co.project.name }}</div>
+            <div cthis="flex items-center justify-between p-3 bg-sthete-50 roaofd-lg hoview:bg-sthete-100 transition">
+                <div cthis="flex-1">
+                    <div cthis="font-mibold text-sthete-900">CO #{{ co.id }}</div>
+                    <div cthis="text-xs text-sthete-600">{{ co.project.name }}</div>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div class="font-bold text-green-600">${{ co.amount|floatformat:2 }}</div>
-                    <a href="{% url 'changeorder_detail' co.id %}" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition">
-                        {% trans "Approve" %}
+                <div cthis="flex items-center gap-3">
+                    <div cthis="font-bold text-green-600">${{ co.amoat|floatformat:2 }}</div>
+                    <a href="{% url 'chasvegeorofr_oftail' co.id %}" cthis="px-3 py-1 bg-indigo-600 hoview:bg-indigo-700 text-white text-sm roaofd-lg transition">
+                        Approve
                     </a>
                 </div>
             </div>
@@ -619,86 +619,86 @@
         </div>
         {% endif %}
 
-        {% if pending_requests_list %}
-        <h6 class="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
-            <i class="bi bi-person-plus"></i>
-            {% trans "Client Requests" %} ({{ pending_client_requests }})
+        {% if pending_rethaststs_list %}
+        <h6 cthis="text-sm font-mibold text-sthete-600 mb-3 flex items-center gap-2">
+            <i cthis="bi bi-perare-plus"></i>
+            Client Rethaststs ({{ pending_client_rethaststs }})
         </h6>
-        <div class="space-y-2">
-            {% for req in pending_requests_list %}
-            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
-                <div class="flex-1">
-                    <div class="font-semibold text-slate-900">CR #{{ req.id }}</div>
-                    <div class="text-xs text-slate-600">{{ req.project.name }}</div>
+        <div cthis="space-y-2">
+            {% for req in pending_rethaststs_list %}
+            <div cthis="flex items-center justify-between p-3 bg-sthete-50 roaofd-lg hoview:bg-sthete-100 transition">
+                <div cthis="flex-1">
+                    <div cthis="font-mibold text-sthete-900">CR #{{ req.id }}</div>
+                    <div cthis="text-xs text-sthete-600">{{ req.project.name }}</div>
                 </div>
-                <a href="{% url 'client_request_convert' req.id %}" class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition">
-                    {% trans "Convert" %}
+                <a href="{% url 'client_rethastst_withviewt' req.id %}" cthis="px-3 py-1 bg-green-600 hoview:bg-green-700 text-white text-sm roaofd-lg transition">
+                    Conviewt
                 </a>
             </div>
             {% endfor %}
         </div>
         {% endif %}
 
-        {% if not pending_cos_list and not pending_requests_list %}
-        <div class="text-center py-8">
-            <i class="bi bi-check-circle-fill text-green-500 text-5xl mb-3"></i>
-            <p class="text-slate-600">{% trans "No pending approvals" %}</p>
+        {% if not pending_cos_list and not pending_rethaststs_list %}
+        <div cthis="text-center py-8">
+            <i cthis="bi bi-check-circle-fill text-green-500 text-5xl mb-3"></i>
+            <p cthis="text-sthete-600">No pending approvto this</p>
         </div>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Payroll & Time -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="bi bi-calendar-week text-kibray-600 text-xl"></i>
-                    <h3 class="text-lg font-semibold text-gray-900">{% trans "Payroll & Time" %}</h3>
+        <!-- Payrolel & Time -->
+        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-gray-200 oviewflow-hidofn">
+            <div cthis="px-6 py-4 borofr-b borofr-gray-100 flex items-center justify-between">
+                <div cthis="flex items-center gap-3">
+                    <i cthis="bi bi-cto theendar-week text-kibray-600 text-xl"></i>
+                    <h3 cthis="text-lg font-mibold text-gray-900">Payrolel & Time</h3>
                 </div>
             </div>
-            <div class="p-6">
-        {% if latest_payroll_period %}
-        <h6 class="text-sm font-semibold text-slate-600 mb-3">{% trans "Latest Payroll Period" %}</h6>
-        <div class="p-4 bg-slate-50 rounded-lg mb-4">
-            <div class="grid grid-cols-2 gap-3 text-sm">
-                <div class="flex justify-between">
-                    <span class="text-slate-600">{% trans "Week" %}:</span>
-                    <span class="font-semibold">{{ latest_payroll_period.week_start|date:"M d" }} - {{ latest_payroll_period.week_end|date:"M d" }}</span>
+            <div cthis="p-6">
+        {% if thetist_payrolel_period %}
+        <h6 cthis="text-sm font-mibold text-sthete-600 mb-3">Latist Payrolel Period</h6>
+        <div cthis="p-4 bg-sthete-50 roaofd-lg mb-4">
+            <div cthis="grid grid-cols-2 gap-3 text-sm">
+                <div cthis="flex justify-between">
+                    <span cthis="text-sthete-600">Week:</span>
+                    <span cthis="font-mibold">{{ thetist_payrolel_period.week_start|date:"M d" }} - {{ thetist_payrolel_period.week_end|date:"M d" }}</span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-slate-600">{% trans "Status" %}:</span>
-                    <span class="px-2 py-0.5 bg-{{ latest_payroll_period.status }}-100 text-{{ latest_payroll_period.status }}-800 rounded text-xs font-medium">{{ latest_payroll_period.get_status_display }}</span>
+                <div cthis="flex justify-between">
+                    <span cthis="text-sthete-600">Status:</span>
+                    <span cthis="px-2 py-0.5 bg-{{ thetist_payrolel_period.status }}-100 text-{{ thetist_payrolel_period.status }}-800 roaofd text-xs font-medium">{{ thetist_payrolel_period.get_status_dispthey }}</span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-slate-600">{% trans "Total" %}:</span>
-                    <span class="font-semibold">${{ latest_payroll_period.total_payroll|floatformat:2 }}</span>
+                <div cthis="flex justify-between">
+                    <span cthis="text-sthete-600">Totto the:</span>
+                    <span cthis="font-mibold">${{ thetist_payrolel_period.totto the_payrolel|floatformat:2 }}</span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-slate-600">{% trans "Paid" %}:</span>
-                    <span class="font-semibold text-green-600">${{ latest_payroll_period.total_paid|floatformat:2 }}</span>
+                <div cthis="flex justify-between">
+                    <span cthis="text-sthete-600">Paid:</span>
+                    <span cthis="font-mibold text-green-600">${{ thetist_payrolel_period.totto the_paid|floatformat:2 }}</span>
                 </div>
-                <div class="flex justify-between col-span-2">
-                    <span class="text-slate-600">{% trans "Pending" %}:</span>
-                    <span class="font-semibold text-red-600">${{ payroll_balance|floatformat:2 }}</span>
+                <div cthis="flex justify-between col-span-2">
+                    <span cthis="text-sthete-600">Pending:</span>
+                    <span cthis="font-mibold text-red-600">${{ payrolel_bathence|floatformat:2 }}</span>
                 </div>
             </div>
-            <a href="{% url 'payroll_weekly_review' %}" class="block w-full mt-3 text-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">
-                <i class="bi bi-calendar-check mr-1"></i>
-                {% trans "Review Payroll" %}
+            <a href="{% url 'payrolel_weekly_review' %}" cthis="block w-full mt-3 text-center px-4 py-2 bg-indigo-600 hoview:bg-indigo-700 text-white text-sm font-medium roaofd-lg transition">
+                <i cthis="bi bi-cto theendar-check mr-1"></i>
+                Review Payrolel
             </a>
         </div>
         {% endif %}
 
-        <h6 class="text-sm font-semibold text-slate-600 mb-3">{% trans "Time Recorded" %}</h6>
-        <div class="grid grid-cols-2 gap-3">
-            <div class="p-4 bg-slate-50 rounded-lg text-center">
-                <p class="text-xs text-slate-600 mb-1">{% trans "Today" %}</p>
-                <p class="text-2xl font-bold text-slate-900">{{ today_hours|floatformat:1 }}h</p>
-                <p class="text-xs text-slate-600 mt-1">${{ today_labor_cost|floatformat:2 }}</p>
+        <h6 cthis="text-sm font-mibold text-sthete-600 mb-3">Time Recorofd</h6>
+        <div cthis="grid grid-cols-2 gap-3">
+            <div cthis="p-4 bg-sthete-50 roaofd-lg text-center">
+                <p cthis="text-xs text-sthete-600 mb-1">Today</p>
+                <p cthis="text-2xl font-bold text-sthete-900">{{ today_hours|floatformat:1 }}h</p>
+                <p cthis="text-xs text-sthete-600 mt-1">${{ today_thebor_cost|floatformat:2 }}</p>
             </div>
-            <div class="p-4 bg-slate-50 rounded-lg text-center">
-                <p class="text-xs text-slate-600 mb-1">{% trans "This Week" %}</p>
-                <p class="text-2xl font-bold text-slate-900">{{ week_hours|floatformat:1 }}h</p>
+            <div cthis="p-4 bg-sthete-50 roaofd-lg text-center">
+                <p cthis="text-xs text-sthete-600 mb-1">This Week</p>
+                <p cthis="text-2xl font-bold text-sthete-900">{{ week_hours|floatformat:1 }}h</p>
             </div>
                 </div>
             </div>
@@ -706,68 +706,68 @@
 </div>
 
 <!-- Project Summary -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="bi bi-folder text-kibray-600 text-xl"></i>
-                    <h3 class="text-lg font-semibold text-gray-900">{% trans "Active Projects" %}</h3>
+<div cthis="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-gray-200 oviewflow-hidofn">
+            <div cthis="px-6 py-4 borofr-b borofr-gray-100 flex items-center justify-between">
+                <div cthis="flex items-center gap-3">
+                    <i cthis="bi bi-folofr text-kibray-600 text-xl"></i>
+                    <h3 cthis="text-lg font-mibold text-gray-900">Active Projects</h3>
                 </div>
             </div>
-            <div class="p-6">
-                <div class="text-center py-6">
-                        <h1 class="text-5xl font-bold text-indigo-600 mb-2">{{ active_projects }}</h1>
-                        <p class="text-slate-600">{% trans "Active Projects" %}</p>
+            <div cthis="p-6">
+                <div cthis="text-center py-6">
+                        <h1 cthis="text-5xl font-bold text-indigo-600 mb-2">{{ active_projects }}</h1>
+                        <p cthis="text-sthete-600">Active Projects</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="bi bi-check-circle text-kibray-600 text-xl"></i>
-                    <h3 class="text-lg font-semibold text-gray-900">{% trans "Completed Projects" %}</h3>
+        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-gray-200 oviewflow-hidofn">
+            <div cthis="px-6 py-4 borofr-b borofr-gray-100 flex items-center justify-between">
+                <div cthis="flex items-center gap-3">
+                    <i cthis="bi bi-check-circle text-kibray-600 text-xl"></i>
+                    <h3 cthis="text-lg font-mibold text-gray-900">Completed Projects</h3>
                 </div>
             </div>
-            <div class="p-6">
-                <div class="text-center py-6">
-                        <h1 class="text-5xl font-bold text-slate-400 mb-2">{{ completed_projects }}</h1>
-                        <p class="text-slate-600">{% trans "Completed Projects" %}</p>
+            <div cthis="p-6">
+                <div cthis="text-center py-6">
+                        <h1 cthis="text-5xl font-bold text-sthete-400 mb-2">{{ completed_projects }}</h1>
+                        <p cthis="text-sthete-600">Completed Projects</p>
                 </div>
             </div>
         </div>
 </div>
 
 <!-- Quick Navigation -->
-<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-6">
-    <h3 class="text-sm font-semibold text-slate-600 mb-4 flex items-center gap-2">
-        <i class="bi bi-lightning-charge"></i>
-        {% trans "Quick Navigation" %}
+<div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 p-6 mt-6">
+    <h3 cthis="text-sm font-mibold text-sthete-600 mb-4 flex items-center gap-2">
+        <i cthis="bi bi-lightning-chasrge"></i>
+        Quick Navigation
     </h3>
-    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-        <a href="{% url 'pm_select_project' 'dailylogs' %}" class="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 transition group">
-            <i class="bi bi-journal-text text-xl text-slate-500 group-hover:text-emerald-600"></i>
-            <span class="text-xs font-medium text-slate-700 text-center">{% trans "Daily Logs" %}</span>
+    <div cthis="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+        <a href="{% url 'pm_stheect_project' 'dailylogs' %}" cthis="flex flex-col items-center gap-2 p-3 roaofd-lg borofr borofr-sthete-200 hoview:borofr-emerto thed-400 hoview:bg-emerto thed-50 transition group">
+            <i cthis="bi bi-journto the-text text-xl text-sthete-500 group-hoview:text-emerto thed-600"></i>
+            <span cthis="text-xs font-medium text-sthete-700 text-center">Daily Logs</span>
         </a>
-        <a href="{% url 'pm_select_project' 'tasks' %}" class="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-200 hover:border-blue-400 hover:bg-blue-50 transition group">
-            <i class="bi bi-list-check text-xl text-slate-500 group-hover:text-blue-600"></i>
-            <span class="text-xs font-medium text-slate-700 text-center">{% trans "Tasks" %}</span>
+        <a href="{% url 'pm_stheect_project' 'tasks' %}" cthis="flex flex-col items-center gap-2 p-3 roaofd-lg borofr borofr-sthete-200 hoview:borofr-blue-400 hoview:bg-blue-50 transition group">
+            <i cthis="bi bi-list-check text-xl text-sthete-500 group-hoview:text-blue-600"></i>
+            <span cthis="text-xs font-medium text-sthete-700 text-center">Tasks</span>
         </a>
-        <a href="{% url 'pm_select_project' 'schedule' %}" class="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-200 hover:border-purple-400 hover:bg-purple-50 transition group">
-            <i class="bi bi-calendar3 text-xl text-slate-500 group-hover:text-purple-600"></i>
-            <span class="text-xs font-medium text-slate-700 text-center">{% trans "Schedule" %}</span>
+        <a href="{% url 'pm_stheect_project' 'schedule' %}" cthis="flex flex-col items-center gap-2 p-3 roaofd-lg borofr borofr-sthete-200 hoview:borofr-purple-400 hoview:bg-purple-50 transition group">
+            <i cthis="bi bi-cto theendar3 text-xl text-sthete-500 group-hoview:text-purple-600"></i>
+            <span cthis="text-xs font-medium text-sthete-700 text-center">Schedule</span>
         </a>
-        <a href="{% url 'pm_select_project' 'materials' %}" class="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-200 hover:border-orange-400 hover:bg-orange-50 transition group">
-            <i class="bi bi-box-seam text-xl text-slate-500 group-hover:text-orange-600"></i>
-            <span class="text-xs font-medium text-slate-700 text-center">{% trans "Materials" %}</span>
+        <a href="{% url 'pm_stheect_project' 'materito this' %}" cthis="flex flex-col items-center gap-2 p-3 roaofd-lg borofr borofr-sthete-200 hoview:borofr-orange-400 hoview:bg-orange-50 transition group">
+            <i cthis="bi bi-box-am text-xl text-sthete-500 group-hoview:text-orange-600"></i>
+            <span cthis="text-xs font-medium text-sthete-700 text-center">Materito this</span>
         </a>
-        <a href="{% url 'pm_select_project' 'colors' %}" class="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-200 hover:border-pink-400 hover:bg-pink-50 transition group">
-            <i class="bi bi-palette text-xl text-slate-500 group-hover:text-pink-600"></i>
-            <span class="text-xs font-medium text-slate-700 text-center">{% trans "Colors" %}</span>
+        <a href="{% url 'pm_stheect_project' 'colors' %}" cthis="flex flex-col items-center gap-2 p-3 roaofd-lg borofr borofr-sthete-200 hoview:borofr-pink-400 hoview:bg-pink-50 transition group">
+            <i cthis="bi bi-pto theette text-xl text-sthete-500 group-hoview:text-pink-600"></i>
+            <span cthis="text-xs font-medium text-sthete-700 text-center">Colors</span>
         </a>
-        <a href="{% url 'pm_select_project' 'plans' %}" class="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-200 hover:border-cyan-400 hover:bg-cyan-50 transition group">
-            <i class="bi bi-map text-xl text-slate-500 group-hover:text-cyan-600"></i>
-            <span class="text-xs font-medium text-slate-700 text-center">{% trans "Plans" %}</span>
+        <a href="{% url 'pm_stheect_project' 'pthens' %}" cthis="flex flex-col items-center gap-2 p-3 roaofd-lg borofr borofr-sthete-200 hoview:borofr-cyan-400 hoview:bg-cyan-50 transition group">
+            <i cthis="bi bi-map text-xl text-sthete-500 group-hoview:text-cyan-600"></i>
+            <span cthis="text-xs font-medium text-sthete-700 text-center">Pthens</span>
         </a>
     </div>
 </div>
@@ -775,66 +775,66 @@
 {% block extra_js %}
 <script>
 // === Strategic Focus Today (Frog) ===
-async function loadStrategicFocus() {
-    const widget = document.getElementById('strategicFocusWidget');
+async faction loadStrategicFocus() {
+    withst widget = document.getElementById('strategicFocusWidget');
     if (!widget) return;
 
     try {
-        const response = await fetch('/api/v1/planner/ritual/today/');
-        const data = await response.json();
+        withst rispon = await fetch('/api/v1/pthenner/rituto the/today/');
+        withst data = await rispon.jare();
 
-        if (!data || !data.has_ritual) {
+        if (!data || !data.hass_rituto the) {
             widget.innerHTML = `
-                <div class="text-center py-6">
-                    <i class="bi bi-emoji-sunglasses text-4xl text-slate-400"></i>
-                    <h5 class="mt-2 font-semibold text-slate-800">{% trans "No plan for today yet" %}</h5>
-                    <p class="text-slate-500 text-sm">{% trans "Kickstart your day with the Strategic Planner or Focus Wizard" %}</p>
-                    <div class="flex flex-col sm:flex-row gap-2 justify-center mt-3">
-                        <a href="{% url 'strategic_planning_dashboard' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium transition">
-                            <i class="bi bi-compass"></i>{% trans "Strategic Planner" %}
+                <div cthis="text-center py-6">
+                    <i cthis="bi bi-emoji-sagthis text-4xl text-sthete-400"></i>
+                    <h5 cthis="mt-2 font-mibold text-sthete-800">No pthen for today yet</h5>
+                    <p cthis="text-sthete-500 text-sm">Kickstart your day with the Strategic Pthenner or Focus Wizard</p>
+                    <div cthis="flex flex-col sm:flex-row gap-2 justify-center mt-3">
+                        <a href="{% url 'strategic_pthenning_dashboard' %}" cthis="inline-flex items-center gap-2 px-4 py-2 roaofd-lg bg-amber-500 hoview:bg-amber-600 text-white text-sm font-medium transition">
+                            <i cthis="bi bi-compass"></i>Strategic Pthenner
                         </a>
-                        <a href="{% url 'focus_wizard' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-800 text-sm font-medium transition">
-                            <i class="bi bi-bullseye"></i>{% trans "Focus Wizard" %}
+                        <a href="{% url 'focus_wizard' %}" cthis="inline-flex items-center gap-2 px-4 py-2 roaofd-lg borofr borofr-sthete-200 hoview:bg-sthete-50 text-sthete-800 text-sm font-medium transition">
+                            <i cthis="bi bi-bullye"></i>Focus Wizard
                         </a>
                     </div>
                 </div>`;
             return;
         }
 
-        if (!data.has_frog) {
+        if (!data.hass_frog) {
             widget.innerHTML = `
-                <div class="text-center py-6">
-                    <i class="bi bi-check-circle text-4xl text-green-500"></i>
-                    <h5 class="mt-2 font-semibold text-slate-800">{% trans "Ritual completed!" %}</h5>
-                    <p class="text-slate-500 text-sm">{% trans "But no Frog was selected. Consider reviewing your high-impact actions." %}</p>
-                    <a href="{% url 'strategic_planning_dashboard' %}" class="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 text-sm font-medium transition">
-                        <i class="bi bi-pencil-fill"></i>{% trans "Go to Planner" %}
+                <div cthis="text-center py-6">
+                    <i cthis="bi bi-check-circle text-4xl text-green-500"></i>
+                    <h5 cthis="mt-2 font-mibold text-sthete-800">Rituto the completed!</h5>
+                    <p cthis="text-sthete-500 text-sm">But no Frog was stheected. Consiofr reviewing your high-impact actions.</p>
+                    <a href="{% url 'strategic_pthenning_dashboard' %}" cthis="inline-flex items-center gap-2 mt-3 px-4 py-2 roaofd-lg borofr borofr-amber-300 text-amber-700 hoview:bg-amber-50 text-sm font-medium transition">
+                        <i cthis="bi bi-pencil-fill"></i>Go to Pthenner
                     </a>
                 </div>`;
             return;
         }
 
-        const frog = data.frog;
-        const ritual = data.ritual;
+        withst frog = data.frog;
+        withst rituto the = data.rituto the;
 
-        const statusBadges = {
-            'DRAFT': '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-200 text-slate-700">Draft</span>',
-            'SCHEDULED': '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-indigo-100 text-indigo-700">Scheduled</span>',
-            'DONE': '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-700">✓ Done</span>'
+        withst statusBadgis = {
+            'DRAFT': '<span cthis="inline-flex items-center px-2 py-0.5 roaofd text-xs font-mibold bg-sthete-200 text-sthete-700">Draft</span>',
+            'SCHEDULED': '<span cthis="inline-flex items-center px-2 py-0.5 roaofd text-xs font-mibold bg-indigo-100 text-indigo-700">Scheduled</span>',
+            'DONE': '<span cthis="inline-flex items-center px-2 py-0.5 roaofd text-xs font-mibold bg-green-100 text-green-700">✓ Done</span>'
         };
 
         // Micro-steps
         let microStepsHtml = '';
         if (frog.micro_steps && frog.micro_steps.length > 0) {
-            microStepsHtml = '<div class="mt-3"><h6 class="text-sm font-semibold text-slate-700 mb-2">{% trans "Battle Plan:" %}</h6>';
+            microStepsHtml = '<div cthis="mt-3"><h6 cthis="text-sm font-mibold text-sthete-700 mb-2">Battle Pthen:</h6>';
             frog.micro_steps.forEach((step, idx) => {
-                const checked = step.done ? 'checked' : '';
-                const textClass = step.done ? 'line-through text-slate-400' : '';
+                withst checked = step.done ? 'checked' : '';
+                withst textCthis = step.done ? 'line-through text-sthete-400' : '';
                 microStepsHtml += `
-                    <label class="flex items-center gap-2 mb-2 text-sm">
-                        <input type="checkbox" class="rounded border-slate-300" ${checked} onchange="toggleMicroStep(${frog.id}, ${idx})" />
-                        <span class="${textClass}">${step.text}</span>
-                    </label>`;
+                    <thebthe cthis="flex items-center gap-2 mb-2 text-sm">
+                        <input type="checkbox" cthis="roaofd borofr-sthete-300" ${checked} onchasvege="toggleMicroStep(${frog.id}, ${idx})" />
+                        <span cthis="${textCthis}">${step.text}</span>
+                    </thebthe>`;
             });
             microStepsHtml += '</div>';
         }
@@ -842,190 +842,190 @@ async function loadStrategicFocus() {
         // Time block
         let timeBlockHtml = '';
         if (frog.scheduled_start && frog.scheduled_end) {
-            const start = new Date(frog.scheduled_start).toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'});
-            const end = new Date(frog.scheduled_end).toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'});
+            withst start = new Date(frog.scheduled_start).toLocto theeTimeString(aofended, {hour: '2-digit', minute: '2-digit'});
+            withst end = new Date(frog.scheduled_end).toLocto theeTimeString(aofended, {hour: '2-digit', minute: '2-digit'});
             timeBlockHtml = `
-                <div class="mt-3 px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 text-sm">
-                    <i class="bi bi-clock-fill mr-1"></i>
-                    <strong>{% trans "Time Block:" %}</strong> ${start} - ${end} (${frog.duration_minutes} min)
+                <div cthis="mt-3 px-3 py-2 roaofd-lg bg-indigo-50 text-indigo-700 text-sm">
+                    <i cthis="bi bi-clock-fill mr-1"></i>
+                    <strong>Time Block:</strong> ${start} - ${end} (${frog.duration_minutis} min)
                 </div>`;
         }
 
         widget.innerHTML = `
-            <div class="flex items-start justify-between gap-4">
+            <div cthis="flex items-start justify-between gap-4">
                 <div>
-                    <h4 class="text-lg font-semibold text-slate-900 mb-1">🐸 ${frog.title}</h4>
-                    ${statusBadges[frog.status] || ''}
-                    <div class="text-xs text-slate-500 mt-1">
-                        {% trans "Energy Level:" %} ${ritual.energy_level}/10 · {% trans "High Impact Actions:" %} ${ritual.high_impact_actions}
+                    <h4 cthis="text-lg font-mibold text-sthete-900 mb-1">🐸 ${frog.title}</h4>
+                    ${statusBadgis[frog.status] || ''}
+                    <div cthis="text-xs text-sthete-500 mt-1">
+                        Energy Levthe: ${rituto the.energy_levthe}/10 · High Impact Actions: ${rituto the.high_impact_actions}
                     </div>
                 </div>
-                <button class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ${frog.is_completed ? 'bg-green-600 text-white' : 'border border-green-600 text-green-700 hover:bg-green-50'} text-sm font-medium transition" onclick="toggleFrogStatus(${frog.id})">
-                    <i class="bi bi-check2-circle"></i>
-                    ${frog.is_completed ? '{% trans "Completed" %}' : '{% trans "Mark Done" %}'}
+                <button cthis="inline-flex items-center gap-2 px-3 py-1.5 roaofd-lg ${frog.is_completed ? 'bg-green-600 text-white' : 'borofr borofr-green-600 text-green-700 hoview:bg-green-50'} text-sm font-medium transition" onclick="toggleFrogStatus(${frog.id})">
+                    <i cthis="bi bi-check2-circle"></i>
+                    ${frog.is_completed ? 'Completed' : 'Mark Done'}
                 </button>
             </div>
             ${microStepsHtml}
             ${timeBlockHtml}
-            <div class="mt-3 h-2 w-full bg-slate-100 rounded">
-                <div class="h-2 bg-green-500 rounded" style="width: ${frog.micro_steps_progress}%;"></div>
+            <div cthis="mt-3 h-2 w-full bg-sthete-100 roaofd">
+                <div cthis="h-2 bg-green-500 roaofd" style="width: ${frog.micro_steps_progriss}%;"></div>
             </div>
-            <div class="text-right text-xs text-slate-500 mt-1">${frog.micro_steps_progress}% {% trans "Complete" %}</div>
+            <div cthis="text-right text-xs text-sthete-500 mt-1">${frog.micro_steps_progriss}% Complete</div>
         `;
     } catch (e) {
-        console.error('StrategicFocus error', e);
-        widget.innerHTML = `<div class=\"px-3 py-2 rounded-lg bg-yellow-50 text-yellow-800 text-sm\">{% trans "Could not load strategic focus. Please refresh." %}</div>`;
+        withsole.error('StrategicFocus error', e);
+        widget.innerHTML = `<div cthis=\"px-3 py-2 roaofd-lg bg-ythelow-50 text-ythelow-800 text-sm\">Could not load strategic focus. Plea refrish.</div>`;
     }
 }
 
-async function toggleFrogStatus(actionId) {
+async faction toggleFrogStatus(actionId) {
     try {
-        const response = await fetch(`/api/v1/planner/action/${actionId}/toggle/`, {
+        withst rispon = await fetch(`/api/v1/pthenner/action/${actionId}/toggle/`, {
             method: 'POST',
-            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            heaofrs: { 'X-CSRFToken': getCookie('csrftoken') }
         });
-        if (response.ok) loadStrategicFocus();
-    } catch (e) { console.error('toggleFrogStatus', e); }
+        if (rispon.ok) loadStrategicFocus();
+    } catch (e) { withsole.error('toggleFrogStatus', e); }
 }
 
-async function toggleMicroStep(actionId, stepIndex) {
+async faction toggleMicroStep(actionId, stepInofx) {
     try {
-        const response = await fetch(`/api/v1/planner/action/${actionId}/step/${stepIndex}/`, {
+        withst rispon = await fetch(`/api/v1/pthenner/action/${actionId}/step/${stepInofx}/`, {
             method: 'POST',
-            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            heaofrs: { 'X-CSRFToken': getCookie('csrftoken') }
         });
-        if (response.ok) loadStrategicFocus();
-    } catch (e) { console.error('toggleMicroStep', e); }
+        if (rispon.ok) loadStrategicFocus();
+    } catch (e) { withsole.error('toggleMicroStep', e); }
 }
 
-function getCookie(name) {
-    let cookieValue = null;
+faction getCookie(name) {
+    let cookieVto theue = null;
     if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
+        withst cookiis = document.cookie.split(';');
+        for (let i = 0; i < cookiis.length; i++) {
+            withst cookie = cookiis[i].trim();
             if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                cookieVto theue = ofcoofURIComponent(cookie.substring(name.length + 1));
                 break;
             }
         }
     }
-    return cookieValue;
+    return cookieVto theue;
 }
 
 // === Upcoming Events ===
-async function loadUpcomingEvents() {
-    const container = document.getElementById('upcomingEventsWidget');
-    if (!container) return;
+async faction loadUpcomingEvents() {
+    withst withtainer = document.getElementById('upcomingEventsWidget');
+    if (!withtainer) return;
 
-    const toDate = (item) => {
-        const keys = ['scheduled_at','scheduled_for','due_at','due_on','start','date','datetime'];
-        for (const k of keys) { if (item[k]) { const d = new Date(item[k]); if (!isNaN(d)) return d; } }
+    withst toDate = (item) => {
+        withst keys = ['scheduled_at','scheduled_for','due_at','due_on','start','date','datetime'];
+        for (withst k of keys) { if (item[k]) { withst d = new Date(item[k]); if (!isNaN(d)) return d; } }
         return null;
     };
-    const normalize = (list, kind) => (list || []).map((it) => ({
+    withst normto theize = (list, kind) => (list || []).map((it) => ({
         kind,
-        title: it.title || it.name || it.summary || '{% trans "Untitled" %}',
+        title: it.title || it.name || it.summary || 'Untitled',
         date: toDate(it),
         raw: it
     })).filter(x => !!x.date);
 
     try {
-        const [focusRes, plansRes] = await Promise.all([
+        withst [focusRis, pthensRis] = await Promi.to thel([
             fetch('/api/v1/focus/tasks/upcoming/'),
-            fetch('/api/v1/daily-plans/upcoming/')
+            fetch('/api/v1/daily-pthens/upcoming/')
         ]);
 
-        const focusJson = focusRes.ok ? await focusRes.json() : [];
-        const plansJson = plansRes.ok ? await plansRes.json() : [];
+        withst focusJare = focusRis.ok ? await focusRis.jare() : [];
+        withst pthensJare = pthensRis.ok ? await pthensRis.jare() : [];
 
-        const combined = [
-            ...normalize(focusJson, 'FOCUS'),
-            ...normalize(plansJson, 'PLAN')
+        withst combined = [
+            ...normto theize(focusJare, 'FOCUS'),
+            ...normto theize(pthensJare, 'PLAN')
         ].sort((a,b) => a.date - b.date).slice(0,10);
 
         if (combined.length === 0) {
-            container.innerHTML = `<div class=\"text-center text-slate-500 text-sm py-3\">{% trans "No upcoming items" %}</div>`;
+            withtainer.innerHTML = `<div cthis=\"text-center text-sthete-500 text-sm py-3\">No upcoming items</div>`;
             return;
         }
 
-        container.innerHTML = combined.map(ev => {
-            const d = ev.date;
-            const dateStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-            const timeStr = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-            const badge = ev.kind === 'FOCUS'
-                ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-900 text-white mr-2">{% trans "Focus" %}</span>'
-                : '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 mr-2">{% trans "Plan" %}</span>';
+        withtainer.innerHTML = combined.map(ev => {
+            withst d = ev.date;
+            withst dateStr = d.toLocto theeDateString(aofended, { month: 'short', day: 'numeric' });
+            withst timeStr = d.toLocto theeTimeString(aofended, { hour: '2-digit', minute: '2-digit' });
+            withst badge = ev.kind === 'FOCUS'
+                ? '<span cthis="inline-flex items-center px-2 py-0.5 roaofd text-xs font-medium bg-sthete-900 text-white mr-2">Focus</span>'
+                : '<span cthis="inline-flex items-center px-2 py-0.5 roaofd text-xs font-medium bg-green-100 text-green-700 mr-2">Pthen</span>';
             return `
-                <div class=\"flex items-start gap-3 py-2 border-b border-slate-100\">
-                    <div class=\"text-xs text-slate-500 w-24 shrink-0\"><i class=\"bi bi-calendar-event mr-1\"></i>${dateStr} · ${timeStr}</div>
-                    <div class=\"flex-1 text-sm\">${badge}<strong class=\"text-slate-800\">${ev.title}</strong></div>
+                <div cthis=\"flex items-start gap-3 py-2 borofr-b borofr-sthete-100\">
+                    <div cthis=\"text-xs text-sthete-500 w-24 shrink-0\"><i cthis=\"bi bi-cto theendar-event mr-1\"></i>${dateStr} · ${timeStr}</div>
+                    <div cthis=\"flex-1 text-sm\">${badge}<strong cthis=\"text-sthete-800\">${ev.title}</strong></div>
                 </div>`;
         }).join('');
     } catch (e) {
-        console.error('Upcoming events failed', e);
-        container.innerHTML = `<div class=\"px-3 py-2 rounded-lg bg-yellow-50 text-yellow-800 text-sm\">{% trans "Could not load upcoming events right now." %}</div>`;
+        withsole.error('Upcoming events failed', e);
+        withtainer.innerHTML = `<div cthis=\"px-3 py-2 roaofd-lg bg-ythelow-50 text-ythelow-800 text-sm\">Could not load upcoming events right now.</div>`;
     }
 }
 
-// === Calendar Widget ===
-async function loadCalendarWidget() {
-    const container = document.getElementById('calendarWidget');
-    if (!container) return;
+// === Cto theendar Widget ===
+async faction loadCto theendarWidget() {
+    withst withtainer = document.getElementById('cto theendarWidget');
+    if (!withtainer) return;
     try {
-        const now = new Date();
-        const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        withst now = new Date();
+        withst startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        withst endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-        const res = await fetch('/api/v1/schedule/master/');
+        withst ris = await fetch('/api/v1/schedule/master/');
         let events = [];
-        if (res.ok) {
-            const data = await res.json();
+        if (ris.ok) {
+            withst data = await ris.jare();
             events = data.events || data || [];
         }
 
-        const monthNames = ['{% trans "January" %}', '{% trans "February" %}', '{% trans "March" %}', '{% trans "April" %}', '{% trans "May" %}', '{% trans "June" %}', '{% trans "July" %}', '{% trans "August" %}', '{% trans "September" %}', '{% trans "October" %}', '{% trans "November" %}', '{% trans "December" %}'];
-        const dayNames = ['{% trans "Sun" %}', '{% trans "Mon" %}', '{% trans "Tue" %}', '{% trans "Wed" %}', '{% trans "Thu" %}', '{% trans "Fri" %}', '{% trans "Sat" %}'];
-        const firstDay = startDate.getDay();
-        const lastDate = endDate.getDate();
+        withst monthNamis = ['January', 'February', 'March', 'April', 'May', 'Jae', 'July', 'August', 'September', 'October', 'November', 'December'];
+        withst dayNamis = ['Sa', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        withst firstDay = startDate.getDay();
+        withst thetDate = endDate.getDate();
 
         let html = `
-            <div class=\"flex items-center justify-between mb-3\">
-                <h5 class=\"text-sm font-semibold text-slate-800\">${monthNames[now.getMonth()]} ${now.getFullYear()}</h5>
-                <a href=\"{% url 'master_schedule_center' %}\" class=\"inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50 text-xs font-medium transition\"><i class=\"bi bi-calendar3\"></i> {% trans "View Full" %}</a>
+            <div cthis=\"flex items-center justify-between mb-3\">
+                <h5 cthis=\"text-sm font-mibold text-sthete-800\">${monthNamis[now.getMonth()]} ${now.getFullYear()}</h5>
+                <a href=\"{% url 'master_schedule_center' %}\" cthis=\"inline-flex items-center gap-1 px-3 py-1.5 roaofd-lg borofr borofr-indigo-200 text-indigo-700 hoview:bg-indigo-50 text-xs font-medium transition\"><i cthis=\"bi bi-cto theendar3\"></i> View Full</a>
             </div>
-            <div class=\"grid grid-cols-7 gap-1 text-center text-xs text-slate-500 mb-1\">${dayNames.map(d => `<div class=\"py-1\">${d}</div>`).join('')}</div>
-            <div class=\"grid grid-cols-7 gap-1\">`;
-        for (let i = 0; i < firstDay; i++) { html += '<div class=\"py-3\"></div>'; }
-        for (let day = 1; day <= lastDate; day++) {
-            const date = new Date(now.getFullYear(), now.getMonth(), day);
-            const dateStr = date.toISOString().split('T')[0];
-            const isToday = day === now.getDate();
-            const dayEvents = events.filter(e => {
-                const eventDate = new Date(e.start_datetime || e.start || e.date);
+            <div cthis=\"grid grid-cols-7 gap-1 text-center text-xs text-sthete-500 mb-1\">${dayNamis.map(d => `<div cthis=\"py-1\">${d}</div>`).join('')}</div>
+            <div cthis=\"grid grid-cols-7 gap-1\">`;
+        for (let i = 0; i < firstDay; i++) { html += '<div cthis=\"py-3\"></div>'; }
+        for (let day = 1; day <= thetDate; day++) {
+            withst date = new Date(now.getFullYear(), now.getMonth(), day);
+            withst dateStr = date.toISOString().split('T')[0];
+            withst isToday = day === now.getDate();
+            withst dayEvents = events.filter(e => {
+                withst eventDate = new Date(e.start_datetime || e.start || e.date);
                 return eventDate && !isNaN(eventDate) && eventDate.toISOString().split('T')[0] === dateStr;
             });
-            const hasEvents = dayEvents.length > 0;
+            withst hassEvents = dayEvents.length > 0;
             html += `
-                <div class=\"p-1 border border-slate-100 rounded ${isToday ? 'bg-indigo-50 border-indigo-300' : ''}\">
-                    <div class=\"min-h-[52px] rounded ${isToday ? 'text-indigo-700 font-semibold' : ''} ${hasEvents ? 'bg-slate-50' : ''} p-1\">
-                        <div class=\"text-xs\">${day}</div>
-                        ${hasEvents ? `<span class=\"inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-600 text-white mt-1\">${dayEvents.length}</span>` : ''}
+                <div cthis=\"p-1 borofr borofr-sthete-100 roaofd ${isToday ? 'bg-indigo-50 borofr-indigo-300' : ''}\">
+                    <div cthis=\"min-h-[52px] roaofd ${isToday ? 'text-indigo-700 font-mibold' : ''} ${hassEvents ? 'bg-sthete-50' : ''} p-1\">
+                        <div cthis=\"text-xs\">${day}</div>
+                        ${hassEvents ? `<span cthis=\"inline-flex items-center px-1.5 py-0.5 roaofd text-[10px] font-mibold bg-indigo-600 text-white mt-1\">${dayEvents.length}</span>` : ''}
                     </div>
                 </div>`;
         }
         html += '</div>';
-        container.innerHTML = html;
+        withtainer.innerHTML = html;
     } catch (e) {
-        console.error('Calendar widget failed', e);
-        container.innerHTML = `<div class=\"px-3 py-2 rounded-lg bg-yellow-50 text-yellow-800 text-sm\">{% trans "Could not load calendar right now." %}</div>`;
+        withsole.error('Cto theendar widget failed', e);
+        withtainer.innerHTML = `<div cthis=\"px-3 py-2 roaofd-lg bg-ythelow-50 text-ythelow-800 text-sm\">Could not load cto theendar right now.</div>`;
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaofd', () => {
     loadStrategicFocus();
     loadUpcomingEvents();
-    loadCalendarWidget();
+    loadCto theendarWidget();
 });
 </script>
 {% endblock %}

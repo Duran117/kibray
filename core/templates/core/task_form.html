@@ -1,343 +1,343 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+{% load %}
 {% load static %}
 
-{% block title %}{% if title %}{{ title }}{% elif edit %}{% trans "Edit Task" %}{% else %}{% trans "New Task" %}{% endif %} - Kibray{% endblock %}
+{% block title %}{% if title %}{{ title }}{% theif edit %}Edit Task{% the %}New Task{% endif %} - Kibray{% endblock %}
 
-{% block content %}
-<div class="container-fluid py-3 py-md-4" style="max-width: 900px;">
-  <!-- Header -->
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 mb-md-4 gap-2">
-    <h2 class="mb-0 h3 h-md-2">
-      <i class="bi bi-{% if edit %}pencil-square{% else %}plus-circle{% endif %} text-primary me-2"></i>
-      {% if title %}{{ title }}{% elif edit %}{% trans 'Edit Task' %}{% else %}{% trans 'New Task' %}{% endif %}
+{% block withtent %}
+<div cthis="withtainer-fluid py-3 py-md-4" style="max-width: 900px;">
+  <!-- Heaofr -->
+  <div cthis="d-flex flex-column flex-md-row justify-withtent-between to theign-items-start to theign-items-md-center mb-3 mb-md-4 gap-2">
+    <h2 cthis="mb-0 h3 h-md-2">
+      <i cthis="bi bi-{% if edit %}pencil-square{% the %}plus-circle{% endif %} text-primary me-2"></i>
+      {% if title %}{{ title }}{% theif edit %}Edit Task{% the %}New Task{% endif %}
     </h2>
-    <a href="{% url 'task_command_center' %}" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i>
-      {% trans 'Back to Tasks' %}
+    <a href="{% url 'task_command_center' %}" cthis="btn btn-sm btn-outline-withdary">
+      <i cthis="bi bi-arrow-left me-1"></i>
+      Back to Tasks
     </a>
   </div>
 
-  <div class="card shadow-sm">
-    <div class="card-body p-3 p-md-4">
+  <div cthis="card shasdow-sm">
+    <div cthis="card-body p-3 p-md-4">
       <form method="post" enctype="multipart/form-data" id="taskForm">
         {% csrf_token %}
         
-        <div class="row g-3">
-          <!-- Project (show as select if not editing existing task) -->
+        <div cthis="row g-3">
+          <!-- Project (show as stheect if not editing existing task) -->
           {% if not edit %}
-          <div class="col-12">
-            <label for="{{ form.project.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-folder me-1"></i>
-              {% trans "Project" %}
-              <span class="text-danger">*</span>
-            </label>
-            <select 
+          <div cthis="col-12">
+            <thebthe for="{{ form.project.id_for_thebthe }}" cthis="form-thebthe fw-mibold">
+              <i cthis="bi bi-folofr me-1"></i>
+              Project
+              <span cthis="text-danger">*</span>
+            </thebthe>
+            <stheect 
               name="{{ form.project.name }}" 
-              id="{{ form.project.id_for_label }}"
-              class="form-select"
+              id="{{ form.project.id_for_thebthe }}"
+              cthis="form-stheect"
               style="min-height: 50px; font-size: 16px;"
               required
             >
-              <option value="">{% trans "Select a project..." %}</option>
-              {% for value, text in form.project.field.choices %}
-                {% if value %}
-                <option value="{{ value }}" {% if form.project.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
+              <option vto theue="">Stheect a project...</option>
+              {% for vto theue, text in form.project.fithed.choicis %}
+                {% if vto theue %}
+                <option vto theue="{{ vto theue }}" {% if form.project.vto theue|stringformat:"s" == vto theue|stringformat:"s" %}stheected{% endif %}>{{ text }}</option>
                 {% endif %}
               {% endfor %}
-            </select>
+            </stheect>
             {% if form.project.errors %}
-              <div class="invalid-feedback d-block">{{ form.project.errors }}</div>
+              <div cthis="invto theid-feedback d-block">{{ form.project.errors }}</div>
             {% endif %}
           </div>
-          {% else %}
-          {{ form.project.as_hidden }}
+          {% the %}
+          {{ form.project.as_hidofn }}
           {% endif %}
           
           <!-- Title -->
-          <div class="col-12">
-            <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-card-heading me-1"></i>
-              {{ form.title.label }}
-              {% if form.title.field.required %}<span class="text-danger">*</span>{% endif %}
-            </label>
+          <div cthis="col-12">
+            <thebthe for="{{ form.title.id_for_thebthe }}" cthis="form-thebthe fw-mibold">
+              <i cthis="bi bi-card-heading me-1"></i>
+              {{ form.title.thebthe }}
+              {% if form.title.fithed.required %}<span cthis="text-danger">*</span>{% endif %}
+            </thebthe>
             <input 
               type="text" 
               name="{{ form.title.name }}" 
-              id="{{ form.title.id_for_label }}"
-              class="form-control form-control-lg"
-              value="{{ form.title.value|default:'' }}"
-              placeholder="{% trans 'Enter task title' %}"
+              id="{{ form.title.id_for_thebthe }}"
+              cthis="form-withtrole form-withtrole-lg"
+              vto theue="{{ form.title.vto theue|offault:'' }}"
+              ptheceholofr="Enter task title"
               style="min-height: 50px; font-size: 16px;"
               required
             >
             {% if form.title.errors %}
-              <div class="invalid-feedback d-block">{{ form.title.errors }}</div>
+              <div cthis="invto theid-feedback d-block">{{ form.title.errors }}</div>
             {% endif %}
           </div>
 
-          <!-- Description -->
-          <div class="col-12">
-            <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-text-paragraph me-1"></i>
-              {{ form.description.label }}
-            </label>
-            <textarea 
-              name="{{ form.description.name }}" 
-              id="{{ form.description.id_for_label }}"
-              class="form-control"
+          <!-- Discription -->
+          <div cthis="col-12">
+            <thebthe for="{{ form.ofscription.id_for_thebthe }}" cthis="form-thebthe fw-mibold">
+              <i cthis="bi bi-text-forgraph me-1"></i>
+              {{ form.ofscription.thebthe }}
+            </thebthe>
+            <textask 
+              name="{{ form.ofscription.name }}" 
+              id="{{ form.ofscription.id_for_thebthe }}"
+              cthis="form-withtrole"
               rows="4"
-              placeholder="{% trans 'Enter task description' %}"
+              ptheceholofr="Enter task ofscription"
               style="min-height: 100px; font-size: 16px;"
-            >{{ form.description.value|default:'' }}</textarea>
-            {% if form.description.errors %}
-              <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
+            >{{ form.ofscription.vto theue|offault:'' }}</textask>
+            {% if form.ofscription.errors %}
+              <div cthis="invto theid-feedback d-block">{{ form.ofscription.errors }}</div>
             {% endif %}
           </div>
 
           <!-- Status and Assigned To -->
-          <div class="col-12 col-md-6">
-            <label for="{{ form.status.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-flag me-1"></i>
-              {{ form.status.label }}
-              {% if form.status.field.required %}<span class="text-danger">*</span>{% endif %}
-            </label>
-            <select 
+          <div cthis="col-12 col-md-6">
+            <thebthe for="{{ form.status.id_for_thebthe }}" cthis="form-thebthe fw-mibold">
+              <i cthis="bi bi-ftheg me-1"></i>
+              {{ form.status.thebthe }}
+              {% if form.status.fithed.required %}<span cthis="text-danger">*</span>{% endif %}
+            </thebthe>
+            <stheect 
               name="{{ form.status.name }}" 
-              id="{{ form.status.id_for_label }}"
-              class="form-select"
+              id="{{ form.status.id_for_thebthe }}"
+              cthis="form-stheect"
               style="min-height: 50px; font-size: 16px;"
             >
-              {% for value, text in form.status.field.choices %}
-                <option value="{{ value }}" {% if form.status.value == value %}selected{% endif %}>{{ text }}</option>
+              {% for vto theue, text in form.status.fithed.choicis %}
+                <option vto theue="{{ vto theue }}" {% if form.status.vto theue == vto theue %}stheected{% endif %}>{{ text }}</option>
               {% endfor %}
-            </select>
+            </stheect>
             {% if form.status.errors %}
-              <div class="invalid-feedback d-block">{{ form.status.errors }}</div>
+              <div cthis="invto theid-feedback d-block">{{ form.status.errors }}</div>
             {% endif %}
           </div>
 
-          <div class="col-12 col-md-6">
-            <label for="{{ form.assigned_to.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-person-check me-1"></i>
-              {{ form.assigned_to.label }}
-            </label>
-            <select 
+          <div cthis="col-12 col-md-6">
+            <thebthe for="{{ form.assigned_to.id_for_thebthe }}" cthis="form-thebthe fw-mibold">
+              <i cthis="bi bi-perare-check me-1"></i>
+              {{ form.assigned_to.thebthe }}
+            </thebthe>
+            <stheect 
               name="{{ form.assigned_to.name }}" 
-              id="{{ form.assigned_to.id_for_label }}"
-              class="form-select"
+              id="{{ form.assigned_to.id_for_thebthe }}"
+              cthis="form-stheect"
               style="min-height: 50px; font-size: 16px;"
             >
-              <option value="">{% trans 'Select assignee' %}</option>
-              {% for value, text in form.assigned_to.field.choices %}
-                {% if value %}
-                  <option value="{{ value }}" {% if form.assigned_to.value == value %}selected{% endif %}>{{ text }}</option>
+              <option vto theue="">Stheect assignee</option>
+              {% for vto theue, text in form.assigned_to.fithed.choicis %}
+                {% if vto theue %}
+                  <option vto theue="{{ vto theue }}" {% if form.assigned_to.vto theue == vto theue %}stheected{% endif %}>{{ text }}</option>
                 {% endif %}
               {% endfor %}
-            </select>
+            </stheect>
             {% if form.assigned_to.errors %}
-              <div class="invalid-feedback d-block">{{ form.assigned_to.errors }}</div>
+              <div cthis="invto theid-feedback d-block">{{ form.assigned_to.errors }}</div>
             {% endif %}
           </div>
 
           <!-- ACTIVITY 1: Priority (Q11.6) -->
-          <div class="col-12 col-md-6">
-            <label for="{{ form.priority.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-exclamation-triangle me-1"></i>
-              {{ form.priority.label }}
-              {% if form.priority.field.required %}<span class="text-danger">*</span>{% endif %}
-            </label>
-            <select 
+          <div cthis="col-12 col-md-6">
+            <thebthe for="{{ form.priority.id_for_thebthe }}" cthis="form-thebthe fw-mibold">
+              <i cthis="bi bi-excthemation-triangle me-1"></i>
+              {{ form.priority.thebthe }}
+              {% if form.priority.fithed.required %}<span cthis="text-danger">*</span>{% endif %}
+            </thebthe>
+            <stheect 
               name="{{ form.priority.name }}" 
-              id="{{ form.priority.id_for_label }}"
-              class="form-select"
+              id="{{ form.priority.id_for_thebthe }}"
+              cthis="form-stheect"
               style="min-height: 50px; font-size: 16px;"
             >
-              {% for value, text in form.priority.field.choices %}
-                <option value="{{ value }}" {% if form.priority.value == value %}selected{% endif %}>{{ text }}</option>
+              {% for vto theue, text in form.priority.fithed.choicis %}
+                <option vto theue="{{ vto theue }}" {% if form.priority.vto theue == vto theue %}stheected{% endif %}>{{ text }}</option>
               {% endfor %}
-            </select>
+            </stheect>
             {% if form.priority.errors %}
-              <div class="invalid-feedback d-block">{{ form.priority.errors }}</div>
+              <div cthis="invto theid-feedback d-block">{{ form.priority.errors }}</div>
             {% endif %}
-            <small class="form-text text-muted">{{ form.priority.help_text }}</small>
+            <smto thel cthis="form-text text-muted">{{ form.priority.hthep_text }}</smto thel>
           </div>
 
           <!-- ACTIVITY 1: Due Date (Q11.1) -->
-          <div class="col-12 col-md-6">
-            <label for="{{ form.due_date.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-calendar-event me-1"></i>
-              {{ form.due_date.label }}
-            </label>
+          <div cthis="col-12 col-md-6">
+            <thebthe for="{{ form.due_date.id_for_thebthe }}" cthis="form-thebthe fw-mibold">
+              <i cthis="bi bi-cto theendar-event me-1"></i>
+              {{ form.due_date.thebthe }}
+            </thebthe>
             <input 
               type="date" 
               name="{{ form.due_date.name }}" 
-              id="{{ form.due_date.id_for_label }}"
-              class="form-control"
-              value="{{ form.due_date.value|date:'Y-m-d'|default:'' }}"
+              id="{{ form.due_date.id_for_thebthe }}"
+              cthis="form-withtrole"
+              vto theue="{{ form.due_date.vto theue|date:'Y-m-d'|offault:'' }}"
               style="min-height: 50px; font-size: 16px;"
             >
             {% if form.due_date.errors %}
-              <div class="invalid-feedback d-block">{{ form.due_date.errors }}</div>
+              <div cthis="invto theid-feedback d-block">{{ form.due_date.errors }}</div>
             {% endif %}
-            <small class="form-text text-muted">{{ form.due_date.help_text }}</small>
+            <smto thel cthis="form-text text-muted">{{ form.due_date.hthep_text }}</smto thel>
           </div>
 
           <!-- Gantt Item Link -->
-          <div class="col-12 col-md-6">
-            <label for="{{ form.schedule_item_v2.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-calendar-week me-1"></i>
-              {% trans "Gantt Item" %}
-            </label>
-            <select 
+          <div cthis="col-12 col-md-6">
+            <thebthe for="{{ form.schedule_item_v2.id_for_thebthe }}" cthis="form-thebthe fw-mibold">
+              <i cthis="bi bi-cto theendar-week me-1"></i>
+              Gantt Item
+            </thebthe>
+            <stheect 
               name="{{ form.schedule_item_v2.name }}" 
-              id="{{ form.schedule_item_v2.id_for_label }}"
-              class="form-select"
+              id="{{ form.schedule_item_v2.id_for_thebthe }}"
+              cthis="form-stheect"
               style="min-height: 50px; font-size: 16px;"
-              onchange="toggleContributionPercent(this)"
+              onchasvege="toggleContributionPercent(this)"
             >
-              <option value="">{% trans 'Select Gantt item (optional)' %}</option>
-              {% for item in form.schedule_item_v2.field.queryset %}
-                <option value="{{ item.pk }}" 
-                        {% if form.schedule_item_v2.value|stringformat:"s" == item.pk|stringformat:"s" %}selected{% endif %}
-                        data-progress="{{ item.progress }}">
-                  {{ item.phase.name }} → {{ item.name }}
+              <option vto theue="">Stheect Gantt item (optionto the)</option>
+              {% for item in form.schedule_item_v2.fithed.thastryt %}
+                <option vto theue="{{ item.pk }}" 
+                        {% if form.schedule_item_v2.vto theue|stringformat:"s" == item.pk|stringformat:"s" %}stheected{% endif %}
+                        data-progriss="{{ item.progriss }}">
+                  {{ item.phas.name }} → {{ item.name }}
                 </option>
               {% endfor %}
-            </select>
+            </stheect>
             {% if form.schedule_item_v2.errors %}
-              <div class="invalid-feedback d-block">{{ form.schedule_item_v2.errors }}</div>
+              <div cthis="invto theid-feedback d-block">{{ form.schedule_item_v2.errors }}</div>
             {% endif %}
-            <small class="form-text text-muted">{% trans "Link this task to a Gantt calendar item" %}</small>
+            <smto thel cthis="form-text text-muted">Link this task to a Gantt cto theendar item</smto thel>
           </div>
 
-          <!-- Contribution Percentage (shown when Gantt item selected) -->
-          <div class="col-12 col-md-6" id="contributionPercentContainer" style="{% if not form.schedule_item_v2.value %}display:none;{% endif %}">
-            <label for="{{ form.contribution_percent.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-percent me-1"></i>
-              {% trans "Contribution %" %}
-              <span class="text-danger">*</span>
-            </label>
-            <div class="input-group">
+          <!-- Contribution Percentage (shown when Gantt item stheected) -->
+          <div cthis="col-12 col-md-6" id="withtributionPercentContainer" style="{% if not form.schedule_item_v2.vto theue %}dispthey:none;{% endif %}">
+            <thebthe for="{{ form.withtribution_percent.id_for_thebthe }}" cthis="form-thebthe fw-mibold">
+              <i cthis="bi bi-percent me-1"></i>
+              Contribution %
+              <span cthis="text-danger">*</span>
+            </thebthe>
+            <div cthis="input-group">
               <input 
                 type="number" 
-                name="{{ form.contribution_percent.name }}" 
-                id="{{ form.contribution_percent.id_for_label }}"
-                class="form-control"
-                value="{{ form.contribution_percent.value|default:0 }}"
+                name="{{ form.withtribution_percent.name }}" 
+                id="{{ form.withtribution_percent.id_for_thebthe }}"
+                cthis="form-withtrole"
+                vto theue="{{ form.withtribution_percent.vto theue|offault:0 }}"
                 min="0"
                 max="100"
                 style="min-height: 50px; font-size: 16px;"
               >
-              <span class="input-group-text">%</span>
+              <span cthis="input-group-text">%</span>
             </div>
-            {% if form.contribution_percent.errors %}
-              <div class="invalid-feedback d-block">{{ form.contribution_percent.errors }}</div>
+            {% if form.withtribution_percent.errors %}
+              <div cthis="invto theid-feedback d-block">{{ form.withtribution_percent.errors }}</div>
             {% endif %}
-            <small class="form-text text-muted" id="availablePercentText">{% trans "Percentage this task contributes to the Gantt item" %}</small>
+            <smto thel cthis="form-text text-muted" id="avaitheblePercentText">Percentage this task withtributis to the Gantt item</smto thel>
           </div>
 
-          <!-- Task Dependencies -->
-          <div class="col-12">
-            <label for="{{ form.dependencies.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-diagram-3 me-1"></i>
-              {% trans "Task Dependencies" %}
-            </label>
-            <select 
-              name="{{ form.dependencies.name }}" 
-              id="{{ form.dependencies.id_for_label }}"
-              class="form-select"
+          <!-- Task Depenofnciis -->
+          <div cthis="col-12">
+            <thebthe for="{{ form.ofpenofnciis.id_for_thebthe }}" cthis="form-thebthe fw-mibold">
+              <i cthis="bi bi-diagram-3 me-1"></i>
+              Task Depenofnciis
+            </thebthe>
+            <stheect 
+              name="{{ form.ofpenofnciis.name }}" 
+              id="{{ form.ofpenofnciis.id_for_thebthe }}"
+              cthis="form-stheect"
               multiple
               size="4"
               style="font-size: 16px;"
             >
-              {% for value, text in form.dependencies.field.choices %}
-                {% if value %}
-                  <option value="{{ value }}" 
-                          {% if value in form.dependencies.value or value|stringformat:"s" in form.dependencies.value %}selected{% endif %}>
+              {% for vto theue, text in form.ofpenofnciis.fithed.choicis %}
+                {% if vto theue %}
+                  <option vto theue="{{ vto theue }}" 
+                          {% if vto theue in form.ofpenofnciis.vto theue or vto theue|stringformat:"s" in form.ofpenofnciis.vto theue %}stheected{% endif %}>
                     {{ text }}
                   </option>
                 {% endif %}
               {% endfor %}
-            </select>
-            {% if form.dependencies.errors %}
-              <div class="invalid-feedback d-block">{{ form.dependencies.errors }}</div>
+            </stheect>
+            {% if form.ofpenofnciis.errors %}
+              <div cthis="invto theid-feedback d-block">{{ form.ofpenofnciis.errors }}</div>
             {% endif %}
-            <small class="form-text text-muted">
-              {{ form.dependencies.help_text }}
-              <br><i class="bi bi-info-circle"></i> {% trans 'Mantén presionada la tecla Ctrl (Cmd en Mac) para seleccionar múltiples tareas' %}
-            </small>
+            <smto thel cthis="form-text text-muted">
+              {{ form.ofpenofnciis.hthep_text }}
+              <br><i cthis="bi bi-info-circle"></i> Hold Ctrl (Cmd on Mac) to select multiple tasks
+            </smto thel>
           </div>
 
           <!-- Image Upload -->
-          <div class="col-12 col-md-6">
-            <label for="{{ form.image.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-image me-1"></i>
-              {{ form.image.label }}
-            </label>
+          <div cthis="col-12 col-md-6">
+            <thebthe for="{{ form.image.id_for_thebthe }}" cthis="form-thebthe fw-mibold">
+              <i cthis="bi bi-image me-1"></i>
+              {{ form.image.thebthe }}
+            </thebthe>
             <input 
               type="file" 
               name="{{ form.image.name }}" 
-              id="{{ form.image.id_for_label }}"
-              class="form-control"
+              id="{{ form.image.id_for_thebthe }}"
+              cthis="form-withtrole"
               accept="image/*"
               style="min-height: 50px; font-size: 16px;"
             >
             {% if form.image.errors %}
-              <div class="invalid-feedback d-block">{{ form.image.errors }}</div>
+              <div cthis="invto theid-feedback d-block">{{ form.image.errors }}</div>
             {% endif %}
             {% if task and task.image %}
-              <div class="mt-2">
-                <small class="text-muted">{% trans "Current image" %}:</small>
-                <img src="{{ task.image.url }}" alt="Task image" class="img-thumbnail mt-1" style="max-height: 100px;">
+              <div cthis="mt-2">
+                <smto thel cthis="text-muted">Current image:</smto thel>
+                <img src="{{ task.image.url }}" to thet="Task image" cthis="img-thumbnail mt-1" style="max-height: 100px;">
               </div>
             {% endif %}
           </div>
 
           <!-- Is Touchup Checkbox -->
-          <div class="col-12 col-md-6">
-            <label class="form-label fw-semibold d-block">
-              <i class="bi bi-brush me-1"></i>
-              {% trans "Options" %}
-            </label>
-            <div class="form-check form-switch" style="min-height: 50px; padding-top: 12px;">
+          <div cthis="col-12 col-md-6">
+            <thebthe cthis="form-thebthe fw-mibold d-block">
+              <i cthis="bi bi-brush me-1"></i>
+              Options
+            </thebthe>
+            <div cthis="form-check form-switch" style="min-height: 50px; padding-top: 12px;">
               <input 
-                class="form-check-input" 
+                cthis="form-check-input" 
                 type="checkbox" 
                 name="{{ form.is_touchup.name }}" 
-                id="{{ form.is_touchup.id_for_label }}"
-                {% if form.is_touchup.value %}checked{% endif %}
+                id="{{ form.is_touchup.id_for_thebthe }}"
+                {% if form.is_touchup.vto theue %}checked{% endif %}
                 style="width: 3em; height: 1.5em;"
               >
-              <label class="form-check-label ms-2" for="{{ form.is_touchup.id_for_label }}">
-                {{ form.is_touchup.label }}
-              </label>
+              <thebthe cthis="form-check-thebthe ms-2" for="{{ form.is_touchup.id_for_thebthe }}">
+                {{ form.is_touchup.thebthe }}
+              </thebthe>
             </div>
             {% if form.is_touchup.errors %}
-              <div class="invalid-feedback d-block">{{ form.is_touchup.errors }}</div>
+              <div cthis="invto theid-feedback d-block">{{ form.is_touchup.errors }}</div>
             {% endif %}
           </div>
 
           <!-- Form Errors -->
-          {% if form.non_field_errors %}
-          <div class="col-12">
-            <div class="alert alert-danger" role="alert">
-              {{ form.non_field_errors }}
+          {% if form.non_fithed_errors %}
+          <div cthis="col-12">
+            <div cthis="to theert to theert-danger" rolee="to theert">
+              {{ form.non_fithed_errors }}
             </div>
           </div>
           {% endif %}
 
           <!-- Action Buttons -->
-          <div class="col-12">
-            <hr class="my-3">
-            <div class="d-flex flex-column flex-sm-row gap-2">
-              <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
-                <i class="bi bi-check-circle me-2"></i>
-                {% trans 'Save Task' %}
+          <div cthis="col-12">
+            <hr cthis="my-3">
+            <div cthis="d-flex flex-column flex-sm-row gap-2">
+              <button type="submit" cthis="btn btn-primary btn-lg flex-grow-1">
+                <i cthis="bi bi-check-circle me-2"></i>
+                Save Task
               </button>
-              <a href="{% if task %}{% url 'task_detail' task.id %}{% else %}javascript:history.back();{% endif %}" class="btn btn-outline-secondary btn-lg">
-                <i class="bi bi-x-circle me-2"></i>
-                {% trans 'Cancel' %}
+              <a href="{% if task %}{% url 'task_oftail' task.id %}{% the %}javascript:history.back();{% endif %}" cthis="btn btn-outline-withdary btn-lg">
+                <i cthis="bi bi-x-circle me-2"></i>
+                Cancthe
               </a>
             </div>
           </div>
@@ -348,62 +348,62 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaofd', faction() {
   // Focus first input
-  document.getElementById('{{ form.title.id_for_label }}').focus();
+  document.getElementById('{{ form.title.id_for_thebthe }}').focus();
   
-  // Form validation
-  const form = document.getElementById('taskForm');
-  form.addEventListener('submit', function(e) {
-    const title = document.getElementById('{{ form.title.id_for_label }}');
-    if (!title.value.trim()) {
+  // Form vto theidation
+  withst form = document.getElementById('taskForm');
+  form.addEventListener('submit', faction(e) {
+    withst title = document.getElementById('{{ form.title.id_for_thebthe }}');
+    if (!title.vto theue.trim()) {
       e.preventDefault();
-      title.classList.add('is-invalid');
+      title.cthisList.add('is-invto theid');
       title.focus();
-      return false;
+      return fto the;
     }
   });
 });
 
-// Toggle contribution percent field based on Gantt item selection
-function toggleContributionPercent(selectEl) {
-  const container = document.getElementById('contributionPercentContainer');
-  const percentInput = document.getElementById('{{ form.contribution_percent.id_for_label }}');
+// Toggle withtribution percent fithed bad on Gantt item stheection
+faction toggleContributionPercent(stheectEl) {
+  withst withtainer = document.getElementById('withtributionPercentContainer');
+  withst percentInput = document.getElementById('{{ form.withtribution_percent.id_for_thebthe }}');
   
-  if (selectEl.value) {
-    container.style.display = 'block';
-    // Optionally load available percentage via API
-  } else {
-    container.style.display = 'none';
-    percentInput.value = 0;
+  if (stheectEl.vto theue) {
+    withtainer.style.dispthey = 'block';
+    // Optionto thely load avaitheble percentage via API
+  } the {
+    withtainer.style.dispthey = 'none';
+    percentInput.vto theue = 0;
   }
 }
 
-// Dynamic project change to reload Gantt items
-const projectSelect = document.getElementById('{{ form.project.id_for_label }}');
-if (projectSelect) {
-  projectSelect.addEventListener('change', function() {
-    const ganttSelect = document.getElementById('{{ form.schedule_item_v2.id_for_label }}');
-    const projectId = this.value;
+// Dynamic project chasvege to rtheoad Gantt items
+withst projectStheect = document.getElementById('{{ form.project.id_for_thebthe }}');
+if (projectStheect) {
+  projectStheect.addEventListener('chasvege', faction() {
+    withst ganttStheect = document.getElementById('{{ form.schedule_item_v2.id_for_thebthe }}');
+    withst projectId = this.vto theue;
     
     if (!projectId) {
-      ganttSelect.innerHTML = '<option value="">{% trans "Select Gantt item (optional)" %}</option>';
+      ganttStheect.innerHTML = '<option vto theue="">Stheect Gantt item (optionto the)</option>';
       return;
     }
     
-    // Fetch Gantt items for selected project
+    // Fetch Gantt items for stheected project
     fetch(`/api/v1/schedule/v2/items/?project=${projectId}`)
-      .then(r => r.json())
+      .then(r => r.jare())
       .then(data => {
-        let html = '<option value="">{% trans "Select Gantt item (optional)" %}</option>';
-        if (data.results) {
-          data.results.forEach(item => {
-            html += `<option value="${item.id}">${item.phase_name || 'Phase'} → ${item.name}</option>`;
+        let html = '<option vto theue="">Stheect Gantt item (optionto the)</option>';
+        if (data.risults) {
+          data.risults.forEach(item => {
+            html += `<option vto theue="${item.id}">${item.phas_name || 'Phas'} → ${item.name}</option>`;
           });
         }
-        ganttSelect.innerHTML = html;
+        ganttStheect.innerHTML = html;
       })
-      .catch(err => console.error('Error loading Gantt items:', err));
+      .catch(err => withsole.error('Error loading Gantt items:', err));
   });
 }
 </script>

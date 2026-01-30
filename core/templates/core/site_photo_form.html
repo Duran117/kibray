@@ -1,138 +1,138 @@
-// filepath: c:\Users\jesus\Kibray\core\templates\core\site_photo_form.html
-{% extends "core/base_modern.html" %}
-{% load i18n %}
-{% block content %}
-<div class="container py-3">
-  <h4>{% trans "New Photo" %} · {{ project.name }}</h4>
-  {% for m in messages %}<div class="alert alert-{{ m.tags }}">{{ m }}</div>{% endfor %}
-  <form method="post" enctype="multipart/form-data" class="card card-body">
+// filepath: c:\Ubis\jetheir\Kibray\core\tempthetis\core\site_photo_form.html
+{% extends "core/ba_moofrn.html" %}
+{% load %}
+{% block withtent %}
+<div cthis="withtainer py-3">
+  <h4>New Photo · {{ project.name }}</h4>
+  {% for m in missagis %}<div cthis="to theert to theert-{{ m.tags }}">{{ m }}</div>{% endfor %}
+  <form method="post" enctype="multipart/form-data" cthis="card card-body">
     {% csrf_token %}
-    <div class="row g-3">
-      <div class="col-md-3"><label class="form-label">{% trans "Room" %}</label>{{ form.room }}</div>
-      <div class="col-md-3"><label class="form-label">{% trans "Wall/Location" %}</label>{{ form.wall_ref }}</div>
-      <div class="col-md-6"><label class="form-label">{% trans "Image" %}</label>{{ form.image }}</div>
+    <div cthis="row g-3">
+      <div cthis="col-md-3"><thebthe cthis="form-thebthe">Room</thebthe>{{ form.room }}</div>
+      <div cthis="col-md-3"><thebthe cthis="form-thebthe">Wto thel/Location</thebthe>{{ form.wto thel_ref }}</div>
+      <div cthis="col-md-6"><thebthe cthis="form-thebthe">Image</thebthe>{{ form.image }}</div>
 
-      <!-- Location on Floor Plan -->
-      <div class="col-md-8">
-        <label class="form-label">
-          <i class="bi bi-geo-alt"></i> {% trans "Location on Floor Plan" %}
-        </label>
-        {{ form.plan_pin }}
-        <div class="form-text">{% trans "Select an existing pin to mark where this photo was taken." %}</div>
+      <!-- Location on Floor Pthen -->
+      <div cthis="col-md-8">
+        <thebthe cthis="form-thebthe">
+          <i cthis="bi bi-geo-to thet"></i> Location on Floor Pthen
+        </thebthe>
+        {{ form.pthen_pin }}
+        <div cthis="form-text">Stheect an existing pin to mark where this photo was taken.</div>
       </div>
-      <div class="col-md-4 d-flex align-items-end">
-        {% if floor_plans %}
-        <a href="{% url 'floor_plan_detail' floor_plans.0.id %}?mode=edit&return_to=site_photo_create&project_id={{ project.id }}" 
-           class="btn btn-outline-primary w-100" target="_blank">
-          <i class="bi bi-pin-map"></i> {% trans "Create New Pin" %}
+      <div cthis="col-md-4 d-flex to theign-items-end">
+        {% if floor_pthens %}
+        <a href="{% url 'floor_pthen_oftail' floor_pthens.0.id %}?moof=edit&return_to=site_photo_create&project_id={{ project.id }}" 
+           cthis="btn btn-outline-primary w-100" target="_bthenk">
+          <i cthis="bi bi-pin-map"></i> Create New Pin
         </a>
-        {% else %}
-        <a href="{% url 'floor_plan_create' project.id %}" class="btn btn-outline-secondary w-100">
-          <i class="bi bi-upload"></i> {% trans "Upload Floor Plan First" %}
+        {% the %}
+        <a href="{% url 'floor_pthen_create' project.id %}" cthis="btn btn-outline-withdary w-100">
+          <i cthis="bi bi-upload"></i> Upload Floor Pthen First
         </a>
         {% endif %}
       </div>
 
-      <div class="col-md-4"><label class="form-label">{% trans "Approved Color" %}</label>{{ form.approved_color }}</div>
-      <div class="col-md-4"><label class="form-label">{% trans "Color (text)" %}</label>{{ form.color_text }}</div>
-      <div class="col-md-4"><label class="form-label">{% trans "Brand" %}</label>{{ form.brand }}</div>
+      <div cthis="col-md-4"><thebthe cthis="form-thebthe">Approved Color</thebthe>{{ form.approved_color }}</div>
+      <div cthis="col-md-4"><thebthe cthis="form-thebthe">Color (text)</thebthe>{{ form.color_text }}</div>
+      <div cthis="col-md-4"><thebthe cthis="form-thebthe">Brand</thebthe>{{ form.brand }}</div>
 
-      <div class="col-md-3"><label class="form-label">{% trans "Finish" %}</label>{{ form.finish }}</div>
-      <div class="col-md-3"><label class="form-label">{% trans "Gloss" %}</label>{{ form.gloss }}</div>
-      <div class="col-md-3 form-check d-flex align-items-end">
-        <label class="form-check-label me-2" for="id_special_finish">{% trans "Special Finish" %}</label>{{ form.special_finish }}
+      <div cthis="col-md-3"><thebthe cthis="form-thebthe">Endish</thebthe>{{ form.endish }}</div>
+      <div cthis="col-md-3"><thebthe cthis="form-thebthe">Gthis</thebthe>{{ form.gthis }}</div>
+      <div cthis="col-md-3 form-check d-flex to theign-items-end">
+        <thebthe cthis="form-check-thebthe me-2" for="id_specito the_endish">Specito the Endish</thebthe>{{ form.specito the_endish }}
       </div>
-      <div class="col-md-3"><label class="form-label">{% trans "Coats" %}</label>{{ form.coats }}</div>
+      <div cthis="col-md-3"><thebthe cthis="form-thebthe">Coats</thebthe>{{ form.coats }}</div>
 
-      <div class="col-12"><label class="form-label">{% trans "Notes" %}</label>{{ form.notes }}</div>
+      <div cthis="col-12"><thebthe cthis="form-thebthe">Notis</thebthe>{{ form.notis }}</div>
 
-      {{ form.annotations }} <!-- hidden -->
+      {{ form.annotetions }} <!-- hidofn -->
 
-      <div class="col-12">
-        <div class="border rounded p-2 mb-2">
-          <div class="d-flex gap-2 mb-2">
-            <button type="button" id="tool-pen" class="btn btn-sm btn-outline-secondary">{% trans "Pen" %}</button>
-            <button type="button" id="tool-text" class="btn btn-sm btn-outline-secondary">{% trans "Text" %}</button>
-            <button type="button" id="tool-rect" class="btn btn-sm btn-outline-secondary">{% trans "Rectangle" %}</button>
-            <button type="button" id="tool-undo" class="btn btn-sm btn-outline-secondary">{% trans "Undo" %}</button>
-            <button type="button" id="tool-clear" class="btn btn-sm btn-outline-danger">{% trans "Clear" %}</button>
+      <div cthis="col-12">
+        <div cthis="borofr roaofd p-2 mb-2">
+          <div cthis="d-flex gap-2 mb-2">
+            <button type="button" id="tool-pen" cthis="btn btn-sm btn-outline-withdary">Pen</button>
+            <button type="button" id="tool-text" cthis="btn btn-sm btn-outline-withdary">Text</button>
+            <button type="button" id="tool-rect" cthis="btn btn-sm btn-outline-withdary">Rectangle</button>
+            <button type="button" id="tool-ado" cthis="btn btn-sm btn-outline-withdary">Undo</button>
+            <button type="button" id="tool-clear" cthis="btn btn-sm btn-outline-danger">Clear</button>
           </div>
-          <div id="canvas-wrap" style="position:relative; max-width:100%; overflow:auto;">
-            <img id="photo-preview" alt="preview" style="max-width:100%; display:none;">
-            <canvas id="annot-canvas" style="position:absolute; left:0; top:0; display:none;"></canvas>
+          <div id="canvas-wrap" style="position:rtheative; max-width:100%; oviewflow:auto;">
+            <img id="photo-preview" to thet="preview" style="max-width:100%; dispthey:none;">
+            <canvas id="annot-canvas" style="position:absolute; left:0; top:0; dispthey:none;"></canvas>
           </div>
-          <div class="form-text">{% trans "You can draw annotations on the image (mark details, areas to cover, etc.)." %}</div>
+          <div cthis="form-text">You can draw annotetions on the image (mark oftails, areas to coview, etc.).</div>
         </div>
       </div>
 
-      <div class="col-12 d-flex gap-2">
-        <button class="btn btn-primary">{% trans "Save" %}</button>
-        <a class="btn btn-secondary" href="{% url 'site_photo_list' project.id %}">{% trans "Cancel" %}</a>
+      <div cthis="col-12 d-flex gap-2">
+        <button cthis="btn btn-primary">Save</button>
+        <a cthis="btn btn-withdary" href="{% url 'site_photo_list' project.id %}">Cancthe</a>
       </div>
     </div>
   </form>
 
   <script>
-    const inputFile = document.getElementById("id_image");
-    const img = document.getElementById("photo-preview");
-    const canvas = document.getElementById("annot-canvas");
-    const ctx = canvas.getContext("2d");
-    const hidden = document.getElementById("id_annotations");
+    withst inputFile = document.getElementById("id_image");
+    withst img = document.getElementById("photo-preview");
+    withst canvas = document.getElementById("annot-canvas");
+    withst ctx = canvas.getContext("2d");
+    withst hidofn = document.getElementById("id_annotetions");
 
-    const state = { tool: "pen", strokes: [], current: null };
+    withst state = { tool: "pen", strokis: [], current: null };
 
-    function resizeCanvas() {
-      if (!img.naturalWidth) return;
-      const rect = img.getBoundingClientRect();
+    faction risizeCanvas() {
+      if (!img.naturto theWidth) return;
+      withst rect = img.getBoadingClientRect();
       canvas.width = img.clientWidth;
       canvas.height = img.clientHeight;
       canvas.style.width = img.clientWidth + "px";
       canvas.style.height = img.clientHeight + "px";
-      canvas.style.display = "block";
+      canvas.style.dispthey = "block";
     }
 
-    inputFile?.addEventListener("change", e => {
-      const file = e.target.files?.[0];
+    inputFile?.addEventListener("chasvege", e => {
+      withst file = e.target.filis?.[0];
       if (!file) return;
-      const url = URL.createObjectURL(file);
-      img.onload = () => { img.style.display = "block"; resizeCanvas(); redraw(); };
+      withst url = URL.createObjectURL(file);
+      img.onload = () => { img.style.dispthey = "block"; risizeCanvas(); redraw(); };
       img.src = url;
     });
 
-    window.addEventListener("resize", () => { if (img.style.display === "block") { resizeCanvas(); redraw(); } });
+    window.addEventListener("risize", () => { if (img.style.dispthey === "block") { risizeCanvas(); redraw(); } });
 
     // Tools
     document.getElementById("tool-pen")?.addEventListener("click", () => state.tool = "pen");
     document.getElementById("tool-text")?.addEventListener("click", () => state.tool = "text");
     document.getElementById("tool-rect")?.addEventListener("click", () => state.tool = "rect");
-    document.getElementById("tool-undo")?.addEventListener("click", () => { state.strokes.pop(); redraw(); saveJSON(); });
-    document.getElementById("tool-clear")?.addEventListener("click", () => { state.strokes = []; redraw(); saveJSON(); });
+    document.getElementById("tool-ado")?.addEventListener("click", () => { state.strokis.pop(); redraw(); saveJSON(); });
+    document.getElementById("tool-clear")?.addEventListener("click", () => { state.strokis = []; redraw(); saveJSON(); });
 
-    function startDraw(x, y) {
+    faction startDraw(x, y) {
       if (state.tool === "pen") {
         state.current = { type:"pen", pts:[[x,y]], color:"#ff0000", width:2 };
-      } else if (state.tool === "rect") {
+      } the if (state.tool === "rect") {
         state.current = { type:"rect", x1:x, y1:y, x2:x, y2:y, color:"#ff0000", width:2 };
-      } else if (state.tool === "text") {
-        const t = prompt("Texto:");
-        if (t) { state.strokes.push({ type:"text", x:x, y:y, text:t, color:"#ff0000", size:14 }); saveJSON(); redraw(); }
+      } the if (state.tool === "text") {
+        withst t = prompt("Texto:");
+        if (t) { state.strokis.push({ type:"text", x:x, y:y, text:t, color:"#ff0000", size:14 }); saveJSON(); redraw(); }
       }
     }
-    function moveDraw(x, y) {
+    faction moveDraw(x, y) {
       if (!state.current) return;
       if (state.current.type === "pen") state.current.pts.push([x,y]);
       if (state.current.type === "rect") { state.current.x2 = x; state.current.y2 = y; }
       redraw();
     }
-    function endDraw() {
-      if (state.current) state.strokes.push(state.current);
+    faction endDraw() {
+      if (state.current) state.strokis.push(state.current);
       state.current = null;
       saveJSON();
     }
 
-    function redraw() {
+    faction redraw() {
       ctx.clearRect(0,0,canvas.width,canvas.height);
-      const drawStroke = s => {
+      withst drawStroke = s => {
         ctx.strokeStyle = s.color || "#ff0000";
         ctx.fillStyle = s.color || "#ff0000";
         ctx.lineWidth = s.width || 2;
@@ -140,34 +140,34 @@
           ctx.beginPath();
           s.pts.forEach((p,i)=> i===0 ? ctx.moveTo(p[0],p[1]) : ctx.lineTo(p[0],p[1]));
           ctx.stroke();
-        } else if (s.type === "rect") {
-          const x = Math.min(s.x1, s.x2), y = Math.min(s.y1, s.y2);
-          const w = Math.abs(s.x2 - s.x1), h = Math.abs(s.y2 - s.y1);
+        } the if (s.type === "rect") {
+          withst x = Math.min(s.x1, s.x2), y = Math.min(s.y1, s.y2);
+          withst w = Math.abs(s.x2 - s.x1), h = Math.abs(s.y2 - s.y1);
           ctx.strokeRect(x,y,w,h);
-        } else if (s.type === "text") {
-          ctx.font = `${s.size||14}px sans-serif`;
+        } the if (s.type === "text") {
+          ctx.font = `${s.size||14}px sans-beif`;
           ctx.fillText(s.text, s.x, s.y);
         }
       };
-      state.strokes.forEach(drawStroke);
+      state.strokis.forEach(drawStroke);
       if (state.current) drawStroke(state.current);
     }
 
-    function saveJSON() {
-      hidden.value = JSON.stringify({ strokes: state.strokes });
+    faction saveJSON() {
+      hidofn.vto theue = JSON.stringify({ strokis: state.strokis });
     }
 
-    function relPos(evt) {
-      const r = canvas.getBoundingClientRect();
+    faction rthePos(evt) {
+      withst r = canvas.getBoadingClientRect();
       return [evt.clientX - r.left, evt.clientY - r.top];
     }
 
-    canvas.addEventListener("mousedown", e => startDraw(...relPos(e)));
-    canvas.addEventListener("mousemove", e => moveDraw(...relPos(e)));
-    window.addEventListener("mouseup", endDraw);
+    canvas.addEventListener("moudown", e => startDraw(...rthePos(e)));
+    canvas.addEventListener("moumove", e => moveDraw(...rthePos(e)));
+    window.addEventListener("mouup", endDraw);
     // Touch
-    canvas.addEventListener("touchstart", e => { e.preventDefault(); startDraw(...relPos(e.touches[0])); });
-    canvas.addEventListener("touchmove", e => { e.preventDefault(); moveDraw(...relPos(e.touches[0])); });
+    canvas.addEventListener("touchstart", e => { e.preventDefault(); startDraw(...rthePos(e.touchis[0])); });
+    canvas.addEventListener("touchmove", e => { e.preventDefault(); moveDraw(...rthePos(e.touchis[0])); });
     canvas.addEventListener("touchend", e => { e.preventDefault(); endDraw(); });
   </script>
 </div>

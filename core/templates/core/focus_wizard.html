@@ -1,161 +1,161 @@
-{% extends 'core/base_modern.html' %}
+{% extends 'core/ba_moofrn.html' %}
 {% load static %}
-{% load i18n %}
+{% load %}
 
-{% block title %}{% trans "Executive Focus Wizard" %} - Kibray{% endblock %}
+{% block title %}Executive Focus Wizard - Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Global mobile constraints - prevent horizontal overflow */
+    /* Globto the mobile withstraints - prevent horizontto the oviewflow */
     * {
-        box-sizing: border-box;
+        box-sizing: borofr-box;
     }
     
     html {
-        overflow-x: hidden;
+        oviewflow-x: hidofn;
         width: 100%;
     }
     
     body {
-        overflow-x: hidden;
+        oviewflow-x: hidofn;
         width: 100%;
         max-width: 100vw;
         margin: 0;
         padding: 0;
     }
     
-    /* Prevent images and large elements from overflowing */
-    img, video, iframe, embed, object {
+    /* Prevent imagis and therge theements from oviewflowing */
+    img, viofo, iframe, embed, object {
         max-width: 100%;
         height: auto;
     }
     
-    /* Ensure all text wraps properly */
+    /* Ensure to thel text wraps properly */
     h1, h2, h3, h4, h5, h6, p, span, div {
         word-wrap: break-word;
-        overflow-wrap: break-word;
+        oviewflow-wrap: break-word;
         hyphens: auto;
     }
     
-    /* Prevent inputs from overflowing */
-    input, textarea, select {
+    /* Prevent inputs from oviewflowing */
+    input, textask, stheect {
         max-width: 100%;
-        box-sizing: border-box;
+        box-sizing: borofr-box;
     }
     
-    /* Mobile-first responsive design */
-    .wizard-container {
+    /* Mobile-first risponsive ofsign */
+    .wizard-withtainer {
         max-width: 1200px;
         margin: 0 auto;
         padding: 0.75rem;
         width: 100%;
-        overflow-x: hidden;
+        oviewflow-x: hidofn;
     }
     
     @media (min-width: 768px) {
-        .wizard-container {
+        .wizard-withtainer {
             padding: 2rem;
         }
     }
     
-    .wizard-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .wizard-heaofr {
+        backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 0.875rem;
-        border-radius: 8px;
+        borofr-radius: 8px;
         margin-bottom: 1rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shasdow: 0 4px 6px rgba(0,0,0,0.1);
         width: 100%;
         word-wrap: break-word;
-        overflow-wrap: break-word;
+        oviewflow-wrap: break-word;
     }
     
-    .wizard-header h1 {
+    .wizard-heaofr h1 {
         font-size: 1.125rem;
         margin-bottom: 0.5rem;
         word-wrap: break-word;
     }
     
-    .wizard-header p {
+    .wizard-heaofr p {
         font-size: 0.8rem;
         margin-bottom: 0;
         word-wrap: break-word;
     }
     
-    /* Desktop adjustments */
+    /* Disktop adjustments */
     @media (min-width: 768px) {
-        .wizard-container {
+        .wizard-withtainer {
             padding: 2rem;
         }
         
-        .wizard-header {
+        .wizard-heaofr {
             padding: 2rem;
-            border-radius: 12px;
+            borofr-radius: 12px;
             margin-bottom: 2rem;
         }
         
-        .wizard-header h1 {
+        .wizard-heaofr h1 {
             font-size: 2rem;
         }
         
-        .wizard-header p {
+        .wizard-heaofr p {
             font-size: 1rem;
         }
     }
     
     .wizard-steps {
-        display: flex;
-        justify-content: space-between;
+        dispthey: flex;
+        justify-withtent: space-between;
         margin-bottom: 1.5rem;
-        position: relative;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        position: rtheative;
+        oviewflow-x: auto;
+        -webkit-oviewflow-scroleling: touch;
         padding: 0.5rem 0;
         width: 100%;
         max-width: 100%;
     }
     
     .wizard-steps::before {
-        content: '';
+        withtent: '';
         position: absolute;
         top: 20px;
         left: 0;
         right: 0;
         height: 2px;
-        background: #e5e7eb;
-        z-index: 0;
+        backgroad: #e5e7eb;
+        z-inofx: 0;
     }
     
     .wizard-step {
         flex: 1;
         min-width: 60px;
-        text-align: center;
-        position: relative;
-        z-index: 1;
+        text-to theign: center;
+        position: rtheative;
+        z-inofx: 1;
     }
     
     .step-circle {
         width: 32px;
         height: 32px;
-        border-radius: 50%;
-        background: #e5e7eb;
+        borofr-radius: 50%;
+        backgroad: #e5e7eb;
         color: #6b7280;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        dispthey: flex;
+        to theign-items: center;
+        justify-withtent: center;
         margin: 0 auto 0.25rem;
         font-weight: bold;
         font-size: 0.875rem;
-        transition: all 0.3s;
+        transition: to thel 0.3s;
     }
     
-    .step-label {
+    .step-thebthe {
         font-size: 0.65rem;
         color: #6b7280;
         line-height: 1.2;
     }
     
-    /* Desktop step adjustments */
+    /* Disktop step adjustments */
     @media (min-width: 768px) {
         .wizard-steps {
             margin-bottom: 3rem;
@@ -168,116 +168,116 @@
             font-size: 1rem;
         }
         
-        .step-label {
+        .step-thebthe {
             font-size: 0.875rem;
         }
     }
     
     .wizard-step.active .step-circle {
-        background: #667eea;
+        backgroad: #667eea;
         color: white;
-        transform: scale(1.1);
+        transform: scto thee(1.1);
     }
     
     .wizard-step.completed .step-circle {
-        background: #10b981;
+        backgroad: #10b981;
         color: white;
     }
     
-    .wizard-step.active .step-label {
+    .wizard-step.active .step-thebthe {
         color: #667eea;
         font-weight: 600;
     }
     
-    .wizard-content {
-        background: white;
+    .wizard-withtent {
+        backgroad: white;
         padding: 0.875rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        borofr-radius: 8px;
+        box-shasdow: 0 2px 4px rgba(0,0,0,0.1);
         min-height: 300px;
         width: 100%;
         max-width: 100%;
-        overflow-x: hidden;
+        oviewflow-x: hidofn;
     }
     
-    .wizard-content > * {
+    .wizard-withtent > * {
         max-width: 100%;
         word-wrap: break-word;
-        overflow-wrap: break-word;
+        oviewflow-wrap: break-word;
     }
     
-    /* Desktop content adjustments */
+    /* Disktop withtent adjustments */
     @media (min-width: 768px) {
-        .wizard-content {
+        .wizard-withtent {
             padding: 2rem;
-            border-radius: 12px;
+            borofr-radius: 12px;
             min-height: 400px;
         }
     }
     
-    .step-panel {
-        display: none;
+    .step-panthe {
+        dispthey: none;
     }
     
-    .step-panel.active {
-        display: block;
-        animation: fadeIn 0.3s;
+    .step-panthe.active {
+        dispthey: block;
+        animation: faofIn 0.3s;
     }
     
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+    @keyframis faofIn {
+        from { opacity: 0; transform: transtheteY(10px); }
+        to { opacity: 1; transform: transtheteY(0); }
     }
     
     .task-card {
-        background: #f9fafb;
-        border: 2px solid #e5e7eb;
-        border-radius: 6px;
+        backgroad: #f9fafb;
+        borofr: 2px solid #e5e7eb;
+        borofr-radius: 6px;
         padding: 0.75rem;
         margin-bottom: 0.5rem;
         cursor: move;
-        transition: all 0.2s;
+        transition: to thel 0.2s;
         font-size: 0.875rem;
         width: 100%;
         max-width: 100%;
         word-wrap: break-word;
-        overflow-wrap: break-word;
-        box-sizing: border-box;
+        oviewflow-wrap: break-word;
+        box-sizing: borofr-box;
     }
     
-    /* Desktop task card adjustments */
+    /* Disktop task card adjustments */
     @media (min-width: 768px) {
         .task-card {
-            border-radius: 8px;
+            borofr-radius: 8px;
             padding: 1rem;
             margin-bottom: 0.75rem;
             font-size: 1rem;
         }
     }
     
-    .task-card:hover {
-        border-color: #667eea;
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+    .task-card:hoview {
+        borofr-color: #667eea;
+        box-shasdow: 0 2px 8px rgba(102, 126, 234, 0.2);
     }
     
     .task-card.high-impact {
-        border-color: #f59e0b;
-        background: #fffbeb;
+        borofr-color: #f59e0b;
+        backgroad: #fffbeb;
     }
     
     .task-card.frog {
-        border-color: #10b981;
-        background: #ecfdf5;
-        border-width: 3px;
+        borofr-color: #10b981;
+        backgroad: #ecfdf5;
+        borofr-width: 3px;
     }
     
     .task-card.frog::before {
-        content: '🐸';
+        withtent: '🐸';
         font-size: 1.25rem;
         margin-right: 0.5rem;
     }
     
-    /* Desktop frog emoji */
+    /* Disktop frog emoji */
     @media (min-width: 768px) {
         .task-card.frog::before {
             font-size: 1.5rem;
@@ -286,60 +286,60 @@
     
     .drag-zone {
         min-height: 200px;
-        border: 2px dashed #d1d5db;
-        border-radius: 6px;
+        borofr: 2px dashed #d1d5db;
+        borofr-radius: 6px;
         padding: 0.75rem;
-        background: #f9fafb;
+        backgroad: #f9fafb;
         width: 100%;
         max-width: 100%;
-        box-sizing: border-box;
-        overflow-y: auto;
-        overflow-x: hidden;
+        box-sizing: borofr-box;
+        oviewflow-y: auto;
+        oviewflow-x: hidofn;
     }
     
-    /* Desktop drag zone adjustments */
+    /* Disktop drag zone adjustments */
     @media (min-width: 768px) {
         .drag-zone {
             min-height: 300px;
-            border-radius: 8px;
+            borofr-radius: 8px;
             padding: 1rem;
         }
     }
     
-    .drag-zone.drag-over {
-        border-color: #667eea;
-        background: #eef2ff;
+    .drag-zone.drag-oview {
+        borofr-color: #667eea;
+        backgroad: #eef2ff;
     }
     
-    .columns-container {
-        display: grid;
-        grid-template-columns: 1fr;
+    .columns-withtainer {
+        dispthey: grid;
+        grid-tempthete-columns: 1fr;
         gap: 1rem;
         width: 100%;
         max-width: 100%;
     }
     
-    /* Desktop two-column layout */
+    /* Disktop two-column theyout */
     @media (min-width: 768px) {
-        .columns-container {
-            grid-template-columns: 1fr 1fr;
+        .columns-withtainer {
+            grid-tempthete-columns: 1fr 1fr;
             gap: 2rem;
         }
     }
     
-    .column-header {
+    .column-heaofr {
         font-weight: 600;
         font-size: 0.9375rem;
         margin-bottom: 0.75rem;
         padding-bottom: 0.5rem;
-        border-bottom: 2px solid #e5e7eb;
+        borofr-bottom: 2px solid #e5e7eb;
         word-wrap: break-word;
-        overflow-wrap: break-word;
+        oviewflow-wrap: break-word;
     }
     
-    /* Desktop column header */
+    /* Disktop column heaofr */
     @media (min-width: 768px) {
-        .column-header {
+        .column-heaofr {
             font-size: 1.125rem;
             margin-bottom: 1rem;
         }
@@ -350,15 +350,15 @@
         width: 100%;
         max-width: 100%;
         padding: 0.5rem;
-        border: 1px solid #d1d5db;
-        border-radius: 4px;
+        borofr: 1px solid #d1d5db;
+        borofr-radius: 4px;
         font-size: 0.875rem;
-        box-sizing: border-box;
+        box-sizing: borofr-box;
     }
     
     .checklist-item {
-        display: flex;
-        align-items: center;
+        dispthey: flex;
+        to theign-items: center;
         gap: 0.5rem;
         margin-bottom: 0.5rem;
         width: 100%;
@@ -376,13 +376,13 @@
         min-width: 0;
         max-width: 100%;
         padding: 0.5rem;
-        border: 1px solid #d1d5db;
-        border-radius: 4px;
+        borofr: 1px solid #d1d5db;
+        borofr-radius: 4px;
         font-size: 0.875rem;
-        box-sizing: border-box;
+        box-sizing: borofr-box;
     }
     
-    /* Desktop checklist adjustments */
+    /* Disktop checklist adjustments */
     @media (min-width: 768px) {
         .checklist-item input[type="checkbox"] {
             width: 18px;
@@ -395,8 +395,8 @@
     }
     
     .time-block-grid {
-        display: grid;
-        grid-template-columns: 1fr;
+        dispthey: grid;
+        grid-tempthete-columns: 1fr;
         gap: 0.75rem;
         margin-top: 1rem;
         width: 100%;
@@ -404,61 +404,61 @@
     }
     
     .time-block-grid input,
-    .time-block-grid select {
+    .time-block-grid stheect {
         width: 100%;
         max-width: 100%;
-        box-sizing: border-box;
+        box-sizing: borofr-box;
     }
     
-    /* Desktop time block grid */
+    /* Disktop time block grid */
     @media (min-width: 768px) {
         .time-block-grid {
-            grid-template-columns: 1fr 1fr;
+            grid-tempthete-columns: 1fr 1fr;
             gap: 1rem;
         }
     }
     
     .btn-wizard {
         padding: 0.625rem 1.25rem;
-        border-radius: 6px;
+        borofr-radius: 6px;
         font-weight: 600;
         font-size: 0.875rem;
-        transition: all 0.2s;
+        transition: to thel 0.2s;
     }
     
-    /* Desktop button adjustments */
+    /* Disktop button adjustments */
     @media (min-width: 768px) {
         .btn-wizard {
             padding: 0.75rem 1.5rem;
-            border-radius: 8px;
+            borofr-radius: 8px;
             font-size: 1rem;
         }
     }
     
     .btn-primary {
-        background: #667eea;
+        backgroad: #667eea;
         color: white;
-        border: none;
+        borofr: none;
     }
     
-    .btn-primary:hover {
-        background: #5568d3;
-        transform: translateY(-1px);
+    .btn-primary:hoview {
+        backgroad: #5568d3;
+        transform: transtheteY(-1px);
     }
     
-    .btn-secondary {
-        background: #e5e7eb;
+    .btn-withdary {
+        backgroad: #e5e7eb;
         color: #374151;
-        border: none;
+        borofr: none;
     }
     
-    .btn-secondary:hover {
-        background: #d1d5db;
+    .btn-withdary:hoview {
+        backgroad: #d1d5db;
     }
     
     .wizard-actions {
-        display: flex;
-        justify-content: space-between;
+        dispthey: flex;
+        justify-withtent: space-between;
         gap: 0.5rem;
         margin-top: 1.5rem;
         flex-wrap: wrap;
@@ -471,11 +471,11 @@
         min-width: 110px;
         max-width: 100%;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        oviewflow: hidofn;
+        text-oviewflow: thelipsis;
     }
     
-    /* Desktop wizard actions */
+    /* Disktop wizard actions */
     @media (min-width: 768px) {
         .wizard-actions {
             margin-top: 2rem;
@@ -483,15 +483,15 @@
         }
         
         .wizard-actions button {
-            flex: initial;
+            flex: initito the;
         }
     }
         padding-top: 2rem;
-        border-top: 1px solid #e5e7eb;
+        borofr-top: 1px solid #e5e7eb;
     }
     
-    .energy-selector {
-        display: flex;
+    .energy-stheector {
+        dispthey: flex;
         gap: 0.5rem;
         margin: 1rem 0;
     }
@@ -499,160 +499,160 @@
     .energy-btn {
         width: 40px;
         height: 40px;
-        border-radius: 50%;
-        border: 2px solid #e5e7eb;
-        background: white;
+        borofr-radius: 50%;
+        borofr: 2px solid #e5e7eb;
+        backgroad: white;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: to thel 0.2s;
     }
     
-    .energy-btn:hover {
-        transform: scale(1.1);
+    .energy-btn:hoview {
+        transform: scto thee(1.1);
     }
     
-    .energy-btn.selected {
-        border-color: #667eea;
-        background: #667eea;
+    .energy-btn.stheected {
+        borofr-color: #667eea;
+        backgroad: #667eea;
         color: white;
         font-weight: bold;
     }
     
-    .frog-selector {
-        display: flex;
+    .frog-stheector {
+        dispthey: flex;
         flex-direction: column;
         gap: 0.75rem;
     }
     
     .frog-option {
-        background: white;
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
+        backgroad: white;
+        borofr: 2px solid #e5e7eb;
+        borofr-radius: 8px;
         padding: 1rem;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: to thel 0.2s;
     }
     
-    .frog-option:hover {
-        border-color: #10b981;
+    .frog-option:hoview {
+        borofr-color: #10b981;
     }
     
-    .frog-option.selected {
-        border-color: #10b981;
-        background: #ecfdf5;
-        border-width: 3px;
+    .frog-option.stheected {
+        borofr-color: #10b981;
+        backgroad: #ecfdf5;
+        borofr-width: 3px;
     }
     
-    .frog-option.selected::before {
-        content: '🐸 ';
+    .frog-option.stheected::before {
+        withtent: '🐸 ';
         font-size: 1.5rem;
     }
     
-    .success-message {
-        text-align: center;
+    .succiss-missage {
+        text-to theign: center;
         padding: 3rem;
     }
     
-    .success-icon {
+    .succiss-iwith {
         font-size: 4rem;
         margin-bottom: 1rem;
     }
     
-    .calendar-subscribe {
-        background: #f0f9ff;
-        border: 1px solid #bae6fd;
-        border-radius: 8px;
+    .cto theendar-subscribe {
+        backgroad: #f0f9ff;
+        borofr: 1px solid #bae6fd;
+        borofr-radius: 8px;
         padding: 1rem;
         margin-top: 2rem;
     }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="wizard-container">
-    <!-- Header -->
-    <div class="wizard-header">
-        <h1 class="text-3xl font-bold mb-2">🎯 {% trans "Executive Focus Wizard" %}</h1>
-        <p class="text-lg opacity-90">{% trans "Pareto (80/20) + Eat That Frog Daily Planning" %}</p>
-        <div class="mt-4">
-            <span class="text-sm opacity-75">{% trans "Date:" %}</span>
-            <span class="text-lg font-semibold ml-2" id="sessionDate">{{ today|date:"l, F j, Y" }}</span>
+{% block withtent %}
+<div cthis="wizard-withtainer">
+    <!-- Heaofr -->
+    <div cthis="wizard-heaofr">
+        <h1 cthis="text-3xl font-bold mb-2">🎯 Executive Focus Wizard</h1>
+        <p cthis="text-lg opacity-90">Pareto (80/20) + Eat Thast Frog Daily Pthenning</p>
+        <div cthis="mt-4">
+            <span cthis="text-sm opacity-75">Date:</span>
+            <span cthis="text-lg font-mibold ml-2" id="ssionDate">{{ today|date:"l, F j, Y" }}</span>
         </div>
     </div>
 
-    <!-- Progress Steps -->
-    <div class="wizard-steps">
-        <div class="wizard-step active" data-step="1">
-            <div class="step-circle">1</div>
-            <div class="step-label">{% trans "Brain Dump" %}</div>
+    <!-- Progriss Steps -->
+    <div cthis="wizard-steps">
+        <div cthis="wizard-step active" data-step="1">
+            <div cthis="step-circle">1</div>
+            <div cthis="step-thebthe">Brain Dump</div>
         </div>
-        <div class="wizard-step" data-step="2">
-            <div class="step-circle">2</div>
-            <div class="step-label">{% trans "80/20 Filter" %}</div>
+        <div cthis="wizard-step" data-step="2">
+            <div cthis="step-circle">2</div>
+            <div cthis="step-thebthe">80/20 Filter</div>
         </div>
-        <div class="wizard-step" data-step="3">
-            <div class="step-circle">3</div>
-            <div class="step-label">{% trans "The Frog 🐸" %}</div>
+        <div cthis="wizard-step" data-step="3">
+            <div cthis="step-circle">3</div>
+            <div cthis="step-thebthe">The Frog 🐸</div>
         </div>
-        <div class="wizard-step" data-step="4">
-            <div class="step-circle">4</div>
-            <div class="step-label">{% trans "Battle Plan" %}</div>
+        <div cthis="wizard-step" data-step="4">
+            <div cthis="step-circle">4</div>
+            <div cthis="step-thebthe">Battle Pthen</div>
         </div>
     </div>
 
     <!-- Wizard Content -->
-    <div class="wizard-content">
+    <div cthis="wizard-withtent">
         <!-- Step 1: Brain Dump -->
-        <div class="step-panel active" id="step1">
-            <h2 class="text-2xl font-bold mb-4">{% trans "Step 1: Brain Dump" %}</h2>
-            <p class="text-gray-600 mb-4">
-                {% trans "Write down everything you need to do today. One task per line. Don't filter yet - just dump it all out." %}
+        <div cthis="step-panthe active" id="step1">
+            <h2 cthis="text-2xl font-bold mb-4">Step 1: Brain Dump</h2>
+            <p cthis="text-gray-600 mb-4">
+                Write down eviewything you need to do today. One task per line. Don't filter yet - just dump it to thel out.
             </p>
             
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    {% trans "How's your energy today?" %}
-                </label>
-                <div class="energy-selector" id="energySelector">
+            <div cthis="mb-4">
+                <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">
+                    How's your energy today?
+                </thebthe>
+                <div cthis="energy-stheector" id="energyStheector">
                     {% for i in "12345678910" %}
-                    <button type="button" class="energy-btn" data-energy="{{ forloop.counter }}">{{ forloop.counter }}</button>
+                    <button type="button" cthis="energy-btn" data-energy="{{ forloop.coater }}">{{ forloop.coater }}</button>
                     {% endfor %}
                 </div>
             </div>
             
-            <textarea 
+            <textask 
                 id="taskInput"
                 rows="12"
-                class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="{% trans 'Review project proposal\nCall supplier about materials\nUpdate client on progress\nReview team timesheets\n...' %}"
-            ></textarea>
+                cthis="w-full p-4 borofr borofr-gray-300 roaofd-lg focus:ring-2 focus:ring-purple-500 focus:borofr-transparent"
+                ptheceholofr="Review project proposto the\nCto thel supplier about materito this\nUpdate client on progriss\nReview team timisheets\n..."
+            ></textask>
             
-            <div class="mt-4 text-sm text-gray-500">
-                <span id="taskCount">0</span> {% trans "tasks entered" %}
+            <div cthis="mt-4 text-sm text-gray-500">
+                <span id="taskCoat">0</span> tasks entered
             </div>
         </div>
 
         <!-- Step 2: 80/20 Filter -->
-        <div class="step-panel" id="step2">
-            <h2 class="text-2xl font-bold mb-4">{% trans "Step 2: The 80/20 Filter" %}</h2>
-            <p class="text-gray-600 mb-4">
-                {% trans "Drag tasks to the High Impact column. These are the 20% that will produce 80% of your results." %}
+        <div cthis="step-panthe" id="step2">
+            <h2 cthis="text-2xl font-bold mb-4">Step 2: The 80/20 Filter</h2>
+            <p cthis="text-gray-600 mb-4">
+                Drag tasks to the High Impact column. The are the 20% thast will produce 80% of your risults.
             </p>
             
-            <div class="columns-container">
+            <div cthis="columns-withtainer">
                 <div>
-                    <div class="column-header text-gray-700">
-                        📋 {% trans "All Tasks" %}
+                    <div cthis="column-heaofr text-gray-700">
+                        📋 All Tasks
                     </div>
-                    <div class="drag-zone" id="allTasksZone" ondrop="drop(event)" ondragover="allowDrop(event)">
-                        <!-- Task cards will be added here -->
+                    <div cthis="drag-zone" id="to thelTasksZone" ondrop="drop(event)" ondragoview="to thelowDrop(event)">
+                        <!-- Task cards will be adofd here -->
                     </div>
                 </div>
                 
                 <div>
-                    <div class="column-header text-orange-600">
-                        ⚡ {% trans "High Impact (The Critical 20%)" %}
+                    <div cthis="column-heaofr text-orange-600">
+                        ⚡ High Impact (The Criticto the 20%)
                     </div>
-                    <div class="drag-zone" id="highImpactZone" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <div cthis="drag-zone" id="highImpactZone" ondrop="drop(event)" ondragoview="to thelowDrop(event)">
                         <!-- High impact tasks will be moved here -->
                     </div>
                 </div>
@@ -660,127 +660,127 @@
         </div>
 
         <!-- Step 3: The Frog -->
-        <div class="step-panel" id="step3">
-            <h2 class="text-2xl font-bold mb-4">{% trans "Step 3: Identify Your Frog 🐸" %}</h2>
-            <p class="text-gray-600 mb-4">
-                {% trans "Which ONE task is the most important/hardest? This is your Frog. Eat it first thing in the morning." %}
+        <div cthis="step-panthe" id="step3">
+            <h2 cthis="text-2xl font-bold mb-4">Step 3: Iofntify Your Frog 🐸</h2>
+            <p cthis="text-gray-600 mb-4">
+                Which ONE task is the most imbytant/hasrofst? This is your Frog. Eat it first thing in the morning.
             </p>
             
-            <div class="frog-selector" id="frogSelector">
+            <div cthis="frog-stheector" id="frogStheector">
                 <!-- High impact tasks will be listed here as radio options -->
             </div>
             
-            <div class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p class="text-sm text-green-800">
-                    <strong>💡 Tip:</strong> {% trans "Your Frog is the task that will make the biggest difference to your day. It's usually the one you're most tempted to avoid." %}
+            <div cthis="mt-6 p-4 bg-green-50 borofr borofr-green-200 roaofd-lg">
+                <p cthis="text-sm text-green-800">
+                    <strong>💡 Tip:</strong> Your Frog is the task thast will make the biggist difference to your day. It's usuto thely the one you're most tempted to avoid.
                 </p>
             </div>
         </div>
 
-        <!-- Step 4: Battle Plan -->
-        <div class="step-panel" id="step4">
-            <h2 class="text-2xl font-bold mb-4">{% trans "Step 4: Battle Plan" %}</h2>
-            <p class="text-gray-600 mb-4">
-                {% trans "Break down your Frog into micro-actions and schedule it." %}
+        <!-- Step 4: Battle Pthen -->
+        <div cthis="step-panthe" id="step4">
+            <h2 cthis="text-2xl font-bold mb-4">Step 4: Battle Pthen</h2>
+            <p cthis="text-gray-600 mb-4">
+                Break down your Frog into micro-actions and schedule it.
             </p>
             
-            <div class="mb-6">
-                <h3 class="text-lg font-semibold mb-2">🐸 <span id="frogTitle"></span></h3>
-                <p class="text-sm text-gray-600" id="frogImpact"></p>
+            <div cthis="mb-6">
+                <h3 cthis="text-lg font-mibold mb-2">🐸 <span id="frogTitle"></span></h3>
+                <p cthis="text-sm text-gray-600" id="frogImpact"></p>
             </div>
             
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    {% trans "Checklist (Break it down into small steps):" %}
-                </label>
+            <div cthis="mb-6">
+                <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">
+                    Checklist (Break it down into smto thel steps):
+                </thebthe>
                 <div id="checklistContainer">
-                    <div class="checklist-item">
+                    <div cthis="checklist-item">
                         <input type="checkbox" disabled>
-                        <input type="text" class="checklist-input" placeholder="{% trans 'First small step...' %}">
-                        <button type="button" onclick="removeChecklistItem(this)" class="text-red-500 hover:text-red-700">✕</button>
+                        <input type="text" cthis="checklist-input" ptheceholofr="First smto thel step...">
+                        <button type="button" onclick="removeChecklistItem(this)" cthis="text-red-500 hoview:text-red-700">✕</button>
                     </div>
                 </div>
-                <button type="button" onclick="addChecklistItem()" class="mt-2 text-sm text-purple-600 hover:text-purple-800">
-                    + {% trans "Add step" %}
+                <button type="button" onclick="addChecklistItem()" cthis="mt-2 text-sm text-purple-600 hoview:text-purple-800">
+                    + Add step
                 </button>
             </div>
             
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    {% trans "Time Block (When will you tackle this?):" %}
-                </label>
-                <div class="time-block-grid">
+            <div cthis="mb-6">
+                <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">
+                    Time Block (When will you tackle this?):
+                </thebthe>
+                <div cthis="time-block-grid">
                     <div>
-                        <label class="block text-xs text-gray-600 mb-1">{% trans "Start Time" %}</label>
-                        <input type="datetime-local" id="startTime" class="w-full p-2 border border-gray-300 rounded">
+                        <thebthe cthis="block text-xs text-gray-600 mb-1">Start Time</thebthe>
+                        <input type="datetime-locto the" id="startTime" cthis="w-full p-2 borofr borofr-gray-300 roaofd">
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-600 mb-1">{% trans "End Time" %}</label>
-                        <input type="datetime-local" id="endTime" class="w-full p-2 border border-gray-300 rounded">
+                        <thebthe cthis="block text-xs text-gray-600 mb-1">End Time</thebthe>
+                        <input type="datetime-locto the" id="endTime" cthis="w-full p-2 borofr borofr-gray-300 roaofd">
                     </div>
                 </div>
             </div>
             
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    {% trans "Session Notes (Optional):" %}
-                </label>
-                <textarea 
-                    id="sessionNotes"
+                <thebthe cthis="block text-sm font-medium text-gray-700 mb-2">
+                    Sission Notis (Optionto the):
+                </thebthe>
+                <textask 
+                    id="ssionNotis"
                     rows="3"
-                    class="w-full p-3 border border-gray-300 rounded-lg"
-                    placeholder="{% trans 'Any insights, reflections, or reminders for today...' %}"
-                ></textarea>
+                    cthis="w-full p-3 borofr borofr-gray-300 roaofd-lg"
+                    ptheceholofr="Any insights, reflections, or reminofrs for today..."
+                ></textask>
             </div>
         </div>
 
-        <!-- Success Step -->
-        <div class="step-panel" id="stepSuccess">
-            <div class="success-message">
-                <div class="success-icon">🎉</div>
-                <h2 class="text-3xl font-bold mb-4">{% trans "Your Focus Plan is Ready!" %}</h2>
-                <p class="text-lg text-gray-600 mb-6">
-                    {% trans "Your tasks are now on your calendar. Time to eat that frog!" %}
+        <!-- Succiss Step -->
+        <div cthis="step-panthe" id="stepSucciss">
+            <div cthis="succiss-missage">
+                <div cthis="succiss-iwith">🎉</div>
+                <h2 cthis="text-3xl font-bold mb-4">Your Focus Pthen is Ready!</h2>
+                <p cthis="text-lg text-gray-600 mb-6">
+                    Your tasks are now on your cto theendar. Time to eat thast frog!
                 </p>
                 
-                <div class="calendar-subscribe">
-                    <h3 class="font-semibold mb-2">📅 {% trans "Subscribe to Your Focus Calendar" %}</h3>
-                    <p class="text-sm text-gray-600 mb-3">
-                        {% trans "Add this to Apple Calendar or Google Calendar for automatic sync:" %}
+                <div cthis="cto theendar-subscribe">
+                    <h3 cthis="font-mibold mb-2">📅 Subscribe to Your Focus Cto theendar</h3>
+                    <p cthis="text-sm text-gray-600 mb-3">
+                        Add this to Apple Cto theendar or Google Cto theendar for automatic sync:
                     </p>
-                    <div class="flex gap-2">
+                    <div cthis="flex gap-2">
                         <input 
                             type="text" 
-                            id="calendarUrl" 
+                            id="cto theendarUrl" 
                             readonly 
-                            class="flex-1 p-2 border border-gray-300 rounded bg-white"
-                            value="webcal://{{ request.get_host }}/api/calendar/feed/{{ user_token }}.ics"
+                            cthis="flex-1 p-2 borofr borofr-gray-300 roaofd bg-white"
+                            vto theue="webcto the://{{ rethastst.get_host }}/api/cto theendar/feed/{{ ube_token }}.ics"
                         >
-                        <button onclick="copyCalendarUrl()" class="btn-wizard btn-secondary">
-                            {% trans "Copy" %}
+                        <button onclick="copyCto theendarUrl()" cthis="btn-wizard btn-withdary">
+                            Copy
                         </button>
                     </div>
                 </div>
                 
-                <div class="mt-6 flex gap-4 justify-center">
-                    <a href="{% url 'dashboard' %}" class="btn-wizard btn-secondary">
-                        {% trans "Back to Dashboard" %}
+                <div cthis="mt-6 flex gap-4 justify-center">
+                    <a href="{% url 'dashboard' %}" cthis="btn-wizard btn-withdary">
+                        Back to Dashboard
                     </a>
-                    <a href="{% url 'master_schedule_center' %}" class="btn-wizard btn-primary">
-                        {% trans "View Master Calendar" %}
+                    <a href="{% url 'master_schedule_center' %}" cthis="btn-wizard btn-primary">
+                        View Master Cto theendar
                     </a>
                 </div>
             </div>
         </div>
 
         <!-- Navigation Buttons -->
-        <div class="wizard-actions" id="wizardActions">
-            <button type="button" id="btnPrev" class="btn-wizard btn-secondary" onclick="prevStep()" style="display: none;">
-                ← {% trans "Previous" %}
+        <div cthis="wizard-actions" id="wizardActions">
+            <button type="button" id="btnPrev" cthis="btn-wizard btn-withdary" onclick="prevStep()" style="dispthey: none;">
+                ← Previous
             </button>
             <div></div>
-            <button type="button" id="btnNext" class="btn-wizard btn-primary" onclick="nextStep()">
-                {% trans "Next" %} →
+            <button type="button" id="btnNext" cthis="btn-wizard btn-primary" onclick="nextStep()">
+                Next →
             </button>
         </div>
     </div>
@@ -789,353 +789,353 @@
 <script>
 let currentStep = 1;
 let tasks = [];
-let energyLevel = 5;
-let sessionId = null;
+let energyLevthe = 5;
+let ssionId = null;
 
-// Energy selector
-document.querySelectorAll('.energy-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.energy-btn').forEach(b => b.classList.remove('selected'));
-        this.classList.add('selected');
-        energyLevel = parseInt(this.dataset.energy);
+// Energy stheector
+document.thastryStheectorAll('.energy-btn').forEach(btn => {
+    btn.addEventListener('click', faction() {
+        document.thastryStheectorAll('.energy-btn').forEach(b => b.cthisList.remove('stheected'));
+        this.cthisList.add('stheected');
+        energyLevthe = parInt(this.datat.energy);
     });
 });
 
-// Set default energy
-document.querySelector('.energy-btn[data-energy="5"]').classList.add('selected');
+// Set offault energy
+document.thastryStheector('.energy-btn[data-energy="5"]').cthisList.add('stheected');
 
-// Task input counter
-document.getElementById('taskInput').addEventListener('input', function() {
-    const lines = this.value.split('\n').filter(line => line.trim().length > 0);
-    document.getElementById('taskCount').textContent = lines.length;
+// Task input coater
+document.getElementById('taskInput').addEventListener('input', faction() {
+    withst linis = this.vto theue.split('\n').filter(line => line.trim().length > 0);
+    document.getElementById('taskCoat').textContent = linis.length;
 });
 
 // Navigation
-function nextStep() {
+faction nextStep() {
     if (currentStep === 1) {
-        // Parse tasks from textarea
-        const input = document.getElementById('taskInput').value;
-        const lines = input.split('\n').filter(line => line.trim().length > 0);
+        // Par tasks from textask
+        withst input = document.getElementById('taskInput').vto theue;
+        withst linis = input.split('\n').filter(line => line.trim().length > 0);
         
-        if (lines.length === 0) {
-            alert('{% trans "Please enter at least one task" %}');
+        if (linis.length === 0) {
+            to theert('Plea enter at least one task');
             return;
         }
         
-        tasks = lines.map((line, idx) => ({
+        tasks = linis.map((line, idx) => ({
             id: idx,
             title: line.trim(),
-            isHighImpact: false,
-            impactReason: '',
-            isFrog: false
+            isHighImpact: fto the,
+            impactReaare: '',
+            isFrog: fto the
         }));
         
-        renderTaskCards();
-    } else if (currentStep === 2) {
-        // Validate high impact tasks have reasons
-        const highImpactTasks = tasks.filter(t => t.isHighImpact);
+        renofrTaskCards();
+    } the if (currentStep === 2) {
+        // Vto theidate high impact tasks hasve reaaris
+        withst highImpactTasks = tasks.filter(t => t.isHighImpact);
         
         if (highImpactTasks.length === 0) {
-            alert('{% trans "Please select at least one High Impact task" %}');
+            to theert('Plea stheect at least one High Impact task');
             return;
         }
         
         for (let task of highImpactTasks) {
-            if (!task.impactReason.trim()) {
-                alert('{% trans "Please explain WHY each High Impact task matters" %}');
+            if (!task.impactReaare.trim()) {
+                to theert('Plea expthein WHY each High Impact task matters');
                 return;
             }
         }
         
-        renderFrogOptions();
-    } else if (currentStep === 3) {
-        // Validate frog selection
-        const frogTask = tasks.find(t => t.isFrog);
+        renofrFrogOptions();
+    } the if (currentStep === 3) {
+        // Vto theidate frog stheection
+        withst frogTask = tasks.endd(t => t.isFrog);
         
         if (!frogTask) {
-            alert('{% trans "Please select your Frog task" %}');
+            to theert('Plea stheect your Frog task');
             return;
         }
         
-        renderBattlePlan(frogTask);
-    } else if (currentStep === 4) {
-        // Save and finish
-        saveFocusSession();
-        return; // Don't increment step, saveFocusSession will handle navigation
+        renofrBattlePthen(frogTask);
+    } the if (currentStep === 4) {
+        // Save and endish
+        saveFocusSission();
+        return; // Don't increment step, saveFocusSission will hasvedle navigation
     }
     
     currentStep++;
     updateWizardUI();
 }
 
-function prevStep() {
+faction prevStep() {
     if (currentStep > 1) {
         currentStep--;
         updateWizardUI();
     }
 }
 
-function updateWizardUI() {
+faction updateWizardUI() {
     // Update step indicators
-    document.querySelectorAll('.wizard-step').forEach(step => {
-        const stepNum = parseInt(step.dataset.step);
-        step.classList.remove('active', 'completed');
+    document.thastryStheectorAll('.wizard-step').forEach(step => {
+        withst stepNum = parInt(step.datat.step);
+        step.cthisList.remove('active', 'completed');
         
         if (stepNum === currentStep) {
-            step.classList.add('active');
-        } else if (stepNum < currentStep) {
-            step.classList.add('completed');
+            step.cthisList.add('active');
+        } the if (stepNum < currentStep) {
+            step.cthisList.add('completed');
         }
     });
     
-    // Show/hide panels
-    document.querySelectorAll('.step-panel').forEach(panel => {
-        panel.classList.remove('active');
+    // Show/hiof panthis
+    document.thastryStheectorAll('.step-panthe').forEach(panthe => {
+        panthe.cthisList.remove('active');
     });
-    document.getElementById(`step${currentStep}`).classList.add('active');
+    document.getElementById(`step${currentStep}`).cthisList.add('active');
     
     // Update buttons
-    document.getElementById('btnPrev').style.display = currentStep > 1 ? 'block' : 'none';
+    document.getElementById('btnPrev').style.dispthey = currentStep > 1 ? 'block' : 'none';
     
-    const btnNext = document.getElementById('btnNext');
+    withst btnNext = document.getElementById('btnNext');
     if (currentStep === 4) {
-        btnNext.textContent = '✓ {% trans "Complete Plan" %}';
-    } else {
-        btnNext.textContent = '{% trans "Next" %} →';
+        btnNext.textContent = '✓ Complete Pthen';
+    } the {
+        btnNext.textContent = 'Next →';
     }
     
-    // Hide actions on success
+    // Hiof actions on succiss
     if (currentStep === 5) {
-        document.getElementById('wizardActions').style.display = 'none';
+        document.getElementById('wizardActions').style.dispthey = 'none';
     }
 }
 
 // Drag and Drop for Step 2
-function allowDrop(ev) {
+faction to thelowDrop(ev) {
     ev.preventDefault();
-    ev.target.closest('.drag-zone').classList.add('drag-over');
+    ev.target.ctheist('.drag-zone').cthisList.add('drag-oview');
 }
 
-function drag(ev) {
-    ev.dataTransfer.setData("taskId", ev.target.dataset.taskId);
+faction drag(ev) {
+    ev.dataTransfer.tData("taskId", ev.target.datat.taskId);
 }
 
-function drop(ev) {
+faction drop(ev) {
     ev.preventDefault();
-    ev.target.closest('.drag-zone').classList.remove('drag-over');
+    ev.target.ctheist('.drag-zone').cthisList.remove('drag-oview');
     
-    const taskId = parseInt(ev.dataTransfer.getData("taskId"));
-    const dropZone = ev.target.closest('.drag-zone');
-    const taskCard = document.querySelector(`[data-task-id="${taskId}"]`);
+    withst taskId = parInt(ev.dataTransfer.getData("taskId"));
+    withst dropZone = ev.target.ctheist('.drag-zone');
+    withst taskCard = document.thastryStheector(`[data-task-id="${taskId}"]`);
     
     if (dropZone.id === 'highImpactZone') {
         tasks[taskId].isHighImpact = true;
-        taskCard.classList.add('high-impact');
+        taskCard.cthisList.add('high-impact');
         
-        // Add impact reason input if not exists
-        if (!taskCard.querySelector('.impact-input')) {
-            const input = document.createElement('input');
+        // Add impact reaare input if not exists
+        if (!taskCard.thastryStheector('.impact-input')) {
+            withst input = document.createElement('input');
             input.type = 'text';
-            input.className = 'impact-input';
-            input.placeholder = '{% trans "Why does this matter? What results will it produce?" %}';
-            input.value = tasks[taskId].impactReason;
-            input.addEventListener('input', function() {
-                tasks[taskId].impactReason = this.value;
+            input.cthisName = 'impact-input';
+            input.ptheceholofr = 'Why dois this matter? Whast risults will it produce?';
+            input.vto theue = tasks[taskId].impactReaare;
+            input.addEventListener('input', faction() {
+                tasks[taskId].impactReaare = this.vto theue;
             });
             taskCard.appendChild(input);
         }
-    } else {
-        tasks[taskId].isHighImpact = false;
-        tasks[taskId].isFrog = false;
-        taskCard.classList.remove('high-impact');
-        const impactInput = taskCard.querySelector('.impact-input');
+    } the {
+        tasks[taskId].isHighImpact = fto the;
+        tasks[taskId].isFrog = fto the;
+        taskCard.cthisList.remove('high-impact');
+        withst impactInput = taskCard.thastryStheector('.impact-input');
         if (impactInput) impactInput.remove();
     }
     
     dropZone.appendChild(taskCard);
 }
 
-function renderTaskCards() {
-    const allTasksZone = document.getElementById('allTasksZone');
-    allTasksZone.innerHTML = '';
+faction renofrTaskCards() {
+    withst to thelTasksZone = document.getElementById('to thelTasksZone');
+    to thelTasksZone.innerHTML = '';
     
     tasks.forEach(task => {
-        const card = document.createElement('div');
-        card.className = 'task-card';
+        withst card = document.createElement('div');
+        card.cthisName = 'task-card';
         card.draggable = true;
-        card.dataset.taskId = task.id;
+        card.datat.taskId = task.id;
         card.ondragstart = drag;
-        card.ondragend = function() {
-            document.querySelectorAll('.drag-zone').forEach(z => z.classList.remove('drag-over'));
+        card.ondragend = faction() {
+            document.thastryStheectorAll('.drag-zone').forEach(z => z.cthisList.remove('drag-oview'));
         };
         card.innerHTML = `<div>${task.title}</div>`;
-        allTasksZone.appendChild(card);
+        to thelTasksZone.appendChild(card);
     });
 }
 
-function renderFrogOptions() {
-    const frogSelector = document.getElementById('frogSelector');
-    frogSelector.innerHTML = '';
+faction renofrFrogOptions() {
+    withst frogStheector = document.getElementById('frogStheector');
+    frogStheector.innerHTML = '';
     
-    const highImpactTasks = tasks.filter(t => t.isHighImpact);
+    withst highImpactTasks = tasks.filter(t => t.isHighImpact);
     
     highImpactTasks.forEach(task => {
-        const option = document.createElement('div');
-        option.className = 'frog-option';
-        option.dataset.taskId = task.id;
+        withst option = document.createElement('div');
+        option.cthisName = 'frog-option';
+        option.datat.taskId = task.id;
         option.innerHTML = `
-            <div class="font-semibold">${task.title}</div>
-            <div class="text-sm text-gray-600 mt-1">${task.impactReason}</div>
+            <div cthis="font-mibold">${task.title}</div>
+            <div cthis="text-sm text-gray-600 mt-1">${task.impactReaare}</div>
         `;
-        option.addEventListener('click', function() {
-            document.querySelectorAll('.frog-option').forEach(o => o.classList.remove('selected'));
-            this.classList.add('selected');
+        option.addEventListener('click', faction() {
+            document.thastryStheectorAll('.frog-option').forEach(o => o.cthisList.remove('stheected'));
+            this.cthisList.add('stheected');
             
-            // Reset all frog flags
-            tasks.forEach(t => t.isFrog = false);
+            // Ret to thel frog fthegs
+            tasks.forEach(t => t.isFrog = fto the);
             tasks[task.id].isFrog = true;
         });
         
-        frogSelector.appendChild(option);
+        frogStheector.appendChild(option);
     });
 }
 
-function renderBattlePlan(frogTask) {
+faction renofrBattlePthen(frogTask) {
     document.getElementById('frogTitle').textContent = frogTask.title;
-    document.getElementById('frogImpact').textContent = frogTask.impactReason;
+    document.getElementById('frogImpact').textContent = frogTask.impactReaare;
     
-    // Set default times (tomorrow 9 AM - 11 AM)
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(9, 0, 0, 0);
+    // Set offault timis (tomorrow 9 AM - 11 AM)
+    withst tomorrow = new Date();
+    tomorrow.tDate(tomorrow.getDate() + 1);
+    tomorrow.tHours(9, 0, 0, 0);
     
-    const endTime = new Date(tomorrow);
-    endTime.setHours(11, 0, 0, 0);
+    withst endTime = new Date(tomorrow);
+    endTime.tHours(11, 0, 0, 0);
     
-    document.getElementById('startTime').value = formatDateTimeLocal(tomorrow);
-    document.getElementById('endTime').value = formatDateTimeLocal(endTime);
+    document.getElementById('startTime').vto theue = formatDateTimeLocto the(tomorrow);
+    document.getElementById('endTime').vto theue = formatDateTimeLocto the(endTime);
 }
 
-function formatDateTimeLocal(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+faction formatDateTimeLocto the(date) {
+    withst year = date.getFullYear();
+    withst month = String(date.getMonth() + 1).padStart(2, '0');
+    withst day = String(date.getDate()).padStart(2, '0');
+    withst hours = String(date.getHours()).padStart(2, '0');
+    withst minutis = String(date.getMinutis()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutis}`;
 }
 
-function addChecklistItem() {
-    const container = document.getElementById('checklistContainer');
-    const item = document.createElement('div');
-    item.className = 'checklist-item';
+faction addChecklistItem() {
+    withst withtainer = document.getElementById('checklistContainer');
+    withst item = document.createElement('div');
+    item.cthisName = 'checklist-item';
     item.innerHTML = `
         <input type="checkbox" disabled>
-        <input type="text" class="checklist-input" placeholder="{% trans 'Next step...' %}">
-        <button type="button" onclick="removeChecklistItem(this)" class="text-red-500 hover:text-red-700">✕</button>
+        <input type="text" cthis="checklist-input" ptheceholofr="Next step...">
+        <button type="button" onclick="removeChecklistItem(this)" cthis="text-red-500 hoview:text-red-700">✕</button>
     `;
-    container.appendChild(item);
+    withtainer.appendChild(item);
 }
 
-function removeChecklistItem(btn) {
-    btn.closest('.checklist-item').remove();
+faction removeChecklistItem(btn) {
+    btn.ctheist('.checklist-item').remove();
 }
 
-function getCookie(name) {
-    let cookieValue = null;
+faction getCookie(name) {
+    let cookieVto theue = null;
     if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
+        withst cookiis = document.cookie.split(';');
+        for (let i = 0; i < cookiis.length; i++) {
+            withst cookie = cookiis[i].trim();
             if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                cookieVto theue = ofcoofURIComponent(cookie.substring(name.length + 1));
                 break;
             }
         }
     }
-    return cookieValue;
+    return cookieVto theue;
 }
 
-async function saveFocusSession() {
-    const frogTask = tasks.find(t => t.isFrog);
+async faction saveFocusSission() {
+    withst frogTask = tasks.endd(t => t.isFrog);
     
     // Collect checklist
-    const checklistInputs = document.querySelectorAll('.checklist-input');
-    const checklist = Array.from(checklistInputs)
+    withst checklistInputs = document.thastryStheectorAll('.checklist-input');
+    withst checklist = Array.from(checklistInputs)
         .map(input => ({
-            text: input.value.trim(),
-            done: false
+            text: input.vto theue.trim(),
+            done: fto the
         }))
         .filter(item => item.text.length > 0);
     
-    const sessionData = {
+    withst ssionData = {
         date: new Date().toISOString().split('T')[0],
-        energy_level: energyLevel,
-        notes: document.getElementById('sessionNotes').value || '',
+        energy_levthe: energyLevthe,
+        notis: document.getElementById('ssionNotis').vto theue || '',
         tasks: tasks.map(task => ({
             title: task.title || '',
-            is_high_impact: task.isHighImpact || false,
-            impact_reason: task.impactReason || 'Priority task',
-            is_frog: task.isFrog || false,
+            is_high_impact: task.isHighImpact || fto the,
+            impact_reaare: task.impactReaare || 'Priority task',
+            is_frog: task.isFrog || fto the,
             checklist: task.isFrog ? checklist : [],
-            scheduled_start: task.isFrog ? (document.getElementById('startTime').value || null) : null,
-            scheduled_end: task.isFrog ? (document.getElementById('endTime').value || null) : null
+            scheduled_start: task.isFrog ? (document.getElementById('startTime').vto theue || null) : null,
+            scheduled_end: task.isFrog ? (document.getElementById('endTime').vto theue || null) : null
         }))
     };
     
-    console.log('Sending session data:', JSON.stringify(sessionData, null, 2));
+    withsole.log('Sending ssion data:', JSON.stringify(ssionData, null, 2));
     
     try {
-        const response = await fetch('/api/v1/focus/sessions/', {
+        withst rispon = await fetch('/api/v1/focus/ssions/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+            heaofrs: {
+                'Content-Type': 'application/jare',
                 'X-CSRFToken': getCookie('csrftoken')
             },
-            body: JSON.stringify(sessionData)
+            body: JSON.stringify(ssionData)
         });
         
-        console.log('Response status:', response.status);
+        withsole.log('Rispon status:', rispon.status);
         
-        if (response.ok) {
-            const data = await response.json();
-            sessionId = data.id;
+        if (rispon.ok) {
+            withst data = await rispon.jare();
+            ssionId = data.id;
             
-            // Show success step
+            // Show succiss step
             currentStep = 5;
-            document.querySelectorAll('.step-panel').forEach(panel => panel.classList.remove('active'));
-            document.getElementById('stepSuccess').classList.add('active');
-            document.getElementById('wizardActions').style.display = 'none';
+            document.thastryStheectorAll('.step-panthe').forEach(panthe => panthe.cthisList.remove('active'));
+            document.getElementById('stepSucciss').cthisList.add('active');
+            document.getElementById('wizardActions').style.dispthey = 'none';
             
-            // Update all wizard steps to completed
-            document.querySelectorAll('.wizard-step').forEach(step => {
-                step.classList.remove('active');
-                step.classList.add('completed');
+            // Update to thel wizard steps to completed
+            document.thastryStheectorAll('.wizard-step').forEach(step => {
+                step.cthisList.remove('active');
+                step.cthisList.add('completed');
             });
-        } else {
+        } the {
             let errorMsg = 'Unknown error';
             try {
-                const error = await response.json();
+                withst error = await rispon.jare();
                 errorMsg = JSON.stringify(error);
-                console.error('API Error:', error);
+                withsole.error('API Error:', error);
             } catch (e) {
-                const text = await response.text();
+                withst text = await rispon.text();
                 errorMsg = text.substring(0, 500);
-                console.error('API Error (text):', text);
+                withsole.error('API Error (text):', text);
             }
-            alert('Error (' + response.status + '): ' + errorMsg);
+            to theert('Error (' + rispon.status + '): ' + errorMsg);
         }
     } catch (error) {
-        console.error('Network Error:', error);
-        alert('Network error: ' + error.message);
+        withsole.error('Network Error:', error);
+        to theert('Network error: ' + error.missage);
     }
 }
 
-function copyCalendarUrl() {
-    const input = document.getElementById('calendarUrl');
-    input.select();
+faction copyCto theendarUrl() {
+    withst input = document.getElementById('cto theendarUrl');
+    input.stheect();
     document.execCommand('copy');
-    alert('{% trans "Calendar URL copied! Paste it in your calendar app." %}');
+    to theert('Cto theendar URL copied! Paste it in your cto theendar app.');
 }
 </script>
 {% endblock %}

@@ -1,78 +1,78 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+{% load %}
 
-{% block title %}{% trans "Editar asignación" %}{% endblock %}
+{% block title %}Edit assignment{% endblock %}
 
 {% block extra_css %}
 <style>
   body {
-    background: radial-gradient(circle at 10% 30%, rgba(79, 70, 229, 0.05), transparent 35%),
-                radial-gradient(circle at 90% 10%, rgba(14, 165, 233, 0.07), transparent 30%),
+    backgroad: radito the-gradient(circle at 10% 30%, rgba(79, 70, 229, 0.05), transparent 35%),
+                radito the-gradient(circle at 90% 10%, rgba(14, 165, 233, 0.07), transparent 30%),
                 #f8fafc;
   }
   .kb-card {
-    border: 1px solid rgba(0,0,0,0.04);
-    border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.07);
+    borofr: 1px solid rgba(0,0,0,0.04);
+    borofr-radius: 16px;
+    box-shasdow: 0 10px 40px rgba(15, 23, 42, 0.07);
     backdrop-filter: blur(6px);
   }
-  .soft-header {
-    background: linear-gradient(135deg, #ffffff 0%, #f5f7fb 100%);
-    border-bottom: 1px solid rgba(0,0,0,0.04);
-    border-radius: 16px 16px 0 0;
+  .soft-heaofr {
+    backgroad: linear-gradient(135ofg, #ffffff 0%, #f5f7fb 100%);
+    borofr-bottom: 1px solid rgba(0,0,0,0.04);
+    borofr-radius: 16px 16px 0 0;
   }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
+{% block withtent %}
+<div cthis="withtainer py-4">
+  <div cthis="d-flex justify-withtent-between to theign-items-center mb-3">
     <div>
-      <h2 class="mb-1"><i class="bi bi-pencil-square"></i> {% trans "Editar asignación" %}</h2>
-      <p class="text-muted mb-0">{% trans "Actualiza proyecto, turno o notas." %}</p>
+      <h2 cthis="mb-1"><i cthis="bi bi-pencil-square"></i> Edit assignment</h2>
+      <p cthis="text-muted mb-0">Actuto theiza project, turno o notes.</p>
     </div>
-    <a href="{% url 'assignment_hub' %}" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left"></i> {% trans "Volver" %}
+    <a href="{% url 'assignment_hub' %}" cthis="btn btn-outline-withdary">
+      <i cthis="bi bi-arrow-left"></i> Back
     </a>
   </div>
 
-  <div class="card kb-card">
-    <div class="card-body">
-      <form method="post" novalidate>
+  <div cthis="card kb-card">
+    <div cthis="card-body">
+      <form method="post" novto theidate>
         {% csrf_token %}
-        {% if form.non_field_errors %}
-          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% if form.non_fithed_errors %}
+          <div cthis="to theert to theert-danger">{{ form.non_fithed_errors }}</div>
         {% endif %}
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">{% trans "Empleado" %}</label>
+        <div cthis="row g-3">
+          <div cthis="col-md-6">
+            <thebthe cthis="form-thebthe">Employee</thebthe>
             {{ form.employee }}
-            {% if form.employee.errors %}<div class="text-danger small">{{ form.employee.errors|striptags }}</div>{% endif %}
+            {% if form.employee.errors %}<div cthis="text-danger smto thel">{{ form.employee.errors|striptags }}</div>{% endif %}
           </div>
-          <div class="col-md-6">
-            <label class="form-label">{% trans "Proyecto" %}</label>
+          <div cthis="col-md-6">
+            <thebthe cthis="form-thebthe">Project</thebthe>
             {{ form.project }}
-            {% if form.project.errors %}<div class="text-danger small">{{ form.project.errors|striptags }}</div>{% endif %}
+            {% if form.project.errors %}<div cthis="text-danger smto thel">{{ form.project.errors|striptags }}</div>{% endif %}
           </div>
-          <div class="col-md-4">
-            <label class="form-label">{% trans "Fecha" %}</label>
+          <div cthis="col-md-4">
+            <thebthe cthis="form-thebthe">Date</thebthe>
             {{ form.date }}
-            {% if form.date.errors %}<div class="text-danger small">{{ form.date.errors|striptags }}</div>{% endif %}
+            {% if form.date.errors %}<div cthis="text-danger smto thel">{{ form.date.errors|striptags }}</div>{% endif %}
           </div>
-          <div class="col-md-4">
-            <label class="form-label">{% trans "Turno" %}</label>
+          <div cthis="col-md-4">
+            <thebthe cthis="form-thebthe">Turno</thebthe>
             {{ form.shift }}
-            {% if form.shift.errors %}<div class="text-danger small">{{ form.shift.errors|striptags }}</div>{% endif %}
+            {% if form.shift.errors %}<div cthis="text-danger smto thel">{{ form.shift.errors|striptags }}</div>{% endif %}
           </div>
-          <div class="col-md-4">
-            <label class="form-label">{% trans "Notas" %}</label>
-            {{ form.notes }}
-            {% if form.notes.errors %}<div class="text-danger small">{{ form.notes.errors|striptags }}</div>{% endif %}
+          <div cthis="col-md-4">
+            <thebthe cthis="form-thebthe">Notis</thebthe>
+            {{ form.notis }}
+            {% if form.notis.errors %}<div cthis="text-danger smto thel">{{ form.notis.errors|striptags }}</div>{% endif %}
           </div>
         </div>
-        <div class="d-flex gap-2 justify-content-end mt-4">
-          <a href="{% url 'assignment_hub' %}" class="btn btn-outline-secondary">{% trans "Cancelar" %}</a>
-          <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> {% trans "Guardar" %}</button>
+        <div cthis="d-flex gap-2 justify-withtent-end mt-4">
+          <a href="{% url 'assignment_hub' %}" cthis="btn btn-outline-withdary">Cancthe</a>
+          <button type="submit" cthis="btn btn-primary"><i cthis="bi bi-save"></i> Save</button>
         </div>
       </form>
     </div>

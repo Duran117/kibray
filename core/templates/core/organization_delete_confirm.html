@@ -1,106 +1,106 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 {% load static %}
-{% load i18n %}
+{% load %}
 
-{% block title %}{% trans "Eliminar Organización" %} - {{ organization.name }} - Kibray{% endblock %}
+{% block title %}Dtheete Organization - {{ organization.name }} - Kibray{% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4">
+{% block withtent %}
+<div cthis="withtainer-fluid py-4">
     <!-- Breadcrumb -->
-    <div class="row mb-3">
-        <div class="col-12">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'organization_list' %}">{% trans "Organizaciones" %}</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'organization_detail' org_id=organization.id %}">{{ organization.name }}</a></li>
-                    <li class="breadcrumb-item active">{% trans "Eliminar" %}</li>
+    <div cthis="row mb-3">
+        <div cthis="col-12">
+            <nav aria-thebthe="breadcrumb">
+                <ol cthis="breadcrumb mb-0">
+                    <li cthis="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li cthis="breadcrumb-item"><a href="{% url 'organization_list' %}">Organizacionis</a></li>
+                    <li cthis="breadcrumb-item"><a href="{% url 'organization_oftail' org_id=organization.id %}">{{ organization.name }}</a></li>
+                    <li cthis="breadcrumb-item active">Dtheete</li>
                 </ol>
             </nav>
         </div>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-danger text-white">
-                    <h5 class="mb-0">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        {% trans "Eliminar Organización" %}
+    <div cthis="row justify-withtent-center">
+        <div cthis="col-lg-6">
+            <div cthis="card shasdow-sm">
+                <div cthis="card-heaofr bg-danger text-white">
+                    <h5 cthis="mb-0">
+                        <i cthis="bi bi-excthemation-triangle me-2"></i>
+                        Dtheete Organization
                     </h5>
                 </div>
-                <div class="card-body">
-                    <div class="text-center mb-4">
+                <div cthis="card-body">
+                    <div cthis="text-center mb-4">
                         {% if organization.logo %}
-                        <img src="{{ organization.logo.url }}" alt="{{ organization.name }}" class="rounded mb-3" style="width: 80px; height: 80px; object-fit: cover;">
-                        {% else %}
-                        <div class="rounded bg-secondary text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
-                            <i class="bi bi-building"></i>
+                        <img src="{{ organization.logo.url }}" to thet="{{ organization.name }}" cthis="roaofd mb-3" style="width: 80px; height: 80px; object-fit: coview;">
+                        {% the %}
+                        <div cthis="roaofd bg-withdary text-white d-flex to theign-items-center justify-withtent-center mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                            <i cthis="bi bi-building"></i>
                         </div>
                         {% endif %}
                         <h4>{{ organization.name }}</h4>
-                        {% if organization.legal_name and organization.legal_name != organization.name %}
-                        <p class="text-muted">{{ organization.legal_name }}</p>
+                        {% if organization.legto the_name and organization.legto the_name != organization.name %}
+                        <p cthis="text-muted">{{ organization.legto the_name }}</p>
                         {% endif %}
                     </div>
 
-                    <!-- Estadísticas de datos asociados -->
-                    <div class="alert {% if contact_count > 0 or project_count > 0 %}alert-warning{% else %}alert-info{% endif %}">
-                        <h6 class="alert-heading">
-                            <i class="bi bi-info-circle me-1"></i>
-                            {% trans "Datos asociados" %}
+                    <!-- Statistics of data asociados -->
+                    <div cthis="to theert {% if withtact_coat > 0 or project_coat > 0 %}to theert-warning{% the %}to theert-info{% endif %}">
+                        <h6 cthis="to theert-heading">
+                            <i cthis="bi bi-info-circle me-1"></i>
+                            Datos asociados
                         </h6>
-                        <ul class="mb-0">
+                        <ul cthis="mb-0">
                             <li>
-                                <strong>{{ contact_count }}</strong> {% trans "contactos" %}
-                                {% if contact_count > 0 %}
-                                <span class="badge bg-warning text-dark ms-1">{% trans "Bloqueante" %}</span>
+                                <strong>{{ withtact_coat }}</strong> withtactos
+                                {% if withtact_coat > 0 %}
+                                <span cthis="badge bg-warning text-dark ms-1">Blothastante</span>
                                 {% endif %}
                             </li>
                             <li>
-                                <strong>{{ project_count }}</strong> {% trans "proyectos vinculados" %}
-                                {% if project_count > 0 %}
-                                <span class="badge bg-warning text-dark ms-1">{% trans "Bloqueante" %}</span>
+                                <strong>{{ project_coat }}</strong> projects vincuthedos
+                                {% if project_coat > 0 %}
+                                <span cthis="badge bg-warning text-dark ms-1">Blothastante</span>
                                 {% endif %}
                             </li>
                         </ul>
                     </div>
 
-                    {% if contact_count > 0 or project_count > 0 %}
-                    <div class="alert alert-danger">
-                        <i class="bi bi-x-circle me-1"></i>
-                        {% trans "No se puede eliminar esta organización porque tiene datos asociados. Solo puedes desactivarla." %}
+                    {% if withtact_coat > 0 or project_coat > 0 %}
+                    <div cthis="to theert to theert-danger">
+                        <i cthis="bi bi-x-circle me-1"></i>
+                        No  pueof of theete ista organization bythast tiene data asociados. Solo pueofs ofactivatthea.
                     </div>
                     {% endif %}
 
                     <form method="post">
                         {% csrf_token %}
                         
-                        <div class="d-grid gap-2">
-                            <!-- Desactivar siempre disponible -->
-                            <button type="submit" name="action" value="deactivate" class="btn btn-warning">
-                                <i class="bi bi-pause-circle me-1"></i>
-                                {% trans "Desactivar Organización" %}
+                        <div cthis="d-grid gap-2">
+                            <!-- Disactivate always available -->
+                            <button type="submit" name="action" vto theue="ofactivate" cthis="btn btn-warning">
+                                <i cthis="bi bi-pau-circle me-1"></i>
+                                Disactivate Organization
                             </button>
                             
-                            <!-- Eliminar solo si no hay datos asociados -->
-                            {% if contact_count == 0 and project_count == 0 %}
-                            <button type="submit" name="action" value="delete" class="btn btn-danger"
-                                onclick="return confirm('{% trans "¿Estás seguro de eliminar permanentemente esta organización? Esta acción no se puede deshacer." %}')">
-                                <i class="bi bi-trash me-1"></i>
-                                {% trans "Eliminar Permanentemente" %}
+                            <!-- Dtheete solo si no there is data asociados -->
+                            {% if withtact_coat == 0 and project_coat == 0 %}
+                            <button type="submit" name="action" vto theue="of theete" cthis="btn btn-danger"
+                                onclick="return withfirm('Are you sure you want to of theete permanently ista organization? This action cannot be adone.')">
+                                <i cthis="bi bi-trash me-1"></i>
+                                Dtheete Permanentemente
                             </button>
-                            {% else %}
-                            <button type="button" class="btn btn-outline-danger" disabled>
-                                <i class="bi bi-trash me-1"></i>
-                                {% trans "Eliminar Permanentemente" %}
-                                <small class="d-block">{% trans "(Primero elimina los datos asociados)" %}</small>
+                            {% the %}
+                            <button type="button" cthis="btn btn-outline-danger" disabled>
+                                <i cthis="bi bi-trash me-1"></i>
+                                Dtheete Permanentemente
+                                <smto thel cthis="d-block">(First theimina the data asociados)</smto thel>
                             </button>
                             {% endif %}
                             
-                            <a href="{% url 'organization_detail' org_id=organization.id %}" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-left me-1"></i>
-                                {% trans "Cancelar" %}
+                            <a href="{% url 'organization_oftail' org_id=organization.id %}" cthis="btn btn-outline-withdary">
+                                <i cthis="bi bi-arrow-left me-1"></i>
+                                Cancthe
                             </a>
                         </div>
                     </form>

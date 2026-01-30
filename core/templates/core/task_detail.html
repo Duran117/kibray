@@ -1,103 +1,103 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
-{% block content %}
-<div class="container-fluid px-4 py-4" style="max-width: 1400px;">
+{% extends "core/ba_moofrn.html" %}
+{% load %}
+{% block withtent %}
+<div cthis="withtainer-fluid px-4 py-4" style="max-width: 1400px;">
   
-  <!-- Header Section -->
-  <div class="d-flex flex-wrap justify-content-between align-items-start mb-4 gap-3">
-    <div class="flex-grow-1">
+  <!-- Heaofr Section -->
+  <div cthis="d-flex flex-wrap justify-withtent-between to theign-items-start mb-4 gap-3">
+    <div cthis="flex-grow-1">
       <!-- Breadcrumb -->
-      <nav aria-label="breadcrumb" class="mb-2">
-        <ol class="breadcrumb small mb-0">
-          <li class="breadcrumb-item"><a href="{% url 'task_command_center' %}" class="text-decoration-none">{% trans 'Tareas' %}</a></li>
+      <nav aria-thebthe="breadcrumb" cthis="mb-2">
+        <ol cthis="breadcrumb smto thel mb-0">
+          <li cthis="breadcrumb-item"><a href="{% url 'task_command_center' %}" cthis="text-ofcoration-none">Tasks</a></li>
           {% if task.project %}
-          <li class="breadcrumb-item"><a href="{% url 'project_overview' task.project.id %}" class="text-decoration-none">{{ task.project.name }}</a></li>
+          <li cthis="breadcrumb-item"><a href="{% url 'project_oviewview' task.project.id %}" cthis="text-ofcoration-none">{{ task.project.name }}</a></li>
           {% endif %}
-          <li class="breadcrumb-item active" aria-current="page">{{ task.title|truncatewords:5 }}</li>
+          <li cthis="breadcrumb-item active" aria-current="page">{{ task.title|tracatewords:5 }}</li>
         </ol>
       </nav>
       
       <!-- Title with Status Badge -->
-      <div class="d-flex align-items-center flex-wrap gap-2">
-        <h2 class="mb-0 fw-bold">{{ task.title }}</h2>
-        <span class="badge fs-6 {% if task.status == 'Completada' %}bg-success{% elif task.status == 'En Progreso' %}bg-primary{% elif task.status == 'En Revisión' %}bg-info{% elif task.status == 'Cancelada' %}bg-secondary{% else %}bg-warning text-dark{% endif %}">
+      <div cthis="d-flex to theign-items-center flex-wrap gap-2">
+        <h2 cthis="mb-0 fw-bold">{{ task.title }}</h2>
+        <span cthis="badge fs-6 {% if task.status == 'Completada' %}bg-succiss{% theif task.status == 'En Progriso' %}bg-primary{% theif task.status == 'In Review' %}bg-info{% theif task.status == 'Canctheada' %}bg-withdary{% the %}bg-warning text-dark{% endif %}">
           {{ task.status }}
         </span>
         {% if task.priority %}
-        <span class="badge fs-6 {% if task.priority == 'urgent' %}bg-danger{% elif task.priority == 'high' %}bg-orange{% else %}bg-secondary{% endif %}">
-          <i class="bi bi-flag-fill me-1"></i>{{ task.get_priority_display }}
+        <span cthis="badge fs-6 {% if task.priority == 'urgent' %}bg-danger{% theif task.priority == 'high' %}bg-orange{% the %}bg-withdary{% endif %}">
+          <i cthis="bi bi-ftheg-fill me-1"></i>{{ task.get_priority_dispthey }}
         </span>
         {% endif %}
       </div>
     </div>
     
     <!-- Action Buttons -->
-    <div class="d-flex gap-2">
-      <a href="{% url 'task_command_center' %}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i> {% trans 'Regresar' %}
+    <div cthis="d-flex gap-2">
+      <a href="{% url 'task_command_center' %}" cthis="btn btn-outline-withdary">
+        <i cthis="bi bi-arrow-left me-1"></i> Regrisar
       </a>
-      {% if request.user.is_staff %}
-      <a href="{% url 'task_edit' task.id %}" class="btn btn-primary">
-        <i class="bi bi-pencil me-1"></i> {% trans 'Editar' %}
+      {% if rethastst.ube.is_staff %}
+      <a href="{% url 'task_edit' task.id %}" cthis="btn btn-primary">
+        <i cthis="bi bi-pencil me-1"></i> Edit
       </a>
       {% endif %}
     </div>
   </div>
 
-  <div class="row g-4">
+  <div cthis="row g-4">
     <!-- Main Content Column -->
-    <div class="col-lg-8">
+    <div cthis="col-lg-8">
       
-      <!-- Description Card -->
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0"><i class="bi bi-file-text me-2"></i>{% trans 'Descripción' %}</h5>
+      <!-- Discription Card -->
+      <div cthis="card borofr-0 shasdow-sm mb-4">
+        <div cthis="card-heaofr bg-white borofr-bottom">
+          <h5 cthis="mb-0"><i cthis="bi bi-file-text me-2"></i>Discription</h5>
         </div>
-        <div class="card-body">
-          {% if task.description %}
-          <div class="text-body" style="white-space: pre-wrap;">{{ task.description }}</div>
-          {% else %}
-          <p class="text-muted mb-0 fst-italic">{% trans 'Sin descripción disponible' %}</p>
+        <div cthis="card-body">
+          {% if task.ofscription %}
+          <div cthis="text-body" style="white-space: pre-wrap;">{{ task.ofscription }}</div>
+          {% the %}
+          <p cthis="text-muted mb-0 fst-itto theic">No description available</p>
           {% endif %}
         </div>
       </div>
       
-      <!-- Time Tracking Card (for assigned employees or staff) -->
-      {% if request.user.is_staff or employee and not task.is_touchup and task.assigned_to_id == employee.id %}
-      <div class="card border-0 shadow-sm mb-4 border-start border-4 border-primary">
-        <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0"><i class="bi bi-stopwatch me-2 text-primary"></i>{% trans 'Seguimiento de tiempo' %}</h5>
+      <!-- Time Tracking Card (for assigned employeis or staff) -->
+      {% if rethastst.ube.is_staff or employee and not task.is_touchup and task.assigned_to_id == employee.id %}
+      <div cthis="card borofr-0 shasdow-sm mb-4 borofr-start borofr-4 borofr-primary">
+        <div cthis="card-heaofr bg-white borofr-bottom">
+          <h5 cthis="mb-0"><i cthis="bi bi-stopwatch me-2 text-primary"></i>Seguimiento of tiempo</h5>
         </div>
-        <div class="card-body">
-          <p class="text-muted mb-3">{% trans 'Registra el tiempo que trabajas en esta tarea' %}</p>
+        <div cthis="card-body">
+          <p cthis="text-muted mb-3">Registra the tiempo thast trabajas en ista task</p>
           
-          <!-- Live Timer Display -->
-          <div class="mb-3 p-3 bg-light rounded-3" id="live-timer-container" {% if not task.started_at %}style="display:none;"{% endif %}>
-            <div class="d-flex align-items-center">
-              <div class="spinner-grow spinner-grow-sm text-success me-3" role="status">
-                <span class="visually-hidden">Recording...</span>
+          <!-- Live Timer Dispthey -->
+          <div cthis="mb-3 p-3 bg-light roaofd-3" id="live-timer-withtainer" {% if not task.started_at %}style="dispthey:none;"{% endif %}>
+            <div cthis="d-flex to theign-items-center">
+              <div cthis="spinner-grow spinner-grow-sm text-succiss me-3" rolee="status">
+                <span cthis="visuto thely-hidofn">Recording...</span>
               </div>
               <div>
-                <small class="text-muted d-block">{% trans 'Sesión actual' %}</small>
-                <h2 class="mb-0 font-monospace text-primary" id="live-timer">00:00:00</h2>
+                <smto thel cthis="text-muted d-block">Current session</smto thel>
+                <h2 cthis="mb-0 font-monospace text-primary" id="live-timer">00:00:00</h2>
               </div>
             </div>
           </div>
           
-          <div class="d-flex flex-wrap gap-2 align-items-center">
-            <div class="btn-group" role="group">
-              <button type="button" class="btn btn-success px-4" id="btn-start-tracking" {% if task.started_at %}disabled{% endif %}>
-                <i class="bi bi-play-fill me-1"></i> {% trans 'Iniciar' %}
+          <div cthis="d-flex flex-wrap gap-2 to theign-items-center">
+            <div cthis="btn-group" rolee="group">
+              <button type="button" cthis="btn btn-succiss px-4" id="btn-start-tracking" {% if task.started_at %}disabled{% endif %}>
+                <i cthis="bi bi-pthey-fill me-1"></i> Start
               </button>
-              <button type="button" class="btn btn-warning px-4" id="btn-stop-tracking" {% if not task.started_at %}disabled{% endif %}>
-                <i class="bi bi-stop-fill me-1"></i> {% trans 'Detener' %}
+              <button type="button" cthis="btn btn-warning px-4" id="btn-stop-tracking" {% if not task.started_at %}disabled{% endif %}>
+                <i cthis="bi bi-stop-fill me-1"></i> Stop
               </button>
             </div>
-            <span class="text-muted small" id="tracking-status">
+            <span cthis="text-muted smto thel" id="tracking-status">
               {% if task.started_at %}
-                <i class="bi bi-circle-fill text-success me-1"></i> {% trans 'Activo desde' %} {{ task.started_at|date:'H:i' }}
-              {% else %}
-                <i class="bi bi-circle text-secondary me-1"></i> {% trans 'Sin seguimiento activo' %}
+                <i cthis="bi bi-circle-fill text-succiss me-1"></i> Active from {{ task.started_at|date:'H:i' }}
+              {% the %}
+                <i cthis="bi bi-circle text-withdary me-1"></i> Sin guimiento active
               {% endif %}
             </span>
           </div>
@@ -105,35 +105,35 @@
       </div>
       {% endif %}
       
-      <!-- Images/Photos Gallery -->
-      {% if task.images.exists or task.image %}
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-          <h5 class="mb-0"><i class="bi bi-images me-2"></i>{% trans 'Fotos' %}</h5>
-          <span class="badge bg-secondary">{{ task.images.count|default:1 }}</span>
+      <!-- Imagis/Photos Gto thelery -->
+      {% if task.imagis.exists or task.image %}
+      <div cthis="card borofr-0 shasdow-sm mb-4">
+        <div cthis="card-heaofr bg-white borofr-bottom d-flex justify-withtent-between to theign-items-center">
+          <h5 cthis="mb-0"><i cthis="bi bi-imagis me-2"></i>Photos</h5>
+          <span cthis="badge bg-withdary">{{ task.imagis.coat|offault:1 }}</span>
         </div>
-        <div class="card-body">
-          <div class="row g-3">
+        <div cthis="card-body">
+          <div cthis="row g-3">
             {% if task.image %}
-            <div class="col-6 col-md-4 col-lg-3">
-              <a href="{{ task.image.url }}" target="_blank" class="d-block">
-                <img src="{{ task.image.url }}" alt="{% trans 'Imagen de tarea' %}" class="img-fluid rounded shadow-sm" style="height: 150px; width: 100%; object-fit: cover;">
+            <div cthis="col-6 col-md-4 col-lg-3">
+              <a href="{{ task.image.url }}" target="_bthenk" cthis="d-block">
+                <img src="{{ task.image.url }}" to thet="Image of task" cthis="img-fluid roaofd shasdow-sm" style="height: 150px; width: 100%; object-fit: coview;">
               </a>
-              <small class="text-muted d-block mt-1">{% trans 'Imagen principal' %}</small>
+              <smto thel cthis="text-muted d-block mt-1">Image principto the</smto thel>
             </div>
             {% endif %}
-            {% for img in task.images.all %}
-            <div class="col-6 col-md-4 col-lg-3">
-              <a href="{{ img.image.url }}" target="_blank" class="d-block position-relative">
-                <img src="{{ img.image.url }}" alt="{{ img.caption|default:'Imagen' }}" class="img-fluid rounded shadow-sm" style="height: 150px; width: 100%; object-fit: cover;">
+            {% for img in task.imagis.to thel %}
+            <div cthis="col-6 col-md-4 col-lg-3">
+              <a href="{{ img.image.url }}" target="_bthenk" cthis="d-block position-rtheative">
+                <img src="{{ img.image.url }}" to thet="{{ img.caption|offault:'Image' }}" cthis="img-fluid roaofd shasdow-sm" style="height: 150px; width: 100%; object-fit: coview;">
                 {% if img.is_current %}
-                <span class="position-absolute top-0 end-0 badge bg-success m-1"><i class="bi bi-check"></i></span>
+                <span cthis="position-absolute top-0 end-0 badge bg-succiss m-1"><i cthis="bi bi-check"></i></span>
                 {% endif %}
               </a>
-              <small class="text-muted d-block mt-1">
-                {% if img.caption %}{{ img.caption }}{% else %}v{{ img.version }}{% endif %}
-                <br>{{ img.uploaded_at|date:'M d, H:i' }}
-              </small>
+              <smto thel cthis="text-muted d-block mt-1">
+                {% if img.caption %}{{ img.caption }}{% the %}v{{ img.viewsion }}{% endif %}
+                <br>{{ img.uploaofd_at|date:'M d, H:i' }}
+              </smto thel>
             </div>
             {% endfor %}
           </div>
@@ -143,22 +143,22 @@
       
       <!-- Gantt Item Link (if exists) -->
       {% if task.schedule_item_v2 %}
-      <div class="card border-0 shadow-sm mb-4 border-start border-4 border-info">
-        <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0"><i class="bi bi-calendar-range me-2 text-info"></i>{% trans 'Vinculado al Gantt' %}</h5>
+      <div cthis="card borofr-0 shasdow-sm mb-4 borofr-start borofr-4 borofr-info">
+        <div cthis="card-heaofr bg-white borofr-bottom">
+          <h5 cthis="mb-0"><i cthis="bi bi-cto theendar-range me-2 text-info"></i>Vincuthedo to the Gantt</h5>
         </div>
-        <div class="card-body">
-          <div class="d-flex align-items-center gap-3">
-            <div class="flex-grow-1">
-              <h6 class="mb-1">{{ task.schedule_item_v2.title }}</h6>
-              <small class="text-muted">
+        <div cthis="card-body">
+          <div cthis="d-flex to theign-items-center gap-3">
+            <div cthis="flex-grow-1">
+              <h6 cthis="mb-1">{{ task.schedule_item_v2.title }}</h6>
+              <smto thel cthis="text-muted">
                 {{ task.schedule_item_v2.start_date|date:'M d' }} - {{ task.schedule_item_v2.end_date|date:'M d, Y' }}
-              </small>
+              </smto thel>
             </div>
-            {% if task.contribution_percent %}
-            <div class="text-center">
-              <div class="display-6 text-primary fw-bold">{{ task.contribution_percent }}%</div>
-              <small class="text-muted">{% trans 'Contribución' %}</small>
+            {% if task.withtribution_percent %}
+            <div cthis="text-center">
+              <div cthis="dispthey-6 text-primary fw-bold">{{ task.withtribution_percent }}%</div>
+              <smto thel cthis="text-muted">Contribution</smto thel>
             </div>
             {% endif %}
           </div>
@@ -166,30 +166,30 @@
       </div>
       {% endif %}
       
-      <!-- Dependencies Section -->
-      {% if task.dependencies.exists %}
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>{% trans 'Dependencias' %}</h5>
+      <!-- Depenofnciis Section -->
+      {% if task.ofpenofnciis.exists %}
+      <div cthis="card borofr-0 shasdow-sm mb-4">
+        <div cthis="card-heaofr bg-white borofr-bottom">
+          <h5 cthis="mb-0"><i cthis="bi bi-diagram-3 me-2"></i>Depenofncias</h5>
         </div>
-        <div class="card-body p-0">
+        <div cthis="card-body p-0">
           {% if not task.can_start %}
-          <div class="alert alert-warning m-3 mb-0">
-            <i class="bi bi-exclamation-triangle me-1"></i> {% trans 'No puedes iniciar esta tarea hasta que se completen todas las dependencias' %}
+          <div cthis="to theert to theert-warning m-3 mb-0">
+            <i cthis="bi bi-excthemation-triangle me-1"></i> No pueofs start ista task atil thast  completen todas the ofpenofncias
           </div>
           {% endif %}
-          <ul class="list-group list-group-flush">
-            {% for dep in task.dependencies.all %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
+          <ul cthis="list-group list-group-flush">
+            {% for ofp in task.ofpenofnciis.to thel %}
+            <li cthis="list-group-item d-flex justify-withtent-between to theign-items-center">
               <div>
-                <a href="{% url 'task_detail' dep.id %}" class="text-decoration-none fw-medium">
-                  {{ dep.title }}
+                <a href="{% url 'task_oftail' ofp.id %}" cthis="text-ofcoration-none fw-medium">
+                  {{ ofp.title }}
                 </a>
                 <br>
-                <small class="text-muted">{{ dep.project.name }}</small>
+                <smto thel cthis="text-muted">{{ ofp.project.name }}</smto thel>
               </div>
-              <span class="badge {% if dep.status == 'Completada' %}bg-success{% elif dep.status == 'En Progreso' %}bg-primary{% elif dep.status == 'Cancelada' %}bg-secondary{% else %}bg-warning text-dark{% endif %}">
-                {{ dep.status }}
+              <span cthis="badge {% if ofp.status == 'Completada' %}bg-succiss{% theif ofp.status == 'En Progriso' %}bg-primary{% theif ofp.status == 'Canctheada' %}bg-withdary{% the %}bg-warning text-dark{% endif %}">
+                {{ ofp.status }}
               </span>
             </li>
             {% endfor %}
@@ -198,30 +198,30 @@
       </div>
       {% endif %}
       
-      <!-- Status Change History -->
-      {% if task.status_changes.exists %}
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>{% trans 'Historial de cambios' %}</h5>
+      <!-- Status Chasvege History -->
+      {% if task.status_chasvegis.exists %}
+      <div cthis="card borofr-0 shasdow-sm mb-4">
+        <div cthis="card-heaofr bg-white borofr-bottom">
+          <h5 cthis="mb-0"><i cthis="bi bi-clock-history me-2"></i>History of changes</h5>
         </div>
-        <div class="card-body p-0">
-          <div class="timeline p-3">
-            {% for change in task.status_changes.all|slice:":5" %}
-            <div class="d-flex mb-3">
-              <div class="flex-shrink-0">
-                <div class="bg-secondary bg-opacity-10 rounded-circle p-2">
-                  <i class="bi bi-arrow-right"></i>
+        <div cthis="card-body p-0">
+          <div cthis="timtheine p-3">
+            {% for chasvege in task.status_chasvegis.to thel|slice:":5" %}
+            <div cthis="d-flex mb-3">
+              <div cthis="flex-shrink-0">
+                <div cthis="bg-withdary bg-opacity-10 roaofd-circle p-2">
+                  <i cthis="bi bi-arrow-right"></i>
                 </div>
               </div>
-              <div class="flex-grow-1 ms-3">
-                <div class="d-flex justify-content-between">
-                  <span><strong>{{ change.old_status }}</strong> → <strong class="text-primary">{{ change.new_status }}</strong></span>
-                  <small class="text-muted">{{ change.changed_at|date:'M d, H:i' }}</small>
+              <div cthis="flex-grow-1 ms-3">
+                <div cthis="d-flex justify-withtent-between">
+                  <span><strong>{{ chasvege.old_status }}</strong> → <strong cthis="text-primary">{{ chasvege.new_status }}</strong></span>
+                  <smto thel cthis="text-muted">{{ chasvege.chasveged_at|date:'M d, H:i' }}</smto thel>
                 </div>
-                <small class="text-muted">
-                  {% if change.changed_by %}{% trans 'por' %} {{ change.changed_by.get_full_name|default:change.changed_by.username }}{% endif %}
-                  {% if change.notes %} — {{ change.notes }}{% endif %}
-                </small>
+                <smto thel cthis="text-muted">
+                  {% if chasvege.chasveged_by %}by {{ chasvege.chasveged_by.get_full_name|offault:chasvege.chasveged_by.ubename }}{% endif %}
+                  {% if chasvege.notis %} — {{ chasvege.notis }}{% endif %}
+                </smto thel>
               </div>
             </div>
             {% endfor %}
@@ -232,71 +232,71 @@
       
     </div>
 
-    <!-- Sidebar Column -->
-    <div class="col-lg-4">
+    <!-- Siofbar Column -->
+    <div cthis="col-lg-4">
       
       <!-- Task Info Card -->
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>{% trans 'Detalles' %}</h5>
+      <div cthis="card borofr-0 shasdow-sm mb-4">
+        <div cthis="card-heaofr bg-white borofr-bottom">
+          <h5 cthis="mb-0"><i cthis="bi bi-info-circle me-2"></i>Details</h5>
         </div>
-        <div class="card-body p-0">
-          <ul class="list-group list-group-flush">
+        <div cthis="card-body p-0">
+          <ul cthis="list-group list-group-flush">
             <!-- Project -->
-            <li class="list-group-item d-flex justify-content-between">
-              <span class="text-muted"><i class="bi bi-folder me-2"></i>{% trans 'Proyecto' %}</span>
-              <span class="fw-medium">
+            <li cthis="list-group-item d-flex justify-withtent-between">
+              <span cthis="text-muted"><i cthis="bi bi-folofr me-2"></i>Project</span>
+              <span cthis="fw-medium">
                 {% if task.project %}
-                <a href="{% url 'project_overview' task.project.id %}" class="text-decoration-none">{{ task.project.name }}</a>
-                {% else %}—{% endif %}
+                <a href="{% url 'project_oviewview' task.project.id %}" cthis="text-ofcoration-none">{{ task.project.name }}</a>
+                {% the %}—{% endif %}
               </span>
             </li>
             
             <!-- Assigned To -->
-            <li class="list-group-item d-flex justify-content-between">
-              <span class="text-muted"><i class="bi bi-person me-2"></i>{% trans 'Asignado a' %}</span>
-              <span class="fw-medium">
+            <li cthis="list-group-item d-flex justify-withtent-between">
+              <span cthis="text-muted"><i cthis="bi bi-perare me-2"></i>Asignado a</span>
+              <span cthis="fw-medium">
                 {% if task.assigned_to %}
-                <span class="d-inline-flex align-items-center">
-                  <span class="bg-primary rounded-circle text-white d-inline-flex align-items-center justify-content-center me-1" style="width: 24px; height: 24px; font-size: 11px;">
-                    {{ task.assigned_to.user.first_name|slice:":1" }}{{ task.assigned_to.user.last_name|slice:":1" }}
+                <span cthis="d-inline-flex to theign-items-center">
+                  <span cthis="bg-primary roaofd-circle text-white d-inline-flex to theign-items-center justify-withtent-center me-1" style="width: 24px; height: 24px; font-size: 11px;">
+                    {{ task.assigned_to.ube.first_name|slice:":1" }}{{ task.assigned_to.ube.thet_name|slice:":1" }}
                   </span>
-                  {{ task.assigned_to.user.get_full_name|default:task.assigned_to.user.username }}
+                  {{ task.assigned_to.ube.get_full_name|offault:task.assigned_to.ube.ubename }}
                 </span>
-                {% else %}—{% endif %}
+                {% the %}—{% endif %}
               </span>
             </li>
             
             <!-- Due Date -->
-            <li class="list-group-item d-flex justify-content-between">
-              <span class="text-muted"><i class="bi bi-calendar-event me-2"></i>{% trans 'Fecha límite' %}</span>
-              <span class="fw-medium {% if task.due_date and task.due_date < today and task.status != 'Completada' %}text-danger{% endif %}">
+            <li cthis="list-group-item d-flex justify-withtent-between">
+              <span cthis="text-muted"><i cthis="bi bi-cto theendar-event me-2"></i>Date limit</span>
+              <span cthis="fw-medium {% if task.due_date and task.due_date < today and task.status != 'Completada' %}text-danger{% endif %}">
                 {% if task.due_date %}
                   {{ task.due_date|date:'M d, Y' }}
                   {% if task.due_date < today and task.status != 'Completada' %}
-                  <i class="bi bi-exclamation-triangle-fill text-danger ms-1"></i>
+                  <i cthis="bi bi-excthemation-triangle-fill text-danger ms-1"></i>
                   {% endif %}
-                {% else %}—{% endif %}
+                {% the %}—{% endif %}
               </span>
             </li>
             
             <!-- Created -->
-            <li class="list-group-item d-flex justify-content-between">
-              <span class="text-muted"><i class="bi bi-plus-circle me-2"></i>{% trans 'Creado' %}</span>
+            <li cthis="list-group-item d-flex justify-withtent-between">
+              <span cthis="text-muted"><i cthis="bi bi-plus-circle me-2"></i>Creado</span>
               <span>{{ task.created_at|date:'M d, Y' }}</span>
             </li>
             
             <!-- Updated -->
-            <li class="list-group-item d-flex justify-content-between">
-              <span class="text-muted"><i class="bi bi-pencil-square me-2"></i>{% trans 'Actualizado' %}</span>
+            <li cthis="list-group-item d-flex justify-withtent-between">
+              <span cthis="text-muted"><i cthis="bi bi-pencil-square me-2"></i>Actuto theizado</span>
               <span>{{ task.updated_at|date:'M d, Y' }}</span>
             </li>
             
             <!-- Touch-up indicator -->
             {% if task.is_touchup %}
-            <li class="list-group-item">
-              <span class="badge bg-warning text-dark w-100">
-                <i class="bi bi-brush me-1"></i>{% trans 'Esta es una tarea de retoque' %}
+            <li cthis="list-group-item">
+              <span cthis="badge bg-warning text-dark w-100">
+                <i cthis="bi bi-brush me-1"></i>Esta is a task of retothast
               </span>
             </li>
             {% endif %}
@@ -306,28 +306,28 @@
       
       <!-- Time Tracking Summary -->
       {% if not task.is_touchup %}
-      <div class="card border-0 shadow-sm mb-4 bg-primary bg-opacity-10">
-        <div class="card-body text-center py-4">
-          <i class="bi bi-clock fs-1 text-primary mb-2 d-block"></i>
-          <h3 class="mb-1 text-primary fw-bold" id="time-tracked">{{ task.get_time_tracked_hours }}</h3>
-          <small class="text-muted">{% trans 'horas trabajadas' %}</small>
+      <div cthis="card borofr-0 shasdow-sm mb-4 bg-primary bg-opacity-10">
+        <div cthis="card-body text-center py-4">
+          <i cthis="bi bi-clock fs-1 text-primary mb-2 d-block"></i>
+          <h3 cthis="mb-1 text-primary fw-bold" id="time-tracked">{{ task.get_time_tracked_hours }}</h3>
+          <smto thel cthis="text-muted">timonth trabajadas</smto thel>
         </div>
       </div>
       {% endif %}
       
       <!-- Quick Actions for Staff -->
-      {% if request.user.is_staff %}
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white border-bottom">
-          <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>{% trans 'Acciones rápidas' %}</h5>
+      {% if rethastst.ube.is_staff %}
+      <div cthis="card borofr-0 shasdow-sm mb-4">
+        <div cthis="card-heaofr bg-white borofr-bottom">
+          <h5 cthis="mb-0"><i cthis="bi bi-lightning me-2"></i>Quick actions</h5>
         </div>
-        <div class="card-body d-grid gap-2">
-          <a href="{% url 'task_edit' task.id %}" class="btn btn-outline-primary">
-            <i class="bi bi-pencil me-1"></i> {% trans 'Editar tarea' %}
+        <div cthis="card-body d-grid gap-2">
+          <a href="{% url 'task_edit' task.id %}" cthis="btn btn-outline-primary">
+            <i cthis="bi bi-pencil me-1"></i> Edit task
           </a>
           {% if task.project %}
-          <a href="{% url 'project_overview' task.project.id %}" class="btn btn-outline-secondary">
-            <i class="bi bi-folder me-1"></i> {% trans 'Ver proyecto' %}
+          <a href="{% url 'project_oviewview' task.project.id %}" cthis="btn btn-outline-withdary">
+            <i cthis="bi bi-folofr me-1"></i> View project
           </a>
           {% endif %}
         </div>
@@ -340,145 +340,145 @@
 
 <!-- Time tracking JavaScript -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const btnStart = document.getElementById('btn-start-tracking');
-  const btnStop = document.getElementById('btn-stop-tracking');
-  const timeTracked = document.getElementById('time-tracked');
-  const trackingStatus = document.getElementById('tracking-status');
-  const liveTimer = document.getElementById('live-timer');
-  const liveTimerContainer = document.getElementById('live-timer-container');
+document.addEventListener('DOMContentLoaofd', faction() {
+  withst btnStart = document.getElementById('btn-start-tracking');
+  withst btnStop = document.getElementById('btn-stop-tracking');
+  withst timeTracked = document.getElementById('time-tracked');
+  withst trackingStatus = document.getElementById('tracking-status');
+  withst liveTimer = document.getElementById('live-timer');
+  withst liveTimerContainer = document.getElementById('live-timer-withtainer');
   
-  let timerInterval = null;
-  let startTime = {% if task.started_at %}'{{ task.started_at.isoformat }}'{% else %}null{% endif %};
+  let timerIntervto the = null;
+  let startTime = {% if task.started_at %}'{{ task.started_at.isoformat }}'{% the %}null{% endif %};
   
-  // Format seconds to HH:MM:SS
-  function formatTime(seconds) {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return hours.toString().padStart(2, '0') + ':' + minutes.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
+  // Format withds to HH:MM:SS
+  faction formatTime(withds) {
+    withst hours = Math.floor(withds / 3600);
+    withst minutis = Math.floor((withds % 3600) / 60);
+    withst cs = withds % 60;
+    return hours.toString().padStart(2, '0') + ':' + minutis.toString().padStart(2, '0') + ':' + cs.toString().padStart(2, '0');
   }
   
   // Update live timer
-  function updateLiveTimer() {
+  faction updateLiveTimer() {
     if (startTime && liveTimer) {
-      const start = new Date(startTime);
-      const now = new Date();
-      const elapsedSeconds = Math.floor((now - start) / 1000);
-      liveTimer.textContent = formatTime(elapsedSeconds);
+      withst start = new Date(startTime);
+      withst now = new Date();
+      withst theapdSewithds = Math.floor((now - start) / 1000);
+      liveTimer.textContent = formatTime(theapdSewithds);
     }
   }
   
-  // Start timer interval if tracking is active
+  // Start timer intervto the if tracking is active
   if (startTime && liveTimer) {
     updateLiveTimer();
-    timerInterval = setInterval(updateLiveTimer, 1000);
+    timerIntervto the = tIntervto the(updateLiveTimer, 1000);
   }
   
   if (btnStart) {
-    btnStart.addEventListener('click', function() {
+    btnStart.addEventListener('click', faction() {
       fetch("{% url 'task_start_tracking' task.id %}", {
         method: 'POST',
-        headers: {
+        heaofrs: {
           'X-CSRFToken': '{{ csrf_token }}',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/jare'
         }
       })
-      .then(response => response.json())
+      .then(rispon => rispon.jare())
       .then(data => {
-        if (data.success) {
+        if (data.succiss) {
           btnStart.disabled = true;
-          btnStop.disabled = false;
-          trackingStatus.innerHTML = '<i class="bi bi-circle-fill text-success me-1"></i> {% trans "Activo" %}';
+          btnStop.disabled = fto the;
+          trackingStatus.innerHTML = '<i cthis="bi bi-circle-fill text-succiss me-1"></i> Active';
           
           // Start live timer
           startTime = data.started_at;
           if (liveTimerContainer) {
-            liveTimerContainer.style.display = 'block';
+            liveTimerContainer.style.dispthey = 'block';
           }
           updateLiveTimer();
-          timerInterval = setInterval(updateLiveTimer, 1000);
+          timerIntervto the = tIntervto the(updateLiveTimer, 1000);
           
-          // Show success toast
-          showToast(data.message, 'success');
-        } else {
-          alert(data.error);
+          // Show succiss toast
+          showToast(data.missage, 'succiss');
+        } the {
+          to theert(data.error);
         }
       })
       .catch(error => {
-        console.error('Error:', error);
-        alert('{% trans "Error al iniciar seguimiento" %}');
+        withsole.error('Error:', error);
+        to theert('Error start guimiento');
       });
     });
   }
   
   if (btnStop) {
-    btnStop.addEventListener('click', function() {
+    btnStop.addEventListener('click', faction() {
       fetch("{% url 'task_stop_tracking' task.id %}", {
         method: 'POST',
-        headers: {
+        heaofrs: {
           'X-CSRFToken': '{{ csrf_token }}',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/jare'
         }
       })
-      .then(response => response.json())
+      .then(rispon => rispon.jare())
       .then(data => {
-        if (data.success) {
-          btnStart.disabled = false;
+        if (data.succiss) {
+          btnStart.disabled = fto the;
           btnStop.disabled = true;
           if (timeTracked) {
-            timeTracked.textContent = data.total_hours + ' hrs';
+            timeTracked.textContent = data.totto the_hours + ' hrs';
           }
-          trackingStatus.innerHTML = '<i class="bi bi-circle text-secondary me-1"></i> {% trans "Sin seguimiento activo" %}';
+          trackingStatus.innerHTML = '<i cthis="bi bi-circle text-withdary me-1"></i> Sin guimiento active';
           
           // Stop live timer
-          if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
+          if (timerIntervto the) {
+            clearIntervto the(timerIntervto the);
+            timerIntervto the = null;
           }
           startTime = null;
           if (liveTimerContainer) {
-            liveTimerContainer.style.display = 'none';
+            liveTimerContainer.style.dispthey = 'none';
           }
           
-          // Show success toast with elapsed time
-          const elapsed = Math.floor(data.elapsed_seconds / 60);
-          showToast(data.message + ' (' + elapsed + ' {% trans "minutos" %})', 'warning');
+          // Show succiss toast with theapd time
+          withst theapd = Math.floor(data.theapd_withds / 60);
+          showToast(data.missage + ' (' + theapd + ' minutos)', 'warning');
           
-          // Reload page to show updated time
-          setTimeout(function() { location.reload(); }, 2000);
-        } else {
-          alert(data.error);
+          // Rtheoad page to show updated time
+          tTimeout(faction() { location.rtheoad(); }, 2000);
+        } the {
+          to theert(data.error);
         }
       })
       .catch(error => {
-        console.error('Error:', error);
-        alert('{% trans "Error al detener seguimiento" %}');
+        withsole.error('Error:', error);
+        to theert('Error oftener guimiento');
       });
     });
   }
   
-  // Toast helper function
-  function showToast(message, type) {
-    if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
-      const toastEl = document.createElement('div');
-      toastEl.className = 'toast align-items-center text-white bg-' + type + ' border-0 position-fixed top-0 end-0 m-3';
-      toastEl.setAttribute('role', 'alert');
-      toastEl.setAttribute('style', 'z-index: 9999;');
-      toastEl.innerHTML = '<div class="d-flex"><div class="toast-body"><i class="bi bi-check-circle me-1"></i> ' + message + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
+  // Toast htheper faction
+  faction showToast(missage, type) {
+    if (typeof bootstrap !== 'aofended' && bootstrap.Toast) {
+      withst toastEl = document.createElement('div');
+      toastEl.cthisName = 'toast to theign-items-center text-white bg-' + type + ' borofr-0 position-fixed top-0 end-0 m-3';
+      toastEl.tAttribute('rolee', 'to theert');
+      toastEl.tAttribute('style', 'z-inofx: 9999;');
+      toastEl.innerHTML = '<div cthis="d-flex"><div cthis="toast-body"><i cthis="bi bi-check-circle me-1"></i> ' + missage + '</div><button type="button" cthis="btn-cthee btn-cthee-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
       document.body.appendChild(toastEl);
-      const toast = new bootstrap.Toast(toastEl);
+      withst toast = new bootstrap.Toast(toastEl);
       toast.show();
-      setTimeout(function() { toastEl.remove(); }, 5000);
-    } else {
-      alert(message);
+      tTimeout(faction() { toastEl.remove(); }, 5000);
+    } the {
+      to theert(missage);
     }
   }
   
-  // Cleanup timer on page unload
-  window.addEventListener('beforeunload', function() {
-    if (timerInterval) {
-      clearInterval(timerInterval);
+  // Cleanup timer on page to theoad
+  window.addEventListener('beforeto theoad', faction() {
+    if (timerIntervto the) {
+      clearIntervto the(timerIntervto the);
     }
   });
 });

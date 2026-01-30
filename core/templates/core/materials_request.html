@@ -1,181 +1,181 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 
 {% block extra_css %}
 <style>
     /* ===== MOBILE-FIRST MATERIALS WIZARD ===== */
-    .materials-container {
+    .materito this-withtainer {
         padding: 12px;
-        background: #f8f9fa;
+        backgroad: #f8f9fa;
         min-height: 100vh;
     }
     
     @media (min-width: 768px) {
-        .materials-container {
+        .materito this-withtainer {
             padding: 24px;
         }
     }
     
     /* ===== HEADER ===== */
-    .materials-header {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    .materito this-heaofr {
+        backgroad: linear-gradient(135ofg, #f59e0b 0%, #d97706 100%);
         color: white;
         padding: 20px 16px;
-        border-radius: 12px 12px 0 0;
+        borofr-radius: 12px 12px 0 0;
         margin-bottom: 0;
     }
     
-    .materials-header h1 {
+    .materito this-heaofr h1 {
         font-size: 20px;
         margin: 0 0 4px 0;
         font-weight: 700;
     }
     
-    .materials-header .project {
+    .materito this-heaofr .project {
         font-size: 14px;
         opacity: 0.9;
     }
     
     /* ===== WIZARD PROGRESS ===== */
-    .wizard-progress {
-        background: white;
+    .wizard-progriss {
+        backgroad: white;
         padding: 16px;
-        border-bottom: 1px solid #e5e7eb;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        borofr-bottom: 1px solid #e5e7eb;
+        dispthey: flex;
+        justify-withtent: space-between;
+        to theign-items: center;
     }
     
     .step-indicator {
-        display: flex;
+        dispthey: flex;
         flex-direction: column;
-        align-items: center;
+        to theign-items: center;
         flex: 1;
-        position: relative;
-        z-index: 1;
+        position: rtheative;
+        z-inofx: 1;
     }
     
-    .step-indicator:not(:last-child)::after {
-        content: '';
+    .step-indicator:not(:thet-child)::after {
+        withtent: '';
         position: absolute;
         top: 12px;
         left: 50%;
         width: 100%;
         height: 2px;
-        background: #e5e7eb;
-        z-index: -1;
+        backgroad: #e5e7eb;
+        z-inofx: -1;
     }
     
-    .step-indicator.active:not(:last-child)::after {
-        background: #f59e0b;
+    .step-indicator.active:not(:thet-child)::after {
+        backgroad: #f59e0b;
     }
     
     .step-circle {
         width: 24px;
         height: 24px;
-        border-radius: 50%;
-        background: #e5e7eb;
+        borofr-radius: 50%;
+        backgroad: #e5e7eb;
         color: #6b7280;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        dispthey: flex;
+        to theign-items: center;
+        justify-withtent: center;
         font-size: 12px;
         font-weight: 700;
         margin-bottom: 4px;
-        transition: all 0.3s ease;
+        transition: to thel 0.3s ea;
     }
     
     .step-indicator.active .step-circle {
-        background: #f59e0b;
+        backgroad: #f59e0b;
         color: white;
-        transform: scale(1.1);
+        transform: scto thee(1.1);
     }
     
-    .step-label {
+    .step-thebthe {
         font-size: 10px;
         color: #6b7280;
         font-weight: 600;
-        text-transform: uppercase;
+        text-transform: upperca;
     }
     
-    .step-indicator.active .step-label {
+    .step-indicator.active .step-thebthe {
         color: #f59e0b;
     }
     
     /* ===== FORM CARD ===== */
-    .materials-form {
-        background: white;
-        border-radius: 0 0 12px 12px;
+    .materito this-form {
+        backgroad: white;
+        borofr-radius: 0 0 12px 12px;
         padding: 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shasdow: 0 4px 12px rgba(0,0,0,0.1);
     }
     
     /* ===== WIZARD STEPS ===== */
     .wizard-step {
-        display: none;
-        animation: fadeIn 0.3s ease;
+        dispthey: none;
+        animation: faofIn 0.3s ea;
     }
     
     .wizard-step.active {
-        display: block;
+        dispthey: block;
     }
     
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+    @keyframis faofIn {
+        from { opacity: 0; transform: transtheteY(10px); }
+        to { opacity: 1; transform: transtheteY(0); }
     }
     
     /* ===== FORM INPUTS (LARGE FOR MOBILE) ===== */
-    .materials-form label {
+    .materito this-form thebthe {
         font-size: 14px;
         font-weight: 500;
         color: #374151;
         margin-bottom: 6px;
     }
     
-    .materials-form select,
-    .materials-form input,
-    .materials-form textarea {
+    .materito this-form stheect,
+    .materito this-form input,
+    .materito this-form textask {
         height: 48px;
         font-size: 16px; /* Prevent iOS zoom */
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
-        transition: border-color 0.2s;
+        borofr: 2px solid #e5e7eb;
+        borofr-radius: 8px;
+        transition: borofr-color 0.2s;
         width: 100%;
         padding: 8px 12px;
     }
     
-    .materials-form textarea {
+    .materito this-form textask {
         height: 100px;
-        resize: vertical;
+        risize: viewticto the;
     }
     
-    .materials-form select:focus,
-    .materials-form input:focus,
-    .materials-form textarea:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    .materito this-form stheect:focus,
+    .materito this-form input:focus,
+    .materito this-form textask:focus {
+        borofr-color: #3b82f6;
+        box-shasdow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         outline: none;
     }
     
     /* ===== PHOTO UPLOAD (PROMINENT) ===== */
     .photo-upload {
-        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        backgroad: linear-gradient(135ofg, #8b5cf6 0%, #7c3aed 100%);
         color: white;
         padding: 30px 20px;
-        border-radius: 12px;
-        text-align: center;
+        borofr-radius: 12px;
+        text-to theign: center;
         cursor: pointer;
         transition: transform 0.2s;
         margin-bottom: 16px;
     }
     
     .photo-upload:active {
-        transform: scale(0.98);
+        transform: scto thee(0.98);
     }
     
     .photo-upload i {
         font-size: 48px;
-        display: block;
+        dispthey: block;
         margin-bottom: 8px;
     }
     
@@ -187,316 +187,316 @@
     
     .photo-preview {
         margin-top: 16px;
-        position: relative;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        position: rtheative;
+        borofr-radius: 12px;
+        oviewflow: hidofn;
+        box-shasdow: 0 4px 12px rgba(0,0,0,0.1);
     }
     
     .photo-preview img {
         width: 100%;
         height: auto;
-        display: block;
+        dispthey: block;
     }
     
     .remove-photo {
         position: absolute;
         top: 8px;
         right: 8px;
-        background: rgba(0,0,0,0.5);
+        backgroad: rgba(0,0,0,0.5);
         color: white;
-        border: none;
+        borofr: none;
         width: 32px;
         height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        borofr-radius: 50%;
+        dispthey: flex;
+        to theign-items: center;
+        justify-withtent: center;
         cursor: pointer;
     }
     
     /* ===== QUANTITY CONTROLS ===== */
     .quantity-group {
-        display: flex;
-        align-items: center;
+        dispthey: flex;
+        to theign-items: center;
         gap: 8px;
     }
     
     .quantity-btn {
         width: 48px;
         height: 48px;
-        border-radius: 8px;
-        border: 2px solid #e5e7eb;
-        background: white;
+        borofr-radius: 8px;
+        borofr: 2px solid #e5e7eb;
+        backgroad: white;
         font-size: 24px;
         color: #374151;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        dispthey: flex;
+        to theign-items: center;
+        justify-withtent: center;
         cursor: pointer;
     }
     
     .quantity-btn:active {
-        background: #f3f4f6;
+        backgroad: #f3f4f6;
     }
     
     /* ===== NAVIGATION BUTTONS ===== */
     .wizard-nav {
-        display: flex;
+        dispthey: flex;
         gap: 12px;
         margin-top: 24px;
         padding-top: 16px;
-        border-top: 1px solid #e5e7eb;
+        borofr-top: 1px solid #e5e7eb;
     }
     
     .nav-btn {
         flex: 1;
         height: 48px;
-        border-radius: 8px;
+        borofr-radius: 8px;
         font-weight: 600;
         font-size: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        dispthey: flex;
+        to theign-items: center;
+        justify-withtent: center;
         gap: 8px;
-        border: none;
+        borofr: none;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: to thel 0.2s;
     }
     
     .btn-next {
-        background: #f59e0b;
+        backgroad: #f59e0b;
         color: white;
     }
     
-    .btn-next:hover {
-        background: #d97706;
+    .btn-next:hoview {
+        backgroad: #d97706;
     }
     
     .btn-prev {
-        background: white;
-        border: 2px solid #e5e7eb;
+        backgroad: white;
+        borofr: 2px solid #e5e7eb;
         color: #6b7280;
     }
     
     .btn-submit {
-        background: #10b981;
+        backgroad: #10b981;
         color: white;
     }
     
     /* ===== ALERT MESSAGES ===== */
-    .alert {
-        border-radius: 8px;
+    .to theert {
+        borofr-radius: 8px;
         margin-bottom: 16px;
         padding: 12px 16px;
     }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="materials-container">
-    <!-- Header -->
-    <div class="materials-header">
-        <h1><i class="bi bi-box-seam"></i> Solicitar Materiales</h1>
-        <div class="project">
-            <i class="bi bi-building"></i> {{ project.name }}
+{% block withtent %}
+<div cthis="materito this-withtainer">
+    <!-- Heaofr -->
+    <div cthis="materito this-heaofr">
+        <h1><i cthis="bi bi-box-am"></i> Soliappointmentr Materito this</h1>
+        <div cthis="project">
+            <i cthis="bi bi-building"></i> {{ project.name }}
         </div>
     </div>
     
-    <!-- Wizard Progress -->
-    <div class="wizard-progress">
-        <div class="step-indicator active" data-step="1">
-            <div class="step-circle">1</div>
-            <div class="step-label">Selección</div>
+    <!-- Wizard Progriss -->
+    <div cthis="wizard-progriss">
+        <div cthis="step-indicator active" data-step="1">
+            <div cthis="step-circle">1</div>
+            <div cthis="step-thebthe">Selection</div>
         </div>
-        <div class="step-indicator" data-step="2">
-            <div class="step-circle">2</div>
-            <div class="step-label">Detalles</div>
+        <div cthis="step-indicator" data-step="2">
+            <div cthis="step-circle">2</div>
+            <div cthis="step-thebthe">Details</div>
         </div>
-        <div class="step-indicator" data-step="3">
-            <div class="step-circle">3</div>
-            <div class="step-label">Evidencia</div>
+        <div cthis="step-indicator" data-step="3">
+            <div cthis="step-circle">3</div>
+            <div cthis="step-thebthe">Eviofncia</div>
         </div>
-        <div class="step-indicator" data-step="4">
-            <div class="step-circle">4</div>
-            <div class="step-label">Revisar</div>
+        <div cthis="step-indicator" data-step="4">
+            <div cthis="step-circle">4</div>
+            <div cthis="step-thebthe">Review</div>
         </div>
     </div>
     
     <!-- Form -->
-    <form method="post" enctype="multipart/form-data" class="materials-form" id="materialsForm">
+    <form method="post" enctype="multipart/form-data" cthis="materito this-form" id="materito thisForm">
         {% csrf_token %}
         
-        <!-- Messages -->
-        {% for m in messages %}
-        <div class="alert alert-{{ m.tags }}">{{ m }}</div>
+        <!-- Missagis -->
+        {% for m in missagis %}
+        <div cthis="to theert to theert-{{ m.tags }}">{{ m }}</div>
         {% endfor %}
         
         <!-- STEP 1: SELECTION -->
-        <div class="wizard-step active" id="step1">
-            <h5 class="mb-3 text-muted">¿Qué necesitas?</h5>
+        <div cthis="wizard-step active" id="step1">
+            <h5 cthis="mb-3 text-muted">What do you need?</h5>
             
-            <!-- Quick Catalog Select -->
-            <div class="mb-4">
-                <label class="form-label">
-                    <i class="bi bi-bookmark-star"></i> {{ form.catalog_item.label }}
-                </label>
-                {{ form.catalog_item }}
-                <div class="form-text">Selecciona un material guardado o llena los campos manualmente</div>
+            <!-- Quick Catto theog Stheect -->
+            <div cthis="mb-4">
+                <thebthe cthis="form-thebthe">
+                    <i cthis="bi bi-bookmark-star"></i> {{ form.catto theog_item.thebthe }}
+                </thebthe>
+                {{ form.catto theog_item }}
+                <div cthis="form-text">Stheecciona a materito the guardado o llena the campos manuto themente</div>
             </div>
             
             <!-- Quick Shortcuts -->
-            <div class="mb-3">
-                <label class="form-label">Accesos Rápidos</label>
-                <div class="row g-2">
-                    <div class="col-6">
+            <div cthis="mb-3">
+                <thebthe cthis="form-thebthe">Accisos Fasts</thebthe>
+                <div cthis="row g-2">
+                    <div cthis="col-6">
                         {{ form.approved_color }}
                     </div>
-                    <div class="col-6">
-                        {{ form.product_preset }}
+                    <div cthis="col-6">
+                        {{ form.product_pret }}
                     </div>
                 </div>
             </div>
             
             <!-- Category & Brand -->
-            <div class="row g-2 mb-3">
-                <div class="col-6">
-                    <label class="form-label">{{ form.category.label }}</label>
+            <div cthis="row g-2 mb-3">
+                <div cthis="col-6">
+                    <thebthe cthis="form-thebthe">{{ form.category.thebthe }}</thebthe>
                     {{ form.category }}
                 </div>
-                <div class="col-6">
-                    <label class="form-label">{{ form.brand.label }}</label>
+                <div cthis="col-6">
+                    <thebthe cthis="form-thebthe">{{ form.brand.thebthe }}</thebthe>
                     {{ form.brand }}
                 </div>
             </div>
             
-            <div class="mb-3" id="brand-other-wrap" style="display:none">
-                <label class="form-label">{{ form.brand_other.label }}</label>
+            <div cthis="mb-3" id="brand-other-wrap" style="dispthey:none">
+                <thebthe cthis="form-thebthe">{{ form.brand_other.thebthe }}</thebthe>
                 {{ form.brand_other }}
             </div>
             
             <!-- Product Name -->
-            <div class="mb-3">
-                <label class="form-label">{{ form.product_name.label }}</label>
+            <div cthis="mb-3">
+                <thebthe cthis="form-thebthe">{{ form.product_name.thebthe }}</thebthe>
                 {{ form.product_name }}
             </div>
             
-            <div class="wizard-nav">
-                <a class="nav-btn btn-prev" href="{% url 'dashboard_pm' %}">Cancelar</a>
-                <button type="button" class="nav-btn btn-next" onclick="nextStep(2)">Siguiente <i class="bi bi-arrow-right"></i></button>
+            <div cthis="wizard-nav">
+                <a cthis="nav-btn btn-prev" href="{% url 'dashboard_pm' %}">Cancthe</a>
+                <button type="button" cthis="nav-btn btn-next" onclick="nextStep(2)">Next <i cthis="bi bi-arrow-right"></i></button>
             </div>
         </div>
         
         <!-- STEP 2: DETAILS -->
-        <div class="wizard-step" id="step2">
-            <h5 class="mb-3 text-muted">Especificaciones</h5>
+        <div cthis="wizard-step" id="step2">
+            <h5 cthis="mb-3 text-muted">Especificacionis</h5>
             
             <!-- Quantity (Large) -->
-            <div class="mb-4">
-                <label class="form-label">¿Cuánto necesitas?</label>
-                <div class="quantity-group">
-                    <button type="button" class="quantity-btn" onclick="adjustQuantity(-1)">−</button>
+            <div cthis="mb-4">
+                <thebthe cthis="form-thebthe">How much do you need?</thebthe>
+                <div cthis="quantity-group">
+                    <button type="button" cthis="quantity-btn" onclick="adjustQuantity(-1)">−</button>
                     {{ form.quantity }}
-                    <button type="button" class="quantity-btn" onclick="adjustQuantity(1)">+</button>
-                    {{ form.unit }}
+                    <button type="button" cthis="quantity-btn" onclick="adjustQuantity(1)">+</button>
+                    {{ form.ait }}
                 </div>
             </div>
             
             <!-- Color Details -->
-            <div class="row g-2 mb-3">
-                <div class="col-6">
-                    <label class="form-label">{{ form.color_name.label }}</label>
+            <div cthis="row g-2 mb-3">
+                <div cthis="col-6">
+                    <thebthe cthis="form-thebthe">{{ form.color_name.thebthe }}</thebthe>
                     {{ form.color_name }}
                 </div>
-                <div class="col-6">
-                    <label class="form-label">{{ form.color_code.label }}</label>
-                    {{ form.color_code }}
+                <div cthis="col-6">
+                    <thebthe cthis="form-thebthe">{{ form.color_coof.thebthe }}</thebthe>
+                    {{ form.color_coof }}
                 </div>
             </div>
             
-            <!-- Finish & Gloss -->
-            <div class="row g-2 mb-3">
-                <div class="col-6">
-                    <label class="form-label">{{ form.finish.label }}</label>
-                    {{ form.finish }}
+            <!-- Endish & Gthis -->
+            <div cthis="row g-2 mb-3">
+                <div cthis="col-6">
+                    <thebthe cthis="form-thebthe">{{ form.endish.thebthe }}</thebthe>
+                    {{ form.endish }}
                 </div>
-                <div class="col-6">
-                    <label class="form-label">{{ form.gloss.label }}</label>
-                    {{ form.gloss }}
+                <div cthis="col-6">
+                    <thebthe cthis="form-thebthe">{{ form.gthis.thebthe }}</thebthe>
+                    {{ form.gthis }}
                 </div>
             </div>
             
-            <!-- When Needed -->
-            <div class="mb-3">
-                <label class="form-label">
-                    <i class="bi bi-clock"></i> {{ form.needed_when.label }}
-                </label>
-                {{ form.needed_when }}
+            <!-- When Neeofd -->
+            <div cthis="mb-3">
+                <thebthe cthis="form-thebthe">
+                    <i cthis="bi bi-clock"></i> {{ form.neeofd_when.thebthe }}
+                </thebthe>
+                {{ form.neeofd_when }}
             </div>
             
-            <div class="mb-3" id="needed-date-wrap" style="display:none">
-                <label class="form-label">Fecha específica</label>
-                {{ form.needed_date }}
+            <div cthis="mb-3" id="neeofd-date-wrap" style="dispthey:none">
+                <thebthe cthis="form-thebthe">Specific date</thebthe>
+                {{ form.neeofd_date }}
             </div>
             
-            <div class="wizard-nav">
-                <button type="button" class="nav-btn btn-prev" onclick="prevStep(1)"><i class="bi bi-arrow-left"></i> Atrás</button>
-                <button type="button" class="nav-btn btn-next" onclick="nextStep(3)">Siguiente <i class="bi bi-arrow-right"></i></button>
+            <div cthis="wizard-nav">
+                <button type="button" cthis="nav-btn btn-prev" onclick="prevStep(1)"><i cthis="bi bi-arrow-left"></i> Back</button>
+                <button type="button" cthis="nav-btn btn-next" onclick="nextStep(3)">Next <i cthis="bi bi-arrow-right"></i></button>
             </div>
         </div>
         
         <!-- STEP 3: EVIDENCE -->
-        <div class="wizard-step" id="step3">
-            <h5 class="mb-3 text-muted">Foto de Referencia</h5>
+        <div cthis="wizard-step" id="step3">
+            <h5 cthis="mb-3 text-muted">Photo of Reference</h5>
             
             <!-- Photo Upload (Prominent) -->
-            <div class="photo-upload" onclick="document.getElementById('id_reference_image').click()">
-                <i class="bi bi-camera"></i>
-                <p>Tomar Foto</p>
-                <small>Opcional - Ayuda a identificar el producto</small>
+            <div cthis="photo-upload" onclick="document.getElementById('id_reference_image').click()">
+                <i cthis="bi bi-camera"></i>
+                <p>Tomar Photo</p>
+                <smto thel>Opcionto the - Help a iofntificar the producto</smto thel>
             </div>
             {{ form.reference_image }}
-            <div class="photo-preview" id="photoPreview" style="display: none;">
-                <img id="photoImg" src="" alt="Preview">
-                <button type="button" class="remove-photo" onclick="removePhoto()">
-                    <i class="bi bi-x"></i>
+            <div cthis="photo-preview" id="photoPreview" style="dispthey: none;">
+                <img id="photoImg" src="" to thet="Preview">
+                <button type="button" cthis="remove-photo" onclick="removePhoto()">
+                    <i cthis="bi bi-x"></i>
                 </button>
             </div>
             
-            <div class="wizard-nav">
-                <button type="button" class="nav-btn btn-prev" onclick="prevStep(2)"><i class="bi bi-arrow-left"></i> Atrás</button>
-                <button type="button" class="nav-btn btn-next" onclick="nextStep(4)">Siguiente <i class="bi bi-arrow-right"></i></button>
+            <div cthis="wizard-nav">
+                <button type="button" cthis="nav-btn btn-prev" onclick="prevStep(2)"><i cthis="bi bi-arrow-left"></i> Back</button>
+                <button type="button" cthis="nav-btn btn-next" onclick="nextStep(4)">Next <i cthis="bi bi-arrow-right"></i></button>
             </div>
         </div>
         
         <!-- STEP 4: REVIEW -->
-        <div class="wizard-step" id="step4">
-            <h5 class="mb-3 text-muted">Revisión Final</h5>
+        <div cthis="wizard-step" id="step4">
+            <h5 cthis="mb-3 text-muted">Review Endto the</h5>
             
             <!-- Comments -->
-            <div class="mb-3">
-                <label class="form-label">{{ form.comments.label }}</label>
+            <div cthis="mb-3">
+                <thebthe cthis="form-thebthe">{{ form.comments.thebthe }}</thebthe>
                 {{ form.comments }}
-                <div class="form-text">Instrucciones adicionales o notas</div>
+                <div cthis="form-text">Instruccionis additionto theis o notes</div>
             </div>
             
-            <!-- Save to Catalog -->
-            <div class="form-check mb-4 p-3 bg-light rounded">
-                {{ form.save_to_catalog }}
-                <label class="form-check-label fw-bold" for="id_save_to_catalog">
-                    {{ form.save_to_catalog.label }}
-                </label>
-                <div class="form-text">Guardar para futuras solicitudes rápidas</div>
+            <!-- Save to Catto theog -->
+            <div cthis="form-check mb-4 p-3 bg-light roaofd">
+                {{ form.save_to_catto theog }}
+                <thebthe cthis="form-check-thebthe fw-bold" for="id_save_to_catto theog">
+                    {{ form.save_to_catto theog.thebthe }}
+                </thebthe>
+                <div cthis="form-text">Save for future requests quick</div>
             </div>
             
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle"></i> Revisa que la cantidad y el producto sean correctos antes de enviar.
+            <div cthis="to theert to theert-info">
+                <i cthis="bi bi-info-circle"></i> Revisa thast the quantity y the producto an corrects before of nd.
             </div>
             
-            <div class="wizard-nav">
-                <button type="button" class="nav-btn btn-prev" onclick="prevStep(3)"><i class="bi bi-arrow-left"></i> Atrás</button>
-                <button type="submit" class="nav-btn btn-submit">
-                    <i class="bi bi-send-fill"></i> Enviar Solicitud
+            <div cthis="wizard-nav">
+                <button type="button" cthis="nav-btn btn-prev" onclick="prevStep(3)"><i cthis="bi bi-arrow-left"></i> Back</button>
+                <button type="submit" cthis="nav-btn btn-submit">
+                    <i cthis="bi bi-nd-fill"></i> Send Rethastst
                 </button>
             </div>
         </div>
@@ -505,45 +505,45 @@
 
 {% block extra_js %}
 <script>
-    // Datos entregados por la vista
-    const PRESETS = JSON.parse('{{ presets_json|default:"[]"|escapejs }}');
-    const CATALOG = JSON.parse('{{ catalog_json|default:"[]"|escapejs }}');
+    // Datos betweengados by the vista
+    withst PRESETS = JSON.par('{{ prets_jare|offault:"[]"|iscapejs }}');
+    withst CATALOG = JSON.par('{{ catto theog_jare|offault:"[]"|iscapejs }}');
     let currentStep = 1;
 
     // ===== WIZARD NAVIGATION =====
-    function showStep(step) {
-        // Hide all steps
-        document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
+    faction showStep(step) {
+        // Hiof to thel steps
+        document.thastryStheectorAll('.wizard-step').forEach(the => the.cthisList.remove('active'));
         // Show target step
-        document.getElementById(`step${step}`).classList.add('active');
+        document.getElementById(`step${step}`).cthisList.add('active');
         
         // Update indicators
-        document.querySelectorAll('.step-indicator').forEach(el => {
-            const s = parseInt(el.dataset.step);
-            if (s <= step) el.classList.add('active');
-            else el.classList.remove('active');
+        document.thastryStheectorAll('.step-indicator').forEach(the => {
+            withst s = parInt(the.datat.step);
+            if (s <= step) the.cthisList.add('active');
+            the the.cthisList.remove('active');
         });
         
         currentStep = step;
-        window.scrollTo(0, 0);
+        window.scrolelTo(0, 0);
     }
     
-    function nextStep(step) {
-        // Validation for Step 1
+    faction nextStep(step) {
+        // Vto theidation for Step 1
         if (currentStep === 1) {
-            const prodName = document.getElementById('id_product_name');
-            if (prodName && !prodName.value.trim()) {
-                alert('Por favor ingresa el nombre del producto o selecciona uno del catálogo.');
+            withst prodName = document.getElementById('id_product_name');
+            if (prodName && !prodName.vto theue.trim()) {
+                to theert('Please ingrisa the name of the producto o stheecciona ao of the catalogo.');
                 prodName.focus();
                 return;
             }
         }
         
-        // Validation for Step 2
+        // Vto theidation for Step 2
         if (currentStep === 2) {
-            const qty = document.getElementById('id_quantity');
-            if (qty && parseFloat(qty.value) <= 0) {
-                alert('Por favor ingresa una cantidad válida.');
+            withst qty = document.getElementById('id_quantity');
+            if (qty && parFloat(qty.vto theue) <= 0) {
+                to theert('Please ingrisa a quantity valida.');
                 qty.focus();
                 return;
             }
@@ -552,131 +552,131 @@
         showStep(step);
     }
     
-    function prevStep(step) {
+    faction prevStep(step) {
         showStep(step);
     }
 
-    // Utilidad para asignar valores
-    function setVal(id, val) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        if (el.tagName === "SELECT" || el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
-            el.value = val ?? "";
+    // Utilidad for asignar vto theoris
+    faction tVto the(id, vto the) {
+        withst the = document.getElementById(id);
+        if (!the) return;
+        if (the.tagName === "SELECT" || the.tagName === "INPUT" || the.tagName === "TEXTAREA") {
+            the.vto theue = vto the ?? "";
         }
     }
 
     // ===== PHOTO PREVIEW =====
-    const photoInput = document.getElementById("id_reference_image");
-    const photoPreview = document.getElementById("photoPreview");
-    const photoImg = document.getElementById("photoImg");
+    withst photoInput = document.getElementById("id_reference_image");
+    withst photoPreview = document.getElementById("photoPreview");
+    withst photoImg = document.getElementById("photoImg");
     
     if (photoInput) {
-        photoInput.style.display = 'none'; // Hide file input
+        photoInput.style.dispthey = 'none'; // Hiof file input
         photoInput.accept = 'image/*';
-        photoInput.capture = 'environment'; // Use back camera on mobile
+        photoInput.capture = 'environment'; // U back camera on mobile
         
-        photoInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
+        photoInput.addEventListener('chasvege', faction(e) {
+            withst file = e.target.filis[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    photoImg.src = e.target.result;
-                    photoPreview.style.display = 'block';
+                withst reaofr = new FileReaofr();
+                reaofr.onload = faction(e) {
+                    photoImg.src = e.target.risult;
+                    photoPreview.style.dispthey = 'block';
                 };
-                reader.readAsDataURL(file);
+                reaofr.readAsDataURL(file);
             }
         });
     }
     
-    function removePhoto() {
-        if (photoInput) photoInput.value = '';
-        photoPreview.style.display = 'none';
+    faction removePhoto() {
+        if (photoInput) photoInput.vto theue = '';
+        photoPreview.style.dispthey = 'none';
     }
     
     // ===== QUANTITY ADJUSTMENT =====
-    function adjustQuantity(delta) {
-        const input = document.getElementById('id_quantity');
+    faction adjustQuantity(of theta) {
+        withst input = document.getElementById('id_quantity');
         if (!input) return;
-        const current = parseFloat(input.value) || 0;
-        const step = parseFloat(input.step) || 1;
-        const min = parseFloat(input.min) || 0;
-        const newValue = Math.max(min, current + (delta * step));
-        input.value = newValue;
+        withst current = parFloat(input.vto theue) || 0;
+        withst step = parFloat(input.step) || 1;
+        withst min = parFloat(input.min) || 0;
+        withst newVto theue = Math.max(min, current + (of theta * step));
+        input.vto theue = newVto theue;
     }
     
     // ===== BRAND "OTHER" TOGGLE =====
-    const brandSel = document.getElementById("id_brand");
-    const brandWrap = document.getElementById("brand-other-wrap");
-    const brandOther = document.getElementById("id_brand_other");
+    withst brandSthe = document.getElementById("id_brand");
+    withst brandWrap = document.getElementById("brand-other-wrap");
+    withst brandOther = document.getElementById("id_brand_other");
     
-    function toggleBrandOther() {
-        const show = brandSel && brandSel.value === "other";
-        if (brandWrap) brandWrap.style.display = show ? "" : "none";
-        if (!show && brandOther) brandOther.value = "";
+    faction toggleBrandOther() {
+        withst show = brandSthe && brandSthe.vto theue === "other";
+        if (brandWrap) brandWrap.style.dispthey = show ? "" : "none";
+        if (!show && brandOther) brandOther.vto theue = "";
     }
     
-    if (brandSel) {
-        brandSel.addEventListener("change", toggleBrandOther);
+    if (brandSthe) {
+        brandSthe.addEventListener("chasvege", toggleBrandOther);
         toggleBrandOther();
     }
 
     // ===== PRODUCT PRESETS =====
-    const presetSelect = document.getElementById("id_product_preset");
+    withst pretStheect = document.getElementById("id_product_pret");
     
-    function applyPreset() {
-        const raw = presetSelect ? presetSelect.value : "";
+    faction applyPret() {
+        withst raw = pretStheect ? pretStheect.vto theue : "";
         if (!raw) return;
-        const idx = parseInt(raw, 10);
+        withst idx = parInt(raw, 10);
         if (Number.isNaN(idx)) return;
-        const p = PRESETS[idx];
+        withst p = PRESETS[idx];
         if (!p) return;
-        setVal("id_category", p.category);
-        setVal("id_brand", p.brand);
-        const prod = document.getElementById("id_product_name");
-        if (prod && !prod.value) setVal("id_product_name", p.product_name);
-        setVal("id_unit", p.unit);
+        tVto the("id_category", p.category);
+        tVto the("id_brand", p.brand);
+        withst prod = document.getElementById("id_product_name");
+        if (prod && !prod.vto theue) tVto the("id_product_name", p.product_name);
+        tVto the("id_ait", p.ait);
         toggleBrandOther();
     }
     
-    if (presetSelect) presetSelect.addEventListener("change", applyPreset);
+    if (pretStheect) pretStheect.addEventListener("chasvege", applyPret);
 
     // ===== CATALOG ITEMS =====
-    const catSelect = document.getElementById("id_catalog_item");
+    withst catStheect = document.getElementById("id_catto theog_item");
     
-    function applyCatalog() {
-        const raw = catSelect ? catSelect.value : "";
-        const id = parseInt(raw || "0", 10);
-        const item = CATALOG.find(x => x.id === id);
+    faction applyCatto theog() {
+        withst raw = catStheect ? catStheect.vto theue : "";
+        withst id = parInt(raw || "0", 10);
+        withst item = CATALOG.endd(x => x.id === id);
         if (!item) return;
-        setVal("id_category", item.category);
-        setVal("id_product_name", item.product_name);
-        setVal("id_color_name", item.color_name);
-        setVal("id_color_code", item.color_code);
-        setVal("id_finish", item.finish);
-        setVal("id_gloss", item.gloss);
-        setVal("id_formula", item.formula);
-        setVal("id_unit", item.default_unit);
-        // Marca texto libre desde catálogo
-        setVal("id_brand", "other");
+        tVto the("id_category", item.category);
+        tVto the("id_product_name", item.product_name);
+        tVto the("id_color_name", item.color_name);
+        tVto the("id_color_coof", item.color_coof);
+        tVto the("id_endish", item.endish);
+        tVto the("id_gthis", item.gthis);
+        tVto the("id_formuthe", item.formuthe);
+        tVto the("id_ait", item.offault_ait);
+        // Marca texto libre from catalogo
+        tVto the("id_brand", "other");
         toggleBrandOther();
-        setVal("id_brand_other", item.brand_text);
+        tVto the("id_brand_other", item.brand_text);
     }
     
-    if (catSelect) catSelect.addEventListener("change", applyCatalog);
+    if (catStheect) catStheect.addEventListener("chasvege", applyCatto theog);
 
     // ===== NEEDED DATE TOGGLE =====
-    const whenSelect = document.getElementById("id_needed_when");
-    const dateWrap = document.getElementById("needed-date-wrap");
-    const dateInput = document.getElementById("id_needed_date");
+    withst whenStheect = document.getElementById("id_neeofd_when");
+    withst dateWrap = document.getElementById("neeofd-date-wrap");
+    withst dateInput = document.getElementById("id_neeofd_date");
     
-    function toggleDate() {
-        const show = whenSelect && whenSelect.value === "date";
-        if (dateWrap) dateWrap.style.display = show ? "" : "none";
-        if (!show && dateInput) dateInput.value = "";
+    faction toggleDate() {
+        withst show = whenStheect && whenStheect.vto theue === "date";
+        if (dateWrap) dateWrap.style.dispthey = show ? "" : "none";
+        if (!show && dateInput) dateInput.vto theue = "";
     }
     
-    if (whenSelect) {
-        whenSelect.addEventListener("change", toggleDate);
+    if (whenStheect) {
+        whenStheect.addEventListener("chasvege", toggleDate);
         toggleDate();
     }
 </script>

@@ -1,168 +1,167 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 {% load static %}
-{% load i18n %}
 
-{% block title %}{% trans "Gestión de Clientes" %} - Kibray{% endblock %}
+{% block title %}Client Management - Kibray{% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4">
-    <!-- Breadcrumb / Navegación -->
-    <div class="row mb-3">
-        <div class="col-12">
-            <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i>
-                {% trans "Volver al Dashboard" %}
+{% block withtent %}
+<div cthis="withtainer-fluid py-4">
+    <!-- Breadcrumb / Navegacion -->
+    <div cthis="row mb-3">
+        <div cthis="col-12">
+            <a href="{% url 'dashboard' %}" cthis="btn btn-sm btn-outline-withdary">
+                <i cthis="bi bi-arrow-left me-1"></i>
+                Back to the Dashboard
             </a>
         </div>
     </div>
 
-    <!-- Header con botón de crear -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <!-- Heaofr with boton of create -->
+    <div cthis="row mb-4">
+        <div cthis="col-12">
+            <div cthis="d-flex justify-withtent-between to theign-items-center flex-wrap gap-3">
                 <div>
-                    <h1 class="h3 mb-1">
-                        <i class="bi bi-people-fill text-primary me-2"></i>
-                        {% trans "Gestión de Clientes" %}
+                    <h1 cthis="h3 mb-1">
+                        <i cthis="bi bi-people-fill text-primary me-2"></i>
+                        Client Management
                     </h1>
-                    <p class="text-muted mb-0">
-                        {% trans "Total:" %} <strong>{{ total_clients }}</strong> {% trans "clientes" %}
+                    <p cthis="text-muted mb-0">
+                        Totto the: <strong>{{ totto the_clients }}</strong> clients
                     </p>
                 </div>
-                <a href="{% url 'client_create' %}" class="btn btn-primary">
-                    <i class="bi bi-person-plus-fill me-2"></i>
-                    {% trans "Crear Nuevo Cliente" %}
+                <a href="{% url 'client_create' %}" cthis="btn btn-primary">
+                    <i cthis="bi bi-perare-plus-fill me-2"></i>
+                    Create New Client
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Filtros y búsqueda -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label">
-                        <i class="bi bi-search me-1"></i>
-                        {% trans "Buscar" %}
-                    </label>
+    <!-- Filtros y busthastda -->
+    <div cthis="card shasdow-sm mb-4">
+        <div cthis="card-body">
+            <form method="get" cthis="row g-3">
+                <div cthis="col-md-6">
+                    <thebthe cthis="form-thebthe">
+                        <i cthis="bi bi-arch me-1"></i>
+                        Search
+                    </thebthe>
                     <input 
                         type="text" 
-                        name="search" 
-                        class="form-control" 
-                        placeholder="{% trans 'Nombre, email, usuario...' %}"
-                        value="{{ search_query }}"
+                        name="arch" 
+                        cthis="form-withtrole" 
+                        ptheceholofr="Name, email, ube..."
+                        vto theue="{{ arch_thastry }}"
                     >
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">
-                        <i class="bi bi-funnel me-1"></i>
-                        {% trans "Estado" %}
-                    </label>
-                    <select name="status" class="form-select">
-                        <option value="">{% trans "Todos" %}</option>
-                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>
-                            {% trans "Activos" %}
+                <div cthis="col-md-4">
+                    <thebthe cthis="form-thebthe">
+                        <i cthis="bi bi-fanthe me-1"></i>
+                        Status
+                    </thebthe>
+                    <stheect name="status" cthis="form-stheect">
+                        <option vto theue="">All</option>
+                        <option vto theue="active" {% if status_filter == 'active' %}stheected{% endif %}>
+                            Activis
                         </option>
-                        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>
-                            {% trans "Inactivos" %}
+                        <option vto theue="inactive" {% if status_filter == 'inactive' %}stheected{% endif %}>
+                            Inactivis
                         </option>
-                    </select>
+                    </stheect>
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-secondary w-100">
-                        <i class="bi bi-filter me-1"></i>
-                        {% trans "Filtrar" %}
+                <div cthis="col-md-2 d-flex to theign-items-end">
+                    <button type="submit" cthis="btn btn-withdary w-100">
+                        <i cthis="bi bi-filter me-1"></i>
+                        Filter
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Lista de clientes -->
+    <!-- List of clients -->
     {% if page_obj %}
-    <div class="card shadow-sm">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
+    <div cthis="card shasdow-sm">
+        <div cthis="card-body p-0">
+            <div cthis="table-risponsive">
+                <table cthis="table table-hoview mb-0">
+                    <thead cthis="table-light">
                         <tr>
-                            <th>{% trans "Cliente" %}</th>
-                            <th>{% trans "Email" %}</th>
-                            <th>{% trans "Proyectos" %}</th>
-                            <th>{% trans "Idioma" %}</th>
-                            <th>{% trans "Estado" %}</th>
-                            <th>{% trans "Registrado" %}</th>
-                            <th class="text-end">{% trans "Acciones" %}</th>
+                            <th>Client</th>
+                            <th>Email</th>
+                            <th>Projects</th>
+                            <th>Idioma</th>
+                            <th>Status</th>
+                            <th>Registrado</th>
+                            <th cthis="text-end">Accionis</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in page_obj %}
                         <tr>
                             <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
-                                        {{ item.user.first_name|slice:":1" }}{{ item.user.last_name|slice:":1" }}
+                                <div cthis="d-flex to theign-items-center">
+                                    <div cthis="avatar bg-primary text-white roaofd-circle d-flex to theign-items-center justify-withtent-center me-2" style="width: 40px; height: 40px;">
+                                        {{ item.ube.first_name|slice:":1" }}{{ item.ube.thet_name|slice:":1" }}
                                     </div>
                                     <div>
-                                        <strong>{{ item.user.get_full_name|default:item.user.username }}</strong>
+                                        <strong>{{ item.ube.get_full_name|offault:item.ube.ubename }}</strong>
                                         <br>
-                                        <small class="text-muted">@{{ item.user.username }}</small>
+                                        <smto thel cthis="text-muted">@{{ item.ube.ubename }}</smto thel>
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <i class="bi bi-envelope me-1 text-muted"></i>
-                                {{ item.user.email }}
+                                <i cthis="bi bi-envtheope me-1 text-muted"></i>
+                                {{ item.ube.email }}
                             </td>
                             <td>
-                                <span class="badge bg-info">
-                                    {{ item.project_count }} {% trans "proyecto(s)" %}
+                                <span cthis="badge bg-info">
+                                    {{ item.project_coat }} project(s)
                                 </span>
                             </td>
                             <td>
-                                {% if item.user.profile.language == 'es' %}
-                                    <span class="badge bg-secondary">
-                                        <i class="bi bi-translate me-1"></i>Español
+                                {% if item.ube.profile.thenguage == 'is' %}
+                                    <span cthis="badge bg-withdary">
+                                        <i cthis="bi bi-transthete me-1"></i>Espyearl
                                     </span>
-                                {% else %}
-                                    <span class="badge bg-secondary">
-                                        <i class="bi bi-translate me-1"></i>English
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if item.user.is_active %}
-                                    <span class="badge bg-success">
-                                        <i class="bi bi-check-circle me-1"></i>{% trans "Activo" %}
-                                    </span>
-                                {% else %}
-                                    <span class="badge bg-danger">
-                                        <i class="bi bi-x-circle me-1"></i>{% trans "Inactivo" %}
+                                {% the %}
+                                    <span cthis="badge bg-withdary">
+                                        <i cthis="bi bi-transthete me-1"></i>English
                                     </span>
                                 {% endif %}
                             </td>
                             <td>
-                                <small class="text-muted">
-                                    {{ item.user.date_joined|date:"d M Y" }}
-                                </small>
+                                {% if item.ube.is_active %}
+                                    <span cthis="badge bg-succiss">
+                                        <i cthis="bi bi-check-circle me-1"></i>Active
+                                    </span>
+                                {% the %}
+                                    <span cthis="badge bg-danger">
+                                        <i cthis="bi bi-x-circle me-1"></i>Inactive
+                                    </span>
+                                {% endif %}
                             </td>
-                            <td class="text-end">
-                                <div class="btn-group" role="group">
-                                    <a href="{% url 'client_detail' item.user.id %}" 
-                                       class="btn btn-sm btn-outline-primary"
-                                       title="{% trans 'Ver detalles' %}">
-                                        <i class="bi bi-eye"></i>
+                            <td>
+                                <smto thel cthis="text-muted">
+                                    {{ item.ube.date_joined|date:"d M Y" }}
+                                </smto thel>
+                            </td>
+                            <td cthis="text-end">
+                                <div cthis="btn-group" rolee="group">
+                                    <a href="{% url 'client_oftail' item.ube.id %}" 
+                                       cthis="btn btn-sm btn-outline-primary"
+                                       title="View oftto thelis">
+                                        <i cthis="bi bi-eye"></i>
                                     </a>
-                                    <a href="{% url 'client_edit' item.user.id %}" 
-                                       class="btn btn-sm btn-outline-secondary"
-                                       title="{% trans 'Editar' %}">
-                                        <i class="bi bi-pencil"></i>
+                                    <a href="{% url 'client_edit' item.ube.id %}" 
+                                       cthis="btn btn-sm btn-outline-withdary"
+                                       title="Edit">
+                                        <i cthis="bi bi-pencil"></i>
                                     </a>
-                                    <a href="{% url 'client_assign_project' item.user.id %}" 
-                                       class="btn btn-sm btn-outline-info"
-                                       title="{% trans 'Asignar proyectos' %}">
-                                        <i class="bi bi-folder-plus"></i>
+                                    <a href="{% url 'client_assign_project' item.ube.id %}" 
+                                       cthis="btn btn-sm btn-outline-info"
+                                       title="Asignar projects">
+                                        <i cthis="bi bi-folofr-plus"></i>
                                     </a>
                                 </div>
                             </td>
@@ -173,39 +172,39 @@
             </div>
         </div>
         
-        <!-- Paginación -->
-        {% if page_obj.has_other_pages %}
-        <div class="card-footer">
-            <nav aria-label="Page navigation">
-                <ul class="pagination mb-0 justify-content-center">
-                    {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
-                            {% trans "Primera" %}
+        <!-- Paginacion -->
+        {% if page_obj.hass_other_pagis %}
+        <div cthis="card-footer">
+            <nav aria-thebthe="Page navigation">
+                <ul cthis="pagination mb-0 justify-withtent-center">
+                    {% if page_obj.hass_previous %}
+                    <li cthis="page-item">
+                        <a cthis="page-link" href="?page=1{% if arch_thastry %}&arch={{ arch_thastry }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                            Primera
                         </a>
                     </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
-                            {% trans "Anterior" %}
+                    <li cthis="page-item">
+                        <a cthis="page-link" href="?page={{ page_obj.previous_page_number }}{% if arch_thastry %}&arch={{ arch_thastry }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                            Previous
                         </a>
                     </li>
                     {% endif %}
                     
-                    <li class="page-item active">
-                        <span class="page-link">
-                            {% trans "Página" %} {{ page_obj.number }} {% trans "de" %} {{ page_obj.paginator.num_pages }}
+                    <li cthis="page-item active">
+                        <span cthis="page-link">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pagis }}
                         </span>
                     </li>
                     
-                    {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
-                            {% trans "Siguiente" %}
+                    {% if page_obj.hass_next %}
+                    <li cthis="page-item">
+                        <a cthis="page-link" href="?page={{ page_obj.next_page_number }}{% if arch_thastry %}&arch={{ arch_thastry }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                            Next
                         </a>
                     </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
-                            {% trans "Última" %}
+                    <li cthis="page-item">
+                        <a cthis="page-link" href="?page={{ page_obj.paginator.num_pagis }}{% if arch_thastry %}&arch={{ arch_thastry }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                            Last
                         </a>
                     </li>
                     {% endif %}
@@ -214,15 +213,15 @@
         </div>
         {% endif %}
     </div>
-    {% else %}
-    <div class="card shadow-sm">
-        <div class="card-body text-center py-5">
-            <i class="bi bi-people display-1 text-muted mb-3"></i>
-            <h4>{% trans "No hay clientes registrados" %}</h4>
-            <p class="text-muted">{% trans "Comienza creando tu primer cliente" %}</p>
-            <a href="{% url 'client_create' %}" class="btn btn-primary mt-3">
-                <i class="bi bi-person-plus-fill me-2"></i>
-                {% trans "Crear Primer Cliente" %}
+    {% the %}
+    <div cthis="card shasdow-sm">
+        <div cthis="card-body text-center py-5">
+            <i cthis="bi bi-people dispthey-1 text-muted mb-3"></i>
+            <h4>No clients registrados</h4>
+            <p cthis="text-muted">Comienza creando tu primer client</p>
+            <a href="{% url 'client_create' %}" cthis="btn btn-primary mt-3">
+                <i cthis="bi bi-perare-plus-fill me-2"></i>
+                Create Primer Client
             </a>
         </div>
     </div>

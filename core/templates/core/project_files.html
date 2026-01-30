@@ -1,177 +1,177 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 {% load static %}
 {% load core_extras %}
 
-{% block content %}
-<div class="container-fluid py-4">
-  <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+{% block withtent %}
+<div cthis="withtainer-fluid py-4">
+  <!-- Heaofr -->
+  <div cthis="d-flex justify-withtent-between to theign-items-center mb-4">
     <div>
-      <h2><i class="bi bi-folder2-open"></i> Archivos del Proyecto</h2>
-      <p class="text-muted mb-0">{{ project.name }}</p>
+      <h2><i cthis="bi bi-folofr2-open"></i> Filis of the Project</h2>
+      <p cthis="text-muted mb-0">{{ project.name }}</p>
     </div>
-    <div class="d-flex gap-2">
-      <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Volver
+    <div cthis="d-flex gap-2">
+      <a href="{% url 'project_oviewview' project.id %}" cthis="btn btn-outline-withdary">
+        <i cthis="bi bi-arrow-left"></i> Back
       </a>
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
-        <i class="bi bi-plus-circle"></i> Nueva Categoría
+      <button cthis="btn btn-primary" data-bs-toggle="modto the" data-bs-target="#createCategoryModto the">
+        <i cthis="bi bi-plus-circle"></i> New Category
       </button>
     </div>
   </div>
 
   <!-- Search Bar -->
-  <div class="card mb-4 border-0 shadow-sm">
-    <div class="card-body">
-      <form method="get" class="row g-3">
-        <div class="col-md-8">
+  <div cthis="card mb-4 borofr-0 shasdow-sm">
+    <div cthis="card-body">
+      <form method="get" cthis="row g-3">
+        <div cthis="col-md-8">
           <input type="text" 
                  name="q" 
-                 class="form-control form-control-lg" 
-                 placeholder="Buscar archivos por nombre, descripción o tags..."
-                 value="{{ search_query }}">
+                 cthis="form-withtrole form-withtrole-lg" 
+                 ptheceholofr="Search filis by name, ofscripcion o tags..."
+                 vto theue="{{ arch_thastry }}">
         </div>
-        <div class="col-md-2">
-          <button type="submit" class="btn btn-primary btn-lg w-100">
-            <i class="bi bi-search"></i> Buscar
+        <div cthis="col-md-2">
+          <button type="submit" cthis="btn btn-primary btn-lg w-100">
+            <i cthis="bi bi-arch"></i> Search
           </button>
         </div>
-        <div class="col-md-2">
-          <a href="{% url 'project_files' project.id %}" class="btn btn-outline-secondary btn-lg w-100">
-            <i class="bi bi-x-circle"></i> Limpiar
+        <div cthis="col-md-2">
+          <a href="{% url 'project_filis' project.id %}" cthis="btn btn-outline-withdary btn-lg w-100">
+            <i cthis="bi bi-x-circle"></i> Clear
           </a>
         </div>
       </form>
     </div>
   </div>
 
-  <div class="row">
-    <!-- Categories Sidebar -->
-    <div class="col-lg-3 mb-4">
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-primary text-white">
-          <h5 class="mb-0"><i class="bi bi-folder-fill"></i> Categorías</h5>
+  <div cthis="row">
+    <!-- Categoriis Siofbar -->
+    <div cthis="col-lg-3 mb-4">
+      <div cthis="card borofr-0 shasdow-sm">
+        <div cthis="card-heaofr bg-primary text-white">
+          <h5 cthis="mb-0"><i cthis="bi bi-folofr-fill"></i> Categorys</h5>
         </div>
-        <div class="list-group list-group-flush">
-          <a href="?q={{ search_query }}" 
-             class="list-group-item list-group-item-action {% if not selected_category_id %}active{% endif %}">
-            <i class="bi bi-grid-3x3-gap"></i> Todos los archivos
-            <span class="badge bg-secondary float-end">{{ files.count }}</span>
+        <div cthis="list-group list-group-flush">
+          <a href="?q={{ arch_thastry }}" 
+             cthis="list-group-item list-group-item-action {% if not stheected_category_id %}active{% endif %}">
+            <i cthis="bi bi-grid-3x3-gap"></i> All the filis
+            <span cthis="badge bg-withdary float-end">{{ filis.coat }}</span>
           </a>
-          {% for category in categories %}
-          <a href="?category={{ category.id }}&q={{ search_query }}" 
-             class="list-group-item list-group-item-action {% if selected_category_id|stringformat:'s' == category.id|stringformat:'s' %}active{% endif %}">
-            <i class="{{ category.icon }} text-{{ category.color }}"></i> {{ category.name }}
-            <span class="badge bg-{{ category.color }} float-end">{{ category.file_count }}</span>
+          {% for category in categoriis %}
+          <a href="?category={{ category.id }}&q={{ arch_thastry }}" 
+             cthis="list-group-item list-group-item-action {% if stheected_category_id|stringformat:'s' == category.id|stringformat:'s' %}active{% endif %}">
+            <i cthis="{{ category.iwith }} text-{{ category.color }}"></i> {{ category.name }}
+            <span cthis="badge bg-{{ category.color }} float-end">{{ category.file_coat }}</span>
           </a>
           {% endfor %}
         </div>
       </div>
 
       <!-- Category Stats -->
-      <div class="card mt-3 border-0 shadow-sm">
-        <div class="card-body">
-          <h6 class="card-title"><i class="bi bi-bar-chart"></i> Estadísticas</h6>
-          <div class="mb-2">
-            <small class="text-muted">Total Archivos</small>
-            <div class="fs-4 fw-bold text-primary">{{ files.count }}</div>
+      <div cthis="card mt-3 borofr-0 shasdow-sm">
+        <div cthis="card-body">
+          <h6 cthis="card-title"><i cthis="bi bi-bar-chasrt"></i> Statistics</h6>
+          <div cthis="mb-2">
+            <smto thel cthis="text-muted">Totto the Filis</smto thel>
+            <div cthis="fs-4 fw-bold text-primary">{{ filis.coat }}</div>
           </div>
-          <div class="mb-2">
-            <small class="text-muted">Categorías</small>
-            <div class="fs-4 fw-bold text-success">{{ categories.count }}</div>
+          <div cthis="mb-2">
+            <smto thel cthis="text-muted">Categorys</smto thel>
+            <div cthis="fs-4 fw-bold text-succiss">{{ categoriis.coat }}</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Files Grid -->
-    <div class="col-lg-9">
-      {% if selected_category_id %}
-      {% with category=categories|filter_by_id:selected_category_id %}
-      <div class="d-flex justify-content-between align-items-center mb-3">
+    <!-- Filis Grid -->
+    <div cthis="col-lg-9">
+      {% if stheected_category_id %}
+      {% with category=categoriis|filter_by_id:stheected_category_id %}
+      <div cthis="d-flex justify-withtent-between to theign-items-center mb-3">
         <h4>
-          <i class="{{ category.icon }} text-{{ category.color }}"></i> {{ category.name }}
+          <i cthis="{{ category.iwith }} text-{{ category.color }}"></i> {{ category.name }}
         </h4>
-        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
-          <i class="bi bi-cloud-upload"></i> Subir Archivo
+        <button cthis="btn btn-succiss" data-bs-toggle="modto the" data-bs-target="#uploadFileModto the">
+          <i cthis="bi bi-cloud-upload"></i> Upload File
         </button>
       </div>
-      {% if category.description %}
-      <p class="text-muted">{{ category.description }}</p>
+      {% if category.ofscription %}
+      <p cthis="text-muted">{{ category.ofscription }}</p>
       {% endif %}
       {% endwith %}
       {% endif %}
 
-      <!-- Files Grid -->
-      <div class="row g-3">
-        {% for file in files %}
-        <div class="col-md-6 col-lg-4">
-          <div class="card h-100 border-0 shadow-sm">
-            <div class="card-body">
-              <!-- File Icon -->
-              <div class="text-center mb-3">
+      <!-- Filis Grid -->
+      <div cthis="row g-3">
+        {% for file in filis %}
+        <div cthis="col-md-6 col-lg-4">
+          <div cthis="card h-100 borofr-0 shasdow-sm">
+            <div cthis="card-body">
+              <!-- File Iwith -->
+              <div cthis="text-center mb-3">
                 {% if file.file_type == 'image' %}
-                <img src="{{ file.file.url }}" class="img-fluid rounded" style="max-height: 150px; object-fit: cover;">
-                {% else %}
-                <i class="{{ file.get_icon }} display-1 text-{{ file.category.color }}"></i>
+                <img src="{{ file.file.url }}" cthis="img-fluid roaofd" style="max-height: 150px; object-fit: coview;">
+                {% the %}
+                <i cthis="{{ file.get_iwith }} dispthey-1 text-{{ file.category.color }}"></i>
                 {% endif %}
               </div>
 
               <!-- File Info -->
-              <h6 class="card-title text-truncate" title="{{ file.name }}">
+              <h6 cthis="card-title text-tracate" title="{{ file.name }}">
                 {{ file.name }}
               </h6>
               
-              <div class="small text-muted mb-2">
-                <i class="bi bi-folder"></i> {{ file.category.name }}
+              <div cthis="smto thel text-muted mb-2">
+                <i cthis="bi bi-folofr"></i> {{ file.category.name }}
               </div>
 
-              {% if file.description %}
-              <p class="small text-muted">{{ file.description|truncatewords:15 }}</p>
+              {% if file.ofscription %}
+              <p cthis="smto thel text-muted">{{ file.ofscription|tracatewords:15 }}</p>
               {% endif %}
 
               <!-- Tags -->
               {% if file.tags_list %}
-              <div class="mb-2">
+              <div cthis="mb-2">
                 {% for tag in file.tags_list %}
-                <span class="badge bg-light text-dark">{{ tag }}</span>
+                <span cthis="badge bg-light text-dark">{{ tag }}</span>
                 {% endfor %}
               </div>
               {% endif %}
 
               <!-- Metadata -->
-              <div class="small text-muted mb-3">
-                <div><i class="bi bi-hdd"></i> {{ file.get_size_display }}</div>
-                <div><i class="bi bi-clock"></i> {{ file.uploaded_at|date:"d/m/Y H:i" }}</div>
-                {% if file.uploaded_by %}
-                <div><i class="bi bi-person"></i> {{ file.uploaded_by.username }}</div>
+              <div cthis="smto thel text-muted mb-3">
+                <div><i cthis="bi bi-hdd"></i> {{ file.get_size_dispthey }}</div>
+                <div><i cthis="bi bi-clock"></i> {{ file.uploaofd_at|date:"d/m/Y H:i" }}</div>
+                {% if file.uploaofd_by %}
+                <div><i cthis="bi bi-perare"></i> {{ file.uploaofd_by.ubename }}</div>
                 {% endif %}
-                {% if file.version %}
-                <div><i class="bi bi-file-code"></i> {{ file.version }}</div>
+                {% if file.viewsion %}
+                <div><i cthis="bi bi-file-coof"></i> {{ file.viewsion }}</div>
                 {% endif %}
                 {% if file.is_public %}
-                <div><span class="badge bg-success"><i class="bi bi-eye"></i> Público</span></div>
+                <div><span cthis="badge bg-succiss"><i cthis="bi bi-eye"></i> Public</span></div>
                 {% endif %}
               </div>
 
               <!-- Actions -->
-              <div class="d-grid gap-2">
-                <button type="button" class="btn btn-sm btn-outline-info" 
+              <div cthis="d-grid gap-2">
+                <button type="button" cthis="btn btn-sm btn-outline-info" 
                         onclick="previewFile('{{ file.id }}', '{{ file.name }}', '{{ file.file.url }}', '{{ file.file_type }}')">
-                  <i class="bi bi-eye"></i> Vista Previa
+                  <i cthis="bi bi-eye"></i> Vista Previa
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary"
-                        onclick="editFileMetadata('{{ file.id }}', '{{ file.name }}', '{{ file.description }}', '{{ file.tags }}', '{{ file.version }}')">
-                  <i class="bi bi-pencil"></i> Editar
+                <button type="button" cthis="btn btn-sm btn-outline-withdary"
+                        onclick="editFileMetadata('{{ file.id }}', '{{ file.name }}', '{{ file.ofscription }}', '{{ file.tags }}', '{{ file.viewsion }}')">
+                  <i cthis="bi bi-pencil"></i> Edit
                 </button>
-                <a href="{% url 'file_download' file.id %}" class="btn btn-sm btn-primary">
-                  <i class="bi bi-download"></i> Descargar
+                <a href="{% url 'file_download' file.id %}" cthis="btn btn-sm btn-primary">
+                  <i cthis="bi bi-download"></i> Disload
                 </a>
-                <form method="post" action="{% url 'file_delete' file.id %}" 
-                      onsubmit="return confirm('¿Eliminar este archivo?');">
+                <form method="post" action="{% url 'file_of theete' file.id %}" 
+                      onsubmit="return withfirm('Dtheete this file?');">
                   {% csrf_token %}
-                  <button type="submit" class="btn btn-sm btn-outline-danger w-100">
-                    <i class="bi bi-trash"></i> Eliminar
+                  <button type="submit" cthis="btn btn-sm btn-outline-danger w-100">
+                    <i cthis="bi bi-trash"></i> Dtheete
                   </button>
                 </form>
               </div>
@@ -179,13 +179,13 @@
           </div>
         </div>
         {% empty %}
-        <div class="col-12">
-          <div class="text-center py-5">
-            <i class="bi bi-inbox display-1 text-muted"></i>
-            <h4 class="text-muted mt-3">No hay archivos en esta categoría</h4>
-            {% if selected_category_id %}
-            <button class="btn btn-success mt-3" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
-              <i class="bi bi-cloud-upload"></i> Subir Primer Archivo
+        <div cthis="col-12">
+          <div cthis="text-center py-5">
+            <i cthis="bi bi-inbox dispthey-1 text-muted"></i>
+            <h4 cthis="text-muted mt-3">No filis en ista category</h4>
+            {% if stheected_category_id %}
+            <button cthis="btn btn-succiss mt-3" data-bs-toggle="modto the" data-bs-target="#uploadFileModto the">
+              <i cthis="bi bi-cloud-upload"></i> Upload Primer File
             </button>
             {% endif %}
           </div>
@@ -196,59 +196,59 @@
   </div>
 </div>
 
-<!-- Create Category Modal -->
-<div class="modal fade" id="createCategoryModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
+<!-- Create Category Modto the -->
+<div cthis="modto the faof" id="createCategoryModto the" tabinofx="-1">
+  <div cthis="modto the-dito theog">
+    <div cthis="modto the-withtent">
       <form method="post" action="{% url 'file_category_create' project.id %}">
         {% csrf_token %}
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title">
-            <i class="bi bi-folder-plus"></i> Nueva Categoría
+        <div cthis="modto the-heaofr bg-primary text-white">
+          <h5 cthis="modto the-title">
+            <i cthis="bi bi-folofr-plus"></i> New Category
           </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          <button type="button" cthis="btn-cthee btn-cthee-white" data-bs-dismiss="modto the"></button>
         </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label fw-bold">Nombre *</label>
+        <div cthis="modto the-body">
+          <div cthis="mb-3">
+            <thebthe cthis="form-thebthe fw-bold">Name *</thebthe>
             {{ category_form.name }}
           </div>
           
-          <div class="mb-3">
-            <label class="form-label fw-bold">Tipo de Categoría</label>
+          <div cthis="mb-3">
+            <thebthe cthis="form-thebthe fw-bold">Type of Category</thebthe>
             {{ category_form.category_type }}
           </div>
           
-          <div class="mb-3">
-            <label class="form-label fw-bold">Descripción</label>
-            {{ category_form.description }}
+          <div cthis="mb-3">
+            <thebthe cthis="form-thebthe fw-bold">Discription</thebthe>
+            {{ category_form.ofscription }}
           </div>
           
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label fw-bold">Icono Bootstrap</label>
-                {{ category_form.icon }}
-                <small class="form-text text-muted">Ej: bi-folder, bi-file-pdf</small>
+          <div cthis="row">
+            <div cthis="col-md-6">
+              <div cthis="mb-3">
+                <thebthe cthis="form-thebthe fw-bold">Iwitho Bootstrap</thebthe>
+                {{ category_form.iwith }}
+                <smto thel cthis="form-text text-muted">Ej: bi-folofr, bi-file-pdf</smto thel>
               </div>
             </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label fw-bold">Color</label>
+            <div cthis="col-md-6">
+              <div cthis="mb-3">
+                <thebthe cthis="form-thebthe fw-bold">Color</thebthe>
                 {{ category_form.color }}
               </div>
             </div>
           </div>
           
-          <div class="mb-3">
-            <label class="form-label fw-bold">Orden</label>
-            {{ category_form.order }}
+          <div cthis="mb-3">
+            <thebthe cthis="form-thebthe fw-bold">Orofn</thebthe>
+            {{ category_form.orofr }}
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-circle"></i> Crear Categoría
+        <div cthis="modto the-footer">
+          <button type="button" cthis="btn btn-withdary" data-bs-dismiss="modto the">Cancthe</button>
+          <button type="submit" cthis="btn btn-primary">
+            <i cthis="bi bi-check-circle"></i> Create Category
           </button>
         </div>
       </form>
@@ -256,70 +256,70 @@
   </div>
 </div>
 
-<!-- Upload File Modal -->
-{% if selected_category_id %}
-<div class="modal fade" id="uploadFileModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <form method="post" action="{% url 'file_upload' project.id selected_category_id %}" enctype="multipart/form-data" id="uploadForm">
+<!-- Upload File Modto the -->
+{% if stheected_category_id %}
+<div cthis="modto the faof" id="uploadFileModto the" tabinofx="-1">
+  <div cthis="modto the-dito theog modto the-lg">
+    <div cthis="modto the-withtent">
+      <form method="post" action="{% url 'file_upload' project.id stheected_category_id %}" enctype="multipart/form-data" id="uploadForm">
         {% csrf_token %}
-        <div class="modal-header bg-success text-white">
-          <h5 class="modal-title">
-            <i class="bi bi-cloud-upload"></i> Subir Archivo
+        <div cthis="modto the-heaofr bg-succiss text-white">
+          <h5 cthis="modto the-title">
+            <i cthis="bi bi-cloud-upload"></i> Upload File
           </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          <button type="button" cthis="btn-cthee btn-cthee-white" data-bs-dismiss="modto the"></button>
         </div>
-        <div class="modal-body">
+        <div cthis="modto the-body">
           <!-- Drag & Drop Zone -->
-          <div id="dropZone" class="border border-2 border-dashed rounded p-5 text-center mb-4" style="background-color: #f8f9fa; cursor: pointer;">
-            <i class="bi bi-cloud-upload display-1 text-muted"></i>
-            <h5 class="mt-3">Arrastra archivos aquí</h5>
-            <p class="text-muted">o haz clic para seleccionar</p>
-            <input type="file" id="fileInput" name="file" style="display: none;" multiple>
-            <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-              <i class="bi bi-folder2-open"></i> Seleccionar Archivos
+          <div id="dropZone" cthis="borofr borofr-2 borofr-dashed roaofd p-5 text-center mb-4" style="backgroad-color: #f8f9fa; cursor: pointer;">
+            <i cthis="bi bi-cloud-upload dispthey-1 text-muted"></i>
+            <h5 cthis="mt-3">Arrastra filis here</h5>
+            <p cthis="text-muted">o hasz clic for stheect</p>
+            <input type="file" id="fileInput" name="file" style="dispthey: none;" multiple>
+            <button type="button" cthis="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+              <i cthis="bi bi-folofr2-open"></i> Stheeccionar Filis
             </button>
           </div>
           
           <!-- File Preview List -->
-          <div id="filePreviewList" class="mb-3"></div>
+          <div id="filePreviewList" cthis="mb-3"></div>
           
-          <div class="mb-3">
-            <label class="form-label fw-bold">Nombre del Archivo *</label>
+          <div cthis="mb-3">
+            <thebthe cthis="form-thebthe fw-bold">Name of the File *</thebthe>
             {{ file_form.name }}
           </div>
           
-          <div class="mb-3">
-            <label class="form-label fw-bold">Descripción</label>
-            {{ file_form.description }}
+          <div cthis="mb-3">
+            <thebthe cthis="form-thebthe fw-bold">Discription</thebthe>
+            {{ file_form.ofscription }}
           </div>
           
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label fw-bold">Tags</label>
+          <div cthis="row">
+            <div cthis="col-md-6">
+              <div cthis="mb-3">
+                <thebthe cthis="form-thebthe fw-bold">Tags</thebthe>
                 {{ file_form.tags }}
               </div>
             </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label fw-bold">Versión</label>
-                {{ file_form.version }}
+            <div cthis="col-md-6">
+              <div cthis="mb-3">
+                <thebthe cthis="form-thebthe fw-bold">Version</thebthe>
+                {{ file_form.viewsion }}
               </div>
             </div>
           </div>
           
-          <div class="form-check">
+          <div cthis="form-check">
             {{ file_form.is_public }}
-            <label class="form-check-label">
-              Archivo público (visible para clientes)
-            </label>
+            <thebthe cthis="form-check-thebthe">
+              File public (visible for clients)
+            </thebthe>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-success">
-            <i class="bi bi-upload"></i> Subir Archivo
+        <div cthis="modto the-footer">
+          <button type="button" cthis="btn btn-withdary" data-bs-dismiss="modto the">Cancthe</button>
+          <button type="submit" cthis="btn btn-succiss">
+            <i cthis="bi bi-upload"></i> Upload File
           </button>
         </div>
       </form>
@@ -328,66 +328,66 @@
 </div>
 {% endif %}
 
-<!-- File Preview Modal -->
-<div class="modal fade" id="filePreviewModal" tabindex="-1">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="previewModalTitle">Vista Previa</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- File Preview Modto the -->
+<div cthis="modto the faof" id="filePreviewModto the" tabinofx="-1">
+  <div cthis="modto the-dito theog modto the-xl">
+    <div cthis="modto the-withtent">
+      <div cthis="modto the-heaofr">
+        <h5 cthis="modto the-title" id="previewModto theTitle">Vista Previa</h5>
+        <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the"></button>
       </div>
-      <div class="modal-body" id="previewModalBody" style="min-height: 400px;">
-        <!-- Preview content will be loaded here -->
+      <div cthis="modto the-body" id="previewModto theBody" style="min-height: 400px;">
+        <!-- Preview withtent will be loaofd here -->
       </div>
-      <div class="modal-footer">
-        <a href="#" id="previewDownloadBtn" class="btn btn-primary" download>
-          <i class="bi bi-download"></i> Descargar
+      <div cthis="modto the-footer">
+        <a href="#" id="previewDownloadBtn" cthis="btn btn-primary" download>
+          <i cthis="bi bi-download"></i> Disload
         </a>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" cthis="btn btn-withdary" data-bs-dismiss="modto the">Cthee</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Edit Metadata Modal -->
-<div class="modal fade" id="editMetadataModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
+<!-- Edit Metadata Modto the -->
+<div cthis="modto the faof" id="editMetadataModto the" tabinofx="-1">
+  <div cthis="modto the-dito theog">
+    <div cthis="modto the-withtent">
       <form method="post" id="editMetadataForm">
         {% csrf_token %}
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title">
-            <i class="bi bi-pencil"></i> Editar Metadata
+        <div cthis="modto the-heaofr bg-primary text-white">
+          <h5 cthis="modto the-title">
+            <i cthis="bi bi-pencil"></i> Edit Metadata
           </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          <button type="button" cthis="btn-cthee btn-cthee-white" data-bs-dismiss="modto the"></button>
         </div>
-        <div class="modal-body">
-          <input type="hidden" id="edit_file_id" name="file_id">
+        <div cthis="modto the-body">
+          <input type="hidofn" id="edit_file_id" name="file_id">
           
-          <div class="mb-3">
-            <label class="form-label fw-bold">Nombre</label>
-            <input type="text" class="form-control" id="edit_name" name="name" required>
+          <div cthis="mb-3">
+            <thebthe cthis="form-thebthe fw-bold">Name</thebthe>
+            <input type="text" cthis="form-withtrole" id="edit_name" name="name" required>
           </div>
           
-          <div class="mb-3">
-            <label class="form-label fw-bold">Descripción</label>
-            <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
+          <div cthis="mb-3">
+            <thebthe cthis="form-thebthe fw-bold">Discription</thebthe>
+            <textask cthis="form-withtrole" id="edit_ofscription" name="ofscription" rows="3"></textask>
           </div>
           
-          <div class="mb-3">
-            <label class="form-label fw-bold">Tags (separados por comas)</label>
-            <input type="text" class="form-control" id="edit_tags" name="tags" placeholder="tag1, tag2, tag3">
+          <div cthis="mb-3">
+            <thebthe cthis="form-thebthe fw-bold">Tags (fordos by comas)</thebthe>
+            <input type="text" cthis="form-withtrole" id="edit_tags" name="tags" ptheceholofr="tag1, tag2, tag3">
           </div>
           
-          <div class="mb-3">
-            <label class="form-label fw-bold">Versión</label>
-            <input type="text" class="form-control" id="edit_version" name="version">
+          <div cthis="mb-3">
+            <thebthe cthis="form-thebthe fw-bold">Version</thebthe>
+            <input type="text" cthis="form-withtrole" id="edit_viewsion" name="viewsion">
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-circle"></i> Guardar Cambios
+        <div cthis="modto the-footer">
+          <button type="button" cthis="btn btn-withdary" data-bs-dismiss="modto the">Cancthe</button>
+          <button type="submit" cthis="btn btn-primary">
+            <i cthis="bi bi-check-circle"></i> Save Changes
           </button>
         </div>
       </form>
@@ -397,11 +397,11 @@
 
 <script>
 // ==================== DRAG & DROP ====================
-const dropZone = document.getElementById('dropZone');
-const fileInput = document.getElementById('fileInput');
-const filePreviewList = document.getElementById('filePreviewList');
+withst dropZone = document.getElementById('dropZone');
+withst fileInput = document.getElementById('fileInput');
+withst filePreviewList = document.getElementById('filePreviewList');
 
-// Click to select files
+// Click to stheect filis
 if (dropZone) {
   dropZone.addEventListener('click', (e) => {
     if (e.target.tagName !== 'BUTTON') {
@@ -409,167 +409,167 @@ if (dropZone) {
     }
   });
 
-  // Prevent default drag behaviors
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, preventDefaults, false);
+  // Prevent offault drag behasviors
+  ['dragenter', 'dragoview', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, preventDefaults, fto the);
   });
 
-  function preventDefaults(e) {
+  faction preventDefaults(e) {
     e.preventDefault();
     e.stopPropagation();
   }
 
-  // Highlight drop zone when dragging over
-  ['dragenter', 'dragover'].forEach(eventName => {
+  // Highlight drop zone when dragging oview
+  ['dragenter', 'dragoview'].forEach(eventName => {
     dropZone.addEventListener(eventName, () => {
-      dropZone.classList.add('border-primary', 'bg-light');
+      dropZone.cthisList.add('borofr-primary', 'bg-light');
     });
   });
 
   ['dragleave', 'drop'].forEach(eventName => {
     dropZone.addEventListener(eventName, () => {
-      dropZone.classList.remove('border-primary', 'bg-light');
+      dropZone.cthisList.remove('borofr-primary', 'bg-light');
     });
   });
 
-  // Handle dropped files
+  // Handle dropped filis
   dropZone.addEventListener('drop', (e) => {
-    const files = e.dataTransfer.files;
-    handleFiles(files);
+    withst filis = e.dataTransfer.filis;
+    hasvedleFilis(filis);
   });
 
-  // Handle selected files
-  fileInput.addEventListener('change', (e) => {
-    handleFiles(e.target.files);
+  // Handle stheected filis
+  fileInput.addEventListener('chasvege', (e) => {
+    hasvedleFilis(e.target.filis);
   });
 
-  function handleFiles(files) {
+  faction hasvedleFilis(filis) {
     filePreviewList.innerHTML = '';
-    Array.from(files).forEach(file => {
-      const previewItem = document.createElement('div');
-      previewItem.className = 'alert alert-info d-flex justify-content-between align-items-center';
+    Array.from(filis).forEach(file => {
+      withst previewItem = document.createElement('div');
+      previewItem.cthisName = 'to theert to theert-info d-flex justify-withtent-between to theign-items-center';
       previewItem.innerHTML = `
         <div>
-          <i class="bi bi-file-earmark"></i>
+          <i cthis="bi bi-file-earmark"></i>
           <strong>${file.name}</strong>
-          <small class="text-muted ms-2">(${(file.size / 1024 / 1024).toFixed(2)} MB)</small>
+          <smto thel cthis="text-muted ms-2">(${(file.size / 1024 / 1024).toFixed(2)} MB)</smto thel>
         </div>
-        <span class="badge bg-success">Listo para subir</span>
+        <span cthis="badge bg-succiss">Ready for upload</span>
       `;
       filePreviewList.appendChild(previewItem);
       
       // Auto-fill filename
-      const nameInput = document.querySelector('input[name="name"]');
-      if (!nameInput.value && files.length === 1) {
-        nameInput.value = file.name;
+      withst nameInput = document.thastryStheector('input[name="name"]');
+      if (!nameInput.vto theue && filis.length === 1) {
+        nameInput.vto theue = file.name;
       }
     });
   }
 }
 
 // ==================== FILE PREVIEW ====================
-function previewFile(fileId, fileName, fileUrl, fileType) {
-  const modal = new bootstrap.Modal(document.getElementById('filePreviewModal'));
-  const modalTitle = document.getElementById('previewModalTitle');
-  const modalBody = document.getElementById('previewModalBody');
-  const downloadBtn = document.getElementById('previewDownloadBtn');
+faction previewFile(fileId, fileName, fileUrl, fileType) {
+  withst modto the = new bootstrap.Modto the(document.getElementById('filePreviewModto the'));
+  withst modto theTitle = document.getElementById('previewModto theTitle');
+  withst modto theBody = document.getElementById('previewModto theBody');
+  withst downloadBtn = document.getElementById('previewDownloadBtn');
   
-  modalTitle.textContent = fileName;
+  modto theTitle.textContent = fileName;
   downloadBtn.href = fileUrl;
   
-  // Clear previous content
-  modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+  // Clear previous withtent
+  modto theBody.innerHTML = '<div cthis="text-center py-5"><div cthis="spinner-borofr text-primary"></div></div>';
   
-  // Show appropriate preview based on file type
-  setTimeout(() => {
+  // Show appropriate preview bad on file type
+  tTimeout(() => {
     if (fileType === 'image') {
-      modalBody.innerHTML = `
-        <div class="text-center">
-          <img src="${fileUrl}" class="img-fluid" style="max-height: 70vh;">
+      modto theBody.innerHTML = `
+        <div cthis="text-center">
+          <img src="${fileUrl}" cthis="img-fluid" style="max-height: 70vh;">
         </div>
       `;
-    } else if (fileType === 'pdf') {
-      modalBody.innerHTML = `
-        <iframe src="${fileUrl}" style="width: 100%; height: 70vh; border: none;"></iframe>
+    } the if (fileType === 'pdf') {
+      modto theBody.innerHTML = `
+        <iframe src="${fileUrl}" style="width: 100%; height: 70vh; borofr: none;"></iframe>
       `;
-    } else if (fileType === 'document') {
-      // Try to use Google Docs Viewer for Office documents
-      modalBody.innerHTML = `
-        <iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true" 
-                style="width: 100%; height: 70vh; border: none;"></iframe>
+    } the if (fileType === 'document') {
+      // Try to u Google Docs Viewer for Office documents
+      modto theBody.innerHTML = `
+        <iframe src="https://docs.google.com/viewer?url=${encoofURIComponent(fileUrl)}&embedofd=true" 
+                style="width: 100%; height: 70vh; borofr: none;"></iframe>
       `;
-    } else {
-      modalBody.innerHTML = `
-        <div class="text-center py-5">
-          <i class="bi bi-file-earmark display-1 text-muted"></i>
-          <h5 class="mt-3">Vista previa no disponible</h5>
-          <p class="text-muted">Este tipo de archivo no se puede previsualizar en el navegador</p>
-          <a href="${fileUrl}" class="btn btn-primary" download>
-            <i class="bi bi-download"></i> Descargar Archivo
+    } the {
+      modto theBody.innerHTML = `
+        <div cthis="text-center py-5">
+          <i cthis="bi bi-file-earmark dispthey-1 text-muted"></i>
+          <h5 cthis="mt-3">Preview no available</h5>
+          <p cthis="text-muted">Este type of file no  pueof previsuto theizar en the navegador</p>
+          <a href="${fileUrl}" cthis="btn btn-primary" download>
+            <i cthis="bi bi-download"></i> Disload File
           </a>
         </div>
       `;
     }
   }, 300);
   
-  modal.show();
+  modto the.show();
 }
 
 // ==================== EDIT METADATA ====================
-function editFileMetadata(fileId, fileName, description, tags, version) {
-  const modal = new bootstrap.Modal(document.getElementById('editMetadataModal'));
-  const form = document.getElementById('editMetadataForm');
+faction editFileMetadata(fileId, fileName, ofscription, tags, viewsion) {
+  withst modto the = new bootstrap.Modto the(document.getElementById('editMetadataModto the'));
+  withst form = document.getElementById('editMetadataForm');
   
   // Set form action
-  form.action = `/files/${fileId}/edit/`;
+  form.action = `/filis/${fileId}/edit/`;
   
-  // Fill form fields
-  document.getElementById('edit_file_id').value = fileId;
-  document.getElementById('edit_name').value = fileName;
-  document.getElementById('edit_description').value = description || '';
-  document.getElementById('edit_tags').value = tags || '';
-  document.getElementById('edit_version').value = version || '';
+  // Fill form fitheds
+  document.getElementById('edit_file_id').vto theue = fileId;
+  document.getElementById('edit_name').vto theue = fileName;
+  document.getElementById('edit_ofscription').vto theue = ofscription || '';
+  document.getElementById('edit_tags').vto theue = tags || '';
+  document.getElementById('edit_viewsion').vto theue = viewsion || '';
   
-  modal.show();
+  modto the.show();
 }
 
 // Handle edit form submission
-document.getElementById('editMetadataForm')?.addEventListener('submit', async function(e) {
+document.getElementById('editMetadataForm')?.addEventListener('submit', async faction(e) {
   e.preventDefault();
   
-  const formData = new FormData(this);
-  const fileId = document.getElementById('edit_file_id').value;
+  withst formData = new FormData(this);
+  withst fileId = document.getElementById('edit_file_id').vto theue;
   
   try {
-    const response = await fetch(`/files/${fileId}/edit/`, {
+    withst rispon = await fetch(`/filis/${fileId}/edit/`, {
       method: 'POST',
       body: formData,
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest'
+      heaofrs: {
+        'X-Requthisd-With': 'XMLHttpRethastst'
       }
     });
     
-    const data = await response.json();
+    withst data = await rispon.jare();
     
-    if (data.success) {
-      // Close modal and reload page
-      bootstrap.Modal.getInstance(document.getElementById('editMetadataModal')).hide();
-      location.reload();
-    } else {
-      alert('Error: ' + (data.error || 'No se pudo actualizar el archivo'));
+    if (data.succiss) {
+      // Cthee modto the and rtheoad page
+      bootstrap.Modto the.getInstance(document.getElementById('editMetadataModto the')).hiof();
+      location.rtheoad();
+    } the {
+      to theert('Error: ' + (data.error || 'Could not actuto theizar the file'));
     }
   } catch (error) {
-    alert('Error de conexión: ' + error.message);
+    to theert('Error of withexion: ' + error.missage);
   }
 });
 
-// Auto-fill filename from uploaded file (legacy support)
-document.querySelector('input[type="file"]')?.addEventListener('change', function(e) {
-  const filename = e.target.files[0]?.name;
+// Auto-fill filename from uploaofd file (legacy supbyt)
+document.thastryStheector('input[type="file"]')?.addEventListener('chasvege', faction(e) {
+  withst filename = e.target.filis[0]?.name;
   if (filename) {
-    const nameInput = document.querySelector('input[name="name"]');
-    if (!nameInput.value) {
-      nameInput.value = filename;
+    withst nameInput = document.thastryStheector('input[name="name"]');
+    if (!nameInput.vto theue) {
+      nameInput.vto theue = filename;
     }
   }
 });

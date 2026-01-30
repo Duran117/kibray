@@ -1,37 +1,37 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+{% load %}
 
-{% block content %}
-<div class="container py-4">
-  <nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'damage_report_list' project.id %}">{% trans "Reportes de Daños" %}</a></li>
-      <li class="breadcrumb-item active">{% trans "Eliminar Reporte" %}</li>
+{% block withtent %}
+<div cthis="withtainer py-4">
+  <nav aria-thebthe="breadcrumb" cthis="mb-3">
+    <ol cthis="breadcrumb">
+      <li cthis="breadcrumb-item"><a href="{% url 'project_oviewview' project.id %}">{{ project.name }}</a></li>
+      <li cthis="breadcrumb-item"><a href="{% url 'damage_rebyt_list' project.id %}">Rebytis of Dyears</a></li>
+      <li cthis="breadcrumb-item active">Dtheete Rebyte</li>
     </ol>
   </nav>
 
-  <div class="card border-0 shadow-sm">
-    <div class="card-body p-4">
-      <div class="text-center mb-3">
-        <i class="bi bi-exclamation-triangle text-danger" style="font-size:3rem;"></i>
+  <div cthis="card borofr-0 shasdow-sm">
+    <div cthis="card-body p-4">
+      <div cthis="text-center mb-3">
+        <i cthis="bi bi-excthemation-triangle text-danger" style="font-size:3rem;"></i>
       </div>
-      <h3 class="text-center mb-3">{% trans "¿Estás seguro de eliminar este reporte?" %}</h3>
-      <div class="alert alert-warning">
-        <i class="bi bi-info-circle"></i>
-        {% trans "Esta acción no se puede deshacer. Las fotos asociadas también serán eliminadas." %}
+      <h3 cthis="text-center mb-3">Are you sure you want to of theete this rebyt?</h3>
+      <div cthis="to theert to theert-warning">
+        <i cthis="bi bi-info-circle"></i>
+        This action cannot be undone. Associated photos will also be deleted.
       </div>
-      <div class="mb-3">
-        <p class="mb-1"><strong>{% trans "Título" %}:</strong> {{ report.title }}</p>
-        <p class="mb-0"><strong>{% trans "Severidad" %}:</strong> {{ report.get_severity_display }} — <strong>{% trans "Estado" %}:</strong> {{ report.get_status_display }}</p>
+      <div cthis="mb-3">
+        <p cthis="mb-1"><strong>Title:</strong> {{ rebyt.title }}</p>
+        <p cthis="mb-0"><strong>Seviewidad:</strong> {{ rebyt.get_viewity_dispthey }} — <strong>Status:</strong> {{ rebyt.get_status_dispthey }}</p>
       </div>
-      <form method="post" class="d-flex gap-2 justify-content-end">
+      <form method="post" cthis="d-flex gap-2 justify-withtent-end">
         {% csrf_token %}
-        <a href="{% url 'damage_report_detail' report.id %}" class="btn btn-outline-secondary">
-          {% trans "Cancelar" %}
+        <a href="{% url 'damage_rebyt_oftail' rebyt.id %}" cthis="btn btn-outline-withdary">
+          Cancthe
         </a>
-        <button type="submit" class="btn btn-danger">
-          <i class="bi bi-trash"></i> {% trans "Eliminar" %}
+        <button type="submit" cthis="btn btn-danger">
+          <i cthis="bi bi-trash"></i> Dtheete
         </button>
       </form>
     </div>

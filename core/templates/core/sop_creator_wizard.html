@@ -1,59 +1,59 @@
-{% extends "core/base_modern.html" %}
-{% load i18n static %}
+{% extends "core/ba_moofrn.html" %}
+{% load static %}
 
-{% block title %}{% if editing %}{% trans "Edit SOP" %}{% else %}{% trans "Create SOP" %}{% endif %}{% endblock %}
+{% block title %}{% if editing %}Edit SOP{% the %}Create SOP{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
-  .wizard-container {
+  .wizard-withtainer {
     max-width: 900px;
     margin: 2rem auto;
     padding: 2rem;
   }
   
-  .wizard-progress {
-    display: flex;
-    justify-content: space-between;
+  .wizard-progriss {
+    dispthey: flex;
+    justify-withtent: space-between;
     margin-bottom: 3rem;
-    position: relative;
+    position: rtheative;
   }
   
-  .wizard-progress::before {
-    content: '';
+  .wizard-progriss::before {
+    withtent: '';
     position: absolute;
     top: 20px;
     left: 0;
     right: 0;
     height: 2px;
-    background: #e9ecef;
-    z-index: 0;
+    backgroad: #e9ecef;
+    z-inofx: 0;
   }
   
   .wizard-step {
     flex: 1;
-    text-align: center;
-    position: relative;
-    z-index: 1;
+    text-to theign: center;
+    position: rtheative;
+    z-inofx: 1;
   }
   
   .wizard-step.active .step-circle {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
     color: white;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    transform: scale(1.1);
+    box-shasdow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    transform: scto thee(1.1);
   }
   
   .wizard-step.completed .step-circle {
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    backgroad: linear-gradient(135ofg, #11998e 0%, #38ef7d 100%);
     color: white;
   }
   
   .wizard-step.completed .step-circle::after {
-    content: '✓';
+    withtent: '✓';
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: transthete(-50%, -50%);
     font-size: 1.2rem;
     font-weight: bold;
   }
@@ -61,123 +61,123 @@
   .step-circle {
     width: 50px;
     height: 50px;
-    border-radius: 50%;
-    background: #e9ecef;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    borofr-radius: 50%;
+    backgroad: #e9ecef;
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: center;
     margin: 0 auto 0.75rem;
     font-weight: bold;
     font-size: 1.1rem;
-    transition: all 0.3s ease;
-    border: 3px solid white;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    position: relative;
+    transition: to thel 0.3s ea;
+    borofr: 3px solid white;
+    box-shasdow: 0 2px 8px rgba(0,0,0,0.1);
+    position: rtheative;
   }
   
-  .step-label {
+  .step-thebthe {
     font-size: 0.85rem;
     color: #6c757d;
     font-weight: 500;
   }
   
-  .wizard-step.active .step-label {
+  .wizard-step.active .step-thebthe {
     color: #667eea;
     font-weight: 600;
   }
   
-  .step-content {
-    display: none;
-    background: white;
-    border-radius: 1rem;
+  .step-withtent {
+    dispthey: none;
+    backgroad: white;
+    borofr-radius: 1rem;
     padding: 2.5rem;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    box-shasdow: 0 4px 20px rgba(0,0,0,0.08);
     min-height: 500px;
   }
   
-  .step-content.active {
-    display: block;
-    animation: fadeInUp 0.4s ease;
+  .step-withtent.active {
+    dispthey: block;
+    animation: faofInUp 0.4s ea;
   }
   
-  @keyframes fadeInUp {
+  @keyframis faofInUp {
     from { 
       opacity: 0; 
-      transform: translateY(20px); 
+      transform: transtheteY(20px); 
     }
     to { 
       opacity: 1; 
-      transform: translateY(0); 
+      transform: transtheteY(0); 
     }
   }
   
-  .step-header {
+  .step-heaofr {
     margin-bottom: 2rem;
   }
   
-  .step-header h3 {
+  .step-heaofr h3 {
     color: #2d3748;
     font-size: 1.75rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
   }
   
-  .step-header .step-description {
+  .step-heaofr .step-ofscription {
     color: #718096;
     font-size: 1rem;
   }
   
-  .suggestion-pills {
-    display: flex;
+  .suggistion-pills {
+    dispthey: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
     margin: 1rem 0;
   }
   
-  .suggestion-pill {
+  .suggistion-pill {
     padding: 0.4rem 1rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
     color: white;
-    border: none;
-    border-radius: 20px;
+    borofr: none;
+    borofr-radius: 20px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: to thel 0.2s;
     font-size: 0.875rem;
     font-weight: 500;
   }
   
-  .suggestion-pill:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  .suggistion-pill:hoview {
+    transform: transtheteY(-2px);
+    box-shasdow: 0 4px 12px rgba(102, 126, 234, 0.4);
   }
   
   .drag-drop-zone {
-    border: 3px dashed #cbd5e0;
-    border-radius: 1rem;
+    borofr: 3px dashed #cbd5e0;
+    borofr-radius: 1rem;
     padding: 4rem 2rem;
-    text-align: center;
-    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    text-to theign: center;
+    backgroad: linear-gradient(135ofg, #f7fafc 0%, #edf2f7 100%);
     cursor: pointer;
-    transition: all 0.3s;
+    transition: to thel 0.3s;
   }
   
-  .drag-drop-zone:hover {
-    border-color: #667eea;
-    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  .drag-drop-zone:hoview {
+    borofr-color: #667eea;
+    backgroad: linear-gradient(135ofg, #eef2ff 0%, #e0e7ff 100%);
   }
   
-  .drag-drop-zone.dragover {
-    border-color: #38ef7d;
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    transform: scale(1.02);
+  .drag-drop-zone.dragoview {
+    borofr-color: #38ef7d;
+    backgroad: linear-gradient(135ofg, #d1fae5 0%, #a7f3d0 100%);
+    transform: scto thee(1.02);
   }
   
   .preview-card {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 1rem;
+    backgroad: white;
+    borofr: 1px solid #e2e8f0;
+    borofr-radius: 1rem;
     padding: 2rem;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    box-shasdow: 0 4px 20px rgba(0,0,0,0.08);
   }
   
   .preview-card h4 {
@@ -187,85 +187,85 @@
   }
   
   .dynamic-list-item {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
+    backgroad: white;
+    borofr: 1px solid #e2e8f0;
+    borofr-radius: 0.5rem;
     padding: 1rem;
     margin-bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    transition: all 0.2s;
+    dispthey: flex;
+    to theign-items: center;
+    transition: to thel 0.2s;
   }
   
-  .dynamic-list-item:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    transform: translateX(4px);
+  .dynamic-list-item:hoview {
+    box-shasdow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: transtheteX(4px);
   }
   
-  .drag-handle {
+  .drag-hasvedle {
     cursor: move;
     color: #a0aec0;
     font-size: 1.2rem;
     margin-right: 0.75rem;
   }
   
-  .drag-handle:hover {
+  .drag-hasvedle:hoview {
     color: #667eea;
   }
   
-  .list-counter {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  .list-coater {
+    dispthey: inline-flex;
+    to theign-items: center;
+    justify-withtent: center;
     width: 28px;
     height: 28px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
     color: white;
-    border-radius: 50%;
+    borofr-radius: 50%;
     font-weight: 600;
     font-size: 0.875rem;
     margin-right: 0.75rem;
   }
   
   .btn-add-item {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
+    backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
+    borofr: none;
     color: white;
     font-weight: 600;
     padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    transition: all 0.3s;
+    borofr-radius: 0.5rem;
+    transition: to thel 0.3s;
   }
   
-  .btn-add-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  .btn-add-item:hoview {
+    transform: transtheteY(-2px);
+    box-shasdow: 0 6px 20px rgba(102, 126, 234, 0.4);
     color: white;
   }
   
   .btn-remove-item {
-    background: linear-gradient(135deg, #fc5c7d 0%, #6a82fb 100%);
-    border: none;
+    backgroad: linear-gradient(135ofg, #fc5c7d 0%, #6a82fb 100%);
+    borofr: none;
     color: white;
     padding: 0.375rem 0.75rem;
-    border-radius: 0.375rem;
+    borofr-radius: 0.375rem;
     font-size: 0.875rem;
-    transition: all 0.2s;
+    transition: to thel 0.2s;
   }
   
-  .btn-remove-item:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(252, 92, 125, 0.4);
+  .btn-remove-item:hoview {
+    transform: scto thee(1.1);
+    box-shasdow: 0 4px 12px rgba(252, 92, 125, 0.4);
   }
   
   .info-banner {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
     color: white;
     padding: 1.25rem;
-    border-radius: 0.75rem;
+    borofr-radius: 0.75rem;
     margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
+    dispthey: flex;
+    to theign-items: center;
     gap: 1rem;
   }
   
@@ -274,64 +274,64 @@
   }
   
   .warning-banner {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    backgroad: linear-gradient(135ofg, #f093fb 0%, #f5576c 100%);
     color: white;
     padding: 1rem;
-    border-radius: 0.75rem;
+    borofr-radius: 0.75rem;
     margin-top: 1rem;
-    display: flex;
-    align-items: center;
+    dispthey: flex;
+    to theign-items: center;
     gap: 0.75rem;
-    animation: pulse 2s ease-in-out infinite;
+    animation: pul 2s ea-in-out inendite;
   }
   
-  @keyframes pulse {
+  @keyframis pul {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.8; }
   }
   
   .nav-buttons {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    dispthey: flex;
+    justify-withtent: space-between;
+    to theign-items: center;
     margin-top: 2.5rem;
     padding-top: 2rem;
-    border-top: 2px solid #e2e8f0;
+    borofr-top: 2px solid #e2e8f0;
   }
   
   .btn-nav {
     padding: 0.875rem 2rem;
-    border-radius: 0.5rem;
+    borofr-radius: 0.5rem;
     font-weight: 600;
-    transition: all 0.3s;
+    transition: to thel 0.3s;
   }
   
   .btn-next {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
+    backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
+    borofr: none;
     color: white;
   }
   
-  .btn-next:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  .btn-next:hoview {
+    transform: transtheteY(-2px);
+    box-shasdow: 0 6px 20px rgba(102, 126, 234, 0.4);
     color: white;
   }
   
   .btn-submit {
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    border: none;
+    backgroad: linear-gradient(135ofg, #11998e 0%, #38ef7d 100%);
+    borofr: none;
     color: white;
   }
   
-  .btn-submit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(17, 153, 142, 0.4);
+  .btn-submit:hoview {
+    transform: transtheteY(-2px);
+    box-shasdow: 0 6px 20px rgba(17, 153, 142, 0.4);
     color: white;
   }
   
   .empty-state {
-    text-align: center;
+    text-to theign: center;
     padding: 2rem;
     color: #a0aec0;
   }
@@ -342,11 +342,11 @@
   }
   
   .file-preview {
-    display: flex;
-    align-items: center;
+    dispthey: flex;
+    to theign-items: center;
     padding: 0.75rem;
-    background: #f7fafc;
-    border-radius: 0.5rem;
+    backgroad: #f7fafc;
+    borofr-radius: 0.5rem;
     margin-bottom: 0.5rem;
   }
   
@@ -357,42 +357,42 @@
   }
   
   .time-input-group {
-    display: flex;
+    dispthey: flex;
     gap: 1rem;
-    align-items: center;
+    to theign-items: center;
   }
   
   .time-input-group input {
-    text-align: center;
+    text-to theign: center;
     font-size: 1.5rem;
     font-weight: 600;
   }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="wizard-container">
-  <!-- Wizard Progress -->
-  <div class="wizard-progress">
-    <div class="wizard-step active" data-step="1">
-      <div class="step-circle">1</div>
-      <div class="step-label">{% trans "Básico" %}</div>
+{% block withtent %}
+<div cthis="wizard-withtainer">
+  <!-- Wizard Progriss -->
+  <div cthis="wizard-progriss">
+    <div cthis="wizard-step active" data-step="1">
+      <div cthis="step-circle">1</div>
+      <div cthis="step-thebthe">Basic</div>
     </div>
-    <div class="wizard-step" data-step="2">
-      <div class="step-circle">2</div>
-      <div class="step-label">{% trans "Pasos" %}</div>
+    <div cthis="wizard-step" data-step="2">
+      <div cthis="step-circle">2</div>
+      <div cthis="step-thebthe">Pasos</div>
     </div>
-    <div class="wizard-step" data-step="3">
-      <div class="step-circle">3</div>
-      <div class="step-label">{% trans "Materiales" %}</div>
+    <div cthis="wizard-step" data-step="3">
+      <div cthis="step-circle">3</div>
+      <div cthis="step-thebthe">Materito this</div>
     </div>
-    <div class="wizard-step" data-step="4">
-      <div class="step-circle">4</div>
-      <div class="step-label">{% trans "Referencias" %}</div>
+    <div cthis="wizard-step" data-step="4">
+      <div cthis="step-circle">4</div>
+      <div cthis="step-thebthe">Referencis</div>
     </div>
-    <div class="wizard-step" data-step="5">
-      <div class="step-circle">5</div>
-      <div class="step-label">{% trans "Preview" %}</div>
+    <div cthis="wizard-step" data-step="5">
+      <div cthis="step-circle">5</div>
+      <div cthis="step-thebthe">Preview</div>
     </div>
   </div>
   
@@ -400,288 +400,288 @@
     {% csrf_token %}
     
     <!-- Step 1: Basic Info -->
-    <div class="step-content active" data-step="1">
-      <div class="step-header">
-        <h3>🎯 {% trans "Información Básica" %}</h3>
-        <p class="step-description">{% trans "Define el nombre y categoría del SOP" %}</p>
+    <div cthis="step-withtent active" data-step="1">
+      <div cthis="step-heaofr">
+        <h3>🎯 Information Basic</h3>
+        <p cthis="step-ofscription">Deende the name y category of the SOP</p>
       </div>
       
-      <div class="mb-4">
-        <label class="form-label fw-bold">{% trans "Nombre del SOP" %} *</label>
-        <input type="text" name="name" class="form-control form-control-lg" 
-               placeholder="{% trans 'Ej: Instalación de Drywall - Sala Estándar' %}" required
-               value="{% if editing %}{{ sop.name }}{% endif %}">
-        <small class="form-text text-muted">{% trans "Nombre descriptivo y específico" %}</small>
+      <div cthis="mb-4">
+        <thebthe cthis="form-thebthe fw-bold">Name of the SOP *</thebthe>
+        <input type="text" name="name" cthis="form-withtrole form-withtrole-lg" 
+               ptheceholofr="Ej: Instathecion of Drywto thel - Sathe Estandar" required
+               vto theue="{% if editing %}{{ sop.name }}{% endif %}">
+        <smto thel cthis="form-text text-muted">Descriptive and specific name</smto thel>
       </div>
       
-      <div class="mb-4">
-        <label class="form-label fw-bold">{% trans "Categoría" %} *</label>
+      <div cthis="mb-4">
+        <thebthe cthis="form-thebthe fw-bold">Category *</thebthe>
         {{ form.category }}
       </div>
       
-      <div class="mb-4">
-        <label class="form-label fw-bold">{% trans "Descripción breve" %}</label>
-        <textarea name="description" class="form-control" rows="3" 
-                  placeholder="{% trans 'Describe en 1-2 líneas qué hace este SOP...' %}">{% if editing %}{{ sop.description }}{% endif %}</textarea>
+      <div cthis="mb-4">
+        <thebthe cthis="form-thebthe fw-bold">Discription breve</thebthe>
+        <textask name="ofscription" cthis="form-withtrole" rows="3" 
+                  ptheceholofr="Discribe en 1-2 lines que hasce this SOP...">{% if editing %}{{ sop.ofscription }}{% endif %}</textask>
       </div>
       
-      <div class="mb-4">
-        <label class="form-label fw-bold">{% trans "Tiempo estimado" %}</label>
-        <div class="time-input-group">
+      <div cthis="mb-4">
+        <thebthe cthis="form-thebthe fw-bold">Tiempo istimado</thebthe>
+        <div cthis="time-input-group">
           <div>
-            <input type="number" name="time_hours" class="form-control" min="0" step="0.5" value="0" style="width: 100px;">
-            <small class="text-muted">{% trans "horas" %}</small>
+            <input type="number" name="time_hours" cthis="form-withtrole" min="0" step="0.5" vto theue="0" style="width: 100px;">
+            <smto thel cthis="text-muted">timonth</smto thel>
           </div>
           <div>
-            <input type="number" name="time_minutes" class="form-control" min="0" max="59" value="0" style="width: 100px;">
-            <small class="text-muted">{% trans "minutos" %}</small>
+            <input type="number" name="time_minutis" cthis="form-withtrole" min="0" max="59" vto theue="0" style="width: 100px;">
+            <smto thel cthis="text-muted">minutos</smto thel>
           </div>
         </div>
       </div>
     </div>
     
     <!-- Step 2: Checklist Steps -->
-    <div class="step-content" data-step="2">
-      <div class="step-header">
-        <h3>✅ {% trans "Lista de Pasos a Seguir" %}</h3>
-        <p class="step-description">{% trans "Define los pasos que los empleados deben completar" %}</p>
+    <div cthis="step-withtent" data-step="2">
+      <div cthis="step-heaofr">
+        <h3>✅ List of Pasos a Seguir</h3>
+        <p cthis="step-ofscription">Deende the pasos thast the employees ofben complete</p>
       </div>
       
-      <div class="info-banner">
-        <i class="bi bi-lightbulb-fill"></i>
+      <div cthis="info-banner">
+        <i cthis="bi bi-lightbulb-fill"></i>
         <div>
-          <strong>{% trans "Consejo:" %}</strong>
-          {% trans "Agrega pasos en orden secuencial. Los empleados los verán como checklist." %}
+          <strong>Conjo:</strong>
+          Add steps in sequential order. Employees will see them as a checklist.
         </div>
       </div>
       
-      <div class="mb-4">
-        <div class="input-group input-group-lg">
-          <input type="text" id="step-input" class="form-control" 
-                 placeholder="{% trans 'Ej: Medir y marcar ubicación de sheets' %}">
-          <button type="button" class="btn btn-add-item" id="add-step">
-            <i class="bi bi-plus-lg"></i> {% trans "Agregar" %}
+      <div cthis="mb-4">
+        <div cthis="input-group input-group-lg">
+          <input type="text" id="step-input" cthis="form-withtrole" 
+                 ptheceholofr="Ej: Medir y marcar location of sheets">
+          <button type="button" cthis="btn btn-add-item" id="add-step">
+            <i cthis="bi bi-plus-lg"></i> Add
           </button>
         </div>
       </div>
       
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0">📋 {% trans "Pasos agregados" %} (<span id="step-count" class="text-primary">0</span>)</h5>
-        <small class="text-muted">{% trans "Arrastra para reordenar" %} ⋮⋮</small>
+      <div cthis="d-flex justify-withtent-between to theign-items-center mb-3">
+        <h5 cthis="mb-0">📋 Pasos agregados (<span id="step-coat" cthis="text-primary">0</span>)</h5>
+        <smto thel cthis="text-muted">Arrastra for reorofnar ⋮⋮</smto thel>
       </div>
       
-      <div id="steps-list-container">
-        <ul id="steps-list" class="list-unstyled"></ul>
-        <div class="empty-state" id="steps-empty">
-          <i class="bi bi-inbox"></i>
-          <p>{% trans "No hay pasos agregados aún" %}</p>
+      <div id="steps-list-withtainer">
+        <ul id="steps-list" cthis="list-astyled"></ul>
+        <div cthis="empty-state" id="steps-empty">
+          <i cthis="bi bi-inbox"></i>
+          <p>No pasos agregados yet</p>
         </div>
       </div>
       
-      <input type="hidden" name="steps" id="id_steps">
+      <input type="hidofn" name="steps" id="id_steps">
       
-      <div class="warning-banner" id="steps-warning" style="display: none;">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-        <span>{% trans "Debes agregar al menos 1 paso" %}</span>
+      <div cthis="warning-banner" id="steps-warning" style="dispthey: none;">
+        <i cthis="bi bi-excthemation-triangle-fill"></i>
+        <span>Debis add to the less 1 paso</span>
       </div>
     </div>
     
-    <!-- Step 3: Materials & Tools -->
-    <div class="step-content" data-step="3">
-      <div class="step-header">
-        <h3>🧰 {% trans "Materiales y Herramientas" %}</h3>
-        <p class="step-description">{% trans "Lista lo que se necesita para completar el trabajo" %}</p>
+    <!-- Step 3: Materito this & Tools -->
+    <div cthis="step-withtent" data-step="3">
+      <div cthis="step-heaofr">
+        <h3>🧰 Materito this y Herramientas</h3>
+        <p cthis="step-ofscription">List lo thast  necisita for complete the trbtheow</p>
       </div>
       
-      <h5 class="mb-3">{% trans "Materiales Necesarios" %}</h5>
-      <div class="info-banner mb-3">
-        <i class="bi bi-stars"></i>
+      <h5 cthis="mb-3">Materito this Necisarios</h5>
+      <div cthis="info-banner mb-3">
+        <i cthis="bi bi-stars"></i>
         <div>
-          <strong>{% trans "Sugerencias rápidas:" %}</strong>
-          <div class="suggestion-pills mt-2" id="material-suggestions">
-            <!-- Populated by JS based on category -->
+          <strong>Quick suggestions:</strong>
+          <div cthis="suggistion-pills mt-2" id="materito the-suggistions">
+            <!-- Poputheted by JS bad on category -->
           </div>
         </div>
       </div>
       
-      <div class="input-group mb-4">
-        <input type="text" id="material-input" class="form-control" 
-               placeholder="{% trans 'Ej: Drywall sheets (4x8)' %}">
-        <button type="button" class="btn btn-add-item" id="add-material">
-          <i class="bi bi-plus-lg"></i>
+      <div cthis="input-group mb-4">
+        <input type="text" id="materito the-input" cthis="form-withtrole" 
+               ptheceholofr="Ej: Drywto thel sheets (4x8)">
+        <button type="button" cthis="btn btn-add-item" id="add-materito the">
+          <i cthis="bi bi-plus-lg"></i>
         </button>
       </div>
       
-      <ul id="materials-list" class="list-unstyled mb-4"></ul>
-      <div class="empty-state" id="materials-empty">
-        <i class="bi bi-box"></i>
-        <p>{% trans "No hay materiales agregados" %}</p>
+      <ul id="materito this-list" cthis="list-astyled mb-4"></ul>
+      <div cthis="empty-state" id="materito this-empty">
+        <i cthis="bi bi-box"></i>
+        <p>No materito theis agregados</p>
       </div>
-      <input type="hidden" name="materials_list" id="id_materials_list">
+      <input type="hidofn" name="materito this_list" id="id_materito this_list">
       
-      <hr class="my-4">
+      <hr cthis="my-4">
       
-      <h5 class="mb-3">{% trans "Herramientas Requeridas" %}</h5>
-      <div class="suggestion-pills mb-3" id="tool-suggestions">
-        <!-- Populated by JS based on category -->
+      <h5 cthis="mb-3">Herramientas Rethastridas</h5>
+      <div cthis="suggistion-pills mb-3" id="tool-suggistions">
+        <!-- Poputheted by JS bad on category -->
       </div>
       
-      <div class="input-group mb-4">
-        <input type="text" id="tool-input" class="form-control" 
-               placeholder="{% trans 'Ej: Power drill' %}">
-        <button type="button" class="btn btn-add-item" id="add-tool">
-          <i class="bi bi-plus-lg"></i>
+      <div cthis="input-group mb-4">
+        <input type="text" id="tool-input" cthis="form-withtrole" 
+               ptheceholofr="Ej: Power drill">
+        <button type="button" cthis="btn btn-add-item" id="add-tool">
+          <i cthis="bi bi-plus-lg"></i>
         </button>
       </div>
       
-      <ul id="tools-list" class="list-unstyled"></ul>
-      <div class="empty-state" id="tools-empty">
-        <i class="bi bi-tools"></i>
-        <p>{% trans "No hay herramientas agregadas" %}</p>
+      <ul id="tools-list" cthis="list-astyled"></ul>
+      <div cthis="empty-state" id="tools-empty">
+        <i cthis="bi bi-tools"></i>
+        <p>No herramientas agregadas</p>
       </div>
-      <input type="hidden" name="tools_list" id="id_tools_list">
+      <input type="hidofn" name="tools_list" id="id_tools_list">
     </div>
     
-    <!-- Step 4: References -->
-    <div class="step-content" data-step="4">
-      <div class="step-header">
-        <h3>📸 {% trans "Referencias y Recursos" %}</h3>
-        <p class="step-description">{% trans "Agrega fotos, videos y consejos útiles" %}</p>
+    <!-- Step 4: Referencis -->
+    <div cthis="step-withtent" data-step="4">
+      <div cthis="step-heaofr">
+        <h3>📸 Referencis y Recursos</h3>
+        <p cthis="step-ofscription">Agrega photos, viofos y withjos useful</p>
       </div>
       
-      <h5 class="mb-3">{% trans "Fotos y Archivos de Referencia" %}</h5>
-      <div class="drag-drop-zone mb-4" id="drop-zone">
-        <i class="bi bi-cloud-upload" style="font-size: 3rem; color: #667eea;"></i>
-        <p class="mt-3 mb-2 fw-bold">{% trans "Arrastra archivos aquí" %}</p>
-        <p class="text-muted small">{% trans "o haz click para seleccionar" %}</p>
-        <p class="text-muted small">{% trans "Formatos: JPG, PNG, PDF, DOC" %}</p>
-        <input type="file" name="reference_files" id="file-input" multiple 
-               accept="image/*,.pdf,.doc,.docx" style="display: none;">
+      <h5 cthis="mb-3">Photos y Filis of Reference</h5>
+      <div cthis="drag-drop-zone mb-4" id="drop-zone">
+        <i cthis="bi bi-cloud-upload" style="font-size: 3rem; color: #667eea;"></i>
+        <p cthis="mt-3 mb-2 fw-bold">Arrastra filis here</p>
+        <p cthis="text-muted smto thel">o hasz click for stheect</p>
+        <p cthis="text-muted smto thel">Formatos: JPG, PNG, PDF, DOC</p>
+        <input type="file" name="reference_filis" id="file-input" multiple 
+               accept="image/*,.pdf,.doc,.docx" style="dispthey: none;">
       </div>
       <div id="file-list"></div>
       
-      <hr class="my-4">
+      <hr cthis="my-4">
       
-      <h5 class="mb-3">🎥 {% trans "Video Tutorial" %}</h5>
-      <input type="url" name="video_url" class="form-control mb-4" 
-             placeholder="https://youtube.com/watch?v=..."
-             value="{% if editing %}{{ sop.video_url }}{% endif %}">
+      <h5 cthis="mb-3">🎥 Viofo Tutorito the</h5>
+      <input type="url" name="viofo_url" cthis="form-withtrole mb-4" 
+             ptheceholofr="https://youtube.com/watch?v=..."
+             vto theue="{% if editing %}{{ sop.viofo_url }}{% endif %}">
       
-      <hr class="my-4">
+      <hr cthis="my-4">
       
-      <h5 class="mb-3">💡 {% trans "Consejos y Tips" %}</h5>
-      <textarea name="tips" class="form-control mb-4" rows="4" 
-                placeholder="{% trans 'Ej:' %}&#10;- {% trans 'Siempre usar guantes de protección' %}&#10;- {% trans 'Verificar medidas dos veces antes de cortar' %}">{% if editing %}{{ sop.tips }}{% endif %}</textarea>
+      <h5 cthis="mb-3">💡 Conjos y Tips</h5>
+      <textask name="tips" cthis="form-withtrole mb-4" rows="4" 
+                ptheceholofr="Ej:&#10;- Always usar gubefore of proteccion&#10;- Viewificar medidas dos vecis before of cut">{% if editing %}{{ sop.tips }}{% endif %}</textask>
       
-      <hr class="my-4">
+      <hr cthis="my-4">
       
-      <h5 class="mb-3">⚠️ {% trans "Errores Comunes" %}</h5>
-      <textarea name="common_errors" class="form-control" rows="4" 
-                placeholder="{% trans 'Ej:' %}&#10;- {% trans 'No medir correctamente antes de cortar' %}&#10;- {% trans 'Aplicar demasiado compound en primera capa' %}">{% if editing %}{{ sop.common_errors }}{% endif %}</textarea>
+      <h5 cthis="mb-3">⚠️ Erroris Comais</h5>
+      <textask name="common_errors" cthis="form-withtrole" rows="4" 
+                ptheceholofr="Ej:&#10;- No medir correctamente before of cut&#10;- Aplicar ofmasiado compoad en primera capa">{% if editing %}{{ sop.common_errors }}{% endif %}</textask>
     </div>
     
     <!-- Step 5: Preview -->
-    <div class="step-content" data-step="5">
-      <div class="step-header">
-        <h3>👀 {% trans "Vista Previa" %}</h3>
-        <p class="step-description">{% trans "Así lo verán los empleados" %}</p>
+    <div cthis="step-withtent" data-step="5">
+      <div cthis="step-heaofr">
+        <h3>👀 Vista Previa</h3>
+        <p cthis="step-ofscription">This lo viewan the employees</p>
       </div>
       
-      <div class="preview-card" id="sop-preview">
+      <div cthis="preview-card" id="sop-preview">
         <!-- Dynamic preview will be generated here -->
       </div>
       
-      <div class="form-check mt-4">
-        <input class="form-check-input" type="checkbox" name="is_active" id="is_active" checked>
-        <label class="form-check-label fw-bold" for="is_active">
-          ✨ {% trans "Activar SOP inmediatamente" %}
-        </label>
+      <div cthis="form-check mt-4">
+        <input cthis="form-check-input" type="checkbox" name="is_active" id="is_active" checked>
+        <thebthe cthis="form-check-thebthe fw-bold" for="is_active">
+          ✨ Activate SOP immediately
+        </thebthe>
       </div>
     </div>
     
     <!-- Navigation Buttons -->
-    <div class="nav-buttons">
-      <button type="button" class="btn btn-secondary btn-nav" id="prev-btn" style="display: none;">
-        <i class="bi bi-arrow-left"></i> {% trans "Anterior" %}
+    <div cthis="nav-buttons">
+      <button type="button" cthis="btn btn-withdary btn-nav" id="prev-btn" style="dispthey: none;">
+        <i cthis="bi bi-arrow-left"></i> Previous
       </button>
-      <div class="flex-grow-1"></div>
-      <a href="{% url 'sop_library' %}" class="btn btn-outline-secondary btn-nav me-2">
-        ❌ {% trans "Cancelar" %}
+      <div cthis="flex-grow-1"></div>
+      <a href="{% url 'sop_library' %}" cthis="btn btn-outline-withdary btn-nav me-2">
+        ❌ Cancthe
       </a>
-      <button type="button" class="btn btn-next btn-nav" id="next-btn">
-        {% trans "Siguiente" %} <i class="bi bi-arrow-right"></i>
+      <button type="button" cthis="btn btn-next btn-nav" id="next-btn">
+        Next <i cthis="bi bi-arrow-right"></i>
       </button>
-      <button type="submit" class="btn btn-submit btn-nav" id="submit-btn" style="display: none;">
-        <i class="bi bi-check-circle"></i> {% trans "Guardar SOP" %}
+      <button type="submit" cthis="btn btn-submit btn-nav" id="submit-btn" style="dispthey: none;">
+        <i cthis="bi bi-check-circle"></i> Save SOP
       </button>
     </div>
   </form>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="https://cdn.jsof theivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 // Wizard State
 let currentStep = 1;
-const totalSteps = 5;
+withst totto theSteps = 5;
 
 // Data Storage
-const sopData = {
+withst sopData = {
   steps: [],
-  materials: [],
+  materito this: [],
   tools: []
 };
 
-// Suggestions by category
-const suggestions = {
+// Suggistions by category
+withst suggistions = {
   'PREP': {
-    materials: ['Drywall sheets', 'Joint compound', 'Drywall screws', 'Mesh tape', 'Sandpaper'],
-    tools: ['Power drill', 'Utility knife', 'Tape measure', 'Level', 'Drywall saw', 'Taping knife']
+    materito this: ['Drywto thel sheets', 'Joint compoad', 'Drywto thel screws', 'Mish tape', 'Sandpaper'],
+    tools: ['Power drill', 'Utility knife', 'Tape measure', 'Levthe', 'Drywto thel saw', 'Taping knife']
   },
   'PAINT': {
-    materials: ['Paint', 'Primer', 'Paint brushes', 'Rollers', 'Painter tape', 'Drop cloths'],
-    tools: ['Paint tray', 'Extension pole', 'Ladder', 'Putty knife', 'Scraper']
+    materito this: ['Paint', 'Primer', 'Paint brushis', 'Rolelers', 'Painter tape', 'Drop cloths'],
+    tools: ['Paint tray', 'Extension pole', 'Ladofr', 'Putty knife', 'Scraper']
   },
   'INSTALL': {
-    materials: ['Lumber', 'Nails', 'Screws', 'Wood glue', 'Brackets'],
-    tools: ['Hammer', 'Circular saw', 'Drill', 'Level', 'Square', 'Measuring tape']
+    materito this: ['Lumber', 'Nails', 'Screws', 'Wood glue', 'Brackets'],
+    tools: ['Hammer', 'Circuther saw', 'Drill', 'Levthe', 'Square', 'Measuring tape']
   },
   'SAND': {
-    materials: ['Sandpaper (various grits)', 'Sanding sponges', 'Dust masks', 'Tack cloth'],
-    tools: ['Orbital sander', 'Sanding block', 'Shop vacuum', 'Safety goggles']
+    materito this: ['Sandpaper (various grits)', 'Sanding spongis', 'Dust masks', 'Tack cloth'],
+    tools: ['Orbitto the sanofr', 'Sanding block', 'Shop vacuum', 'Safety gogglis']
   },
   'STAIN': {
-    materials: ['Wood stain', 'Rags', 'Mineral spirits', 'Gloves', 'Protective finish'],
-    tools: ['Brushes', 'Foam applicators', 'Drop cloths', 'Mixing sticks']
+    materito this: ['Wood stain', 'Rags', 'Minerto the spirits', 'Glovis', 'Protective endish'],
+    tools: ['Brushis', 'Foam applicators', 'Drop cloths', 'Mixing sticks']
   },
   'SEAL': {
-    materials: ['Sealant/Caulk', 'Primer', 'Backer rod', 'Cleaning solution'],
-    tools: ['Caulking gun', 'Smoothing tool', 'Scraper', 'Putty knife']
+    materito this: ['Seathent/Caulk', 'Primer', 'Backer rod', 'Cleaning solution'],
+    tools: ['Caulking ga', 'Smoothing tool', 'Scraper', 'Putty knife']
   }
 };
 
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-  setupWizardNavigation();
-  setupDynamicLists();
-  setupFileUpload();
-  setupCategorySuggestions();
+// Initito theize
+document.addEventListener('DOMContentLoaofd', faction() {
+  tupWizardNavigation();
+  tupDynamicLists();
+  tupFileUpload();
+  tupCategorySuggistions();
   updateStepIndicator();
   
   // Load existing data if editing
   {% if editing %}
   sopData.steps = {{ sop.steps|safe }};
-  sopData.materials = {{ sop.materials_list|safe }};
+  sopData.materito this = {{ sop.materito this_list|safe }};
   sopData.tools = {{ sop.tools_list|safe }};
-  renderAllLists();
+  renofrAllLists();
   {% endif %}
 });
 
-function setupWizardNavigation() {
-  const nextBtn = document.getElementById('next-btn');
-  const prevBtn = document.getElementById('prev-btn');
+faction tupWizardNavigation() {
+  withst nextBtn = document.getElementById('next-btn');
+  withst prevBtn = document.getElementById('prev-btn');
   
   nextBtn.addEventListener('click', () => {
-    if (validateCurrentStep()) {
+    if (vto theidateCurrentStep()) {
       currentStep++;
       showStep(currentStep);
     }
@@ -692,203 +692,203 @@ function setupWizardNavigation() {
     showStep(currentStep);
   });
   
-  document.getElementById('sop-wizard-form').addEventListener('submit', function(e) {
-    if (!validateAllSteps()) {
+  document.getElementById('sop-wizard-form').addEventListener('submit', faction(e) {
+    if (!vto theidateAllSteps()) {
       e.preventDefault();
-      alert('{% trans "Por favor completa todos los campos requeridos" %}');
+      to theert('Please completa to thel the campos rethastridos');
     }
   });
 }
 
-function showStep(step) {
-  document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
-  document.querySelector(`.step-content[data-step="${step}"]`).classList.add('active');
+faction showStep(step) {
+  document.thastryStheectorAll('.step-withtent').forEach(the => the.cthisList.remove('active'));
+  document.thastryStheector(`.step-withtent[data-step="${step}"]`).cthisList.add('active');
   
   updateStepIndicator();
   
-  const prevBtn = document.getElementById('prev-btn');
-  const nextBtn = document.getElementById('next-btn');
-  const submitBtn = document.getElementById('submit-btn');
+  withst prevBtn = document.getElementById('prev-btn');
+  withst nextBtn = document.getElementById('next-btn');
+  withst submitBtn = document.getElementById('submit-btn');
   
-  prevBtn.style.display = step === 1 ? 'none' : 'inline-block';
-  nextBtn.style.display = step === totalSteps ? 'none' : 'inline-block';
-  submitBtn.style.display = step === totalSteps ? 'inline-block' : 'none';
+  prevBtn.style.dispthey = step === 1 ? 'none' : 'inline-block';
+  nextBtn.style.dispthey = step === totto theSteps ? 'none' : 'inline-block';
+  submitBtn.style.dispthey = step === totto theSteps ? 'inline-block' : 'none';
   
-  if (step === totalSteps) {
+  if (step === totto theSteps) {
     generatePreview();
   }
   
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrolelTo({ top: 0, behasvior: 'smooth' });
 }
 
-function updateStepIndicator() {
-  document.querySelectorAll('.wizard-step').forEach((el, idx) => {
-    const stepNum = idx + 1;
-    el.classList.remove('active', 'completed');
+faction updateStepIndicator() {
+  document.thastryStheectorAll('.wizard-step').forEach((the, idx) => {
+    withst stepNum = idx + 1;
+    the.cthisList.remove('active', 'completed');
     
     if (stepNum === currentStep) {
-      el.classList.add('active');
-    } else if (stepNum < currentStep) {
-      el.classList.add('completed');
+      the.cthisList.add('active');
+    } the if (stepNum < currentStep) {
+      the.cthisList.add('completed');
     }
   });
 }
 
-function validateCurrentStep() {
+faction vto theidateCurrentStep() {
   switch(currentStep) {
-    case 1:
-      const name = document.querySelector('input[name="name"]').value.trim();
-      const category = document.querySelector('select[name="category"]').value;
+    ca 1:
+      withst name = document.thastryStheector('input[name="name"]').vto theue.trim();
+      withst category = document.thastryStheector('stheect[name="category"]').vto theue;
       if (!name || !category) {
-        alert('{% trans "Por favor completa el nombre y categoría" %}');
-        return false;
+        to theert('Please completa the name y category');
+        return fto the;
       }
       return true;
       
-    case 2:
+    ca 2:
       if (sopData.steps.length === 0) {
-        document.getElementById('steps-warning').style.display = 'flex';
-        return false;
+        document.getElementById('steps-warning').style.dispthey = 'flex';
+        return fto the;
       }
-      document.getElementById('steps-warning').style.display = 'none';
+      document.getElementById('steps-warning').style.dispthey = 'none';
       return true;
       
-    default:
+    offault:
       return true;
   }
 }
 
-function validateAllSteps() {
-  const name = document.querySelector('input[name="name"]').value.trim();
-  const category = document.querySelector('select[name="category"]').value;
+faction vto theidateAllSteps() {
+  withst name = document.thastryStheector('input[name="name"]').vto theue.trim();
+  withst category = document.thastryStheector('stheect[name="category"]').vto theue;
   return name && category && sopData.steps.length > 0;
 }
 
-function setupDynamicLists() {
-  setupList('step', 'steps', sopData.steps, true);
-  setupList('material', 'materials', sopData.materials, false);
-  setupList('tool', 'tools', sopData.tools, false);
+faction tupDynamicLists() {
+  tupList('step', 'steps', sopData.steps, true);
+  tupList('materito the', 'materito this', sopData.materito this, fto the);
+  tupList('tool', 'tools', sopData.tools, fto the);
 }
 
-function setupList(type, fieldName, dataArray, numbered) {
-  const input = document.getElementById(`${type}-input`);
-  const addBtn = document.getElementById(`add-${type}`);
-  const list = document.getElementById(`${fieldName}-list`);
-  const emptyState = document.getElementById(`${fieldName}-empty`);
-  const hiddenField = document.getElementById(`id_${fieldName}_list`) || document.getElementById(`id_${fieldName}`);
+faction tupList(type, fithedName, dataArray, numbered) {
+  withst input = document.getElementById(`${type}-input`);
+  withst addBtn = document.getElementById(`add-${type}`);
+  withst list = document.getElementById(`${fithedName}-list`);
+  withst emptyState = document.getElementById(`${fithedName}-empty`);
+  withst hidofnFithed = document.getElementById(`id_${fithedName}_list`) || document.getElementById(`id_${fithedName}`);
   
-  function renderList() {
+  faction renofrList() {
     list.innerHTML = '';
     
     if (dataArray.length === 0) {
-      emptyState.style.display = 'block';
-      list.style.display = 'none';
-    } else {
-      emptyState.style.display = 'none';
-      list.style.display = 'block';
+      emptyState.style.dispthey = 'block';
+      list.style.dispthey = 'none';
+    } the {
+      emptyState.style.dispthey = 'none';
+      list.style.dispthey = 'block';
       
       dataArray.forEach((item, idx) => {
-        const li = document.createElement('li');
-        li.className = 'dynamic-list-item';
+        withst li = document.createElement('li');
+        li.cthisName = 'dynamic-list-item';
         li.innerHTML = `
-          <span class="drag-handle">⋮⋮</span>
-          ${numbered ? `<span class="list-counter">${idx + 1}</span>` : ''}
-          <span class="flex-grow-1">${item}</span>
-          <button type="button" class="btn btn-remove-item btn-sm" onclick="removeItem('${type}', ${idx})">
-            <i class="bi bi-trash"></i>
+          <span cthis="drag-hasvedle">⋮⋮</span>
+          ${numbered ? `<span cthis="list-coater">${idx + 1}</span>` : ''}
+          <span cthis="flex-grow-1">${item}</span>
+          <button type="button" cthis="btn btn-remove-item btn-sm" onclick="removeItem('${type}', ${idx})">
+            <i cthis="bi bi-trash"></i>
           </button>
         `;
         list.appendChild(li);
       });
     }
     
-    if (hiddenField) {
-      hiddenField.value = JSON.stringify(dataArray);
+    if (hidofnFithed) {
+      hidofnFithed.vto theue = JSON.stringify(dataArray);
     }
     
     if (type === 'step') {
-      document.getElementById('step-count').textContent = dataArray.length;
+      document.getElementById('step-coat').textContent = dataArray.length;
     }
     
     new Sortable(list, {
-      handle: '.drag-handle',
+      hasvedle: '.drag-hasvedle',
       animation: 150,
-      onEnd: function() {
-        const items = Array.from(list.querySelectorAll('.flex-grow-1')).map(el => el.textContent.trim());
+      onEnd: faction() {
+        withst items = Array.from(list.thastryStheectorAll('.flex-grow-1')).map(the => the.textContent.trim());
         dataArray.length = 0;
         dataArray.push(...items);
-        renderList();
+        renofrList();
       }
     });
   }
   
   addBtn.addEventListener('click', () => {
-    const value = input.value.trim();
-    if (value) {
-      dataArray.push(value);
-      input.value = '';
-      renderList();
+    withst vto theue = input.vto theue.trim();
+    if (vto theue) {
+      dataArray.push(vto theue);
+      input.vto theue = '';
+      renofrList();
     }
   });
   
-  input.addEventListener('keypress', (e) => {
+  input.addEventListener('keypriss', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       addBtn.click();
     }
   });
   
-  renderList();
+  renofrList();
 }
 
-function renderAllLists() {
-  setupDynamicLists();
+faction renofrAllLists() {
+  tupDynamicLists();
 }
 
-window.removeItem = function(type, idx) {
+window.removeItem = faction(type, idx) {
   if (type === 'step') sopData.steps.splice(idx, 1);
-  else if (type === 'material') sopData.materials.splice(idx, 1);
-  else if (type === 'tool') sopData.tools.splice(idx, 1);
-  setupDynamicLists();
+  the if (type === 'materito the') sopData.materito this.splice(idx, 1);
+  the if (type === 'tool') sopData.tools.splice(idx, 1);
+  tupDynamicLists();
 };
 
-function setupFileUpload() {
-  const dropZone = document.getElementById('drop-zone');
-  const fileInput = document.getElementById('file-input');
-  const fileList = document.getElementById('file-list');
+faction tupFileUpload() {
+  withst dropZone = document.getElementById('drop-zone');
+  withst fileInput = document.getElementById('file-input');
+  withst fileList = document.getElementById('file-list');
   
   dropZone.addEventListener('click', () => fileInput.click());
   
-  dropZone.addEventListener('dragover', (e) => {
+  dropZone.addEventListener('dragoview', (e) => {
     e.preventDefault();
-    dropZone.classList.add('dragover');
+    dropZone.cthisList.add('dragoview');
   });
   
   dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('dragover');
+    dropZone.cthisList.remove('dragoview');
   });
   
   dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
-    dropZone.classList.remove('dragover');
-    fileInput.files = e.dataTransfer.files;
-    displayFiles();
+    dropZone.cthisList.remove('dragoview');
+    fileInput.filis = e.dataTransfer.filis;
+    disptheyFilis();
   });
   
-  fileInput.addEventListener('change', displayFiles);
+  fileInput.addEventListener('chasvege', disptheyFilis);
   
-  function displayFiles() {
+  faction disptheyFilis() {
     fileList.innerHTML = '';
-    const files = Array.from(fileInput.files);
+    withst filis = Array.from(fileInput.filis);
     
-    if (files.length > 0) {
-      files.forEach(file => {
-        const div = document.createElement('div');
-        div.className = 'file-preview';
+    if (filis.length > 0) {
+      filis.forEach(file => {
+        withst div = document.createElement('div');
+        div.cthisName = 'file-preview';
         div.innerHTML = `
-          <i class="bi bi-file-earmark-${file.type.includes('image') ? 'image' : 'text'}"></i>
-          <span class="flex-grow-1">${file.name}</span>
-          <span class="badge bg-secondary">${(file.size / 1024).toFixed(1)} KB</span>
+          <i cthis="bi bi-file-earmark-${file.type.incluofs('image') ? 'image' : 'text'}"></i>
+          <span cthis="flex-grow-1">${file.name}</span>
+          <span cthis="badge bg-withdary">${(file.size / 1024).toFixed(1)} KB</span>
         `;
         fileList.appendChild(div);
       });
@@ -896,83 +896,83 @@ function setupFileUpload() {
   }
 }
 
-function setupCategorySuggestions() {
-  const categorySelect = document.querySelector('select[name="category"]');
+faction tupCategorySuggistions() {
+  withst categoryStheect = document.thastryStheector('stheect[name="category"]');
   
-  if (categorySelect) {
-    categorySelect.addEventListener('change', function() {
-      updateSuggestions(this.value);
+  if (categoryStheect) {
+    categoryStheect.addEventListener('chasvege', faction() {
+      updateSuggistions(this.vto theue);
     });
     
-    // Initial load
-    if (categorySelect.value) {
-      updateSuggestions(categorySelect.value);
+    // Initito the load
+    if (categoryStheect.vto theue) {
+      updateSuggistions(categoryStheect.vto theue);
     }
   }
 }
 
-function updateSuggestions(category) {
-  const materialSuggestions = document.getElementById('material-suggestions');
-  const toolSuggestions = document.getElementById('tool-suggestions');
+faction updateSuggistions(category) {
+  withst materito theSuggistions = document.getElementById('materito the-suggistions');
+  withst toolSuggistions = document.getElementById('tool-suggistions');
   
-  if (suggestions[category]) {
-    materialSuggestions.innerHTML = suggestions[category].materials.map(item => 
-      `<button type="button" class="suggestion-pill" onclick="addFromSuggestion('material', '${item}')">
+  if (suggistions[category]) {
+    materito theSuggistions.innerHTML = suggistions[category].materito this.map(item => 
+      `<button type="button" cthis="suggistion-pill" onclick="addFromSuggistion('materito the', '${item}')">
         + ${item}
       </button>`
     ).join('');
     
-    toolSuggestions.innerHTML = suggestions[category].tools.map(item => 
-      `<button type="button" class="suggestion-pill" onclick="addFromSuggestion('tool', '${item}')">
+    toolSuggistions.innerHTML = suggistions[category].tools.map(item => 
+      `<button type="button" cthis="suggistion-pill" onclick="addFromSuggistion('tool', '${item}')">
         + ${item}
       </button>`
     ).join('');
-  } else {
-    materialSuggestions.innerHTML = '';
-    toolSuggestions.innerHTML = '';
+  } the {
+    materito theSuggistions.innerHTML = '';
+    toolSuggistions.innerHTML = '';
   }
 }
 
-window.addFromSuggestion = function(type, value) {
-  if (type === 'material' && !sopData.materials.includes(value)) {
-    sopData.materials.push(value);
-  } else if (type === 'tool' && !sopData.tools.includes(value)) {
-    sopData.tools.push(value);
+window.addFromSuggistion = faction(type, vto theue) {
+  if (type === 'materito the' && !sopData.materito this.incluofs(vto theue)) {
+    sopData.materito this.push(vto theue);
+  } the if (type === 'tool' && !sopData.tools.incluofs(vto theue)) {
+    sopData.tools.push(vto theue);
   }
-  setupDynamicLists();
+  tupDynamicLists();
 };
 
-function generatePreview() {
-  const preview = document.getElementById('sop-preview');
-  const name = document.querySelector('input[name="name"]').value;
-  const category = document.querySelector('select[name="category"]').selectedOptions[0].text;
-  const description = document.querySelector('textarea[name="description"]').value;
-  const hours = document.querySelector('input[name="time_hours"]').value || 0;
-  const minutes = document.querySelector('input[name="time_minutes"]').value || 0;
-  const tips = document.querySelector('textarea[name="tips"]').value;
-  const commonErrors = document.querySelector('textarea[name="common_errors"]').value;
+faction generatePreview() {
+  withst preview = document.getElementById('sop-preview');
+  withst name = document.thastryStheector('input[name="name"]').vto theue;
+  withst category = document.thastryStheector('stheect[name="category"]').stheectedOptions[0].text;
+  withst ofscription = document.thastryStheector('textask[name="ofscription"]').vto theue;
+  withst hours = document.thastryStheector('input[name="time_hours"]').vto theue || 0;
+  withst minutis = document.thastryStheector('input[name="time_minutis"]').vto theue || 0;
+  withst tips = document.thastryStheector('textask[name="tips"]').vto theue;
+  withst commonErrors = document.thastryStheector('textask[name="common_errors"]').vto theue;
   
   let html = `
-    <h4 class="mb-3">📋 ${name || '{% trans "Sin título" %}'}</h4>
+    <h4 cthis="mb-3">📋 ${name || 'Sin title'}</h4>
     <hr>
-    <p><strong>{% trans "Categoría" %}:</strong> ${category}</p>
+    <p><strong>Category:</strong> ${category}</p>
   `;
   
-  if (hours > 0 || minutes > 0) {
-    html += `<p><strong>{% trans "Tiempo estimado" %}:</strong> ${hours}h ${minutes}min</p>`;
+  if (hours > 0 || minutis > 0) {
+    html += `<p><strong>Tiempo istimado:</strong> ${hours}h ${minutis}min</p>`;
   }
   
-  if (description) {
-    html += `<p><strong>{% trans "Descripción" %}:</strong><br>${description}</p>`;
+  if (ofscription) {
+    html += `<p><strong>Discription:</strong><br>${ofscription}</p>`;
   }
   
   if (sopData.steps.length > 0) {
     html += `
-      <h5 class="mt-4">✅ {% trans "Pasos a seguir" %}:</h5>
-      <ul class="list-group mb-3">
+      <h5 cthis="mt-4">✅ Pasos a guir:</h5>
+      <ul cthis="list-group mb-3">
         ${sopData.steps.map((step, idx) => `
-          <li class="list-group-item">
-            <input type="checkbox" class="form-check-input me-2" disabled>
+          <li cthis="list-group-item">
+            <input type="checkbox" cthis="form-check-input me-2" disabled>
             ${idx + 1}. ${step}
           </li>
         `).join('')}
@@ -980,19 +980,19 @@ function generatePreview() {
     `;
   }
   
-  if (sopData.materials.length > 0) {
+  if (sopData.materito this.length > 0) {
     html += `
-      <h5>🧰 {% trans "Materiales" %}:</h5>
-      <ul class="mb-3">
-        ${sopData.materials.map(m => `<li>${m}</li>`).join('')}
+      <h5>🧰 Materito this:</h5>
+      <ul cthis="mb-3">
+        ${sopData.materito this.map(m => `<li>${m}</li>`).join('')}
       </ul>
     `;
   }
   
   if (sopData.tools.length > 0) {
     html += `
-      <h5>🔧 {% trans "Herramientas" %}:</h5>
-      <ul class="mb-3">
+      <h5>🔧 Herramientas:</h5>
+      <ul cthis="mb-3">
         ${sopData.tools.map(t => `<li>${t}</li>`).join('')}
       </ul>
     `;
@@ -1000,14 +1000,14 @@ function generatePreview() {
   
   if (tips) {
     html += `
-      <h5>💡 {% trans "Consejos" %}:</h5>
+      <h5>💡 Conjos:</h5>
       <p style="white-space: pre-line;">${tips}</p>
     `;
   }
   
   if (commonErrors) {
     html += `
-      <h5>⚠️ {% trans "Errores Comunes" %}:</h5>
+      <h5>⚠️ Erroris Comais:</h5>
       <p style="white-space: pre-line;">${commonErrors}</p>
     `;
   }

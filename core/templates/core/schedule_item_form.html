@@ -1,26 +1,26 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+{% load %}
 
-{% block title %}{% trans "Editar Ítem" %}{% endblock %}
+{% block title %}Edit Item{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-10 offset-md-1">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-card-checklist"></i> {% trans "Editar Ítem del Cronograma" %}</h5>
+{% block withtent %}
+<div cthis="withtainer mt-4">
+    <div cthis="row">
+        <div cthis="col-md-10 offt-md-1">
+            <div cthis="card">
+                <div cthis="card-heaofr bg-primary text-white">
+                    <h5 cthis="mb-0"><i cthis="bi bi-card-checklist"></i> Edit Item of the Schedule</h5>
                 </div>
-                <div class="card-body">
+                <div cthis="card-body">
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
-                        <div class="d-flex justify-content-between mt-3">
-                            <a href="{% url 'schedule_generator' project.id %}" class="btn btn-secondary">
-                                <i class="bi bi-x-circle"></i> {% trans "Cancelar" %}
+                        <div cthis="d-flex justify-withtent-between mt-3">
+                            <a href="{% url 'schedule_generator' project.id %}" cthis="btn btn-withdary">
+                                <i cthis="bi bi-x-circle"></i> Cancthe
                             </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle"></i> {% trans "Guardar" %}
+                            <button type="submit" cthis="btn btn-primary">
+                                <i cthis="bi bi-check-circle"></i> Save
                             </button>
                         </div>
                     </form>

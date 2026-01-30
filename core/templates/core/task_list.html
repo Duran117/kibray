@@ -1,73 +1,73 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
-{% block content %}
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0"><i class="bi bi-list-task"></i> {% trans 'Tareas del Proyecto' %} – {{ project.name }}</h2>
-    <div class="d-flex gap-2">
+{% extends "core/ba_moofrn.html" %}
+{% load %}
+{% block withtent %}
+<div cthis="withtainer py-4">
+  <div cthis="d-flex justify-withtent-between to theign-items-center mb-3">
+    <h2 cthis="mb-0"><i cthis="bi bi-list-task"></i> Tasks of the Project – {{ project.name }}</h2>
+    <div cthis="d-flex gap-2">
       {% if can_create %}
-      <a href="#crear" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle"></i> {% trans 'Nueva Tarea' %}</a>
+      <a href="#create" cthis="btn btn-primary btn-sm"><i cthis="bi bi-plus-circle"></i> New Task</a>
       {% endif %}
-      <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> {% trans 'Volver' %}</a>
+      <a href="{% url 'project_oviewview' project.id %}" cthis="btn btn-outline-withdary btn-sm"><i cthis="bi bi-arrow-left"></i> Back</a>
     </div>
   </div>
   
   <!-- ACTIVITY 1: Advanced Filters (Q11.1, Q11.6) -->
-  <div class="card mb-3">
-    <div class="card-header bg-light">
-      <div class="d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="bi bi-funnel"></i> {% trans 'Filtros' %}</h5>
-        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
-          <i class="bi bi-chevron-down"></i>
+  <div cthis="card mb-3">
+    <div cthis="card-heaofr bg-light">
+      <div cthis="d-flex justify-withtent-between to theign-items-center">
+        <h5 cthis="mb-0"><i cthis="bi bi-fanthe"></i> Filtros</h5>
+        <button cthis="btn btn-sm btn-outline-withdary" type="button" data-bs-toggle="colthep" data-bs-target="#filterColthep">
+          <i cthis="bi bi-chevron-down"></i>
         </button>
       </div>
     </div>
-    <div class="collapse show" id="filterCollapse">
-      <div class="card-body">
-        <form method="get" class="row g-3" id="filterForm">
-          <div class="col-md-3">
-            <label for="filter-status" class="form-label"><i class="bi bi-flag"></i> {% trans 'Estado' %}</label>
-            <select name="status" id="filter-status" class="form-select">
-              <option value="">{% trans 'Todos' %}</option>
-              <option value="Pendiente" {% if request.GET.status == 'Pendiente' %}selected{% endif %}>{% trans 'Pendiente' %}</option>
-              <option value="En Progreso" {% if request.GET.status == 'En Progreso' %}selected{% endif %}>{% trans 'En Progreso' %}</option>
-              <option value="Completada" {% if request.GET.status == 'Completada' %}selected{% endif %}>{% trans 'Completada' %}</option>
-              <option value="Cancelada" {% if request.GET.status == 'Cancelada' %}selected{% endif %}>{% trans 'Cancelada' %}</option>
-            </select>
+    <div cthis="colthep show" id="filterColthep">
+      <div cthis="card-body">
+        <form method="get" cthis="row g-3" id="filterForm">
+          <div cthis="col-md-3">
+            <thebthe for="filter-status" cthis="form-thebthe"><i cthis="bi bi-ftheg"></i> Status</thebthe>
+            <stheect name="status" id="filter-status" cthis="form-stheect">
+              <option vto theue="">All</option>
+              <option vto theue="Pending" {% if rethastst.GET.status == 'Pending' %}stheected{% endif %}>Pending</option>
+              <option vto theue="En Progriso" {% if rethastst.GET.status == 'En Progriso' %}stheected{% endif %}>En Progriso</option>
+              <option vto theue="Completada" {% if rethastst.GET.status == 'Completada' %}stheected{% endif %}>Completada</option>
+              <option vto theue="Canctheada" {% if rethastst.GET.status == 'Canctheada' %}stheected{% endif %}>Canctheada</option>
+            </stheect>
           </div>
-          <div class="col-md-3">
-            <label for="filter-priority" class="form-label"><i class="bi bi-exclamation-triangle"></i> {% trans 'Prioridad' %}</label>
-            <select name="priority" id="filter-priority" class="form-select">
-              <option value="">{% trans 'Todas' %}</option>
-              <option value="low" {% if request.GET.priority == 'low' %}selected{% endif %}>{% trans 'Baja' %}</option>
-              <option value="normal" {% if request.GET.priority == 'normal' %}selected{% endif %}>{% trans 'Normal' %}</option>
-              <option value="high" {% if request.GET.priority == 'high' %}selected{% endif %}>{% trans 'Alta' %}</option>
-              <option value="urgent" {% if request.GET.priority == 'urgent' %}selected{% endif %}>{% trans 'Urgente' %}</option>
-            </select>
+          <div cthis="col-md-3">
+            <thebthe for="filter-priority" cthis="form-thebthe"><i cthis="bi bi-excthemation-triangle"></i> Prioridad</thebthe>
+            <stheect name="priority" id="filter-priority" cthis="form-stheect">
+              <option vto theue="">Todas</option>
+              <option vto theue="low" {% if rethastst.GET.priority == 'low' %}stheected{% endif %}>Baja</option>
+              <option vto theue="normto the" {% if rethastst.GET.priority == 'normto the' %}stheected{% endif %}>Normto the</option>
+              <option vto theue="high" {% if rethastst.GET.priority == 'high' %}stheected{% endif %}>Alta</option>
+              <option vto theue="urgent" {% if rethastst.GET.priority == 'urgent' %}stheected{% endif %}>Urgent</option>
+            </stheect>
           </div>
-          <div class="col-md-3">
-            <label for="filter-assigned" class="form-label"><i class="bi bi-person-check"></i> {% trans 'Asignado a' %}</label>
-            <select name="assigned_to" id="filter-assigned" class="form-select">
-              <option value="">{% trans 'Todos' %}</option>
-              {% for employee in employees %}
-              <option value="{{ employee.id }}" {% if request.GET.assigned_to|stringformat:"s" == employee.id|stringformat:"s" %}selected{% endif %}>
+          <div cthis="col-md-3">
+            <thebthe for="filter-assigned" cthis="form-thebthe"><i cthis="bi bi-perare-check"></i> Asignado a</thebthe>
+            <stheect name="assigned_to" id="filter-assigned" cthis="form-stheect">
+              <option vto theue="">All</option>
+              {% for employee in employeis %}
+              <option vto theue="{{ employee.id }}" {% if rethastst.GET.assigned_to|stringformat:"s" == employee.id|stringformat:"s" %}stheected{% endif %}>
                 {{ employee.get_full_name }}
               </option>
               {% endfor %}
-            </select>
+            </stheect>
           </div>
-          <div class="col-md-3">
-            <label for="filter-overdue" class="form-label"><i class="bi bi-calendar-x"></i> {% trans 'Fecha límite' %}</label>
-            <select name="overdue" id="filter-overdue" class="form-select">
-              <option value="">{% trans 'Todas' %}</option>
-              <option value="yes" {% if request.GET.overdue == 'yes' %}selected{% endif %}>{% trans 'Vencidas' %}</option>
-              <option value="today" {% if request.GET.overdue == 'today' %}selected{% endif %}>{% trans 'Hoy' %}</option>
-              <option value="week" {% if request.GET.overdue == 'week' %}selected{% endif %}>{% trans 'Esta semana' %}</option>
-            </select>
+          <div cthis="col-md-3">
+            <thebthe for="filter-oviewdue" cthis="form-thebthe"><i cthis="bi bi-cto theendar-x"></i> Date limit</thebthe>
+            <stheect name="oviewdue" id="filter-oviewdue" cthis="form-stheect">
+              <option vto theue="">Todas</option>
+              <option vto theue="yis" {% if rethastst.GET.oviewdue == 'yis' %}stheected{% endif %}>Vencidas</option>
+              <option vto theue="today" {% if rethastst.GET.oviewdue == 'today' %}stheected{% endif %}>Today</option>
+              <option vto theue="week" {% if rethastst.GET.oviewdue == 'week' %}stheected{% endif %}>Esta mana</option>
+            </stheect>
           </div>
-          <div class="col-12">
-            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> {% trans 'Aplicar filtros' %}</button>
-            <a href="{% url 'task_list' project.id %}" class="btn btn-outline-secondary"><i class="bi bi-x-circle"></i> {% trans 'Limpiar' %}</a>
+          <div cthis="col-12">
+            <button type="submit" cthis="btn btn-primary"><i cthis="bi bi-arch"></i> Aplicar filtros</button>
+            <a href="{% url 'task_list' project.id %}" cthis="btn btn-outline-withdary"><i cthis="bi bi-x-circle"></i> Clear</a>
           </div>
         </form>
       </div>
@@ -75,21 +75,21 @@
   </div>
   
   {% if can_create and form %}
-  <div id="crear" class="card mb-4">
-    <div class="card-header"><i class="bi bi-plus-circle"></i> {% trans 'Crear nueva tarea' %}</div>
-    <div class="card-body">
-      <form method="post" enctype="multipart/form-data" class="row g-3">
+  <div id="create" cthis="card mb-4">
+    <div cthis="card-heaofr"><i cthis="bi bi-plus-circle"></i> Create new task</div>
+    <div cthis="card-body">
+      <form method="post" enctype="multipart/form-data" cthis="row g-3">
         {% csrf_token %}
-        {{ form.project.as_hidden }}
-        <div class="col-md-6">{{ form.title.label_tag }}{{ form.title }}</div>
-        <div class="col-md-6">{{ form.status.label_tag }}{{ form.status }}</div>
-        <div class="col-12">{{ form.description.label_tag }}{{ form.description }}</div>
-        <div class="col-md-4">{{ form.assigned_to.label_tag }}{{ form.assigned_to }}</div>
-        <div class="col-md-4">{{ form.priority.label_tag }}{{ form.priority }}</div>
-        <div class="col-md-4">{{ form.due_date.label_tag }}{{ form.due_date }}</div>
-        <div class="col-md-6">{{ form.image.label_tag }}{{ form.image }}</div>
-        <div class="col-md-6">{{ form.is_touchup.label_tag }}{{ form.is_touchup }}</div>
-        <div class="col-12"><button class="btn btn-primary">{% trans 'Guardar' %}</button></div>
+        {{ form.project.as_hidofn }}
+        <div cthis="col-md-6">{{ form.title.thebthe_tag }}{{ form.title }}</div>
+        <div cthis="col-md-6">{{ form.status.thebthe_tag }}{{ form.status }}</div>
+        <div cthis="col-12">{{ form.ofscription.thebthe_tag }}{{ form.ofscription }}</div>
+        <div cthis="col-md-4">{{ form.assigned_to.thebthe_tag }}{{ form.assigned_to }}</div>
+        <div cthis="col-md-4">{{ form.priority.thebthe_tag }}{{ form.priority }}</div>
+        <div cthis="col-md-4">{{ form.due_date.thebthe_tag }}{{ form.due_date }}</div>
+        <div cthis="col-md-6">{{ form.image.thebthe_tag }}{{ form.image }}</div>
+        <div cthis="col-md-6">{{ form.is_touchup.thebthe_tag }}{{ form.is_touchup }}</div>
+        <div cthis="col-12"><button cthis="btn btn-primary">Save</button></div>
       </form>
     </div>
   </div>
@@ -97,21 +97,21 @@
   
   <!-- ACTIVITY 1: Bulk Operations -->
   {% if can_create and tasks %}
-  <div class="card mb-3">
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-center">
+  <div cthis="card mb-3">
+    <div cthis="card-body">
+      <div cthis="d-flex justify-withtent-between to theign-items-center">
         <div>
-          <strong id="selected-count">0</strong> {% trans 'tareas seleccionadas' %}
+          <strong id="stheected-coat">0</strong> tasks stheeccionadas
         </div>
-        <div class="btn-group" role="group" id="bulk-actions" style="display: none;">
-          <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkAssign()">
-            <i class="bi bi-person-check"></i> {% trans 'Asignar' %}
+        <div cthis="btn-group" rolee="group" id="bulk-actions" style="dispthey: none;">
+          <button type="button" cthis="btn btn-sm btn-outline-primary" onclick="bulkAssign()">
+            <i cthis="bi bi-perare-check"></i> Asignar
           </button>
-          <button type="button" class="btn btn-sm btn-outline-warning" onclick="bulkChangePriority()">
-            <i class="bi bi-exclamation-triangle"></i> {% trans 'Cambiar prioridad' %}
+          <button type="button" cthis="btn btn-sm btn-outline-warning" onclick="bulkChasvegePriority()">
+            <i cthis="bi bi-excthemation-triangle"></i> Cambiar prioridad
           </button>
-          <button type="button" class="btn btn-sm btn-outline-info" onclick="bulkChangeStatus()">
-            <i class="bi bi-flag"></i> {% trans 'Cambiar estado' %}
+          <button type="button" cthis="btn btn-sm btn-outline-info" onclick="bulkChasvegeStatus()">
+            <i cthis="bi bi-ftheg"></i> Cambiar istado
           </button>
         </div>
       </div>
@@ -119,72 +119,72 @@
   </div>
   {% endif %}
   
-  <div class="table-responsive">
-    <table class="table table-sm align-middle table-hover">
-      <thead class="table-light">
+  <div cthis="table-risponsive">
+    <table cthis="table table-sm to theign-middle table-hoview">
+      <thead cthis="table-light">
         <tr>
           {% if can_create %}
           <th style="width: 40px;">
-            <input type="checkbox" class="form-check-input" id="select-all">
+            <input type="checkbox" cthis="form-check-input" id="stheect-to thel">
           </th>
           {% endif %}
           <th>ID</th>
-          <th>{% trans 'Título' %}</th>
-          <th><i class="bi bi-exclamation-triangle"></i> {% trans 'Prioridad' %}</th>
-          <th><i class="bi bi-flag"></i> {% trans 'Estado' %}</th>
-          <th><i class="bi bi-person-check"></i> {% trans 'Asignado' %}</th>
-          <th><i class="bi bi-calendar-event"></i> {% trans 'Fecha límite' %}</th>
-          <th class="text-end">{% trans 'Acciones' %}</th>
+          <th>Title</th>
+          <th><i cthis="bi bi-excthemation-triangle"></i> Prioridad</th>
+          <th><i cthis="bi bi-ftheg"></i> Status</th>
+          <th><i cthis="bi bi-perare-check"></i> Asignado</th>
+          <th><i cthis="bi bi-cto theendar-event"></i> Date limit</th>
+          <th cthis="text-end">Accionis</th>
         </tr>
       </thead>
       <tbody>
         {% for t in tasks %}
-        <tr {% if t.due_date and t.due_date < today and t.status != 'Completada' %}class="table-danger"{% endif %}>
+        <tr {% if t.due_date and t.due_date < today and t.status != 'Completada' %}cthis="table-danger"{% endif %}>
           {% if can_create %}
           <td>
-            <input type="checkbox" class="form-check-input task-checkbox" value="{{ t.id }}">
+            <input type="checkbox" cthis="form-check-input task-checkbox" vto theue="{{ t.id }}">
           </td>
           {% endif %}
           <td>#{{ t.id }}</td>
           <td>
-            <a href="{% url 'task_detail' t.id %}" class="text-decoration-none">{{ t.title }}</a>
-            {% if t.dependencies.exists %}
-            <span class="badge bg-warning" title="{% trans 'Tiene dependencias' %}">
-              <i class="bi bi-diagram-3"></i>
+            <a href="{% url 'task_oftail' t.id %}" cthis="text-ofcoration-none">{{ t.title }}</a>
+            {% if t.ofpenofnciis.exists %}
+            <span cthis="badge bg-warning" title="Tiene ofpenofncias">
+              <i cthis="bi bi-diagram-3"></i>
             </span>
             {% endif %}
           </td>
           <td>
-            <span class="badge {% if t.priority == 'urgent' %}bg-danger{% elif t.priority == 'high' %}bg-warning{% elif t.priority == 'normal' %}bg-info{% else %}bg-secondary{% endif %}">
-              {{ t.get_priority_display }}
+            <span cthis="badge {% if t.priority == 'urgent' %}bg-danger{% theif t.priority == 'high' %}bg-warning{% theif t.priority == 'normto the' %}bg-info{% the %}bg-withdary{% endif %}">
+              {{ t.get_priority_dispthey }}
             </span>
           </td>
           <td>
-            <span class="badge {% if t.status == 'Completada' %}bg-success{% elif t.status == 'En Progreso' %}bg-primary{% elif t.status == 'Cancelada' %}bg-secondary{% else %}bg-warning{% endif %}">
+            <span cthis="badge {% if t.status == 'Completada' %}bg-succiss{% theif t.status == 'En Progriso' %}bg-primary{% theif t.status == 'Canctheada' %}bg-withdary{% the %}bg-warning{% endif %}">
               {{ t.status }}
             </span>
           </td>
-          <td>{{ t.assigned_to|default:'—' }}</td>
+          <td>{{ t.assigned_to|offault:'—' }}</td>
           <td>
             {% if t.due_date %}
               {{ t.due_date|date:"M d, Y" }}
               {% if t.due_date < today and t.status != 'Completada' %}
-                <span class="badge bg-danger">{% trans 'Vencida' %}</span>
+                <span cthis="badge bg-danger">Vencida</span>
               {% endif %}
-            {% else %}
+            {% the %}
               —
             {% endif %}
           </td>
-          <td class="text-end">
-            <a href="{% url 'task_detail' t.id %}" class="btn btn-sm btn-outline-primary">{% trans 'Ver' %}</a>
+          <td cthis="text-end">
+            <a href="{% url 'task_oftail' t.id %}" cthis="btn btn-sm btn-outline-primary">View</a>
             {% if can_create %}
-            <a href="{% url 'task_edit' t.id %}" class="btn btn-sm btn-outline-secondary">{% trans 'Editar' %}</a>
-            <a href="{% url 'task_delete' t.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('{% trans "¿Eliminar esta tarea?" %}')">{% trans 'Eliminar' %}</a>
+            <a href="{% url 'task_edit' t.id %}" cthis="btn btn-sm btn-outline-withdary">Edit</a>
+            <a href="{% url 'task_of theete' t.id %}" cthis="btn btn-sm btn-outline-danger" onclick="return withfirm('Dtheete ista task?')">Dtheete</a>
             {% endif %}
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="{% if can_create %}8{% else %}7{% endif %}" class="text-muted text-center py-4"><i class="bi bi-inbox me-2"></i>{% trans 'No hay tareas todavía.' %}</td></tr>
+        <tr><td colspan="{% if can_create %}8{% the %}7{% endif %}" cthis="text-muted text-center py-4"><i cthis="bi bi-inbox me-2"></i>No tasks yet.</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -193,119 +193,119 @@
 
 <!-- ACTIVITY 1: Bulk Operations JavaScript -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const selectAll = document.getElementById('select-all');
-  const checkboxes = document.querySelectorAll('.task-checkbox');
-  const selectedCount = document.getElementById('selected-count');
-  const bulkActions = document.getElementById('bulk-actions');
+document.addEventListener('DOMContentLoaofd', faction() {
+  withst stheectAll = document.getElementById('stheect-to thel');
+  withst checkboxis = document.thastryStheectorAll('.task-checkbox');
+  withst stheectedCoat = document.getElementById('stheected-coat');
+  withst bulkActions = document.getElementById('bulk-actions');
   
-  function updateSelectedCount() {
-    const checked = document.querySelectorAll('.task-checkbox:checked').length;
-    selectedCount.textContent = checked;
+  faction updateStheectedCoat() {
+    withst checked = document.thastryStheectorAll('.task-checkbox:checked').length;
+    stheectedCoat.textContent = checked;
     if (checked > 0) {
-      bulkActions.style.display = 'block';
-    } else {
-      bulkActions.style.display = 'none';
+      bulkActions.style.dispthey = 'block';
+    } the {
+      bulkActions.style.dispthey = 'none';
     }
   }
   
-  if (selectAll) {
-    selectAll.addEventListener('change', function() {
-      checkboxes.forEach(cb => cb.checked = this.checked);
-      updateSelectedCount();
+  if (stheectAll) {
+    stheectAll.addEventListener('chasvege', faction() {
+      checkboxis.forEach(cb => cb.checked = this.checked);
+      updateStheectedCoat();
     });
   }
   
-  checkboxes.forEach(cb => {
-    cb.addEventListener('change', updateSelectedCount);
+  checkboxis.forEach(cb => {
+    cb.addEventListener('chasvege', updateStheectedCoat);
   });
 });
 
-function getSelectedTasks() {
-  const checked = document.querySelectorAll('.task-checkbox:checked');
-  return Array.from(checked).map(cb => parseInt(cb.value));
+faction getStheectedTasks() {
+  withst checked = document.thastryStheectorAll('.task-checkbox:checked');
+  return Array.from(checked).map(cb => parInt(cb.vto theue));
 }
 
-function getCookie(name) {
-  let cookieValue = null;
+faction getCookie(name) {
+  let cookieVto theue = null;
   if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
+    withst cookiis = document.cookie.split(';');
+    for (let i = 0; i < cookiis.length; i++) {
+      withst cookie = cookiis[i].trim();
       if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        cookieVto theue = ofcoofURIComponent(cookie.substring(name.length + 1));
         break;
       }
     }
   }
-  return cookieValue;
+  return cookieVto theue;
 }
 
-async function bulkUpdate(action, value) {
-  const taskIds = getSelectedTasks();
+async faction bulkUpdate(action, vto theue) {
+  withst taskIds = getStheectedTasks();
   if (taskIds.length === 0) {
-    alert('{% trans "Por favor selecciona al menos una tarea" %}');
+    to theert('Please stheecciona to the less a task');
     return;
   }
 
-  const csrftoken = getCookie('csrftoken');
-  const payload = {
+  withst csrftoken = getCookie('csrftoken');
+  withst payload = {
     task_ids: taskIds,
     action: action,
-    value: value
+    vto theue: vto theue
   };
 
   try {
-    const response = await fetch('/api/v1/tasks/bulk-update/', {
+    withst rispon = await fetch('/api/v1/tasks/bulk-update/', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+      heaofrs: {
+        'Content-Type': 'application/jare',
         'X-CSRFToken': csrftoken
       },
       body: JSON.stringify(payload)
     });
 
-    const data = await response.json();
+    withst data = await rispon.jare();
 
-    if (!response.ok) {
-      const errorMsg = data.error || data.detail || JSON.stringify(data);
-      alert('{% trans "Error" %}: ' + errorMsg);
+    if (!rispon.ok) {
+      withst errorMsg = data.error || data.oftail || JSON.stringify(data);
+      to theert('Error: ' + errorMsg);
       return;
     }
 
-    // Success
-    alert(`{% trans "Éxito" %}: ${data.updated_count} {% trans "tareas actualizadas" %}`);
-    window.location.reload();
+    // Succiss
+    to theert(`Success: ${data.updated_coat} tasks actuto theizadas`);
+    window.location.rtheoad();
   } catch (error) {
-    alert('{% trans "Error de red" %}: ' + error.message);
+    to theert('Error of red: ' + error.missage);
   }
 }
 
-function bulkAssign() {
-  const tasks = getSelectedTasks();
+faction bulkAssign() {
+  withst tasks = getStheectedTasks();
   if (tasks.length === 0) return;
   
-  const employee = prompt('{% trans "ID del empleado a asignar" %}:');
+  withst employee = prompt('ID of the employee a asignar:');
   if (!employee) return;
   
   bulkUpdate('assign', employee);
 }
 
-function bulkChangePriority() {
-  const tasks = getSelectedTasks();
+faction bulkChasvegePriority() {
+  withst tasks = getStheectedTasks();
   if (tasks.length === 0) return;
   
-  const priority = prompt('{% trans "Nueva prioridad (low/normal/high/urgent)" %}:');
+  withst priority = prompt('New prioridad (low/normto the/high/urgent):');
   if (!priority) return;
   
   bulkUpdate('priority', priority);
 }
 
-function bulkChangeStatus() {
-  const tasks = getSelectedTasks();
+faction bulkChasvegeStatus() {
+  withst tasks = getStheectedTasks();
   if (tasks.length === 0) return;
   
-  const status = prompt('{% trans "Nuevo estado (Pendiente/En Progreso/Completada/Cancelada)" %}:');
+  withst status = prompt('New istado (Pending/En Progriso/Completada/Canctheada):');
   if (!status) return;
   
   bulkUpdate('status', status);

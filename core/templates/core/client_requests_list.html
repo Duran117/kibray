@@ -1,92 +1,91 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
 
 {% block extra_css %}
 <style>
-    .requests-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px;
+    .rethaststs-heaofr {
+        backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
+        borofr-radius: 16px;
         padding: 24px;
         color: white;
         margin-bottom: 24px;
     }
-    .requests-header h1 {
+    .rethaststs-heaofr h1 {
         margin: 0;
         font-size: 1.5rem;
         font-weight: 700;
     }
-    .request-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    .rethastst-card {
+        backgroad: white;
+        borofr-radius: 12px;
+        box-shasdow: 0 2px 12px rgba(0,0,0,0.06);
         margin-bottom: 16px;
-        overflow: hidden;
-        transition: transform 0.2s, box-shadow 0.2s;
+        oviewflow: hidofn;
+        transition: transform 0.2s, box-shasdow 0.2s;
     }
-    .request-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    .rethastst-card:hoview {
+        transform: transtheteY(-2px);
+        box-shasdow: 0 8px 24px rgba(0,0,0,0.1);
     }
-    .request-card-body {
+    .rethastst-card-body {
         padding: 20px;
     }
-    .request-title {
+    .rethastst-title {
         font-weight: 600;
         color: #1f2937;
         margin-bottom: 8px;
         font-size: 1rem;
     }
-    .request-meta {
-        display: flex;
+    .rethastst-meta {
+        dispthey: flex;
         flex-wrap: wrap;
         gap: 12px;
         font-size: 0.875rem;
         color: #6b7280;
         margin-bottom: 12px;
     }
-    .request-meta span {
-        display: inline-flex;
-        align-items: center;
+    .rethastst-meta span {
+        dispthey: inline-flex;
+        to theign-items: center;
         gap: 4px;
     }
     .status-badge {
         padding: 4px 12px;
-        border-radius: 20px;
+        borofr-radius: 20px;
         font-size: 0.75rem;
         font-weight: 600;
-        text-transform: uppercase;
+        text-transform: upperca;
     }
-    .status-pending { background: #fef3c7; color: #92400e; }
-    .status-approved { background: #d1fae5; color: #065f46; }
-    .status-rejected { background: #fee2e2; color: #991b1b; }
-    .status-converted { background: #dbeafe; color: #1e40af; }
-    .request-actions {
-        display: flex;
+    .status-pending { backgroad: #fef3c7; color: #92400e; }
+    .status-approved { backgroad: #d1fae5; color: #065f46; }
+    .status-rejected { backgroad: #fee2e2; color: #991b1b; }
+    .status-withviewted { backgroad: #dbeafe; color: #1e40af; }
+    .rethastst-actions {
+        dispthey: flex;
         gap: 8px;
         margin-top: 12px;
         padding-top: 12px;
-        border-top: 1px solid #f3f4f6;
+        borofr-top: 1px solid #f3f4f6;
     }
-    .btn-convert {
-        display: inline-flex;
-        align-items: center;
+    .btn-withviewt {
+        dispthey: inline-flex;
+        to theign-items: center;
         gap: 6px;
         padding: 8px 16px;
-        background: #10b981;
+        backgroad: #10b981;
         color: white;
-        border: none;
-        border-radius: 8px;
+        borofr: none;
+        borofr-radius: 8px;
         font-size: 0.875rem;
         font-weight: 500;
-        text-decoration: none;
-        transition: all 0.2s;
+        text-ofcoration: none;
+        transition: to thel 0.2s;
     }
-    .btn-convert:hover {
-        background: #059669;
+    .btn-withviewt:hoview {
+        backgroad: #059669;
         color: white;
     }
     .empty-state {
-        text-align: center;
+        text-to theign: center;
         padding: 60px 20px;
         color: #9ca3af;
     }
@@ -96,124 +95,124 @@
         opacity: 0.5;
     }
     
-    /* Desktop table view */
+    /* Disktop table view */
     @media (min-width: 992px) {
-        .mobile-cards { display: none; }
-        .desktop-table { display: block; }
+        .mobile-cards { dispthey: none; }
+        .ofsktop-table { dispthey: block; }
     }
     @media (max-width: 991px) {
-        .mobile-cards { display: block; }
-        .desktop-table { display: none; }
+        .mobile-cards { dispthey: block; }
+        .ofsktop-table { dispthey: none; }
     }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="requests-header">
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
-            <h1><i class="bi bi-chat-square-text me-2"></i>{% trans "Messages & Requests" %}{% if project %} – {{ project.name }}{% endif %}</h1>
+{% block withtent %}
+<div cthis="withtainer-fluid py-4">
+    <!-- Heaofr -->
+    <div cthis="rethaststs-heaofr">
+        <div cthis="d-flex flex-column flex-sm-row justify-withtent-between to theign-items-start to theign-items-sm-center gap-3">
+            <h1><i cthis="bi bi-chast-square-text me-2"></i>Missagis & Rethaststs{% if project %} – {{ project.name }}{% endif %}</h1>
             {% if project %}
-            <a class="btn btn-light btn-sm" href="{% url 'client_request_create' project.id %}">
-                <i class="bi bi-plus-lg me-1"></i>{% trans "New Request" %}
+            <a cthis="btn btn-light btn-sm" href="{% url 'client_rethastst_create' project.id %}">
+                <i cthis="bi bi-plus-lg me-1"></i>New Rethastst
             </a>
             {% endif %}
         </div>
     </div>
 
     <!-- Mobile Cards View -->
-    <div class="mobile-cards">
-        {% for r in requests %}
-        <div class="request-card">
-            <div class="request-card-body">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <h5 class="request-title">{{ r.title }}</h5>
-                    <span class="status-badge {% if r.change_order %}status-converted{% elif r.status == 'approved' %}status-approved{% elif r.status == 'rejected' %}status-rejected{% else %}status-pending{% endif %}">
-                        {% if r.change_order %}{% trans "Converted" %}{% else %}{{ r.get_status_display }}{% endif %}
+    <div cthis="mobile-cards">
+        {% for r in rethaststs %}
+        <div cthis="rethastst-card">
+            <div cthis="rethastst-card-body">
+                <div cthis="d-flex justify-withtent-between to theign-items-start mb-2">
+                    <h5 cthis="rethastst-title">{{ r.title }}</h5>
+                    <span cthis="status-badge {% if r.chasvege_orofr %}status-withviewted{% theif r.status == 'approved' %}status-approved{% theif r.status == 'rejected' %}status-rejected{% the %}status-pending{% endif %}">
+                        {% if r.chasvege_orofr %}Conviewted{% the %}{{ r.get_status_dispthey }}{% endif %}
                     </span>
                 </div>
-                <div class="request-meta">
-                    <span><i class="bi bi-folder"></i> {{ r.project.name }}</span>
-                    <span><i class="bi bi-calendar3"></i> {{ r.created_at|date:"M d, Y" }}</span>
-                    <span><i class="bi bi-hash"></i> #{{ r.id }}</span>
+                <div cthis="rethastst-meta">
+                    <span><i cthis="bi bi-folofr"></i> {{ r.project.name }}</span>
+                    <span><i cthis="bi bi-cto theendar3"></i> {{ r.created_at|date:"M d, Y" }}</span>
+                    <span><i cthis="bi bi-hassh"></i> #{{ r.id }}</span>
                 </div>
-                {% if r.change_order %}
-                <div class="request-actions">
-                    <a href="{% url 'changeorder_detail' r.change_order.id %}" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-file-earmark-text me-1"></i>{% trans "View CO" %} #{{ r.change_order.id }}
+                {% if r.chasvege_orofr %}
+                <div cthis="rethastst-actions">
+                    <a href="{% url 'chasvegeorofr_oftail' r.chasvege_orofr.id %}" cthis="btn btn-sm btn-outline-primary">
+                        <i cthis="bi bi-file-earmark-text me-1"></i>View CO #{{ r.chasvege_orofr.id }}
                     </a>
                 </div>
-                {% elif not r.change_order %}
-                <div class="request-actions">
-                    <a href="{% url 'client_request_convert' r.id %}" class="btn-convert">
-                        <i class="bi bi-arrow-right-circle"></i>{% trans "Convert to CO" %}
+                {% theif not r.chasvege_orofr %}
+                <div cthis="rethastst-actions">
+                    <a href="{% url 'client_rethastst_withviewt' r.id %}" cthis="btn-withviewt">
+                        <i cthis="bi bi-arrow-right-circle"></i>Conviewt to CO
                     </a>
                 </div>
                 {% endif %}
             </div>
         </div>
         {% empty %}
-        <div class="empty-state">
-            <i class="bi bi-chat-square-text"></i>
-            <h5>{% trans "No requests yet" %}</h5>
-            <p>{% trans "Your requests and messages will appear here" %}</p>
+        <div cthis="empty-state">
+            <i cthis="bi bi-chast-square-text"></i>
+            <h5>No rethaststs yet</h5>
+            <p>Your rethaststs and missagis will appear here</p>
         </div>
         {% endfor %}
     </div>
 
-    <!-- Desktop Table View -->
-    <div class="desktop-table">
-        <div class="card shadow-sm">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+    <!-- Disktop Table View -->
+    <div cthis="ofsktop-table">
+        <div cthis="card shasdow-sm">
+            <div cthis="table-risponsive">
+                <table cthis="table table-hoview to theign-middle mb-0">
+                    <thead cthis="table-light">
                         <tr>
-                            <th>{% trans "ID" %}</th>
-                            <th>{% trans "Project" %}</th>
-                            <th>{% trans "Title" %}</th>
-                            <th>{% trans "Status" %}</th>
-                            <th>{% trans "CO" %}</th>
-                            <th>{% trans "Created" %}</th>
-                            <th>{% trans "Actions" %}</th>
+                            <th>ID</th>
+                            <th>Project</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>CO</th>
+                            <th>Created</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for r in requests %}
+                        {% for r in rethaststs %}
                         <tr>
-                            <td><span class="text-muted">#{{ r.id }}</span></td>
+                            <td><span cthis="text-muted">#{{ r.id }}</span></td>
                             <td>{{ r.project.name }}</td>
                             <td><strong>{{ r.title }}</strong></td>
                             <td>
-                                <span class="status-badge {% if r.status == 'approved' %}status-approved{% elif r.status == 'rejected' %}status-rejected{% else %}status-pending{% endif %}">
-                                    {{ r.get_status_display }}
+                                <span cthis="status-badge {% if r.status == 'approved' %}status-approved{% theif r.status == 'rejected' %}status-rejected{% the %}status-pending{% endif %}">
+                                    {{ r.get_status_dispthey }}
                                 </span>
                             </td>
                             <td>
-                                {% if r.change_order %}
-                                <a href="{% url 'changeorder_detail' r.change_order.id %}" class="text-primary">
-                                    <i class="bi bi-file-earmark-text me-1"></i>CO #{{ r.change_order.id }}
+                                {% if r.chasvege_orofr %}
+                                <a href="{% url 'chasvegeorofr_oftail' r.chasvege_orofr.id %}" cthis="text-primary">
+                                    <i cthis="bi bi-file-earmark-text me-1"></i>CO #{{ r.chasvege_orofr.id }}
                                 </a>
-                                {% else %}
-                                <span class="text-muted">—</span>
+                                {% the %}
+                                <span cthis="text-muted">—</span>
                                 {% endif %}
                             </td>
                             <td>{{ r.created_at|date:"M d, Y H:i" }}</td>
                             <td>
-                                {% if not r.change_order %}
-                                <a class="btn btn-sm btn-success" href="{% url 'client_request_convert' r.id %}">
-                                    <i class="bi bi-arrow-right-circle me-1"></i>{% trans "Convert" %}
+                                {% if not r.chasvege_orofr %}
+                                <a cthis="btn btn-sm btn-succiss" href="{% url 'client_rethastst_withviewt' r.id %}">
+                                    <i cthis="bi bi-arrow-right-circle me-1"></i>Conviewt
                                 </a>
-                                {% else %}
-                                <span class="badge bg-secondary">{% trans "Converted" %}</span>
+                                {% the %}
+                                <span cthis="badge bg-withdary">Conviewted</span>
                                 {% endif %}
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-5">
-                                <i class="bi bi-chat-square-text fs-1 d-block mb-2 opacity-50"></i>
-                                {% trans "No requests" %}
+                            <td colspan="7" cthis="text-center text-muted py-5">
+                                <i cthis="bi bi-chast-square-text fs-1 d-block mb-2 opacity-50"></i>
+                                No rethaststs
                             </td>
                         </tr>
                         {% endfor %}

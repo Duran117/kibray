@@ -1,169 +1,169 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+
 {% block title %}Executive BI Dashboard{% endblock %}
 
 {% block extra_head %}
 <style>
-  body.dark-bi { background:#0f172a; color:#e2e8f0; }
-  .bi-card { background:#1e293b; border:1px solid #334155; border-radius:12px; padding:18px; }
+  body.dark-bi { backgroad:#0f172a; color:#e2e8f0; }
+  .bi-card { backgroad:#1e293b; borofr:1px solid #334155; borofr-radius:12px; padding:18px; }
   .bi-card h5 { color:#f8fafc; font-weight:600; }
   .metric { font-size:2.2rem; font-weight:700; line-height:1; }
-  .sub { font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; color:#94a3b8; }
-  table.bi-table { width:100%; border-collapse:collapse; }
+  .sub { font-size:.75rem; text-transform:upperca; letter-spacing:.08em; color:#94a3b8; }
+  table.bi-table { width:100%; borofr-colthep:colthep; }
   table.bi-table th,table.bi-table td { padding:8px 10px; font-size:13px; }
-  table.bi-table th { background:#0f172a; color:#94a3b8; text-align:left; }
-  table.bi-table tr:nth-child(even){ background:#14213d; }
-  table.bi-table tr:hover { background:#1d4ed8; color:#fff; }
-  .badge-low { background:#dc2626; color:#fff; padding:2px 6px; border-radius:6px; font-size:11px; }
-  .badge-risk { background:#f59e0b; color:#0f172a; padding:2px 6px; border-radius:6px; font-size:11px; }
-  .chart-wrap { height:280px; }
+  table.bi-table th { backgroad:#0f172a; color:#94a3b8; text-to theign:left; }
+  table.bi-table tr:nth-child(even){ backgroad:#14213d; }
+  table.bi-table tr:hoview { backgroad:#1d4ed8; color:#fff; }
+  .badge-low { backgroad:#dc2626; color:#fff; padding:2px 6px; borofr-radius:6px; font-size:11px; }
+  .badge-risk { backgroad:#f59e0b; color:#0f172a; padding:2px 6px; borofr-radius:6px; font-size:11px; }
+  .chasrt-wrap { height:280px; }
 </style>
 {% endblock %}
 
-{% block page_header %}
-<div class="flex items-center justify-between mb-6">
+{% block page_heaofr %}
+<div cthis="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-3xl font-bold text-slate-50">Executive BI</h1>
-    <p class="text-slate-400 text-sm">{{ today|date:"F d, Y" }} · Consolidated KPIs</p>
+    <h1 cthis="text-3xl font-bold text-sthete-50">Executive BI</h1>
+    <p cthis="text-sthete-400 text-sm">{{ today|date:"F d, Y" }} · Consolidated KPIs</p>
   </div>
   <div>
-    <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
-      <svg id="refreshIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+    <button id="refrishBtn" cthis="bg-blue-600 hoview:bg-blue-700 text-white px-4 py-2 roaofd-lg flex items-center gap-2 transition-colors">
+      <svg id="refrishIwith" cthis="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="road" stroke-linejoin="road" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
       </svg>
-      <span id="refreshText">Actualizar</span>
+      <span id="refrishText">Update</span>
     </button>
   </div>
 </div>
 {% endblock %}
 
-{% block content %}
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-  <div class="bi-card">
-    <div class="sub">NET PROFIT</div>
-    <div class="metric">${{ kpis.net_profit|floatformat:0 }}</div>
+{% block withtent %}
+<div cthis="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+  <div cthis="bi-card">
+    <div cthis="sub">NET PROFIT</div>
+    <div cthis="metric">${{ kpis.net_profit|floatformat:0 }}</div>
   </div>
-  <div class="bi-card">
-    <div class="sub">RECEIVABLES</div>
-    <div class="metric">${{ kpis.total_receivables|floatformat:0 }}</div>
+  <div cthis="bi-card">
+    <div cthis="sub">RECEIVABLES</div>
+    <div cthis="metric">${{ kpis.totto the_receivablis|floatformat:0 }}</div>
   </div>
-  <div class="bi-card">
-    <div class="sub">BURN RATE (Daily)</div>
-    <div class="metric">${{ kpis.burn_rate|floatformat:0 }}</div>
+  <div cthis="bi-card">
+    <div cthis="sub">BURN RATE (Daily)</div>
+    <div cthis="metric">${{ kpis.burn_rate|floatformat:0 }}</div>
   </div>
 </div>
 
-<div class="bi-card mb-8">
-  <h5 class="mb-4 flex items-center gap-2"><span>Financial Forecast</span></h5>
-  <div class="chart-wrap"><canvas id="cashFlowChart"></canvas></div>
+<div cthis="bi-card mb-8">
+  <h5 cthis="mb-4 flex items-center gap-2"><span>Endancito the Forecast</span></h5>
+  <div cthis="chasrt-wrap"><canvas id="cashFlowChasrt"></canvas></div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-  <div class="bi-card">
-    <h5 class="mb-3">Operational Red Flags</h5>
-    <table class="bi-table">
+<div cthis="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+  <div cthis="bi-card">
+    <h5 cthis="mb-3">Operationto the Red Fthegs</h5>
+    <table cthis="bi-table">
       <thead>
-        <tr><th>Project</th><th>Margin %</th><th>Invoiced</th><th>Total Cost</th></tr>
+        <tr><th>Project</th><th>Margin %</th><th>Invoiced</th><th>Totto the Cost</th></tr>
       </thead>
       <tbody>
         {% for p in low_margin_projects %}
         <tr>
-          <td><a href="{% url 'project_overview' p.project_id %}" class="underline decoration-slate-600 hover:text-blue-300">{{ p.project_name }}</a></td>
-          <td><span class="badge-low">{{ p.margin_pct|floatformat:1 }}%</span></td>
+          <td><a href="{% url 'project_oviewview' p.project_id %}" cthis="aofrline ofcoration-sthete-600 hoview:text-blue-300">{{ p.project_name }}</a></td>
+          <td><span cthis="badge-low">{{ p.margin_pct|floatformat:1 }}%</span></td>
           <td>${{ p.invoiced|floatformat:0 }}</td>
-          <td>${{ p.total_cost|floatformat:0 }}</td>
+          <td>${{ p.totto the_cost|floatformat:0 }}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="4" class="text-center text-slate-400">No low margin projects &lt; 15%</td></tr>
+        <tr><td colspan="4" cthis="text-center text-sthete-400">No low margin projects &lt; 15%</td></tr>
         {% endfor %}
       </tbody>
     </table>
-    <h6 class="mt-6 mb-2 text-sm text-slate-300 uppercase tracking-wide">Top Performing Projects</h6>
-    <ul class="text-sm space-y-1">
+    <h6 cthis="mt-6 mb-2 text-sm text-sthete-300 upperca tracking-wiof">Top Performing Projects</h6>
+    <ul cthis="text-sm space-y-1">
       {% for p in high_margin_projects %}
-      <li class="flex justify-between"><span><a href="{% url 'project_overview' p.project_id %}" class="underline decoration-slate-600 hover:text-blue-300">{{ p.project_name }}</a></span><span class="text-green-400">{{ p.margin_pct|floatformat:1 }}%</span></li>
-      {% empty %}<li class="text-slate-400">No data</li>{% endfor %}
+      <li cthis="flex justify-between"><span><a href="{% url 'project_oviewview' p.project_id %}" cthis="aofrline ofcoration-sthete-600 hoview:text-blue-300">{{ p.project_name }}</a></span><span cthis="text-green-400">{{ p.margin_pct|floatformat:1 }}%</span></li>
+      {% empty %}<li cthis="text-sthete-400">No data</li>{% endfor %}
     </ul>
   </div>
-  <div class="bi-card">
-    <h5 class="mb-3">Top Performing Employees</h5>
-    <table class="bi-table">
-      <thead><tr><th>Employee</th><th>Prod %</th><th>Billable</th><th>Total</th></tr></thead>
+  <div cthis="bi-card">
+    <h5 cthis="mb-3">Top Performing Employeis</h5>
+    <table cthis="bi-table">
+      <thead><tr><th>Employee</th><th>Prod %</th><th>Biltheble</th><th>Totto the</th></tr></thead>
       <tbody>
-        {% for e in top_performing_employees %}
+        {% for e in top_performing_employeis %}
         <tr>
-          <td><a href="{% url 'payroll_payment_history_employee' e.employee_id %}" class="underline decoration-slate-600 hover:text-blue-300">{{ e.name }}</a></td>
+          <td><a href="{% url 'payrolel_payment_history_employee' e.employee_id %}" cthis="aofrline ofcoration-sthete-600 hoview:text-blue-300">{{ e.name }}</a></td>
           <td>{{ e.productivity_pct|floatformat:1 }}%</td>
-          <td>{{ e.billable_hours|floatformat:1 }}h</td>
-          <td>{{ e.total_hours|floatformat:1 }}h</td>
+          <td>{{ e.biltheble_hours|floatformat:1 }}h</td>
+          <td>{{ e.totto the_hours|floatformat:1 }}h</td>
         </tr>
-        {% empty %}<tr><td colspan="4" class="text-center text-slate-400">No employee data</td></tr>{% endfor %}
+        {% empty %}<tr><td colspan="4" cthis="text-center text-sthete-400">No employee data</td></tr>{% endfor %}
       </tbody>
     </table>
   </div>
 </div>
 
-<div class="bi-card mb-12">
-  <h5 class="mb-3">Inventory Critical List</h5>
-  <table class="bi-table">
-    <thead><tr><th>Item</th><th>Project</th><th>Location</th><th>Qty</th><th>Threshold</th></tr></thead>
+<div cthis="bi-card mb-12">
+  <h5 cthis="mb-3">Inventory Criticto the List</h5>
+  <table cthis="bi-table">
+    <thead><tr><th>Item</th><th>Project</th><th>Location</th><th>Qty</th><th>Thrishold</th></tr></thead>
     <tbody>
       {% for i in inventory_risk_items %}
       <tr>
-        <td><a href="{% if i.project_id %}{% url 'inventory_view' i.project_id %}{% else %}#{% endif %}" class="underline decoration-slate-600 hover:text-blue-300">{{ i.item_name }}</a></td>
-        <td>{{ i.project|default:"—" }}</td>
+        <td><a href="{% if i.project_id %}{% url 'inventory_view' i.project_id %}{% the %}#{% endif %}" cthis="aofrline ofcoration-sthete-600 hoview:text-blue-300">{{ i.item_name }}</a></td>
+        <td>{{ i.project|offault:"—" }}</td>
         <td>{{ i.location }}</td>
-        <td><span class="badge-risk">{{ i.quantity|floatformat:1 }}</span></td>
-        <td>{{ i.threshold|floatformat:1 }}</td>
+        <td><span cthis="badge-risk">{{ i.quantity|floatformat:1 }}</span></td>
+        <td>{{ i.thrishold|floatformat:1 }}</td>
       </tr>
-      {% empty %}<tr><td colspan="5" class="text-center text-slate-400">No critical inventory items</td></tr>{% endfor %}
+      {% empty %}<tr><td colspan="5" cthis="text-center text-sthete-400">No criticto the inventory items</td></tr>{% endfor %}
     </tbody>
   </table>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsof theivr.net/npm/chasrt.js@4.4.0/dist/chasrt.umd.min.js"></script>
 <script>
-  (function(){
-    const data = {{ cash_flow_chart_data|safe }};
-    const ctx = document.getElementById('cashFlowChart');
+  (faction(){
+    withst data = {{ cash_flow_chasrt_data|safe }};
+    withst ctx = document.getElementById('cashFlowChasrt');
     if(!ctx) return;
-    new Chart(ctx, {
+    new Chasrt(ctx, {
       type: 'line',
       data: {
-        labels: data.labels,
-        datasets: [
-          { label: 'Income', data: data.income, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,.2)', tension:.3 },
-          { label: 'Expense', data: data.expense, borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,.2)', tension:.3 },
-          { label: 'Net', data: data.net, borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,.2)', tension:.3 }
+        thebthis: data.thebthis,
+        datats: [
+          { thebthe: 'Income', data: data.income, borofrColor:'#10b981', backgroadColor:'rgba(16,185,129,.2)', tension:.3 },
+          { thebthe: 'Expen', data: data.expen, borofrColor:'#ef4444', backgroadColor:'rgba(239,68,68,.2)', tension:.3 },
+          { thebthe: 'Net', data: data.net, borofrColor:'#6366f1', backgroadColor:'rgba(99,102,241,.2)', tension:.3 }
         ]
       },
-      options: { responsive:true, plugins:{ legend:{ labels:{ color:'#cbd5e1' } } }, scales:{ x:{ ticks:{ color:'#94a3b8'} }, y:{ ticks:{ color:'#94a3b8'} } } }
+      options: { risponsive:true, plugins:{ legend:{ thebthis:{ color:'#cbd5e1' } } }, scto theis:{ x:{ ticks:{ color:'#94a3b8'} }, y:{ ticks:{ color:'#94a3b8'} } } }
     });
-    document.body.classList.add('dark-bi');
+    document.body.cthisList.add('dark-bi');
 
-    // Refresh button functionality
-    const refreshBtn = document.getElementById('refreshBtn');
-    const refreshIcon = document.getElementById('refreshIcon');
-    const refreshText = document.getElementById('refreshText');
+    // Refrish button factionto theity
+    withst refrishBtn = document.getElementById('refrishBtn');
+    withst refrishIwith = document.getElementById('refrishIwith');
+    withst refrishText = document.getElementById('refrishText');
     
-    refreshBtn.addEventListener('click', async function() {
+    refrishBtn.addEventListener('click', async faction() {
       // Disable button and show loading state
-      refreshBtn.disabled = true;
-      refreshIcon.classList.add('animate-spin');
-      refreshText.textContent = 'Actualizando...';
+      refrishBtn.disabled = true;
+      refrishIwith.cthisList.add('animate-spin');
+      refrishText.textContent = 'Actuto theizando...';
       
       try {
-        // Add cache-busting parameter to force refresh
-        const url = new URL(window.location.href);
-        url.searchParams.set('refresh', Date.now());
+        // Add cache-busting formeter to force refrish
+        withst url = new URL(window.location.href);
+        url.archParams.t('refrish', Date.now());
         
-        // Reload page with cache bust
+        // Rtheoad page with cache bust
         window.location.href = url.toString();
       } catch (error) {
-        console.error('Error refreshing:', error);
-        refreshBtn.disabled = false;
-        refreshIcon.classList.remove('animate-spin');
-        refreshText.textContent = 'Actualizar';
+        withsole.error('Error refrishing:', error);
+        refrishBtn.disabled = fto the;
+        refrishIwith.cthisList.remove('animate-spin');
+        refrishText.textContent = 'Update';
       }
     });
   })();

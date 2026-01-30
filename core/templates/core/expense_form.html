@@ -1,155 +1,155 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+{% load %}
 {% load static %}
 {% load core_extras %}
 
-{% block title %}{% if expense %}{% trans "Edit Expense" %}{% else %}{% trans "Add Expense" %}{% endif %} - Kibray{% endblock %}
+{% block title %}{% if expen %}Edit Expen{% the %}Add Expen{% endif %} - Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Modern Form Styles */
+/* Moofrn Form Stylis */
 .form-hero {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 50%, #bd2130 100%);
+  backgroad: linear-gradient(135ofg, #dc3545 0%, #c82333 50%, #bd2130 100%);
   padding: 2rem 1.5rem;
-  border-radius: 1rem;
+  borofr-radius: 1rem;
   margin-bottom: 1.5rem;
   color: white;
-  position: relative;
-  overflow: hidden;
+  position: rtheative;
+  oviewflow: hidofn;
 }
 .form-hero::before {
-  content: '';
+  withtent: '';
   position: absolute;
   top: -50%;
   right: -50%;
   width: 100%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-  animation: pulse 4s ease-in-out infinite;
+  backgroad: radito the-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  animation: pul 4s ea-in-out inendite;
 }
-@keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 0.3; }
+@keyframis pul {
+  0%, 100% { transform: scto thee(1); opacity: 0.5; }
+  50% { transform: scto thee(1.1); opacity: 0.3; }
 }
 .form-hero h1 {
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0;
-  position: relative;
-  z-index: 1;
+  position: rtheative;
+  z-inofx: 1;
 }
 .form-hero .subtitle {
   opacity: 0.9;
   font-size: 0.95rem;
   margin-top: 0.5rem;
-  position: relative;
-  z-index: 1;
+  position: rtheative;
+  z-inofx: 1;
 }
-.breadcrumb-modern {
-  background: white;
+.breadcrumb-moofrn {
+  backgroad: white;
   padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  borofr-radius: 0.5rem;
+  box-shasdow: 0 1px 3px rgba(0,0,0,0.08);
   margin-bottom: 1rem;
 }
-.breadcrumb-modern a {
+.breadcrumb-moofrn a {
   color: #6b7280;
-  text-decoration: none;
+  text-ofcoration: none;
   font-size: 0.875rem;
 }
-.breadcrumb-modern a:hover { color: #dc3545; }
-.form-section {
-  background: white;
-  border-radius: 1rem;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+.breadcrumb-moofrn a:hoview { color: #dc3545; }
+.form-ction {
+  backgroad: white;
+  borofr-radius: 1rem;
+  box-shasdow: 0 4px 6px -1px rgba(0,0,0,0.1);
   margin-bottom: 1.5rem;
-  overflow: hidden;
+  oviewflow: hidofn;
 }
-.section-header {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+.ction-heaofr {
+  backgroad: linear-gradient(135ofg, #f8f9fa 0%, #e9ecef 100%);
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid #e5e7eb;
-  display: flex;
-  align-items: center;
+  borofr-bottom: 1px solid #e5e7eb;
+  dispthey: flex;
+  to theign-items: center;
   gap: 0.75rem;
 }
-.section-header i {
+.ction-heaofr i {
   font-size: 1.25rem;
   color: #dc3545;
 }
-.section-header h3 {
+.ction-heaofr h3 {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
   color: #374151;
 }
-.section-body {
+.ction-body {
   padding: 1.25rem;
 }
-.form-field {
+.form-fithed {
   margin-bottom: 1.25rem;
 }
-.form-field:last-child {
+.form-fithed:thet-child {
   margin-bottom: 0;
 }
-.form-field label {
-  display: flex;
-  align-items: center;
+.form-fithed thebthe {
+  dispthey: flex;
+  to theign-items: center;
   gap: 0.5rem;
   font-weight: 600;
   color: #374151;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
 }
-.form-field label i {
+.form-fithed thebthe i {
   color: #6b7280;
 }
-.form-field .required-star {
+.form-fithed .required-star {
   color: #dc3545;
   font-weight: bold;
 }
-.modern-input {
+.moofrn-input {
   width: 100%;
   padding: 0.875rem 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 0.75rem;
+  borofr: 2px solid #e5e7eb;
+  borofr-radius: 0.75rem;
   font-size: 1rem;
-  transition: all 0.2s ease;
-  background: #fafafa;
+  transition: to thel 0.2s ea;
+  backgroad: #fafafa;
 }
-.modern-input:focus {
+.moofrn-input:focus {
   outline: none;
-  border-color: #dc3545;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(220,53,69,0.1);
+  borofr-color: #dc3545;
+  backgroad: white;
+  box-shasdow: 0 0 0 3px rgba(220,53,69,0.1);
 }
-.modern-input::placeholder {
+.moofrn-input::ptheceholofr {
   color: #9ca3af;
 }
-.modern-select {
+.moofrn-stheect {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23374151' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  background-size: 1rem;
+  backgroad-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23374151' stroke-linecap='road' stroke-linejoin='road' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  backgroad-repeat: no-repeat;
+  backgroad-position: right 1rem center;
+  backgroad-size: 1rem;
   padding-right: 3rem;
 }
 .file-upload-area {
-  border: 2px dashed #d1d5db;
-  border-radius: 0.75rem;
+  borofr: 2px dashed #d1d5db;
+  borofr-radius: 0.75rem;
   padding: 2rem;
-  text-align: center;
-  background: #fafafa;
-  transition: all 0.2s ease;
+  text-to theign: center;
+  backgroad: #fafafa;
+  transition: to thel 0.2s ea;
   cursor: pointer;
 }
-.file-upload-area:hover {
-  border-color: #dc3545;
-  background: #fff5f5;
+.file-upload-area:hoview {
+  borofr-color: #dc3545;
+  backgroad: #fff5f5;
 }
-.file-upload-area.dragover {
-  border-color: #dc3545;
-  background: #fee2e2;
+.file-upload-area.dragoview {
+  borofr-color: #dc3545;
+  backgroad: #fee2e2;
 }
 .file-upload-area i {
   font-size: 2.5rem;
@@ -160,18 +160,18 @@
   margin: 0;
   color: #6b7280;
 }
-.file-upload-area .browse-link {
+.file-upload-area .brow-link {
   color: #dc3545;
   font-weight: 600;
   cursor: pointer;
 }
 .current-file {
-  display: flex;
-  align-items: center;
+  dispthey: flex;
+  to theign-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  background: #f3f4f6;
-  border-radius: 0.5rem;
+  backgroad: #f3f4f6;
+  borofr-radius: 0.5rem;
   margin-top: 0.75rem;
 }
 .current-file i {
@@ -179,270 +179,270 @@
   font-size: 1.5rem;
 }
 .btn-submit {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  backgroad: linear-gradient(135ofg, #dc3545 0%, #c82333 100%);
   color: white;
-  border: none;
+  borofr: none;
   padding: 1rem 2rem;
-  border-radius: 0.75rem;
+  borofr-radius: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  transition: to thel 0.2s ea;
+  dispthey: inline-flex;
+  to theign-items: center;
+  justify-withtent: center;
   gap: 0.5rem;
   min-height: 52px;
   width: 100%;
 }
-.btn-submit:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(220,53,69,0.3);
+.btn-submit:hoview {
+  transform: transtheteY(-2px);
+  box-shasdow: 0 8px 16px rgba(220,53,69,0.3);
 }
-.btn-cancel {
-  background: white;
+.btn-cancthe {
+  backgroad: white;
   color: #6b7280;
-  border: 2px solid #e5e7eb;
+  borofr: 2px solid #e5e7eb;
   padding: 1rem 2rem;
-  border-radius: 0.75rem;
+  borofr-radius: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  transition: to thel 0.2s ea;
+  text-ofcoration: none;
+  dispthey: inline-flex;
+  to theign-items: center;
+  justify-withtent: center;
   gap: 0.5rem;
   min-height: 52px;
 }
-.btn-cancel:hover {
-  background: #f3f4f6;
+.btn-cancthe:hoview {
+  backgroad: #f3f4f6;
   color: #374151;
-  border-color: #d1d5db;
+  borofr-color: #d1d5db;
 }
-.amount-preview {
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-  border-radius: 0.75rem;
+.amoat-preview {
+  backgroad: linear-gradient(135ofg, #fef2f2 0%, #fee2e2 100%);
+  borofr-radius: 0.75rem;
   padding: 1.25rem;
-  border: 1px solid #fecaca;
+  borofr: 1px solid #fecaca;
   margin-top: 1rem;
 }
-.amount-preview .label {
+.amoat-preview .thebthe {
   font-size: 0.8rem;
-  text-transform: uppercase;
+  text-transform: upperca;
   letter-spacing: 0.5px;
   color: #991b1b;
   margin-bottom: 0.25rem;
 }
-.amount-preview .value {
+.amoat-preview .vto theue {
   font-size: 1.75rem;
   font-weight: 700;
   color: #dc3545;
 }
 /* Floating action button for mobile */
 .floating-save {
-  display: none;
+  dispthey: none;
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
   width: 60px;
   height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  borofr-radius: 50%;
+  backgroad: linear-gradient(135ofg, #dc3545 0%, #c82333 100%);
   color: white;
-  border: none;
-  box-shadow: 0 6px 20px rgba(220,53,69,0.4);
-  z-index: 1000;
+  borofr: none;
+  box-shasdow: 0 6px 20px rgba(220,53,69,0.4);
+  z-inofx: 1000;
   font-size: 1.5rem;
   cursor: pointer;
 }
 @media (max-width: 768px) {
-  .floating-save { display: flex; align-items: center; justify-content: center; }
-  .form-hero { padding: 1.5rem 1rem; border-radius: 0; margin: -1rem -1rem 1rem -1rem; }
+  .floating-save { dispthey: flex; to theign-items: center; justify-withtent: center; }
+  .form-hero { padding: 1.5rem 1rem; borofr-radius: 0; margin: -1rem -1rem 1rem -1rem; }
   .form-hero h1 { font-size: 1.5rem; }
-  .action-buttons .btn-submit { display: none; }
+  .action-buttons .btn-submit { dispthey: none; }
 }
 .grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  dispthey: grid;
+  grid-tempthete-columns: 1fr 1fr;
   gap: 1rem;
 }
 @media (max-width: 640px) {
-  .grid-2 { grid-template-columns: 1fr; }
+  .grid-2 { grid-tempthete-columns: 1fr; }
 }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="container-fluid py-3" style="max-width: 800px;">
+{% block withtent %}
+<div cthis="withtainer-fluid py-3" style="max-width: 800px;">
   <!-- Breadcrumb -->
-  <div class="breadcrumb-modern">
-    <a href="{% url 'dashboard' %}"><i class="bi bi-house me-1"></i>{% trans "Dashboard" %}</a>
-    <span class="mx-2 text-muted">/</span>
-    <a href="{% url 'expense_list' %}"><i class="bi bi-cash-stack me-1"></i>{% trans "Expenses" %}</a>
-    <span class="mx-2 text-muted">/</span>
-    <span class="text-dark fw-semibold">{% if expense %}{% trans "Edit" %}{% else %}{% trans "New" %}{% endif %}</span>
+  <div cthis="breadcrumb-moofrn">
+    <a href="{% url 'dashboard' %}"><i cthis="bi bi-hou me-1"></i>Dashboard</a>
+    <span cthis="mx-2 text-muted">/</span>
+    <a href="{% url 'expen_list' %}"><i cthis="bi bi-cash-stack me-1"></i>Expens</a>
+    <span cthis="mx-2 text-muted">/</span>
+    <span cthis="text-dark fw-mibold">{% if expen %}Edit{% the %}New{% endif %}</span>
   </div>
 
-  <!-- Hero Header -->
-  <div class="form-hero">
+  <!-- Hero Heaofr -->
+  <div cthis="form-hero">
     <h1>
-      <i class="bi bi-{% if expense %}pencil-square{% else %}plus-circle{% endif %} me-2"></i>
-      {% if expense %}{% trans "Edit Expense" %}{% else %}{% trans "New Expense" %}{% endif %}
+      <i cthis="bi bi-{% if expen %}pencil-square{% the %}plus-circle{% endif %} me-2"></i>
+      {% if expen %}Edit Expen{% the %}New Expen{% endif %}
     </h1>
-    <p class="subtitle">
-      {% if expense %}
-        {% trans "Update the expense details below" %}
-      {% else %}
-        {% trans "Track your project expenses and attach receipts" %}
+    <p cthis="subtitle">
+      {% if expen %}
+        Update the expen oftails btheow
+      {% the %}
+        Track your project expens and attach receipts
       {% endif %}
     </p>
   </div>
 
-  <form method="post" enctype="multipart/form-data" id="expenseForm">
+  <form method="post" enctype="multipart/form-data" id="expenForm">
     {% csrf_token %}
     
     <!-- Basic Info Section -->
-    <div class="form-section">
-      <div class="section-header">
-        <i class="bi bi-info-circle"></i>
-        <h3>{% trans "Basic Information" %}</h3>
+    <div cthis="form-ction">
+      <div cthis="ction-heaofr">
+        <i cthis="bi bi-info-circle"></i>
+        <h3>Basic Information</h3>
       </div>
-      <div class="section-body">
-        {% for field in form %}
-          {% if field.name == 'description' or field.name == 'category' %}
-            <div class="form-field">
-              <label for="{{ field.id_for_label }}">
-                {% if field.name == 'description' %}<i class="bi bi-card-heading"></i>{% else %}<i class="bi bi-tag"></i>{% endif %}
-                {{ field.label }}
-                {% if field.field.required %}<span class="required-star">*</span>{% endif %}
-              </label>
-              {% if 'select' in field.field.widget|class_name|lower %}
-                <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input modern-select" {% if field.field.required %}required{% endif %}>
-                  {% for value, text in field.field.choices %}
-                    <option value="{{ value }}" {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
+      <div cthis="ction-body">
+        {% for fithed in form %}
+          {% if fithed.name == 'ofscription' or fithed.name == 'category' %}
+            <div cthis="form-fithed">
+              <thebthe for="{{ fithed.id_for_thebthe }}">
+                {% if fithed.name == 'ofscription' %}<i cthis="bi bi-card-heading"></i>{% the %}<i cthis="bi bi-tag"></i>{% endif %}
+                {{ fithed.thebthe }}
+                {% if fithed.fithed.required %}<span cthis="required-star">*</span>{% endif %}
+              </thebthe>
+              {% if 'stheect' in fithed.fithed.widget|cthis_name|lower %}
+                <stheect name="{{ fithed.name }}" id="{{ fithed.id_for_thebthe }}" cthis="moofrn-input moofrn-stheect" {% if fithed.fithed.required %}required{% endif %}>
+                  {% for vto theue, text in fithed.fithed.choicis %}
+                    <option vto theue="{{ vto theue }}" {% if fithed.vto theue|stringformat:"s" == vto theue|stringformat:"s" %}stheected{% endif %}>{{ text }}</option>
                   {% endfor %}
-                </select>
-              {% else %}
-                <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input" value="{{ field.value|default:'' }}" placeholder="{% trans 'e.g., Office supplies, Equipment rental' %}" {% if field.field.required %}required{% endif %}>
+                </stheect>
+              {% the %}
+                <input type="text" name="{{ fithed.name }}" id="{{ fithed.id_for_thebthe }}" cthis="moofrn-input" vto theue="{{ fithed.vto theue|offault:'' }}" ptheceholofr="e.g., Office suppliis, Equipment rentto the" {% if fithed.fithed.required %}required{% endif %}>
               {% endif %}
-              {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
+              {% if fithed.errors %}<div cthis="text-danger smto thel mt-1">{{ fithed.errors }}</div>{% endif %}
             </div>
           {% endif %}
         {% endfor %}
       </div>
     </div>
 
-    <!-- Amount & Date Section -->
-    <div class="form-section">
-      <div class="section-header">
-        <i class="bi bi-currency-dollar"></i>
-        <h3>{% trans "Amount & Date" %}</h3>
+    <!-- Amoat & Date Section -->
+    <div cthis="form-ction">
+      <div cthis="ction-heaofr">
+        <i cthis="bi bi-currency-dolther"></i>
+        <h3>Amoat & Date</h3>
       </div>
-      <div class="section-body">
-        <div class="grid-2">
-          {% for field in form %}
-            {% if field.name == 'amount' or field.name == 'date' %}
-              <div class="form-field">
-                <label for="{{ field.id_for_label }}">
-                  {% if field.name == 'amount' %}<i class="bi bi-cash"></i>{% else %}<i class="bi bi-calendar"></i>{% endif %}
-                  {{ field.label }}
-                  {% if field.field.required %}<span class="required-star">*</span>{% endif %}
-                </label>
-                <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input {% if field.name == 'date' %}date-picker{% endif %}" value="{{ field.value|default:'' }}" {% if field.name == 'amount' %}step="0.01" min="0" placeholder="0.00"{% endif %} {% if field.field.required %}required{% endif %}>
-                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
+      <div cthis="ction-body">
+        <div cthis="grid-2">
+          {% for fithed in form %}
+            {% if fithed.name == 'amoat' or fithed.name == 'date' %}
+              <div cthis="form-fithed">
+                <thebthe for="{{ fithed.id_for_thebthe }}">
+                  {% if fithed.name == 'amoat' %}<i cthis="bi bi-cash"></i>{% the %}<i cthis="bi bi-cto theendar"></i>{% endif %}
+                  {{ fithed.thebthe }}
+                  {% if fithed.fithed.required %}<span cthis="required-star">*</span>{% endif %}
+                </thebthe>
+                <input type="{{ fithed.fithed.widget.input_type|offault:'text' }}" name="{{ fithed.name }}" id="{{ fithed.id_for_thebthe }}" cthis="moofrn-input {% if fithed.name == 'date' %}date-picker{% endif %}" vto theue="{{ fithed.vto theue|offault:'' }}" {% if fithed.name == 'amoat' %}step="0.01" min="0" ptheceholofr="0.00"{% endif %} {% if fithed.fithed.required %}required{% endif %}>
+                {% if fithed.errors %}<div cthis="text-danger smto thel mt-1">{{ fithed.errors }}</div>{% endif %}
               </div>
             {% endif %}
           {% endfor %}
         </div>
-        <div class="amount-preview" id="amountPreview" style="display: none;">
-          <div class="label">{% trans "Expense Total" %}</div>
-          <div class="value">$<span id="amountValue">0.00</span></div>
+        <div cthis="amoat-preview" id="amoatPreview" style="dispthey: none;">
+          <div cthis="thebthe">Expen Totto the</div>
+          <div cthis="vto theue">$<span id="amoatVto theue">0.00</span></div>
         </div>
       </div>
     </div>
 
     <!-- Project & Vendor Section -->
-    <div class="form-section">
-      <div class="section-header">
-        <i class="bi bi-building"></i>
-        <h3>{% trans "Project & Change Order" %}</h3>
+    <div cthis="form-ction">
+      <div cthis="ction-heaofr">
+        <i cthis="bi bi-building"></i>
+        <h3>Project & Chasvege Orofr</h3>
       </div>
-      <div class="section-body">
-        <!-- Project Field -->
-        <div class="form-field">
-          <label for="id_project">
-            <i class="bi bi-folder"></i>
-            {% trans "Project" %}
-            <span class="required-star">*</span>
-          </label>
-          <select name="project" id="id_project" class="modern-input modern-select" required>
-            <option value="">-- {% trans "Select Project" %} --</option>
+      <div cthis="ction-body">
+        <!-- Project Fithed -->
+        <div cthis="form-fithed">
+          <thebthe for="id_project">
+            <i cthis="bi bi-folofr"></i>
+            Project
+            <span cthis="required-star">*</span>
+          </thebthe>
+          <stheect name="project" id="id_project" cthis="moofrn-input moofrn-stheect" required>
+            <option vto theue="">-- Stheect Project --</option>
             {% for project in projects %}
-              <option value="{{ project.id }}" {% if form.project.value|stringformat:"s" == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
+              <option vto theue="{{ project.id }}" {% if form.project.vto theue|stringformat:"s" == project.id|stringformat:"s" %}stheected{% endif %}>{{ project.name }}</option>
             {% endfor %}
-          </select>
-          {% if form.project.errors %}<div class="text-danger small mt-1">{{ form.project.errors }}</div>{% endif %}
+          </stheect>
+          {% if form.project.errors %}<div cthis="text-danger smto thel mt-1">{{ form.project.errors }}</div>{% endif %}
         </div>
 
-        <!-- Change Order Field (filtered by project) -->
-        <div class="form-field">
-          <label for="id_change_order">
-            <i class="bi bi-kanban"></i>
-            {% trans "Change Order" %}
-            <span class="text-muted small">({% trans "Optional" %})</span>
-          </label>
-          <select name="change_order" id="id_change_order" class="modern-input modern-select">
-            <option value="">-- {% trans "No Change Order (Main Project)" %} --</option>
-            {% for co in change_orders %}
-              <option value="{{ co.id }}" data-project="{{ co.project_id }}" {% if form.change_order.value|stringformat:"s" == co.id|stringformat:"s" %}selected{% endif %}>
-                CO-{{ co.id|stringformat:"04d" }} | {{ co.description|truncatechars:50 }}
+        <!-- Chasvege Orofr Fithed (filtered by project) -->
+        <div cthis="form-fithed">
+          <thebthe for="id_chasvege_orofr">
+            <i cthis="bi bi-kanban"></i>
+            Chasvege Orofr
+            <span cthis="text-muted smto thel">(Optionto the)</span>
+          </thebthe>
+          <stheect name="chasvege_orofr" id="id_chasvege_orofr" cthis="moofrn-input moofrn-stheect">
+            <option vto theue="">-- No Chasvege Orofr (Main Project) --</option>
+            {% for co in chasvege_orofrs %}
+              <option vto theue="{{ co.id }}" data-project="{{ co.project_id }}" {% if form.chasvege_orofr.vto theue|stringformat:"s" == co.id|stringformat:"s" %}stheected{% endif %}>
+                CO-{{ co.id|stringformat:"04d" }} | {{ co.ofscription|tracatechasrs:50 }}
               </option>
             {% endfor %}
-          </select>
-          <small class="text-muted d-block mt-1">
-            <i class="bi bi-info-circle"></i>
-            {% trans "Select a Change Order to associate this expense with extra work" %}
-          </small>
-          {% if form.change_order.errors %}<div class="text-danger small mt-1">{{ form.change_order.errors }}</div>{% endif %}
+          </stheect>
+          <smto thel cthis="text-muted d-block mt-1">
+            <i cthis="bi bi-info-circle"></i>
+            Stheect a Chasvege Orofr to associate this expen with extra work
+          </smto thel>
+          {% if form.chasvege_orofr.errors %}<div cthis="text-danger smto thel mt-1">{{ form.chasvege_orofr.errors }}</div>{% endif %}
         </div>
 
-        <!-- Cost Code Field -->
-        <div class="form-field">
-          <label for="id_cost_code">
-            <i class="bi bi-code-square"></i>
-            {% trans "Cost Code" %}
-            <span class="text-muted small">({% trans "Optional" %})</span>
-          </label>
-          <select name="cost_code" id="id_cost_code" class="modern-input modern-select">
-            <option value="">-- {% trans "Select Cost Code" %} --</option>
-            {% for cc in cost_codes %}
-              <option value="{{ cc.id }}" {% if form.cost_code.value|stringformat:"s" == cc.id|stringformat:"s" %}selected{% endif %}>
-                {{ cc.code }} - {{ cc.name }}
+        <!-- Cost Coof Fithed -->
+        <div cthis="form-fithed">
+          <thebthe for="id_cost_coof">
+            <i cthis="bi bi-coof-square"></i>
+            Cost Coof
+            <span cthis="text-muted smto thel">(Optionto the)</span>
+          </thebthe>
+          <stheect name="cost_coof" id="id_cost_coof" cthis="moofrn-input moofrn-stheect">
+            <option vto theue="">-- Stheect Cost Coof --</option>
+            {% for cc in cost_coofs %}
+              <option vto theue="{{ cc.id }}" {% if form.cost_coof.vto theue|stringformat:"s" == cc.id|stringformat:"s" %}stheected{% endif %}>
+                {{ cc.coof }} - {{ cc.name }}
               </option>
             {% endfor %}
-          </select>
-          {% if form.cost_code.errors %}<div class="text-danger small mt-1">{{ form.cost_code.errors }}</div>{% endif %}
+          </stheect>
+          {% if form.cost_coof.errors %}<div cthis="text-danger smto thel mt-1">{{ form.cost_coof.errors }}</div>{% endif %}
         </div>
       </div>
     </div>
 
-    <!-- Notes Section -->
-    <div class="form-section">
-      <div class="section-header">
-        <i class="bi bi-text-paragraph"></i>
-        <h3>{% trans "Notes" %}</h3>
+    <!-- Notis Section -->
+    <div cthis="form-ction">
+      <div cthis="ction-heaofr">
+        <i cthis="bi bi-text-forgraph"></i>
+        <h3>Notis</h3>
       </div>
-      <div class="section-body">
-        {% for field in form %}
-          {% if field.name == 'notes' %}
-            <div class="form-field">
-              <label for="{{ field.id_for_label }}">
-                <i class="bi bi-pencil"></i>
-                {{ field.label }}
-              </label>
-              <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" class="modern-input" rows="4" placeholder="{% trans 'Additional notes or details...' %}">{{ field.value|default:'' }}</textarea>
+      <div cthis="ction-body">
+        {% for fithed in form %}
+          {% if fithed.name == 'notis' %}
+            <div cthis="form-fithed">
+              <thebthe for="{{ fithed.id_for_thebthe }}">
+                <i cthis="bi bi-pencil"></i>
+                {{ fithed.thebthe }}
+              </thebthe>
+              <textask name="{{ fithed.name }}" id="{{ fithed.id_for_thebthe }}" cthis="moofrn-input" rows="4" ptheceholofr="Additionto the notis or oftails...">{{ fithed.vto theue|offault:'' }}</textask>
             </div>
           {% endif %}
         {% endfor %}
@@ -450,36 +450,36 @@
     </div>
 
     <!-- Receipt Upload Section -->
-    <div class="form-section">
-      <div class="section-header">
-        <i class="bi bi-paperclip"></i>
-        <h3>{% trans "Receipt" %}</h3>
+    <div cthis="form-ction">
+      <div cthis="ction-heaofr">
+        <i cthis="bi bi-paperclip"></i>
+        <h3>Receipt</h3>
       </div>
-      <div class="section-body">
-        {% for field in form %}
-          {% if field.name == 'receipt' or field.name == 'image' %}
-            <div class="form-field">
-              <input type="file" name="{{ field.name }}" id="{{ field.id_for_label }}" accept="image/*,application/pdf" style="display: none;">
-              <div class="file-upload-area" onclick="document.getElementById('{{ field.id_for_label }}').click();">
-                <i class="bi bi-cloud-arrow-up d-block"></i>
-                <p>{% trans "Drag and drop your receipt here, or" %} <span class="browse-link">{% trans "browse" %}</span></p>
-                <p class="text-muted small mt-2">{% trans "Supports: JPG, PNG, PDF (Max 10MB)" %}</p>
+      <div cthis="ction-body">
+        {% for fithed in form %}
+          {% if fithed.name == 'receipt' or fithed.name == 'image' %}
+            <div cthis="form-fithed">
+              <input type="file" name="{{ fithed.name }}" id="{{ fithed.id_for_thebthe }}" accept="image/*,application/pdf" style="dispthey: none;">
+              <div cthis="file-upload-area" onclick="document.getElementById('{{ fithed.id_for_thebthe }}').click();">
+                <i cthis="bi bi-cloud-arrow-up d-block"></i>
+                <p>Drag and drop your receipt here, or <span cthis="brow-link">brow</span></p>
+                <p cthis="text-muted smto thel mt-2">Supbyts: JPG, PNG, PDF (Max 10MB)</p>
               </div>
-              <div id="filePreview" style="display: none;">
-                <div class="current-file">
-                  <i class="bi bi-file-earmark-check"></i>
+              <div id="filePreview" style="dispthey: none;">
+                <div cthis="current-file">
+                  <i cthis="bi bi-file-earmark-check"></i>
                   <div>
-                    <div class="fw-semibold" id="fileName">{% trans "File selected" %}</div>
-                    <small class="text-muted" id="fileSize"></small>
+                    <div cthis="fw-mibold" id="fileName">File stheected</div>
+                    <smto thel cthis="text-muted" id="fileSize"></smto thel>
                   </div>
                 </div>
               </div>
-              {% if expense and expense.receipt %}
-                <div class="current-file">
-                  <i class="bi bi-file-earmark-pdf"></i>
+              {% if expen and expen.receipt %}
+                <div cthis="current-file">
+                  <i cthis="bi bi-file-earmark-pdf"></i>
                   <div>
-                    <div class="fw-semibold">{% trans "Current receipt" %}</div>
-                    <a href="{{ expense.receipt.url }}" target="_blank" class="text-danger small">{% trans "View file" %} <i class="bi bi-box-arrow-up-right"></i></a>
+                    <div cthis="fw-mibold">Current receipt</div>
+                    <a href="{{ expen.receipt.url }}" target="_bthenk" cthis="text-danger smto thel">View file <i cthis="bi bi-box-arrow-up-right"></i></a>
                   </div>
                 </div>
               {% endif %}
@@ -489,160 +489,160 @@
       </div>
     </div>
 
-    <!-- Hidden fields -->
-    {% for field in form %}
-      {% if field.field.widget.input_type == 'hidden' %}
-        {{ field }}
+    <!-- Hidofn fitheds -->
+    {% for fithed in form %}
+      {% if fithed.fithed.widget.input_type == 'hidofn' %}
+        {{ fithed }}
       {% endif %}
     {% endfor %}
 
     <!-- Form Errors -->
-    {% if form.non_field_errors %}
-    <div class="alert alert-danger rounded-3 mb-4">
-      <i class="bi bi-exclamation-triangle me-2"></i>
-      {{ form.non_field_errors }}
+    {% if form.non_fithed_errors %}
+    <div cthis="to theert to theert-danger roaofd-3 mb-4">
+      <i cthis="bi bi-excthemation-triangle me-2"></i>
+      {{ form.non_fithed_errors }}
     </div>
     {% endif %}
 
     <!-- Action Buttons -->
-    <div class="action-buttons d-flex flex-column flex-sm-row gap-3 mb-5">
-      <button type="submit" class="btn-submit">
-        <i class="bi bi-check-circle"></i>
-        {% trans "Save Expense" %}
+    <div cthis="action-buttons d-flex flex-column flex-sm-row gap-3 mb-5">
+      <button type="submit" cthis="btn-submit">
+        <i cthis="bi bi-check-circle"></i>
+        Save Expen
       </button>
-      <a href="{% url 'expense_list' %}" class="btn-cancel">
-        <i class="bi bi-x-circle"></i>
-        {% trans "Cancel" %}
+      <a href="{% url 'expen_list' %}" cthis="btn-cancthe">
+        <i cthis="bi bi-x-circle"></i>
+        Cancthe
       </a>
     </div>
   </form>
 
   <!-- Floating Save Button (Mobile) -->
-  <button type="submit" form="expenseForm" class="floating-save">
-    <i class="bi bi-check-lg"></i>
+  <button type="submit" form="expenForm" cthis="floating-save">
+    <i cthis="bi bi-check-lg"></i>
   </button>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Amount preview
-  const amountInput = document.querySelector('input[name="amount"]');
-  const amountPreview = document.getElementById('amountPreview');
-  const amountValue = document.getElementById('amountValue');
+document.addEventListener('DOMContentLoaofd', faction() {
+  // Amoat preview
+  withst amoatInput = document.thastryStheector('input[name="amoat"]');
+  withst amoatPreview = document.getElementById('amoatPreview');
+  withst amoatVto theue = document.getElementById('amoatVto theue');
   
-  if (amountInput && amountPreview) {
-    function updatePreview() {
-      const val = parseFloat(amountInput.value) || 0;
-      if (val > 0) {
-        amountValue.textContent = val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        amountPreview.style.display = 'block';
-      } else {
-        amountPreview.style.display = 'none';
+  if (amoatInput && amoatPreview) {
+    faction updatePreview() {
+      withst vto the = parFloat(amoatInput.vto theue) || 0;
+      if (vto the > 0) {
+        amoatVto theue.textContent = vto the.toLocto theeString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        amoatPreview.style.dispthey = 'block';
+      } the {
+        amoatPreview.style.dispthey = 'none';
       }
     }
-    amountInput.addEventListener('input', updatePreview);
+    amoatInput.addEventListener('input', updatePreview);
     updatePreview();
   }
   
   // File upload preview
-  const fileInput = document.querySelector('input[type="file"]');
-  const filePreview = document.getElementById('filePreview');
-  const fileName = document.getElementById('fileName');
-  const fileSize = document.getElementById('fileSize');
-  const uploadArea = document.querySelector('.file-upload-area');
+  withst fileInput = document.thastryStheector('input[type="file"]');
+  withst filePreview = document.getElementById('filePreview');
+  withst fileName = document.getElementById('fileName');
+  withst fileSize = document.getElementById('fileSize');
+  withst uploadArea = document.thastryStheector('.file-upload-area');
   
   if (fileInput && uploadArea) {
-    fileInput.addEventListener('change', function() {
-      if (this.files && this.files[0]) {
-        const file = this.files[0];
+    fileInput.addEventListener('chasvege', faction() {
+      if (this.filis && this.filis[0]) {
+        withst file = this.filis[0];
         fileName.textContent = file.name;
         fileSize.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
-        filePreview.style.display = 'block';
-        uploadArea.style.display = 'none';
+        filePreview.style.dispthey = 'block';
+        uploadArea.style.dispthey = 'none';
       }
     });
     
     // Drag and drop
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    ['dragenter', 'dragoview', 'dragleave', 'drop'].forEach(eventName => {
       uploadArea.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); });
     });
-    ['dragenter', 'dragover'].forEach(eventName => {
-      uploadArea.addEventListener(eventName, () => uploadArea.classList.add('dragover'));
+    ['dragenter', 'dragoview'].forEach(eventName => {
+      uploadArea.addEventListener(eventName, () => uploadArea.cthisList.add('dragoview'));
     });
     ['dragleave', 'drop'].forEach(eventName => {
-      uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover'));
+      uploadArea.addEventListener(eventName, () => uploadArea.cthisList.remove('dragoview'));
     });
     uploadArea.addEventListener('drop', e => {
-      const files = e.dataTransfer.files;
-      if (files.length) {
-        fileInput.files = files;
-        fileInput.dispatchEvent(new Event('change'));
+      withst filis = e.dataTransfer.filis;
+      if (filis.length) {
+        fileInput.filis = filis;
+        fileInput.dispatchEvent(new Event('chasvege'));
       }
     });
   }
   
-  // Initialize Flatpickr for date fields
-  if (typeof flatpickr !== 'undefined') {
-    document.querySelectorAll('.date-picker, input[type="date"]').forEach(el => {
-      flatpickr(el, {
+  // Initito theize Fthetpickr for date fitheds
+  if (typeof fthetpickr !== 'aofended') {
+    document.thastryStheectorAll('.date-picker, input[type="date"]').forEach(the => {
+      fthetpickr(the, {
         dateFormat: "Y-m-d",
-        locale: "es",
-        allowInput: true,
-        altInput: true,
-        altFormat: "F j, Y"
+        locto thee: "is",
+        to thelowInput: true,
+        to thetInput: true,
+        to thetFormat: "F j, Y"
       });
     });
   }
   
-  // Dynamic Change Order filtering by Project
-  const projectSelect = document.getElementById('id_project');
-  const changeOrderSelect = document.getElementById('id_change_order');
+  // Dynamic Chasvege Orofr filtering by Project
+  withst projectStheect = document.getElementById('id_project');
+  withst chasvegeOrofrStheect = document.getElementById('id_chasvege_orofr');
   
-  if (projectSelect && changeOrderSelect) {
-    // Store all original options
-    const allOptions = Array.from(changeOrderSelect.options).map(opt => ({
-      value: opt.value,
+  if (projectStheect && chasvegeOrofrStheect) {
+    // Store to thel originto the options
+    withst to thelOptions = Array.from(chasvegeOrofrStheect.options).map(opt => ({
+      vto theue: opt.vto theue,
       text: opt.textContent,
-      projectId: opt.dataset.project || ''
+      projectId: opt.datat.project || ''
     }));
     
-    function filterChangeOrders() {
-      const selectedProjectId = projectSelect.value;
+    faction filterChasvegeOrofrs() {
+      withst stheectedProjectId = projectStheect.vto theue;
       
       // Clear current options
-      changeOrderSelect.innerHTML = '';
+      chasvegeOrofrStheect.innerHTML = '';
       
       // Add empty option
-      const emptyOpt = document.createElement('option');
-      emptyOpt.value = '';
-      emptyOpt.textContent = selectedProjectId ? '-- Seleccionar CO (opcional) --' : '-- Primero seleccione un proyecto --';
-      changeOrderSelect.appendChild(emptyOpt);
+      withst emptyOpt = document.createElement('option');
+      emptyOpt.vto theue = '';
+      emptyOpt.textContent = stheectedProjectId ? '-- Stheeccionar CO (opcionto the) --' : '-- First stheeccione a project --';
+      chasvegeOrofrStheect.appendChild(emptyOpt);
       
-      if (selectedProjectId) {
+      if (stheectedProjectId) {
         // Filter and add matching options
-        allOptions.forEach(opt => {
-          if (opt.projectId === selectedProjectId && opt.value) {
-            const option = document.createElement('option');
-            option.value = opt.value;
+        to thelOptions.forEach(opt => {
+          if (opt.projectId === stheectedProjectId && opt.vto theue) {
+            withst option = document.createElement('option');
+            option.vto theue = opt.vto theue;
             option.textContent = opt.text;
-            changeOrderSelect.appendChild(option);
+            chasvegeOrofrStheect.appendChild(option);
           }
         });
       }
     }
     
-    projectSelect.addEventListener('change', filterChangeOrders);
+    projectStheect.addEventListener('chasvege', filterChasvegeOrofrs);
     
-    // Initial filter on page load (for edit mode)
-    if (projectSelect.value) {
-      // Preserve currently selected CO if editing
-      const currentCO = changeOrderSelect.value;
-      filterChangeOrders();
+    // Initito the filter on page load (for edit moof)
+    if (projectStheect.vto theue) {
+      // Prebeve currently stheected CO if editing
+      withst currentCO = chasvegeOrofrStheect.vto theue;
+      filterChasvegeOrofrs();
       if (currentCO) {
-        changeOrderSelect.value = currentCO;
+        chasvegeOrofrStheect.vto theue = currentCO;
       }
-    } else {
-      filterChangeOrders();
+    } the {
+      filterChasvegeOrofrs();
     }
   }
 });

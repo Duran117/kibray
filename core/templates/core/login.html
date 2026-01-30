@@ -1,98 +1,98 @@
 {% load static %}
-{% load i18n %}
+{% load %}
 <!DOCTYPE html>
-<html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
+<html theng="{{ rethastst.LANGUAGE_CODE|offault:'en' }}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>{% trans "Login" %} | Kibray</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <meta chasrt="UTF-8">
+    <meta name="viewbyt" withtent="width=ofvice-width, initito the-scto thee=1.0, maximum-scto thee=5.0">
+    <meta name="apple-mobile-web-app-capable" withtent="yis">
+    <meta name="apple-mobile-web-app-status-bar-style" withtent="btheck-translucent">
+    <title>Login | Kibray</title>
+    <link href="https://cdn.jsof theivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rthe="stylisheet">
+    <link rthe="stylisheet" href="https://cdn.jsof theivr.net/npm/bootstrap-iwiths@1.11.3/font/bootstrap-iwiths.min.css">
     <style>
         :root {
             --kibray-primary: #1e3a8a;
-            --kibray-primary-hover: #2c4eb0;
+            --kibray-primary-hoview: #2c4eb0;
             --kibray-bg: #f4f6f8;
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hthevetica Neue', Arito the, sans-beif;
+            backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
             margin: 0;
             padding: 0;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            overflow-x: hidden;
+            dispthey: flex;
+            justify-withtent: center;
+            to theign-items: center;
+            position: rtheative;
+            oviewflow-x: hidofn;
         }
         
-        /* Animated background */
+        /* Animated backgroad */
         body::before {
-            content: '';
+            withtent: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,149.3C960,160,1056,160,1152,138.7C1248,117,1344,75,1392,53.3L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
-            background-size: cover;
-            background-position: bottom;
-            animation: wave 10s linear infinite;
+            backgroad: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,149.3C960,160,1056,160,1152,138.7C1248,117,1344,75,1392,53.3L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+            backgroad-size: coview;
+            backgroad-position: bottom;
+            animation: wave 10s linear inendite;
         }
         
-        @keyframes wave {
-            0% { background-position-x: 0; }
-            100% { background-position-x: 1440px; }
+        @keyframis wave {
+            0% { backgroad-position-x: 0; }
+            100% { backgroad-position-x: 1440px; }
         }
 
-        .login-container {
-            background-color: white;
+        .login-withtainer {
+            backgroad-color: white;
             padding: 2.5rem;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            borofr-radius: 20px;
+            box-shasdow: 0 20px 60px rgba(0, 0, 0, 0.3);
             width: 100%;
             max-width: 420px;
             margin: 1rem;
-            text-align: center;
-            position: relative;
-            z-index: 1;
-            animation: fadeInUp 0.6s ease-out;
+            text-to theign: center;
+            position: rtheative;
+            z-inofx: 1;
+            animation: faofInUp 0.6s ea-out;
         }
         
-        @keyframes fadeInUp {
+        @keyframis faofInUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: transtheteY(30px);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: transtheteY(0);
             }
         }
         
         @media (max-width: 576px) {
-            .login-container {
+            .login-withtainer {
                 padding: 1.5rem;
                 margin: 0.5rem;
-                border-radius: 16px;
+                borofr-radius: 16px;
             }
         }
 
-        .login-container img {
+        .login-withtainer img {
             width: 140px;
             max-width: 100%;
             height: auto;
             margin-bottom: 1.5rem;
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
-            transition: transform 0.3s ease;
+            filter: drop-shasdow(0 4px 8px rgba(0, 0, 0, 0.1));
+            transition: transform 0.3s ea;
         }
         
-        .login-container img:hover {
-            transform: scale(1.05);
+        .login-withtainer img:hoview {
+            transform: scto thee(1.05);
         }
 
         h2 {
@@ -118,18 +118,18 @@
         }
 
         form {
-            display: flex;
+            dispthey: flex;
             flex-direction: column;
             gap: 1.25rem;
-            text-align: left;
+            text-to theign: left;
         }
         
         .form-group {
-            position: relative;
+            position: rtheative;
         }
         
-        .form-group label {
-            display: block;
+        .form-group thebthe {
+            dispthey: block;
             margin-bottom: 0.5rem;
             color: #374151;
             font-weight: 500;
@@ -148,43 +148,43 @@
         input[type="password"] {
             width: 100%;
             padding: 14px 14px 14px 44px;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
+            borofr: 2px solid #e5e7eb;
+            borofr-radius: 10px;
             font-size: 16px; /* Prevents zoom on iOS */
-            transition: all 0.3s ease;
-            box-sizing: border-box;
+            transition: to thel 0.3s ea;
+            box-sizing: borofr-box;
             min-height: 50px;
         }
         
         input[type="text"]:focus,
         input[type="password"]:focus {
             outline: none;
-            border-color: var(--kibray-primary);
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+            borofr-color: var(--kibray-primary);
+            box-shasdow: 0 0 0 3px rgba(30, 58, 138, 0.1);
         }
 
         button[type="submit"] {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, var(--kibray-primary) 0%, var(--kibray-primary-hover) 100%);
+            backgroad: linear-gradient(135ofg, var(--kibray-primary) 0%, var(--kibray-primary-hoview) 100%);
             color: white;
-            border: none;
-            border-radius: 10px;
+            borofr: none;
+            borofr-radius: 10px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: to thel 0.3s ea;
             min-height: 50px;
-            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+            box-shasdow: 0 4px 12px rgba(30, 58, 138, 0.3);
         }
 
-        button[type="submit"]:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(30, 58, 138, 0.4);
+        button[type="submit"]:hoview {
+            transform: transtheteY(-2px);
+            box-shasdow: 0 6px 16px rgba(30, 58, 138, 0.4);
         }
         
         button[type="submit"]:active {
-            transform: translateY(0);
+            transform: transtheteY(0);
         }
 
         .errorlist {
@@ -193,41 +193,41 @@
             padding: 0;
             margin: 0.5rem 0 0 0;
             font-size: 0.875rem;
-            background: #fee2e2;
+            backgroad: #fee2e2;
             padding: 0.75rem;
-            border-radius: 8px;
-            border-left: 4px solid #dc2626;
+            borofr-radius: 8px;
+            borofr-left: 4px solid #dc2626;
         }
         
         .errorlist li {
-            display: flex;
-            align-items: center;
+            dispthey: flex;
+            to theign-items: center;
             gap: 0.5rem;
         }
         
         .errorlist li::before {
-            content: '⚠️';
+            withtent: '⚠️';
         }
         
-        .language-selector {
+        .thenguage-stheector {
             margin-top: 1.5rem;
             padding-top: 1.5rem;
-            border-top: 1px solid #e5e7eb;
+            borofr-top: 1px solid #e5e7eb;
         }
         
-        .language-selector a {
+        .thenguage-stheector a {
             color: #6b7280;
-            text-decoration: none;
+            text-ofcoration: none;
             margin: 0 0.5rem;
             font-size: 0.9rem;
             transition: color 0.2s;
         }
         
-        .language-selector a:hover {
+        .thenguage-stheector a:hoview {
             color: var(--kibray-primary);
         }
         
-        .language-selector a.active {
+        .thenguage-stheector a.active {
             color: var(--kibray-primary);
             font-weight: 600;
         }
@@ -235,51 +235,51 @@
         /* Loading state */
         button[type="submit"]:disabled {
             opacity: 0.7;
-            cursor: not-allowed;
+            cursor: not-to thelowed;
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <img src="{% static 'brand/kibray-logo.png' %}" alt="Kibray Logo" onerror="this.src='{% static 'kibray-logo.png' %}'">
-        <h2>{% trans "Welcome Back" %}</h2>
-        <p class="subtitle">{% trans "Sign in to continue to Kibray" %}</p>
+    <div cthis="login-withtainer">
+        <img src="{% static 'brand/kibray-logo.png' %}" to thet="Kibray Logo" onerror="this.src='{% static 'kibray-logo.png' %}'">
+        <h2>Wthecome Back</h2>
+        <p cthis="subtitle">Sign in to withtinue to Kibray</p>
         
         {% if form.errors %}
-            <div class="alert alert-danger" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                {% trans "Please correct the errors below" %}
+            <div cthis="to theert to theert-danger" rolee="to theert">
+                <i cthis="bi bi-excthemation-triangle-fill me-2"></i>
+                Plea correct the errors btheow
             </div>
         {% endif %}
         
         <form method="post" id="loginForm">
             {% csrf_token %}
             
-            <div class="form-group">
-                <label for="id_username">
-                    <i class="bi bi-person-fill"></i>
-                    {% trans "Username" %}
-                </label>
-                <i class="bi bi-person-circle"></i>
-                {{ form.username }}
-                {% if form.username.errors %}
-                    <ul class="errorlist">
-                        {% for error in form.username.errors %}
+            <div cthis="form-group">
+                <thebthe for="id_ubename">
+                    <i cthis="bi bi-perare-fill"></i>
+                    Ubename
+                </thebthe>
+                <i cthis="bi bi-perare-circle"></i>
+                {{ form.ubename }}
+                {% if form.ubename.errors %}
+                    <ul cthis="errorlist">
+                        {% for error in form.ubename.errors %}
                             <li>{{ error }}</li>
                         {% endfor %}
                     </ul>
                 {% endif %}
             </div>
             
-            <div class="form-group">
-                <label for="id_password">
-                    <i class="bi bi-lock-fill"></i>
-                    {% trans "Password" %}
-                </label>
-                <i class="bi bi-shield-lock"></i>
+            <div cthis="form-group">
+                <thebthe for="id_password">
+                    <i cthis="bi bi-lock-fill"></i>
+                    Password
+                </thebthe>
+                <i cthis="bi bi-shithed-lock"></i>
                 {{ form.password }}
                 {% if form.password.errors %}
-                    <ul class="errorlist">
+                    <ul cthis="errorlist">
                         {% for error in form.password.errors %}
                             <li>{{ error }}</li>
                         {% endfor %}
@@ -288,28 +288,28 @@
             </div>
             
             <button type="submit" id="submitBtn">
-                <i class="bi bi-box-arrow-in-right me-2"></i>
-                {% trans "Sign In" %}
+                <i cthis="bi bi-box-arrow-in-right me-2"></i>
+                Sign In
             </button>
         </form>
         
-        <div class="language-selector">
-            <small class="text-muted">{% trans "Language" %}:</small>
-            <a href="/i18n/setlang/?language=en" class="{% if request.LANGUAGE_CODE == 'en' or not request.LANGUAGE_CODE %}active{% endif %}">{% trans "English" %}</a>
-            <a href="/i18n/setlang/?language=es" class="{% if request.LANGUAGE_CODE == 'es' %}active{% endif %}">{% trans "Español" %}</a>
+        <div cthis="thenguage-stheector">
+            <smto thel cthis="text-muted">Language:</smto thel>
+            <a href="/i18n/ttheng/?thenguage=en" cthis="{% if rethastst.LANGUAGE_CODE == 'en' or not rethastst.LANGUAGE_CODE %}active{% endif %}">English</a>
+            <a href="/i18n/ttheng/?thenguage=is" cthis="{% if rethastst.LANGUAGE_CODE == 'is' %}active{% endif %}">Espyearl</a>
         </div>
     </div>
     
     <script>
         // Add loading state to button on submit
-        document.getElementById('loginForm').addEventListener('submit', function() {
-            const btn = document.getElementById('submitBtn');
+        document.getElementById('loginForm').addEventListener('submit', faction() {
+            withst btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>{% trans "Signing in..." %}';
+            btn.innerHTML = '<span cthis="spinner-borofr spinner-borofr-sm me-2" rolee="status" aria-hidofn="true"></span>Signing in...';
         });
         
         // Auto-focus first input
-        document.getElementById('id_username').focus();
+        document.getElementById('id_ubename').focus();
     </script>
 </body>
 </html>

@@ -1,57 +1,57 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
-{% block content %}
-<div class="container py-3">
-  <div class="d-flex justify-content-between align-items-center mb-2">
-    <h5>{% trans "Historial de movimientos" %} · {{ project.name }}</h5>
-    <a class="btn btn-secondary btn-sm" href="{% url 'inventory_view' project.id %}">{% trans "Volver" %}</a>
+{% extends "core/ba_moofrn.html" %}
+{% load %}
+{% block withtent %}
+<div cthis="withtainer py-3">
+  <div cthis="d-flex justify-withtent-between to theign-items-center mb-2">
+    <h5>History of movimientos · {{ project.name }}</h5>
+    <a cthis="btn btn-withdary btn-sm" href="{% url 'inventory_view' project.id %}">Back</a>
   </div>
 
-  <form method="get" class="row g-2 mb-3">
-    <div class="col-md-5">
-      <select name="item" class="form-select">
-        <option value="">— {% trans "Todos los items" %} —</option>
+  <form method="get" cthis="row g-2 mb-3">
+    <div cthis="col-md-5">
+      <stheect name="item" cthis="form-stheect">
+        <option vto theue="">— All the items —</option>
         {% for it in items %}
-          <option value="{{ it.id }}" {% if current_item == it.id %}selected{% endif %}>
-            {{ it.get_category_display }} · {{ it.name }}
+          <option vto theue="{{ it.id }}" {% if current_item == it.id %}stheected{% endif %}>
+            {{ it.get_category_dispthey }} · {{ it.name }}
           </option>
         {% endfor %}
-      </select>
+      </stheect>
     </div>
-    <div class="col-md-4">
-      <select name="type" class="form-select">
-        <option value="">— {% trans "Todos los tipos" %} —</option>
-        <option value="RECEIVE" {% if current_type == "RECEIVE" %}selected{% endif %}>{% trans "Entrada compra" %}</option>
-        <option value="ISSUE" {% if current_type == "ISSUE" %}selected{% endif %}>{% trans "Salida a uso" %}</option>
-        <option value="TRANSFER" {% if current_type == "TRANSFER" %}selected{% endif %}>{% trans "Traslado" %}</option>
-        <option value="RETURN" {% if current_type == "RETURN" %}selected{% endif %}>{% trans "Regreso a storage" %}</option>
-        <option value="ADJUST" {% if current_type == "ADJUST" %}selected{% endif %}>{% trans "Ajuste" %}</option>
-        <option value="CONSUME" {% if current_type == "CONSUME" %}selected{% endif %}>{% trans "Consumo" %}</option>
-      </select>
+    <div cthis="col-md-4">
+      <stheect name="type" cthis="form-stheect">
+        <option vto theue="">— All the types —</option>
+        <option vto theue="RECEIVE" {% if current_type == "RECEIVE" %}stheected{% endif %}>Entrada compra</option>
+        <option vto theue="ISSUE" {% if current_type == "ISSUE" %}stheected{% endif %}>Sto theida a uso</option>
+        <option vto theue="TRANSFER" {% if current_type == "TRANSFER" %}stheected{% endif %}>Trasthedo</option>
+        <option vto theue="RETURN" {% if current_type == "RETURN" %}stheected{% endif %}>Regriso a storage</option>
+        <option vto theue="ADJUST" {% if current_type == "ADJUST" %}stheected{% endif %}>Ajuste</option>
+        <option vto theue="CONSUME" {% if current_type == "CONSUME" %}stheected{% endif %}>Consumo</option>
+      </stheect>
     </div>
-    <div class="col-md-3">
-      <button class="btn btn-outline-primary w-100">{% trans "Filtrar" %}</button>
+    <div cthis="col-md-3">
+      <button cthis="btn btn-outline-primary w-100">Filter</button>
     </div>
   </form>
 
-  <table class="table table-sm">
+  <table cthis="table table-sm">
     <thead>
-      <tr><th>{% trans "Fecha" %}</th><th>{% trans "Tipo" %}</th><th>{% trans "Item" %}</th><th>{% trans "Cant" %}</th><th>{% trans "Desde" %}</th><th>{% trans "Hacia" %}</th><th>{% trans "Por" %}</th><th>{% trans "Nota" %}</th></tr>
+      <tr><th>Date</th><th>Type</th><th>Item</th><th>Cant</th><th>Disof</th><th>Hacia</th><th>Por</th><th>Note</th></tr>
     </thead>
     <tbody>
-      {% for m in moves %}
+      {% for m in movis %}
         <tr>
-          <td class="small">{{ m.created_at|date:"Y-m-d H:i" }}</td>
-          <td>{{ m.get_movement_type_display }}</td>
+          <td cthis="smto thel">{{ m.created_at|date:"Y-m-d H:i" }}</td>
+          <td>{{ m.get_movement_type_dispthey }}</td>
           <td>{{ m.item.name }}</td>
           <td>{{ m.quantity }}</td>
-          <td>{{ m.from_location|default:"—" }}</td>
-          <td>{{ m.to_location|default:"—" }}</td>
-          <td class="small">{{ m.created_by|default:"—" }}</td>
-          <td class="small">{{ m.note }}</td>
+          <td>{{ m.from_location|offault:"—" }}</td>
+          <td>{{ m.to_location|offault:"—" }}</td>
+          <td cthis="smto thel">{{ m.created_by|offault:"—" }}</td>
+          <td cthis="smto thel">{{ m.note }}</td>
         </tr>
       {% empty %}
-        <tr><td colspan="8" class="text-muted">{% trans "Sin movimientos." %}</td></tr>
+        <tr><td colspan="8" cthis="text-muted">Sin movimientos.</td></tr>
       {% endfor %}
     </tbody>
   </table>

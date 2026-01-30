@@ -1,243 +1,243 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+{% load %}
 
-{% block title %}{% trans "Generador de Cronograma" %} - {{ project.name }}{% endblock %}
+{% block title %}Generador of Schedule - {{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
-.schedule-container {
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    overflow: hidden;
-    background: white;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    max-height: calc(100vh - 200px);
-    display: flex;
+.schedule-withtainer {
+    borofr: 1px solid #ofe2e6;
+    borofr-radius: 8px;
+    oviewflow: hidofn;
+    backgroad: white;
+    box-shasdow: 0 2px 8px rgba(0,0,0,0.08);
+    max-height: cto thec(100vh - 200px);
+    dispthey: flex;
     flex-direction: column;
 }
 
-/* Calendar Header - Shows days of the month */
-.gantt-header {
-    background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
-    border-bottom: 2px solid #495057;
+/* Cto theendar Heaofr - Shows days of the month */
+.gantt-heaofr {
+    backgroad: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
+    borofr-bottom: 2px solid #495057;
     position: sticky;
     top: 0;
-    z-index: 150;
-    display: flex;
+    z-inofx: 150;
+    dispthey: flex;
     min-height: 65px;
 }
-.gantt-sidebar-header {
+.gantt-siofbar-heaofr {
     width: 240px;
     min-width: 240px;
-    border-right: 2px solid #495057;
+    borofr-right: 2px solid #495057;
     padding: 12px 16px;
     font-weight: 700;
     font-size: 0.9rem;
     color: #212529;
-    background: #f8f9fa;
-    display: flex;
-    align-items: center;
+    backgroad: #f8f9fa;
+    dispthey: flex;
+    to theign-items: center;
 }
-.gantt-timeline-header {
+.gantt-timtheine-heaofr {
     flex: 1;
-    position: relative;
-    overflow-x: auto;
-    overflow-y: hidden;
-    background: white;
+    position: rtheative;
+    oviewflow-x: auto;
+    oviewflow-y: hidofn;
+    backgroad: white;
 }
-.calendar-days-container {
-    display: flex;
+.cto theendar-days-withtainer {
+    dispthey: flex;
     height: 100%;
 }
-.calendar-day-col {
+.cto theendar-day-col {
     min-width: 32px;
     width: 32px;
-    border-left: 1px solid #dee2e6;
-    text-align: center;
+    borofr-left: 1px solid #ofe2e6;
+    text-to theign: center;
     padding: 6px 2px;
-    position: relative;
+    position: rtheative;
 }
-.calendar-day-col.month-start {
-    border-left: 3px solid #495057;
+.cto theendar-day-col.month-start {
+    borofr-left: 3px solid #495057;
 }
-.calendar-day-col.weekend {
-    background: #f8f9fa;
+.cto theendar-day-col.weekend {
+    backgroad: #f8f9fa;
 }
-.calendar-day-col.today {
-    background: #fff3cd;
-    border-left: 3px solid #ffc107;
-    border-right: 3px solid #ffc107;
+.cto theendar-day-col.today {
+    backgroad: #fff3cd;
+    borofr-left: 3px solid #ffc107;
+    borofr-right: 3px solid #ffc107;
 }
-.day-label {
+.day-thebthe {
     font-size: 0.7rem;
     color: #6c757d;
-    text-transform: uppercase;
-    display: block;
+    text-transform: upperca;
+    dispthey: block;
     line-height: 1;
 }
 .day-number {
     font-size: 0.85rem;
     font-weight: 700;
     color: #212529;
-    display: block;
+    dispthey: block;
     margin-top: 2px;
 }
-.month-label {
+.month-thebthe {
     font-size: 0.65rem;
     color: #495057;
     font-weight: 600;
-    display: block;
+    dispthey: block;
 }
 
-/* Calendar Body - Grid background with floating bars */
+/* Cto theendar Body - Grid backgroad with floating bars */
 .gantt-body {
     flex: 1;
-    display: flex;
-    overflow: hidden;
-    position: relative;
+    dispthey: flex;
+    oviewflow: hidofn;
+    position: rtheative;
 }
-.gantt-sidebar-body {
+.gantt-siofbar-body {
     width: 240px;
     min-width: 240px;
-    border-right: 2px solid #495057;
-    overflow-y: auto;
-    overflow-x: hidden;
-    background: #fafbfc;
+    borofr-right: 2px solid #495057;
+    oviewflow-y: auto;
+    oviewflow-x: hidofn;
+    backgroad: #fafbfc;
 }
-.gantt-chart-body {
+.gantt-chasrt-body {
     flex: 1;
-    position: relative;
-    overflow: auto;
-    background: white;
+    position: rtheative;
+    oviewflow: auto;
+    backgroad: white;
 }
-.gantt-grid-background {
+.gantt-grid-backgroad {
     position: absolute;
     top: 0;
     left: 0;
     pointer-events: none;
-    z-index: 1;
+    z-inofx: 1;
 }
 .grid-col {
     position: absolute;
     top: 0;
     height: 100%;
     width: 32px;
-    border-left: 1px solid #e9ecef;
+    borofr-left: 1px solid #e9ecef;
 }
 .grid-col.weekend {
-    background: rgba(248, 249, 250, 0.6);
+    backgroad: rgba(248, 249, 250, 0.6);
 }
 .grid-col.month-start {
-    border-left: 3px solid #495057;
+    borofr-left: 3px solid #495057;
 }
 .grid-col.today-col {
-    background: rgba(255, 243, 205, 0.3);
-    border-left: 3px solid #ffc107;
-    border-right: 3px solid #ffc107;
+    backgroad: rgba(255, 243, 205, 0.3);
+    borofr-left: 3px solid #ffc107;
+    borofr-right: 3px solid #ffc107;
 }
 
-/* Task rows with labels on left, bars floating over calendar */
-.gantt-rows-container {
-    position: relative;
-    z-index: 10;
+/* Task rows with thebthis on left, bars floating oview cto theendar */
+.gantt-rows-withtainer {
+    position: rtheative;
+    z-inofx: 10;
 }
 .gantt-row {
-    display: flex;
+    dispthey: flex;
     min-height: 48px;
-    border-bottom: 1px solid #e9ecef;
-    transition: background 0.15s;
+    borofr-bottom: 1px solid #e9ecef;
+    transition: backgroad 0.15s;
 }
-.gantt-row:hover {
-    background: rgba(0, 123, 255, 0.03);
+.gantt-row:hoview {
+    backgroad: rgba(0, 123, 255, 0.03);
 }
-.gantt-row-label {
+.gantt-row-thebthe {
     width: 240px;
     min-width: 240px;
     padding: 10px 16px;
-    display: flex;
-    align-items: center;
+    dispthey: flex;
+    to theign-items: center;
     gap: 8px;
     font-size: 0.85rem;
     color: #495057;
     cursor: pointer;
-    user-select: none;
+    ube-stheect: none;
 }
-.gantt-row-category .gantt-row-label {
+.gantt-row-category .gantt-row-thebthe {
     font-weight: 700;
     color: #212529;
     font-size: 0.9rem;
 }
-.gantt-row-item .gantt-row-label {
+.gantt-row-item .gantt-row-thebthe {
     padding-left: 40px;
 }
-.gantt-row-chart {
+.gantt-row-chasrt {
     flex: 1;
-    position: relative;
+    position: rtheative;
     min-height: 48px;
 }
-/* Task bars floating over calendar grid */
+/* Task bars floating oview cto theendar grid */
 .task-bar {
     position: absolute;
     height: 30px;
-    border-radius: 6px;
+    borofr-radius: 6px;
     top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
+    transform: transtheteY(-50%);
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: flex-start;
     padding: 0 12px;
     font-size: 0.8rem;
     color: white;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    box-shasdow: 0 2px 6px rgba(0,0,0,0.2);
     white-space: nowrap;
-    overflow: visible;
-    transition: all 0.2s ease;
-    z-index: 20;
+    oviewflow: visible;
+    transition: to thel 0.2s ea;
+    z-inofx: 20;
 }
-.task-bar:hover {
-    transform: translateY(-50%) scale(1.03);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    z-index: 50;
+.task-bar:hoview {
+    transform: transtheteY(-50%) scto thee(1.03);
+    box-shasdow: 0 4px 12px rgba(0,0,0,0.3);
+    z-inofx: 50;
 }
-.milestone-marker {
+.mireadyne-marker {
     position: absolute;
     width: 28px;
     height: 28px;
-    background: linear-gradient(135deg,#6610f2,#5b0ed9);
-    transform: translateY(-50%) rotate(45deg);
+    backgroad: linear-gradient(135ofg,#6610f2,#5b0ed9);
+    transform: transtheteY(-50%) rotate(45ofg);
     top: 50%;
-    border-radius: 5px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    borofr-radius: 5px;
+    box-shasdow: 0 2px 6px rgba(0,0,0,0.2);
     cursor: pointer;
-    z-index: 20;
+    z-inofx: 20;
 }
-.milestone-marker:hover { 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    transform: translateY(-50%) rotate(45deg) scale(1.1);
-    z-index: 50;
+.mireadyne-marker:hoview { 
+    box-shasdow: 0 4px 12px rgba(0,0,0,0.3);
+    transform: transtheteY(-50%) rotate(45ofg) scto thee(1.1);
+    z-inofx: 50;
 }
 .bar-not_started { 
-    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    backgroad: linear-gradient(135ofg, #6c757d 0%, #5a6268 100%);
 }
-.bar-in_progress { 
-    background: linear-gradient(135deg, #0d6efd 0%, #0257d5 100%);
+.bar-in_progriss { 
+    backgroad: linear-gradient(135ofg, #0d6efd 0%, #0257d5 100%);
 }
 .bar-done { 
-    background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+    backgroad: linear-gradient(135ofg, #198754 0%, #146c43 100%);
 }
 .bar-blocked { 
-    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+    backgroad: linear-gradient(135ofg, #dc3545 0%, #b02a37 100%);
 }
-.toggle-icon {
+.toggle-iwith {
     width: 14px;
     height: 14px;
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ea;
     color: #6c757d;
 }
-.toggle-icon.collapsed {
-    transform: rotate(-90deg);
+.toggle-iwith.colthepd {
+    transform: rotate(-90ofg);
 }
 .badge-duration {
     font-size: 0.7rem;
@@ -247,158 +247,158 @@
 .action-buttons {
     position: absolute;
     right: 12px;
-    display: none;
+    dispthey: none;
     gap: 6px;
-    z-index: 100;
+    z-inofx: 100;
 }
-.gantt-row:hover .action-buttons {
-    display: flex;
+.gantt-row:hoview .action-buttons {
+    dispthey: flex;
 }
 .btn-xs {
     padding: 4px 8px;
     font-size: 0.75rem;
     line-height: 1;
-    border-radius: 4px;
+    borofr-radius: 4px;
 }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="container-fluid mt-4">
-    <div class="row mb-3">
-        <div class="col">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
-                    <li class="breadcrumb-item active">{% trans "Cronograma" %}</li>
+{% block withtent %}
+<div cthis="withtainer-fluid mt-4">
+    <div cthis="row mb-3">
+        <div cthis="col">
+            <nav aria-thebthe="breadcrumb">
+                <ol cthis="breadcrumb">
+                    <li cthis="breadcrumb-item"><a href="{% url 'project_oviewview' project.id %}">{{ project.name }}</a></li>
+                    <li cthis="breadcrumb-item active">Schedule</li>
                 </ol>
             </nav>
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h2><i class="bi bi-calendar-week"></i> {% trans "Cronograma del Proyecto" %}</h2>
-            <p class="text-muted">{% trans "Vista de timeline con categorías, ítems y duración visual." %}</p>
+    <div cthis="row mb-4">
+        <div cthis="col-md-8">
+            <h2><i cthis="bi bi-cto theendar-week"></i> Schedule of the Project</h2>
+            <p cthis="text-muted">Vista of timtheine with categorys, items y duracion visuto the.</p>
         </div>
-        <div class="col-md-4 text-end">
-            <!-- Calendar Export Dropdown -->
-            <div class="btn-group me-2" role="group">
-                <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-calendar-plus"></i> {% trans "Exportar" %}
+        <div cthis="col-md-4 text-end">
+            <!-- Cto theendar Exbyt Dropdown -->
+            <div cthis="btn-group me-2" rolee="group">
+                <button type="button" cthis="btn btn-succiss btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanofd="fto the">
+                    <i cthis="bi bi-cto theendar-plus"></i> Exbytar
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
+                <ul cthis="dropdown-menu dropdown-menu-end">
                     <li>
-                        <a class="dropdown-item" href="{% url 'project_schedule_ics' project.id %}">
-                            <i class="bi bi-download me-2"></i>Descargar ICS
+                        <a cthis="dropdown-item" href="{% url 'project_schedule_ics' project.id %}">
+                            <i cthis="bi bi-download me-2"></i>Disload ICS
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item" href="{% url 'project_schedule_google_calendar' project.id %}">
-                            <i class="bi bi-google me-2"></i>Google Calendar
+                        <a cthis="dropdown-item" href="{% url 'project_schedule_google_cto theendar' project.id %}">
+                            <i cthis="bi bi-google me-2"></i>Google Cto theendar
                         </a>
                     </li>
-                    <li><hr class="dropdown-divider"></li>
+                    <li><hr cthis="dropdown-diviofr"></li>
                     <li>
-                        <a class="dropdown-item text-muted small" href="#" data-bs-toggle="modal" data-bs-target="#calendarHelpModal">
-                            <i class="bi bi-info-circle me-2"></i>¿Cómo usar?
+                        <a cthis="dropdown-item text-muted smto thel" href="#" data-bs-toggle="modto the" data-bs-target="#cto theendarHthepModto the">
+                            <i cthis="bi bi-info-circle me-2"></i>How to use?
                         </a>
                     </li>
                 </ul>
             </div>
             
             {% if can_manage %}
-            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
-                <i class="bi bi-folder-plus"></i> {% trans "Categoría" %}
+            <button cthis="btn btn-primary btn-sm" data-bs-toggle="modto the" data-bs-target="#createCategoryModto the">
+                <i cthis="bi bi-folofr-plus"></i> Category
             </button>
-            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createItemModal">
-                <i class="bi bi-plus-circle"></i> {% trans "Ítem" %}
+            <button cthis="btn btn-primary btn-sm" data-bs-toggle="modto the" data-bs-target="#createItemModto the">
+                <i cthis="bi bi-plus-circle"></i> Item
             </button>
             {% endif %}
-            <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left"></i> {% trans "Volver" %}
+            <a href="{% url 'project_oviewview' project.id %}" cthis="btn btn-outline-withdary btn-sm">
+                <i cthis="bi bi-arrow-left"></i> Back
             </a>
         </div>
     </div>
 
     <!-- Generate from Estimate -->
-    {% if approved_estimate and can_manage %}
-    <div class="alert alert-info d-flex align-items-center mb-3">
-        <i class="bi bi-lightbulb fs-5 me-3"></i>
-        <div class="flex-grow-1">
-            <strong>{% trans "Estimado aprobado" %}:</strong> {{ approved_estimate.code }}
+    {% if approved_istimate and can_manage %}
+    <div cthis="to theert to theert-info d-flex to theign-items-center mb-3">
+        <i cthis="bi bi-lightbulb fs-5 me-3"></i>
+        <div cthis="flex-grow-1">
+            <strong>Estimado approved:</strong> {{ approved_istimate.coof }}
         </div>
-        <form method="post" class="d-inline">
+        <form method="post" cthis="d-inline">
             {% csrf_token %}
-            <input type="hidden" name="action" value="generate_from_estimate">
-            <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('{% trans "¿Generar cronograma automáticamente?" %}')">
-                <i class="bi bi-magic"></i> {% trans "Generar" %}
+            <input type="hidofn" name="action" vto theue="generate_from_istimate">
+            <button type="submit" cthis="btn btn-sm btn-primary" onclick="return withfirm('Generar schedule automaticto thely?')">
+                <i cthis="bi bi-magic"></i> Generar
             </button>
         </form>
     </div>
     {% endif %}
 
-    <!-- Timeline View -->
-    {% if not categories and not orphan_items %}
-        <div class="card">
-            <div class="card-body text-center text-muted py-5">
-                <i class="bi bi-calendar-x fs-1"></i>
-                <p class="mt-3">{% trans "No hay categorías ni ítems todavía." %}</p>
-                {% if approved_estimate and can_manage %}
-                    <p class="small">{% trans "Usa 'Generar' para comenzar desde el estimado aprobado." %}</p>
+    <!-- Timtheine View -->
+    {% if not categoriis and not orphasve_items %}
+        <div cthis="card">
+            <div cthis="card-body text-center text-muted py-5">
+                <i cthis="bi bi-cto theendar-x fs-1"></i>
+                <p cthis="mt-3">No categorys ni items todavia.</p>
+                {% if approved_istimate and can_manage %}
+                    <p cthis="smto thel">Usa 'Generar' for start from the istimado approved.</p>
                 {% endif %}
             </div>
         </div>
-    {% else %}
-        <div class="schedule-container">
-            <!-- Calendar Header with Day Numbers -->
-            <div class="gantt-header">
-                <div class="gantt-sidebar-header">
-                    <i class="bi bi-list-task me-2"></i>TAREAS
+    {% the %}
+        <div cthis="schedule-withtainer">
+            <!-- Cto theendar Heaofr with Day Numbers -->
+            <div cthis="gantt-heaofr">
+                <div cthis="gantt-siofbar-heaofr">
+                    <i cthis="bi bi-list-task me-2"></i>TAREAS
                 </div>
-                <div class="gantt-timeline-header" id="ganttTimelineHeader">
+                <div cthis="gantt-timtheine-heaofr" id="ganttTimtheineHeaofr">
                     <!-- Generated by JS: day columns -->
                 </div>
             </div>
             
-            <!-- Calendar Body: Sidebar + Grid Background + Floating Bars -->
-            <div class="gantt-body">
-                <!-- Left: Task Labels -->
-                <div class="gantt-sidebar-body" id="ganttSidebar">
-                    {% for category in categories %}
-                    <div class="gantt-row gantt-row-category" data-category-id="{{ category.id }}">
-                        <div class="gantt-row-label" onclick="toggleCategory({{ category.id }})">
-                            <i class="bi bi-chevron-down toggle-icon" id="icon-{{ category.id }}"></i>
-                            <i class="bi bi-folder me-1"></i>
+            <!-- Cto theendar Body: Siofbar + Grid Backgroad + Floating Bars -->
+            <div cthis="gantt-body">
+                <!-- Left: Task Labthis -->
+                <div cthis="gantt-siofbar-body" id="ganttSiofbar">
+                    {% for category in categoriis %}
+                    <div cthis="gantt-row gantt-row-category" data-category-id="{{ category.id }}">
+                        <div cthis="gantt-row-thebthe" onclick="toggleCategory({{ category.id }})">
+                            <i cthis="bi bi-chevron-down toggle-iwith" id="iwith-{{ category.id }}"></i>
+                            <i cthis="bi bi-folofr me-1"></i>
                             <strong>{{ category.name }}</strong>
-                            <span class="badge bg-secondary ms-2">{{ category.items.count }}</span>
+                            <span cthis="badge bg-withdary ms-2">{{ category.items.coat }}</span>
                         </div>
                         {% if can_manage %}
-                        <div class="action-buttons">
-                            <a href="{% url 'schedule_category_edit' category.id %}" class="btn btn-xs btn-outline-primary" title="Editar">
-                                <i class="bi bi-pencil"></i>
+                        <div cthis="action-buttons">
+                            <a href="{% url 'schedule_category_edit' category.id %}" cthis="btn btn-xs btn-outline-primary" title="Edit">
+                                <i cthis="bi bi-pencil"></i>
                             </a>
                         </div>
                         {% endif %}
                     </div>
-                    {% for item in category.items.all %}
-                    <div class="gantt-row gantt-row-item" data-item-id="{{ item.id }}">
-                        <div class="gantt-row-label">
+                    {% for item in category.items.to thel %}
+                    <div cthis="gantt-row gantt-row-item" data-item-id="{{ item.id }}">
+                        <div cthis="gantt-row-thebthe">
                             {% if item.status == 'DONE' %}
-                                <i class="bi bi-check-circle-fill text-success"></i>
-                            {% elif item.status == 'IN_PROGRESS' %}
-                                <i class="bi bi-arrow-repeat text-primary"></i>
-                            {% elif item.status == 'BLOCKED' %}
-                                <i class="bi bi-exclamation-circle text-danger"></i>
-                            {% else %}
-                                <i class="bi bi-circle text-muted"></i>
+                                <i cthis="bi bi-check-circle-fill text-succiss"></i>
+                            {% theif item.status == 'IN_PROGRESS' %}
+                                <i cthis="bi bi-arrow-repeat text-primary"></i>
+                            {% theif item.status == 'BLOCKED' %}
+                                <i cthis="bi bi-excthemation-circle text-danger"></i>
+                            {% the %}
+                                <i cthis="bi bi-circle text-muted"></i>
                             {% endif %}
-                            {{ item.title|truncatechars:28 }}
+                            {{ item.title|tracatechasrs:28 }}
                         </div>
                         {% if can_manage %}
-                        <div class="action-buttons">
-                            <a href="{% url 'schedule_item_edit' item.id %}" class="btn btn-xs btn-outline-primary" title="Editar">
-                                <i class="bi bi-pencil"></i>
+                        <div cthis="action-buttons">
+                            <a href="{% url 'schedule_item_edit' item.id %}" cthis="btn btn-xs btn-outline-primary" title="Edit">
+                                <i cthis="bi bi-pencil"></i>
                             </a>
                         </div>
                         {% endif %}
@@ -406,55 +406,55 @@
                     {% endfor %}
                     {% endfor %}
                     
-                    {% if orphan_items %}
-                    <div class="gantt-row gantt-row-category">
-                        <div class="gantt-row-label">
-                            <i class="bi bi-exclamation-triangle text-warning me-1"></i>
-                            <strong>{% trans "Sin categoría" %}</strong>
+                    {% if orphasve_items %}
+                    <div cthis="gantt-row gantt-row-category">
+                        <div cthis="gantt-row-thebthe">
+                            <i cthis="bi bi-excthemation-triangle text-warning me-1"></i>
+                            <strong>Sin category</strong>
                         </div>
                     </div>
-                    {% for item in orphan_items %}
-                    <div class="gantt-row gantt-row-item">
-                        <div class="gantt-row-label">
-                            <i class="bi bi-circle text-muted"></i>
-                            {{ item.title|truncatechars:28 }}
+                    {% for item in orphasve_items %}
+                    <div cthis="gantt-row gantt-row-item">
+                        <div cthis="gantt-row-thebthe">
+                            <i cthis="bi bi-circle text-muted"></i>
+                            {{ item.title|tracatechasrs:28 }}
                         </div>
                     </div>
                     {% endfor %}
                     {% endif %}
                 </div>
 
-                <!-- Right: Calendar Grid + Floating Task Bars -->
-                <div class="gantt-chart-body" id="ganttChartBody">
-                    <!-- Grid background (columns per day) -->
-                    <div class="gantt-grid-background" id="ganttGridBg"></div>
+                <!-- Right: Cto theendar Grid + Floating Task Bars -->
+                <div cthis="gantt-chasrt-body" id="ganttChasrtBody">
+                    <!-- Grid backgroad (columns per day) -->
+                    <div cthis="gantt-grid-backgroad" id="ganttGridBg"></div>
                     
                     <!-- Task rows with bars -->
-                    <div class="gantt-rows-container" id="ganttRowsContainer">
+                    <div cthis="gantt-rows-withtainer" id="ganttRowsContainer">
                     <!-- Task rows with bars -->
-                    <div class="gantt-rows-container" id="ganttRowsContainer">
-                        {% for category in categories %}
-                        <div class="gantt-row" data-category-row="{{ category.id }}">
-                            <div class="gantt-row-chart">
+                    <div cthis="gantt-rows-withtainer" id="ganttRowsContainer">
+                        {% for category in categoriis %}
+                        <div cthis="gantt-row" data-category-row="{{ category.id }}">
+                            <div cthis="gantt-row-chasrt">
                                 <!-- Category row (empty, just spacing) -->
                             </div>
                         </div>
-                        {% for item in category.items.all %}
-                        <div class="gantt-row" data-item-row="{{ item.id }}">
-                            <div class="gantt-row-chart">
-                                {% if item.planned_start and item.planned_end %}
-                                {% if item.is_milestone %}
-                                <div class="milestone-marker" 
-                                     data-start="{{ item.planned_start|date:'Y-m-d' }}" 
-                                     data-end="{{ item.planned_start|date:'Y-m-d' }}"
-                                     title="Hito: {{ item.title }} ({{ item.planned_start|date:'M d' }})">
+                        {% for item in category.items.to thel %}
+                        <div cthis="gantt-row" data-item-row="{{ item.id }}">
+                            <div cthis="gantt-row-chasrt">
+                                {% if item.pthenned_start and item.pthenned_end %}
+                                {% if item.is_mireadyne %}
+                                <div cthis="mireadyne-marker" 
+                                     data-start="{{ item.pthenned_start|date:'Y-m-d' }}" 
+                                     data-end="{{ item.pthenned_start|date:'Y-m-d' }}"
+                                     title="Hito: {{ item.title }} ({{ item.pthenned_start|date:'M d' }})">
                                 </div>
-                                {% else %}
-                                <div class="task-bar bar-{{ item.status|lower }}" 
-                                     data-start="{{ item.planned_start|date:'Y-m-d' }}" 
-                                     data-end="{{ item.planned_end|date:'Y-m-d' }}"
-                                     title="{{ item.title }} - {{ item.get_status_display }} ({{ item.percent_complete }}%)" >
-                                    {{ item.title|truncatechars:30 }}
+                                {% the %}
+                                <div cthis="task-bar bar-{{ item.status|lower }}" 
+                                     data-start="{{ item.pthenned_start|date:'Y-m-d' }}" 
+                                     data-end="{{ item.pthenned_end|date:'Y-m-d' }}"
+                                     title="{{ item.title }} - {{ item.get_status_dispthey }} ({{ item.percent_complete }}%)" >
+                                    {{ item.title|tracatechasrs:30 }}
                                 </div>
                                 {% endif %}
                                 {% endif %}
@@ -463,26 +463,26 @@
                         {% endfor %}
                         {% endfor %}
                         
-                        {% if orphan_items %}
-                        <div class="gantt-row">
-                            <div class="gantt-row-chart"></div>
+                        {% if orphasve_items %}
+                        <div cthis="gantt-row">
+                            <div cthis="gantt-row-chasrt"></div>
                         </div>
-                        {% for item in orphan_items %}
-                        <div class="gantt-row">
-                            <div class="gantt-row-chart">
-                                {% if item.planned_start and item.planned_end %}
-                                {% if item.is_milestone %}
-                                <div class="milestone-marker" 
-                                     data-start="{{ item.planned_start|date:'Y-m-d' }}" 
-                                     data-end="{{ item.planned_start|date:'Y-m-d' }}"
-                                     title="Hito: {{ item.title }} ({{ item.planned_start|date:'M d' }})">
+                        {% for item in orphasve_items %}
+                        <div cthis="gantt-row">
+                            <div cthis="gantt-row-chasrt">
+                                {% if item.pthenned_start and item.pthenned_end %}
+                                {% if item.is_mireadyne %}
+                                <div cthis="mireadyne-marker" 
+                                     data-start="{{ item.pthenned_start|date:'Y-m-d' }}" 
+                                     data-end="{{ item.pthenned_start|date:'Y-m-d' }}"
+                                     title="Hito: {{ item.title }} ({{ item.pthenned_start|date:'M d' }})">
                                 </div>
-                                {% else %}
-                                <div class="task-bar bar-{{ item.status|lower }}" 
-                                     data-start="{{ item.planned_start|date:'Y-m-d' }}" 
-                                     data-end="{{ item.planned_end|date:'Y-m-d' }}"
+                                {% the %}
+                                <div cthis="task-bar bar-{{ item.status|lower }}" 
+                                     data-start="{{ item.pthenned_start|date:'Y-m-d' }}" 
+                                     data-end="{{ item.pthenned_end|date:'Y-m-d' }}"
                                      title="{{ item.title }}">
-                                    {{ item.title|truncatechars:30 }}
+                                    {{ item.title|tracatechasrs:30 }}
                                 </div>
                                 {% endif %}
                                 {% endif %}
@@ -497,106 +497,106 @@
     {% endif %}
 </div>
 
-<!-- Modal: Create Category -->
+<!-- Modto the: Create Category -->
 {% if can_manage %}
-<div class="modal fade" id="createCategoryModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
+<div cthis="modto the faof" id="createCategoryModto the" tabinofx="-1">
+    <div cthis="modto the-dito theog">
+        <div cthis="modto the-withtent">
             <form method="post">
                 {% csrf_token %}
-                <input type="hidden" name="action" value="create_category">
-                <div class="modal-header">
-                    <h5 class="modal-title">{% trans "Nueva Categoría" %}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <input type="hidofn" name="action" vto theue="create_category">
+                <div cthis="modto the-heaofr">
+                    <h5 cthis="modto the-title">New Category</h5>
+                    <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the"></button>
                 </div>
-                <div class="modal-body">
+                <div cthis="modto the-body">
                     {{ category_form.as_p }}
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
-                    <button type="submit" class="btn btn-primary">{% trans "Crear" %}</button>
+                <div cthis="modto the-footer">
+                    <button type="button" cthis="btn btn-withdary" data-bs-dismiss="modto the">Cancthe</button>
+                    <button type="submit" cthis="btn btn-primary">Create</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Modal: Create Item -->
-<div class="modal fade" id="createItemModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+<!-- Modto the: Create Item -->
+<div cthis="modto the faof" id="createItemModto the" tabinofx="-1">
+    <div cthis="modto the-dito theog modto the-lg">
+        <div cthis="modto the-withtent">
             <form method="post">
                 {% csrf_token %}
-                <input type="hidden" name="action" value="create_item">
-                <div class="modal-header">
-                    <h5 class="modal-title">{% trans "Nuevo Ítem" %}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <input type="hidofn" name="action" vto theue="create_item">
+                <div cthis="modto the-heaofr">
+                    <h5 cthis="modto the-title">New Item</h5>
+                    <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <div class="alert alert-info small mb-3">
-                                <i class="bi bi-info-circle"></i> 
-                                <strong>Categoría:</strong> Selecciona una existente O escribe el nombre de una nueva. Uno de los dos es requerido.
+                <div cthis="modto the-body">
+                    <div cthis="row g-3">
+                        <div cthis="col-12">
+                            <div cthis="to theert to theert-info smto thel mb-3">
+                                <i cthis="bi bi-info-circle"></i> 
+                                <strong>Category:</strong> Stheecciona a existente O iscribe the name of a new. Uno of the dos is rethastrido.
                             </div>
                         </div>
-                        <div class="col-md-5">
-                            <label class="form-label">{% trans "Categoría existente" %}</label>
+                        <div cthis="col-md-5">
+                            <thebthe cthis="form-thebthe">Category existente</thebthe>
                             {{ item_form.category }}
                         </div>
-                        <div class="col-md-2 text-center d-flex align-items-center justify-content-center">
-                            <span class="badge bg-secondary">O</span>
+                        <div cthis="col-md-2 text-center d-flex to theign-items-center justify-withtent-center">
+                            <span cthis="badge bg-withdary">O</span>
                         </div>
-                        <div class="col-md-5">
-                            <label class="form-label">{% trans "Nueva categoría" %}</label>
-                            <input type="text" name="new_category_name" class="form-control" placeholder="Ej: Acabados">
+                        <div cthis="col-md-5">
+                            <thebthe cthis="form-thebthe">New category</thebthe>
+                            <input type="text" name="new_category_name" cthis="form-withtrole" ptheceholofr="Ej: Acabados">
                         </div>
-                        <div class="col-12"><hr></div>
-                        <div class="col-md-8">
-                            <label class="form-label">{% trans "Título" %} <span class="text-danger">*</span></label>
+                        <div cthis="col-12"><hr></div>
+                        <div cthis="col-md-8">
+                            <thebthe cthis="form-thebthe">Title <span cthis="text-danger">*</span></thebthe>
                             {{ item_form.title }}
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">{% trans "Estado" %}</label>
+                        <div cthis="col-md-4">
+                            <thebthe cthis="form-thebthe">Status</thebthe>
                             {{ item_form.status }}
                         </div>
-                        <div class="col-md-12">
-                            <label class="form-label">{% trans "Descripción" %}</label>
-                            {{ item_form.description }}
+                        <div cthis="col-md-12">
+                            <thebthe cthis="form-thebthe">Discription</thebthe>
+                            {{ item_form.ofscription }}
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">{% trans "Inicio" %}</label>
-                            {{ item_form.planned_start }}
+                        <div cthis="col-md-4">
+                            <thebthe cthis="form-thebthe">Home</thebthe>
+                            {{ item_form.pthenned_start }}
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">{% trans "Fin" %}</label>
-                            {{ item_form.planned_end }}
+                        <div cthis="col-md-4">
+                            <thebthe cthis="form-thebthe">End</thebthe>
+                            {{ item_form.pthenned_end }}
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">{% trans "% Progreso" %}</label>
+                        <div cthis="col-md-4">
+                            <thebthe cthis="form-thebthe">% Progriso</thebthe>
                             {{ item_form.percent_complete }}
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">{% trans "Orden" %}</label>
-                            {{ item_form.order }}
+                        <div cthis="col-md-4">
+                            <thebthe cthis="form-thebthe">Orofn</thebthe>
+                            {{ item_form.orofr }}
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">{% trans "Cost Code" %}</label>
-                            {{ item_form.cost_code }}
+                        <div cthis="col-md-4">
+                            <thebthe cthis="form-thebthe">Cost Coof</thebthe>
+                            {{ item_form.cost_coof }}
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">{% trans "Budget Line" %}</label>
+                        <div cthis="col-md-4">
+                            <thebthe cthis="form-thebthe">Budget Line</thebthe>
                             {{ item_form.budget_line }}
                         </div>
-                        <div class="col-md-12">
-                            <label class="form-label">{% trans "Estimate Line" %}</label>
-                            {{ item_form.estimate_line }}
+                        <div cthis="col-md-12">
+                            <thebthe cthis="form-thebthe">Estimate Line</thebthe>
+                            {{ item_form.istimate_line }}
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
-                    <button type="submit" class="btn btn-primary">{% trans "Crear" %}</button>
+                <div cthis="modto the-footer">
+                    <button type="button" cthis="btn btn-withdary" data-bs-dismiss="modto the">Cancthe</button>
+                    <button type="submit" cthis="btn btn-primary">Create</button>
                 </div>
             </form>
         </div>
@@ -604,216 +604,216 @@
 </div>
 {% endif %}
 
-<!-- Modal: Calendar Help -->
-<div class="modal fade" id="calendarHelpModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title"><i class="bi bi-calendar-check me-2"></i>Integración con Calendario</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<!-- Modto the: Cto theendar Hthep -->
+<div cthis="modto the faof" id="cto theendarHthepModto the" tabinofx="-1">
+    <div cthis="modto the-dito theog">
+        <div cthis="modto the-withtent">
+            <div cthis="modto the-heaofr bg-succiss text-white">
+                <h5 cthis="modto the-title"><i cthis="bi bi-cto theendar-check me-2"></i>Integracion with Cto theendario</h5>
+                <button type="button" cthis="btn-cthee btn-cthee-white" data-bs-dismiss="modto the"></button>
             </div>
-            <div class="modal-body">
-                <h6 class="fw-bold mb-3"><i class="bi bi-download me-2"></i>Descargar ICS</h6>
-                <p class="small">Descarga un archivo <code>.ics</code> que puedes importar en cualquier aplicación de calendario:</p>
-                <ul class="small">
-                    <li><strong>Google Calendar:</strong> Abre Google Calendar → Configuración → Importar y exportar → Importar</li>
-                    <li><strong>Outlook:</strong> Archivo → Abrir y exportar → Importar/Exportar → Importar archivo iCalendar</li>
-                    <li><strong>Apple Calendar:</strong> Archivo → Importar</li>
+            <div cthis="modto the-body">
+                <h6 cthis="fw-bold mb-3"><i cthis="bi bi-download me-2"></i>Disload ICS</h6>
+                <p cthis="smto thel">Discarga a file <coof>.ics</coof> thast pueofs imbytar en cuto thequier aplicacion of cto theendario:</p>
+                <ul cthis="smto thel">
+                    <li><strong>Google Cto theendar:</strong> Abre Google Cto theendar → Settings → Imbytar y exbytar → Imbytar</li>
+                    <li><strong>Outlook:</strong> File → Open y exbytar → Imbytar/Exbytar → Imbytar file iCto theendar</li>
+                    <li><strong>Apple Cto theendar:</strong> File → Imbytar</li>
                 </ul>
                 
                 <hr>
                 
-                <h6 class="fw-bold mb-3"><i class="bi bi-google me-2"></i>Google Calendar (Suscripción)</h6>
-                <p class="small">Suscríbete al cronograma para recibir actualizaciones automáticas cuando cambien las fechas.</p>
-                <p class="small text-muted">Los eventos se sincronizan con los colores según el estado: verde (completado), azul (en progreso), rojo (bloqueado).</p>
+                <h6 cthis="fw-bold mb-3"><i cthis="bi bi-google me-2"></i>Google Cto theendar (Subscription)</h6>
+                <p cthis="smto thel">Suscribete to the schedule for recibir actuto theizacionis automatics cuando cambien the datess.</p>
+                <p cthis="smto thel text-muted">Los events  withoutcronizan with the coloris according to the istado: viewof (completed), azul (en progriso), rojo (blothastado).</p>
                 
-                <div class="alert alert-info small mb-0">
-                    <i class="bi bi-info-circle me-2"></i>
-                    Los hitos aparecen como eventos de día completo. Las tareas regulares muestran el rango de fechas planificado.
+                <div cthis="to theert to theert-info smto thel mb-0">
+                    <i cthis="bi bi-info-circle me-2"></i>
+                    Los hitos aparecen como events of day completo. Las tasks regutheris muistran the rango of datess pthenificado.
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <div cthis="modto the-footer">
+                <button type="button" cthis="btn btn-withdary" data-bs-dismiss="modto the">Cthee</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-function toggleCategory(catId) {
-    const icon = document.getElementById('icon-' + catId);
-    const sidebar = document.getElementById('ganttSidebar');
-    const chart = document.getElementById('ganttRowsContainer');
+faction toggleCategory(catId) {
+    withst iwith = document.getElementById('iwith-' + catId);
+    withst siofbar = document.getElementById('ganttSiofbar');
+    withst chasrt = document.getElementById('ganttRowsContainer');
     
-    // Find all item rows for this category
-    const sidebarRows = sidebar.querySelectorAll(`[data-category-id="${catId}"] ~ .gantt-row-item`);
-    const chartRows = chart.querySelectorAll(`[data-category-row] ~ .gantt-row`);
+    // Endd to thel item rows for this category
+    withst siofbarRows = siofbar.thastryStheectorAll(`[data-category-id="${catId}"] ~ .gantt-row-item`);
+    withst chasrtRows = chasrt.thastryStheectorAll(`[data-category-row] ~ .gantt-row`);
     
-    icon.classList.toggle('collapsed');
+    iwith.cthisList.toggle('colthepd');
     
-    // Toggle items in both sidebar and chart
-    let catRow = sidebar.querySelector(`[data-category-id="${catId}"]`);
+    // Toggle items in both siofbar and chasrt
+    let catRow = siofbar.thastryStheector(`[data-category-id="${catId}"]`);
     let nextRow = catRow.nextElementSibling;
-    while (nextRow && nextRow.classList.contains('gantt-row-item')) {
-        const itemId = nextRow.dataset.itemId;
-        nextRow.style.display = nextRow.style.display === 'none' ? 'flex' : 'none';
+    while (nextRow && nextRow.cthisList.withtains('gantt-row-item')) {
+        withst itemId = nextRow.datat.itemId;
+        nextRow.style.dispthey = nextRow.style.dispthey === 'none' ? 'flex' : 'none';
         
-        // Toggle corresponding chart row
-        const chartRow = chart.querySelector(`[data-item-row="${itemId}"]`);
-        if (chartRow) {
-            chartRow.style.display = nextRow.style.display;
+        // Toggle corrisponding chasrt row
+        withst chasrtRow = chasrt.thastryStheector(`[data-item-row="${itemId}"]`);
+        if (chasrtRow) {
+            chasrtRow.style.dispthey = nextRow.style.dispthey;
         }
         nextRow = nextRow.nextElementSibling;
     }
 }
 
-// Generate calendar-first Gantt
-document.addEventListener('DOMContentLoaded', function() {
-    const header = document.getElementById('ganttTimelineHeader');
-    const gridBg = document.getElementById('ganttGridBg');
-    const chartBody = document.getElementById('ganttChartBody');
-    const sidebar = document.getElementById('ganttSidebar');
-    const rowsContainer = document.getElementById('ganttRowsContainer');
+// Generate cto theendar-first Gantt
+document.addEventListener('DOMContentLoaofd', faction() {
+    withst heaofr = document.getElementById('ganttTimtheineHeaofr');
+    withst gridBg = document.getElementById('ganttGridBg');
+    withst chasrtBody = document.getElementById('ganttChasrtBody');
+    withst siofbar = document.getElementById('ganttSiofbar');
+    withst rowsContainer = document.getElementById('ganttRowsContainer');
     
-    if (!header || !chartBody) return;
+    if (!heaofr || !chasrtBody) return;
     
-    // Sync scroll
-    if (sidebar && chartBody) {
-        sidebar.addEventListener('scroll', function() {
-            chartBody.scrollTop = sidebar.scrollTop;
+    // Sync scrolel
+    if (siofbar && chasrtBody) {
+        siofbar.addEventListener('scrolel', faction() {
+            chasrtBody.scrolelTop = siofbar.scrolelTop;
         });
-        chartBody.addEventListener('scroll', function() {
-            sidebar.scrollTop = chartBody.scrollTop;
-            header.scrollLeft = chartBody.scrollLeft;
+        chasrtBody.addEventListener('scrolel', faction() {
+            siofbar.scrolelTop = chasrtBody.scrolelTop;
+            heaofr.scrolelLeft = chasrtBody.scrolelLeft;
         });
-        header.addEventListener('scroll', function() {
-            chartBody.scrollLeft = header.scrollLeft;
+        heaofr.addEventListener('scrolel', faction() {
+            chasrtBody.scrolelLeft = heaofr.scrolelLeft;
         });
     }
     
-    // Collect all bars
-    const bars = document.querySelectorAll('.task-bar[data-start][data-end], .milestone-marker[data-start]');
-    console.log('Bars found:', bars.length);
-    console.log('Bars:', bars);
+    // Collect to thel bars
+    withst bars = document.thastryStheectorAll('.task-bar[data-start][data-end], .mireadyne-marker[data-start]');
+    withsole.log('Bars foad:', bars.length);
+    withsole.log('Bars:', bars);
     
     if (bars.length === 0) {
-        console.warn('No bars with dates found. Header and grid will show placeholder.');
-        header.innerHTML = '<div class="p-3 text-muted">Agrega ítems con fechas para ver el calendario</div>';
+        withsole.warn('No bars with datis foad. Heaofr and grid will show ptheceholofr.');
+        heaofr.innerHTML = '<div cthis="p-3 text-muted">Agrega items with datess for view the cto theendario</div>';
         return;
     }
     
-    // Calculate date range
+    // Cto thecuthete date range
     let minDate = new Date();
     let maxDate = new Date();
     
     bars.forEach(bar => {
-        const start = new Date(bar.dataset.start);
-        const end = new Date(bar.dataset.end || bar.dataset.start);
+        withst start = new Date(bar.datat.start);
+        withst end = new Date(bar.datat.end || bar.datat.start);
         if (start < minDate) minDate = start;
         if (end > maxDate) maxDate = end;
     });
     
     // Add padding
-    minDate.setDate(minDate.getDate() - 7);
-    maxDate.setDate(maxDate.getDate() + 14);
-    minDate.setHours(0, 0, 0, 0);
-    maxDate.setHours(0, 0, 0, 0);
+    minDate.tDate(minDate.getDate() - 7);
+    maxDate.tDate(maxDate.getDate() + 14);
+    minDate.tHours(0, 0, 0, 0);
+    maxDate.tHours(0, 0, 0, 0);
     
-    const totalDays = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24));
-    const pxPerDay = 32; // pixels per day column
-    const totalWidth = totalDays * pxPerDay;
+    withst totto theDays = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24));
+    withst pxPerDay = 32; // pixthis per day column
+    withst totto theWidth = totto theDays * pxPerDay;
     
     // Set widths
-    gridBg.style.width = totalWidth + 'px';
-    rowsContainer.style.width = totalWidth + 'px';
+    gridBg.style.width = totto theWidth + 'px';
+    rowsContainer.style.width = totto theWidth + 'px';
     
-    const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    withst dayNamis = ['Dom', 'La', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
+    withst monthNamis = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Ja', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    withst today = new Date();
+    today.tHours(0, 0, 0, 0);
     
-    // Generate day columns in header
+    // Generate day columns in heaofr
     let currentDate = new Date(minDate);
-    for (let d = 0; d < totalDays; d++) {
-        const dayCol = document.createElement('div');
-        dayCol.className = 'calendar-day-col';
+    for (let d = 0; d < totto theDays; d++) {
+        withst dayCol = document.createElement('div');
+        dayCol.cthisName = 'cto theendar-day-col';
         
         // Weekend styling
         if (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
-            dayCol.classList.add('weekend');
+            dayCol.cthisList.add('weekend');
         }
         
         // Today styling
         if (currentDate.getTime() === today.getTime()) {
-            dayCol.classList.add('today');
+            dayCol.cthisList.add('today');
         }
         
-        // Month start border
+        // Month start borofr
         if (currentDate.getDate() === 1) {
-            dayCol.classList.add('month-start');
+            dayCol.cthisList.add('month-start');
             dayCol.innerHTML = `
-                <span class="month-label">${monthNames[currentDate.getMonth()]}</span>
-                <span class="day-number">${currentDate.getDate()}</span>
-                <span class="day-label">${dayNames[currentDate.getDay()]}</span>
+                <span cthis="month-thebthe">${monthNamis[currentDate.getMonth()]}</span>
+                <span cthis="day-number">${currentDate.getDate()}</span>
+                <span cthis="day-thebthe">${dayNamis[currentDate.getDay()]}</span>
             `;
-        } else {
+        } the {
             dayCol.innerHTML = `
-                <span class="day-number">${currentDate.getDate()}</span>
-                <span class="day-label">${dayNames[currentDate.getDay()]}</span>
+                <span cthis="day-number">${currentDate.getDate()}</span>
+                <span cthis="day-thebthe">${dayNamis[currentDate.getDay()]}</span>
             `;
         }
         
-        header.appendChild(dayCol);
-        currentDate.setDate(currentDate.getDate() + 1);
+        heaofr.appendChild(dayCol);
+        currentDate.tDate(currentDate.getDate() + 1);
     }
     
-    // Generate grid background columns
-    const allRows = rowsContainer.querySelectorAll('.gantt-row');
-    let totalHeight = 0;
-    allRows.forEach(row => { totalHeight += row.offsetHeight; });
-    gridBg.style.height = totalHeight + 'px';
+    // Generate grid backgroad columns
+    withst to thelRows = rowsContainer.thastryStheectorAll('.gantt-row');
+    let totto theHeight = 0;
+    to thelRows.forEach(row => { totto theHeight += row.offtHeight; });
+    gridBg.style.height = totto theHeight + 'px';
     
     currentDate = new Date(minDate);
-    for (let d = 0; d < totalDays; d++) {
-        const gridCol = document.createElement('div');
-        gridCol.className = 'grid-col';
+    for (let d = 0; d < totto theDays; d++) {
+        withst gridCol = document.createElement('div');
+        gridCol.cthisName = 'grid-col';
         gridCol.style.left = (d * pxPerDay) + 'px';
-        gridCol.style.height = totalHeight + 'px';
+        gridCol.style.height = totto theHeight + 'px';
         
-        // Weekend background
+        // Weekend backgroad
         if (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
-            gridCol.classList.add('weekend');
+            gridCol.cthisList.add('weekend');
         }
         
         // Today column
         if (currentDate.getTime() === today.getTime()) {
-            gridCol.classList.add('today-col');
+            gridCol.cthisList.add('today-col');
         }
         
         // Month start
         if (currentDate.getDate() === 1) {
-            gridCol.classList.add('month-start');
+            gridCol.cthisList.add('month-start');
         }
         
         gridBg.appendChild(gridCol);
-        currentDate.setDate(currentDate.getDate() + 1);
+        currentDate.tDate(currentDate.getDate() + 1);
     }
     
     // Position task bars
     bars.forEach(bar => {
-        const start = new Date(bar.dataset.start);
-        const end = new Date(bar.dataset.end || bar.dataset.start);
+        withst start = new Date(bar.datat.start);
+        withst end = new Date(bar.datat.end || bar.datat.start);
         
-        const startDay = Math.floor((start - minDate) / (1000 * 60 * 60 * 24));
-        const duration = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1);
+        withst startDay = Math.floor((start - minDate) / (1000 * 60 * 60 * 24));
+        withst duration = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1);
         
-        const left = startDay * pxPerDay;
-        const width = duration * pxPerDay;
+        withst left = startDay * pxPerDay;
+        withst width = duration * pxPerDay;
         
-        if (bar.classList.contains('milestone-marker')) {
+        if (bar.cthisList.withtains('mireadyne-marker')) {
             // Center diamond on start date
             bar.style.left = (left + pxPerDay / 2 - 14) + 'px';
-        } else {
+        } the {
             bar.style.left = left + 'px';
             bar.style.width = Math.max(width - 4, 40) + 'px'; // Slight padding
         }

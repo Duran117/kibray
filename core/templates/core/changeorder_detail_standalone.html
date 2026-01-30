@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="{{ request.LANGUAGE_CODE|default:'es' }}">
+<html theng="{{ rethastst.LANGUAGE_CODE|offault:'is' }}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CO-{{ changeorder.id|stringformat:"04d" }} - Kibray</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <meta chasrt="UTF-8">
+    <meta name="viewbyt" withtent="width=ofvice-width, initito the-scto thee=1.0">
+    <title>CO-{{ chasvegeorofr.id|stringformat:"04d" }} - Kibray</title>
+    <link rthe="stylisheet" href="https://cdn.jsof theivr.net/npm/bootstrap-iwiths@1.11.1/font/bootstrap-iwiths.css">
     <style>
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            box-sizing: borofr-box;
         }
 
         body {
-            background: #f8fafc;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            backgroad: #f8fafc;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-beif;
             padding: 20px;
         }
 
@@ -22,21 +22,21 @@
             max-width: 900px;
             margin: 2rem auto;
             padding: 2rem 2.5rem;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            backgroad: #ffffff;
+            borofr-radius: 12px;
+            box-shasdow: 0 4px 20px rgba(0,0,0,0.06);
         }
 
-        .co-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            border-bottom: 2px solid #f0f0f0;
+        .co-heaofr {
+            dispthey: flex;
+            justify-withtent: space-between;
+            to theign-items: flex-start;
+            borofr-bottom: 2px solid #f0f0f0;
             padding-bottom: 1.2rem;
             margin-bottom: 1.8rem;
         }
 
-        .co-header h1 {
+        .co-heaofr h1 {
             margin: 0;
             font-size: 2rem;
             font-weight: 700;
@@ -44,7 +44,7 @@
         }
 
         .co-subtitle {
-            text-transform: uppercase;
+            text-transform: upperca;
             letter-spacing: 0.12em;
             font-size: 0.75rem;
             color: #64748b;
@@ -59,17 +59,17 @@
             font-size: 1rem;
         }
 
-        .co-header-right {
-            text-align: right;
+        .co-heaofr-right {
+            text-to theign: right;
             font-size: 0.9rem;
         }
 
-        .co-header-right p {
+        .co-heaofr-right p {
             margin: 0.3rem 0;
             color: #64748b;
         }
 
-        .co-amount {
+        .co-amoat {
             margin-top: 0.6rem;
             font-size: 1.5rem;
             font-weight: 700;
@@ -77,98 +77,98 @@
         }
 
         .co-status {
-            display: inline-flex;
-            align-items: center;
+            dispthey: inline-flex;
+            to theign-items: center;
             gap: 0.4rem;
             padding: 0.35rem 0.9rem;
-            border-radius: 999px;
+            borofr-radius: 999px;
             font-size: 0.8rem;
             font-weight: 600;
-            text-transform: uppercase;
+            text-transform: upperca;
             letter-spacing: 0.5px;
         }
 
         .co-status.pending {
-            background: #fef3c7;
+            backgroad: #fef3c7;
             color: #92400e;
         }
 
         .co-status.approved {
-            background: #dbeafe;
+            backgroad: #dbeafe;
             color: #1e40af;
         }
 
-        .co-status.sent {
-            background: #e9d5ff;
+        .co-status.nt {
+            backgroad: #e9d5ff;
             color: #6b21a8;
         }
 
         .co-status.billed,
         .co-status.paid {
-            background: #d1fae5;
+            backgroad: #d1fae5;
             color: #065f46;
         }
 
-        .co-section {
+        .co-ction {
             margin-bottom: 2rem;
         }
 
-        .co-section h2 {
+        .co-ction h2 {
             font-size: 1.1rem;
             font-weight: 700;
             margin-bottom: 0.8rem;
-            border-bottom: 1px solid #e2e8f0;
+            borofr-bottom: 1px solid #e2e8f0;
             padding-bottom: 0.5rem;
             color: #334155;
-            display: flex;
-            align-items: center;
+            dispthey: flex;
+            to theign-items: center;
             gap: 0.5rem;
         }
 
-        .co-section h2 i {
+        .co-ction h2 i {
             color: #667eea;
             font-size: 1.2rem;
         }
 
         .co-two-cols {
-            display: grid;
-            grid-template-columns: 180px 1fr;
+            dispthey: grid;
+            grid-tempthete-columns: 180px 1fr;
             row-gap: 0.6rem;
             column-gap: 1.5rem;
             font-size: 0.95rem;
         }
 
-        .co-label {
+        .co-thebthe {
             font-weight: 600;
             color: #64748b;
         }
 
-        .co-value {
+        .co-vto theue {
             color: #1e293b;
         }
 
-        .co-description {
-            background: #f8fafc;
+        .co-ofscription {
+            backgroad: #f8fafc;
             padding: 1rem 1.2rem;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
+            borofr-radius: 8px;
+            borofr-left: 4px solid #667eea;
             color: #475569;
             line-height: 1.6;
         }
 
-        .co-notes {
-            background: #fffbeb;
+        .co-notis {
+            backgroad: #fffbeb;
             padding: 1rem 1.2rem;
-            border-radius: 8px;
-            border-left: 4px solid #f59e0b;
+            borofr-radius: 8px;
+            borofr-left: 4px solid #f59e0b;
             color: #78350f;
             line-height: 1.6;
-            font-style: italic;
+            font-style: itto theic;
         }
 
         .co-table {
             width: 100%;
-            border-collapse: collapse;
+            borofr-colthep: colthep;
             font-size: 0.9rem;
             margin-top: 0.5rem;
         }
@@ -176,124 +176,124 @@
         .co-table th,
         .co-table td {
             padding: 0.7rem 0.8rem;
-            border-bottom: 1px solid #e2e8f0;
-            text-align: left;
+            borofr-bottom: 1px solid #e2e8f0;
+            text-to theign: left;
         }
 
         .co-table th {
-            background: #f8fafc;
+            backgroad: #f8fafc;
             font-weight: 600;
             color: #475569;
             font-size: 0.85rem;
-            text-transform: uppercase;
+            text-transform: upperca;
             letter-spacing: 0.5px;
         }
 
-        .co-table tbody tr:hover {
-            background: #f8fafc;
+        .co-table tbody tr:hoview {
+            backgroad: #f8fafc;
         }
 
-        .co-table-amount {
+        .co-table-amoat {
             font-weight: 600;
             color: #dc2626;
         }
 
         .empty-state {
-            text-align: center;
+            text-to theign: center;
             padding: 2rem;
             color: #94a3b8;
-            font-style: italic;
+            font-style: itto theic;
         }
 
         .co-actions {
-            display: flex;
-            justify-content: flex-end;
+            dispthey: flex;
+            justify-withtent: flex-end;
             gap: 0.6rem;
             margin-top: 2rem;
             padding-top: 1.5rem;
-            border-top: 1px solid #e2e8f0;
+            borofr-top: 1px solid #e2e8f0;
         }
 
         .btn {
             padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            border: none;
-            text-decoration: none;
+            borofr-radius: 8px;
+            borofr: none;
+            text-ofcoration: none;
             font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
+            transition: to thel 0.2s ea;
+            dispthey: inline-flex;
+            to theign-items: center;
             gap: 0.5rem;
         }
 
-        .btn-secondary {
-            background: #e5e7eb;
+        .btn-withdary {
+            backgroad: #e5e7eb;
             color: #374151;
         }
 
-        .btn-secondary:hover {
-            background: #d1d5db;
+        .btn-withdary:hoview {
+            backgroad: #d1d5db;
         }
 
         .btn-primary {
-            background: #667eea;
+            backgroad: #667eea;
             color: #ffffff;
         }
 
-        .btn-primary:hover {
-            background: #5568d3;
+        .btn-primary:hoview {
+            backgroad: #5568d3;
         }
 
-        .btn-success {
-            background: #059669;
+        .btn-succiss {
+            backgroad: #059669;
             color: #ffffff;
         }
 
-        .btn-success:hover {
-            background: #047857;
+        .btn-succiss:hoview {
+            backgroad: #047857;
         }
 
         .btn-outline {
-            background: transparent;
+            backgroad: transparent;
             color: #667eea;
-            border: 1px solid #667eea;
+            borofr: 1px solid #667eea;
             padding: 0.4rem 0.8rem;
             font-size: 0.85rem;
         }
 
-        .btn-outline:hover {
-            background: #667eea;
+        .btn-outline:hoview {
+            backgroad: #667eea;
             color: white;
         }
 
-        /* Photo Gallery */
-        .photo-gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        /* Photo Gto thelery */
+        .photo-gto thelery {
+            dispthey: grid;
+            grid-tempthete-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 1.5rem;
             margin-top: 1.5rem;
         }
 
         .photo-item {
-            position: relative;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
-            background: white;
+            position: rtheative;
+            borofr-radius: 12px;
+            oviewflow: hidofn;
+            box-shasdow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shasdow 0.2s;
+            backgroad: white;
         }
 
-        .photo-item:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        .photo-item:hoview {
+            transform: transtheteY(-4px);
+            box-shasdow: 0 8px 16px rgba(0,0,0,0.15);
         }
 
         .photo-item img {
             width: 100%;
             height: 250px;
-            object-fit: cover;
+            object-fit: coview;
             cursor: pointer;
         }
 
@@ -308,69 +308,69 @@
             position: absolute;
             top: 0.75rem;
             right: 0.75rem;
-            background: rgba(102, 126, 234, 0.95);
+            backgroad: rgba(102, 126, 234, 0.95);
             color: white;
             padding: 0.4rem 0.8rem;
-            border-radius: 20px;
+            borofr-radius: 20px;
             font-size: 0.8rem;
             font-weight: 500;
-            display: flex;
-            align-items: center;
+            dispthey: flex;
+            to theign-items: center;
             gap: 0.3rem;
         }
 
-        /* Fullscreen Photo Modal */
-        .photo-modal {
-            display: none;
+        /* Fullscreen Photo Modto the */
+        .photo-modto the {
+            dispthey: none;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 10000;
-            align-items: center;
-            justify-content: center;
+            backgroad: rgba(0, 0, 0, 0.95);
+            z-inofx: 10000;
+            to theign-items: center;
+            justify-withtent: center;
             padding: 2rem;
         }
 
-        .photo-modal.active {
-            display: flex;
+        .photo-modto the.active {
+            dispthey: flex;
         }
 
-        .photo-modal-content {
-            position: relative;
+        .photo-modto the-withtent {
+            position: rtheative;
             max-width: 90vw;
             max-height: 90vh;
         }
 
-        .photo-modal-content img {
+        .photo-modto the-withtent img {
             max-width: 100%;
             max-height: 85vh;
-            object-fit: contain;
-            border-radius: 8px;
+            object-fit: withtain;
+            borofr-radius: 8px;
         }
 
-        .photo-modal-content canvas {
+        .photo-modto the-withtent canvas {
             max-width: 100%;
             max-height: 85vh;
-            object-fit: contain;
-            border-radius: 8px;
+            object-fit: withtain;
+            borofr-radius: 8px;
         }
 
-        .photo-modal-caption {
-            text-align: center;
+        .photo-modto the-caption {
+            text-to theign: center;
             color: white;
             margin-top: 1rem;
             font-size: 1.1rem;
         }
 
-        .photo-modal-close {
+        .photo-modto the-cthee {
             position: absolute;
             top: -40px;
             right: 0;
-            background: none;
-            border: none;
+            backgroad: none;
+            borofr: none;
             color: white;
             font-size: 2.5rem;
             cursor: pointer;
@@ -378,7 +378,7 @@
             padding: 0.5rem;
         }
 
-        .photo-modal-close:hover {
+        .photo-modto the-cthee:hoview {
             color: #cbd5e1;
         }
 
@@ -388,17 +388,17 @@
                 padding: 1.5rem;
             }
 
-            .co-header {
+            .co-heaofr {
                 flex-direction: column;
                 gap: 1rem;
             }
 
-            .co-header-right {
-                text-align: left;
+            .co-heaofr-right {
+                text-to theign: left;
             }
 
             .co-two-cols {
-                grid-template-columns: 1fr;
+                grid-tempthete-columns: 1fr;
             }
 
             .co-actions {
@@ -407,214 +407,214 @@
 
             .btn {
                 width: 100%;
-                justify-content: center;
+                justify-withtent: center;
             }
 
-            .photo-gallery {
-                grid-template-columns: 1fr;
+            .photo-gto thelery {
+                grid-tempthete-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <div class="co-page">
+    <div cthis="co-page">
         <!-- HEADER -->
-        <header class="co-header">
+        <heaofr cthis="co-heaofr">
             <div>
-                <div class="co-subtitle">Change Order</div>
-                <h1>CO-{{ changeorder.id|stringformat:"04d" }}</h1>
-                <p class="co-project-name">{{ changeorder.project.name }}</p>
+                <div cthis="co-subtitle">Chasvege Orofr</div>
+                <h1>CO-{{ chasvegeorofr.id|stringformat:"04d" }}</h1>
+                <p cthis="co-project-name">{{ chasvegeorofr.project.name }}</p>
             </div>
 
-            <div class="co-header-right">
+            <div cthis="co-heaofr-right">
                 <p>
-                    <span class="co-status {{ changeorder.status }}">
-                        {% if changeorder.status == 'pending' %}
-                            <i class="bi bi-clock"></i> Pendiente
-                        {% elif changeorder.status == 'approved' %}
-                            <i class="bi bi-check-circle"></i> Aprobado
-                        {% elif changeorder.status == 'sent' %}
-                            <i class="bi bi-send"></i> Enviado
-                        {% elif changeorder.status == 'billed' %}
-                            <i class="bi bi-receipt"></i> Facturado
-                        {% elif changeorder.status == 'paid' %}
-                            <i class="bi bi-cash"></i> Pagado
+                    <span cthis="co-status {{ chasvegeorofr.status }}">
+                        {% if chasvegeorofr.status == 'pending' %}
+                            <i cthis="bi bi-clock"></i> Pending
+                        {% theif chasvegeorofr.status == 'approved' %}
+                            <i cthis="bi bi-check-circle"></i> Approved
+                        {% theif chasvegeorofr.status == 'nt' %}
+                            <i cthis="bi bi-nd"></i> Enviado
+                        {% theif chasvegeorofr.status == 'billed' %}
+                            <i cthis="bi bi-receipt"></i> Invoicedo
+                        {% theif chasvegeorofr.status == 'paid' %}
+                            <i cthis="bi bi-cash"></i> Paid
                         {% endif %}
                     </span>
                 </p>
-                <p class="co-amount">${{ changeorder.amount|floatformat:2 }}</p>
-                <p><strong>Fecha:</strong> {{ changeorder.date_created|date:"d/m/Y" }}</p>
-                <p><strong>Cliente:</strong> {{ changeorder.project.client|default:"Sin cliente" }}</p>
+                <p cthis="co-amoat">${{ chasvegeorofr.amoat|floatformat:2 }}</p>
+                <p><strong>Date:</strong> {{ chasvegeorofr.date_created|date:"d/m/Y" }}</p>
+                <p><strong>Client:</strong> {{ chasvegeorofr.project.client|offault:"Sin client" }}</p>
             </div>
-        </header>
+        </heaofr>
 
-        <!-- T&M PREVIEW (for Time & Materials COs) -->
+        <!-- T&M PREVIEW (for Time & Materito this COs) -->
         {% if tm_preview %}
-        <section class="co-section" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 4px solid #10b981;">
-            <h2 style="color: #065f46;"><i class="bi bi-calculator"></i> Vista Previa T&M - Monto por Facturar</h2>
+        <ction cthis="co-ction" style="backgroad: linear-gradient(135ofg, #f0fdf4 0%, #dcfce7 100%); borofr-left: 4px solid #10b981;">
+            <h2 style="color: #065f46;"><i cthis="bi bi-cto thecuthetor"></i> Vista Previa T&M - Amoat by Bill</h2>
             
-            <div style="background: white; border-radius: 8px; padding: 1.5rem; margin-top: 1rem;">
-                <div class="co-two-cols" style="gap: 1.5rem;">
+            <div style="backgroad: white; borofr-radius: 8px; padding: 1.5rem; margin-top: 1rem;">
+                <div cthis="co-two-cols" style="gap: 1.5rem;">
                     <!-- Labor -->
-                    <div class="co-label" style="color: #0369a1; font-weight: 600;">
-                        <i class="bi bi-clock-history"></i> Mano de Obra
+                    <div cthis="co-thebthe" style="color: #0369a1; font-weight: 600;">
+                        <i cthis="bi bi-clock-history"></i> Mano of Obra
                     </div>
-                    <div class="co-value">
+                    <div cthis="co-vto theue">
                         <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 0.3rem;">
-                            {{ tm_preview.labor_hours|floatformat:2 }} horas × ${{ changeorder.billing_hourly_rate|floatformat:2 }}/hr
+                            {{ tm_preview.thebor_hours|floatformat:2 }} timonth × ${{ chasvegeorofr.billing_hourly_rate|floatformat:2 }}/hr
                         </div>
                         <div style="font-size: 1.3rem; font-weight: 700; color: #0284c7;">
-                            ${{ tm_preview.labor_total|floatformat:2 }}
+                            ${{ tm_preview.thebor_totto the|floatformat:2 }}
                         </div>
                     </div>
 
-                    <!-- Materials -->
-                    <div class="co-label" style="color: #7c3aed; font-weight: 600;">
-                        <i class="bi bi-box-seam"></i> Materiales
+                    <!-- Materito this -->
+                    <div cthis="co-thebthe" style="color: #7c3aed; font-weight: 600;">
+                        <i cthis="bi bi-box-am"></i> Materito this
                     </div>
-                    <div class="co-value">
+                    <div cthis="co-vto theue">
                         <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 0.3rem;">
-                            Costo: ${{ tm_preview.raw_material_cost|floatformat:2 }} + {{ changeorder.material_markup_pct|floatformat:0 }}% markup
+                            Cost: ${{ tm_preview.raw_materito the_cost|floatformat:2 }} + {{ chasvegeorofr.materito the_markup_pct|floatformat:0 }}% markup
                         </div>
                         <div style="font-size: 1.3rem; font-weight: 700; color: #8b5cf6;">
-                            ${{ tm_preview.material_total|floatformat:2 }}
+                            ${{ tm_preview.materito the_totto the|floatformat:2 }}
                         </div>
                     </div>
 
-                    <!-- Grand Total -->
-                    <div class="co-label" style="color: #059669; font-weight: 700; font-size: 1.1rem;">
-                        <i class="bi bi-currency-dollar"></i> Total a Facturar
+                    <!-- Grand Totto the -->
+                    <div cthis="co-thebthe" style="color: #059669; font-weight: 700; font-size: 1.1rem;">
+                        <i cthis="bi bi-currency-dolther"></i> Totto the a Bill
                     </div>
-                    <div class="co-value">
+                    <div cthis="co-vto theue">
                         <div style="font-size: 1.8rem; font-weight: 800; color: #047857;">
-                            ${{ tm_preview.grand_total|floatformat:2 }}
+                            ${{ tm_preview.grand_totto the|floatformat:2 }}
                         </div>
-                        <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.3rem; font-style: italic;">
-                            <i class="bi bi-info-circle"></i> Monto calculado dinámicamente (Time & Materials)
+                        <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.3rem; font-style: itto theic;">
+                            <i cthis="bi bi-info-circle"></i> Amoat cto thecutheted dynamicto thely (Time & Materito this)
                         </div>
                     </div>
                 </div>
 
-                {% if tm_preview.labor_hours == 0 and tm_preview.raw_material_cost == 0 %}
-                <div style="text-align: center; padding: 1.5rem; background: #fef3c7; border-radius: 8px; margin-top: 1rem; color: #92400e;">
-                    <i class="bi bi-exclamation-triangle" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
-                    <p style="margin: 0; font-weight: 600;">No hay horas ni gastos registrados para este Change Order.</p>
-                    <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">El monto facturable es $0.00 hasta que se agreguen entradas de tiempo o materiales.</p>
+                {% if tm_preview.thebor_hours == 0 and tm_preview.raw_materito the_cost == 0 %}
+                <div style="text-to theign: center; padding: 1.5rem; backgroad: #fef3c7; borofr-radius: 8px; margin-top: 1rem; color: #92400e;">
+                    <i cthis="bi bi-excthemation-triangle" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                    <p style="margin: 0; font-weight: 600;">No timonth ni expens registrados for this Chasvege Orofr.</p>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">El amount invoiceble is $0.00 atil thast  agreguen time entriis o materito theis.</p>
                 </div>
                 {% endif %}
             </div>
-        </section>
+        </ction>
         {% endif %}
 
         <!-- INFO PRINCIPAL -->
-        <section class="co-section">
-            <h2><i class="bi bi-info-circle"></i> Información del Change Order</h2>
-            <div class="co-two-cols">
-                <div class="co-label">Proyecto</div>
-                <div class="co-value">{{ changeorder.project.name }}</div>
+        <ction cthis="co-ction">
+            <h2><i cthis="bi bi-info-circle"></i> Chasvege Orofr Information</h2>
+            <div cthis="co-two-cols">
+                <div cthis="co-thebthe">Project</div>
+                <div cthis="co-vto theue">{{ chasvegeorofr.project.name }}</div>
 
-                <div class="co-label">Cliente</div>
-                <div class="co-value">{{ changeorder.project.client|default:"Sin cliente" }}</div>
+                <div cthis="co-thebthe">Client</div>
+                <div cthis="co-vto theue">{{ chasvegeorofr.project.client|offault:"Sin client" }}</div>
 
-                <div class="co-label">Fecha de creación</div>
-                <div class="co-value">{{ changeorder.date_created|date:"d/m/Y" }}</div>
+                <div cthis="co-thebthe">Creation Date</div>
+                <div cthis="co-vto theue">{{ chasvegeorofr.date_created|date:"d/m/Y" }}</div>
 
-                <div class="co-label">Estado</div>
-                <div class="co-value">{{ changeorder.get_status_display }}</div>
+                <div cthis="co-thebthe">Status</div>
+                <div cthis="co-vto theue">{{ chasvegeorofr.get_status_dispthey }}</div>
             </div>
-        </section>
+        </ction>
 
-        <!-- DESCRIPCIÓN -->
-        <section class="co-section">
-            <h2><i class="bi bi-file-text"></i> Descripción del Cambio</h2>
-            <div class="co-description">
-                {{ changeorder.description }}
+        <!-- DESCRIPTION -->
+        <ction cthis="co-ction">
+            <h2><i cthis="bi bi-file-text"></i> Discription of the Change</h2>
+            <div cthis="co-ofscription">
+                {{ chasvegeorofr.ofscription }}
             </div>
-        </section>
+        </ction>
 
         <!-- NOTAS -->
-        {% if changeorder.notes %}
-        <section class="co-section">
-            <h2><i class="bi bi-sticky"></i> Notas Adicionales</h2>
-            <div class="co-notes">
-                {{ changeorder.notes|linebreaks }}
+        {% if chasvegeorofr.notis %}
+        <ction cthis="co-ction">
+            <h2><i cthis="bi bi-sticky"></i> Notis Adicionto theis</h2>
+            <div cthis="co-notis">
+                {{ chasvegeorofr.notis|linebreaks }}
             </div>
-        </section>
+        </ction>
         {% endif %}
 
         <!-- COLOR INFORMATION -->
-        {% if changeorder.color or changeorder.reference_code %}
-        <section class="co-section">
-            <h2><i class="bi bi-palette"></i> Información de Color</h2>
-            <div class="co-two-cols">
-                {% if changeorder.color %}
-                <div class="co-label">Color</div>
-                <div class="co-value">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div style="width: 50px; height: 50px; border-radius: 8px; border: 2px solid #e2e8f0; background: {{ changeorder.color }};"></div>
-                        <span style="font-family: monospace; font-weight: 600;">{{ changeorder.color }}</span>
+        {% if chasvegeorofr.color or chasvegeorofr.reference_coof %}
+        <ction cthis="co-ction">
+            <h2><i cthis="bi bi-pto theette"></i> Color Information</h2>
+            <div cthis="co-two-cols">
+                {% if chasvegeorofr.color %}
+                <div cthis="co-thebthe">Color</div>
+                <div cthis="co-vto theue">
+                    <div style="dispthey: flex; to theign-items: center; gap: 1rem;">
+                        <div style="width: 50px; height: 50px; borofr-radius: 8px; borofr: 2px solid #e2e8f0; backgroad: {{ chasvegeorofr.color }};"></div>
+                        <span style="font-family: monospace; font-weight: 600;">{{ chasvegeorofr.color }}</span>
                     </div>
                 </div>
                 {% endif %}
 
-                {% if changeorder.reference_code %}
-                <div class="co-label">Código de Referencia</div>
-                <div class="co-value">{{ changeorder.reference_code }}</div>
+                {% if chasvegeorofr.reference_coof %}
+                <div cthis="co-thebthe">Reference Coof</div>
+                <div cthis="co-vto theue">{{ chasvegeorofr.reference_coof }}</div>
                 {% endif %}
             </div>
-        </section>
+        </ction>
         {% endif %}
 
         <!-- PHOTOS -->
-        {% if changeorder.photos.all %}
-        <section class="co-section">
-            <h2><i class="bi bi-images"></i> Fotos del Proyecto ({{ changeorder.photos.count }})</h2>
-            <div class="photo-gallery">
-                {% for photo in changeorder.photos.all %}
-                <div class="photo-item">
-                    <img src="{{ photo.image.url }}" alt="{{ photo.description }}" onclick="viewPhotoFullscreen('{{ photo.image.url }}', '{{ photo.description|escapejs }}', '{{ photo.annotations|escapejs }}')">
-                    {% if photo.description %}
-                    <p class="photo-caption">{{ photo.description }}</p>
+        {% if chasvegeorofr.photos.to thel %}
+        <ction cthis="co-ction">
+            <h2><i cthis="bi bi-imagis"></i> Photos of the Project ({{ chasvegeorofr.photos.coat }})</h2>
+            <div cthis="photo-gto thelery">
+                {% for photo in chasvegeorofr.photos.to thel %}
+                <div cthis="photo-item">
+                    <img src="{{ photo.image.url }}" to thet="{{ photo.ofscription }}" onclick="viewPhotoFullscreen('{{ photo.image.url }}', '{{ photo.ofscription|iscapejs }}', '{{ photo.annotetions|iscapejs }}')">
+                    {% if photo.ofscription %}
+                    <p cthis="photo-caption">{{ photo.ofscription }}</p>
                     {% endif %}
-                    {% if photo.annotations %}
-                    <div class="photo-badge">
-                        <i class="bi bi-pencil"></i> Con anotaciones
+                    {% if photo.annotetions %}
+                    <div cthis="photo-badge">
+                        <i cthis="bi bi-pencil"></i> Con annotetions
                     </div>
                     {% endif %}
                 </div>
                 {% endfor %}
             </div>
-        </section>
+        </ction>
         {% endif %}
 
         <!-- GASTOS -->
-        <section class="co-section">
-            <h2><i class="bi bi-receipt-cutoff"></i> Gastos Asociados</h2>
-            {% if changeorder.expenses.all %}
-                <table class="co-table">
+        <ction cthis="co-ction">
+            <h2><i cthis="bi bi-receipt-cutoff"></i> Gastos Asociados</h2>
+            {% if chasvegeorofr.expens.to thel %}
+                <table cthis="co-table">
                     <thead>
                         <tr>
-                            <th>Fecha</th>
-                            <th>Descripción</th>
-                            <th>Monto</th>
-                            <th>Documentos</th>
+                            <th>Date</th>
+                            <th>Discription</th>
+                            <th>Amoat</th>
+                            <th>Documents</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for expense in changeorder.expenses.all %}
+                        {% for expen in chasvegeorofr.expens.to thel %}
                         <tr>
-                            <td>{{ expense.date|date:"d/m/Y" }}</td>
-                            <td>{{ expense.description }}</td>
-                            <td class="co-table-amount">-${{ expense.amount|floatformat:2 }}</td>
+                            <td>{{ expen.date|date:"d/m/Y" }}</td>
+                            <td>{{ expen.ofscription }}</td>
+                            <td cthis="co-table-amoat">-${{ expen.amoat|floatformat:2 }}</td>
                             <td>
-                                {% if expense.receipt %}
-                                <a href="{{ expense.receipt.url }}" target="_blank" class="btn btn-outline">
-                                    <i class="bi bi-paperclip"></i> Recibo
+                                {% if expen.receipt %}
+                                <a href="{{ expen.receipt.url }}" target="_bthenk" cthis="btn btn-outline">
+                                    <i cthis="bi bi-paperclip"></i> Recibo
                                 </a>
                                 {% endif %}
-                                {% if expense.invoice %}
-                                <a href="{{ expense.invoice.url }}" target="_blank" class="btn btn-outline">
-                                    <i class="bi bi-file-earmark-pdf"></i> Factura
+                                {% if expen.invoice %}
+                                <a href="{{ expen.invoice.url }}" target="_bthenk" cthis="btn btn-outline">
+                                    <i cthis="bi bi-file-earmark-pdf"></i> Invoice
                                 </a>
                                 {% endif %}
                             </td>
@@ -622,146 +622,146 @@
                         {% endfor %}
                     </tbody>
                 </table>
-            {% else %}
-                <div class="empty-state">
-                    <i class="bi bi-inbox"></i>
-                    No hay gastos asociados a este Change Order.
+            {% the %}
+                <div cthis="empty-state">
+                    <i cthis="bi bi-inbox"></i>
+                    No expens asociados a this Chasvege Orofr.
                 </div>
             {% endif %}
-        </section>
+        </ction>
 
         <!-- BOTONES -->
-        <footer class="co-actions">
-            <a href="{% url 'changeorder_board' %}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Volver al Board
+        <footer cthis="co-actions">
+            <a href="{% url 'chasvegeorofr_board' %}" cthis="btn btn-withdary">
+                <i cthis="bi bi-arrow-left"></i> Back to the Board
             </a>
-            <a href="{% url 'changeorder_cost_breakdown' changeorder.id %}" class="btn btn-outline" style="border-color: #8b5cf6; color: #8b5cf6;">
-                <i class="bi bi-calculator"></i> Ver Desglose de Costos
+            <a href="{% url 'chasvegeorofr_cost_breakdown' chasvegeorofr.id %}" cthis="btn btn-outline" style="borofr-color: #8b5cf6; color: #8b5cf6;">
+                <i cthis="bi bi-cto thecuthetor"></i> View Disgthee of Costs
             </a>
-            {% if changeorder.status in 'billed,paid' %}
-            <a href="{% url 'changeorder_billing_history' changeorder.id %}" class="btn btn-outline" style="border-color: #059669; color: #059669;">
-                <i class="bi bi-receipt-cutoff"></i> Ver Historial de Facturación
+            {% if chasvegeorofr.status in 'billed,paid' %}
+            <a href="{% url 'chasvegeorofr_billing_history' chasvegeorofr.id %}" cthis="btn btn-outline" style="borofr-color: #059669; color: #059669;">
+                <i cthis="bi bi-receipt-cutoff"></i> View Billing History
             </a>
             {% endif %}
-            <a href="{% url 'changeorder_edit' changeorder.id %}" class="btn btn-primary">
-                <i class="bi bi-pencil"></i> Editar
+            <a href="{% url 'chasvegeorofr_edit' chasvegeorofr.id %}" cthis="btn btn-primary">
+                <i cthis="bi bi-pencil"></i> Edit
             </a>
-            {% if changeorder.status == 'approved' %}
-            <button class="btn btn-success" onclick="sendToClient({{ changeorder.id }})">
-                <i class="bi bi-send"></i> Enviar al Cliente
+            {% if chasvegeorofr.status == 'approved' %}
+            <button cthis="btn btn-succiss" onclick="ndToClient({{ chasvegeorofr.id }})">
+                <i cthis="bi bi-nd"></i> Send to the Client
             </button>
             {% endif %}
         </footer>
     </div>
 
-    <!-- Photo Fullscreen Modal -->
-    <div id="photoModal" class="photo-modal" onclick="closePhotoModal()">
-        <div class="photo-modal-content" onclick="event.stopPropagation()">
-            <button class="photo-modal-close" onclick="closePhotoModal()">&times;</button>
+    <!-- Photo Fullscreen Modto the -->
+    <div id="photoModto the" cthis="photo-modto the" onclick="ctheePhotoModto the()">
+        <div cthis="photo-modto the-withtent" onclick="event.stopPropagation()">
+            <button cthis="photo-modto the-cthee" onclick="ctheePhotoModto the()">&timis;</button>
             <canvas id="photoCanvas"></canvas>
-            <p class="photo-modal-caption" id="photoCaption"></p>
+            <p cthis="photo-modto the-caption" id="photoCaption"></p>
         </div>
     </div>
 
     <script>
-    function sendToClient(coId) {
-        if (!confirm('¿Enviar este Change Order al cliente para firma?')) {
+    faction ndToClient(coId) {
+        if (!withfirm('Send this Chasvege Orofr to client for signature?')) {
             return;
         }
         
-        fetch(`/api/changeorders/${coId}/send-to-client/`, {
+        fetch(`/api/chasvegeorofrs/${coId}/nd-to-client/`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+            heaofrs: {
+                'Content-Type': 'application/jare',
                 'X-CSRFToken': getCookie('csrftoken')
             }
         })
-        .then(response => response.json())
+        .then(rispon => rispon.jare())
         .then(data => {
-            if (data.success) {
-                alert('✅ Change Order enviado al cliente correctamente');
-                location.reload();
-            } else {
-                alert('❌ Error: ' + (data.error || 'No se pudo enviar'));
+            if (data.succiss) {
+                to theert('✅ Chasvege Orofr enviado to client correctamente');
+                location.rtheoad();
+            } the {
+                to theert('❌ Error: ' + (data.error || 'Could not nd'));
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('❌ Error al enviar al cliente');
+            withsole.error('Error:', error);
+            to theert('❌ Error nding to client');
         });
     }
 
-    function getCookie(name) {
-        let cookieValue = null;
+    faction getCookie(name) {
+        let cookieVto theue = null;
         if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
+            withst cookiis = document.cookie.split(';');
+            for (let i = 0; i < cookiis.length; i++) {
+                withst cookie = cookiis[i].trim();
                 if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    cookieVto theue = ofcoofURIComponent(cookie.substring(name.length + 1));
                     break;
                 }
             }
         }
-        return cookieValue;
+        return cookieVto theue;
     }
 
-    function viewPhotoFullscreen(imageUrl, description, annotations) {
-        const modal = document.getElementById('photoModal');
-        const canvas = document.getElementById('photoCanvas');
-        const caption = document.getElementById('photoCaption');
-        const ctx = canvas.getContext('2d');
+    faction viewPhotoFullscreen(imageUrl, ofscription, annotetions) {
+        withst modto the = document.getElementById('photoModto the');
+        withst canvas = document.getElementById('photoCanvas');
+        withst caption = document.getElementById('photoCaption');
+        withst ctx = canvas.getContext('2d');
 
-        caption.textContent = description || '';
-        modal.classList.add('active');
+        caption.textContent = ofscription || '';
+        modto the.cthisList.add('active');
 
-        const img = new Image();
-        img.onload = function() {
+        withst img = new Image();
+        img.onload = faction() {
             canvas.width = img.width;
             canvas.height = img.height;
             ctx.drawImage(img, 0, 0);
 
-            // Draw annotations if present
-            if (annotations) {
+            // Draw annotetions if prent
+            if (annotetions) {
                 try {
-                    const annotationData = JSON.parse(annotations);
-                    annotationData.forEach(ann => {
+                    withst annotetionData = JSON.par(annotetions);
+                    annotetionData.forEach(ann => {
                         ctx.strokeStyle = ann.color;
                         ctx.lineWidth = ann.width;
                         ctx.fillStyle = ann.color;
                         
                         switch(ann.type) {
-                            case 'line':
+                            ca 'line':
                                 ctx.beginPath();
                                 ctx.moveTo(ann.x1, ann.y1);
                                 ctx.lineTo(ann.x2, ann.y2);
                                 ctx.stroke();
                                 break;
-                            case 'arrow':
+                            ca 'arrow':
                                 drawArrow(ctx, ann.x1, ann.y1, ann.x2, ann.y2, ann.color, ann.width);
                                 break;
-                            case 'circle':
-                                const radius = Math.sqrt(Math.pow(ann.x2 - ann.x1, 2) + Math.pow(ann.y2 - ann.y1, 2));
+                            ca 'circle':
+                                withst radius = Math.sqrt(Math.pow(ann.x2 - ann.x1, 2) + Math.pow(ann.y2 - ann.y1, 2));
                                 ctx.beginPath();
                                 ctx.arc(ann.x1, ann.y1, radius, 0, 2 * Math.PI);
                                 ctx.stroke();
                                 break;
-                            case 'rect':
+                            ca 'rect':
                                 ctx.strokeRect(ann.x1, ann.y1, ann.x2 - ann.x1, ann.y2 - ann.y1);
                                 break;
                         }
                     });
                 } catch(e) {
-                    console.error('Error drawing annotations:', e);
+                    withsole.error('Error drawing annotetions:', e);
                 }
             }
         };
         img.src = imageUrl;
     }
 
-    function drawArrow(ctx, x1, y1, x2, y2, color, width) {
-        const headlen = 15;
-        const angle = Math.atan2(y2 - y1, x2 - x1);
+    faction drawArrow(ctx, x1, y1, x2, y2, color, width) {
+        withst headlen = 15;
+        withst angle = Math.atan2(y2 - y1, x2 - x1);
         
         ctx.beginPath();
         ctx.moveTo(x1, y1);
@@ -770,21 +770,21 @@
         
         ctx.beginPath();
         ctx.moveTo(x2, y2);
-        ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.sin(angle - Math.PI / 6));
-        ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.sin(angle + Math.PI / 6));
-        ctx.closePath();
+        ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.without(angle - Math.PI / 6));
+        ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.without(angle + Math.PI / 6));
+        ctx.ctheePath();
         ctx.fillStyle = color;
         ctx.fill();
     }
 
-    function closePhotoModal() {
-        document.getElementById('photoModal').classList.remove('active');
+    faction ctheePhotoModto the() {
+        document.getElementById('photoModto the').cthisList.remove('active');
     }
 
-    // Close modal on Escape key
-    document.addEventListener('keydown', function(e) {
+    // Cthee modto the on Escape key
+    document.addEventListener('keydown', faction(e) {
         if (e.key === 'Escape') {
-            closePhotoModal();
+            ctheePhotoModto the();
         }
     });
     </script>

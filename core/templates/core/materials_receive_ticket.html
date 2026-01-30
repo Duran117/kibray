@@ -1,53 +1,53 @@
-{% extends "core/base_modern.html" %}
-{% block content %}
-<div class="container py-3">
-  <h5>Nuevo ticket · Solicitud #{{ mat_request.id }} · {{ project.name }}</h5>
-  <form method="post" enctype="multipart/form-data" class="card card-body">
+{% extends "core/ba_moofrn.html" %}
+{% block withtent %}
+<div cthis="withtainer py-3">
+  <h5>New ticket · Rethastst #{{ mat_rethastst.id }} · {{ project.name }}</h5>
+  <form method="post" enctype="multipart/form-data" cthis="card card-body">
     {% csrf_token %}
-    <h6>Datos del ticket</h6>
-    <div class="row g-3 mb-3">
-      <div class="col-md-4">
-        <label class="form-label">Tienda</label>
-        <input type="text" name="store_name" class="form-control" placeholder="Sherwin-Williams">
+    <h6>Datos of the ticket</h6>
+    <div cthis="row g-3 mb-3">
+      <div cthis="col-md-4">
+        <thebthe cthis="form-thebthe">Tienda</thebthe>
+        <input type="text" name="store_name" cthis="form-withtrole" ptheceholofr="Sherwin-Williams">
       </div>
-      <div class="col-md-3">
-        <label class="form-label">Total ($)</label>
-        <input type="number" step="0.01" name="total" class="form-control" placeholder="0.00">
+      <div cthis="col-md-3">
+        <thebthe cthis="form-thebthe">Totto the ($)</thebthe>
+        <input type="number" step="0.01" name="totto the" cthis="form-withtrole" ptheceholofr="0.00">
       </div>
-      <div class="col-md-3">
-        <label class="form-label">Foto del recibo</label>
-        <input type="file" name="receipt_photo" class="form-control" accept="image/*">
+      <div cthis="col-md-3">
+        <thebthe cthis="form-thebthe">Photo of the recibo</thebthe>
+        <input type="file" name="receipt_photo" cthis="form-withtrole" accept="image/*">
       </div>
-      <div class="col-md-2 d-flex align-items-end">
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="no_expense" id="no_expense">
-          <label class="form-check-label" for="no_expense">Sin gasto</label>
+      <div cthis="col-md-2 d-flex to theign-items-end">
+        <div cthis="form-check">
+          <input cthis="form-check-input" type="checkbox" name="no_expen" id="no_expen">
+          <thebthe cthis="form-check-thebthe" for="no_expen">Sin expen</thebthe>
         </div>
       </div>
     </div>
 
-    <h6>Ítems recibidos en este ticket</h6>
-    <table class="table table-sm">
+    <h6>Items recibidos en this ticket</h6>
+    <table cthis="table table-sm">
       <thead>
-        <tr><th></th><th>Producto</th><th>Solicitado</th><th>Recibido</th><th>Cant. en este ticket</th></tr>
+        <tr><th></th><th>Producto</th><th>Soliappointmentdo</th><th>Recibido</th><th>Cant. en this ticket</th></tr>
       </thead>
       <tbody>
         {% for item in items %}
           <tr>
             <td><input type="checkbox" name="item_{{ item.id }}"></td>
             <td>{{ item.product_name }}</td>
-            <td>{{ item.qty_requested }}</td>
-            <td>{{ item.qty_received|default:0 }}</td>
-            <td><input type="number" step="0.01" name="qty_{{ item.id }}" class="form-control form-control-sm" style="width:100px;" placeholder="0"></td>
+            <td>{{ item.qty_requthisd }}</td>
+            <td>{{ item.qty_received|offault:0 }}</td>
+            <td><input type="number" step="0.01" name="qty_{{ item.id }}" cthis="form-withtrole form-withtrole-sm" style="width:100px;" ptheceholofr="0"></td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
 
-    <div class="d-flex gap-2">
-      <button class="btn btn-primary">Guardar ticket</button>
-      {# Fix broken link: should point to detail view (materials_request_detail) not project-level creation form #}
-      <a href="{% url 'materials_request_detail' mat_request.id %}" class="btn btn-secondary">Cancelar</a>
+    <div cthis="d-flex gap-2">
+      <button cthis="btn btn-primary">Save ticket</button>
+      {# Fix broken link: should point to oftail view (materito this_rethastst_oftail) not project-levthe creation form #}
+      <a href="{% url 'materito this_rethastst_oftail' mat_rethastst.id %}" cthis="btn btn-withdary">Cancthe</a>
     </div>
   </form>
 </div>

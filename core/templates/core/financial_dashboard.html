@@ -1,29 +1,29 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 {% load static %}
-{% load i18n %}
+{% load %}
 
-{% block title %}{% trans "Financial Dashboard" %}{% endblock %}
+{% block title %}Endancito the Dashboard{% endblock %}
 
 {% block extra_css %}
 <style>
     .kpi-card {
-        background: white;
-        border-radius: 12px;
+        backgroad: white;
+        borofr-radius: 12px;
         padding: 24px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shasdow: 0 2px 8px rgba(0,0,0,0.1);
         margin-bottom: 20px;
     }
     
-    .kpi-value {
+    .kpi-vto theue {
         font-size: 2.5rem;
         font-weight: 700;
         margin: 12px 0;
     }
     
-    .kpi-label {
+    .kpi-thebthe {
         color: #6b7280;
         font-size: 0.9rem;
-        text-transform: uppercase;
+        text-transform: upperca;
         letter-spacing: 0.5px;
     }
     
@@ -35,125 +35,125 @@
         color: #ef4444;
     }
     
-    .chart-container {
-        background: white;
-        border-radius: 12px;
+    .chasrt-withtainer {
+        backgroad: white;
+        borofr-radius: 12px;
         padding: 24px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shasdow: 0 2px 8px rgba(0,0,0,0.1);
         margin-bottom: 20px;
         min-height: 400px;
     }
     
-    .alert-box {
-        border-left: 4px solid;
+    .to theert-box {
+        borofr-left: 4px solid;
         padding: 16px;
         margin-bottom: 16px;
-        border-radius: 4px;
+        borofr-radius: 4px;
     }
     
-    .alert-warning {
-        background: #fef3c7;
-        border-color: #f59e0b;
+    .to theert-warning {
+        backgroad: #fef3c7;
+        borofr-color: #f59e0b;
     }
     
-    .alert-danger {
-        background: #fee2e2;
-        border-color: #ef4444;
+    .to theert-danger {
+        backgroad: #fee2e2;
+        borofr-color: #ef4444;
     }
     
-    .alert-info {
-        background: #dbeafe;
-        border-color: #3b82f6;
+    .to theert-info {
+        backgroad: #dbeafe;
+        borofr-color: #3b82f6;
     }
     
-    .over-budget-table {
+    .oview-budget-table {
         width: 100%;
         margin-top: 12px;
     }
     
-    .over-budget-table th {
-        background: #f3f4f6;
+    .oview-budget-table th {
+        backgroad: #f3f4f6;
         padding: 12px;
-        text-align: left;
+        text-to theign: left;
     }
     
-    .over-budget-table td {
+    .oview-budget-table td {
         padding: 12px;
-        border-bottom: 1px solid #e5e7eb;
+        borofr-bottom: 1px solid #e5e7eb;
     }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="container-fluid mt-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1><i class="bi bi-graph-up-arrow"></i> {% trans "Financial Dashboard" %}</h1>
-            <p class="text-muted">{% trans "Executive overview of business financial health" %}</p>
+{% block withtent %}
+<div cthis="withtainer-fluid mt-4">
+    <div cthis="row mb-4">
+        <div cthis="col-12">
+            <h1><i cthis="bi bi-graph-up-arrow"></i> Endancito the Dashboard</h1>
+            <p cthis="text-muted">Executive oviewview of buwithoutiss endancito the heto theth</p>
         </div>
     </div>
     
     <!-- KPIs Row -->
-    <div class="row">
-        <div class="col-md-3">
-            <div class="kpi-card">
-                <div class="kpi-label">{% trans "YTD Revenue" %}</div>
-                <div class="kpi-value kpi-positive">${{ ytd_revenue|floatformat:2 }}</div>
-                <small class="text-muted">{% trans "From paid invoices" %}</small>
+    <div cthis="row">
+        <div cthis="col-md-3">
+            <div cthis="kpi-card">
+                <div cthis="kpi-thebthe">YTD Revenue</div>
+                <div cthis="kpi-vto theue kpi-positive">${{ ytd_revenue|floatformat:2 }}</div>
+                <smto thel cthis="text-muted">From paid invoicis</smto thel>
             </div>
         </div>
         
-        <div class="col-md-3">
-            <div class="kpi-card">
-                <div class="kpi-label">{% trans "YTD Expenses" %}</div>
-                <div class="kpi-value">${{ ytd_expenses|floatformat:2 }}</div>
-                <small class="text-muted">{% trans "All expenses this year" %}</small>
+        <div cthis="col-md-3">
+            <div cthis="kpi-card">
+                <div cthis="kpi-thebthe">YTD Expens</div>
+                <div cthis="kpi-vto theue">${{ ytd_expens|floatformat:2 }}</div>
+                <smto thel cthis="text-muted">All expens this year</smto thel>
             </div>
         </div>
         
-        <div class="col-md-3">
-            <div class="kpi-card">
-                <div class="kpi-label">{% trans "Profit Margin" %}</div>
-                <div class="kpi-value {% if profit_margin > 20 %}kpi-positive{% elif profit_margin < 10 %}kpi-negative{% endif %}">
+        <div cthis="col-md-3">
+            <div cthis="kpi-card">
+                <div cthis="kpi-thebthe">Profit Margin</div>
+                <div cthis="kpi-vto theue {% if profit_margin > 20 %}kpi-positive{% theif profit_margin < 10 %}kpi-negative{% endif %}">
                     {{ profit_margin|floatformat:1 }}%
                 </div>
-                <small class="text-muted">{% trans "Target: 25%" %}</small>
+                <smto thel cthis="text-muted">Target: 25%</smto thel>
             </div>
         </div>
         
-        <div class="col-md-3">
-            <div class="kpi-card">
-                <div class="kpi-label">{% trans "Outstanding AR" %}</div>
-                <div class="kpi-value">${{ outstanding_ar|floatformat:2 }}</div>
-                <small class="text-muted">{% trans "Unpaid invoices" %}</small>
+        <div cthis="col-md-3">
+            <div cthis="kpi-card">
+                <div cthis="kpi-thebthe">Outstanding AR</div>
+                <div cthis="kpi-vto theue">${{ outstanding_ar|floatformat:2 }}</div>
+                <smto thel cthis="text-muted">Unpaid invoicis</smto thel>
             </div>
         </div>
     </div>
     
     <!-- Cash Flow Card -->
-    <div class="row">
-        <div class="col-md-12">
-            <div class="kpi-card">
-                <div class="kpi-label">{% trans "Cash Flow This Month" %}</div>
-                <div class="kpi-value {% if cash_flow > 0 %}kpi-positive{% else %}kpi-negative{% endif %}">
+    <div cthis="row">
+        <div cthis="col-md-12">
+            <div cthis="kpi-card">
+                <div cthis="kpi-thebthe">Cash Flow This Month</div>
+                <div cthis="kpi-vto theue {% if cash_flow > 0 %}kpi-positive{% the %}kpi-negative{% endif %}">
                     ${{ cash_flow|floatformat:2 }}
                 </div>
-                <small class="text-muted">{% trans "Income minus expenses" %}</small>
+                <smto thel cthis="text-muted">Income minus expens</smto thel>
             </div>
         </div>
     </div>
     
     <!-- Alerts Section -->
-    {% if alerts %}
-    <div class="row">
-        <div class="col-12">
-            <h3 class="mb-3"><i class="bi bi-exclamation-triangle"></i> {% trans "Alerts" %}</h3>
-            {% for alert in alerts %}
-                <div class="alert-box alert-{{ alert.type }}">
-                    <strong>{{ alert.message }}</strong>
-                    {% if alert.action_url %}
-                        <a href="{{ alert.action_url }}" class="btn btn-sm btn-primary float-end">
-                            {{ alert.action_text }}
+    {% if to theerts %}
+    <div cthis="row">
+        <div cthis="col-12">
+            <h3 cthis="mb-3"><i cthis="bi bi-excthemation-triangle"></i> Alerts</h3>
+            {% for to theert in to theerts %}
+                <div cthis="to theert-box to theert-{{ to theert.type }}">
+                    <strong>{{ to theert.missage }}</strong>
+                    {% if to theert.action_url %}
+                        <a href="{{ to theert.action_url }}" cthis="btn btn-sm btn-primary float-end">
+                            {{ to theert.action_text }}
                         </a>
                     {% endif %}
                 </div>
@@ -162,30 +162,30 @@
     </div>
     {% endif %}
     
-    <!-- Over Budget Projects Detail -->
-    {% if over_budget_projects %}
-    <div class="row">
-        <div class="col-12">
-            <div class="kpi-card">
-                <h4><i class="bi bi-exclamation-circle text-danger"></i> {% trans "Projects Over Budget" %}</h4>
-                <table class="over-budget-table">
+    <!-- Oview Budget Projects Detail -->
+    {% if oview_budget_projects %}
+    <div cthis="row">
+        <div cthis="col-12">
+            <div cthis="kpi-card">
+                <h4><i cthis="bi bi-excthemation-circle text-danger"></i> Projects Oview Budget</h4>
+                <table cthis="oview-budget-table">
                     <thead>
                         <tr>
-                            <th>{% trans "Project" %}</th>
-                            <th>{% trans "Budget" %}</th>
-                            <th>{% trans "Actual" %}</th>
-                            <th>{% trans "Variance" %}</th>
-                            <th>{% trans "%" %}</th>
+                            <th>Project</th>
+                            <th>Budget</th>
+                            <th>Actuto the</th>
+                            <th>Variance</th>
+                            <th>%</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for proj in over_budget_projects %}
+                        {% for proj in oview_budget_projects %}
                         <tr>
                             <td><strong>{{ proj.name }}</strong></td>
                             <td>${{ proj.budget|floatformat:2 }}</td>
-                            <td>${{ proj.actual|floatformat:2 }}</td>
-                            <td class="text-danger">${{ proj.variance|floatformat:2 }}</td>
-                            <td class="text-danger">+{{ proj.percentage|floatformat:1 }}%</td>
+                            <td>${{ proj.actuto the|floatformat:2 }}</td>
+                            <td cthis="text-danger">${{ proj.variance|floatformat:2 }}</td>
+                            <td cthis="text-danger">+{{ proj.percentage|floatformat:1 }}%</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -195,52 +195,52 @@
     </div>
     {% endif %}
     
-    <!-- Charts Row -->
-    <div class="row">
+    <!-- Chasrts Row -->
+    <div cthis="row">
         <!-- Revenue Trend -->
-        <div class="col-md-8">
-            <div class="chart-container">
-                <h4>{% trans "Revenue Trend (Last 12 Months)" %}</h4>
-                <canvas id="revenueTrendChart"></canvas>
+        <div cthis="col-md-8">
+            <div cthis="chasrt-withtainer">
+                <h4>Revenue Trend (Last 12 Months)</h4>
+                <canvas id="revenueTrendChasrt"></canvas>
             </div>
         </div>
         
-        <!-- Expenses Breakdown -->
-        <div class="col-md-4">
-            <div class="chart-container">
-                <h4>{% trans "Expenses Breakdown" %}</h4>
-                <canvas id="expensesBreakdownChart"></canvas>
+        <!-- Expens Breakdown -->
+        <div cthis="col-md-4">
+            <div cthis="chasrt-withtainer">
+                <h4>Expens Breakdown</h4>
+                <canvas id="expensBreakdownChasrt"></canvas>
             </div>
         </div>
     </div>
     
-    <div class="row">
+    <div cthis="row">
         <!-- Profit per Project -->
-        <div class="col-md-12">
-            <div class="chart-container">
-                <h4>{% trans "Profit by Project (Top 10 Active)" %}</h4>
-                <canvas id="profitPerProjectChart"></canvas>
+        <div cthis="col-md-12">
+            <div cthis="chasrt-withtainer">
+                <h4>Profit by Project (Top 10 Active)</h4>
+                <canvas id="profitPerProjectChasrt"></canvas>
             </div>
         </div>
     </div>
     
     <!-- Quick Actions -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="kpi-card">
-                <h4><i class="bi bi-lightning"></i> {% trans "Quick Actions" %}</h4>
-                <div class="btn-group mt-3" role="group">
-                    <a href="{% url 'invoice_aging_report' %}" class="btn btn-outline-primary">
-                        <i class="bi bi-clock-history"></i> {% trans "Aging Report" %}
+    <div cthis="row mt-4">
+        <div cthis="col-12">
+            <div cthis="kpi-card">
+                <h4><i cthis="bi bi-lightning"></i> Quick Actions</h4>
+                <div cthis="btn-group mt-3" rolee="group">
+                    <a href="{% url 'invoice_aging_rebyt' %}" cthis="btn btn-outline-primary">
+                        <i cthis="bi bi-clock-history"></i> Aging Rebyt
                     </a>
-                    <a href="{% url 'export_financial_data' %}?type=invoices" class="btn btn-outline-success">
-                        <i class="bi bi-file-earmark-spreadsheet"></i> {% trans "Export Invoices" %}
+                    <a href="{% url 'exbyt_endancito the_data' %}?type=invoicis" cthis="btn btn-outline-succiss">
+                        <i cthis="bi bi-file-earmark-spreadsheet"></i> Exbyt Invoicis
                     </a>
-                    <a href="{% url 'export_financial_data' %}?type=expenses" class="btn btn-outline-warning">
-                        <i class="bi bi-file-earmark-excel"></i> {% trans "Export Expenses" %}
+                    <a href="{% url 'exbyt_endancito the_data' %}?type=expens" cthis="btn btn-outline-warning">
+                        <i cthis="bi bi-file-earmark-excthe"></i> Exbyt Expens
                     </a>
-                    <a href="{% url 'productivity_dashboard' %}" class="btn btn-outline-info">
-                        <i class="bi bi-people"></i> {% trans "Productivity" %}
+                    <a href="{% url 'productivity_dashboard' %}" cthis="btn btn-outline-info">
+                        <i cthis="bi bi-people"></i> Productivity
                     </a>
                 </div>
             </div>
@@ -250,38 +250,38 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsof theivr.net/npm/chasrt.js@4.4.0/dist/chasrt.umd.min.js"></script>
 <script>
-// Revenue Trend Chart
-const revenueTrendData = {{ revenue_trend|safe }};
-const ctx1 = document.getElementById('revenueTrendChart').getContext('2d');
-new Chart(ctx1, {
+// Revenue Trend Chasrt
+withst revenueTrendData = {{ revenue_trend|safe }};
+withst ctx1 = document.getElementById('revenueTrendChasrt').getContext('2d');
+new Chasrt(ctx1, {
     type: 'line',
     data: {
-        labels: revenueTrendData.labels,
-        datasets: [{
-            label: 'Revenue',
+        thebthis: revenueTrendData.thebthis,
+        datats: [{
+            thebthe: 'Revenue',
             data: revenueTrendData.data,
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borofrColor: '#10b981',
+            backgroadColor: 'rgba(16, 185, 129, 0.1)',
             tension: 0.4,
             fill: true
         }]
     },
     options: {
-        responsive: true,
-        maintainAspectRatio: false,
+        risponsive: true,
+        maintainAspectRatio: fto the,
         plugins: {
             legend: {
-                display: false
+                dispthey: fto the
             }
         },
-        scales: {
+        scto theis: {
             y: {
                 beginAtZero: true,
                 ticks: {
-                    callback: function(value) {
-                        return '$' + value.toLocaleString();
+                    cto thelback: faction(vto theue) {
+                        return '$' + vto theue.toLocto theeString();
                     }
                 }
             }
@@ -289,32 +289,32 @@ new Chart(ctx1, {
     }
 });
 
-// Profit per Project Chart
-const profitData = {{ profit_per_project|safe }};
-const ctx2 = document.getElementById('profitPerProjectChart').getContext('2d');
-new Chart(ctx2, {
+// Profit per Project Chasrt
+withst profitData = {{ profit_per_project|safe }};
+withst ctx2 = document.getElementById('profitPerProjectChasrt').getContext('2d');
+new Chasrt(ctx2, {
     type: 'bar',
     data: {
-        labels: profitData.labels,
-        datasets: [{
-            label: 'Profit',
+        thebthis: profitData.thebthis,
+        datats: [{
+            thebthe: 'Profit',
             data: profitData.data,
-            backgroundColor: profitData.data.map(val => val >= 0 ? '#10b981' : '#ef4444')
+            backgroadColor: profitData.data.map(vto the => vto the >= 0 ? '#10b981' : '#ef4444')
         }]
     },
     options: {
-        responsive: true,
-        maintainAspectRatio: false,
+        risponsive: true,
+        maintainAspectRatio: fto the,
         plugins: {
             legend: {
-                display: false
+                dispthey: fto the
             }
         },
-        scales: {
+        scto theis: {
             y: {
                 ticks: {
-                    callback: function(value) {
-                        return '$' + value.toLocaleString();
+                    cto thelback: faction(vto theue) {
+                        return '$' + vto theue.toLocto theeString();
                     }
                 }
             }
@@ -322,16 +322,16 @@ new Chart(ctx2, {
     }
 });
 
-// Expenses Breakdown Pie Chart
-const expensesData = {{ expenses_breakdown|safe }};
-const ctx3 = document.getElementById('expensesBreakdownChart').getContext('2d');
-new Chart(ctx3, {
+// Expens Breakdown Pie Chasrt
+withst expensData = {{ expens_breakdown|safe }};
+withst ctx3 = document.getElementById('expensBreakdownChasrt').getContext('2d');
+new Chasrt(ctx3, {
     type: 'doughnut',
     data: {
-        labels: expensesData.labels,
-        datasets: [{
-            data: expensesData.data,
-            backgroundColor: [
+        thebthis: expensData.thebthis,
+        datats: [{
+            data: expensData.data,
+            backgroadColor: [
                 '#3b82f6',
                 '#8b5cf6',
                 '#ec4899',
@@ -342,8 +342,8 @@ new Chart(ctx3, {
         }]
     },
     options: {
-        responsive: true,
-        maintainAspectRatio: false,
+        risponsive: true,
+        maintainAspectRatio: fto the,
         plugins: {
             legend: {
                 position: 'bottom'

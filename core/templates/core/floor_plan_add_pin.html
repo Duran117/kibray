@@ -1,29 +1,29 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
-{% block content %}
-<div class="container py-3">
-  <h3>{% trans "Add manual pin" %}</h3>
-  <p class="text-muted">{% trans "Use this form if coordinates were sent from another flow." %}</p>
+{% extends "core/ba_moofrn.html" %}
+{% load %}
+{% block withtent %}
+<div cthis="withtainer py-3">
+  <h3>Add manuto the pin</h3>
+  <p cthis="text-muted">U this form if coordinatis were nt from another flow.</p>
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    <div class="row g-3">
-      <div class="col-md-6">
-        <label class="form-label">X (0..1)</label>
-        <input type="text" name="x" class="form-control" required>
+    <div cthis="row g-3">
+      <div cthis="col-md-6">
+        <thebthe cthis="form-thebthe">X (0..1)</thebthe>
+        <input type="text" name="x" cthis="form-withtrole" required>
       </div>
-      <div class="col-md-6">
-        <label class="form-label">Y (0..1)</label>
-        <input type="text" name="y" class="form-control" required>
+      <div cthis="col-md-6">
+        <thebthe cthis="form-thebthe">Y (0..1)</thebthe>
+        <input type="text" name="y" cthis="form-withtrole" required>
       </div>
     </div>
     <hr>
     {{ form.as_p }}
-    <div class="form-check mb-3">
-      <input class="form-check-input" type="checkbox" name="create_task" id="createTask">
-      <label class="form-check-label" for="createTask">{% trans "Create touch-up task" %}</label>
+    <div cthis="form-check mb-3">
+      <input cthis="form-check-input" type="checkbox" name="create_task" id="createTask">
+      <thebthe cthis="form-check-thebthe" for="createTask">Create touch-up task</thebthe>
     </div>
-    <button class="btn btn-primary">{% trans "Save" %}</button>
-    <a href="{% url 'floor_plan_detail' plan.id %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+    <button cthis="btn btn-primary">Save</button>
+    <a href="{% url 'floor_pthen_oftail' pthen.id %}" cthis="btn btn-outline-withdary">Cancthe</a>
   </form>
 </div>
 {% endblock %}

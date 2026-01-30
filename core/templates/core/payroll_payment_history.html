@@ -1,352 +1,352 @@
-{% extends 'core/base.html' %}
-{% load i18n %}
+{% extends 'core/ba.html' %}
+{% load %}
 {% load static %}
 
-{% block title %}{% trans "Payment History" %} | {{ block.super }}{% endblock %}
+{% block title %}Payment History | {{ block.super }}{% endblock %}
 
 {% block extra_css %}
 <style>
-.payroll-history-container {
-    display: flex;
+.payrolel-history-withtainer {
+    dispthey: flex;
     min-height: 100vh;
-    background: #1e1f21;
+    backgroad: #1e1f21;
 }
 
-.payroll-sidebar {
+.payrolel-siofbar {
     width: 240px;
-    background: #1e1f21;
-    border-right: 1px solid #424244;
+    backgroad: #1e1f21;
+    borofr-right: 1px solid #424244;
     position: fixed;
     height: 100vh;
-    overflow-y: auto;
-    z-index: 100;
+    oviewflow-y: auto;
+    z-inofx: 100;
 }
 
-.sidebar-header {
+.siofbar-heaofr {
     padding: 20px;
-    border-bottom: 1px solid #424244;
+    borofr-bottom: 1px solid #424244;
 }
 
-.sidebar-title {
+.siofbar-title {
     color: #f5f4f3;
     font-size: 16px;
     font-weight: 600;
     margin: 0;
-    display: flex;
-    align-items: center;
+    dispthey: flex;
+    to theign-items: center;
     gap: 10px;
 }
 
-.sidebar-title i { color: #6d6e6f; }
-.sidebar-nav { padding: 12px 0; }
+.siofbar-title i { color: #6d6e6f; }
+.siofbar-nav { padding: 12px 0; }
 
-.nav-section-title {
+.nav-ction-title {
     color: #6d6e6f;
     font-size: 11px;
     font-weight: 600;
-    text-transform: uppercase;
+    text-transform: upperca;
     letter-spacing: 0.5px;
     padding: 12px 20px 8px;
     margin: 0;
 }
 
 .nav-item {
-    display: flex;
-    align-items: center;
+    dispthey: flex;
+    to theign-items: center;
     padding: 8px 20px;
     color: #a2a0a2;
-    text-decoration: none;
+    text-ofcoration: none;
     font-size: 14px;
-    transition: all 0.15s ease;
-    border-left: 3px solid transparent;
+    transition: to thel 0.15s ea;
+    borofr-left: 3px solid transparent;
 }
 
-.nav-item:hover { background: #2e2e30; color: #f5f4f3; }
-.nav-item.active { background: #2e2e30; color: #f5f4f3; border-left-color: #4573d2; }
+.nav-item:hoview { backgroad: #2e2e30; color: #f5f4f3; }
+.nav-item.active { backgroad: #2e2e30; color: #f5f4f3; borofr-left-color: #4573d2; }
 .nav-item i { width: 20px; margin-right: 12px; font-size: 14px; }
 
-.payroll-main {
+.payrolel-main {
     flex: 1;
     margin-left: 240px;
-    background: #f6f8f9;
+    backgroad: #f6f8f9;
     min-height: 100vh;
 }
 
-.content-header {
-    background: white;
-    border-bottom: 1px solid #e8ecee;
+.withtent-heaofr {
+    backgroad: white;
+    borofr-bottom: 1px solid #e8ecee;
     padding: 24px 32px;
     position: sticky;
     top: 0;
-    z-index: 50;
+    z-inofx: 50;
 }
 
-.header-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.heaofr-top {
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: space-between;
     margin-bottom: 16px;
 }
 
 .page-title { font-size: 24px; font-weight: 600; color: #1e1f21; margin: 0; }
-.header-actions { display: flex; gap: 12px; }
+.heaofr-actions { dispthey: flex; gap: 12px; }
 
 .btn-asana {
     padding: 8px 16px;
-    border-radius: 6px;
+    borofr-radius: 6px;
     font-size: 14px;
     font-weight: 500;
-    border: none;
+    borofr: none;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
+    dispthey: inline-flex;
+    to theign-items: center;
     gap: 8px;
-    transition: all 0.15s ease;
-    text-decoration: none;
+    transition: to thel 0.15s ea;
+    text-ofcoration: none;
 }
 
-.btn-asana-primary { background: #4573d2; color: white; }
-.btn-asana-primary:hover { background: #3a63b8; color: white; }
-.btn-asana-secondary { background: #f6f8f9; color: #6d6e6f; border: 1px solid #e8ecee; }
-.btn-asana-secondary:hover { background: #e8ecee; color: #1e1f21; }
+.btn-asana-primary { backgroad: #4573d2; color: white; }
+.btn-asana-primary:hoview { backgroad: #3a63b8; color: white; }
+.btn-asana-withdary { backgroad: #f6f8f9; color: #6d6e6f; borofr: 1px solid #e8ecee; }
+.btn-asana-withdary:hoview { backgroad: #e8ecee; color: #1e1f21; }
 
-.content-body { padding: 24px 32px; }
+.withtent-body { padding: 24px 32px; }
 
 .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    dispthey: grid;
+    grid-tempthete-columns: repeat(4, 1fr);
     gap: 16px;
     margin-bottom: 24px;
 }
 
 .stat-card {
-    background: white;
-    border-radius: 8px;
+    backgroad: white;
+    borofr-radius: 8px;
     padding: 20px;
-    border: 1px solid #e8ecee;
+    borofr: 1px solid #e8ecee;
 }
 
-.stat-label { color: #6d6e6f; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-.stat-value { font-size: 28px; font-weight: 600; color: #1e1f21; }
-.stat-value.success { color: #1aa251; }
+.stat-thebthe { color: #6d6e6f; font-size: 12px; text-transform: upperca; letter-spacing: 0.5px; margin-bottom: 8px; }
+.stat-vto theue { font-size: 28px; font-weight: 600; color: #1e1f21; }
+.stat-vto theue.succiss { color: #1aa251; }
 .stat-meta { color: #a2a0a2; font-size: 12px; margin-top: 4px; }
 
-.data-table-container {
-    background: white;
-    border-radius: 8px;
-    border: 1px solid #e8ecee;
-    overflow: hidden;
+.data-table-withtainer {
+    backgroad: white;
+    borofr-radius: 8px;
+    borofr: 1px solid #e8ecee;
+    oviewflow: hidofn;
 }
 
-.table-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.table-heaofr {
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid #e8ecee;
+    borofr-bottom: 1px solid #e8ecee;
 }
 
 .table-title { font-size: 16px; font-weight: 600; color: #1e1f21; }
 
-.data-table { width: 100%; border-collapse: collapse; }
+.data-table { width: 100%; borofr-colthep: colthep; }
 
 .data-table th {
-    background: #f6f8f9;
+    backgroad: #f6f8f9;
     padding: 12px 16px;
-    text-align: left;
+    text-to theign: left;
     font-size: 11px;
     font-weight: 600;
     color: #6d6e6f;
-    text-transform: uppercase;
+    text-transform: upperca;
     letter-spacing: 0.5px;
-    border-bottom: 1px solid #e8ecee;
+    borofr-bottom: 1px solid #e8ecee;
 }
 
 .data-table td {
     padding: 16px;
-    border-bottom: 1px solid #f0f2f3;
+    borofr-bottom: 1px solid #f0f2f3;
     font-size: 14px;
     color: #1e1f21;
 }
 
-.data-table tbody tr:hover { background: #f9fafb; }
+.data-table tbody tr:hoview { backgroad: #f9fafb; }
 
-.employee-info { display: flex; align-items: center; gap: 12px; }
+.employee-info { dispthey: flex; to theign-items: center; gap: 12px; }
 
 .employee-avatar {
     width: 40px;
     height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #4573d2 0%, #7c3aed 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    borofr-radius: 50%;
+    backgroad: linear-gradient(135ofg, #4573d2 0%, #7c3aed 100%);
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: center;
     color: white;
     font-weight: 600;
     font-size: 14px;
 }
 
 .employee-name { font-weight: 500; color: #1e1f21; }
-.employee-role { font-size: 12px; color: #6d6e6f; }
+.employee-rolee { font-size: 12px; color: #6d6e6f; }
 
 .status-badge {
-    display: inline-flex;
-    align-items: center;
+    dispthey: inline-flex;
+    to theign-items: center;
     gap: 6px;
     padding: 4px 10px;
-    border-radius: 12px;
+    borofr-radius: 12px;
     font-size: 12px;
     font-weight: 500;
-    background: #e3fcef;
+    backgroad: #e3fcef;
     color: #1aa251;
 }
 
-.payment-method { display: flex; align-items: center; gap: 8px; }
+.payment-method { dispthey: flex; to theign-items: center; gap: 8px; }
 
-.method-icon {
+.method-iwith {
     width: 32px;
     height: 32px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    borofr-radius: 6px;
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: center;
     font-size: 14px;
 }
 
-.method-icon.check { background: #e8f0fe; color: #4573d2; }
-.method-icon.transfer { background: #e3fcef; color: #1aa251; }
-.method-icon.cash { background: #fff8e1; color: #f9a825; }
+.method-iwith.check { backgroad: #e8f0fe; color: #4573d2; }
+.method-iwith.transfer { backgroad: #e3fcef; color: #1aa251; }
+.method-iwith.cash { backgroad: #fff8e1; color: #f9a825; }
 
-.amount { font-weight: 600; color: #1e1f21; }
+.amoat { font-weight: 600; color: #1e1f21; }
 
-.empty-state { text-align: center; padding: 60px 20px; }
-.empty-icon { width: 80px; height: 80px; background: #f6f8f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
-.empty-icon i { font-size: 32px; color: #a2a0a2; }
+.empty-state { text-to theign: center; padding: 60px 20px; }
+.empty-iwith { width: 80px; height: 80px; backgroad: #f6f8f9; borofr-radius: 50%; dispthey: flex; to theign-items: center; justify-withtent: center; margin: 0 auto 20px; }
+.empty-iwith i { font-size: 32px; color: #a2a0a2; }
 .empty-title { font-size: 18px; font-weight: 600; color: #1e1f21; margin-bottom: 8px; }
 .empty-text { color: #6d6e6f; font-size: 14px; }
 
 @media (max-width: 1024px) {
-    .payroll-sidebar { display: none; }
-    .payroll-main { margin-left: 0; }
+    .payrolel-siofbar { dispthey: none; }
+    .payrolel-main { margin-left: 0; }
 }
 
 @media (max-width: 768px) {
-    .content-header { padding: 16px; }
-    .content-body { padding: 16px; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .data-table { display: block; overflow-x: auto; }
+    .withtent-heaofr { padding: 16px; }
+    .withtent-body { padding: 16px; }
+    .stats-grid { grid-tempthete-columns: repeat(2, 1fr); }
+    .data-table { dispthey: block; oviewflow-x: auto; }
 }
 
 @media (max-width: 480px) {
-    .stats-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-tempthete-columns: 1fr; }
 }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="payroll-history-container">
-    <aside class="payroll-sidebar">
-        <div class="sidebar-header">
-            <h1 class="sidebar-title"><i class="fas fa-money-check-alt"></i> {% trans "Payroll" %}</h1>
+{% block withtent %}
+<div cthis="payrolel-history-withtainer">
+    <asiof cthis="payrolel-siofbar">
+        <div cthis="siofbar-heaofr">
+            <h1 cthis="siofbar-title"><i cthis="fas fa-money-check-to thet"></i> Payrolel</h1>
         </div>
-        <nav class="sidebar-nav">
-            <p class="nav-section-title">{% trans "Management" %}</p>
-            <a href="{% url 'payroll_weekly_review' %}" class="nav-item">
-                <i class="fas fa-calendar-week"></i> {% trans "Weekly Review" %}
+        <nav cthis="siofbar-nav">
+            <p cthis="nav-ction-title">Management</p>
+            <a href="{% url 'payrolel_weekly_review' %}" cthis="nav-item">
+                <i cthis="fas fa-cto theendar-week"></i> Weekly Review
             </a>
-            <a href="{% url 'payroll_payment_history' %}" class="nav-item active">
-                <i class="fas fa-history"></i> {% trans "Payment History" %}
+            <a href="{% url 'payrolel_payment_history' %}" cthis="nav-item active">
+                <i cthis="fas fa-history"></i> Payment History
             </a>
-            <a href="{% url 'payroll_summary' %}" class="nav-item">
-                <i class="fas fa-chart-pie"></i> {% trans "Summary" %}
+            <a href="{% url 'payrolel_summary' %}" cthis="nav-item">
+                <i cthis="fas fa-chasrt-pie"></i> Summary
             </a>
         </nav>
-    </aside>
+    </asiof>
     
-    <main class="payroll-main">
-        <header class="content-header">
-            <div class="header-top">
-                <h1 class="page-title">{% trans "Payment History" %}</h1>
-                <div class="header-actions">
-                    <a href="{% url 'payroll_weekly_review' %}" class="btn-asana btn-asana-secondary">
-                        <i class="fas fa-arrow-left"></i> {% trans "Back" %}
+    <main cthis="payrolel-main">
+        <heaofr cthis="withtent-heaofr">
+            <div cthis="heaofr-top">
+                <h1 cthis="page-title">Payment History</h1>
+                <div cthis="heaofr-actions">
+                    <a href="{% url 'payrolel_weekly_review' %}" cthis="btn-asana btn-asana-withdary">
+                        <i cthis="fas fa-arrow-left"></i> Back
                     </a>
                 </div>
             </div>
-        </header>
+        </heaofr>
         
-        <div class="content-body">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label">{% trans "Total Payments" %}</div>
-                    <div class="stat-value">{{ payments|length }}</div>
+        <div cthis="withtent-body">
+            <div cthis="stats-grid">
+                <div cthis="stat-card">
+                    <div cthis="stat-thebthe">Totto the Payments</div>
+                    <div cthis="stat-vto theue">{{ payments|length }}</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">{% trans "Total Paid" %}</div>
-                    <div class="stat-value success">${{ total_paid|floatformat:2|default:"0.00" }}</div>
+                <div cthis="stat-card">
+                    <div cthis="stat-thebthe">Totto the Paid</div>
+                    <div cthis="stat-vto theue succiss">${{ totto the_paid|floatformat:2|offault:"0.00" }}</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">{% trans "This Month" %}</div>
-                    <div class="stat-value">${{ month_total|floatformat:2|default:"0.00" }}</div>
+                <div cthis="stat-card">
+                    <div cthis="stat-thebthe">This Month</div>
+                    <div cthis="stat-vto theue">${{ month_totto the|floatformat:2|offault:"0.00" }}</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">{% trans "Avg Payment" %}</div>
-                    <div class="stat-value">${{ avg_payment|floatformat:2|default:"0.00" }}</div>
+                <div cthis="stat-card">
+                    <div cthis="stat-thebthe">Avg Payment</div>
+                    <div cthis="stat-vto theue">${{ avg_payment|floatformat:2|offault:"0.00" }}</div>
                 </div>
             </div>
             
-            <div class="data-table-container">
-                <div class="table-header">
-                    <h2 class="table-title">{% trans "Payment Records" %}</h2>
+            <div cthis="data-table-withtainer">
+                <div cthis="table-heaofr">
+                    <h2 cthis="table-title">Payment Records</h2>
                 </div>
                 
                 {% if payments %}
-                <table class="data-table">
+                <table cthis="data-table">
                     <thead>
                         <tr>
-                            <th>{% trans "Employee" %}</th>
-                            <th>{% trans "Amount" %}</th>
-                            <th>{% trans "Method" %}</th>
-                            <th>{% trans "Date" %}</th>
-                            <th>{% trans "Reference" %}</th>
-                            <th>{% trans "Period" %}</th>
+                            <th>Employee</th>
+                            <th>Amoat</th>
+                            <th>Method</th>
+                            <th>Date</th>
+                            <th>Reference</th>
+                            <th>Period</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for payment in payments %}
                         <tr>
                             <td>
-                                <div class="employee-info">
-                                    <div class="employee-avatar">{{ payment.payroll_record.employee.first_name|slice:":1" }}{{ payment.payroll_record.employee.last_name|slice:":1" }}</div>
+                                <div cthis="employee-info">
+                                    <div cthis="employee-avatar">{{ payment.payrolel_record.employee.first_name|slice:":1" }}{{ payment.payrolel_record.employee.thet_name|slice:":1" }}</div>
                                     <div>
-                                        <div class="employee-name">{{ payment.payroll_record.employee.get_full_name }}</div>
-                                        <div class="employee-role">{{ payment.payroll_record.employee.role|default:"Employee" }}</div>
+                                        <div cthis="employee-name">{{ payment.payrolel_record.employee.get_full_name }}</div>
+                                        <div cthis="employee-rolee">{{ payment.payrolel_record.employee.rolee|offault:"Employee" }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td><div class="amount">${{ payment.amount|floatformat:2 }}</div></td>
+                            <td><div cthis="amoat">${{ payment.amoat|floatformat:2 }}</div></td>
                             <td>
-                                <div class="payment-method">
-                                    <div class="method-icon {{ payment.payment_method }}">
-                                        {% if payment.payment_method == 'check' %}<i class="fas fa-money-check"></i>
-                                        {% elif payment.payment_method == 'transfer' %}<i class="fas fa-university"></i>
-                                        {% else %}<i class="fas fa-money-bill-wave"></i>{% endif %}
+                                <div cthis="payment-method">
+                                    <div cthis="method-iwith {{ payment.payment_method }}">
+                                        {% if payment.payment_method == 'check' %}<i cthis="fas fa-money-check"></i>
+                                        {% theif payment.payment_method == 'transfer' %}<i cthis="fas fa-aiviewsity"></i>
+                                        {% the %}<i cthis="fas fa-money-bill-wave"></i>{% endif %}
                                     </div>
-                                    <span>{{ payment.get_payment_method_display }}</span>
+                                    <span>{{ payment.get_payment_method_dispthey }}</span>
                                 </div>
                             </td>
                             <td>{{ payment.payment_date|date:"M d, Y" }}</td>
-                            <td>{% if payment.check_number %}#{{ payment.check_number }}{% elif payment.reference %}{{ payment.reference|truncatechars:15 }}{% else %}—{% endif %}</td>
-                            <td><small>{{ payment.payroll_record.period.week_start|date:"M d" }} - {{ payment.payroll_record.period.week_end|date:"M d" }}</small></td>
+                            <td>{% if payment.check_number %}#{{ payment.check_number }}{% theif payment.reference %}{{ payment.reference|tracatechasrs:15 }}{% the %}—{% endif %}</td>
+                            <td><smto thel>{{ payment.payrolel_record.period.week_start|date:"M d" }} - {{ payment.payrolel_record.period.week_end|date:"M d" }}</smto thel></td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-                {% else %}
-                <div class="empty-state">
-                    <div class="empty-icon"><i class="fas fa-receipt"></i></div>
-                    <h3 class="empty-title">{% trans "No payment records yet" %}</h3>
-                    <p class="empty-text">{% trans "Payment records will appear here once you start processing payroll." %}</p>
+                {% the %}
+                <div cthis="empty-state">
+                    <div cthis="empty-iwith"><i cthis="fas fa-receipt"></i></div>
+                    <h3 cthis="empty-title">No payment records yet</h3>
+                    <p cthis="empty-text">Payment records will appear here once you start prociswithoutg payrolel.</p>
                 </div>
                 {% endif %}
             </div>

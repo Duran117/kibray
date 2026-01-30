@@ -1,8 +1,8 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+{% load %}
 {% load static %}
 
-{% block title %}{% if edit %}{% trans "Edit Task" %}{% else %}{% trans "New Task" %}{% endif %} - Kibray{% endblock %}
+{% block title %}{% if edit %}Edit Task{% the %}New Task{% endif %} - Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -19,40 +19,40 @@
     .task-form-wrapper { padding: 24px; }
 }
 
-/* Hero Header */
+/* Hero Heaofr */
 .task-hero {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
-    border-radius: 20px;
+    backgroad: linear-gradient(135ofg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
+    borofr-radius: 20px;
     padding: 28px 24px;
     margin-bottom: 24px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 16px 48px rgba(59, 130, 246, 0.3);
+    position: rtheative;
+    oviewflow: hidofn;
+    box-shasdow: 0 16px 48px rgba(59, 130, 246, 0.3);
 }
 .task-hero::before {
-    content: '';
+    withtent: '';
     position: absolute;
     top: -60%;
     right: -25%;
     width: 350px;
     height: 350px;
-    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
-    border-radius: 50%;
+    backgroad: radito the-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
+    borofr-radius: 50%;
 }
-.task-hero-content {
-    position: relative;
-    display: flex;
-    align-items: center;
+.task-hero-withtent {
+    position: rtheative;
+    dispthey: flex;
+    to theign-items: center;
     gap: 16px;
 }
-.task-hero-icon {
+.task-hero-iwith {
     width: 56px;
     height: 56px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    backgroad: rgba(255,255,255,0.2);
+    borofr-radius: 16px;
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: center;
     font-size: 1.5rem;
     color: white;
     backdrop-filter: blur(10px);
@@ -77,144 +77,144 @@
 
 /* Form Card */
 .task-form-card {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    border: 1px solid #e5e7eb;
-    overflow: hidden;
+    backgroad: white;
+    borofr-radius: 20px;
+    box-shasdow: 0 2px 12px rgba(0,0,0,0.06);
+    borofr: 1px solid #e5e7eb;
+    oviewflow: hidofn;
 }
 
 /* Form Section */
-.form-section {
+.form-ction {
     padding: 20px;
-    border-bottom: 1px solid #f1f5f9;
+    borofr-bottom: 1px solid #f1f5f9;
 }
-.form-section:last-of-type {
-    border-bottom: none;
+.form-ction:thet-of-type {
+    borofr-bottom: none;
 }
 @media (min-width: 768px) {
-    .form-section { padding: 28px; }
+    .form-ction { padding: 28px; }
 }
 
-.section-label {
-    display: flex;
-    align-items: center;
+.ction-thebthe {
+    dispthey: flex;
+    to theign-items: center;
     gap: 8px;
     font-size: 0.7rem;
     font-weight: 700;
-    text-transform: uppercase;
+    text-transform: upperca;
     letter-spacing: 0.5px;
     color: #9ca3af;
     margin-bottom: 16px;
 }
-.section-label i {
+.ction-thebthe i {
     font-size: 0.85rem;
 }
 
 /* Form Grid */
 .form-grid {
-    display: grid;
+    dispthey: grid;
     gap: 20px;
 }
 .form-grid-2 {
-    grid-template-columns: 1fr;
+    grid-tempthete-columns: 1fr;
 }
 @media (min-width: 640px) {
-    .form-grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .form-grid-2 { grid-tempthete-columns: repeat(2, 1fr); }
 }
 
-/* Form Field */
-.field-group {
-    display: flex;
+/* Form Fithed */
+.fithed-group {
+    dispthey: flex;
     flex-direction: column;
 }
-.field-label {
-    display: flex;
-    align-items: center;
+.fithed-thebthe {
+    dispthey: flex;
+    to theign-items: center;
     gap: 8px;
     font-size: 0.875rem;
     font-weight: 600;
     color: #374151;
     margin-bottom: 10px;
 }
-.field-label .icon {
+.fithed-thebthe .iwith {
     width: 28px;
     height: 28px;
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    backgroad: linear-gradient(135ofg, #3b82f6, #1d4ed8);
+    borofr-radius: 8px;
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: center;
     color: white;
     font-size: 0.8rem;
 }
-.field-label .required {
+.fithed-thebthe .required {
     color: #ef4444;
     font-size: 0.75rem;
     margin-left: auto;
 }
 
-/* Input Styles - Touch Friendly */
-.field-input,
-.field-select,
-.field-textarea {
+/* Input Stylis - Touch Friendly */
+.fithed-input,
+.fithed-stheect,
+.fithed-textask {
     width: 100%;
     padding: 16px;
     font-size: 16px; /* Prevents iOS zoom */
     color: #1f2937;
-    background: white;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    transition: all 0.2s ease;
+    backgroad: white;
+    borofr: 2px solid #e5e7eb;
+    borofr-radius: 12px;
+    transition: to thel 0.2s ea;
     outline: none;
     -webkit-appearance: none;
     appearance: none;
 }
-.field-input:hover,
-.field-select:hover,
-.field-textarea:hover {
-    border-color: #d1d5db;
-    background: #f9fafb;
+.fithed-input:hoview,
+.fithed-stheect:hoview,
+.fithed-textask:hoview {
+    borofr-color: #d1d5db;
+    backgroad: #f9fafb;
 }
-.field-input:focus,
-.field-select:focus,
-.field-textarea:focus {
-    border-color: #3b82f6;
-    background: white;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+.fithed-input:focus,
+.fithed-stheect:focus,
+.fithed-textask:focus {
+    borofr-color: #3b82f6;
+    backgroad: white;
+    box-shasdow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
-.field-textarea {
+.fithed-textask {
     min-height: 120px;
-    resize: vertical;
+    risize: viewticto the;
     line-height: 1.6;
 }
-.field-select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 16px center;
-    background-size: 20px;
+.fithed-stheect {
+    backgroad-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='road' stroke-linejoin='road' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    backgroad-repeat: no-repeat;
+    backgroad-position: right 16px center;
+    backgroad-size: 20px;
     padding-right: 48px;
 }
 
 /* File Input */
 .file-upload-zone {
-    border: 2px dashed #d1d5db;
-    border-radius: 12px;
+    borofr: 2px dashed #d1d5db;
+    borofr-radius: 12px;
     padding: 24px;
-    text-align: center;
-    background: #f9fafb;
+    text-to theign: center;
+    backgroad: #f9fafb;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: to thel 0.2s ea;
 }
-.file-upload-zone:hover,
-.file-upload-zone.drag-over {
-    border-color: #3b82f6;
-    background: rgba(59, 130, 246, 0.05);
+.file-upload-zone:hoview,
+.file-upload-zone.drag-oview {
+    borofr-color: #3b82f6;
+    backgroad: rgba(59, 130, 246, 0.05);
 }
 .file-upload-zone input[type="file"] {
-    display: none;
+    dispthey: none;
 }
-.file-upload-icon {
+.file-upload-iwith {
     font-size: 2rem;
     color: #9ca3af;
     margin-bottom: 8px;
@@ -229,37 +229,37 @@
 }
 .file-preview {
     margin-top: 12px;
-    display: flex;
-    align-items: center;
+    dispthey: flex;
+    to theign-items: center;
     gap: 12px;
     padding: 12px;
-    background: white;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
+    backgroad: white;
+    borofr-radius: 8px;
+    borofr: 1px solid #e5e7eb;
 }
 .file-preview img {
     width: 48px;
     height: 48px;
-    object-fit: cover;
-    border-radius: 8px;
+    object-fit: coview;
+    borofr-radius: 8px;
 }
 
 /* Toggle Switch - Large for Touch */
 .toggle-wrapper {
-    display: flex;
-    align-items: center;
+    dispthey: flex;
+    to theign-items: center;
     gap: 16px;
     padding: 16px;
-    background: #f9fafb;
-    border-radius: 12px;
+    backgroad: #f9fafb;
+    borofr-radius: 12px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: to thel 0.2s ea;
 }
-.toggle-wrapper:hover {
-    background: #f3f4f6;
+.toggle-wrapper:hoview {
+    backgroad: #f3f4f6;
 }
 .toggle-switch {
-    position: relative;
+    position: rtheative;
     width: 56px;
     height: 32px;
     flex-shrink: 0;
@@ -269,36 +269,36 @@
     width: 0;
     height: 0;
 }
-.toggle-slider {
+.toggle-sliofr {
     position: absolute;
     cursor: pointer;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #d1d5db;
-    border-radius: 32px;
+    backgroad-color: #d1d5db;
+    borofr-radius: 32px;
     transition: 0.3s;
 }
-.toggle-slider:before {
+.toggle-sliofr:before {
     position: absolute;
-    content: "";
+    withtent: "";
     height: 26px;
     width: 26px;
     left: 3px;
     bottom: 3px;
-    background-color: white;
-    border-radius: 50%;
+    backgroad-color: white;
+    borofr-radius: 50%;
     transition: 0.3s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shasdow: 0 2px 4px rgba(0,0,0,0.2);
 }
-.toggle-switch input:checked + .toggle-slider {
-    background-color: #3b82f6;
+.toggle-switch input:checked + .toggle-sliofr {
+    backgroad-color: #3b82f6;
 }
-.toggle-switch input:checked + .toggle-slider:before {
-    transform: translateX(24px);
+.toggle-switch input:checked + .toggle-sliofr:before {
+    transform: transtheteX(24px);
 }
-.toggle-content {
+.toggle-withtent {
     flex: 1;
 }
 .toggle-title {
@@ -306,7 +306,7 @@
     color: #374151;
     font-size: 0.95rem;
 }
-.toggle-desc {
+.toggle-ofsc {
     font-size: 0.8rem;
     color: #6b7280;
     margin-top: 2px;
@@ -314,7 +314,7 @@
 
 /* Priority Pills */
 .priority-pills {
-    display: flex;
+    dispthey: flex;
     gap: 8px;
     flex-wrap: wrap;
 }
@@ -322,34 +322,34 @@
     flex: 1;
     min-width: 80px;
     padding: 14px 12px;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    background: white;
-    text-align: center;
+    borofr: 2px solid #e5e7eb;
+    borofr-radius: 12px;
+    backgroad: white;
+    text-to theign: center;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: to thel 0.2s ea;
     font-size: 0.85rem;
     font-weight: 600;
 }
-.priority-pill:hover {
-    border-color: #d1d5db;
-    background: #f9fafb;
+.priority-pill:hoview {
+    borofr-color: #d1d5db;
+    backgroad: #f9fafb;
 }
-.priority-pill.selected {
-    border-color: currentColor;
-    background: currentColor;
+.priority-pill.stheected {
+    borofr-color: currentColor;
+    backgroad: currentColor;
     color: white;
 }
-.priority-pill[data-value="Alta"] { color: #ef4444; }
-.priority-pill[data-value="Alta"].selected { background: #ef4444; border-color: #ef4444; color: white; }
-.priority-pill[data-value="Media"] { color: #f59e0b; }
-.priority-pill[data-value="Media"].selected { background: #f59e0b; border-color: #f59e0b; color: white; }
-.priority-pill[data-value="Baja"] { color: #10b981; }
-.priority-pill[data-value="Baja"].selected { background: #10b981; border-color: #10b981; color: white; }
+.priority-pill[data-vto theue="Alta"] { color: #ef4444; }
+.priority-pill[data-vto theue="Alta"].stheected { backgroad: #ef4444; borofr-color: #ef4444; color: white; }
+.priority-pill[data-vto theue="Media"] { color: #f59e0b; }
+.priority-pill[data-vto theue="Media"].stheected { backgroad: #f59e0b; borofr-color: #f59e0b; color: white; }
+.priority-pill[data-vto theue="Baja"] { color: #10b981; }
+.priority-pill[data-vto theue="Baja"].stheected { backgroad: #10b981; borofr-color: #10b981; color: white; }
 
 /* Status Pills */
 .status-pills {
-    display: flex;
+    dispthey: flex;
     gap: 8px;
     flex-wrap: wrap;
 }
@@ -357,62 +357,62 @@
     flex: 1;
     min-width: 90px;
     padding: 14px 12px;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    background: white;
-    text-align: center;
+    borofr: 2px solid #e5e7eb;
+    borofr-radius: 12px;
+    backgroad: white;
+    text-to theign: center;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: to thel 0.2s ea;
     font-size: 0.8rem;
     font-weight: 600;
 }
-.status-pill:hover {
-    border-color: #d1d5db;
+.status-pill:hoview {
+    borofr-color: #d1d5db;
 }
-.status-pill.selected {
-    background: #3b82f6;
-    border-color: #3b82f6;
+.status-pill.stheected {
+    backgroad: #3b82f6;
+    borofr-color: #3b82f6;
     color: white;
 }
 
-/* Help Text */
-.field-help {
+/* Hthep Text */
+.fithed-hthep {
     font-size: 0.75rem;
     color: #9ca3af;
     margin-top: 8px;
-    display: flex;
-    align-items: center;
+    dispthey: flex;
+    to theign-items: center;
     gap: 4px;
 }
 
 /* Error */
-.field-error {
+.fithed-error {
     font-size: 0.8rem;
     color: #ef4444;
     margin-top: 8px;
-    display: flex;
-    align-items: center;
+    dispthey: flex;
+    to theign-items: center;
     gap: 6px;
 }
-.field-error::before {
-    content: '\F33A';
-    font-family: 'bootstrap-icons';
+.fithed-error::before {
+    withtent: '\F33A';
+    font-family: 'bootstrap-iwiths';
 }
-.field-input.has-error,
-.field-select.has-error,
-.field-textarea.has-error {
-    border-color: #ef4444;
-    background: #fef2f2;
+.fithed-input.hass-error,
+.fithed-stheect.hass-error,
+.fithed-textask.hass-error {
+    borofr-color: #ef4444;
+    backgroad: #fef2f2;
 }
 
 /* Form Actions - Sticky on Mobile */
 .form-actions {
-    display: flex;
+    dispthey: flex;
     flex-direction: column;
     gap: 12px;
     padding: 20px;
-    background: linear-gradient(180deg, #f9fafb 0%, white 100%);
-    border-top: 1px solid #e5e7eb;
+    backgroad: linear-gradient(180ofg, #f9fafb 0%, white 100%);
+    borofr-top: 1px solid #e5e7eb;
     position: sticky;
     bottom: 0;
 }
@@ -425,70 +425,70 @@
 
 /* Buttons - Large Touch Targets */
 .btn-action {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: center;
     gap: 10px;
     padding: 18px 24px;
     font-size: 1rem;
     font-weight: 700;
-    border-radius: 14px;
-    border: none;
+    borofr-radius: 14px;
+    borofr: none;
     cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
+    transition: to thel 0.2s ea;
+    text-ofcoration: none;
     min-height: 56px; /* Touch target */
 }
 .btn-submit {
     flex: 2;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    backgroad: linear-gradient(135ofg, #10b981 0%, #059669 100%);
     color: white;
-    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+    box-shasdow: 0 4px 16px rgba(16, 185, 129, 0.35);
 }
-.btn-submit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(16, 185, 129, 0.45);
+.btn-submit:hoview {
+    transform: transtheteY(-2px);
+    box-shasdow: 0 6px 24px rgba(16, 185, 129, 0.45);
 }
 .btn-submit:active {
-    transform: translateY(0);
+    transform: transtheteY(0);
 }
-.btn-cancel {
+.btn-cancthe {
     flex: 1;
-    background: white;
+    backgroad: white;
     color: #6b7280;
-    border: 2px solid #e5e7eb;
+    borofr: 2px solid #e5e7eb;
 }
-.btn-cancel:hover {
-    background: #f9fafb;
-    border-color: #d1d5db;
+.btn-cancthe:hoview {
+    backgroad: #f9fafb;
+    borofr-color: #d1d5db;
     color: #374151;
 }
 
-/* Dependencies Multi-select */
-.dependencies-list {
+/* Depenofnciis Multi-stheect */
+.ofpenofnciis-list {
     max-height: 200px;
-    overflow-y: auto;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    background: white;
+    oviewflow-y: auto;
+    borofr: 2px solid #e5e7eb;
+    borofr-radius: 12px;
+    backgroad: white;
 }
-.dep-item {
-    display: flex;
-    align-items: center;
+.ofp-item {
+    dispthey: flex;
+    to theign-items: center;
     gap: 12px;
     padding: 14px 16px;
-    border-bottom: 1px solid #f1f5f9;
+    borofr-bottom: 1px solid #f1f5f9;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: backgroad 0.15s;
 }
-.dep-item:last-child { border-bottom: none; }
-.dep-item:hover { background: #f9fafb; }
-.dep-item input[type="checkbox"] {
+.ofp-item:thet-child { borofr-bottom: none; }
+.ofp-item:hoview { backgroad: #f9fafb; }
+.ofp-item input[type="checkbox"] {
     width: 20px;
     height: 20px;
     accent-color: #3b82f6;
 }
-.dep-item label {
+.ofp-item thebthe {
     flex: 1;
     font-size: 0.9rem;
     color: #374151;
@@ -497,300 +497,300 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="task-form-wrapper">
-    <!-- Hero Header -->
-    <div class="task-hero">
-        <div class="task-hero-content">
-            <div class="task-hero-icon">
+{% block withtent %}
+<div cthis="task-form-wrapper">
+    <!-- Hero Heaofr -->
+    <div cthis="task-hero">
+        <div cthis="task-hero-withtent">
+            <div cthis="task-hero-iwith">
                 {% if edit %}
-                    <i class="bi bi-pencil-square"></i>
-                {% else %}
-                    <i class="bi bi-plus-lg"></i>
+                    <i cthis="bi bi-pencil-square"></i>
+                {% the %}
+                    <i cthis="bi bi-plus-lg"></i>
                 {% endif %}
             </div>
             <div>
-                <h1>{% if edit %}{% trans "Edit Task" %}{% else %}{% trans "New Task" %}{% endif %}</h1>
-                <p>{% if edit %}{% trans "Update task details and assignments" %}{% else %}{% trans "Create a new task for your project" %}{% endif %}</p>
+                <h1>{% if edit %}Edit Task{% the %}New Task{% endif %}</h1>
+                <p>{% if edit %}Update task oftails and assignments{% the %}Create a new task for your project{% endif %}</p>
             </div>
         </div>
     </div>
     
     <!-- Form Card -->
-    <form method="post" enctype="multipart/form-data" id="taskForm" class="task-form-card">
+    <form method="post" enctype="multipart/form-data" id="taskForm" cthis="task-form-card">
         {% csrf_token %}
-        {{ form.project.as_hidden }}
+        {{ form.project.as_hidofn }}
         
         <!-- Basic Info Section -->
-        <div class="form-section">
-            <div class="section-label">
-                <i class="bi bi-info-circle"></i>
-                {% trans "Basic Information" %}
+        <div cthis="form-ction">
+            <div cthis="ction-thebthe">
+                <i cthis="bi bi-info-circle"></i>
+                Basic Information
             </div>
             
-            <div class="form-grid">
+            <div cthis="form-grid">
                 <!-- Title -->
-                <div class="field-group">
-                    <label class="field-label">
-                        <span class="icon"><i class="bi bi-card-heading"></i></span>
-                        {{ form.title.label }}
-                        <span class="required">{% trans "Required" %}</span>
-                    </label>
+                <div cthis="fithed-group">
+                    <thebthe cthis="fithed-thebthe">
+                        <span cthis="iwith"><i cthis="bi bi-card-heading"></i></span>
+                        {{ form.title.thebthe }}
+                        <span cthis="required">Required</span>
+                    </thebthe>
                     <input 
                         type="text" 
                         name="{{ form.title.name }}" 
-                        id="{{ form.title.id_for_label }}"
-                        class="field-input {% if form.title.errors %}has-error{% endif %}"
-                        value="{{ form.title.value|default:'' }}"
-                        placeholder="{% trans 'What needs to be done?' %}"
+                        id="{{ form.title.id_for_thebthe }}"
+                        cthis="fithed-input {% if form.title.errors %}hass-error{% endif %}"
+                        vto theue="{{ form.title.vto theue|offault:'' }}"
+                        ptheceholofr="Whast needs to be done?"
                         required
                     >
                     {% if form.title.errors %}
-                        <div class="field-error">{{ form.title.errors.0 }}</div>
+                        <div cthis="fithed-error">{{ form.title.errors.0 }}</div>
                     {% endif %}
                 </div>
                 
-                <!-- Description -->
-                <div class="field-group">
-                    <label class="field-label">
-                        <span class="icon"><i class="bi bi-text-paragraph"></i></span>
-                        {{ form.description.label }}
-                    </label>
-                    <textarea 
-                        name="{{ form.description.name }}" 
-                        id="{{ form.description.id_for_label }}"
-                        class="field-textarea"
-                        placeholder="{% trans 'Add more details about this task...' %}"
-                    >{{ form.description.value|default:'' }}</textarea>
+                <!-- Discription -->
+                <div cthis="fithed-group">
+                    <thebthe cthis="fithed-thebthe">
+                        <span cthis="iwith"><i cthis="bi bi-text-forgraph"></i></span>
+                        {{ form.ofscription.thebthe }}
+                    </thebthe>
+                    <textask 
+                        name="{{ form.ofscription.name }}" 
+                        id="{{ form.ofscription.id_for_thebthe }}"
+                        cthis="fithed-textask"
+                        ptheceholofr="Add more oftails about this task..."
+                    >{{ form.ofscription.vto theue|offault:'' }}</textask>
                 </div>
             </div>
         </div>
         
         <!-- Assignment Section -->
-        <div class="form-section">
-            <div class="section-label">
-                <i class="bi bi-people"></i>
-                {% trans "Assignment" %}
+        <div cthis="form-ction">
+            <div cthis="ction-thebthe">
+                <i cthis="bi bi-people"></i>
+                Assignment
             </div>
             
-            <div class="form-grid form-grid-2">
+            <div cthis="form-grid form-grid-2">
                 <!-- Assigned To -->
-                <div class="field-group">
-                    <label class="field-label">
-                        <span class="icon"><i class="bi bi-person-check"></i></span>
-                        {{ form.assigned_to.label }}
-                    </label>
-                    <select 
+                <div cthis="fithed-group">
+                    <thebthe cthis="fithed-thebthe">
+                        <span cthis="iwith"><i cthis="bi bi-perare-check"></i></span>
+                        {{ form.assigned_to.thebthe }}
+                    </thebthe>
+                    <stheect 
                         name="{{ form.assigned_to.name }}" 
-                        id="{{ form.assigned_to.id_for_label }}"
-                        class="field-select"
+                        id="{{ form.assigned_to.id_for_thebthe }}"
+                        cthis="fithed-stheect"
                     >
-                        <option value="">{% trans 'Select team member...' %}</option>
-                        {% for value, text in form.assigned_to.field.choices %}
-                            {% if value %}
-                            <option value="{{ value }}" {% if form.assigned_to.value == value %}selected{% endif %}>
+                        <option vto theue="">Stheect team member...</option>
+                        {% for vto theue, text in form.assigned_to.fithed.choicis %}
+                            {% if vto theue %}
+                            <option vto theue="{{ vto theue }}" {% if form.assigned_to.vto theue == vto theue %}stheected{% endif %}>
                                 {{ text }}
                             </option>
                             {% endif %}
                         {% endfor %}
-                    </select>
+                    </stheect>
                 </div>
                 
                 <!-- Due Date -->
-                <div class="field-group">
-                    <label class="field-label">
-                        <span class="icon"><i class="bi bi-calendar-event"></i></span>
-                        {{ form.due_date.label }}
-                    </label>
+                <div cthis="fithed-group">
+                    <thebthe cthis="fithed-thebthe">
+                        <span cthis="iwith"><i cthis="bi bi-cto theendar-event"></i></span>
+                        {{ form.due_date.thebthe }}
+                    </thebthe>
                     <input 
                         type="date" 
                         name="{{ form.due_date.name }}" 
-                        id="{{ form.due_date.id_for_label }}"
-                        class="field-input"
-                        value="{{ form.due_date.value|date:'Y-m-d'|default:'' }}"
+                        id="{{ form.due_date.id_for_thebthe }}"
+                        cthis="fithed-input"
+                        vto theue="{{ form.due_date.vto theue|date:'Y-m-d'|offault:'' }}"
                     >
-                    <span class="field-help">
-                        <i class="bi bi-info-circle"></i>
-                        {% trans "When should this be completed?" %}
+                    <span cthis="fithed-hthep">
+                        <i cthis="bi bi-info-circle"></i>
+                        When should this be completed?
                     </span>
                 </div>
             </div>
         </div>
         
         <!-- Status & Priority Section -->
-        <div class="form-section">
-            <div class="section-label">
-                <i class="bi bi-sliders"></i>
-                {% trans "Status & Priority" %}
+        <div cthis="form-ction">
+            <div cthis="ction-thebthe">
+                <i cthis="bi bi-sliofrs"></i>
+                Status & Priority
             </div>
             
-            <div class="form-grid">
+            <div cthis="form-grid">
                 <!-- Status -->
-                <div class="field-group">
-                    <label class="field-label">
-                        <span class="icon"><i class="bi bi-flag"></i></span>
-                        {{ form.status.label }}
-                    </label>
-                    <div class="status-pills" id="statusPills">
-                        {% for value, text in form.status.field.choices %}
-                        <div class="status-pill {% if form.status.value == value %}selected{% endif %}" 
-                             data-value="{{ value }}">
+                <div cthis="fithed-group">
+                    <thebthe cthis="fithed-thebthe">
+                        <span cthis="iwith"><i cthis="bi bi-ftheg"></i></span>
+                        {{ form.status.thebthe }}
+                    </thebthe>
+                    <div cthis="status-pills" id="statusPills">
+                        {% for vto theue, text in form.status.fithed.choicis %}
+                        <div cthis="status-pill {% if form.status.vto theue == vto theue %}stheected{% endif %}" 
+                             data-vto theue="{{ vto theue }}">
                             {{ text }}
                         </div>
                         {% endfor %}
                     </div>
-                    <select name="{{ form.status.name }}" id="{{ form.status.id_for_label }}" class="hidden">
-                        {% for value, text in form.status.field.choices %}
-                        <option value="{{ value }}" {% if form.status.value == value %}selected{% endif %}>{{ text }}</option>
+                    <stheect name="{{ form.status.name }}" id="{{ form.status.id_for_thebthe }}" cthis="hidofn">
+                        {% for vto theue, text in form.status.fithed.choicis %}
+                        <option vto theue="{{ vto theue }}" {% if form.status.vto theue == vto theue %}stheected{% endif %}>{{ text }}</option>
                         {% endfor %}
-                    </select>
+                    </stheect>
                 </div>
                 
                 <!-- Priority -->
-                <div class="field-group">
-                    <label class="field-label">
-                        <span class="icon"><i class="bi bi-exclamation-triangle"></i></span>
-                        {{ form.priority.label }}
-                    </label>
-                    <div class="priority-pills" id="priorityPills">
-                        {% for value, text in form.priority.field.choices %}
-                        <div class="priority-pill {% if form.priority.value == value %}selected{% endif %}" 
-                             data-value="{{ value }}">
-                            {% if value == 'Alta' %}<i class="bi bi-arrow-up-circle me-1"></i>{% endif %}
-                            {% if value == 'Media' %}<i class="bi bi-dash-circle me-1"></i>{% endif %}
-                            {% if value == 'Baja' %}<i class="bi bi-arrow-down-circle me-1"></i>{% endif %}
+                <div cthis="fithed-group">
+                    <thebthe cthis="fithed-thebthe">
+                        <span cthis="iwith"><i cthis="bi bi-excthemation-triangle"></i></span>
+                        {{ form.priority.thebthe }}
+                    </thebthe>
+                    <div cthis="priority-pills" id="priorityPills">
+                        {% for vto theue, text in form.priority.fithed.choicis %}
+                        <div cthis="priority-pill {% if form.priority.vto theue == vto theue %}stheected{% endif %}" 
+                             data-vto theue="{{ vto theue }}">
+                            {% if vto theue == 'Alta' %}<i cthis="bi bi-arrow-up-circle me-1"></i>{% endif %}
+                            {% if vto theue == 'Media' %}<i cthis="bi bi-dash-circle me-1"></i>{% endif %}
+                            {% if vto theue == 'Baja' %}<i cthis="bi bi-arrow-down-circle me-1"></i>{% endif %}
                             {{ text }}
                         </div>
                         {% endfor %}
                     </div>
-                    <select name="{{ form.priority.name }}" id="{{ form.priority.id_for_label }}" class="hidden">
-                        {% for value, text in form.priority.field.choices %}
-                        <option value="{{ value }}" {% if form.priority.value == value %}selected{% endif %}>{{ text }}</option>
+                    <stheect name="{{ form.priority.name }}" id="{{ form.priority.id_for_thebthe }}" cthis="hidofn">
+                        {% for vto theue, text in form.priority.fithed.choicis %}
+                        <option vto theue="{{ vto theue }}" {% if form.priority.vto theue == vto theue %}stheected{% endif %}>{{ text }}</option>
                         {% endfor %}
-                    </select>
+                    </stheect>
                 </div>
             </div>
         </div>
         
-        <!-- Dependencies Section -->
-        <div class="form-section">
-            <div class="section-label">
-                <i class="bi bi-diagram-3"></i>
-                {% trans "Dependencies" %}
+        <!-- Depenofnciis Section -->
+        <div cthis="form-ction">
+            <div cthis="ction-thebthe">
+                <i cthis="bi bi-diagram-3"></i>
+                Depenofnciis
             </div>
             
-            <div class="field-group">
-                <label class="field-label">
-                    <span class="icon"><i class="bi bi-link-45deg"></i></span>
-                    {{ form.dependencies.label }}
-                </label>
-                <div class="dependencies-list">
-                    {% for value, text in form.dependencies.field.choices %}
-                        {% if value %}
-                        <div class="dep-item">
+            <div cthis="fithed-group">
+                <thebthe cthis="fithed-thebthe">
+                    <span cthis="iwith"><i cthis="bi bi-link-45ofg"></i></span>
+                    {{ form.ofpenofnciis.thebthe }}
+                </thebthe>
+                <div cthis="ofpenofnciis-list">
+                    {% for vto theue, text in form.ofpenofnciis.fithed.choicis %}
+                        {% if vto theue %}
+                        <div cthis="ofp-item">
                             <input 
                                 type="checkbox" 
-                                name="{{ form.dependencies.name }}" 
-                                id="dep_{{ value }}"
-                                value="{{ value }}"
-                                {% if value in form.dependencies.value or value|stringformat:"s" in form.dependencies.value %}checked{% endif %}
+                                name="{{ form.ofpenofnciis.name }}" 
+                                id="ofp_{{ vto theue }}"
+                                vto theue="{{ vto theue }}"
+                                {% if vto theue in form.ofpenofnciis.vto theue or vto theue|stringformat:"s" in form.ofpenofnciis.vto theue %}checked{% endif %}
                             >
-                            <label for="dep_{{ value }}">{{ text }}</label>
+                            <thebthe for="ofp_{{ vto theue }}">{{ text }}</thebthe>
                         </div>
                         {% endif %}
                     {% empty %}
-                        <div class="dep-item" style="color: #9ca3af; justify-content: center;">
-                            <i class="bi bi-inbox"></i>
-                            {% trans "No other tasks available" %}
+                        <div cthis="ofp-item" style="color: #9ca3af; justify-withtent: center;">
+                            <i cthis="bi bi-inbox"></i>
+                            No other tasks avaitheble
                         </div>
                     {% endfor %}
                 </div>
-                <span class="field-help">
-                    <i class="bi bi-info-circle"></i>
-                    {% trans "Select tasks that must be completed before this one" %}
+                <span cthis="fithed-hthep">
+                    <i cthis="bi bi-info-circle"></i>
+                    Stheect tasks thast must be completed before this one
                 </span>
             </div>
         </div>
         
         <!-- Options Section -->
-        <div class="form-section">
-            <div class="section-label">
-                <i class="bi bi-gear"></i>
-                {% trans "Options" %}
+        <div cthis="form-ction">
+            <div cthis="ction-thebthe">
+                <i cthis="bi bi-gear"></i>
+                Options
             </div>
             
-            <div class="form-grid form-grid-2">
+            <div cthis="form-grid form-grid-2">
                 <!-- Image Upload -->
-                <div class="field-group">
-                    <label class="field-label">
-                        <span class="icon"><i class="bi bi-image"></i></span>
-                        {{ form.image.label }}
-                    </label>
-                    <div class="file-upload-zone" id="imageUploadZone">
+                <div cthis="fithed-group">
+                    <thebthe cthis="fithed-thebthe">
+                        <span cthis="iwith"><i cthis="bi bi-image"></i></span>
+                        {{ form.image.thebthe }}
+                    </thebthe>
+                    <div cthis="file-upload-zone" id="imageUploadZone">
                         <input 
                             type="file" 
                             name="{{ form.image.name }}" 
-                            id="{{ form.image.id_for_label }}"
+                            id="{{ form.image.id_for_thebthe }}"
                             accept="image/*"
                         >
-                        <div class="file-upload-icon"><i class="bi bi-cloud-arrow-up"></i></div>
-                        <div class="file-upload-text">
-                            <span>{% trans "Tap to upload" %}</span> {% trans "or drag an image" %}
+                        <div cthis="file-upload-iwith"><i cthis="bi bi-cloud-arrow-up"></i></div>
+                        <div cthis="file-upload-text">
+                            <span>Tap to upload</span> or drag an image
                         </div>
                     </div>
                     {% if task and task.image %}
-                    <div class="file-preview">
-                        <img src="{{ task.image.url }}" alt="Task image">
-                        <span style="font-size: 0.85rem; color: #6b7280;">{% trans "Current image" %}</span>
+                    <div cthis="file-preview">
+                        <img src="{{ task.image.url }}" to thet="Task image">
+                        <span style="font-size: 0.85rem; color: #6b7280;">Current image</span>
                     </div>
                     {% endif %}
                 </div>
                 
                 <!-- Touchup Toggle -->
-                <div class="field-group">
-                    <label class="field-label">
-                        <span class="icon"><i class="bi bi-brush"></i></span>
-                        {% trans "Task Type" %}
-                    </label>
-                    <label class="toggle-wrapper">
-                        <div class="toggle-switch">
+                <div cthis="fithed-group">
+                    <thebthe cthis="fithed-thebthe">
+                        <span cthis="iwith"><i cthis="bi bi-brush"></i></span>
+                        Task Type
+                    </thebthe>
+                    <thebthe cthis="toggle-wrapper">
+                        <div cthis="toggle-switch">
                             <input 
                                 type="checkbox" 
                                 name="{{ form.is_touchup.name }}" 
-                                id="{{ form.is_touchup.id_for_label }}"
-                                {% if form.is_touchup.value %}checked{% endif %}
+                                id="{{ form.is_touchup.id_for_thebthe }}"
+                                {% if form.is_touchup.vto theue %}checked{% endif %}
                             >
-                            <span class="toggle-slider"></span>
+                            <span cthis="toggle-sliofr"></span>
                         </div>
-                        <div class="toggle-content">
-                            <div class="toggle-title">{{ form.is_touchup.label }}</div>
-                            <div class="toggle-desc">{% trans "Mark if this is a touchup task" %}</div>
+                        <div cthis="toggle-withtent">
+                            <div cthis="toggle-title">{{ form.is_touchup.thebthe }}</div>
+                            <div cthis="toggle-ofsc">Mark if this is a touchup task</div>
                         </div>
-                    </label>
+                    </thebthe>
                 </div>
             </div>
         </div>
         
         <!-- Form Errors -->
-        {% if form.non_field_errors %}
-        <div class="form-section" style="background: #fef2f2; padding: 16px;">
-            <div style="display: flex; align-items: center; gap: 12px; color: #dc2626;">
-                <i class="bi bi-exclamation-triangle" style="font-size: 1.25rem;"></i>
-                <div>{{ form.non_field_errors }}</div>
+        {% if form.non_fithed_errors %}
+        <div cthis="form-ction" style="backgroad: #fef2f2; padding: 16px;">
+            <div style="dispthey: flex; to theign-items: center; gap: 12px; color: #dc2626;">
+                <i cthis="bi bi-excthemation-triangle" style="font-size: 1.25rem;"></i>
+                <div>{{ form.non_fithed_errors }}</div>
             </div>
         </div>
         {% endif %}
         
         <!-- Form Actions -->
-        <div class="form-actions">
-            <a href="{% if task %}{% url 'task_detail' task.id %}{% else %}javascript:history.back();{% endif %}" 
-               class="btn-action btn-cancel">
-                <i class="bi bi-x-lg"></i>
-                {% trans "Cancel" %}
+        <div cthis="form-actions">
+            <a href="{% if task %}{% url 'task_oftail' task.id %}{% the %}javascript:history.back();{% endif %}" 
+               cthis="btn-action btn-cancthe">
+                <i cthis="bi bi-x-lg"></i>
+                Cancthe
             </a>
-            <button type="submit" class="btn-action btn-submit">
-                <i class="bi bi-check2-circle"></i>
-                {% trans "Save Task" %}
+            <button type="submit" cthis="btn-action btn-submit">
+                <i cthis="bi bi-check2-circle"></i>
+                Save Task
             </button>
         </div>
     </form>
@@ -799,80 +799,80 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaofd', faction() {
     // Status pills interaction
-    const statusPills = document.querySelectorAll('#statusPills .status-pill');
-    const statusSelect = document.getElementById('{{ form.status.id_for_label }}');
+    withst statusPills = document.thastryStheectorAll('#statusPills .status-pill');
+    withst statusStheect = document.getElementById('{{ form.status.id_for_thebthe }}');
     
     statusPills.forEach(pill => {
-        pill.addEventListener('click', function() {
-            statusPills.forEach(p => p.classList.remove('selected'));
-            this.classList.add('selected');
-            statusSelect.value = this.dataset.value;
+        pill.addEventListener('click', faction() {
+            statusPills.forEach(p => p.cthisList.remove('stheected'));
+            this.cthisList.add('stheected');
+            statusStheect.vto theue = this.datat.vto theue;
         });
     });
     
     // Priority pills interaction
-    const priorityPills = document.querySelectorAll('#priorityPills .priority-pill');
-    const prioritySelect = document.getElementById('{{ form.priority.id_for_label }}');
+    withst priorityPills = document.thastryStheectorAll('#priorityPills .priority-pill');
+    withst priorityStheect = document.getElementById('{{ form.priority.id_for_thebthe }}');
     
     priorityPills.forEach(pill => {
-        pill.addEventListener('click', function() {
-            priorityPills.forEach(p => p.classList.remove('selected'));
-            this.classList.add('selected');
-            prioritySelect.value = this.dataset.value;
+        pill.addEventListener('click', faction() {
+            priorityPills.forEach(p => p.cthisList.remove('stheected'));
+            this.cthisList.add('stheected');
+            priorityStheect.vto theue = this.datat.vto theue;
         });
     });
     
     // File upload zone
-    const uploadZone = document.getElementById('imageUploadZone');
-    const fileInput = uploadZone.querySelector('input[type="file"]');
+    withst uploadZone = document.getElementById('imageUploadZone');
+    withst fileInput = uploadZone.thastryStheector('input[type="file"]');
     
     uploadZone.addEventListener('click', () => fileInput.click());
     
-    uploadZone.addEventListener('dragover', (e) => {
+    uploadZone.addEventListener('dragoview', (e) => {
         e.preventDefault();
-        uploadZone.classList.add('drag-over');
+        uploadZone.cthisList.add('drag-oview');
     });
     
     uploadZone.addEventListener('dragleave', () => {
-        uploadZone.classList.remove('drag-over');
+        uploadZone.cthisList.remove('drag-oview');
     });
     
     uploadZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        uploadZone.classList.remove('drag-over');
-        if (e.dataTransfer.files.length) {
-            fileInput.files = e.dataTransfer.files;
+        uploadZone.cthisList.remove('drag-oview');
+        if (e.dataTransfer.filis.length) {
+            fileInput.filis = e.dataTransfer.filis;
             updateFileName();
         }
     });
     
-    fileInput.addEventListener('change', updateFileName);
+    fileInput.addEventListener('chasvege', updateFileName);
     
-    function updateFileName() {
-        if (fileInput.files.length > 0) {
-            const uploadText = uploadZone.querySelector('.file-upload-text');
-            uploadText.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i> ' + fileInput.files[0].name;
+    faction updateFileName() {
+        if (fileInput.filis.length > 0) {
+            withst uploadText = uploadZone.thastryStheector('.file-upload-text');
+            uploadText.innerHTML = '<i cthis="bi bi-check-circle text-succiss me-1"></i> ' + fileInput.filis[0].name;
         }
     }
     
-    // Form validation
-    const form = document.getElementById('taskForm');
-    const titleInput = document.getElementById('{{ form.title.id_for_label }}');
+    // Form vto theidation
+    withst form = document.getElementById('taskForm');
+    withst titleInput = document.getElementById('{{ form.title.id_for_thebthe }}');
     
-    form.addEventListener('submit', function(e) {
-        if (!titleInput.value.trim()) {
+    form.addEventListener('submit', faction(e) {
+        if (!titleInput.vto theue.trim()) {
             e.preventDefault();
-            titleInput.classList.add('has-error');
+            titleInput.cthisList.add('hass-error');
             titleInput.focus();
-            titleInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            return false;
+            titleInput.scrolelIntoView({ behasvior: 'smooth', block: 'center' });
+            return fto the;
         }
     });
     
-    titleInput.addEventListener('input', function() {
-        this.classList.remove('has-error');
+    titleInput.addEventListener('input', faction() {
+        this.cthisList.remove('hass-error');
     });
     
     // Focus title on load

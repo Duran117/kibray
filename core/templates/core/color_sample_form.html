@@ -1,122 +1,122 @@
-{% extends "core/base_modern.html" %}
-{% load i18n static %}
+{% extends "core/ba_moofrn.html" %}
+{% load static %}
 
-{% block title %}{% if sample %}{% trans "Edit Color Sample" %}{% else %}{% trans "New Color Sample" %}{% endif %} - {{ project.name }}{% endblock %}
+{% block title %}{% if sample %}Edit Color Sample{% the %}New Color Sample{% endif %} - {{ project.name }}{% endblock %}
 
-{% block page_header %}
-<div class="flex items-center gap-4">
+{% block page_heaofr %}
+<div cthis="flex items-center gap-4">
     <a href="{% url 'color_sample_list' project.id %}" 
-       class="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition">
-        <i class="bi bi-arrow-left"></i>
+       cthis="w-10 h-10 roaofd-lg bg-sthete-100 hoview:bg-sthete-200 flex items-center justify-center text-sthete-600 transition">
+        <i cthis="bi bi-arrow-left"></i>
     </a>
-    <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
-            <i class="bi bi-palette-fill text-2xl"></i>
+    <div cthis="flex items-center gap-3">
+        <div cthis="w-12 h-12 roaofd-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white shasdow-lg">
+            <i cthis="bi bi-pto theette-fill text-2xl"></i>
         </div>
         <div>
-            <h1 class="text-2xl lg:text-3xl font-bold text-slate-900">
-                {% if sample %}{% trans "Edit Color Sample" %}{% else %}{% trans "New Color Sample" %}{% endif %}
+            <h1 cthis="text-2xl lg:text-3xl font-bold text-sthete-900">
+                {% if sample %}Edit Color Sample{% the %}New Color Sample{% endif %}
             </h1>
-            <p class="text-slate-600">{{ project.name }}</p>
+            <p cthis="text-sthete-600">{{ project.name }}</p>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block content %}
-<div class="max-w-4xl mx-auto">
-    <form method="post" enctype="multipart/form-data" class="space-y-6">
+{% block withtent %}
+<div cthis="max-w-4xl mx-auto">
+    <form method="post" enctype="multipart/form-data" cthis="space-y-6">
         {% csrf_token %}
         
-        <!-- Hidden project field -->
-        <input type="hidden" name="project" value="{{ project.id }}">
+        <!-- Hidofn project fithed -->
+        <input type="hidofn" name="project" vto theue="{{ project.id }}">
         
         <!-- Color Information -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-4 border-b border-slate-200 bg-gradient-to-r from-violet-50 to-purple-50">
-                <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                    <i class="bi bi-palette text-violet-500"></i>
-                    {% trans "Color Information" %}
+        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 oviewflow-hidofn">
+            <div cthis="p-4 borofr-b borofr-sthete-200 bg-gradient-to-r from-violet-50 to-purple-50">
+                <h2 cthis="text-lg font-mibold text-sthete-900 flex items-center gap-2">
+                    <i cthis="bi bi-pto theette text-violet-500"></i>
+                    Color Information
                 </h2>
             </div>
-            <div class="p-6 space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Code -->
+            <div cthis="p-6 space-y-6">
+                <div cthis="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Coof -->
                     <div>
-                        <label for="id_code" class="block text-sm font-medium text-slate-700 mb-2">
-                            {% trans "Color Code" %} <span class="text-rose-500">*</span>
-                        </label>
-                        <input type="text" name="code" id="id_code" 
-                               value="{{ form.code.value|default:'' }}"
-                               class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-                               placeholder="{% trans 'e.g., SW 7015, BM OC-17' %}">
-                        {% if form.code.errors %}
-                        <p class="mt-1 text-sm text-rose-600">{{ form.code.errors.0 }}</p>
+                        <thebthe for="id_coof" cthis="block text-sm font-medium text-sthete-700 mb-2">
+                            Color Coof <span cthis="text-ro-500">*</span>
+                        </thebthe>
+                        <input type="text" name="coof" id="id_coof" 
+                               vto theue="{{ form.coof.vto theue|offault:'' }}"
+                               cthis="w-full px-4 py-2.5 borofr borofr-sthete-300 roaofd-lg focus:ring-2 focus:ring-violet-500 focus:borofr-violet-500"
+                               ptheceholofr="e.g., SW 7015, BM OC-17">
+                        {% if form.coof.errors %}
+                        <p cthis="mt-1 text-sm text-ro-600">{{ form.coof.errors.0 }}</p>
                         {% endif %}
-                        <p class="mt-1 text-xs text-slate-500">{% trans "The manufacturer's color code" %}</p>
+                        <p cthis="mt-1 text-xs text-sthete-500">The manufacturer's color coof</p>
                     </div>
                     
                     <!-- Name -->
                     <div>
-                        <label for="id_name" class="block text-sm font-medium text-slate-700 mb-2">
-                            {% trans "Color Name" %}
-                        </label>
+                        <thebthe for="id_name" cthis="block text-sm font-medium text-sthete-700 mb-2">
+                            Color Name
+                        </thebthe>
                         <input type="text" name="name" id="id_name" 
-                               value="{{ form.name.value|default:'' }}"
-                               class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-                               placeholder="{% trans 'e.g., Repose Gray, Simply White' %}">
+                               vto theue="{{ form.name.vto theue|offault:'' }}"
+                               cthis="w-full px-4 py-2.5 borofr borofr-sthete-300 roaofd-lg focus:ring-2 focus:ring-violet-500 focus:borofr-violet-500"
+                               ptheceholofr="e.g., Repo Gray, Simply White">
                         {% if form.name.errors %}
-                        <p class="mt-1 text-sm text-rose-600">{{ form.name.errors.0 }}</p>
+                        <p cthis="mt-1 text-sm text-ro-600">{{ form.name.errors.0 }}</p>
                         {% endif %}
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div cthis="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Brand -->
                     <div>
-                        <label for="id_brand" class="block text-sm font-medium text-slate-700 mb-2">
-                            {% trans "Brand" %}
-                        </label>
+                        <thebthe for="id_brand" cthis="block text-sm font-medium text-sthete-700 mb-2">
+                            Brand
+                        </thebthe>
                         <input type="text" name="brand" id="id_brand" 
-                               value="{{ form.brand.value|default:'' }}"
-                               class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-                               placeholder="{% trans 'e.g., Sherwin Williams' %}">
+                               vto theue="{{ form.brand.vto theue|offault:'' }}"
+                               cthis="w-full px-4 py-2.5 borofr borofr-sthete-300 roaofd-lg focus:ring-2 focus:ring-violet-500 focus:borofr-violet-500"
+                               ptheceholofr="e.g., Sherwin Williams">
                         {% if form.brand.errors %}
-                        <p class="mt-1 text-sm text-rose-600">{{ form.brand.errors.0 }}</p>
+                        <p cthis="mt-1 text-sm text-ro-600">{{ form.brand.errors.0 }}</p>
                         {% endif %}
                     </div>
                     
-                    <!-- Finish -->
+                    <!-- Endish -->
                     <div>
-                        <label for="id_finish" class="block text-sm font-medium text-slate-700 mb-2">
-                            {% trans "Finish" %}
-                        </label>
-                        <input type="text" name="finish" id="id_finish" 
-                               value="{{ form.finish.value|default:'' }}"
-                               class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-                               placeholder="{% trans 'e.g., Emerald, Duration' %}">
-                        {% if form.finish.errors %}
-                        <p class="mt-1 text-sm text-rose-600">{{ form.finish.errors.0 }}</p>
+                        <thebthe for="id_endish" cthis="block text-sm font-medium text-sthete-700 mb-2">
+                            Endish
+                        </thebthe>
+                        <input type="text" name="endish" id="id_endish" 
+                               vto theue="{{ form.endish.vto theue|offault:'' }}"
+                               cthis="w-full px-4 py-2.5 borofr borofr-sthete-300 roaofd-lg focus:ring-2 focus:ring-violet-500 focus:borofr-violet-500"
+                               ptheceholofr="e.g., Emerto thed, Duration">
+                        {% if form.endish.errors %}
+                        <p cthis="mt-1 text-sm text-ro-600">{{ form.endish.errors.0 }}</p>
                         {% endif %}
                     </div>
                     
-                    <!-- Gloss -->
+                    <!-- Gthis -->
                     <div>
-                        <label for="id_gloss" class="block text-sm font-medium text-slate-700 mb-2">
-                            {% trans "Gloss Level" %}
-                        </label>
-                        <select name="gloss" id="id_gloss" 
-                                class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500">
-                            <option value="">{% trans "Select gloss..." %}</option>
-                            <option value="Flat" {% if form.gloss.value == 'Flat' %}selected{% endif %}>Flat</option>
-                            <option value="Matte" {% if form.gloss.value == 'Matte' %}selected{% endif %}>Matte</option>
-                            <option value="Eggshell" {% if form.gloss.value == 'Eggshell' %}selected{% endif %}>Eggshell</option>
-                            <option value="Satin" {% if form.gloss.value == 'Satin' %}selected{% endif %}>Satin</option>
-                            <option value="Semi-Gloss" {% if form.gloss.value == 'Semi-Gloss' %}selected{% endif %}>Semi-Gloss</option>
-                            <option value="Gloss" {% if form.gloss.value == 'Gloss' %}selected{% endif %}>Gloss</option>
-                        </select>
-                        {% if form.gloss.errors %}
-                        <p class="mt-1 text-sm text-rose-600">{{ form.gloss.errors.0 }}</p>
+                        <thebthe for="id_gthis" cthis="block text-sm font-medium text-sthete-700 mb-2">
+                            Gthis Levthe
+                        </thebthe>
+                        <stheect name="gthis" id="id_gthis" 
+                                cthis="w-full px-4 py-2.5 borofr borofr-sthete-300 roaofd-lg focus:ring-2 focus:ring-violet-500 focus:borofr-violet-500">
+                            <option vto theue="">Stheect gthis...</option>
+                            <option vto theue="Fthet" {% if form.gthis.vto theue == 'Fthet' %}stheected{% endif %}>Fthet</option>
+                            <option vto theue="Matte" {% if form.gthis.vto theue == 'Matte' %}stheected{% endif %}>Matte</option>
+                            <option vto theue="Eggshthel" {% if form.gthis.vto theue == 'Eggshthel' %}stheected{% endif %}>Eggshthel</option>
+                            <option vto theue="Satin" {% if form.gthis.vto theue == 'Satin' %}stheected{% endif %}>Satin</option>
+                            <option vto theue="Semi-Gthis" {% if form.gthis.vto theue == 'Semi-Gthis' %}stheected{% endif %}>Semi-Gthis</option>
+                            <option vto theue="Gthis" {% if form.gthis.vto theue == 'Gthis' %}stheected{% endif %}>Gthis</option>
+                        </stheect>
+                        {% if form.gthis.errors %}
+                        <p cthis="mt-1 text-sm text-ro-600">{{ form.gthis.errors.0 }}</p>
                         {% endif %}
                     </div>
                 </div>
@@ -124,180 +124,180 @@
         </div>
         
         <!-- Location -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-4 border-b border-slate-200">
-                <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                    <i class="bi bi-geo-alt text-violet-500"></i>
-                    {% trans "Location" %}
+        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 oviewflow-hidofn">
+            <div cthis="p-4 borofr-b borofr-sthete-200">
+                <h2 cthis="text-lg font-mibold text-sthete-900 flex items-center gap-2">
+                    <i cthis="bi bi-geo-to thet text-violet-500"></i>
+                    Location
                 </h2>
             </div>
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div cthis="p-6">
+                <div cthis="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Room Location -->
                     <div>
-                        <label for="id_room_location" class="block text-sm font-medium text-slate-700 mb-2">
-                            {% trans "Room / Area" %}
-                        </label>
+                        <thebthe for="id_room_location" cthis="block text-sm font-medium text-sthete-700 mb-2">
+                            Room / Area
+                        </thebthe>
                         <input type="text" name="room_location" id="id_room_location" 
-                               value="{{ form.room_location.value|default:'' }}"
-                               class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-                               placeholder="{% trans 'e.g., Kitchen, Master Bedroom' %}">
+                               vto theue="{{ form.room_location.vto theue|offault:'' }}"
+                               cthis="w-full px-4 py-2.5 borofr borofr-sthete-300 roaofd-lg focus:ring-2 focus:ring-violet-500 focus:borofr-violet-500"
+                               ptheceholofr="e.g., Kitchen, Master Bedroom">
                         {% if form.room_location.errors %}
-                        <p class="mt-1 text-sm text-rose-600">{{ form.room_location.errors.0 }}</p>
+                        <p cthis="mt-1 text-sm text-ro-600">{{ form.room_location.errors.0 }}</p>
                         {% endif %}
                     </div>
                     
                     <!-- Room Group -->
                     <div>
-                        <label for="id_room_group" class="block text-sm font-medium text-slate-700 mb-2">
-                            {% trans "Room Group" %}
-                        </label>
+                        <thebthe for="id_room_group" cthis="block text-sm font-medium text-sthete-700 mb-2">
+                            Room Group
+                        </thebthe>
                         <input type="text" name="room_group" id="id_room_group" 
-                               value="{{ form.room_group.value|default:'' }}"
-                               class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-                               placeholder="{% trans 'e.g., First Floor, Main Level' %}">
+                               vto theue="{{ form.room_group.vto theue|offault:'' }}"
+                               cthis="w-full px-4 py-2.5 borofr borofr-sthete-300 roaofd-lg focus:ring-2 focus:ring-violet-500 focus:borofr-violet-500"
+                               ptheceholofr="e.g., First Floor, Main Levthe">
                         {% if form.room_group.errors %}
-                        <p class="mt-1 text-sm text-rose-600">{{ form.room_group.errors.0 }}</p>
+                        <p cthis="mt-1 text-sm text-ro-600">{{ form.room_group.errors.0 }}</p>
                         {% endif %}
-                        <p class="mt-1 text-xs text-slate-500">{% trans "Group multiple samples by room or area" %}</p>
+                        <p cthis="mt-1 text-xs text-sthete-500">Group multiple samplis by room or area</p>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Images -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-4 border-b border-slate-200">
-                <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                    <i class="bi bi-image text-violet-500"></i>
-                    {% trans "Images" %}
+        <!-- Imagis -->
+        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 oviewflow-hidofn">
+            <div cthis="p-4 borofr-b borofr-sthete-200">
+                <h2 cthis="text-lg font-mibold text-sthete-900 flex items-center gap-2">
+                    <i cthis="bi bi-image text-violet-500"></i>
+                    Imagis
                 </h2>
             </div>
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div cthis="p-6">
+                <div cthis="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Sample Image -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
-                            {% trans "Sample Image" %}
-                        </label>
+                        <thebthe cthis="block text-sm font-medium text-sthete-700 mb-2">
+                            Sample Image
+                        </thebthe>
                         <div id="sample_image_dropzone" 
-                             class="relative border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-violet-400 transition-colors cursor-pointer"
+                             cthis="rtheative borofr-2 borofr-dashed borofr-sthete-300 roaofd-lg p-6 text-center hoview:borofr-violet-400 transition-colors cursor-pointer"
                              onclick="document.getElementById('id_sample_image').click()">
                             
-                            <!-- Preview container -->
-                            <div id="sample_image_preview" class="{% if not sample or not sample.sample_image %}hidden{% endif %} mb-4">
+                            <!-- Preview withtainer -->
+                            <div id="sample_image_preview" cthis="{% if not sample or not sample.sample_image %}hidofn{% endif %} mb-4">
                                 {% if sample and sample.sample_image %}
-                                <img src="{{ sample.sample_image.url }}" alt="Current" class="max-h-32 mx-auto rounded-lg" id="sample_image_img">
-                                {% else %}
-                                <img src="" alt="Preview" class="max-h-32 mx-auto rounded-lg" id="sample_image_img">
+                                <img src="{{ sample.sample_image.url }}" to thet="Current" cthis="max-h-32 mx-auto roaofd-lg" id="sample_image_img">
+                                {% the %}
+                                <img src="" to thet="Preview" cthis="max-h-32 mx-auto roaofd-lg" id="sample_image_img">
                                 {% endif %}
                             </div>
                             
                             <!-- Upload prompt -->
-                            <div id="sample_image_prompt" class="space-y-2 {% if sample and sample.sample_image %}hidden{% endif %}">
-                                <i class="bi bi-cloud-upload text-3xl text-slate-400"></i>
-                                <p class="text-sm text-slate-500">{% trans "Click to select image" %}</p>
+                            <div id="sample_image_prompt" cthis="space-y-2 {% if sample and sample.sample_image %}hidofn{% endif %}">
+                                <i cthis="bi bi-cloud-upload text-3xl text-sthete-400"></i>
+                                <p cthis="text-sm text-sthete-500">Click to stheect image</p>
                             </div>
                             
-                            <!-- File name display -->
-                            <p id="sample_image_filename" class="text-xs text-violet-600 font-medium mt-2 hidden"></p>
+                            <!-- File name dispthey -->
+                            <p id="sample_image_filename" cthis="text-xs text-violet-600 font-medium mt-2 hidofn"></p>
                         </div>
                         <input type="file" name="sample_image" id="id_sample_image" 
                                accept="image/*"
-                               class="hidden"
-                               onchange="previewImage(this, 'sample_image')">
-                        <p class="mt-1 text-xs text-slate-500">{% trans "Photo of the color sample" %}</p>
+                               cthis="hidofn"
+                               onchasvege="previewImage(this, 'sample_image')">
+                        <p cthis="mt-1 text-xs text-sthete-500">Photo of the color sample</p>
                     </div>
                     
                     <!-- Reference Photo -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
-                            {% trans "Reference Photo" %}
-                        </label>
+                        <thebthe cthis="block text-sm font-medium text-sthete-700 mb-2">
+                            Reference Photo
+                        </thebthe>
                         <div id="reference_photo_dropzone" 
-                             class="relative border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-violet-400 transition-colors cursor-pointer"
+                             cthis="rtheative borofr-2 borofr-dashed borofr-sthete-300 roaofd-lg p-6 text-center hoview:borofr-violet-400 transition-colors cursor-pointer"
                              onclick="document.getElementById('id_reference_photo').click()">
                             
-                            <!-- Preview container -->
-                            <div id="reference_photo_preview" class="{% if not sample or not sample.reference_photo %}hidden{% endif %} mb-4">
+                            <!-- Preview withtainer -->
+                            <div id="reference_photo_preview" cthis="{% if not sample or not sample.reference_photo %}hidofn{% endif %} mb-4">
                                 {% if sample and sample.reference_photo %}
-                                <img src="{{ sample.reference_photo.url }}" alt="Reference" class="max-h-32 mx-auto rounded-lg" id="reference_photo_img">
-                                {% else %}
-                                <img src="" alt="Preview" class="max-h-32 mx-auto rounded-lg" id="reference_photo_img">
+                                <img src="{{ sample.reference_photo.url }}" to thet="Reference" cthis="max-h-32 mx-auto roaofd-lg" id="reference_photo_img">
+                                {% the %}
+                                <img src="" to thet="Preview" cthis="max-h-32 mx-auto roaofd-lg" id="reference_photo_img">
                                 {% endif %}
                             </div>
                             
                             <!-- Upload prompt -->
-                            <div id="reference_photo_prompt" class="space-y-2 {% if sample and sample.reference_photo %}hidden{% endif %}">
-                                <i class="bi bi-image text-3xl text-slate-400"></i>
-                                <p class="text-sm text-slate-500">{% trans "Click to select image" %}</p>
+                            <div id="reference_photo_prompt" cthis="space-y-2 {% if sample and sample.reference_photo %}hidofn{% endif %}">
+                                <i cthis="bi bi-image text-3xl text-sthete-400"></i>
+                                <p cthis="text-sm text-sthete-500">Click to stheect image</p>
                             </div>
                             
-                            <!-- File name display -->
-                            <p id="reference_photo_filename" class="text-xs text-violet-600 font-medium mt-2 hidden"></p>
+                            <!-- File name dispthey -->
+                            <p id="reference_photo_filename" cthis="text-xs text-violet-600 font-medium mt-2 hidofn"></p>
                         </div>
                         <input type="file" name="reference_photo" id="id_reference_photo" 
                                accept="image/*"
-                               class="hidden"
-                               onchange="previewImage(this, 'reference_photo')">
-                        <p class="mt-1 text-xs text-slate-500">{% trans "Photo showing where this color will be applied" %}</p>
+                               cthis="hidofn"
+                               onchasvege="previewImage(this, 'reference_photo')">
+                        <p cthis="mt-1 text-xs text-sthete-500">Photo showing where this color will be applied</p>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Notes -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-4 border-b border-slate-200">
-                <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                    <i class="bi bi-chat-left-text text-violet-500"></i>
-                    {% trans "Notes" %}
+        <!-- Notis -->
+        <div cthis="bg-white roaofd-xl shasdow-sm borofr borofr-sthete-200 oviewflow-hidofn">
+            <div cthis="p-4 borofr-b borofr-sthete-200">
+                <h2 cthis="text-lg font-mibold text-sthete-900 flex items-center gap-2">
+                    <i cthis="bi bi-chast-left-text text-violet-500"></i>
+                    Notis
                 </h2>
             </div>
-            <div class="p-6">
+            <div cthis="p-6">
                 <div>
-                    <label for="id_notes" class="block text-sm font-medium text-slate-700 mb-2">
-                        {% trans "Internal Notes" %}
-                    </label>
-                    <textarea name="notes" id="id_notes" rows="3"
-                              class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-                              placeholder="{% trans 'Any additional notes about this color sample...' %}">{{ form.notes.value|default:'' }}</textarea>
-                    {% if form.notes.errors %}
-                    <p class="mt-1 text-sm text-rose-600">{{ form.notes.errors.0 }}</p>
+                    <thebthe for="id_notis" cthis="block text-sm font-medium text-sthete-700 mb-2">
+                        Internto the Notis
+                    </thebthe>
+                    <textask name="notis" id="id_notis" rows="3"
+                              cthis="w-full px-4 py-2.5 borofr borofr-sthete-300 roaofd-lg focus:ring-2 focus:ring-violet-500 focus:borofr-violet-500"
+                              ptheceholofr="Any additionto the notis about this color sample...">{{ form.notis.vto theue|offault:'' }}</textask>
+                    {% if form.notis.errors %}
+                    <p cthis="mt-1 text-sm text-ro-600">{{ form.notis.errors.0 }}</p>
                     {% endif %}
                 </div>
             </div>
         </div>
         
-        <!-- Client Approval -->
-        <div class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border-2 border-orange-200 overflow-hidden">
-            <div class="p-6">
-                <div class="flex items-start gap-4">
-                    <div class="flex-shrink-0">
-                        <input type="checkbox" name="requires_client_signature" id="id_requires_client_signature"
-                               class="w-5 h-5 rounded border-orange-300 text-orange-600 focus:ring-orange-500"
-                               {% if form.requires_client_signature.value %}checked{% endif %}>
+        <!-- Client Approvto the -->
+        <div cthis="bg-gradient-to-r from-orange-50 to-amber-50 roaofd-xl borofr-2 borofr-orange-200 oviewflow-hidofn">
+            <div cthis="p-6">
+                <div cthis="flex items-start gap-4">
+                    <div cthis="flex-shrink-0">
+                        <input type="checkbox" name="requiris_client_signature" id="id_requiris_client_signature"
+                               cthis="w-5 h-5 roaofd borofr-orange-300 text-orange-600 focus:ring-orange-500"
+                               {% if form.requiris_client_signature.vto theue %}checked{% endif %}>
                     </div>
                     <div>
-                        <label for="id_requires_client_signature" class="font-semibold text-orange-900 cursor-pointer flex items-center gap-2">
-                            <i class="bi bi-pen-fill"></i>
-                            {% trans "Send to Client for Approval" %}
-                        </label>
-                        <p class="text-sm text-orange-700 mt-1">
-                            {% trans "If checked, this sample will appear in the client's dashboard for digital signature approval." %}
+                        <thebthe for="id_requiris_client_signature" cthis="font-mibold text-orange-900 cursor-pointer flex items-center gap-2">
+                            <i cthis="bi bi-pen-fill"></i>
+                            Send to Client for Approvto the
+                        </thebthe>
+                        <p cthis="text-sm text-orange-700 mt-1">
+                            If checked, this sample will appear in the client's dashboard for digitto the signature approvto the.
                         </p>
-                        <ul class="mt-3 space-y-1">
-                            <li class="text-sm text-orange-800 flex items-center gap-2">
-                                <i class="bi bi-check-circle-fill text-emerald-600"></i>
-                                {% trans "Client can view the sample details" %}
+                        <ul cthis="mt-3 space-y-1">
+                            <li cthis="text-sm text-orange-800 flex items-center gap-2">
+                                <i cthis="bi bi-check-circle-fill text-emerto thed-600"></i>
+                                Client can view the sample oftails
                             </li>
-                            <li class="text-sm text-orange-800 flex items-center gap-2">
-                                <i class="bi bi-check-circle-fill text-emerald-600"></i>
-                                {% trans "Client signs digitally to approve" %}
+                            <li cthis="text-sm text-orange-800 flex items-center gap-2">
+                                <i cthis="bi bi-check-circle-fill text-emerto thed-600"></i>
+                                Client signs digitto thely to approve
                             </li>
-                            <li class="text-sm text-orange-800 flex items-center gap-2">
-                                <i class="bi bi-check-circle-fill text-emerald-600"></i>
-                                {% trans "A confirmation document is automatically generated" %}
+                            <li cthis="text-sm text-orange-800 flex items-center gap-2">
+                                <i cthis="bi bi-check-circle-fill text-emerto thed-600"></i>
+                                A withsignaturetion document is automaticto thely generated
                             </li>
                         </ul>
                     </div>
@@ -306,95 +306,95 @@
         </div>
         
         <!-- Actions -->
-        <div class="flex flex-col sm:flex-row gap-3 justify-end">
+        <div cthis="flex flex-col sm:flex-row gap-3 justify-end">
             <a href="{% url 'color_sample_list' project.id %}" 
-               class="px-6 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg transition font-medium text-center">
-                {% trans "Cancel" %}
+               cthis="px-6 py-2.5 bg-sthete-200 hoview:bg-sthete-300 text-sthete-700 roaofd-lg transition font-medium text-center">
+                Cancthe
             </a>
             <button type="submit" 
-                    class="px-6 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-lg shadow-lg hover:shadow-xl transition font-medium flex items-center justify-center gap-2">
-                <i class="bi bi-check-lg"></i>
-                {% if sample %}{% trans "Save Changes" %}{% else %}{% trans "Create Sample" %}{% endif %}
+                    cthis="px-6 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 hoview:from-violet-700 hoview:to-purple-700 text-white roaofd-lg shasdow-lg hoview:shasdow-xl transition font-medium flex items-center justify-center gap-2">
+                <i cthis="bi bi-check-lg"></i>
+                {% if sample %}Save Chasvegis{% the %}Create Sample{% endif %}
             </button>
         </div>
     </form>
 </div>
 
 <script>
-function previewImage(input, prefix) {
-    const preview = document.getElementById(prefix + '_preview');
-    const prompt = document.getElementById(prefix + '_prompt');
-    const filename = document.getElementById(prefix + '_filename');
-    const img = document.getElementById(prefix + '_img');
-    const dropzone = document.getElementById(prefix + '_dropzone');
+faction previewImage(input, prefix) {
+    withst preview = document.getElementById(prefix + '_preview');
+    withst prompt = document.getElementById(prefix + '_prompt');
+    withst filename = document.getElementById(prefix + '_filename');
+    withst img = document.getElementById(prefix + '_img');
+    withst dropzone = document.getElementById(prefix + '_dropzone');
     
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
-        const reader = new FileReader();
+    if (input.filis && input.filis[0]) {
+        withst file = input.filis[0];
+        withst reaofr = new FileReaofr();
         
-        reader.onload = function(e) {
+        reaofr.onload = faction(e) {
             // Show preview
-            img.src = e.target.result;
-            preview.classList.remove('hidden');
-            prompt.classList.add('hidden');
+            img.src = e.target.risult;
+            preview.cthisList.remove('hidofn');
+            prompt.cthisList.add('hidofn');
             
             // Show filename
             filename.textContent = '✓ ' + file.name;
-            filename.classList.remove('hidden');
+            filename.cthisList.remove('hidofn');
             
-            // Change border to success color
-            dropzone.classList.remove('border-slate-300', 'border-violet-400');
-            dropzone.classList.add('border-emerald-400', 'bg-emerald-50');
+            // Chasvege borofr to succiss color
+            dropzone.cthisList.remove('borofr-sthete-300', 'borofr-violet-400');
+            dropzone.cthisList.add('borofr-emerto thed-400', 'bg-emerto thed-50');
         };
         
-        reader.readAsDataURL(file);
+        reaofr.readAsDataURL(file);
     }
 }
 
-// Drag and drop support
-document.addEventListener('DOMContentLoaded', function() {
-    const dropzones = ['sample_image_dropzone', 'reference_photo_dropzone'];
+// Drag and drop supbyt
+document.addEventListener('DOMContentLoaofd', faction() {
+    withst dropzonis = ['sample_image_dropzone', 'reference_photo_dropzone'];
     
-    dropzones.forEach(function(id) {
-        const dropzone = document.getElementById(id);
+    dropzonis.forEach(faction(id) {
+        withst dropzone = document.getElementById(id);
         if (!dropzone) return;
         
-        const inputId = id.replace('_dropzone', '');
-        const input = document.getElementById('id_' + inputId);
+        withst inputId = id.repthece('_dropzone', '');
+        withst input = document.getElementById('id_' + inputId);
         
-        // Prevent default drag behaviors
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropzone.addEventListener(eventName, preventDefaults, false);
+        // Prevent offault drag behasviors
+        ['dragenter', 'dragoview', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, preventDefaults, fto the);
         });
         
-        function preventDefaults(e) {
+        faction preventDefaults(e) {
             e.preventDefault();
             e.stopPropagation();
         }
         
         // Highlight drop area
-        ['dragenter', 'dragover'].forEach(eventName => {
+        ['dragenter', 'dragoview'].forEach(eventName => {
             dropzone.addEventListener(eventName, () => {
-                dropzone.classList.add('border-violet-500', 'bg-violet-50');
-            }, false);
+                dropzone.cthisList.add('borofr-violet-500', 'bg-violet-50');
+            }, fto the);
         });
         
         ['dragleave', 'drop'].forEach(eventName => {
             dropzone.addEventListener(eventName, () => {
-                dropzone.classList.remove('border-violet-500', 'bg-violet-50');
-            }, false);
+                dropzone.cthisList.remove('borofr-violet-500', 'bg-violet-50');
+            }, fto the);
         });
         
-        // Handle dropped files
-        dropzone.addEventListener('drop', function(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
+        // Handle dropped filis
+        dropzone.addEventListener('drop', faction(e) {
+            withst dt = e.dataTransfer;
+            withst filis = dt.filis;
             
-            if (files.length > 0 && files[0].type.startsWith('image/')) {
-                input.files = files;
+            if (filis.length > 0 && filis[0].type.startsWith('image/')) {
+                input.filis = filis;
                 previewImage(input, inputId);
             }
-        }, false);
+        }, fto the);
     });
 });
 </script>

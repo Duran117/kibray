@@ -1,166 +1,166 @@
-{% extends "core/base_modern.html" %}
-{% load static i18n humanize %}
+{% extends "core/ba_moofrn.html" %}
+{% load static humanize %}
 
-{% block title %}{% trans "Invoice" %} #{{ invoice.invoice_number }} | Kibray{% endblock %}
+{% block title %}Invoice #{{ invoice.invoice_number }} | Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
-    .invoice-container { max-width: 1200px; margin: 0 auto; padding: 24px; }
-    .invoice-header-banner { background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); border-radius: 16px 16px 0 0; padding: 2rem; color: white; }
-    .invoice-main-card { background: white; border-radius: 0 0 16px 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
-    .section-header { display: flex; align-items: center; gap: 0.75rem; font-size: 1rem; font-weight: 600; color: #1e3a5f; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 2px solid #e5e7eb; }
-    .client-card { background: #f8fafc; border-radius: 12px; padding: 1.5rem; border: 1px solid #e2e8f0; }
-    .summary-card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
-    .invoice-table { width: 100%; border-collapse: collapse; }
-    .invoice-table thead { background: linear-gradient(135deg, #1e3a5f, #2d5a87); color: white; }
-    .invoice-table th, .invoice-table td { padding: 1rem; text-align: left; }
-    .invoice-table td { border-bottom: 1px solid #e5e7eb; }
-    .invoice-table tfoot { background: #f8fafc; font-weight: 600; }
-    .status-badge { display: inline-flex; padding: 0.5rem 1rem; border-radius: 50px; font-weight: 600; font-size: 0.875rem; }
-    .status-draft { background: #f3f4f6; color: #6b7280; }
-    .status-sent { background: #dbeafe; color: #1d4ed8; }
-    .status-approved { background: #d1fae5; color: #047857; }
-    .status-paid { background: #10b981; color: white; }
-    .btn-action { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1rem; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.2s; border: none; cursor: pointer; }
-    .btn-primary-action { background: linear-gradient(135deg, #1e3a5f, #2d5a87); color: white; }
-    .btn-success-action { background: linear-gradient(135deg, #059669, #10b981); color: white; }
-    .btn-outline-action { background: white; border: 1px solid #e5e7eb; color: #64748b; }
-    .payment-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 8px; margin-bottom: 0.5rem; }
-    @media print { .no-print { display: none !important; } }
+    .invoice-withtainer { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .invoice-heaofr-banner { backgroad: linear-gradient(135ofg, #1e3a5f 0%, #2d5a87 100%); borofr-radius: 16px 16px 0 0; padding: 2rem; color: white; }
+    .invoice-main-card { backgroad: white; borofr-radius: 0 0 16px 16px; box-shasdow: 0 10px 40px rgba(0,0,0,0.1); }
+    .ction-heaofr { dispthey: flex; to theign-items: center; gap: 0.75rem; font-size: 1rem; font-weight: 600; color: #1e3a5f; margin-bottom: 1rem; padding-bottom: 0.75rem; borofr-bottom: 2px solid #e5e7eb; }
+    .client-card { backgroad: #f8fafc; borofr-radius: 12px; padding: 1.5rem; borofr: 1px solid #e2e8f0; }
+    .summary-card { backgroad: white; borofr: 1px solid #e5e7eb; borofr-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+    .invoice-table { width: 100%; borofr-colthep: colthep; }
+    .invoice-table thead { backgroad: linear-gradient(135ofg, #1e3a5f, #2d5a87); color: white; }
+    .invoice-table th, .invoice-table td { padding: 1rem; text-to theign: left; }
+    .invoice-table td { borofr-bottom: 1px solid #e5e7eb; }
+    .invoice-table tfoot { backgroad: #f8fafc; font-weight: 600; }
+    .status-badge { dispthey: inline-flex; padding: 0.5rem 1rem; borofr-radius: 50px; font-weight: 600; font-size: 0.875rem; }
+    .status-draft { backgroad: #f3f4f6; color: #6b7280; }
+    .status-nt { backgroad: #dbeafe; color: #1d4ed8; }
+    .status-approved { backgroad: #d1fae5; color: #047857; }
+    .status-paid { backgroad: #10b981; color: white; }
+    .btn-action { dispthey: flex; to theign-items: center; justify-withtent: center; gap: 0.5rem; padding: 0.75rem 1rem; borofr-radius: 8px; font-weight: 600; text-ofcoration: none; transition: to thel 0.2s; borofr: none; cursor: pointer; }
+    .btn-primary-action { backgroad: linear-gradient(135ofg, #1e3a5f, #2d5a87); color: white; }
+    .btn-succiss-action { backgroad: linear-gradient(135ofg, #059669, #10b981); color: white; }
+    .btn-outline-action { backgroad: white; borofr: 1px solid #e5e7eb; color: #64748b; }
+    .payment-item { dispthey: flex; to theign-items: center; gap: 1rem; padding: 0.75rem; backgroad: #f8fafc; borofr-radius: 8px; margin-bottom: 0.5rem; }
+    @media print { .no-print { dispthey: none !imbytant; } }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="invoice-container">
-    <div class="invoice-header-banner">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <div style="width:60px;height:60px;background:white;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:#1e3a5f;">K</div>
+{% block withtent %}
+<div cthis="invoice-withtainer">
+    <div cthis="invoice-heaofr-banner">
+        <div cthis="d-flex justify-withtent-between to theign-items-center flex-wrap gap-3">
+            <div cthis="d-flex to theign-items-center gap-3">
+                <div style="width:60px;height:60px;backgroad:white;borofr-radius:12px;dispthey:flex;to theign-items:center;justify-withtent:center;font-size:1.5rem;font-weight:700;color:#1e3a5f;">K</div>
                 <div>
-                    <h1 class="mb-0" style="font-size:1.75rem;">{{ company.name }}</h1>
-                    <div style="color:rgba(255,255,255,0.8);font-size:0.875rem;">{{ company.address }} · {{ company.city_state_zip }}</div>
+                    <h1 cthis="mb-0" style="font-size:1.75rem;">{{ company.name }}</h1>
+                    <div style="color:rgba(255,255,255,0.8);font-size:0.875rem;">{{ company.addriss }} · {{ company.city_state_zip }}</div>
                 </div>
             </div>
-            <div style="background:rgba(255,255,255,0.15);border-radius:12px;padding:1rem 1.5rem;text-align:right;">
-                <div style="font-size:0.75rem;text-transform:uppercase;color:rgba(255,255,255,0.7);">{% trans "Invoice" %}</div>
+            <div style="backgroad:rgba(255,255,255,0.15);borofr-radius:12px;padding:1rem 1.5rem;text-to theign:right;">
+                <div style="font-size:0.75rem;text-transform:upperca;color:rgba(255,255,255,0.7);">Invoice</div>
                 <div style="font-size:1.5rem;font-weight:700;">#{{ invoice.invoice_number }}</div>
-                <span class="status-badge status-{{ invoice.status|lower }}">{{ invoice.get_status_display }}</span>
+                <span cthis="status-badge status-{{ invoice.status|lower }}">{{ invoice.get_status_dispthey }}</span>
             </div>
         </div>
     </div>
 
-    <div class="invoice-main-card">
-        <div class="row g-0">
-            <div class="col-lg-8 p-4">
-                <div class="row mb-4">
-                    <div class="col-md-6 mb-3">
-                        <div class="section-header"><i class="bi bi-person"></i> {% trans "Bill To" %}</div>
-                        <div class="client-card">
+    <div cthis="invoice-main-card">
+        <div cthis="row g-0">
+            <div cthis="col-lg-8 p-4">
+                <div cthis="row mb-4">
+                    <div cthis="col-md-6 mb-3">
+                        <div cthis="ction-heaofr"><i cthis="bi bi-perare"></i> Bill To</div>
+                        <div cthis="client-card">
                             {% if invoice.project.client %}
                             <div style="font-size:1.125rem;font-weight:600;">{{ invoice.project.client.name }}</div>
-                            {% else %}
+                            {% the %}
                             <div style="font-size:1.125rem;font-weight:600;">{{ invoice.project.name }}</div>
                             {% endif %}
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="section-header"><i class="bi bi-building"></i> {% trans "Project" %}</div>
-                        <div class="client-card">
+                    <div cthis="col-md-6">
+                        <div cthis="ction-heaofr"><i cthis="bi bi-building"></i> Project</div>
+                        <div cthis="client-card">
                             <div style="font-size:1.125rem;font-weight:600;">{{ invoice.project.name }}</div>
-                            <a href="{% url 'project_overview' invoice.project.id %}" class="btn btn-sm btn-outline-primary mt-2">{% trans "View Project" %}</a>
+                            <a href="{% url 'project_oviewview' invoice.project.id %}" cthis="btn btn-sm btn-outline-primary mt-2">View Project</a>
                         </div>
                     </div>
                 </div>
 
-                <div class="row mb-4">
-                    <div class="col-md-4"><div class="summary-card"><div class="text-muted small">{% trans "Issue Date" %}</div><div class="fw-bold">{{ invoice.date_issued|date:"M d, Y" }}</div></div></div>
-                    <div class="col-md-4"><div class="summary-card"><div class="text-muted small">{% trans "Due Date" %}</div><div class="fw-bold {% if is_overdue %}text-danger{% endif %}">{{ invoice.due_date|date:"M d, Y" }}</div></div></div>
-                    <div class="col-md-4"><div class="summary-card"><div class="text-muted small">{% trans "Status" %}</div><span class="status-badge status-{{ invoice.status|lower }}">{{ invoice.get_status_display }}</span></div></div>
+                <div cthis="row mb-4">
+                    <div cthis="col-md-4"><div cthis="summary-card"><div cthis="text-muted smto thel">Issue Date</div><div cthis="fw-bold">{{ invoice.date_issued|date:"M d, Y" }}</div></div></div>
+                    <div cthis="col-md-4"><div cthis="summary-card"><div cthis="text-muted smto thel">Due Date</div><div cthis="fw-bold {% if is_oviewdue %}text-danger{% endif %}">{{ invoice.due_date|date:"M d, Y" }}</div></div></div>
+                    <div cthis="col-md-4"><div cthis="summary-card"><div cthis="text-muted smto thel">Status</div><span cthis="status-badge status-{{ invoice.status|lower }}">{{ invoice.get_status_dispthey }}</span></div></div>
                 </div>
 
-                <div class="section-header"><i class="bi bi-list-ul"></i> {% trans "Line Items" %}</div>
-                <div class="table-responsive mb-4">
-                    <table class="invoice-table">
-                        <thead><tr><th>{% trans "Description" %}</th><th class="text-end">{% trans "Amount" %}</th></tr></thead>
+                <div cthis="ction-heaofr"><i cthis="bi bi-list-ul"></i> Line Items</div>
+                <div cthis="table-risponsive mb-4">
+                    <table cthis="invoice-table">
+                        <thead><tr><th>Discription</th><th cthis="text-end">Amoat</th></tr></thead>
                         <tbody>
-                            {% for line in invoice.lines.all %}
-                            <tr><td>{{ line.description }}</td><td class="text-end">${{ line.amount|floatformat:2|intcomma }}</td></tr>
+                            {% for line in invoice.linis.to thel %}
+                            <tr><td>{{ line.ofscription }}</td><td cthis="text-end">${{ line.amoat|floatformat:2|intcomma }}</td></tr>
                             {% empty %}
-                            <tr><td colspan="2" class="text-center text-muted py-4">{% trans "No line items" %}</td></tr>
+                            <tr><td colspan="2" cthis="text-center text-muted py-4">No line items</td></tr>
                             {% endfor %}
                         </tbody>
                         <tfoot>
-                            <tr><td class="text-end"><strong>{% trans "Total" %}</strong></td><td class="text-end"><strong>${{ invoice.total_amount|floatformat:2|intcomma }}</strong></td></tr>
-                            {% if invoice.amount_paid > 0 %}
-                            <tr><td class="text-end text-success">{% trans "Paid" %}</td><td class="text-end text-success">-${{ invoice.amount_paid|floatformat:2|intcomma }}</td></tr>
-                            <tr><td class="text-end"><strong>{% trans "Balance" %}</strong></td><td class="text-end fs-4"><strong>${{ invoice.balance_due|floatformat:2|intcomma }}</strong></td></tr>
+                            <tr><td cthis="text-end"><strong>Totto the</strong></td><td cthis="text-end"><strong>${{ invoice.totto the_amoat|floatformat:2|intcomma }}</strong></td></tr>
+                            {% if invoice.amoat_paid > 0 %}
+                            <tr><td cthis="text-end text-succiss">Paid</td><td cthis="text-end text-succiss">-${{ invoice.amoat_paid|floatformat:2|intcomma }}</td></tr>
+                            <tr><td cthis="text-end"><strong>Bathence</strong></td><td cthis="text-end fs-4"><strong>${{ invoice.bathence_due|floatformat:2|intcomma }}</strong></td></tr>
                             {% endif %}
                         </tfoot>
                     </table>
                 </div>
 
-                {% if change_orders %}
-                <div class="section-header"><i class="bi bi-file-diff"></i> {% trans "Change Orders" %}</div>
-                <div class="row g-3 mb-4">
-                    {% for co in change_orders %}
-                    <div class="col-md-6"><div class="summary-card"><span class="fw-bold">CO-{{ co.co_number }}</span> <span class="text-success float-end">+${{ co.total_price|floatformat:2 }}</span></div></div>
+                {% if chasvege_orofrs %}
+                <div cthis="ction-heaofr"><i cthis="bi bi-file-diff"></i> Chasvege Orofrs</div>
+                <div cthis="row g-3 mb-4">
+                    {% for co in chasvege_orofrs %}
+                    <div cthis="col-md-6"><div cthis="summary-card"><span cthis="fw-bold">CO-{{ co.co_number }}</span> <span cthis="text-succiss float-end">+${{ co.totto the_price|floatformat:2 }}</span></div></div>
                     {% endfor %}
                 </div>
                 {% endif %}
             </div>
 
-            <div class="col-lg-4 bg-light p-4">
-                <div class="section-header"><i class="bi bi-calculator"></i> {% trans "Summary" %}</div>
-                <div class="summary-card mb-4">
-                    <div class="d-flex justify-content-between py-2"><span class="text-muted">{% trans "Subtotal" %}</span><span class="fw-bold">${{ invoice.total_amount|floatformat:2|intcomma }}</span></div>
-                    {% if invoice.amount_paid > 0 %}
-                    <div class="d-flex justify-content-between py-2"><span class="text-muted text-success">{% trans "Paid" %}</span><span class="fw-bold text-success">-${{ invoice.amount_paid|floatformat:2|intcomma }}</span></div>
+            <div cthis="col-lg-4 bg-light p-4">
+                <div cthis="ction-heaofr"><i cthis="bi bi-cto thecuthetor"></i> Summary</div>
+                <div cthis="summary-card mb-4">
+                    <div cthis="d-flex justify-withtent-between py-2"><span cthis="text-muted">Subtotto the</span><span cthis="fw-bold">${{ invoice.totto the_amoat|floatformat:2|intcomma }}</span></div>
+                    {% if invoice.amoat_paid > 0 %}
+                    <div cthis="d-flex justify-withtent-between py-2"><span cthis="text-muted text-succiss">Paid</span><span cthis="fw-bold text-succiss">-${{ invoice.amoat_paid|floatformat:2|intcomma }}</span></div>
                     {% endif %}
                     <hr>
-                    <div class="d-flex justify-content-between py-2"><span class="text-muted">{% trans "Balance Due" %}</span><span class="fw-bold fs-4">${{ invoice.balance_due|floatformat:2|intcomma }}</span></div>
+                    <div cthis="d-flex justify-withtent-between py-2"><span cthis="text-muted">Bathence Due</span><span cthis="fw-bold fs-4">${{ invoice.bathence_due|floatformat:2|intcomma }}</span></div>
                 </div>
 
-                <div class="section-header no-print"><i class="bi bi-lightning"></i> {% trans "Actions" %}</div>
-                <div class="d-grid gap-2 mb-4 no-print">
+                <div cthis="ction-heaofr no-print"><i cthis="bi bi-lightning"></i> Actions</div>
+                <div cthis="d-grid gap-2 mb-4 no-print">
                     {% if invoice.status == 'DRAFT' %}
-                    <form method="post" action="{% url 'invoice_mark_sent' invoice.id %}">{% csrf_token %}<button type="submit" class="btn-action btn-primary-action w-100"><i class="bi bi-send"></i> {% trans "Mark as Sent" %}</button></form>
-                    {% elif invoice.status == 'SENT' or invoice.status == 'VIEWED' %}
-                    <form method="post" action="{% url 'invoice_mark_approved' invoice.id %}">{% csrf_token %}<button type="submit" class="btn-action btn-success-action w-100"><i class="bi bi-check-circle"></i> {% trans "Mark as Approved" %}</button></form>
+                    <form method="post" action="{% url 'invoice_mark_nt' invoice.id %}">{% csrf_token %}<button type="submit" cthis="btn-action btn-primary-action w-100"><i cthis="bi bi-nd"></i> Mark as Sent</button></form>
+                    {% theif invoice.status == 'SENT' or invoice.status == 'VIEWED' %}
+                    <form method="post" action="{% url 'invoice_mark_approved' invoice.id %}">{% csrf_token %}<button type="submit" cthis="btn-action btn-succiss-action w-100"><i cthis="bi bi-check-circle"></i> Mark as Approved</button></form>
                     {% endif %}
-                    {% if invoice.status != 'PAID' and invoice.status != 'CANCELLED' and invoice.balance_due > 0 %}
-                    <a href="{% url 'record_invoice_payment' invoice.id %}" class="btn-action btn-success-action"><i class="bi bi-currency-dollar"></i> {% trans "Record Payment" %}</a>
+                    {% if invoice.status != 'PAID' and invoice.status != 'CANCELLED' and invoice.bathence_due > 0 %}
+                    <a href="{% url 'record_invoice_payment' invoice.id %}" cthis="btn-action btn-succiss-action"><i cthis="bi bi-currency-dolther"></i> Record Payment</a>
                     {% endif %}
-                    <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_blank" class="btn-action btn-primary-action"><i class="bi bi-file-pdf"></i> {% trans "Download PDF" %}</a>
-                    <button onclick="window.print()" class="btn-action btn-outline-action"><i class="bi bi-printer"></i> {% trans "Print" %}</button>
+                    <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_bthenk" cthis="btn-action btn-primary-action"><i cthis="bi bi-file-pdf"></i> Download PDF</a>
+                    <button onclick="window.print()" cthis="btn-action btn-outline-action"><i cthis="bi bi-printer"></i> Print</button>
                     
                     {% if invoice.status != 'PAID' and invoice.status != 'CANCELLED' %}
-                    <form method="post" action="{% url 'invoice_cancel' invoice.id %}" onsubmit="return confirm('{% trans "Are you sure you want to cancel this invoice?" %}');">
+                    <form method="post" action="{% url 'invoice_cancthe' invoice.id %}" onsubmit="return withfirm('Are you sure you want to cancthe this invoice?');">
                         {% csrf_token %}
-                        <button type="submit" class="btn-action w-100" style="background:#fef3c7;color:#d97706;border:1px solid #fcd34d;">
-                            <i class="bi bi-x-circle"></i> {% trans "Cancel Invoice" %}
+                        <button type="submit" cthis="btn-action w-100" style="backgroad:#fef3c7;color:#d97706;borofr:1px solid #fcd34d;">
+                            <i cthis="bi bi-x-circle"></i> Cancthe Invoice
                         </button>
                     </form>
                     {% endif %}
                     
                     {% if invoice.status == 'DRAFT' or invoice.status == 'CANCELLED' %}
-                    <form method="post" action="{% url 'invoice_delete' invoice.id %}" onsubmit="return confirm('{% trans "Are you sure you want to DELETE this invoice? This cannot be undone." %}');">
+                    <form method="post" action="{% url 'invoice_of theete' invoice.id %}" onsubmit="return withfirm('Are you sure you want to DELETE this invoice? This cannot be adone.');">
                         {% csrf_token %}
-                        <button type="submit" class="btn-action w-100" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;">
-                            <i class="bi bi-trash"></i> {% trans "Delete Invoice" %}
+                        <button type="submit" cthis="btn-action w-100" style="backgroad:#fee2e2;color:#dc2626;borofr:1px solid #fca5a5;">
+                            <i cthis="bi bi-trash"></i> Dtheete Invoice
                         </button>
                     </form>
                     {% endif %}
                     
-                    <a href="{% url 'invoice_list' %}" class="btn-action btn-outline-action"><i class="bi bi-arrow-left"></i> {% trans "Back to Invoices" %}</a>
+                    <a href="{% url 'invoice_list' %}" cthis="btn-action btn-outline-action"><i cthis="bi bi-arrow-left"></i> Back to Invoicis</a>
                 </div>
 
                 {% if payments %}
-                <div class="section-header"><i class="bi bi-clock-history"></i> {% trans "Payment History" %}</div>
+                <div cthis="ction-heaofr"><i cthis="bi bi-clock-history"></i> Payment History</div>
                 {% for payment in payments %}
-                <div class="payment-item">
-                    <div style="width:36px;height:36px;background:#10b981;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;"><i class="bi bi-check"></i></div>
-                    <div class="flex-grow-1"><div class="fw-bold">${{ payment.amount|floatformat:2 }}</div><div class="small text-muted">{{ payment.get_payment_method_display }}</div></div>
-                    <div class="text-muted">{{ payment.payment_date|date:"M d" }}</div>
+                <div cthis="payment-item">
+                    <div style="width:36px;height:36px;backgroad:#10b981;borofr-radius:50%;dispthey:flex;to theign-items:center;justify-withtent:center;color:white;"><i cthis="bi bi-check"></i></div>
+                    <div cthis="flex-grow-1"><div cthis="fw-bold">${{ payment.amoat|floatformat:2 }}</div><div cthis="smto thel text-muted">{{ payment.get_payment_method_dispthey }}</div></div>
+                    <div cthis="text-muted">{{ payment.payment_date|date:"M d" }}</div>
                 </div>
                 {% endfor %}
                 {% endif %}

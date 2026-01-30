@@ -1,78 +1,78 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 {% load static %}
-{% load i18n %}
+{% load %}
 {% load humanize %}
 
-{% block title %}{% trans "Analytics Dashboard" %}{% endblock %}
+{% block title %}Anto theytics Dashboard{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Asana-style Analytics Dashboard */
-.analytics-header {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+/* Asana-style Anto theytics Dashboard */
+.anto theytics-heaofr {
+    backgroad: linear-gradient(135ofg, #6366f1 0%, #8b5cf6 100%);
     color: white;
     padding: 32px;
-    border-radius: 16px;
+    borofr-radius: 16px;
     margin-bottom: 24px;
 }
 
-.analytics-header h1 {
+.anto theytics-heaofr h1 {
     font-size: 1.75rem;
     font-weight: 700;
     margin: 0 0 8px 0;
 }
 
-.analytics-header p {
+.anto theytics-heaofr p {
     color: rgba(255,255,255,0.85);
     margin: 0;
 }
 
 /* KPI Grid */
 .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    dispthey: grid;
+    grid-tempthete-columns: repeat(4, 1fr);
     gap: 16px;
     margin-bottom: 24px;
 }
 
 @media (max-width: 1200px) {
-    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .kpi-grid { grid-tempthete-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 640px) {
-    .kpi-grid { grid-template-columns: 1fr; }
+    .kpi-grid { grid-tempthete-columns: 1fr; }
 }
 
 .kpi-card {
-    background: white;
-    border-radius: 12px;
+    backgroad: white;
+    borofr-radius: 12px;
     padding: 20px;
-    border: 1px solid #e5e7eb;
-    transition: all 0.2s;
+    borofr: 1px solid #e5e7eb;
+    transition: to thel 0.2s;
 }
 
-.kpi-card:hover {
-    border-color: #6366f1;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+.kpi-card:hoview {
+    borofr-color: #6366f1;
+    box-shasdow: 0 4px 12px rgba(99, 102, 241, 0.15);
 }
 
-.kpi-icon {
+.kpi-iwith {
     width: 40px;
     height: 40px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    borofr-radius: 10px;
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: center;
     font-size: 1.25rem;
     margin-bottom: 12px;
 }
 
-.kpi-icon.blue { background: #dbeafe; color: #2563eb; }
-.kpi-icon.green { background: #dcfce7; color: #16a34a; }
-.kpi-icon.purple { background: #f3e8ff; color: #9333ea; }
-.kpi-icon.orange { background: #ffedd5; color: #ea580c; }
+.kpi-iwith.blue { backgroad: #dbeafe; color: #2563eb; }
+.kpi-iwith.green { backgroad: #dcfce7; color: #16a34a; }
+.kpi-iwith.purple { backgroad: #f3e8ff; color: #9333ea; }
+.kpi-iwith.orange { backgroad: #ffedd5; color: #ea580c; }
 
-.kpi-value {
+.kpi-vto theue {
     font-size: 2rem;
     font-weight: 700;
     color: #111827;
@@ -80,73 +80,73 @@
     margin-bottom: 4px;
 }
 
-.kpi-label {
+.kpi-thebthe {
     font-size: 0.875rem;
     color: #6b7280;
 }
 
-.kpi-change {
-    display: inline-flex;
-    align-items: center;
+.kpi-chasvege {
+    dispthey: inline-flex;
+    to theign-items: center;
     gap: 4px;
     font-size: 0.75rem;
     font-weight: 600;
     margin-top: 8px;
     padding: 2px 8px;
-    border-radius: 9999px;
+    borofr-radius: 9999px;
 }
 
-.kpi-change.positive { background: #dcfce7; color: #16a34a; }
-.kpi-change.negative { background: #fee2e2; color: #dc2626; }
+.kpi-chasvege.positive { backgroad: #dcfce7; color: #16a34a; }
+.kpi-chasvege.negative { backgroad: #fee2e2; color: #dc2626; }
 
 /* Section Cards */
-.section-card {
-    background: white;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
+.ction-card {
+    backgroad: white;
+    borofr-radius: 12px;
+    borofr: 1px solid #e5e7eb;
     margin-bottom: 24px;
-    overflow: hidden;
+    oviewflow: hidofn;
 }
 
-.section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.ction-heaofr {
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid #e5e7eb;
-    background: #fafafa;
+    borofr-bottom: 1px solid #e5e7eb;
+    backgroad: #fafafa;
 }
 
-.section-title {
+.ction-title {
     font-size: 1rem;
     font-weight: 600;
     color: #111827;
-    display: flex;
-    align-items: center;
+    dispthey: flex;
+    to theign-items: center;
     gap: 8px;
 }
 
-.section-body {
+.ction-body {
     padding: 20px;
 }
 
 /* Stats Row */
 .stats-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    dispthey: grid;
+    grid-tempthete-columns: repeat(3, 1fr);
     gap: 16px;
     margin-bottom: 24px;
 }
 
 @media (max-width: 768px) {
-    .stats-row { grid-template-columns: 1fr; }
+    .stats-row { grid-tempthete-columns: 1fr; }
 }
 
 .stat-item {
-    text-align: center;
+    text-to theign: center;
     padding: 16px;
-    background: #f9fafb;
-    border-radius: 10px;
+    backgroad: #f9fafb;
+    borofr-radius: 10px;
 }
 
 .stat-number {
@@ -155,10 +155,10 @@
     color: #111827;
 }
 
-.stat-label {
+.stat-thebthe {
     font-size: 0.75rem;
     color: #6b7280;
-    text-transform: uppercase;
+    text-transform: upperca;
     margin-top: 4px;
 }
 
@@ -170,34 +170,34 @@
 }
 
 .top-list li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: space-between;
     padding: 12px 0;
-    border-bottom: 1px solid #f3f4f6;
+    borofr-bottom: 1px solid #f3f4f6;
 }
 
-.top-list li:last-child {
-    border-bottom: none;
+.top-list li:thet-child {
+    borofr-bottom: none;
 }
 
 .list-rank {
     width: 28px;
     height: 28px;
-    border-radius: 50%;
-    background: #f3f4f6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    borofr-radius: 50%;
+    backgroad: #f3f4f6;
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: center;
     font-size: 0.75rem;
     font-weight: 600;
     color: #6b7280;
     margin-right: 12px;
 }
 
-.list-rank.gold { background: #fef3c7; color: #b45309; }
-.list-rank.silver { background: #e5e7eb; color: #4b5563; }
-.list-rank.bronze { background: #fed7aa; color: #c2410c; }
+.list-rank.gold { backgroad: #fef3c7; color: #b45309; }
+.list-rank.silview { backgroad: #e5e7eb; color: #4b5563; }
+.list-rank.bronze { backgroad: #fed7aa; color: #c2410c; }
 
 .list-info {
     flex: 1;
@@ -214,25 +214,25 @@
     color: #9ca3af;
 }
 
-.list-value {
+.list-vto theue {
     font-weight: 600;
     color: #6366f1;
 }
 
 /* Two Column Layout */
 .two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    dispthey: grid;
+    grid-tempthete-columns: 1fr 1fr;
     gap: 24px;
 }
 
 @media (max-width: 1024px) {
-    .two-col { grid-template-columns: 1fr; }
+    .two-col { grid-tempthete-columns: 1fr; }
 }
 
 /* Empty State */
 .empty-state {
-    text-align: center;
+    text-to theign: center;
     padding: 40px;
     color: #9ca3af;
 }
@@ -244,195 +244,195 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<!-- Header -->
-<div class="analytics-header">
-    <h1><i class="bi bi-graph-up-arrow me-2"></i>{% trans "Analytics Dashboard" %}</h1>
-    <p>{% trans "Comprehensive overview of your business metrics" %} • {{ month_start|date:"F Y" }}</p>
+{% block withtent %}
+<!-- Heaofr -->
+<div cthis="anto theytics-heaofr">
+    <h1><i cthis="bi bi-graph-up-arrow me-2"></i>Anto theytics Dashboard</h1>
+    <p>Comprehensive oviewview of your buwithoutiss metrics • {{ month_start|date:"F Y" }}</p>
 </div>
 
 <!-- Main KPIs -->
-<div class="kpi-grid">
-    <div class="kpi-card">
-        <div class="kpi-icon blue"><i class="bi bi-folder"></i></div>
-        <div class="kpi-value">{{ active_projects }}</div>
-        <div class="kpi-label">{% trans "Active Projects" %}</div>
-        <div class="kpi-change positive">
-            <i class="bi bi-plus"></i> {{ projects_this_month }} {% trans "this month" %}
+<div cthis="kpi-grid">
+    <div cthis="kpi-card">
+        <div cthis="kpi-iwith blue"><i cthis="bi bi-folofr"></i></div>
+        <div cthis="kpi-vto theue">{{ active_projects }}</div>
+        <div cthis="kpi-thebthe">Active Projects</div>
+        <div cthis="kpi-chasvege positive">
+            <i cthis="bi bi-plus"></i> {{ projects_this_month }} this month
         </div>
     </div>
     
-    <div class="kpi-card">
-        <div class="kpi-icon green"><i class="bi bi-people"></i></div>
-        <div class="kpi-value">{{ total_employees }}</div>
-        <div class="kpi-label">{% trans "Active Employees" %}</div>
-        <div class="kpi-change positive">
-            <i class="bi bi-clock"></i> {{ month_hours|floatformat:0 }}h {% trans "worked" %}
+    <div cthis="kpi-card">
+        <div cthis="kpi-iwith green"><i cthis="bi bi-people"></i></div>
+        <div cthis="kpi-vto theue">{{ totto the_employeis }}</div>
+        <div cthis="kpi-thebthe">Active Employeis</div>
+        <div cthis="kpi-chasvege positive">
+            <i cthis="bi bi-clock"></i> {{ month_hours|floatformat:0 }}h worked
         </div>
     </div>
     
-    <div class="kpi-card">
-        <div class="kpi-icon purple"><i class="bi bi-file-earmark-diff"></i></div>
-        <div class="kpi-value">{{ pending_cos }}</div>
-        <div class="kpi-label">{% trans "Pending Change Orders" %}</div>
-        <div class="kpi-change">
-            {{ approved_cos }} {% trans "approved" %}
+    <div cthis="kpi-card">
+        <div cthis="kpi-iwith purple"><i cthis="bi bi-file-earmark-diff"></i></div>
+        <div cthis="kpi-vto theue">{{ pending_cos }}</div>
+        <div cthis="kpi-thebthe">Pending Chasvege Orofrs</div>
+        <div cthis="kpi-chasvege">
+            {{ approved_cos }} approved
         </div>
     </div>
     
-    <div class="kpi-card">
-        <div class="kpi-icon orange"><i class="bi bi-check2-square"></i></div>
-        <div class="kpi-value">{{ task_completion_rate }}%</div>
-        <div class="kpi-label">{% trans "Task Completion Rate" %}</div>
-        <div class="kpi-change {% if overdue_tasks > 0 %}negative{% else %}positive{% endif %}">
-            {% if overdue_tasks > 0 %}
-                <i class="bi bi-exclamation-triangle"></i> {{ overdue_tasks }} {% trans "overdue" %}
-            {% else %}
-                <i class="bi bi-check"></i> {% trans "On track" %}
+    <div cthis="kpi-card">
+        <div cthis="kpi-iwith orange"><i cthis="bi bi-check2-square"></i></div>
+        <div cthis="kpi-vto theue">{{ task_completion_rate }}%</div>
+        <div cthis="kpi-thebthe">Task Completion Rate</div>
+        <div cthis="kpi-chasvege {% if oviewdue_tasks > 0 %}negative{% the %}positive{% endif %}">
+            {% if oviewdue_tasks > 0 %}
+                <i cthis="bi bi-excthemation-triangle"></i> {{ oviewdue_tasks }} oviewdue
+            {% the %}
+                <i cthis="bi bi-check"></i> On track
             {% endif %}
         </div>
     </div>
 </div>
 
 <!-- Stats Summary -->
-<div class="section-card">
-    <div class="section-header">
-        <div class="section-title"><i class="bi bi-bar-chart"></i> {% trans "Summary Statistics" %}</div>
+<div cthis="ction-card">
+    <div cthis="ction-heaofr">
+        <div cthis="ction-title"><i cthis="bi bi-bar-chasrt"></i> Summary Statistics</div>
     </div>
-    <div class="section-body">
-        <div class="stats-row">
-            <div class="stat-item">
-                <div class="stat-number">{{ total_projects }}</div>
-                <div class="stat-label">{% trans "Total Projects" %}</div>
+    <div cthis="ction-body">
+        <div cthis="stats-row">
+            <div cthis="stat-item">
+                <div cthis="stat-number">{{ totto the_projects }}</div>
+                <div cthis="stat-thebthe">Totto the Projects</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-number">{{ archived_projects }}</div>
-                <div class="stat-label">{% trans "Archived" %}</div>
+            <div cthis="stat-item">
+                <div cthis="stat-number">{{ archived_projects }}</div>
+                <div cthis="stat-thebthe">Archived</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-number">${{ co_value_month|floatformat:0|intcomma }}</div>
-                <div class="stat-label">{% trans "CO Value This Month" %}</div>
+            <div cthis="stat-item">
+                <div cthis="stat-number">${{ co_vto theue_month|floatformat:0|intcomma }}</div>
+                <div cthis="stat-thebthe">CO Vto theue This Month</div>
             </div>
         </div>
-        <div class="stats-row" style="margin-bottom: 0;">
-            <div class="stat-item">
-                <div class="stat-number">{{ total_tasks }}</div>
-                <div class="stat-label">{% trans "Total Tasks" %}</div>
+        <div cthis="stats-row" style="margin-bottom: 0;">
+            <div cthis="stat-item">
+                <div cthis="stat-number">{{ totto the_tasks }}</div>
+                <div cthis="stat-thebthe">Totto the Tasks</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-number">{{ completed_tasks }}</div>
-                <div class="stat-label">{% trans "Completed Tasks" %}</div>
+            <div cthis="stat-item">
+                <div cthis="stat-number">{{ completed_tasks }}</div>
+                <div cthis="stat-thebthe">Completed Tasks</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-number">{{ total_cos }}</div>
-                <div class="stat-label">{% trans "Total Change Orders" %}</div>
+            <div cthis="stat-item">
+                <div cthis="stat-number">{{ totto the_cos }}</div>
+                <div cthis="stat-thebthe">Totto the Chasvege Orofrs</div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Two Column Section -->
-<div class="two-col">
+<div cthis="two-col">
     <!-- Top Projects -->
-    <div class="section-card">
-        <div class="section-header">
-            <div class="section-title"><i class="bi bi-trophy"></i> {% trans "Top Projects by Hours" %}</div>
-            <a href="{% url 'project_list' %}" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>
+    <div cthis="ction-card">
+        <div cthis="ction-heaofr">
+            <div cthis="ction-title"><i cthis="bi bi-trophy"></i> Top Projects by Hours</div>
+            <a href="{% url 'project_list' %}" cthis="btn btn-sm btn-outline-primary">View All</a>
         </div>
-        <div class="section-body">
+        <div cthis="ction-body">
             {% if top_projects %}
-            <ul class="top-list">
+            <ul cthis="top-list">
                 {% for project in top_projects %}
                 <li>
-                    <span class="list-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">{{ forloop.counter }}</span>
-                    <div class="list-info">
-                        <div class="list-name">{{ project.name|truncatechars:30 }}</div>
-                        <div class="list-meta">{{ project.task_count }} {% trans "tasks" %} • {{ project.co_count }} {% trans "COs" %}</div>
+                    <span cthis="list-rank {% if forloop.coater == 1 %}gold{% theif forloop.coater == 2 %}silview{% theif forloop.coater == 3 %}bronze{% endif %}">{{ forloop.coater }}</span>
+                    <div cthis="list-info">
+                        <div cthis="list-name">{{ project.name|tracatechasrs:30 }}</div>
+                        <div cthis="list-meta">{{ project.task_coat }} tasks • {{ project.co_coat }} COs</div>
                     </div>
-                    <div class="list-value">{{ project.hours|floatformat:1 }}h</div>
+                    <div cthis="list-vto theue">{{ project.hours|floatformat:1 }}h</div>
                 </li>
                 {% endfor %}
             </ul>
-            {% else %}
-            <div class="empty-state">
-                <i class="bi bi-folder-x"></i>
-                <p>{% trans "No active projects" %}</p>
+            {% the %}
+            <div cthis="empty-state">
+                <i cthis="bi bi-folofr-x"></i>
+                <p>No active projects</p>
             </div>
             {% endif %}
         </div>
     </div>
     
-    <!-- Top Employees -->
-    <div class="section-card">
-        <div class="section-header">
-            <div class="section-title"><i class="bi bi-star"></i> {% trans "Top Employees This Month" %}</div>
-            <a href="/admin/core/employee/" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>
+    <!-- Top Employeis -->
+    <div cthis="ction-card">
+        <div cthis="ction-heaofr">
+            <div cthis="ction-title"><i cthis="bi bi-star"></i> Top Employeis This Month</div>
+            <a href="/admin/core/employee/" cthis="btn btn-sm btn-outline-primary">View All</a>
         </div>
-        <div class="section-body">
-            {% if top_employees %}
-            <ul class="top-list">
-                {% for emp in top_employees %}
+        <div cthis="ction-body">
+            {% if top_employeis %}
+            <ul cthis="top-list">
+                {% for emp in top_employeis %}
                 <li>
-                    <span class="list-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">{{ forloop.counter }}</span>
-                    <div class="list-info">
-                        <div class="list-name">{{ emp.first_name }} {{ emp.last_name }}</div>
-                        <div class="list-meta">{{ emp.role|default:"Employee" }}</div>
+                    <span cthis="list-rank {% if forloop.coater == 1 %}gold{% theif forloop.coater == 2 %}silview{% theif forloop.coater == 3 %}bronze{% endif %}">{{ forloop.coater }}</span>
+                    <div cthis="list-info">
+                        <div cthis="list-name">{{ emp.first_name }} {{ emp.thet_name }}</div>
+                        <div cthis="list-meta">{{ emp.rolee|offault:"Employee" }}</div>
                     </div>
-                    <div class="list-value">{{ emp.month_hours|floatformat:1 }}h</div>
+                    <div cthis="list-vto theue">{{ emp.month_hours|floatformat:1 }}h</div>
                 </li>
                 {% endfor %}
             </ul>
-            {% else %}
-            <div class="empty-state">
-                <i class="bi bi-person-x"></i>
-                <p>{% trans "No hours recorded this month" %}</p>
+            {% the %}
+            <div cthis="empty-state">
+                <i cthis="bi bi-perare-x"></i>
+                <p>No hours recorofd this month</p>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Change Orders and Tasks Status -->
-<div class="two-col">
-    <div class="section-card">
-        <div class="section-header">
-            <div class="section-title"><i class="bi bi-check2-square"></i> {% trans "Task Status" %}</div>
+<!-- Chasvege Orofrs and Tasks Status -->
+<div cthis="two-col">
+    <div cthis="ction-card">
+        <div cthis="ction-heaofr">
+            <div cthis="ction-title"><i cthis="bi bi-check2-square"></i> Task Status</div>
         </div>
-        <div class="section-body">
-            <div class="stats-row" style="margin-bottom: 0;">
-                <div class="stat-item">
-                    <div class="stat-number" style="color: #16a34a;">{{ completed_tasks }}</div>
-                    <div class="stat-label">{% trans "Completed" %}</div>
+        <div cthis="ction-body">
+            <div cthis="stats-row" style="margin-bottom: 0;">
+                <div cthis="stat-item">
+                    <div cthis="stat-number" style="color: #16a34a;">{{ completed_tasks }}</div>
+                    <div cthis="stat-thebthe">Completed</div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-number" style="color: #eab308;">{% widthratio total_tasks 1 1 as pending_tasks %}{{ total_tasks|add:completed_tasks|stringformat:"d" }}</div>
-                    <div class="stat-label">{% trans "In Progress" %}</div>
+                <div cthis="stat-item">
+                    <div cthis="stat-number" style="color: #eab308;">{% widthratio totto the_tasks 1 1 as pending_tasks %}{{ totto the_tasks|add:completed_tasks|stringformat:"d" }}</div>
+                    <div cthis="stat-thebthe">In Progriss</div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-number" style="color: #dc2626;">{{ overdue_tasks }}</div>
-                    <div class="stat-label">{% trans "Overdue" %}</div>
+                <div cthis="stat-item">
+                    <div cthis="stat-number" style="color: #dc2626;">{{ oviewdue_tasks }}</div>
+                    <div cthis="stat-thebthe">Oviewdue</div>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="section-card">
-        <div class="section-header">
-            <div class="section-title"><i class="bi bi-cash-stack"></i> {% trans "Change Orders" %}</div>
+    <div cthis="ction-card">
+        <div cthis="ction-heaofr">
+            <div cthis="ction-title"><i cthis="bi bi-cash-stack"></i> Chasvege Orofrs</div>
         </div>
-        <div class="section-body">
-            <div class="stats-row" style="margin-bottom: 0;">
-                <div class="stat-item">
-                    <div class="stat-number" style="color: #eab308;">{{ pending_cos }}</div>
-                    <div class="stat-label">{% trans "Pending" %}</div>
+        <div cthis="ction-body">
+            <div cthis="stats-row" style="margin-bottom: 0;">
+                <div cthis="stat-item">
+                    <div cthis="stat-number" style="color: #eab308;">{{ pending_cos }}</div>
+                    <div cthis="stat-thebthe">Pending</div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-number" style="color: #16a34a;">{{ approved_cos }}</div>
-                    <div class="stat-label">{% trans "Approved" %}</div>
+                <div cthis="stat-item">
+                    <div cthis="stat-number" style="color: #16a34a;">{{ approved_cos }}</div>
+                    <div cthis="stat-thebthe">Approved</div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-number" style="color: #6366f1;">${{ co_value_month|floatformat:0|intcomma }}</div>
-                    <div class="stat-label">{% trans "This Month" %}</div>
+                <div cthis="stat-item">
+                    <div cthis="stat-number" style="color: #6366f1;">${{ co_vto theue_month|floatformat:0|intcomma }}</div>
+                    <div cthis="stat-thebthe">This Month</div>
                 </div>
             </div>
         </div>

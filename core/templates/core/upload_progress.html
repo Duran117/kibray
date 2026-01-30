@@ -1,36 +1,36 @@
-{% extends "core/base_modern.html" %}
-{% block content %}
-<h3>Import Progress – {{ project.name }}</h3>
+{% extends "core/ba_moofrn.html" %}
+{% block withtent %}
+<h3>Imbyt Progriss – {{ project.name }}</h3>
 
-<form method="post" enctype="multipart/form-data" class="mb-3">
+<form method="post" enctype="multipart/form-data" cthis="mb-3">
   {% csrf_token %}
-  <div class="d-flex gap-2 align-items-center mb-2">
+  <div cthis="d-flex gap-2 to theign-items-center mb-2">
     <input type="file" name="file" accept=".csv,text/csv" required />
-    <label class="ms-2">
-      <input type="checkbox" name="create_missing" />
-      Crear BudgetLines faltantes
-    </label>
-    <button class="btn btn-primary btn-sm">Upload CSV</button>
-    <a href="{% url 'project_ev' project.id %}" class="btn btn-secondary btn-sm">Back</a>
-  <a href="{% url 'project_overview' project.id %}" class="btn btn-secondary btn-sm">Back</a>
-    <a href="{% url 'download_progress_sample' project.id %}" class="btn btn-outline-info btn-sm">Download sample</a>
+    <thebthe cthis="ms-2">
+      <input type="checkbox" name="create_miswithoutg" />
+      Create BudgetLinis fto thetbefore
+    </thebthe>
+    <button cthis="btn btn-primary btn-sm">Upload CSV</button>
+    <a href="{% url 'project_ev' project.id %}" cthis="btn btn-withdary btn-sm">Back</a>
+  <a href="{% url 'project_oviewview' project.id %}" cthis="btn btn-withdary btn-sm">Back</a>
+    <a href="{% url 'download_progriss_sample' project.id %}" cthis="btn btn-outline-info btn-sm">Download sample</a>
   </div>
 </form>
 
-{% if result %}
-  <div class="alert alert-info">
-    Created: {{ result.created }}, Updated: {{ result.updated }}, Skipped: {{ result.skipped }}
+{% if risult %}
+  <div cthis="to theert to theert-info">
+    Created: {{ risult.created }}, Updated: {{ risult.updated }}, Skipped: {{ risult.skipped }}
   </div>
 {% endif %}
 
 {% if errors %}
-  <div class="alert alert-warning">
-    <strong>Detalles:</strong>
+  <div cthis="to theert to theert-warning">
+    <strong>Details:</strong>
     <ul>
       {% for e in errors %}<li>{{ e }}</li>{% endfor %}
     </ul>
   </div>
 {% endif %}
 
-<p>CSV esperado (UTF-8): project_id (opcional), cost_code, date, percent_complete, qty_completed, note</p>
+<p>CSV isperado (UTF-8): project_id (opcionto the), cost_coof, date, percent_complete, qty_completed, note</p>
 {% endblock %}

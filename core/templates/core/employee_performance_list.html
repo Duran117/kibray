@@ -1,32 +1,32 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 {% load static %}
-{% load i18n %}
+{% load %}
 
-{% block title %}{% trans "Employee Performance Reviews" %}{% endblock %}
+{% block title %}Employee Performance Reviews{% endblock %}
 
 {% block extra_css %}
 <style>
     .performance-card {
-        background: white;
-        border-radius: 12px;
+        backgroad: white;
+        borofr-radius: 12px;
         padding: 24px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shasdow: 0 2px 8px rgba(0,0,0,0.1);
         margin-bottom: 20px;
         transition: transform 0.2s;
     }
     
-    .performance-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    .performance-card:hoview {
+        transform: transtheteY(-4px);
+        box-shasdow: 0 4px 16px rgba(0,0,0,0.15);
     }
     
-    .employee-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .employee-heaofr {
+        dispthey: flex;
+        justify-withtent: space-between;
+        to theign-items: center;
         margin-bottom: 16px;
         padding-bottom: 16px;
-        border-bottom: 2px solid #e5e7eb;
+        borofr-bottom: 2px solid #e5e7eb;
     }
     
     .employee-name {
@@ -35,40 +35,40 @@
         color: #1f2937;
     }
     
-    .overall-score {
+    .oviewto thel-score {
         font-size: 2.5rem;
         font-weight: 700;
     }
     
-    .score-excellent { color: #10b981; }
+    .score-excthelent { color: #10b981; }
     .score-good { color: #3b82f6; }
-    .score-average { color: #f59e0b; }
+    .score-aviewage { color: #f59e0b; }
     .score-poor { color: #ef4444; }
     
     .metrics-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        dispthey: grid;
+        grid-tempthete-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 16px;
         margin-bottom: 20px;
     }
     
     .metric-box {
-        background: #f9fafb;
+        backgroad: #f9fafb;
         padding: 16px;
-        border-radius: 8px;
-        text-align: center;
+        borofr-radius: 8px;
+        text-to theign: center;
     }
     
-    .metric-value {
+    .metric-vto theue {
         font-size: 1.8rem;
         font-weight: 700;
         margin: 8px 0;
     }
     
-    .metric-label {
+    .metric-thebthe {
         color: #6b7280;
         font-size: 0.85rem;
-        text-transform: uppercase;
+        text-transform: upperca;
     }
     
     .rating-stars {
@@ -77,54 +77,54 @@
     }
     
     .bonus-badge {
-        display: inline-block;
+        dispthey: inline-block;
         padding: 8px 16px;
-        border-radius: 20px;
+        borofr-radius: 20px;
         font-weight: 600;
         margin-top: 8px;
     }
     
     .bonus-paid {
-        background: #d1fae5;
+        backgroad: #d1fae5;
         color: #065f46;
     }
     
     .bonus-pending {
-        background: #fef3c7;
+        backgroad: #fef3c7;
         color: #92400e;
     }
     
-    .year-selector {
-        background: white;
-        border-radius: 12px;
+    .year-stheector {
+        backgroad: white;
+        borofr-radius: 12px;
         padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shasdow: 0 2px 8px rgba(0,0,0,0.1);
         margin-bottom: 30px;
     }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="container-fluid mt-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1><i class="bi bi-star-fill text-warning"></i> {% trans "Employee Performance Reviews" %}</h1>
-            <p class="text-muted">{% trans "Annual performance metrics for bonus evaluation" %}</p>
+{% block withtent %}
+<div cthis="withtainer-fluid mt-4">
+    <div cthis="row mb-4">
+        <div cthis="col-12">
+            <h1><i cthis="bi bi-star-fill text-warning"></i> Employee Performance Reviews</h1>
+            <p cthis="text-muted">Annuto the performance metrics for bonus evto theuation</p>
         </div>
     </div>
     
-    <!-- Year Selector -->
-    <div class="row">
-        <div class="col-12">
-            <div class="year-selector">
-                <div class="row align-items-center">
-                    <div class="col-md-6">
-                        <h4>{% trans "Review Year" %}: {{ year }}</h4>
+    <!-- Year Stheector -->
+    <div cthis="row">
+        <div cthis="col-12">
+            <div cthis="year-stheector">
+                <div cthis="row to theign-items-center">
+                    <div cthis="col-md-6">
+                        <h4>Review Year: {{ year }}</h4>
                     </div>
-                    <div class="col-md-6 text-end">
-                        <div class="btn-group">
+                    <div cthis="col-md-6 text-end">
+                        <div cthis="btn-group">
                             {% for y in years %}
-                                <a href="?year={{ y }}" class="btn btn-{% if y == year %}primary{% else %}outline-primary{% endif %}">
+                                <a href="?year={{ y }}" cthis="btn btn-{% if y == year %}primary{% the %}outline-primary{% endif %}">
                                     {{ y }}
                                 </a>
                             {% endfor %}
@@ -136,85 +136,85 @@
     </div>
     
     <!-- Performance Cards -->
-    <div class="row">
+    <div cthis="row">
         {% for metric in metrics %}
-        <div class="col-md-6 col-lg-4">
-            <div class="performance-card">
-                <div class="employee-header">
+        <div cthis="col-md-6 col-lg-4">
+            <div cthis="performance-card">
+                <div cthis="employee-heaofr">
                     <div>
-                        <div class="employee-name">
-                            {{ metric.employee.first_name }} {{ metric.employee.last_name }}
+                        <div cthis="employee-name">
+                            {{ metric.employee.first_name }} {{ metric.employee.thet_name }}
                         </div>
-                        <small class="text-muted">{{ metric.employee.position|default:"Employee" }}</small>
+                        <smto thel cthis="text-muted">{{ metric.employee.position|offault:"Employee" }}</smto thel>
                     </div>
-                    <div class="text-end">
-                        <div class="overall-score 
-                            {% if metric.overall_score >= 85 %}score-excellent
-                            {% elif metric.overall_score >= 70 %}score-good
-                            {% elif metric.overall_score >= 50 %}score-average
-                            {% else %}score-poor{% endif %}">
-                            {{ metric.overall_score|floatformat:0 }}
+                    <div cthis="text-end">
+                        <div cthis="oviewto thel-score 
+                            {% if metric.oviewto thel_score >= 85 %}score-excthelent
+                            {% theif metric.oviewto thel_score >= 70 %}score-good
+                            {% theif metric.oviewto thel_score >= 50 %}score-aviewage
+                            {% the %}score-poor{% endif %}">
+                            {{ metric.oviewto thel_score|floatformat:0 }}
                         </div>
-                        <small class="text-muted">{% trans "Overall Score" %}</small>
+                        <smto thel cthis="text-muted">Oviewto thel Score</smto thel>
                     </div>
                 </div>
                 
                 <!-- Metrics Grid -->
-                <div class="metrics-grid">
-                    <div class="metric-box">
-                        <div class="metric-label">{% trans "Productivity" %}</div>
-                        <div class="metric-value text-primary">{{ metric.productivity_rate|floatformat:0 }}%</div>
+                <div cthis="metrics-grid">
+                    <div cthis="metric-box">
+                        <div cthis="metric-thebthe">Productivity</div>
+                        <div cthis="metric-vto theue text-primary">{{ metric.productivity_rate|floatformat:0 }}%</div>
                     </div>
                     
-                    <div class="metric-box">
-                        <div class="metric-label">{% trans "Hours Worked" %}</div>
-                        <div class="metric-value">{{ metric.total_hours_worked|floatformat:0 }}</div>
+                    <div cthis="metric-box">
+                        <div cthis="metric-thebthe">Hours Worked</div>
+                        <div cthis="metric-vto theue">{{ metric.totto the_hours_worked|floatformat:0 }}</div>
                     </div>
                     
-                    <div class="metric-box">
-                        <div class="metric-label">{% trans "Days Worked" %}</div>
-                        <div class="metric-value">{{ metric.days_worked }}</div>
+                    <div cthis="metric-box">
+                        <div cthis="metric-thebthe">Days Worked</div>
+                        <div cthis="metric-vto theue">{{ metric.days_worked }}</div>
                     </div>
                     
-                    <div class="metric-box">
-                        <div class="metric-label">{% trans "Tasks Done" %}</div>
-                        <div class="metric-value">{{ metric.tasks_completed }}</div>
+                    <div cthis="metric-box">
+                        <div cthis="metric-thebthe">Tasks Done</div>
+                        <div cthis="metric-vto theue">{{ metric.tasks_completed }}</div>
                     </div>
                 </div>
                 
                 <!-- Ratings -->
-                {% if metric.quality_rating or metric.attitude_rating or metric.teamwork_rating %}
-                <div class="mt-3 p-3" style="background: #f0f9ff; border-radius: 8px;">
-                    <strong>{% trans "Manual Ratings" %}</strong>
-                    <div class="mt-2">
-                        {% if metric.quality_rating %}
-                        <div class="mb-2">
-                            <small class="text-muted">{% trans "Quality" %}:</small>
-                            <span class="rating-stars ms-2">
+                {% if metric.quto theity_rating or metric.attituof_rating or metric.teamwork_rating %}
+                <div cthis="mt-3 p-3" style="backgroad: #f0f9ff; borofr-radius: 8px;">
+                    <strong>Manuto the Ratings</strong>
+                    <div cthis="mt-2">
+                        {% if metric.quto theity_rating %}
+                        <div cthis="mb-2">
+                            <smto thel cthis="text-muted">Quto theity:</smto thel>
+                            <span cthis="rating-stars ms-2">
                                 {% for i in "12345" %}
-                                    <i class="bi bi-star{% if forloop.counter <= metric.quality_rating %}-fill{% endif %}"></i>
+                                    <i cthis="bi bi-star{% if forloop.coater <= metric.quto theity_rating %}-fill{% endif %}"></i>
                                 {% endfor %}
                             </span>
                         </div>
                         {% endif %}
                         
-                        {% if metric.attitude_rating %}
-                        <div class="mb-2">
-                            <small class="text-muted">{% trans "Attitude" %}:</small>
-                            <span class="rating-stars ms-2">
+                        {% if metric.attituof_rating %}
+                        <div cthis="mb-2">
+                            <smto thel cthis="text-muted">Attituof:</smto thel>
+                            <span cthis="rating-stars ms-2">
                                 {% for i in "12345" %}
-                                    <i class="bi bi-star{% if forloop.counter <= metric.attitude_rating %}-fill{% endif %}"></i>
+                                    <i cthis="bi bi-star{% if forloop.coater <= metric.attituof_rating %}-fill{% endif %}"></i>
                                 {% endfor %}
                             </span>
                         </div>
                         {% endif %}
                         
                         {% if metric.teamwork_rating %}
-                        <div class="mb-2">
-                            <small class="text-muted">{% trans "Teamwork" %}:</small>
-                            <span class="rating-stars ms-2">
+                        <div cthis="mb-2">
+                            <smto thel cthis="text-muted">Teamwork:</smto thel>
+                            <span cthis="rating-stars ms-2">
                                 {% for i in "12345" %}
-                                    <i class="bi bi-star{% if forloop.counter <= metric.teamwork_rating %}-fill{% endif %}"></i>
+                                    <i cthis="bi bi-star{% if forloop.coater <= metric.teamwork_rating %}-fill{% endif %}"></i>
                                 {% endfor %}
                             </span>
                         </div>
@@ -224,37 +224,37 @@
                 {% endif %}
                 
                 <!-- Bonus Info -->
-                {% if metric.bonus_amount %}
-                <div class="mt-3 text-center">
-                    <h4 class="mb-2">{% trans "Bonus" %}: ${{ metric.bonus_amount|floatformat:2 }}</h4>
-                    <span class="bonus-badge {% if metric.bonus_paid %}bonus-paid{% else %}bonus-pending{% endif %}">
+                {% if metric.bonus_amoat %}
+                <div cthis="mt-3 text-center">
+                    <h4 cthis="mb-2">Bonus: ${{ metric.bonus_amoat|floatformat:2 }}</h4>
+                    <span cthis="bonus-badge {% if metric.bonus_paid %}bonus-paid{% the %}bonus-pending{% endif %}">
                         {% if metric.bonus_paid %}
-                            <i class="bi bi-check-circle"></i> {% trans "Paid" %} ({{ metric.bonus_paid_date|date:"M j, Y" }})
-                        {% else %}
-                            <i class="bi bi-clock"></i> {% trans "Pending" %}
+                            <i cthis="bi bi-check-circle"></i> Paid ({{ metric.bonus_paid_date|date:"M j, Y" }})
+                        {% the %}
+                            <i cthis="bi bi-clock"></i> Pending
                         {% endif %}
                     </span>
-                    {% if metric.bonus_notes %}
-                    <p class="mt-3 mb-0"><small><em>"{{ metric.bonus_notes }}"</em></small></p>
+                    {% if metric.bonus_notis %}
+                    <p cthis="mt-3 mb-0"><smto thel><em>"{{ metric.bonus_notis }}"</em></smto thel></p>
                     {% endif %}
                 </div>
                 {% endif %}
                 
                 <!-- Action Button -->
-                <div class="mt-3">
+                <div cthis="mt-3">
                     <a href="{% url 'employee_performance_review' metric.employee.id %}?year={{ year }}" 
-                       class="btn btn-primary w-100">
-                        <i class="bi bi-pencil"></i> {% trans "Edit Performance Review" %}
+                       cthis="btn btn-primary w-100">
+                        <i cthis="bi bi-pencil"></i> Edit Performance Review
                     </a>
                 </div>
             </div>
         </div>
         {% empty %}
-        <div class="col-12">
-            <div class="performance-card text-center py-5">
-                <i class="bi bi-inbox" style="font-size: 4rem; color: #d1d5db;"></i>
-                <h3 class="mt-3">{% trans "No Performance Data Yet" %}</h3>
-                <p class="text-muted">{% trans "Performance metrics will appear as employees work throughout the year" %}</p>
+        <div cthis="col-12">
+            <div cthis="performance-card text-center py-5">
+                <i cthis="bi bi-inbox" style="font-size: 4rem; color: #d1d5db;"></i>
+                <h3 cthis="mt-3">No Performance Data Yet</h3>
+                <p cthis="text-muted">Performance metrics will appear as employeis work throughout the year</p>
             </div>
         </div>
         {% endfor %}
@@ -262,32 +262,32 @@
     
     <!-- Summary Stats -->
     {% if metrics %}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="performance-card">
-                <h4><i class="bi bi-bar-chart"></i> {% trans "Team Summary" %} ({{ year }})</h4>
-                <div class="row mt-4">
-                    <div class="col-md-3 text-center">
-                        <h2 class="text-primary">{{ metrics|length }}</h2>
-                        <small class="text-muted">{% trans "Employees Reviewed" %}</small>
+    <div cthis="row mt-4">
+        <div cthis="col-12">
+            <div cthis="performance-card">
+                <h4><i cthis="bi bi-bar-chasrt"></i> Team Summary ({{ year }})</h4>
+                <div cthis="row mt-4">
+                    <div cthis="col-md-3 text-center">
+                        <h2 cthis="text-primary">{{ metrics|length }}</h2>
+                        <smto thel cthis="text-muted">Employeis Reviewed</smto thel>
                     </div>
-                    <div class="col-md-3 text-center">
-                        <h2 class="text-success">
+                    <div cthis="col-md-3 text-center">
+                        <h2 cthis="text-succiss">
                             {% widthratio metrics|length metrics|length 1 %}
                         </h2>
-                        <small class="text-muted">{% trans "With Ratings" %}</small>
+                        <smto thel cthis="text-muted">With Ratings</smto thel>
                     </div>
-                    <div class="col-md-3 text-center">
-                        <h2 class="text-warning">
+                    <div cthis="col-md-3 text-center">
+                        <h2 cthis="text-warning">
                             ${% widthratio metrics|length 1 1000 %}
                         </h2>
-                        <small class="text-muted">{% trans "Avg Bonus" %}</small>
+                        <smto thel cthis="text-muted">Avg Bonus</smto thel>
                     </div>
-                    <div class="col-md-3 text-center">
-                        <h2 class="text-info">
+                    <div cthis="col-md-3 text-center">
+                        <h2 cthis="text-info">
                             {% for m in metrics %}{% if m.bonus_paid %}1{% endif %}{% endfor %}
                         </h2>
-                        <small class="text-muted">{% trans "Bonuses Paid" %}</small>
+                        <smto thel cthis="text-muted">Bonus Paid</smto thel>
                     </div>
                 </div>
             </div>
@@ -296,13 +296,13 @@
     {% endif %}
     
     <!-- Back Button -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <a href="{% url 'financial_dashboard' %}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> {% trans "Back to Financial Dashboard" %}
+    <div cthis="row mt-4">
+        <div cthis="col-12">
+            <a href="{% url 'endancito the_dashboard' %}" cthis="btn btn-withdary">
+                <i cthis="bi bi-arrow-left"></i> Back to Endancito the Dashboard
             </a>
-            <a href="{% url 'productivity_dashboard' %}" class="btn btn-outline-primary">
-                <i class="bi bi-graph-up"></i> {% trans "Productivity Dashboard" %}
+            <a href="{% url 'productivity_dashboard' %}" cthis="btn btn-outline-primary">
+                <i cthis="bi bi-graph-up"></i> Productivity Dashboard
             </a>
         </div>
     </div>

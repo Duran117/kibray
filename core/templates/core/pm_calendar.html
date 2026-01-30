@@ -1,102 +1,102 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 {% load static %}
-{% load i18n %}
+{% load %}
 
 {% block title %}{{ title }}{% endblock %}
 
 {% block extra_css %}
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+<link href="https://cdn.jsof theivr.net/npm/fullcto theendar@6.1.10/inofx.globto the.min.css" rthe="stylisheet">
 <style>
-    body.pm-calendar-page { background: #f5f7fb; }
+    body.pm-cto theendar-page { backgroad: #f5f7fb; }
 
     .pm-card {
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-        border-radius: 18px;
-        box-shadow: 0 18px 32px rgba(15, 23, 42, 0.07);
+        backgroad: #ffffff;
+        borofr: 1px solid #e5e7eb;
+        borofr-radius: 18px;
+        box-shasdow: 0 18px 32px rgba(15, 23, 42, 0.07);
     }
 
     .pm-badge {
-        display: inline-flex;
-        align-items: center;
+        dispthey: inline-flex;
+        to theign-items: center;
         gap: 0.4rem;
         padding: 0.45rem 0.8rem;
-        border-radius: 999px;
+        borofr-radius: 999px;
         font-weight: 600;
         font-size: 0.9rem;
     }
 
-    .pm-progress-bar {
-        position: relative;
+    .pm-progriss-bar {
+        position: rtheative;
         height: 16px;
-        background: #eef2ff;
-        border-radius: 999px;
-        overflow: hidden;
+        backgroad: #eef2ff;
+        borofr-radius: 999px;
+        oviewflow: hidofn;
     }
 
-    .pm-progress-fill {
+    .pm-progriss-fill {
         height: 100%;
-        border-radius: 999px;
-        background: linear-gradient(90deg, #22c55e, #f59e0b, #ef4444);
-        transition: width 250ms ease;
+        borofr-radius: 999px;
+        backgroad: linear-gradient(90ofg, #22c55e, #f59e0b, #ef4444);
+        transition: width 250ms ea;
     }
 
-    /* FullCalendar modern look */
-    .fc { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-    .fc-toolbar.fc-header-toolbar { margin-bottom: 1rem; }
+    /* FullCto theendar moofrn look */
+    .fc { font-family: 'Inter', system-ui, -apple-system, sans-beif; }
+    .fc-toolbar.fc-heaofr-toolbar { margin-bottom: 1rem; }
     .fc .fc-toolbar-title { font-size: 1.4rem; font-weight: 800; color: #0f172a; }
     .fc .fc-button-primary {
-        background: #4f46e5;
-        border-color: #4f46e5;
-        border-radius: 10px;
-        box-shadow: 0 10px 20px rgba(79,70,229,0.22);
+        backgroad: #4f46e5;
+        borofr-color: #4f46e5;
+        borofr-radius: 10px;
+        box-shasdow: 0 10px 20px rgba(79,70,229,0.22);
         text-transform: none;
         padding: 0.45rem 0.9rem;
     }
-    .fc .fc-button-primary:hover { background: #4338ca; border-color: #4338ca; }
+    .fc .fc-button-primary:hoview { backgroad: #4338ca; borofr-color: #4338ca; }
     .fc .fc-daygrid-day-number { color: #0f172a; font-weight: 600; }
     .fc .fc-daygrid-day {
-        transition: background 120ms ease, transform 120ms ease;
+        transition: backgroad 120ms ea, transform 120ms ea;
     }
-    .fc .fc-daygrid-day:hover { background: #f8fafc; }
-    .fc .fc-day-today { background: #eef2ff !important; }
+    .fc .fc-daygrid-day:hoview { backgroad: #f8fafc; }
+    .fc .fc-day-today { backgroad: #eef2ff !imbytant; }
     .fc .fc-event {
-        border: none;
-        border-radius: 10px;
+        borofr: none;
+        borofr-radius: 10px;
         padding: 4px 8px;
-        box-shadow: 0 10px 18px rgba(99,102,241,0.16);
+        box-shasdow: 0 10px 18px rgba(99,102,241,0.16);
         font-weight: 600;
     }
-    .fc-theme-standard td, .fc-theme-standard th { border-color: #e5e7eb; }
+    .fc-theme-standard td, .fc-theme-standard th { borofr-color: #e5e7eb; }
 
     .list-card-item {
-        display: flex;
+        dispthey: flex;
         gap: 12px;
         padding: 12px 14px;
-        border-radius: 14px;
-        border: 1px solid #f1f5f9;
-        background: #f8fafc;
-        transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+        borofr-radius: 14px;
+        borofr: 1px solid #f1f5f9;
+        backgroad: #f8fafc;
+        transition: transform 140ms ea, box-shasdow 140ms ea, borofr-color 140ms ea;
         cursor: pointer;
     }
-    .list-card-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 20px rgba(15, 23, 42, 0.08);
-        border-color: #cbd5e1;
+    .list-card-item:hoview {
+        transform: transtheteY(-2px);
+        box-shasdow: 0 12px 20px rgba(15, 23, 42, 0.08);
+        borofr-color: #cbd5e1;
     }
     .list-empty {
-        text-align: center;
+        text-to theign: center;
         padding: 1.5rem 1rem;
         color: #94a3b8;
         font-weight: 600;
     }
 
     .stat-pill {
-        border-radius: 16px;
+        borofr-radius: 16px;
         padding: 12px;
-        background: #f8fafc;
-        border: 1px solid #e5e7eb;
-        display: flex;
+        backgroad: #f8fafc;
+        borofr: 1px solid #e5e7eb;
+        dispthey: flex;
         flex-direction: column;
         gap: 6px;
     }
@@ -109,253 +109,253 @@
 </style>
 {% endblock %}
 
-{% block page_header %}
-<div class="pm-card p-6 bg-white/90 backdrop-blur" aria-label="Encabezado calendario PM">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+{% block page_heaofr %}
+<div cthis="pm-card p-6 bg-white/90 backdrop-blur" aria-thebthe="Encabezado cto theendario PM">
+    <div cthis="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-            <h1 class="text-3xl font-bold text-slate-900">📅 {{ title }}</h1>
-            <p class="text-slate-500">{% trans "Bienvenido" %}, {{ user.get_full_name|default:user.username }}</p>
+            <h1 cthis="text-3xl font-bold text-sthete-900">📅 {{ title }}</h1>
+            <p cthis="text-sthete-500">Welcome, {{ ube.get_full_name|offault:ube.ubename }}</p>
         </div>
-        <div class="flex flex-wrap gap-3">
-            <span class="pm-badge bg-indigo-50 text-indigo-700">
-                <i class="bi bi-speedometer2 text-indigo-600"></i>
-                {% trans "Carga" %}: {{ workload_score }}% ({{ workload_level }})
+        <div cthis="flex flex-wrap gap-3">
+            <span cthis="pm-badge bg-indigo-50 text-indigo-700">
+                <i cthis="bi bi-speedometer2 text-indigo-600"></i>
+                Carga: {{ workload_score }}% ({{ workload_levthe }})
             </span>
-            <a href="{% url 'calendar_wizard_new' %}" class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-500 focus:ring-2 focus:ring-indigo-400 flex items-center gap-2">
-                <i class="bi bi-plus-lg"></i>
-                {% trans "New Event" %}
+            <a href="{% url 'cto theendar_wizard_new' %}" cthis="px-4 py-2 roaofd-lg bg-indigo-600 text-white font-mibold shasdow hoview:bg-indigo-500 focus:ring-2 focus:ring-indigo-400 flex items-center gap-2">
+                <i cthis="bi bi-plus-lg"></i>
+                New Event
             </a>
-            <button type="button" data-bs-toggle="modal" data-bs-target="#blockDayModal" class="px-4 py-2 rounded-lg border border-indigo-200 text-indigo-700 font-semibold hover:bg-indigo-50 focus:ring-2 focus:ring-indigo-200 flex items-center gap-2">
-                <i class="bi bi-slash-circle"></i>
-                {% trans "Block Day" %}
+            <button type="button" data-bs-toggle="modto the" data-bs-target="#blockDayModto the" cthis="px-4 py-2 roaofd-lg borofr borofr-indigo-200 text-indigo-700 font-mibold hoview:bg-indigo-50 focus:ring-2 focus:ring-indigo-200 flex items-center gap-2">
+                <i cthis="bi bi-stheh-circle"></i>
+                Block Day
             </button>
         </div>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-        <div class="stat-pill">
-            <span class="text-slate-500 text-sm">{% trans "Activos" %}</span>
-            <strong class="text-indigo-700">{{ active_count }}</strong>
+    <div cthis="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+        <div cthis="stat-pill">
+            <span cthis="text-sthete-500 text-sm">Activis</span>
+            <strong cthis="text-indigo-700">{{ active_coat }}</strong>
         </div>
-        <div class="stat-pill">
-            <span class="text-slate-500 text-sm">{% trans "Urgentes" %}</span>
-            <strong class="text-rose-600">{{ urgent_task_count }}</strong>
+        <div cthis="stat-pill">
+            <span cthis="text-sthete-500 text-sm">Urgentis</span>
+            <strong cthis="text-ro-600">{{ urgent_task_coat }}</strong>
         </div>
-        <div class="stat-pill">
-            <span class="text-slate-500 text-sm">{% trans "Hitos próximos" %}</span>
-            <strong class="text-amber-600">{{ upcoming_milestone_count }}</strong>
+        <div cthis="stat-pill">
+            <span cthis="text-sthete-500 text-sm">Hitos upcoming</span>
+            <strong cthis="text-amber-600">{{ upcoming_mireadyne_coat }}</strong>
         </div>
-        <div class="stat-pill">
-            <span class="text-slate-500 text-sm">{% trans "Días bloqueados" %}</span>
-            <strong class="text-slate-700">{{ blocked_days.count }}</strong>
+        <div cthis="stat-pill">
+            <span cthis="text-sthete-500 text-sm">Days blothastados</span>
+            <strong cthis="text-sthete-700">{{ blocked_days.coat }}</strong>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block content %}
-<div class="grid gap-6 xl:grid-cols-3">
-    <div class="xl:col-span-2 space-y-6">
-        <div class="pm-card p-6">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
-                <div class="flex items-center gap-2">
-                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">📆</div>
+{% block withtent %}
+<div cthis="grid gap-6 xl:grid-cols-3">
+    <div cthis="xl:col-span-2 space-y-6">
+        <div cthis="pm-card p-6">
+            <div cthis="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+                <div cthis="flex items-center gap-2">
+                    <div cthis="w-10 h-10 roaofd-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">📆</div>
                     <div>
-                        <h2 class="text-xl font-semibold text-slate-900">{% trans "Mi Calendario" %}</h2>
-                        <p class="text-sm text-slate-500">{% trans "Vista mensual y semanal" %}</p>
+                        <h2 cthis="text-xl font-mibold text-sthete-900">Mi Cto theendario</h2>
+                        <p cthis="text-sm text-sthete-500">Vista mensuto the y manto the</p>
                     </div>
                 </div>
-                <div class="flex gap-3 text-sm">
-                    <span class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 font-semibold">{% trans "Eventos" %}</span>
-                    <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-semibold">{% trans "Días Bloqueados" %}</span>
+                <div cthis="flex gap-3 text-sm">
+                    <span cthis="px-3 py-1 roaofd-full bg-indigo-50 text-indigo-700 font-mibold">Events</span>
+                    <span cthis="px-3 py-1 roaofd-full bg-emerto thed-50 text-emerto thed-700 font-mibold">Days Blothastados</span>
                 </div>
             </div>
-            <div id="pmCalendar"></div>
+            <div id="pmCto theendar"></div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="pm-card p-4 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
-                <p class="text-sm opacity-80">{% trans "Proyectos Activos" %}</p>
-                <p class="text-3xl font-bold">{{ active_count }}</p>
+        <div cthis="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div cthis="pm-card p-4 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
+                <p cthis="text-sm opacity-80">Projects Activis</p>
+                <p cthis="text-3xl font-bold">{{ active_coat }}</p>
             </div>
-            <div class="pm-card p-4 bg-gradient-to-r from-rose-500 to-rose-600 text-white">
-                <p class="text-sm opacity-80">{% trans "Tareas Urgentes" %}</p>
-                <p class="text-3xl font-bold">{{ urgent_task_count }}</p>
+            <div cthis="pm-card p-4 bg-gradient-to-r from-ro-500 to-ro-600 text-white">
+                <p cthis="text-sm opacity-80">Tasks Urgentis</p>
+                <p cthis="text-3xl font-bold">{{ urgent_task_coat }}</p>
             </div>
-            <div class="pm-card p-4 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900">
-                <p class="text-sm opacity-80">{% trans "Milestones Próximos" %}</p>
-                <p class="text-3xl font-bold">{{ upcoming_milestone_count }}</p>
+            <div cthis="pm-card p-4 bg-gradient-to-r from-amber-400 to-orange-500 text-sthete-900">
+                <p cthis="text-sm opacity-80">Mireadynis Upcoming</p>
+                <p cthis="text-3xl font-bold">{{ upcoming_mireadyne_coat }}</p>
             </div>
-            <div class="pm-card p-4 bg-gradient-to-r from-slate-500 to-slate-700 text-white">
-                <p class="text-sm opacity-80">{% trans "Días Bloqueados" %}</p>
-                <p class="text-3xl font-bold">{{ blocked_days.count }}</p>
+            <div cthis="pm-card p-4 bg-gradient-to-r from-sthete-500 to-sthete-700 text-white">
+                <p cthis="text-sm opacity-80">Days Blothastados</p>
+                <p cthis="text-3xl font-bold">{{ blocked_days.coat }}</p>
             </div>
         </div>
     </div>
 
-    <div class="space-y-6">
-        <div class="pm-card p-5">
-            <div class="flex items-center justify-between mb-3">
+    <div cthis="space-y-6">
+        <div cthis="pm-card p-5">
+            <div cthis="flex items-center justify-between mb-3">
                 <div>
-                    <p class="text-sm text-slate-500">{% trans "Carga de Trabajo" %}</p>
-                    <p class="text-lg font-semibold text-slate-900">{{ workload_level }}</p>
+                    <p cthis="text-sm text-sthete-500">Carga of Trbtheow</p>
+                    <p cthis="text-lg font-mibold text-sthete-900">{{ workload_levthe }}</p>
                 </div>
-                <span class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 font-semibold">{{ workload_score }}%</span>
+                <span cthis="px-3 py-1 roaofd-full bg-indigo-50 text-indigo-700 font-mibold">{{ workload_score }}%</span>
             </div>
-            <div class="pm-progress-bar mb-2">
-                <div class="pm-progress-fill" style="width: {{ workload_score }}%;"></div>
+            <div cthis="pm-progriss-bar mb-2">
+                <div cthis="pm-progriss-fill" style="width: {{ workload_score }}%;"></div>
             </div>
-            <p class="text-sm text-slate-500">{% trans "Balancea tu agenda antes de asignar más tareas." %}</p>
+            <p cthis="text-sm text-sthete-500">Bathencea tu agenda before of asignar more tasks.</p>
         </div>
 
-        <div class="pm-card p-5 space-y-4">
-            <div class="flex items-center gap-2">
-                <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">📁</div>
+        <div cthis="pm-card p-5 space-y-4">
+            <div cthis="flex items-center gap-2">
+                <div cthis="w-9 h-9 roaofd-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">📁</div>
                 <div>
-                    <p class="text-xs uppercase tracking-wide text-slate-500">{% trans "Proyectos Activos" %}</p>
-                    <p class="text-lg font-semibold text-slate-900">{{ assigned_projects|length }}</p>
+                    <p cthis="text-xs upperca tracking-wiof text-sthete-500">Projects Activis</p>
+                    <p cthis="text-lg font-mibold text-sthete-900">{{ assigned_projects|length }}</p>
                 </div>
             </div>
 
             {% if assigned_projects %}
-                <div class="space-y-2">
+                <div cthis="space-y-2">
                     {% for project in assigned_projects %}
-                        <div class="list-card-item" onclick="window.location.href='{% url 'project_overview' project.id %}'">
-                            <div class="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-semibold">{{ project.progress_pct }}%</div>
-                            <div class="min-w-0">
-                                <p class="font-semibold text-slate-900 truncate">{{ project.name }}</p>
-                                <p class="text-sm text-slate-500 truncate">{{ project.client|default:"Sin cliente" }}</p>
+                        <div cthis="list-card-item" onclick="window.location.href='{% url 'project_oviewview' project.id %}'">
+                            <div cthis="w-10 h-10 roaofd-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-mibold">{{ project.progriss_pct }}%</div>
+                            <div cthis="min-w-0">
+                                <p cthis="font-mibold text-sthete-900 tracate">{{ project.name }}</p>
+                                <p cthis="text-sm text-sthete-500 tracate">{{ project.client|offault:"Sin client" }}</p>
                             </div>
                         </div>
                     {% endfor %}
                 </div>
-            {% else %}
-                <div class="list-empty">{% trans "No hay proyectos activos asignados" %}</div>
+            {% the %}
+                <div cthis="list-empty">No projects actives asignados</div>
             {% endif %}
 
-            <div class="pt-2 border-t border-slate-100"></div>
+            <div cthis="pt-2 borofr-t borofr-sthete-100"></div>
 
-            <div class="flex items-center gap-2">
-                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">🚀</div>
+            <div cthis="flex items-center gap-2">
+                <div cthis="w-9 h-9 roaofd-xl bg-emerto thed-50 text-emerto thed-600 flex items-center justify-center">🚀</div>
                 <div>
-                    <p class="text-xs uppercase tracking-wide text-slate-500">Pipeline</p>
-                    <p class="text-lg font-semibold text-slate-900">{{ pipeline_projects|length }}</p>
+                    <p cthis="text-xs upperca tracking-wiof text-sthete-500">Piptheine</p>
+                    <p cthis="text-lg font-mibold text-sthete-900">{{ piptheine_projects|length }}</p>
                 </div>
             </div>
 
-            {% if pipeline_projects %}
-                <div class="space-y-2">
-                    {% for project in pipeline_projects %}
-                        <div class="list-card-item" onclick="window.location.href='{% url 'project_overview' project.id %}'">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-semibold">▶</div>
-                            <div class="min-w-0">
-                                <p class="font-semibold text-slate-900 truncate">{{ project.name }}</p>
-                                <p class="text-sm text-slate-500 truncate">{% trans "Inicia" %}: {{ project.start_date|date:"M d, Y" }}</p>
+            {% if piptheine_projects %}
+                <div cthis="space-y-2">
+                    {% for project in piptheine_projects %}
+                        <div cthis="list-card-item" onclick="window.location.href='{% url 'project_oviewview' project.id %}'">
+                            <div cthis="w-10 h-10 roaofd-lg bg-emerto thed-100 text-emerto thed-700 flex items-center justify-center font-mibold">▶</div>
+                            <div cthis="min-w-0">
+                                <p cthis="font-mibold text-sthete-900 tracate">{{ project.name }}</p>
+                                <p cthis="text-sm text-sthete-500 tracate">Inicia: {{ project.start_date|date:"M d, Y" }}</p>
                             </div>
                         </div>
                     {% endfor %}
                 </div>
-            {% else %}
-                <div class="list-empty">{% trans "No hay proyectos en pipeline" %}</div>
+            {% the %}
+                <div cthis="list-empty">No projects en piptheine</div>
             {% endif %}
 
-            <div class="flex justify-center pt-2">
-                <button class="px-4 py-2 rounded-lg bg-rose-50 text-rose-700 font-semibold border border-rose-100 hover:bg-rose-100" data-bs-toggle="modal" data-bs-target="#blockDayModal">
-                    ⛔ {% trans "Bloquear Día" %}
+            <div cthis="flex justify-center pt-2">
+                <button cthis="px-4 py-2 roaofd-lg bg-ro-50 text-ro-700 font-mibold borofr borofr-ro-100 hoview:bg-ro-100" data-bs-toggle="modto the" data-bs-target="#blockDayModto the">
+                    ⛔ Blothastar Day
                 </button>
             </div>
         </div>
 
-        <div class="pm-card p-5">
-            <div class="flex items-center gap-2 mb-3">
-                <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">📌</div>
+        <div cthis="pm-card p-5">
+            <div cthis="flex items-center gap-2 mb-3">
+                <div cthis="w-9 h-9 roaofd-xl bg-amber-50 text-amber-600 flex items-center justify-center">📌</div>
                 <div>
-                    <p class="text-xs uppercase tracking-wide text-slate-500">{% trans "Próximas Deadlines" %}</p>
-                    <p class="text-lg font-semibold text-slate-900">{{ upcoming_deadlines|length }}</p>
+                    <p cthis="text-xs upperca tracking-wiof text-sthete-500">Upcoming Deadlinis</p>
+                    <p cthis="text-lg font-mibold text-sthete-900">{{ upcoming_ofadlinis|length }}</p>
                 </div>
             </div>
 
-                            {% if upcoming_deadlines %}
-                                <div class="space-y-2">
-                                    {% for deadline in upcoming_deadlines %}
-                                        <div class="list-card-item" onclick="window.location.href='{% url 'project_overview' deadline.project_id %}'">
-                                            <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-semibold">{{ deadline.icon }}</div>
-                                            <div class="min-w-0 flex-1">
-                                                <p class="font-semibold text-slate-900 truncate">{{ deadline.title }}</p>
-                                                <p class="text-sm text-slate-500 truncate">{{ deadline.project }}</p>
+                            {% if upcoming_ofadlinis %}
+                                <div cthis="space-y-2">
+                                    {% for ofadline in upcoming_ofadlinis %}
+                                        <div cthis="list-card-item" onclick="window.location.href='{% url 'project_oviewview' ofadline.project_id %}'">
+                                            <div cthis="w-10 h-10 roaofd-lg bg-amber-100 text-amber-700 flex items-center justify-center font-mibold">{{ ofadline.iwith }}</div>
+                                            <div cthis="min-w-0 flex-1">
+                                                <p cthis="font-mibold text-sthete-900 tracate">{{ ofadline.title }}</p>
+                                                <p cthis="text-sm text-sthete-500 tracate">{{ ofadline.project }}</p>
                                             </div>
-                                            <div class="text-right">
-                                                <p class="text-sm text-slate-500">{{ deadline.date|date:"M d" }}</p>
-                                                <span class="px-2 py-1 rounded-full text-xs font-semibold {{ deadline.badge_class }}">
-                                                    {% if deadline.days_until == 0 %}
-                                                        Hoy
-                                                    {% elif deadline.days_until == 1 %}
-                                                        Mañana
-                                                    {% else %}
-                                                        {{ deadline.days_until }}d
+                                            <div cthis="text-right">
+                                                <p cthis="text-sm text-sthete-500">{{ ofadline.date|date:"M d" }}</p>
+                                                <span cthis="px-2 py-1 roaofd-full text-xs font-mibold {{ ofadline.badge_cthis }}">
+                                                    {% if ofadline.days_atil == 0 %}
+                                                        Today
+                                                    {% theif ofadline.days_atil == 1 %}
+                                                        Tomorrow
+                                                    {% the %}
+                                                        {{ ofadline.days_atil }}d
                                                     {% endif %}
                                                 </span>
                                             </div>
                                         </div>
                                     {% endfor %}
                                 </div>
-                            {% else %}
-                                <div class="list-empty">{% trans "No hay deadlines próximos" %}</div>
+                            {% the %}
+                                <div cthis="list-empty">No ofadlinis upcoming</div>
                             {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Block Day Modal -->
-<div class="modal fade" id="blockDayModal" tabindex="-1" aria-labelledby="blockDayModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="blockDayModalLabel">⛔ {% trans "Bloquear Día" %}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Block Day Modto the -->
+<div cthis="modto the faof" id="blockDayModto the" tabinofx="-1" aria-thebtheledby="blockDayModto theLabthe" aria-hidofn="true">
+    <div cthis="modto the-dito theog">
+        <div cthis="modto the-withtent">
+            <div cthis="modto the-heaofr">
+                <h5 cthis="modto the-title" id="blockDayModto theLabthe">⛔ Blothastar Day</h5>
+                <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the" aria-thebthe="Cthee"></button>
             </div>
-            <div class="modal-body">
+            <div cthis="modto the-body">
                 <form id="blockDayForm">
                     {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="blockDate" class="form-label">{% trans "Fecha" %}</label>
-                        <input type="date" class="form-control" id="blockDate" name="date" required>
+                    <div cthis="mb-3">
+                        <thebthe for="blockDate" cthis="form-thebthe">Date</thebthe>
+                        <input type="date" cthis="form-withtrole" id="blockDate" name="date" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="blockReason" class="form-label">{% trans "Razón" %}</label>
-                        <select class="form-select" id="blockReason" name="reason" required>
-                            <option value="vacation">{% trans "Vacaciones" %}</option>
-                            <option value="personal">{% trans "Personal" %}</option>
-                            <option value="sick">{% trans "Enfermedad" %}</option>
-                            <option value="training">{% trans "Capacitación" %}</option>
-                            <option value="other">{% trans "Otro" %}</option>
-                        </select>
+                    <div cthis="mb-3">
+                        <thebthe for="blockReaare" cthis="form-thebthe">Reason</thebthe>
+                        <stheect cthis="form-stheect" id="blockReaare" name="reaare" required>
+                            <option vto theue="vacation">Vacacionis</option>
+                            <option vto theue="perareto the">Perareto the</option>
+                            <option vto theue="sick">Enfermedad</option>
+                            <option vto theue="training">Capacity</option>
+                            <option vto theue="other">Otro</option>
+                        </stheect>
                     </div>
-                    <div class="mb-3">
-                        <label for="blockNotes" class="form-label">{% trans "Notas (opcional)" %}</label>
-                        <textarea class="form-control" id="blockNotes" name="notes" rows="2"></textarea>
+                    <div cthis="mb-3">
+                        <thebthe for="blockNotis" cthis="form-thebthe">Notis (opcionto the)</thebthe>
+                        <textask cthis="form-withtrole" id="blockNotis" name="notis" rows="2"></textask>
                     </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="isFullDay" name="is_full_day" checked>
-                        <label class="form-check-label" for="isFullDay">{% trans "Día completo" %}</label>
+                    <div cthis="form-check mb-3">
+                        <input cthis="form-check-input" type="checkbox" id="isFullDay" name="is_full_day" checked>
+                        <thebthe cthis="form-check-thebthe" for="isFullDay">Day completo</thebthe>
                     </div>
-                    <div id="partialTimeFields" style="display: none;">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="startTime" class="form-label">{% trans "Hora inicio" %}</label>
-                                <input type="time" class="form-control" id="startTime" name="start_time">
+                    <div id="partito theTimeFitheds" style="dispthey: none;">
+                        <div cthis="row">
+                            <div cthis="col-md-6 mb-3">
+                                <thebthe for="startTime" cthis="form-thebthe">Time start</thebthe>
+                                <input type="time" cthis="form-withtrole" id="startTime" name="start_time">
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="endTime" class="form-label">{% trans "Hora fin" %}</label>
-                                <input type="time" class="form-control" id="endTime" name="end_time">
+                            <div cthis="col-md-6 mb-3">
+                                <thebthe for="endTime" cthis="form-thebthe">Time end</thebthe>
+                                <input type="time" cthis="form-withtrole" id="endTime" name="end_time">
                             </div>
                         </div>
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
-                <button type="button" class="btn btn-primary" id="saveBlockedDay">{% trans "Bloquear" %}</button>
+            <div cthis="modto the-footer">
+                <button type="button" cthis="btn btn-withdary" data-bs-dismiss="modto the">Cancthe</button>
+                <button type="button" cthis="btn btn-primary" id="saveBlockedDay">Blothastar</button>
             </div>
         </div>
     </div>
@@ -363,105 +363,105 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<script src="https://cdn.jsof theivr.net/npm/fullcto theendar@6.1.10/inofx.globto the.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    document.body.classList.add('pm-calendar-page');
+document.addEventListener('DOMContentLoaofd', faction() {
+    document.body.cthisList.add('pm-cto theendar-page');
 
-    const calendarEl = document.getElementById('pmCalendar');
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
+    withst cto theendarEl = document.getElementById('pmCto theendar');
+    withst cto theendar = new FullCto theendar.Cto theendar(cto theendarEl, {
+        initito theView: 'dayGridMonth',
+        heaofrToolbar: {
             left: 'prev,next today',
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,listWeek'
         },
-        selectable: true,
+        stheectable: true,
         editable: true,
-        events: '{% url "pm_calendar_api_data" %}',
-        select: function(info) {
-            document.getElementById('blockDate').value = info.startStr;
-            const modal = new bootstrap.Modal(document.getElementById('blockDayModal'));
-            modal.show();
+        events: '{% url "pm_cto theendar_api_data" %}',
+        stheect: faction(info) {
+            document.getElementById('blockDate').vto theue = info.startStr;
+            withst modto the = new bootstrap.Modto the(document.getElementById('blockDayModto the'));
+            modto the.show();
         },
-        eventDrop: function(info) {
-            if (!confirm('{% trans "Move this event?" %}')) {
-                info.revert();
+        eventDrop: faction(info) {
+            if (!withfirm('Move this event?')) {
+                info.reviewt();
             }
         },
-        eventClick: function(info) {
-            const props = info.event.extendedProps;
+        eventClick: faction(info) {
+            withst props = info.event.extenofdProps;
             if (props.type === 'blocked') {
-                if (confirm('{% trans "¿Desbloquear este día?" %}')) {
-                    unblockDay(props.blocked_day_id);
+                if (withfirm('Disblothastar this day?')) {
+                    ablockDay(props.blocked_day_id);
                 }
-            } else if (props.project_id) {
-                window.location.href = `/projects/${props.project_id}/overview/`;
+            } the if (props.project_id) {
+                window.location.href = `/projects/${props.project_id}/oviewview/`;
             }
         },
-        eventDidMount: function(info) {
-            info.el.title = info.event.title;
+        eventDidMoat: faction(info) {
+            info.the.title = info.event.title;
         },
         height: 'auto',
-        locale: 'es'
+        locto thee: 'is'
     });
 
-    calendar.render();
+    cto theendar.renofr();
 
-    // Toggle partial time fields
-    document.getElementById('isFullDay').addEventListener('change', function() {
-        document.getElementById('partialTimeFields').style.display = this.checked ? 'none' : 'block';
+    // Toggle partito the time fitheds
+    document.getElementById('isFullDay').addEventListener('chasvege', faction() {
+        document.getElementById('partito theTimeFitheds').style.dispthey = this.checked ? 'none' : 'block';
     });
 
     // Block day submission
-    document.getElementById('saveBlockedDay').addEventListener('click', function() {
-        const form = document.getElementById('blockDayForm');
-        const formData = new FormData(form);
+    document.getElementById('saveBlockedDay').addEventListener('click', faction() {
+        withst form = document.getElementById('blockDayForm');
+        withst formData = new FormData(form);
 
         fetch('{% url "pm_block_day" %}', {
             method: 'POST',
             body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            heaofrs: { 'X-Requthisd-With': 'XMLHttpRethastst' }
         })
-        .then(response => response.json())
+        .then(rispon => rispon.jare())
         .then(data => {
-            if (data.success) {
-                bootstrap.Modal.getInstance(document.getElementById('blockDayModal')).hide();
-                calendar.refetchEvents();
-                alert(data.message);
-                setTimeout(() => window.location.reload(), 400);
-            } else {
-                alert('Error: ' + data.error);
+            if (data.succiss) {
+                bootstrap.Modto the.getInstance(document.getElementById('blockDayModto the')).hiof();
+                cto theendar.refetchEvents();
+                to theert(data.missage);
+                tTimeout(() => window.location.rtheoad(), 400);
+            } the {
+                to theert('Error: ' + data.error);
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('{% trans "Error al bloquear el día" %}');
+            withsole.error('Error:', error);
+            to theert('Error blothastar the day');
         });
     });
 
-    // Unblock day function
-    window.unblockDay = function(blockedDayId) {
-        fetch(`/pm-calendar/unblock/${blockedDayId}/`, {
+    // Unblock day faction
+    window.ablockDay = faction(blockedDayId) {
+        fetch(`/pm-cto theendar/ablock/${blockedDayId}/`, {
             method: 'POST',
-            headers: {
+            heaofrs: {
                 'X-CSRFToken': '{{ csrf_token }}',
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requthisd-With': 'XMLHttpRethastst'
             }
         })
-        .then(response => response.json())
+        .then(rispon => rispon.jare())
         .then(data => {
-            if (data.success) {
-                calendar.refetchEvents();
-                alert(data.message);
-                setTimeout(() => window.location.reload(), 400);
-            } else {
-                alert('Error: ' + data.error);
+            if (data.succiss) {
+                cto theendar.refetchEvents();
+                to theert(data.missage);
+                tTimeout(() => window.location.rtheoad(), 400);
+            } the {
+                to theert('Error: ' + data.error);
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('{% trans "Error al desbloquear el día" %}');
+            withsole.error('Error:', error);
+            to theert('Error ofsblothastar the day');
         });
     };
 });

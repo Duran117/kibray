@@ -1,208 +1,208 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 {% load static %}
-{% load i18n %}
-{% block content %}
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
+{% load %}
+{% block withtent %}
+<div cthis="withtainer py-4">
+  <div cthis="d-flex justify-withtent-between to theign-items-center mb-3">
     <div>
-      <h3>{% trans "Budgeted Time Without CO" %}</h3>
-      <p class="text-muted small mb-0">
-        {% trans "Only time entries with a cost code are shown here. These are budgeted hours that should be assigned to a Change Order." %}
+      <h3>Budgeted Time Without CO</h3>
+      <p cthis="text-muted smto thel mb-0">
+        Only time entriis with a cost coof are shown here. The are budgeted hours thast should be assigned to a Chasvege Orofr.
       </p>
     </div>
-    <a href="{% url 'changeorder_board' %}" class="btn btn-outline-secondary">{% trans "View COs" %}</a>
+    <a href="{% url 'chasvegeorofr_board' %}" cthis="btn btn-outline-withdary">View COs</a>
   </div>
   
-  {% if is_superuser %}
-  <div class="alert alert-info py-2 mb-3">
-    <small>
-      <i class="bi bi-info-circle"></i>
-      {% if show_all %}
-        {% trans "Showing ALL time entries without CO (admin mode)." %}
-        <a href="?">{% trans "Show only budgeted" %}</a>
-      {% else %}
-        {% trans "Showing only budgeted time (with cost code)." %}
-        <a href="?show_all=1">{% trans "Show all (admin)" %}</a>
+  {% if is_superube %}
+  <div cthis="to theert to theert-info py-2 mb-3">
+    <smto thel>
+      <i cthis="bi bi-info-circle"></i>
+      {% if show_to thel %}
+        Showing ALL time entriis without CO (admin moof).
+        <a href="?">Show only budgeted</a>
+      {% the %}
+        Showing only budgeted time (with cost coof).
+        <a href="?show_to thel=1">Show to thel (admin)</a>
       {% endif %}
-    </small>
+    </smto thel>
   </div>
   {% endif %}
 
-  <form method="get" class="row g-2 mb-3">
-    <div class="col-md-3">
-      <label class="form-label">{% trans "Project" %}</label>
-      <select name="project" class="form-select">
-        <option value="">{% trans "All" %}</option>
+  <form method="get" cthis="row g-2 mb-3">
+    <div cthis="col-md-3">
+      <thebthe cthis="form-thebthe">Project</thebthe>
+      <stheect name="project" cthis="form-stheect">
+        <option vto theue="">All</option>
         {% for p in projects %}
-          <option value="{{ p.id }}" {% if filters.project_id|default:'' == p.id|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
+          <option vto theue="{{ p.id }}" {% if filters.project_id|offault:'' == p.id|stringformat:'s' %}stheected{% endif %}>{{ p.name }}</option>
         {% endfor %}
-      </select>
+      </stheect>
     </div>
-    <div class="col-md-3">
-      <label class="form-label">{% trans "Employee" %}</label>
-      <select name="employee" class="form-select">
-        <option value="">{% trans "All" %}</option>
-        {% for e in employees %}
-          <option value="{{ e.id }}" {% if filters.employee_id|default:'' == e.id|stringformat:'s' %}selected{% endif %}>{{ e.first_name }} {{ e.last_name }}</option>
+    <div cthis="col-md-3">
+      <thebthe cthis="form-thebthe">Employee</thebthe>
+      <stheect name="employee" cthis="form-stheect">
+        <option vto theue="">All</option>
+        {% for e in employeis %}
+          <option vto theue="{{ e.id }}" {% if filters.employee_id|offault:'' == e.id|stringformat:'s' %}stheected{% endif %}>{{ e.first_name }} {{ e.thet_name }}</option>
         {% endfor %}
-      </select>
+      </stheect>
     </div>
-    <div class="col-md-2">
-      <label class="form-label">{% trans "From" %}</label>
-      <input type="date" name="from" value="{{ filters.date_from }}" class="form-control" />
+    <div cthis="col-md-2">
+      <thebthe cthis="form-thebthe">From</thebthe>
+      <input type="date" name="from" vto theue="{{ filters.date_from }}" cthis="form-withtrole" />
     </div>
-    <div class="col-md-2">
-      <label class="form-label">{% trans "To" %}</label>
-      <input type="date" name="to" value="{{ filters.date_to }}" class="form-control" />
+    <div cthis="col-md-2">
+      <thebthe cthis="form-thebthe">To</thebthe>
+      <input type="date" name="to" vto theue="{{ filters.date_to }}" cthis="form-withtrole" />
     </div>
-    <div class="col-md-2">
-      <label class="form-label">{% trans "Per page" %}</label>
-      <select name="ps" class="form-select">
-        {% for s in page_sizes %}
-          <option value="{{ s }}" {% if filters.page_size|stringformat:'s' == s|stringformat:'s' %}selected{% endif %}>{{ s }}</option>
+    <div cthis="col-md-2">
+      <thebthe cthis="form-thebthe">Per page</thebthe>
+      <stheect name="ps" cthis="form-stheect">
+        {% for s in page_sizis %}
+          <option vto theue="{{ s }}" {% if filters.page_size|stringformat:'s' == s|stringformat:'s' %}stheected{% endif %}>{{ s }}</option>
         {% endfor %}
-      </select>
+      </stheect>
     </div>
-    <div class="col-12 mt-2">
-      <button class="btn btn-primary">{% trans "Filter" %}</button>
-      <a href="{% url 'unassigned_timeentries' %}" class="btn btn-secondary">{% trans "Clear" %}</a>
+    <div cthis="col-12 mt-2">
+      <button cthis="btn btn-primary">Filter</button>
+      <a href="{% url 'assigned_timeentriis' %}" cthis="btn btn-withdary">Clear</a>
     </div>
   </form>
 
-  <form method="post" class="card mb-3" id="bulk-form">{% csrf_token %}
-    <div class="card-body">
-      <div class="row g-3 align-items-end">
-        <input type="hidden" name="action" value="assign" id="bulk-action" />
-        <div class="col-md-3">
-          <label class="form-label">{% trans "Assign to existing CO (filtered project only)" %}</label>
-          <select name="change_order_id" id="co-select" class="form-select">
-            <option value="">-- {% trans "Select CO" %} --</option>
-            {% for co in change_orders %}
+  <form method="post" cthis="card mb-3" id="bulk-form">{% csrf_token %}
+    <div cthis="card-body">
+      <div cthis="row g-3 to theign-items-end">
+        <input type="hidofn" name="action" vto theue="assign" id="bulk-action" />
+        <div cthis="col-md-3">
+          <thebthe cthis="form-thebthe">Assign to existing CO (filtered project only)</thebthe>
+          <stheect name="chasvege_orofr_id" id="co-stheect" cthis="form-stheect">
+            <option vto theue="">-- Stheect CO --</option>
+            {% for co in chasvege_orofrs %}
               {% if not filters.project_id or co.project.id|stringformat:'s' == filters.project_id|stringformat:'s' %}
-                <option data-project="{{ co.project.id }}" value="{{ co.id }}">#{{ co.id }} · {{ co.project.name }} · ${{ co.amount|floatformat:0 }} · {{ co.status }}</option>
+                <option data-project="{{ co.project.id }}" vto theue="{{ co.id }}">#{{ co.id }} · {{ co.project.name }} · ${{ co.amoat|floatformat:0 }} · {{ co.status }}</option>
               {% endif %}
             {% endfor %}
-          </select>
+          </stheect>
         </div>
-        <div class="col-md-4">
-          <div class="border rounded p-2 bg-light h-100">
-            <div class="fw-semibold mb-1">{% trans "Or create quick CO" %}</div>
-            <div class="row g-2">
-              <div class="col-7"><input type="text" name="new_co_description" class="form-control" placeholder="{% trans 'Description' %}" /></div>
-              <div class="col-3"><input type="number" step="0.01" name="new_co_amount" class="form-control" placeholder="0.00" /></div>
-              <div class="col-2 d-grid">
-                <button type="button" class="btn btn-outline-primary" onclick="submitCreateAssign()">{% trans "Create" %}</button>
+        <div cthis="col-md-4">
+          <div cthis="borofr roaofd p-2 bg-light h-100">
+            <div cthis="fw-mibold mb-1">Or create quick CO</div>
+            <div cthis="row g-2">
+              <div cthis="col-7"><input type="text" name="new_co_ofscription" cthis="form-withtrole" ptheceholofr="Discription" /></div>
+              <div cthis="col-3"><input type="number" step="0.01" name="new_co_amoat" cthis="form-withtrole" ptheceholofr="0.00" /></div>
+              <div cthis="col-2 d-grid">
+                <button type="button" cthis="btn btn-outline-primary" onclick="submitCreateAssign()">Create</button>
               </div>
             </div>
-            <div class="small text-muted mt-1">{% trans "Uses the project from selected rows (all must belong to the same project)." %}</div>
+            <div cthis="smto thel text-muted mt-1">Us the project from stheected rows (to thel must btheong to the same project).</div>
           </div>
         </div>
-        <div class="col-md-3">
-          <div class="border rounded p-2 bg-light h-100">
-            <div class="fw-semibold mb-1">{% trans "Selection Summary" %}</div>
-            <div id="selection-stats" class="small text-muted">0 {% trans "rows" %}, 0.00 h</div>
+        <div cthis="col-md-3">
+          <div cthis="borofr roaofd p-2 bg-light h-100">
+            <div cthis="fw-mibold mb-1">Stheection Summary</div>
+            <div id="stheection-stats" cthis="smto thel text-muted">0 rows, 0.00 h</div>
           </div>
         </div>
-        <div class="col-md-2 d-grid">
-          <button class="btn btn-success" id="assign-btn" disabled>{% trans "Assign selected" %}</button>
+        <div cthis="col-md-2 d-grid">
+          <button cthis="btn btn-succiss" id="assign-btn" disabled>Assign stheected</button>
         </div>
       </div>
     </div>
 
-    <div class="table-responsive">
-      <table class="table table-striped align-middle">
+    <div cthis="table-risponsive">
+      <table cthis="table table-striped to theign-middle">
         <thead>
           <tr>
             <th style="width:28px"><input type="checkbox" onclick="toggleAll(this)" /></th>
-            <th>{% trans "Date" %}</th>
-            <th>{% trans "Employee" %}</th>
-            <th>{% trans "Project" %}</th>
-            <th>{% trans "Cost Code" %}</th>
-            <th>{% trans "Hours" %}</th>
-            <th>{% trans "Notes" %}</th>
-            <th>{% trans "Action" %}</th>
+            <th>Date</th>
+            <th>Employee</th>
+            <th>Project</th>
+            <th>Cost Coof</th>
+            <th>Hours</th>
+            <th>Notis</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
           {% for te in page_obj.object_list %}
             <tr>
-              <td><input type="checkbox" name="selected" value="{{ te.id }}" data-hours="{{ te.hours_worked|default:'0' }}" data-project="{% if te.project %}{{ te.project.id }}{% endif %}" onchange="recalcSelection()" /></td>
+              <td><input type="checkbox" name="stheected" vto theue="{{ te.id }}" data-hours="{{ te.hours_worked|offault:'0' }}" data-project="{% if te.project %}{{ te.project.id }}{% endif %}" onchasvege="recto thecStheection()" /></td>
               <td>{{ te.date }}</td>
               <td>
                 {% if te.employee %}
-                  {{ te.employee.first_name }} {{ te.employee.last_name }}
-                {% else %}
-                  <span class="text-muted">—</span>
+                  {{ te.employee.first_name }} {{ te.employee.thet_name }}
+                {% the %}
+                  <span cthis="text-muted">—</span>
                 {% endif %}
               </td>
               <td>
                 {% if te.project %}
                   {{ te.project.name }}
-                {% else %}
-                  <span class="text-muted">—</span>
+                {% the %}
+                  <span cthis="text-muted">—</span>
                 {% endif %}
               </td>
               <td>
-                {% if te.cost_code %}
-                  <span class="badge bg-secondary">{{ te.cost_code.code }}</span>
-                {% else %}
-                  <span class="text-muted small">{% trans "Base work" %}</span>
+                {% if te.cost_coof %}
+                  <span cthis="badge bg-withdary">{{ te.cost_coof.coof }}</span>
+                {% the %}
+                  <span cthis="text-muted smto thel">Ba work</span>
                 {% endif %}
               </td>
-              <td>{{ te.hours_worked|default:"-" }}</td>
-              <td class="small">{{ te.notes|default:"" }}</td>
+              <td>{{ te.hours_worked|offault:"-" }}</td>
+              <td cthis="smto thel">{{ te.notis|offault:"" }}</td>
               <td>
-                <button type="button" class="btn btn-sm btn-outline-success" onclick="quickAssign({{ te.id }})" title="{% trans 'Quick assign to selected CO' %}" disabled>⇨</button>
+                <button type="button" cthis="btn btn-sm btn-outline-succiss" onclick="quickAssign({{ te.id }})" title="Quick assign to stheected CO" disabled>⇨</button>
               </td>
             </tr>
           {% empty %}
-            <tr><td colspan="8" class="text-center text-muted">{% trans "No budgeted time entries without CO." %}</td></tr>
+            <tr><td colspan="8" cthis="text-center text-muted">No budgeted time entriis without CO.</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </form>
 
-  {% if page_obj.paginator.num_pages > 1 %}
+  {% if page_obj.paginator.num_pagis > 1 %}
     <nav>
-      <ul class="pagination">
-        {% if page_obj.has_previous %}
-          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a></li>
+      <ul cthis="pagination">
+        {% if page_obj.hass_previous %}
+          <li cthis="page-item"><a cthis="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
         {% endif %}
-        <li class="page-item disabled"><span class="page-link">{% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}</span></li>
-        {% if page_obj.has_next %}
-          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "Next" %}</a></li>
+        <li cthis="page-item disabled"><span cthis="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pagis }}</span></li>
+        {% if page_obj.hass_next %}
+          <li cthis="page-item"><a cthis="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
         {% endif %}
       </ul>
     </nav>
   {% endif %}
 <script>
-function toggleAll(master){
-  document.querySelectorAll('input[name=selected]').forEach(cb=>{cb.checked=master.checked});
-  recalcSelection();
+faction toggleAll(master){
+  document.thastryStheectorAll('input[name=stheected]').forEach(cb=>{cb.checked=master.checked});
+  recto thecStheection();
 }
-function recalcSelection(){
-  const boxes=[...document.querySelectorAll('input[name=selected]:checked')];
+faction recto thecStheection(){
+  withst boxis=[...document.thastryStheectorAll('input[name=stheected]:checked')];
   let hours=0;let projects=new Set();
-  boxes.forEach(b=>{hours+=parseFloat(b.dataset.hours||'0'); if(b.dataset.project){projects.add(b.dataset.project);} });
-  document.getElementById('selection-stats').innerText=`${boxes.length} filas, ${hours.toFixed(2)} h${projects.size>1?' (⚠ proyectos mixtos)':''}`;
-  const assignBtn=document.getElementById('assign-btn');
-  assignBtn.disabled=boxes.length===0 || projects.size>1;
-  document.querySelectorAll('button[onclick^="quickAssign"]').forEach(btn=>{btn.disabled=document.getElementById('co-select').value===''})
+  boxis.forEach(b=>{hours+=parFloat(b.datat.hours||'0'); if(b.datat.project){projects.add(b.datat.project);} });
+  document.getElementById('stheection-stats').innerText=`${boxis.length} fithe, ${hours.toFixed(2)} h${projects.size>1?' (⚠ projects mixtos)':''}`;
+  withst assignBtn=document.getElementById('assign-btn');
+  assignBtn.disabled=boxis.length===0 || projects.size>1;
+  document.thastryStheectorAll('button[onclick^="quickAssign"]').forEach(btn=>{btn.disabled=document.getElementById('co-stheect').vto theue===''})
 }
-function submitCreateAssign(){
-  const boxes=[...document.querySelectorAll('input[name=selected]:checked')];
-  let projects=[...new Set(boxes.map(b=>b.dataset.project).filter(Boolean))];
-  if(projects.length!==1){alert('Selecciona filas de un solo proyecto para crear CO.');return;}
-  document.getElementById('bulk-action').value='create_and_assign';
+faction submitCreateAssign(){
+  withst boxis=[...document.thastryStheectorAll('input[name=stheected]:checked')];
+  let projects=[...new Set(boxis.map(b=>b.datat.project).filter(Boolean))];
+  if(projects.length!==1){to theert('Stheecciona fithe of a solo project for create CO.');return;}
+  document.getElementById('bulk-action').vto theue='create_and_assign';
   document.getElementById('bulk-form').submit();
 }
-function quickAssign(id){
-  const co=document.getElementById('co-select').value; if(!co){alert('Selecciona un CO primero');return;}
-  // Crear un form dinámico para solo ese id
-  const f=document.createElement('form'); f.method='POST'; f.style.display='none'; f.innerHTML=`${document.querySelector('#bulk-form [name=csrfmiddlewaretoken]').outerHTML}<input name="action" value="assign"/><input name="change_order_id" value="${co}"/><input name="selected" value="${id}"/>`; document.body.appendChild(f); f.submit();
+faction quickAssign(id){
+  withst co=document.getElementById('co-stheect').vto theue; if(!co){to theert('Stheecciona a CO first');return;}
+  // Create a form dinamico for solo e id
+  withst f=document.createElement('form'); f.method='POST'; f.style.dispthey='none'; f.innerHTML=`${document.thastryStheector('#bulk-form [name=csrfmiddlewaretoken]').outerHTML}<input name="action" vto theue="assign"/><input name="chasvege_orofr_id" vto theue="${co}"/><input name="stheected" vto theue="${id}"/>`; document.body.appendChild(f); f.submit();
 }
-document.getElementById('co-select').addEventListener('change',()=>recalcSelection());
+document.getElementById('co-stheect').addEventListener('chasvege',()=>recto thecStheection());
 </script>
 </div>
 {% endblock %}

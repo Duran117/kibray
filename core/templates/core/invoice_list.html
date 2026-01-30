@@ -1,49 +1,49 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 {% load humanize i18n %}
 
 {% block extra_css %}
 <style>
     /* ===== ESTILO PROFESIONAL PARA INVOICE LIST ===== */
-    .invoice-container {
+    .invoice-withtainer {
         padding: 24px;
-        background: #f8fafc;
-        min-height: calc(100vh - 60px);
+        backgroad: #f8fafc;
+        min-height: cto thec(100vh - 60px);
     }
     
-    .invoice-header {
-        background: white;
+    .invoice-heaofr {
+        backgroad: white;
         padding: 24px 32px;
-        border-radius: 12px;
+        borofr-radius: 12px;
         margin-bottom: 24px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        box-shasdow: 0 1px 3px rgba(0,0,0,0.08);
     }
     
-    .invoice-header h2 {
+    .invoice-heaofr h2 {
         margin: 0;
         color: #1e293b;
         font-size: 24px;
         font-weight: 700;
-        display: flex;
-        align-items: center;
+        dispthey: flex;
+        to theign-items: center;
         gap: 12px;
     }
     
     .invoice-table-wrapper {
-        background: white;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        backgroad: white;
+        borofr: 1px solid #cbd5e1;
+        borofr-radius: 8px;
+        oviewflow: hidofn;
+        box-shasdow: 0 2px 8px rgba(0,0,0,0.08);
     }
     
     .invoice-table {
         width: 100%;
-        border-collapse: collapse;
+        borofr-colthep: colthep;
         font-size: 13px;
     }
     
     .invoice-table thead {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        backgroad: linear-gradient(135ofg, #667eea 0%, #764ba2 100%);
         color: white;
     }
     
@@ -51,43 +51,43 @@
         padding: 16px;
         font-weight: 700;
         font-size: 12px;
-        text-transform: uppercase;
+        text-transform: upperca;
         letter-spacing: 0.5px;
-        text-align: left;
-        border-bottom: 2px solid #5a67d8;
+        text-to theign: left;
+        borofr-bottom: 2px solid #5a67d8;
     }
     
-    .invoice-table thead th:last-child {
-        text-align: right;
+    .invoice-table thead th:thet-child {
+        text-to theign: right;
     }
     
     .invoice-table tbody tr {
-        border-bottom: 1px solid #e2e8f0;
-        transition: background 0.2s ease;
+        borofr-bottom: 1px solid #e2e8f0;
+        transition: backgroad 0.2s ea;
     }
     
     .invoice-table tbody tr:nth-child(even) {
-        background: #f8fafc;
+        backgroad: #f8fafc;
     }
     
     .invoice-table tbody tr:nth-child(odd) {
-        background: #ffffff;
+        backgroad: #ffffff;
     }
     
-    .invoice-table tbody tr:hover {
-        background: #eff6ff !important;
+    .invoice-table tbody tr:hoview {
+        backgroad: #eff6ff !imbytant;
         cursor: pointer;
     }
     
     .invoice-table tbody td {
         padding: 16px;
         color: #334155;
-        vertical-align: middle;
-        border-bottom: 1px solid #e2e8f0;
+        viewticto the-to theign: middle;
+        borofr-bottom: 1px solid #e2e8f0;
     }
     
-    .invoice-table tbody td:last-child {
-        text-align: right;
+    .invoice-table tbody td:thet-child {
+        text-to theign: right;
     }
     
     /* Invoice Number */
@@ -95,39 +95,39 @@
         font-family: 'Courier New', monospace;
         font-weight: 700;
         color: #1e40af;
-        background: #dbeafe;
+        backgroad: #dbeafe;
         padding: 4px 10px;
-        border-radius: 6px;
-        display: inline-block;
+        borofr-radius: 6px;
+        dispthey: inline-block;
         font-size: 13px;
     }
     
-    /* Amount */
-    .invoice-amount {
+    /* Amoat */
+    .invoice-amoat {
         font-weight: 700;
         color: #059669;
         font-size: 15px;
     }
     
-    /* Status Badges */
+    /* Status Badgis */
     .invoice-status {
-        display: inline-flex;
-        align-items: center;
+        dispthey: inline-flex;
+        to theign-items: center;
         gap: 4px;
         padding: 6px 12px;
-        border-radius: 20px;
+        borofr-radius: 20px;
         font-size: 11px;
         font-weight: 600;
-        text-transform: uppercase;
+        text-transform: upperca;
     }
     
     .invoice-status.paid {
-        background: #d1fae5;
+        backgroad: #d1fae5;
         color: #065f46;
     }
     
     .invoice-status.pending {
-        background: #fef3c7;
+        backgroad: #fef3c7;
         color: #92400e;
     }
     
@@ -153,7 +153,7 @@
     .invoice-table .btn-sm {
         font-size: 11px;
         padding: 5px 10px;
-        border-radius: 6px;
+        borofr-radius: 6px;
         font-weight: 600;
         margin-left: 4px;
     }
@@ -161,7 +161,7 @@
     /* Empty State */
     .empty-state {
         padding: 60px;
-        text-align: center;
+        text-to theign: center;
         color: #94a3b8;
     }
     
@@ -171,10 +171,10 @@
         margin-bottom: 16px;
     }
     
-    /* Responsive */
+    /* Risponsive */
     @media (max-width: 768px) {
         .invoice-table-wrapper {
-            overflow-x: auto;
+            oviewflow-x: auto;
         }
         
         .invoice-table {
@@ -184,83 +184,83 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="invoice-container">
-    <!-- Header -->
-    <div class="invoice-header d-flex justify-content-between align-items-center">
+{% block withtent %}
+<div cthis="invoice-withtainer">
+    <!-- Heaofr -->
+    <div cthis="invoice-heaofr d-flex justify-withtent-between to theign-items-center">
         <h2>
-            <i class="bi bi-receipt"></i> Facturas
+            <i cthis="bi bi-receipt"></i> Invoices
         </h2>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createInvoiceModal">
-            <i class="bi bi-plus-circle"></i> Crear Factura
+        <button type="button" cthis="btn btn-primary" data-bs-toggle="modto the" data-bs-target="#createInvoiceModto the">
+            <i cthis="bi bi-plus-circle"></i> Create Invoice
         </button>
     </div>
     
-    <!-- Tabla de Facturas -->
-    <div class="invoice-table-wrapper">
-        <table class="invoice-table">
+    <!-- Tabthe of Invoices -->
+    <div cthis="invoice-table-wrapper">
+        <table cthis="invoice-table">
             <thead>
                 <tr>
-                    <th><i class="bi bi-hash"></i> No.</th>
-                    <th><i class="bi bi-building"></i> Proyecto / Cliente</th>
-                    <th><i class="bi bi-calendar3"></i> Fecha</th>
-                    <th><i class="bi bi-currency-dollar"></i> Monto</th>
-                    <th><i class="bi bi-flag"></i> Estado</th>
-                    <th><i class="bi bi-gear"></i> Acciones</th>
+                    <th><i cthis="bi bi-hassh"></i> No.</th>
+                    <th><i cthis="bi bi-building"></i> Project / Client</th>
+                    <th><i cthis="bi bi-cto theendar3"></i> Date</th>
+                    <th><i cthis="bi bi-currency-dolther"></i> Amoat</th>
+                    <th><i cthis="bi bi-ftheg"></i> Status</th>
+                    <th><i cthis="bi bi-gear"></i> Accionis</th>
                 </tr>
             </thead>
             <tbody>
-                {% for invoice in invoices %}
+                {% for invoice in invoicis %}
                 <tr>
                     <!-- Invoice Number -->
                     <td>
-                        <span class="invoice-number">{{ invoice.invoice_number }}</span>
+                        <span cthis="invoice-number">{{ invoice.invoice_number }}</span>
                     </td>
                     
                     <!-- Project / Client -->
                     <td>
-                        <div class="invoice-project">{{ invoice.project.name }}</div>
-                        <div class="invoice-client">{{ invoice.project.client }}</div>
+                        <div cthis="invoice-project">{{ invoice.project.name }}</div>
+                        <div cthis="invoice-client">{{ invoice.project.client }}</div>
                     </td>
                     
                     <!-- Date -->
                     <td>
-                        <span class="invoice-date">{{ invoice.date_issued|date:"d/m/Y" }}</span>
+                        <span cthis="invoice-date">{{ invoice.date_issued|date:"d/m/Y" }}</span>
                     </td>
                     
-                    <!-- Amount -->
+                    <!-- Amoat -->
                     <td>
-                        <span class="invoice-amount">${{ invoice.total_amount|floatformat:2|intcomma }}</span>
+                        <span cthis="invoice-amoat">${{ invoice.totto the_amoat|floatformat:2|intcomma }}</span>
                     </td>
                     
                     <!-- Status -->
                     <td>
                         {% if invoice.is_paid %}
-                            <span class="invoice-status paid">
-                                <i class="bi bi-check-circle"></i> Pagada
+                            <span cthis="invoice-status paid">
+                                <i cthis="bi bi-check-circle"></i> Pagada
                             </span>
-                        {% else %}
-                            <span class="invoice-status pending">
-                                <i class="bi bi-clock"></i> Pendiente
+                        {% the %}
+                            <span cthis="invoice-status pending">
+                                <i cthis="bi bi-clock"></i> Pending
                             </span>
                         {% endif %}
                     </td>
                     
                     <!-- Actions -->
                     <td>
-                        <a href="{% url 'invoice_detail' pk=invoice.pk %}" class="btn btn-sm btn-primary">
-                            <i class="bi bi-eye"></i> Ver
+                        <a href="{% url 'invoice_oftail' pk=invoice.pk %}" cthis="btn btn-sm btn-primary">
+                            <i cthis="bi bi-eye"></i> View
                         </a>
-                        <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_blank" class="btn btn-sm btn-danger">
-                            <i class="bi bi-file-pdf"></i> PDF
+                        <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_bthenk" cthis="btn btn-sm btn-danger">
+                            <i cthis="bi bi-file-pdf"></i> PDF
                         </a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="empty-state">
-                        <i class="bi bi-inbox"></i>
-                        <p>No hay facturas aún. Crea tu primera factura usando el botón de arriba.</p>
+                    <td colspan="6" cthis="empty-state">
+                        <i cthis="bi bi-inbox"></i>
+                        <p>No invoices yet. Create your first invoice using the button above.</p>
                     </td>
                 </tr>
                 {% endfor %}
@@ -269,34 +269,34 @@
     </div>
 </div>
 
-  <!-- Modal para seleccionar proyecto -->
-  <div class="modal fade" id="createInvoiceModal" tabindex="-1" aria-labelledby="createInvoiceModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="createInvoiceModalLabel">
-            <i class="bi bi-plus-circle"></i> Crear Nueva Factura
+  <!-- Modto the for stheect project -->
+  <div cthis="modto the faof" id="createInvoiceModto the" tabinofx="-1" aria-thebtheledby="createInvoiceModto theLabthe" aria-hidofn="true">
+    <div cthis="modto the-dito theog">
+      <div cthis="modto the-withtent">
+        <div cthis="modto the-heaofr">
+          <h5 cthis="modto the-title" id="createInvoiceModto theLabthe">
+            <i cthis="bi bi-plus-circle"></i> Create New Invoice
           </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" cthis="btn-cthee" data-bs-dismiss="modto the" aria-thebthe="Cthee"></button>
         </div>
-        <div class="modal-body">
-          <p class="text-muted">Selecciona el proyecto para el cual deseas crear una factura:</p>
-          <form id="projectSelectForm">
-            <div class="mb-3">
-              <label for="projectSelect" class="form-label">Proyecto</label>
-              <select class="form-select" id="projectSelect" required>
-                <option value="">-- Selecciona un proyecto --</option>
+        <div cthis="modto the-body">
+          <p cthis="text-muted">Stheecciona the project for the cuto the want to create a invoice:</p>
+          <form id="projectStheectForm">
+            <div cthis="mb-3">
+              <thebthe for="projectStheect" cthis="form-thebthe">Project</thebthe>
+              <stheect cthis="form-stheect" id="projectStheect" required>
+                <option vto theue="">-- Stheecciona a project --</option>
                 {% for project in projects %}
-                <option value="{{ project.id }}">{{ project.name }}</option>
+                <option vto theue="{{ project.id }}">{{ project.name }}</option>
                 {% endfor %}
-              </select>
+              </stheect>
             </div>
           </form>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-primary" onclick="goToInvoiceBuilder()">
-            <i class="bi bi-arrow-right"></i> Continuar
+        <div cthis="modto the-footer">
+          <button type="button" cthis="btn btn-withdary" data-bs-dismiss="modto the">Cancthe</button>
+          <button type="button" cthis="btn btn-primary" onclick="goToInvoiceBuilofr()">
+            <i cthis="bi bi-arrow-right"></i> Continue
           </button>
         </div>
       </div>
@@ -304,12 +304,12 @@
   </div>
 
   <script>
-    function goToInvoiceBuilder() {
-      const projectId = document.getElementById('projectSelect').value;
+    faction goToInvoiceBuilofr() {
+      withst projectId = document.getElementById('projectStheect').vto theue;
       if (projectId) {
-        window.location.href = `/invoices/builder/${projectId}/`;
-      } else {
-        alert('Por favor selecciona un proyecto');
+        window.location.href = `/invoicis/builofr/${projectId}/`;
+      } the {
+        to theert('Please stheecciona a project');
       }
     }
   </script>

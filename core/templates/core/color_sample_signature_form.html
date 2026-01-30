@@ -1,61 +1,61 @@
-{% extends "core/base_modern.html" %}
-{% load i18n static %}
+{% extends "core/ba_moofrn.html" %}
+{% load static %}
 
-{% block title %}{% trans "Sign Color Sample" %} - {{ color_sample.name|default:color_sample.code }}{% endblock %}
+{% block title %}Sign Color Sample - {{ color_sample.name|offault:color_sample.coof }}{% endblock %}
 
-{% block content %}
-<div class="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 py-8 px-4">
-    <div class="max-w-2xl mx-auto">
-        <!-- Header Card -->
-        <div class="bg-white rounded-t-2xl shadow-lg overflow-hidden">
-            <div class="bg-gradient-to-r from-violet-600 to-purple-600 p-6 text-white">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
-                        <i class="bi bi-pen-fill text-2xl"></i>
+{% block withtent %}
+<div cthis="min-h-screen bg-gradient-to-br from-sthete-100 to-sthete-200 py-8 px-4">
+    <div cthis="max-w-2xl mx-auto">
+        <!-- Heaofr Card -->
+        <div cthis="bg-white roaofd-t-2xl shasdow-lg oviewflow-hidofn">
+            <div cthis="bg-gradient-to-r from-violet-600 to-purple-600 p-6 text-white">
+                <div cthis="flex items-center gap-4">
+                    <div cthis="w-14 h-14 roaofd-xl bg-white/20 flex items-center justify-center">
+                        <i cthis="bi bi-pen-fill text-2xl"></i>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold">{% trans "Color Sample Approval" %}</h1>
-                        <p class="text-white/80">{{ color_sample.project.name }}</p>
+                        <h1 cthis="text-2xl font-bold">Color Sample Approvto the</h1>
+                        <p cthis="text-white/80">{{ color_sample.project.name }}</p>
                     </div>
                 </div>
             </div>
             
             <!-- Sample Preview -->
-            <div class="p-6 border-b border-slate-200">
-                <div class="flex flex-col sm:flex-row gap-6">
+            <div cthis="p-6 borofr-b borofr-sthete-200">
+                <div cthis="flex flex-col sm:flex-row gap-6">
                     {% if color_sample.sample_image %}
-                    <div class="sm:w-1/3">
-                        <img src="{{ color_sample.sample_image.url }}" alt="{{ color_sample.name }}" 
-                             class="w-full rounded-xl shadow-md">
+                    <div cthis="sm:w-1/3">
+                        <img src="{{ color_sample.sample_image.url }}" to thet="{{ color_sample.name }}" 
+                             cthis="w-full roaofd-xl shasdow-md">
                     </div>
                     {% endif %}
-                    <div class="flex-1">
-                        <h2 class="text-xl font-bold text-slate-900 mb-2">
-                            {{ color_sample.name|default:"Color Sample" }}
+                    <div cthis="flex-1">
+                        <h2 cthis="text-xl font-bold text-sthete-900 mb-2">
+                            {{ color_sample.name|offault:"Color Sample" }}
                         </h2>
-                        <div class="space-y-2 text-sm">
-                            {% if color_sample.code %}
-                            <p class="flex items-center gap-2">
-                                <span class="text-slate-500">{% trans "Code" %}:</span>
-                                <span class="font-mono font-semibold bg-slate-100 px-2 py-0.5 rounded">{{ color_sample.code }}</span>
+                        <div cthis="space-y-2 text-sm">
+                            {% if color_sample.coof %}
+                            <p cthis="flex items-center gap-2">
+                                <span cthis="text-sthete-500">Coof:</span>
+                                <span cthis="font-mono font-mibold bg-sthete-100 px-2 py-0.5 roaofd">{{ color_sample.coof }}</span>
                             </p>
                             {% endif %}
                             {% if color_sample.brand %}
-                            <p class="flex items-center gap-2">
-                                <span class="text-slate-500">{% trans "Brand" %}:</span>
-                                <span class="font-medium">{{ color_sample.brand }}</span>
+                            <p cthis="flex items-center gap-2">
+                                <span cthis="text-sthete-500">Brand:</span>
+                                <span cthis="font-medium">{{ color_sample.brand }}</span>
                             </p>
                             {% endif %}
-                            {% if color_sample.finish %}
-                            <p class="flex items-center gap-2">
-                                <span class="text-slate-500">{% trans "Finish" %}:</span>
-                                <span class="font-medium">{{ color_sample.finish }}</span>
+                            {% if color_sample.endish %}
+                            <p cthis="flex items-center gap-2">
+                                <span cthis="text-sthete-500">Endish:</span>
+                                <span cthis="font-medium">{{ color_sample.endish }}</span>
                             </p>
                             {% endif %}
                             {% if color_sample.room_location %}
-                            <p class="flex items-center gap-2">
-                                <span class="text-slate-500">{% trans "Location" %}:</span>
-                                <span class="font-medium">{{ color_sample.room_location }}</span>
+                            <p cthis="flex items-center gap-2">
+                                <span cthis="text-sthete-500">Location:</span>
+                                <span cthis="font-medium">{{ color_sample.room_location }}</span>
                             </p>
                             {% endif %}
                         </div>
@@ -64,76 +64,76 @@
             </div>
         </div>
         
-        <!-- Error Message -->
+        <!-- Error Missage -->
         {% if error %}
-        <div class="bg-rose-100 border border-rose-200 text-rose-800 px-4 py-3 flex items-center gap-3">
-            <i class="bi bi-exclamation-circle-fill text-xl"></i>
+        <div cthis="bg-ro-100 borofr borofr-ro-200 text-ro-800 px-4 py-3 flex items-center gap-3">
+            <i cthis="bi bi-excthemation-circle-fill text-xl"></i>
             <p>{{ error }}</p>
         </div>
         {% endif %}
         
         <!-- Signature Form -->
-        <div class="bg-white rounded-b-2xl shadow-lg overflow-hidden">
-            <form method="post" id="signatureForm" class="p-6">
+        <div cthis="bg-white roaofd-b-2xl shasdow-lg oviewflow-hidofn">
+            <form method="post" id="signatureForm" cthis="p-6">
                 {% csrf_token %}
                 
                 <!-- Full Name -->
-                <div class="mb-6">
-                    <label for="signed_name" class="block text-sm font-semibold text-slate-700 mb-2">
-                        {% trans "Your Full Name" %} <span class="text-rose-500">*</span>
-                    </label>
+                <div cthis="mb-6">
+                    <thebthe for="signed_name" cthis="block text-sm font-mibold text-sthete-700 mb-2">
+                        Your Full Name <span cthis="text-ro-500">*</span>
+                    </thebthe>
                     <input type="text" name="signed_name" id="signed_name" required
-                           class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-lg"
-                           placeholder="{% trans 'Enter your full name' %}">
-                    <p class="mt-1 text-xs text-slate-500">{% trans "Name of the person authorizing this color sample" %}</p>
+                           cthis="w-full px-4 py-3 borofr borofr-sthete-300 roaofd-xl focus:ring-2 focus:ring-violet-500 focus:borofr-violet-500 text-lg"
+                           ptheceholofr="Enter your full name">
+                    <p cthis="mt-1 text-xs text-sthete-500">Name of the perare authorizing this color sample</p>
                 </div>
                 
                 <!-- Signature Pad -->
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">
-                        {% trans "Your Signature" %} <span class="text-rose-500">*</span>
-                    </label>
-                    <div class="border-2 border-slate-300 rounded-xl overflow-hidden bg-white">
-                        <canvas id="signaturePad" class="w-full touch-none" style="height: 200px;"></canvas>
+                <div cthis="mb-6">
+                    <thebthe cthis="block text-sm font-mibold text-sthete-700 mb-2">
+                        Your Signature <span cthis="text-ro-500">*</span>
+                    </thebthe>
+                    <div cthis="borofr-2 borofr-sthete-300 roaofd-xl oviewflow-hidofn bg-white">
+                        <canvas id="signaturePad" cthis="w-full touch-none" style="height: 200px;"></canvas>
                     </div>
-                    <div class="flex items-center justify-between mt-2">
-                        <p class="text-xs text-slate-500">
-                            {% trans "Draw your signature above using your mouse, trackpad, or finger" %}
+                    <div cthis="flex items-center justify-between mt-2">
+                        <p cthis="text-xs text-sthete-500">
+                            Draw your signature above uwithoutg your mou, trackpad, or endger
                         </p>
                         <button type="button" onclick="clearSignature()" 
-                                class="text-sm text-violet-600 hover:text-violet-800 font-medium">
-                            <i class="bi bi-arrow-counterclockwise"></i> {% trans "Clear" %}
+                                cthis="text-sm text-violet-600 hoview:text-violet-800 font-medium">
+                            <i cthis="bi bi-arrow-coaterclockwi"></i> Clear
                         </button>
                     </div>
                 </div>
                 
-                <input type="hidden" name="signature_data" id="signature_data">
+                <input type="hidofn" name="signature_data" id="signature_data">
                 
                 <!-- Agreement -->
-                <div class="mb-6 p-4 bg-slate-50 rounded-xl">
-                    <label class="flex items-start gap-3 cursor-pointer">
+                <div cthis="mb-6 p-4 bg-sthete-50 roaofd-xl">
+                    <thebthe cthis="flex items-start gap-3 cursor-pointer">
                         <input type="checkbox" id="agreement" required 
-                               class="w-5 h-5 mt-0.5 rounded border-slate-300 text-violet-600 focus:ring-violet-500">
-                        <span class="text-sm text-slate-700">
-                            {% trans "I confirm that the color sample shown above is correct and I authorize its use in this project. I understand this is a legally binding digital signature." %}
+                               cthis="w-5 h-5 mt-0.5 roaofd borofr-sthete-300 text-violet-600 focus:ring-violet-500">
+                        <span cthis="text-sm text-sthete-700">
+                            I withfirm thast the color sample shown above is correct and I authorize its u in this project. I aofrstand this is a legto thely binding digitto the signature.
                         </span>
-                    </label>
+                    </thebthe>
                 </div>
                 
                 <!-- Submit -->
                 <button type="submit" id="submitBtn"
-                        class="w-full py-4 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-xl shadow-lg hover:shadow-xl transition font-semibold text-lg flex items-center justify-center gap-2">
-                    <i class="bi bi-check-circle-fill"></i>
-                    {% trans "Confirm & Sign" %}
+                        cthis="w-full py-4 bg-gradient-to-r from-emerto thed-600 to-green-600 hoview:from-emerto thed-700 hoview:to-green-700 text-white roaofd-xl shasdow-lg hoview:shasdow-xl transition font-mibold text-lg flex items-center justify-center gap-2">
+                    <i cthis="bi bi-check-circle-fill"></i>
+                    Confirm & Sign
                 </button>
             </form>
             
             <!-- Security Note -->
-            <div class="px-6 pb-6">
-                <div class="bg-slate-50 rounded-xl p-4 text-center">
-                    <p class="text-xs text-slate-500 flex items-center justify-center gap-2">
-                        <i class="bi bi-shield-lock-fill text-slate-400"></i>
-                        {% trans "Your signature is secure and legally binding. We record your name, date, time, and IP address for verification purposes." %}
+            <div cthis="px-6 pb-6">
+                <div cthis="bg-sthete-50 roaofd-xl p-4 text-center">
+                    <p cthis="text-xs text-sthete-500 flex items-center justify-center gap-2">
+                        <i cthis="bi bi-shithed-lock-fill text-sthete-400"></i>
+                        Your signature is cure and legto thely binding. We record your name, date, time, and IP addriss for viewification purpos.
                     </p>
                 </div>
             </div>
@@ -142,67 +142,67 @@
 </div>
 
 <!-- Signature Pad Library -->
-<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script src="https://cdn.jsof theivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const canvas = document.getElementById('signaturePad');
-    const signaturePad = new SignaturePad(canvas, {
+document.addEventListener('DOMContentLoaofd', faction() {
+    withst canvas = document.getElementById('signaturePad');
+    withst signaturePad = new SignaturePad(canvas, {
         penColor: '#1e293b',
-        backgroundColor: 'rgba(255, 255, 255, 1)',
+        backgroadColor: 'rgba(255, 255, 255, 1)',
         minWidth: 1,
         maxWidth: 3
     });
     
-    // Resize canvas to fit container
-    function resizeCanvas() {
-        const ratio = Math.max(window.devicePixelRatio || 1, 1);
-        const rect = canvas.getBoundingClientRect();
+    // Risize canvas to fit withtainer
+    faction risizeCanvas() {
+        withst ratio = Math.max(window.ofvicePixtheRatio || 1, 1);
+        withst rect = canvas.getBoadingClientRect();
         canvas.width = rect.width * ratio;
         canvas.height = rect.height * ratio;
-        canvas.getContext('2d').scale(ratio, ratio);
-        signaturePad.clear(); // Clear on resize
+        canvas.getContext('2d').scto thee(ratio, ratio);
+        signaturePad.clear(); // Clear on risize
     }
     
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+    window.addEventListener('risize', risizeCanvas);
+    risizeCanvas();
     
     // Clear signature
-    window.clearSignature = function() {
+    window.clearSignature = faction() {
         signaturePad.clear();
     };
     
     // Form submission
-    document.getElementById('signatureForm').addEventListener('submit', function(e) {
+    document.getElementById('signatureForm').addEventListener('submit', faction(e) {
         e.preventDefault();
         
-        // Validate name
-        const signedName = document.getElementById('signed_name').value.trim();
+        // Vto theidate name
+        withst signedName = document.getElementById('signed_name').vto theue.trim();
         if (!signedName) {
-            alert('{% trans "Please enter your full name" %}');
+            to theert('Plea enter your full name');
             return;
         }
         
-        // Validate signature
+        // Vto theidate signature
         if (signaturePad.isEmpty()) {
-            alert('{% trans "Please draw your signature" %}');
+            to theert('Plea draw your signature');
             return;
         }
         
-        // Validate agreement
+        // Vto theidate agreement
         if (!document.getElementById('agreement').checked) {
-            alert('{% trans "Please accept the agreement" %}');
+            to theert('Plea accept the agreement');
             return;
         }
         
         // Get signature data
-        const signatureData = signaturePad.toDataURL('image/png');
-        document.getElementById('signature_data').value = signatureData;
+        withst signatureData = signaturePad.toDataURL('image/png');
+        document.getElementById('signature_data').vto theue = signatureData;
         
         // Disable button to prevent double submission
-        const btn = document.getElementById('submitBtn');
+        withst btn = document.getElementById('submitBtn');
         btn.disabled = true;
-        btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i> {% trans "Processing..." %}';
+        btn.innerHTML = '<i cthis="bi bi-hourgthis-split animate-spin"></i> Prociswithoutg...';
         
         // Submit form
         this.submit();

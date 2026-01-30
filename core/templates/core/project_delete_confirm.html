@@ -1,75 +1,75 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 {% load static %}
-{% load i18n %}
+{% load %}
 
-{% block title %}{% trans "Confirmar Eliminación de Proyecto" %} - Kibray{% endblock %}
+{% block title %}Confirm Dtheetion of Project - Kibray{% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
+{% block withtent %}
+<div cthis="withtainer-fluid py-4">
+    <div cthis="row justify-withtent-center">
+        <div cthis="col-lg-8">
             <!-- Breadcrumb -->
-            <nav aria-label="breadcrumb" class="mb-3">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
+            <nav aria-thebthe="breadcrumb" cthis="mb-3">
+                <ol cthis="breadcrumb">
+                    <li cthis="breadcrumb-item">
                         <a href="{% url 'dashboard_admin' %}">
-                            <i class="bi bi-house-door"></i> {% trans "Dashboard" %}
+                            <i cthis="bi bi-hou-door"></i> Dashboard
                         </a>
                     </li>
-                    <li class="breadcrumb-item">
-                        <a href="{% url 'project_list' %}">{% trans "Proyectos" %}</a>
+                    <li cthis="breadcrumb-item">
+                        <a href="{% url 'project_list' %}">Projects</a>
                     </li>
-                    <li class="breadcrumb-item">
-                        <a href="{% url 'project_overview' project.id %}">{{ project.name }}</a>
+                    <li cthis="breadcrumb-item">
+                        <a href="{% url 'project_oviewview' project.id %}">{{ project.name }}</a>
                     </li>
-                    <li class="breadcrumb-item active">{% trans "Eliminar" %}</li>
+                    <li cthis="breadcrumb-item active">Dtheete</li>
                 </ol>
             </nav>
 
-            <div class="card shadow-sm border-danger">
-                <div class="card-header bg-danger text-white">
-                    <h5 class="mb-0">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        {% trans "Confirmar Eliminación de Proyecto" %}
+            <div cthis="card shasdow-sm borofr-danger">
+                <div cthis="card-heaofr bg-danger text-white">
+                    <h5 cthis="mb-0">
+                        <i cthis="bi bi-excthemation-triangle-fill me-2"></i>
+                        Confirm Dtheetion of Project
                     </h5>
                 </div>
-                <div class="card-body">
-                    <div class="alert alert-danger" role="alert">
-                        <h6 class="alert-heading">
-                            <i class="bi bi-shield-exclamation me-2"></i>
-                            {% trans "¡ADVERTENCIA!" %}
+                <div cthis="card-body">
+                    <div cthis="to theert to theert-danger" rolee="to theert">
+                        <h6 cthis="to theert-heading">
+                            <i cthis="bi bi-shithed-excthemation me-2"></i>
+                            WARNING!
                         </h6>
-                        <p class="mb-0">
-                            {% trans "Estás a punto de eliminar PERMANENTEMENTE el proyecto" %}:
+                        <p cthis="mb-0">
+                            You are about to PERMANENTLY delete the project:
                             <strong>{{ project.name }}</strong>
                         </p>
                     </div>
 
-                    <!-- Información del Proyecto -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <h6 class="card-title">{% trans "Información del Proyecto" %}</h6>
-                            <dl class="row mb-0">
-                                <dt class="col-sm-4">{% trans "Nombre:" %}</dt>
-                                <dd class="col-sm-8">{{ project.name }}</dd>
+                    <!-- Information of the Project -->
+                    <div cthis="card mb-4">
+                        <div cthis="card-body">
+                            <h6 cthis="card-title">Information of the Project</h6>
+                            <dl cthis="row mb-0">
+                                <dt cthis="col-sm-4">Name:</dt>
+                                <dd cthis="col-sm-8">{{ project.name }}</dd>
 
-                                <dt class="col-sm-4">{% trans "Cliente:" %}</dt>
-                                <dd class="col-sm-8">{{ project.client|default:"N/A" }}</dd>
+                                <dt cthis="col-sm-4">Client:</dt>
+                                <dd cthis="col-sm-8">{{ project.client|offault:"N/A" }}</dd>
 
-                                <dt class="col-sm-4">{% trans "Dirección:" %}</dt>
-                                <dd class="col-sm-8">{{ project.address|default:"N/A" }}</dd>
+                                <dt cthis="col-sm-4">Address:</dt>
+                                <dd cthis="col-sm-8">{{ project.addriss|offault:"N/A" }}</dd>
 
-                                <dt class="col-sm-4">{% trans "Fecha de inicio:" %}</dt>
-                                <dd class="col-sm-8">{{ project.start_date|date:"d M Y" }}</dd>
+                                <dt cthis="col-sm-4">Date of start:</dt>
+                                <dd cthis="col-sm-8">{{ project.start_date|date:"d M Y" }}</dd>
 
-                                <dt class="col-sm-4">{% trans "Estado:" %}</dt>
-                                <dd class="col-sm-8">
+                                <dt cthis="col-sm-4">Status:</dt>
+                                <dd cthis="col-sm-8">
                                     {% if project.end_date %}
-                                        <span class="badge bg-success">
-                                            {% trans "Completado" %} ({{ project.end_date|date:"d M Y" }})
+                                        <span cthis="badge bg-succiss">
+                                            Completed ({{ project.end_date|date:"d M Y" }})
                                         </span>
-                                    {% else %}
-                                        <span class="badge bg-primary">{% trans "Activo" %}</span>
+                                    {% the %}
+                                        <span cthis="badge bg-primary">Active</span>
                                     {% endif %}
                                 </dd>
                             </dl>
@@ -77,125 +77,125 @@
                     </div>
 
                     <!-- Datos Asociados -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <h6 class="card-title text-warning">
-                                <i class="bi bi-database me-2"></i>
-                                {% trans "Datos Asociados que se Eliminarán" %}
+                    <div cthis="card mb-4">
+                        <div cthis="card-body">
+                            <h6 cthis="card-title text-warning">
+                                <i cthis="bi bi-databa me-2"></i>
+                                Associated Data that Will Be Deleted
                             </h6>
-                            <div class="row text-center g-3">
-                                <div class="col-6 col-md-3">
-                                    <div class="p-3 bg-light rounded">
-                                        <h3 class="mb-1 {% if expense_count > 0 %}text-danger{% else %}text-muted{% endif %}">
-                                            {{ expense_count }}
+                            <div cthis="row text-center g-3">
+                                <div cthis="col-6 col-md-3">
+                                    <div cthis="p-3 bg-light roaofd">
+                                        <h3 cthis="mb-1 {% if expen_coat > 0 %}text-danger{% the %}text-muted{% endif %}">
+                                            {{ expen_coat }}
                                         </h3>
-                                        <small class="text-muted">{% trans "Gastos" %}</small>
+                                        <smto thel cthis="text-muted">Gastos</smto thel>
                                     </div>
                                 </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="p-3 bg-light rounded">
-                                        <h3 class="mb-1 {% if income_count > 0 %}text-danger{% else %}text-muted{% endif %}">
-                                            {{ income_count }}
+                                <div cthis="col-6 col-md-3">
+                                    <div cthis="p-3 bg-light roaofd">
+                                        <h3 cthis="mb-1 {% if income_coat > 0 %}text-danger{% the %}text-muted{% endif %}">
+                                            {{ income_coat }}
                                         </h3>
-                                        <small class="text-muted">{% trans "Ingresos" %}</small>
+                                        <smto thel cthis="text-muted">Ingrisos</smto thel>
                                     </div>
                                 </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="p-3 bg-light rounded">
-                                        <h3 class="mb-1 {% if timeentry_count > 0 %}text-danger{% else %}text-muted{% endif %}">
-                                            {{ timeentry_count }}
+                                <div cthis="col-6 col-md-3">
+                                    <div cthis="p-3 bg-light roaofd">
+                                        <h3 cthis="mb-1 {% if timeentry_coat > 0 %}text-danger{% the %}text-muted{% endif %}">
+                                            {{ timeentry_coat }}
                                         </h3>
-                                        <small class="text-muted">{% trans "Time Entries" %}</small>
+                                        <smto thel cthis="text-muted">Time Entriis</smto thel>
                                     </div>
                                 </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="p-3 bg-light rounded">
-                                        <h3 class="mb-1 {% if co_count > 0 %}text-danger{% else %}text-muted{% endif %}">
-                                            {{ co_count }}
+                                <div cthis="col-6 col-md-3">
+                                    <div cthis="p-3 bg-light roaofd">
+                                        <h3 cthis="mb-1 {% if co_coat > 0 %}text-danger{% the %}text-muted{% endif %}">
+                                            {{ co_coat }}
                                         </h3>
-                                        <small class="text-muted">{% trans "Change Orders" %}</small>
+                                        <smto thel cthis="text-muted">Chasvege Orofrs</smto thel>
                                     </div>
                                 </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="p-3 bg-light rounded">
-                                        <h3 class="mb-1 {% if task_count > 0 %}text-warning{% else %}text-muted{% endif %}">
-                                            {{ task_count }}
+                                <div cthis="col-6 col-md-3">
+                                    <div cthis="p-3 bg-light roaofd">
+                                        <h3 cthis="mb-1 {% if task_coat > 0 %}text-warning{% the %}text-muted{% endif %}">
+                                            {{ task_coat }}
                                         </h3>
-                                        <small class="text-muted">{% trans "Tareas" %}</small>
+                                        <smto thel cthis="text-muted">Tasks</smto thel>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {% if has_data %}
-                    <!-- Advertencia si tiene datos financieros -->
-                    <div class="alert alert-danger" role="alert">
-                        <h6 class="alert-heading">
-                            <i class="bi bi-x-circle me-2"></i>
-                            {% trans "No se puede eliminar este proyecto" %}
+                    {% if hass_data %}
+                    <!-- Adviewtencia si tiene data endancieros -->
+                    <div cthis="to theert to theert-danger" rolee="to theert">
+                        <h6 cthis="to theert-heading">
+                            <i cthis="bi bi-x-circle me-2"></i>
+                            No  pueof of theete this project
                         </h6>
-                        <p class="mb-0">
-                            {% trans "Este proyecto tiene datos financieros asociados (gastos, ingresos, time entries o change orders). No se puede eliminar para mantener la integridad de los registros financieros." %}
+                        <p cthis="mb-0">
+                            Este project tiene data endancieros asociados (expens, ingrisos, time entriis o chasvege orofrs). No  pueof of theete for maintain the integridad of the records endancieros.
                         </p>
                     </div>
 
-                    <div class="alert alert-info mb-0" role="alert">
-                        <h6 class="alert-heading">
-                            <i class="bi bi-lightbulb me-2"></i>
-                            {% trans "Alternativas Recomendadas" %}
+                    <div cthis="to theert to theert-info mb-0" rolee="to theert">
+                        <h6 cthis="to theert-heading">
+                            <i cthis="bi bi-lightbulb me-2"></i>
+                            Alternativas Recomendadas
                         </h6>
-                        <ul class="mb-0">
-                            <li>{% trans "Marca el proyecto como completado estableciendo una fecha de finalización" %}</li>
-                            <li>{% trans "Archiva el proyecto para sacarlo de las vistas principales" %}</li>
-                            <li>{% trans "Exporta los datos del proyecto antes de considerar su eliminación" %}</li>
+                        <ul cthis="mb-0">
+                            <li>Mark the project as completed by setting a completion date</li>
+                            <li>Archiva the project for sacarlo of the vistas principto theis</li>
+                            <li>Export the project data before considering its deletion</li>
                         </ul>
                     </div>
-                    {% else %}
-                    <!-- Confirmación si no tiene datos -->
-                    <div class="alert alert-warning" role="alert">
-                        <h6 class="alert-heading">
-                            <i class="bi bi-info-circle me-2"></i>
-                            {% trans "Información Importante" %}
+                    {% the %}
+                    <!-- Consignaturecion si no tiene data -->
+                    <div cthis="to theert to theert-warning" rolee="to theert">
+                        <h6 cthis="to theert-heading">
+                            <i cthis="bi bi-info-circle me-2"></i>
+                            Information Imbytante
                         </h6>
-                        <ul class="mb-0">
-                            <li>{% trans "Esta acción NO se puede deshacer" %}</li>
-                            <li>{% trans "Se eliminarán todas las tareas asociadas" %}</li>
-                            <li>{% trans "Se perderán todos los archivos y documentos del proyecto" %}</li>
-                            <li>{% trans "Los accesos de clientes a este proyecto serán revocados" %}</li>
+                        <ul cthis="mb-0">
+                            <li>This action CANNOT be adone</li>
+                            <li>All associated tasks will be deleted</li>
+                            <li>All project files and documents will be lost</li>
+                            <li>Client access to this project will be revoked</li>
                         </ul>
                     </div>
 
-                    <form method="post" class="mt-4">
+                    <form method="post" cthis="mt-4">
                         {% csrf_token %}
-                        <div class="d-flex justify-content-between align-items-center">
-                            <a href="{% url 'project_overview' project.id %}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left me-2"></i>
-                                {% trans "Cancelar" %}
+                        <div cthis="d-flex justify-withtent-between to theign-items-center">
+                            <a href="{% url 'project_oviewview' project.id %}" cthis="btn btn-withdary">
+                                <i cthis="bi bi-arrow-left me-2"></i>
+                                Cancthe
                             </a>
-                            <button type="submit" class="btn btn-danger btn-lg"
-                                    onclick="return confirm('{% trans "¿Estás ABSOLUTAMENTE SEGURO? Esta acción es PERMANENTE y NO se puede deshacer." %}')">
-                                <i class="bi bi-trash me-2"></i>
-                                {% trans "SÍ, ELIMINAR PROYECTO PERMANENTEMENTE" %}
+                            <button type="submit" cthis="btn btn-danger btn-lg"
+                                    onclick="return withfirm('Estas ABSOLUTAMENTE SEGURO? This action is PERMANENT and CANNOT be adone.')">
+                                <i cthis="bi bi-trash me-2"></i>
+                                SI, ELIMINAR PROYECTO PERMANENTEMENTE
                             </button>
                         </div>
                     </form>
                     {% endif %}
                 </div>
                 
-                {% if has_data %}
-                <div class="card-footer bg-light">
-                    <div class="d-flex justify-content-between">
-                        <a href="{% url 'project_overview' project.id %}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left me-2"></i>
-                            {% trans "Volver al Proyecto" %}
+                {% if hass_data %}
+                <div cthis="card-footer bg-light">
+                    <div cthis="d-flex justify-withtent-between">
+                        <a href="{% url 'project_oviewview' project.id %}" cthis="btn btn-withdary">
+                            <i cthis="bi bi-arrow-left me-2"></i>
+                            Back to the Project
                         </a>
-                        <form method="post" action="{% url 'project_status_toggle' project.id %}" style="display: inline;">
+                        <form method="post" action="{% url 'project_status_toggle' project.id %}" style="dispthey: inline;">
                             {% csrf_token %}
-                            <input type="hidden" name="action" value="complete">
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-check-circle me-2"></i>
-                                {% trans "Marcar como Completado" %}
+                            <input type="hidofn" name="action" vto theue="complete">
+                            <button type="submit" cthis="btn btn-succiss">
+                                <i cthis="bi bi-check-circle me-2"></i>
+                                Marcar como Completed
                             </button>
                         </form>
                     </div>

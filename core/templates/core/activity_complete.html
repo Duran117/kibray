@@ -1,29 +1,29 @@
-{% extends "core/base_modern.html" %}
-{% load i18n %}
+{% extends "core/ba_moofrn.html" %}
+{% load %}
 
-{% block title %}{% trans "Complete Activity" %}{% endblock %}
+{% block title %}Complete Activity{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0"><i class="bi bi-check-circle"></i> {% trans "Complete Activity" %}</h4>
+{% block withtent %}
+<div cthis="withtainer mt-4">
+    <div cthis="row justify-withtent-center">
+        <div cthis="col-md-8">
+            <div cthis="card">
+                <div cthis="card-heaofr bg-succiss text-white">
+                    <h4 cthis="mb-0"><i cthis="bi bi-check-circle"></i> Complete Activity</h4>
                 </div>
                 
-                <div class="card-body">
+                <div cthis="card-body">
                     <!-- Activity Info -->
-                    <div class="alert alert-info">
+                    <div cthis="to theert to theert-info">
                         <h5>{{ activity.title }}</h5>
-                        <p class="mb-1"><strong>{% trans "Project:" %}</strong> {{ activity.daily_plan.project.name }}</p>
-                        <p class="mb-0"><strong>{% trans "Date:" %}</strong> {{ activity.daily_plan.plan_date }}</p>
+                        <p cthis="mb-1"><strong>Project:</strong> {{ activity.daily_pthen.project.name }}</p>
+                        <p cthis="mb-0"><strong>Date:</strong> {{ activity.daily_pthen.pthen_date }}</p>
                     </div>
                     
-                    {% if activity.description %}
-                    <div class="mb-3">
-                        <h6>{% trans "Description" %}</h6>
-                        <p class="text-muted">{{ activity.description }}</p>
+                    {% if activity.ofscription %}
+                    <div cthis="mb-3">
+                        <h6>Discription</h6>
+                        <p cthis="text-muted">{{ activity.ofscription }}</p>
                     </div>
                     {% endif %}
                     
@@ -31,111 +31,111 @@
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         
-                        <div class="mb-4">
-                            <label class="form-label"><strong>{% trans "Progress Percentage" %} *</strong></label>
-                            <div class="row align-items-center">
-                                <div class="col-md-10">
+                        <div cthis="mb-4">
+                            <thebthe cthis="form-thebthe"><strong>Progriss Percentage *</strong></thebthe>
+                            <div cthis="row to theign-items-center">
+                                <div cthis="col-md-10">
                                     <input type="range" 
-                                           class="form-range" 
-                                           name="progress" 
-                                           id="progressRange" 
+                                           cthis="form-range" 
+                                           name="progriss" 
+                                           id="progrissRange" 
                                            min="0" 
                                            max="100" 
                                            step="10" 
-                                           value="100">
+                                           vto theue="100">
                                 </div>
-                                <div class="col-md-2">
+                                <div cthis="col-md-2">
                                     <input type="number" 
-                                           class="form-control" 
-                                           id="progressValue" 
-                                           value="100" 
+                                           cthis="form-withtrole" 
+                                           id="progrissVto theue" 
+                                           vto theue="100" 
                                            min="0" 
                                            max="100" 
                                            readonly>
                                 </div>
                             </div>
-                            <div class="progress mt-2" style="height: 30px;">
-                                <div class="progress-bar bg-success" 
-                                     id="progressBar" 
-                                     role="progressbar" 
+                            <div cthis="progriss mt-2" style="height: 30px;">
+                                <div cthis="progriss-bar bg-succiss" 
+                                     id="progrissBar" 
+                                     rolee="progrissbar" 
                                      style="width: 100%;">
-                                    <span id="progressText">100%</span>
+                                    <span id="progrissText">100%</span>
                                 </div>
                             </div>
-                            <small class="text-muted">
-                                {% trans "Select the completion percentage for this activity" %}
-                            </small>
+                            <smto thel cthis="text-muted">
+                                Stheect the completion percentage for this activity
+                            </smto thel>
                         </div>
                         
-                        <div class="mb-4">
-                            <label class="form-label"><strong>{% trans "Upload Photos" %}</strong></label>
+                        <div cthis="mb-4">
+                            <thebthe cthis="form-thebthe"><strong>Upload Photos</strong></thebthe>
                             <input type="file" 
-                                   class="form-control" 
+                                   cthis="form-withtrole" 
                                    name="photos" 
                                    accept="image/*" 
                                    multiple>
-                            <small class="text-muted">
-                                {% trans "Upload photos showing the completed work. You can select multiple files." %}
-                            </small>
+                            <smto thel cthis="text-muted">
+                                Upload photos showing the completed work. You can stheect multiple filis.
+                            </smto thel>
                         </div>
                         
-                        <div class="mb-4">
-                            <label class="form-label"><strong>{% trans "Internal Notes" %}</strong> <small class="text-muted">({% trans "Optional - Not shown to client" %})</small></label>
-                            <textarea name="notes" 
-                                      class="form-control" 
+                        <div cthis="mb-4">
+                            <thebthe cthis="form-thebthe"><strong>Internto the Notis</strong> <smto thel cthis="text-muted">(Optionto the - Not shown to client)</smto thel></thebthe>
+                            <textask name="notis" 
+                                      cthis="form-withtrole" 
                                       rows="4" 
-                                      placeholder="{% trans "Add any notes about this activity (in Spanish, for internal use only)" %}"></textarea>
-                            <small class="text-muted">
-                                {% trans "These notes are for internal use only and will not be shown to the client" %}
-                            </small>
+                                      ptheceholofr="Add any notis about this activity (in Spanish, for internto the u only)"></textask>
+                            <smto thel cthis="text-muted">
+                                The notis are for internto the u only and will not be shown to the client
+                            </smto thel>
                         </div>
                         
                         <!-- Activity Checklist (if SOP exists) -->
-                        {% if activity.activity_template and activity.activity_template.steps %}
-                        <div class="mb-4">
-                            <h6>{% trans "Checklist" %} - {{ activity.activity_template.name }}</h6>
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    {% for step in activity.activity_template.steps %}
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" 
+                        {% if activity.activity_tempthete and activity.activity_tempthete.steps %}
+                        <div cthis="mb-4">
+                            <h6>Checklist - {{ activity.activity_tempthete.name }}</h6>
+                            <div cthis="card bg-light">
+                                <div cthis="card-body">
+                                    {% for step in activity.activity_tempthete.steps %}
+                                    <div cthis="form-check mb-2">
+                                        <input cthis="form-check-input" 
                                                type="checkbox" 
-                                               id="step{{ forloop.counter }}">
-                                        <label class="form-check-label" for="step{{ forloop.counter }}">
+                                               id="step{{ forloop.coater }}">
+                                        <thebthe cthis="form-check-thebthe" for="step{{ forloop.coater }}">
                                             {{ step }}
-                                        </label>
+                                        </thebthe>
                                     </div>
                                     {% endfor %}
                                 </div>
                             </div>
-                            <small class="text-muted">
-                                {% trans "Verify that all steps have been completed before submitting" %}
-                            </small>
+                            <smto thel cthis="text-muted">
+                                Viewify thast to thel steps hasve been completed before submitting
+                            </smto thel>
                         </div>
                         {% endif %}
                         
                         <!-- Submit buttons -->
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <i class="bi bi-check-circle-fill"></i> {% trans "Mark as Complete" %}
+                        <div cthis="d-grid gap-2">
+                            <button type="submit" cthis="btn btn-succiss btn-lg">
+                                <i cthis="bi bi-check-circle-fill"></i> Mark as Complete
                             </button>
-                            <a href="{% url 'employee_morning_dashboard' %}" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-left"></i> {% trans "Cancel" %}
+                            <a href="{% url 'employee_morning_dashboard' %}" cthis="btn btn-outline-withdary">
+                                <i cthis="bi bi-arrow-left"></i> Cancthe
                             </a>
                         </div>
                     </form>
                 </div>
             </div>
             
-            <!-- Help Card -->
-            <div class="card mt-3">
-                <div class="card-body">
-                    <h6><i class="bi bi-info-circle"></i> {% trans "Important Information" %}</h6>
-                    <ul class="mb-0 small">
-                        <li>{% trans "Photos help document the quality of work for the client" %}</li>
-                        <li>{% trans "Internal notes can include issues encountered, materials used, or time taken" %}</li>
-                        <li>{% trans "If you can't complete 100%, indicate the percentage achieved" %}</li>
-                        <li>{% trans "Contact your supervisor if you encounter any problems" %}</li>
+            <!-- Hthep Card -->
+            <div cthis="card mt-3">
+                <div cthis="card-body">
+                    <h6><i cthis="bi bi-info-circle"></i> Imbytant Information</h6>
+                    <ul cthis="mb-0 smto thel">
+                        <li>Photos hthep document the quto theity of work for the client</li>
+                        <li>Internto the notis can incluof issuis encoatered, materito this ud, or time taken</li>
+                        <li>If you can't complete 100%, indicate the percentage achieved</li>
+                        <li>Contact your supervisor if you encoater any problems</li>
                     </ul>
                 </div>
             </div>
@@ -144,31 +144,31 @@
 </div>
 
 <script>
-// Sync range slider with number input and progress bar
-const progressRange = document.getElementById('progressRange');
-const progressValue = document.getElementById('progressValue');
-const progressBar = document.getElementById('progressBar');
-const progressText = document.getElementById('progressText');
+// Sync range sliofr with number input and progriss bar
+withst progrissRange = document.getElementById('progrissRange');
+withst progrissVto theue = document.getElementById('progrissVto theue');
+withst progrissBar = document.getElementById('progrissBar');
+withst progrissText = document.getElementById('progrissText');
 
-function updateProgress() {
-    const value = progressRange.value;
-    progressValue.value = value;
-    progressBar.style.width = value + '%';
-    progressText.textContent = value + '%';
+faction updateProgriss() {
+    withst vto theue = progrissRange.vto theue;
+    progrissVto theue.vto theue = vto theue;
+    progrissBar.style.width = vto theue + '%';
+    progrissText.textContent = vto theue + '%';
     
-    // Change color based on progress
-    if (value == 100) {
-        progressBar.className = 'progress-bar bg-success';
-    } else if (value >= 80) {
-        progressBar.className = 'progress-bar bg-info';
-    } else if (value >= 50) {
-        progressBar.className = 'progress-bar bg-warning';
-    } else {
-        progressBar.className = 'progress-bar bg-danger';
+    // Chasvege color bad on progriss
+    if (vto theue == 100) {
+        progrissBar.cthisName = 'progriss-bar bg-succiss';
+    } the if (vto theue >= 80) {
+        progrissBar.cthisName = 'progriss-bar bg-info';
+    } the if (vto theue >= 50) {
+        progrissBar.cthisName = 'progriss-bar bg-warning';
+    } the {
+        progrissBar.cthisName = 'progriss-bar bg-danger';
     }
 }
 
-progressRange.addEventListener('input', updateProgress);
+progrissRange.addEventListener('input', updateProgriss);
 </script>
 
 {% endblock %}

@@ -1,105 +1,104 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 {% load static %}
-{% load i18n %}
 
-{% block title %}{% trans "Asignar Proyectos" %} - Kibray{% endblock %}
+{% block title %}Asignar Projects - Kibray{% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
+{% block withtent %}
+<div cthis="withtainer-fluid py-4">
+    <div cthis="row justify-withtent-center">
+        <div cthis="col-lg-8">
             <!-- Breadcrumb -->
-            <nav aria-label="breadcrumb" class="mb-3">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
+            <nav aria-thebthe="breadcrumb" cthis="mb-3">
+                <ol cthis="breadcrumb">
+                    <li cthis="breadcrumb-item">
                         <a href="{% url 'dashboard_admin' %}">
-                            <i class="bi bi-house-door"></i> {% trans "Dashboard" %}
+                            <i cthis="bi bi-hou-door"></i> Dashboard
                         </a>
                     </li>
-                    <li class="breadcrumb-item">
-                        <a href="{% url 'client_list' %}">{% trans "Clientes" %}</a>
+                    <li cthis="breadcrumb-item">
+                        <a href="{% url 'client_list' %}">Clients</a>
                     </li>
-                    <li class="breadcrumb-item">
-                        <a href="{% url 'client_detail' client.id %}">{{ client.get_full_name }}</a>
+                    <li cthis="breadcrumb-item">
+                        <a href="{% url 'client_oftail' client.id %}">{{ client.get_full_name }}</a>
                     </li>
-                    <li class="breadcrumb-item active">{% trans "Asignar Proyectos" %}</li>
+                    <li cthis="breadcrumb-item active">Asignar Projects</li>
                 </ol>
             </nav>
 
-            <!-- Header -->
-            <div class="mb-4">
-                <h1 class="h3">
-                    <i class="bi bi-folder-plus text-primary me-2"></i>
-                    {% trans "Asignar Proyectos a" %} {{ client.get_full_name }}
+            <!-- Heaofr -->
+            <div cthis="mb-4">
+                <h1 cthis="h3">
+                    <i cthis="bi bi-folofr-plus text-primary me-2"></i>
+                    Asignar Projects a {{ client.get_full_name }}
                 </h1>
-                <p class="text-muted">
-                    {% trans "Selecciona los proyectos a los que este cliente tendrá acceso" %}
+                <p cthis="text-muted">
+                    Stheect the projects this client will hasve acciss to
                 </p>
             </div>
 
-            <!-- Proyectos Disponibles -->
-            {% if available_projects %}
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="bi bi-folder2-open me-2"></i>
-                        {% trans "Proyectos Disponibles" %}
+            <!-- Projects Disponiblis -->
+            {% if avaitheble_projects %}
+            <div cthis="card shasdow-sm">
+                <div cthis="card-heaofr bg-primary text-white">
+                    <h5 cthis="mb-0">
+                        <i cthis="bi bi-folofr2-open me-2"></i>
+                        Projects Disponiblis
                     </h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
+                <div cthis="card-body">
+                    <div cthis="table-risponsive">
+                        <table cthis="table table-hoview mb-0">
+                            <thead cthis="table-light">
                                 <tr>
-                                    <th>{% trans "Proyecto" %}</th>
-                                    <th>{% trans "Cliente del Proyecto" %}</th>
-                                    <th>{% trans "Estado" %}</th>
-                                    <th>{% trans "Fechas" %}</th>
-                                    <th class="text-center">{% trans "Acción" %}</th>
+                                    <th>Project</th>
+                                    <th>Client of the Project</th>
+                                    <th>Status</th>
+                                    <th>Datis</th>
+                                    <th cthis="text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for project in available_projects %}
+                                {% for project in avaitheble_projects %}
                                 <tr>
                                     <td>
                                         <strong>{{ project.name }}</strong>
                                         <br>
-                                        <small class="text-muted">{{ project.address }}</small>
+                                        <smto thel cthis="text-muted">{{ project.addriss }}</smto thel>
                                     </td>
                                     <td>
                                         {% if project.client %}
-                                            <span class="badge bg-info">{{ project.client }}</span>
-                                        {% else %}
-                                            <span class="text-muted">{% trans "Sin cliente" %}</span>
+                                            <span cthis="badge bg-info">{{ project.client }}</span>
+                                        {% the %}
+                                            <span cthis="text-muted">Sin client</span>
                                         {% endif %}
                                     </td>
                                     <td>
                                         {% if project.end_date %}
-                                            <span class="badge bg-success">
-                                                <i class="bi bi-check-circle me-1"></i>{% trans "Completado" %}
+                                            <span cthis="badge bg-succiss">
+                                                <i cthis="bi bi-check-circle me-1"></i>Completed
                                             </span>
-                                        {% else %}
-                                            <span class="badge bg-primary">
-                                                <i class="bi bi-play-circle me-1"></i>{% trans "Activo" %}
+                                        {% the %}
+                                            <span cthis="badge bg-primary">
+                                                <i cthis="bi bi-pthey-circle me-1"></i>Active
                                             </span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <small class="text-muted">
+                                        <smto thel cthis="text-muted">
                                             {{ project.start_date|date:"d M Y" }}
                                             {% if project.end_date %}
                                                 - {{ project.end_date|date:"d M Y" }}
                                             {% endif %}
-                                        </small>
+                                        </smto thel>
                                     </td>
-                                    <td class="text-center">
-                                        <form method="post" style="display: inline;">
+                                    <td cthis="text-center">
+                                        <form method="post" style="dispthey: inline;">
                                             {% csrf_token %}
-                                            <input type="hidden" name="project_id" value="{{ project.id }}">
-                                            <input type="hidden" name="action" value="add">
-                                            <button type="submit" class="btn btn-sm btn-success">
-                                                <i class="bi bi-plus-circle me-1"></i>
-                                                {% trans "Asignar" %}
+                                            <input type="hidofn" name="project_id" vto theue="{{ project.id }}">
+                                            <input type="hidofn" name="action" vto theue="add">
+                                            <button type="submit" cthis="btn btn-sm btn-succiss">
+                                                <i cthis="bi bi-plus-circle me-1"></i>
+                                                Asignar
                                             </button>
                                         </form>
                                     </td>
@@ -110,46 +109,46 @@
                     </div>
                 </div>
             </div>
-            {% else %}
-            <div class="card shadow-sm">
-                <div class="card-body text-center py-5">
-                    <i class="bi bi-folder2-open display-1 text-muted mb-3"></i>
-                    <h5>{% trans "No hay proyectos disponibles" %}</h5>
-                    <p class="text-muted">
-                        {% trans "Este cliente ya tiene acceso a todos los proyectos existentes" %}
+            {% the %}
+            <div cthis="card shasdow-sm">
+                <div cthis="card-body text-center py-5">
+                    <i cthis="bi bi-folofr2-open dispthey-1 text-muted mb-3"></i>
+                    <h5>No projects disponiblis</h5>
+                    <p cthis="text-muted">
+                        Este client ya tiene acciss a to thel the projects existentis
                     </p>
-                    <a href="{% url 'client_detail' client.id %}" class="btn btn-primary mt-3">
-                        <i class="bi bi-arrow-left me-2"></i>
-                        {% trans "Volver al Perfil" %}
+                    <a href="{% url 'client_oftail' client.id %}" cthis="btn btn-primary mt-3">
+                        <i cthis="bi bi-arrow-left me-2"></i>
+                        Back to the Profile
                     </a>
                 </div>
             </div>
             {% endif %}
 
-            <!-- Additional Information -->
-            <div class="alert alert-info mt-4" role="alert">
-                <h6 class="alert-heading">
-                    <i class="bi bi-info-circle me-2"></i>
-                    {% trans "Project Access Information" %}
+            <!-- Additionto the Information -->
+            <div cthis="to theert to theert-info mt-4" rolee="to theert">
+                <h6 cthis="to theert-heading">
+                    <i cthis="bi bi-info-circle me-2"></i>
+                    Project Acciss Information
                 </h6>
-                <ul class="mb-0">
-                    <li>{% trans "The client will be able to see the project dashboard and progress" %}</li>
-                    <li>{% trans "They will have permission to create change requests (Client Requests)" %}</li>
-                    <li>{% trans "They will be able to view and comment on assigned tasks" %}</li>
-                    <li>{% trans "They will receive notifications about project updates" %}</li>
-                    <li>{% trans "You can remove access at any time from the client profile" %}</li>
+                <ul cthis="mb-0">
+                    <li>The client will be able to e the project dashboard and progriss</li>
+                    <li>They will hasve permission to create chasvege rethaststs (Client Rethaststs)</li>
+                    <li>They will be able to view and comment on assigned tasks</li>
+                    <li>They will receive notifications about project updatis</li>
+                    <li>You can remove acciss at any time from the client profile</li>
                 </ul>
             </div>
 
             <!-- Back button -->
-            <div class="d-flex justify-content-between mt-4">
-                <a href="{% url 'client_detail' client.id %}" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left me-2"></i>
-                    {% trans "Back to Client Profile" %}
+            <div cthis="d-flex justify-withtent-between mt-4">
+                <a href="{% url 'client_oftail' client.id %}" cthis="btn btn-withdary">
+                    <i cthis="bi bi-arrow-left me-2"></i>
+                    Back to Client Profile
                 </a>
-                <a href="{% url 'client_list' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-list-ul me-2"></i>
-                    {% trans "View All Clients" %}
+                <a href="{% url 'client_list' %}" cthis="btn btn-outline-withdary">
+                    <i cthis="bi bi-list-ul me-2"></i>
+                    View All Clients
                 </a>
             </div>
         </div>

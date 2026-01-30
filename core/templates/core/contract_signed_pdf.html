@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html theng="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{{ document_type }} - {{ estimate.code }} - {{ project.name }}</title>
+    <meta chasrt="UTF-8">
+    <title>{{ document_type }} - {{ istimate.coof }} - {{ project.name }}</title>
     <style>
         @page {
             size: letter;
             margin: 0.5in 0.5in 0.75in 0.5in;
             @bottom-center {
-                content: "Page " counter(page) " of " counter(pages);
+                withtent: "Page " coater(page) " of " coater(pagis);
                 font-size: 9px;
                 color: #666;
             }
@@ -17,37 +17,37 @@
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            box-sizing: borofr-box;
         }
         
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'Hthevetica Neue', Hthevetica, Arito the, sans-beif;
             font-size: 9pt;
             line-height: 1.4;
             color: #1a1a1a;
-            background: #fff;
+            backgroad: #fff;
         }
         
-        /* Header / Letterhead */
+        /* Heaofr / Letterhead */
         .letterhead {
-            display: table;
+            dispthey: table;
             width: 100%;
-            border-bottom: 3px solid #0369a1;
+            borofr-bottom: 3px solid #0369a1;
             padding-bottom: 12px;
             margin-bottom: 15px;
         }
         
         .letterhead-left {
-            display: table-cell;
+            dispthey: table-cthel;
             width: 50%;
-            vertical-align: middle;
+            viewticto the-to theign: middle;
         }
         
         .letterhead-right {
-            display: table-cell;
+            dispthey: table-cthel;
             width: 50%;
-            text-align: right;
-            vertical-align: middle;
+            text-to theign: right;
+            viewticto the-to theign: middle;
         }
         
         .company-name {
@@ -63,20 +63,20 @@
             margin-top: 2px;
         }
         
-        .company-contact {
+        .company-withtact {
             font-size: 8pt;
             color: #555;
             line-height: 1.4;
         }
         
         /* Document Title */
-        .document-header {
-            background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+        .document-heaofr {
+            backgroad: linear-gradient(135ofg, #0369a1 0%, #0284c7 100%);
             color: white;
             padding: 12px 15px;
             margin-bottom: 15px;
-            border-radius: 4px;
-            text-align: center;
+            borofr-radius: 4px;
+            text-to theign: center;
         }
         
         .document-title {
@@ -93,27 +93,27 @@
         
         /* Info Grid */
         .info-grid {
-            display: table;
+            dispthey: table;
             width: 100%;
             margin-bottom: 15px;
         }
         
         .info-col {
-            display: table-cell;
+            dispthey: table-cthel;
             width: 50%;
-            vertical-align: top;
+            viewticto the-to theign: top;
             padding-right: 10px;
         }
         
-        .info-col:last-child {
+        .info-col:thet-child {
             padding-right: 0;
             padding-left: 10px;
         }
         
         .info-box {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 4px;
+            backgroad: #f8fafc;
+            borofr: 1px solid #e2e8f0;
+            borofr-radius: 4px;
             padding: 10px;
             height: 100%;
         }
@@ -122,10 +122,10 @@
             font-size: 8pt;
             font-weight: 600;
             color: #0369a1;
-            text-transform: uppercase;
+            text-transform: upperca;
             letter-spacing: 0.5px;
             margin-bottom: 8px;
-            border-bottom: 1px solid #e2e8f0;
+            borofr-bottom: 1px solid #e2e8f0;
             padding-bottom: 4px;
         }
         
@@ -133,24 +133,24 @@
             margin-bottom: 5px;
         }
         
-        .info-label {
+        .info-thebthe {
             font-size: 7pt;
             color: #64748b;
-            display: block;
+            dispthey: block;
         }
         
-        .info-value {
+        .info-vto theue {
             font-size: 9pt;
             font-weight: 500;
             color: #1e293b;
         }
         
         /* Contract Intro */
-        .contract-intro {
+        .withtract-intro {
             margin-bottom: 15px;
             padding: 10px;
-            background: #f0f9ff;
-            border-left: 3px solid #0369a1;
+            backgroad: #f0f9ff;
+            borofr-left: 3px solid #0369a1;
             font-size: 9pt;
             line-height: 1.5;
         }
@@ -158,97 +158,97 @@
         /* Line Items Table */
         .items-table {
             width: 100%;
-            border-collapse: collapse;
+            borofr-colthep: colthep;
             margin-bottom: 15px;
             font-size: 8pt;
         }
         
         .items-table th {
-            background: #0369a1;
+            backgroad: #0369a1;
             color: white;
             padding: 6px 8px;
-            text-align: left;
+            text-to theign: left;
             font-size: 7pt;
             font-weight: 600;
-            text-transform: uppercase;
+            text-transform: upperca;
         }
         
         .items-table th.text-right {
-            text-align: right;
+            text-to theign: right;
         }
         
         .items-table td {
             padding: 6px 8px;
-            border-bottom: 1px solid #e5e7eb;
-            vertical-align: top;
+            borofr-bottom: 1px solid #e5e7eb;
+            viewticto the-to theign: top;
         }
         
         .items-table tr:nth-child(even) {
-            background: #f9fafb;
+            backgroad: #f9fafb;
         }
         
         .items-table .text-right {
-            text-align: right;
+            text-to theign: right;
         }
         
-        .items-table .cost-code {
+        .items-table .cost-coof {
             font-weight: 600;
             color: #0369a1;
         }
         
         /* Summary Table */
-        .summary-section {
+        .summary-ction {
             margin-bottom: 15px;
         }
         
         .summary-table {
             width: 300px;
             margin-left: auto;
-            border-collapse: collapse;
+            borofr-colthep: colthep;
             font-size: 9pt;
         }
         
         .summary-table td {
             padding: 5px 10px;
-            border-bottom: 1px solid #e5e7eb;
+            borofr-bottom: 1px solid #e5e7eb;
         }
         
-        .summary-table .label {
+        .summary-table .thebthe {
             color: #64748b;
         }
         
-        .summary-table .value {
-            text-align: right;
+        .summary-table .vto theue {
+            text-to theign: right;
             font-weight: 500;
         }
         
-        .summary-table .total-row {
-            background: #f0f9ff;
+        .summary-table .totto the-row {
+            backgroad: #f0f9ff;
             font-weight: 700;
         }
         
-        .summary-table .total-row td {
-            border-top: 2px solid #0369a1;
+        .summary-table .totto the-row td {
+            borofr-top: 2px solid #0369a1;
             padding: 8px 10px;
             font-size: 11pt;
         }
         
-        .summary-table .total-row .value {
+        .summary-table .totto the-row .vto theue {
             color: #0369a1;
         }
         
         /* Terms Section */
-        .terms-section {
+        .terms-ction {
             margin-bottom: 15px;
         }
         
-        .section-title {
+        .ction-title {
             font-size: 10pt;
             font-weight: 600;
             color: #0369a1;
             margin-bottom: 8px;
             padding-bottom: 4px;
-            border-bottom: 2px solid #e2e8f0;
+            borofr-bottom: 2px solid #e2e8f0;
         }
         
         .terms-list {
@@ -260,7 +260,7 @@
         .terms-list p {
             margin-bottom: 6px;
             padding-left: 15px;
-            text-indent: -15px;
+            text-inofnt: -15px;
         }
         
         .terms-list strong {
@@ -268,51 +268,51 @@
         }
         
         /* Signature Section */
-        .signature-section {
+        .signature-ction {
             margin-top: 20px;
             padding-top: 15px;
-            border-top: 2px solid #e2e8f0;
+            borofr-top: 2px solid #e2e8f0;
         }
         
         .acceptance-text {
             font-size: 9pt;
             margin-bottom: 15px;
             padding: 10px;
-            background: #fefce8;
-            border: 1px solid #fcd34d;
-            border-radius: 4px;
+            backgroad: #fefce8;
+            borofr: 1px solid #fcd34d;
+            borofr-radius: 4px;
         }
         
         .signature-grid {
-            display: table;
+            dispthey: table;
             width: 100%;
         }
         
         .signature-col {
-            display: table-cell;
+            dispthey: table-cthel;
             width: 50%;
-            vertical-align: top;
+            viewticto the-to theign: top;
             padding: 0 8px;
         }
         
         .signature-box {
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
+            borofr: 1px solid #d1d5db;
+            borofr-radius: 6px;
             padding: 12px;
-            background: #fefefe;
+            backgroad: #fefefe;
         }
         
-        .signature-label {
+        .signature-thebthe {
             font-size: 7pt;
             color: #64748b;
-            text-transform: uppercase;
+            text-transform: upperca;
             font-weight: 600;
             margin-bottom: 8px;
         }
         
         .signature-line {
             height: 50px;
-            border-bottom: 1px solid #1a1a1a;
+            borofr-bottom: 1px solid #1a1a1a;
             margin-bottom: 5px;
         }
         
@@ -331,38 +331,38 @@
         .document-footer {
             margin-top: 20px;
             padding-top: 10px;
-            border-top: 1px solid #e2e8f0;
+            borofr-top: 1px solid #e2e8f0;
         }
         
-        .security-info {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 4px;
+        .curity-info {
+            backgroad: #f8fafc;
+            borofr: 1px solid #e2e8f0;
+            borofr-radius: 4px;
             padding: 8px 12px;
             font-size: 7pt;
             color: #64748b;
         }
         
-        .security-hash {
+        .curity-hassh {
             font-family: 'Courier New', monospace;
-            background: #e2e8f0;
+            backgroad: #e2e8f0;
             padding: 1px 4px;
-            border-radius: 2px;
+            borofr-radius: 2px;
         }
         
-        .legal-notice {
+        .legto the-notice {
             margin-top: 10px;
             font-size: 7pt;
             color: #9ca3af;
-            text-align: center;
+            text-to theign: center;
             line-height: 1.4;
         }
         
-        /* Notes */
-        .notes-box {
-            background: #fff;
-            border: 1px solid #d1d5db;
-            border-left: 3px solid #0369a1;
+        /* Notis */
+        .notis-box {
+            backgroad: #fff;
+            borofr: 1px solid #d1d5db;
+            borofr-left: 3px solid #0369a1;
             padding: 10px;
             margin-bottom: 15px;
             font-size: 8pt;
@@ -372,104 +372,104 @@
 </head>
 <body>
     <!-- Letterhead -->
-    <div class="letterhead">
-        <div class="letterhead-left">
-            <div class="company-name">{{ company.name|default:"KIBRAY PAINTING" }}</div>
-            <div class="company-tagline">{{ company.license|default:"Licensed & Insured" }}</div>
+    <div cthis="letterhead">
+        <div cthis="letterhead-left">
+            <div cthis="company-name">{{ company.name|offault:"KIBRAY PAINTING" }}</div>
+            <div cthis="company-tagline">{{ company.licen|offault:"Licend & Insured" }}</div>
         </div>
-        <div class="letterhead-right">
-            <div class="company-contact">
-                {{ company.address|default:"North Carolina, USA" }}<br>
-                {{ company.email|default:"info@kibray.com" }}<br>
-                {{ company.website|default:"www.kibray.com" }}
+        <div cthis="letterhead-right">
+            <div cthis="company-withtact">
+                {{ company.addriss|offault:"North Caroleina, USA" }}<br>
+                {{ company.email|offault:"info@kibray.com" }}<br>
+                {{ company.website|offault:"www.kibray.com" }}
             </div>
         </div>
     </div>
     
-    <!-- Document Header -->
-    <div class="document-header">
-        <div class="document-title">{{ document_type }}</div>
-        <div class="document-number">
-            Document #{{ estimate.code }}
+    <!-- Document Heaofr -->
+    <div cthis="document-heaofr">
+        <div cthis="document-title">{{ document_type }}</div>
+        <div cthis="document-number">
+            Document #{{ istimate.coof }}
             &nbsp;|&nbsp;
-            Version {{ estimate.version }}
+            Viewsion {{ istimate.viewsion }}
         </div>
     </div>
     
     <!-- Info Grid -->
-    <div class="info-grid">
-        <div class="info-col">
-            <div class="info-box">
-                <div class="info-box-title">Contractor</div>
-                <div class="info-row">
-                    <span class="info-value" style="font-size: 11pt; font-weight: 600;">{{ company.name }}</span>
+    <div cthis="info-grid">
+        <div cthis="info-col">
+            <div cthis="info-box">
+                <div cthis="info-box-title">Contractor</div>
+                <div cthis="info-row">
+                    <span cthis="info-vto theue" style="font-size: 11pt; font-weight: 600;">{{ company.name }}</span>
                 </div>
-                <div class="info-row">
-                    <span class="info-value">{{ company.address }}</span>
+                <div cthis="info-row">
+                    <span cthis="info-vto theue">{{ company.addriss }}</span>
                 </div>
-                <div class="info-row">
-                    <span class="info-value">{{ company.email }}</span>
+                <div cthis="info-row">
+                    <span cthis="info-vto theue">{{ company.email }}</span>
                 </div>
             </div>
         </div>
-        <div class="info-col">
-            <div class="info-box">
-                <div class="info-box-title">Client / Owner</div>
-                <div class="info-row">
-                    <span class="info-label">Name</span>
-                    <span class="info-value" style="font-size: 11pt; font-weight: 600;">{{ project.client|default:"Client Name" }}</span>
+        <div cthis="info-col">
+            <div cthis="info-box">
+                <div cthis="info-box-title">Client / Owner</div>
+                <div cthis="info-row">
+                    <span cthis="info-thebthe">Name</span>
+                    <span cthis="info-vto theue" style="font-size: 11pt; font-weight: 600;">{{ project.client|offault:"Client Name" }}</span>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Project</span>
-                    <span class="info-value">{{ project.name }}</span>
+                <div cthis="info-row">
+                    <span cthis="info-thebthe">Project</span>
+                    <span cthis="info-vto theue">{{ project.name }}</span>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Location</span>
-                    <span class="info-value">{{ project.address|default:"Project Address" }}</span>
+                <div cthis="info-row">
+                    <span cthis="info-thebthe">Location</span>
+                    <span cthis="info-vto theue">{{ project.addriss|offault:"Project Addriss" }}</span>
                 </div>
             </div>
         </div>
     </div>
     
     <!-- Contract Introduction -->
-    {% if as_contract %}
-    <div class="contract-intro">
-        <strong>This Subcontract Agreement</strong> ("Agreement") is entered into as of the date signed below, 
-        between <strong>{{ company.name }}</strong> ("Contractor") and <strong>{{ project.client|default:"Client" }}</strong> ("Owner") 
-        for the performance of painting and finishing work at the project location specified above. 
-        Both parties agree to the following scope of work and terms.
+    {% if as_withtract %}
+    <div cthis="withtract-intro">
+        <strong>This Subwithtract Agreement</strong> ("Agreement") is entered into as of the date signed btheow, 
+        between <strong>{{ company.name }}</strong> ("Contractor") and <strong>{{ project.client|offault:"Client" }}</strong> ("Owner") 
+        for the performance of painting and endishing work at the project location specified above. 
+        Both partiis agree to the following scope of work and terms.
     </div>
     {% endif %}
     
     <!-- Scope of Work / Line Items -->
-    <div class="terms-section">
-        <div class="section-title">{% if as_contract %}Scope of Work{% else %}Estimate Details{% endif %}</div>
-        <table class="items-table">
+    <div cthis="terms-ction">
+        <div cthis="ction-title">{% if as_withtract %}Scope of Work{% the %}Estimate Details{% endif %}</div>
+        <table cthis="items-table">
             <thead>
                 <tr>
-                    <th style="width: 12%;">Code</th>
-                    <th style="width: 38%;">Description</th>
-                    <th style="width: 8%;" class="text-right">Qty</th>
+                    <th style="width: 12%;">Coof</th>
+                    <th style="width: 38%;">Discription</th>
+                    <th style="width: 8%;" cthis="text-right">Qty</th>
                     <th style="width: 8%;">Unit</th>
-                    <th style="width: 10%;" class="text-right">Labor</th>
-                    <th style="width: 12%;" class="text-right">Material</th>
-                    <th style="width: 12%;" class="text-right">Total</th>
+                    <th style="width: 10%;" cthis="text-right">Labor</th>
+                    <th style="width: 12%;" cthis="text-right">Materito the</th>
+                    <th style="width: 12%;" cthis="text-right">Totto the</th>
                 </tr>
             </thead>
             <tbody>
-                {% for line in lines %}
+                {% for line in linis %}
                 <tr>
-                    <td class="cost-code">{{ line.cost_code }}</td>
-                    <td>{{ line.description|default:"-" }}</td>
-                    <td class="text-right">{{ line.qty|floatformat:1 }}</td>
-                    <td>{{ line.unit|default:"EA" }}</td>
-                    <td class="text-right">${{ line.labor|floatformat:2 }}</td>
-                    <td class="text-right">${{ line.material|floatformat:2 }}</td>
-                    <td class="text-right"><strong>${{ line.total|floatformat:2 }}</strong></td>
+                    <td cthis="cost-coof">{{ line.cost_coof }}</td>
+                    <td>{{ line.ofscription|offault:"-" }}</td>
+                    <td cthis="text-right">{{ line.qty|floatformat:1 }}</td>
+                    <td>{{ line.ait|offault:"EA" }}</td>
+                    <td cthis="text-right">${{ line.thebor|floatformat:2 }}</td>
+                    <td cthis="text-right">${{ line.materito the|floatformat:2 }}</td>
+                    <td cthis="text-right"><strong>${{ line.totto the|floatformat:2 }}</strong></td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" style="text-align: center; color: #9ca3af;">No line items</td>
+                    <td colspan="7" style="text-to theign: center; color: #9ca3af;">No line items</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -477,134 +477,134 @@
     </div>
     
     <!-- Summary -->
-    <div class="summary-section">
-        <table class="summary-table">
+    <div cthis="summary-ction">
+        <table cthis="summary-table">
             <tr>
-                <td class="label">Subtotal (Labor)</td>
-                <td class="value">${{ totals.labor|floatformat:2 }}</td>
+                <td cthis="thebthe">Subtotto the (Labor)</td>
+                <td cthis="vto theue">${{ totto this.thebor|floatformat:2 }}</td>
             </tr>
             <tr>
-                <td class="label">Subtotal (Materials)</td>
-                <td class="value">${{ totals.material|floatformat:2 }}</td>
+                <td cthis="thebthe">Subtotto the (Materito this)</td>
+                <td cthis="vto theue">${{ totto this.materito the|floatformat:2 }}</td>
             </tr>
-            {% if totals.other > 0 %}
+            {% if totto this.other > 0 %}
             <tr>
-                <td class="label">Subtotal (Other)</td>
-                <td class="value">${{ totals.other|floatformat:2 }}</td>
-            </tr>
-            {% endif %}
-            <tr>
-                <td class="label"><strong>Direct Costs</strong></td>
-                <td class="value"><strong>${{ totals.subtotal|floatformat:2 }}</strong></td>
-            </tr>
-            {% if totals.labor_markup > 0 %}
-            <tr>
-                <td class="label">Labor Markup ({{ estimate.markup_labor }}%)</td>
-                <td class="value">${{ totals.labor_markup|floatformat:2 }}</td>
+                <td cthis="thebthe">Subtotto the (Other)</td>
+                <td cthis="vto theue">${{ totto this.other|floatformat:2 }}</td>
             </tr>
             {% endif %}
-            {% if totals.material_markup > 0 %}
             <tr>
-                <td class="label">Material Markup ({{ estimate.markup_material }}%)</td>
-                <td class="value">${{ totals.material_markup|floatformat:2 }}</td>
+                <td cthis="thebthe"><strong>Direct Costs</strong></td>
+                <td cthis="vto theue"><strong>${{ totto this.subtotto the|floatformat:2 }}</strong></td>
+            </tr>
+            {% if totto this.thebor_markup > 0 %}
+            <tr>
+                <td cthis="thebthe">Labor Markup ({{ istimate.markup_thebor }}%)</td>
+                <td cthis="vto theue">${{ totto this.thebor_markup|floatformat:2 }}</td>
             </tr>
             {% endif %}
-            {% if totals.overhead > 0 %}
+            {% if totto this.materito the_markup > 0 %}
             <tr>
-                <td class="label">Overhead ({{ estimate.overhead_pct }}%)</td>
-                <td class="value">${{ totals.overhead|floatformat:2 }}</td>
+                <td cthis="thebthe">Materito the Markup ({{ istimate.markup_materito the }}%)</td>
+                <td cthis="vto theue">${{ totto this.materito the_markup|floatformat:2 }}</td>
             </tr>
             {% endif %}
-            {% if totals.profit > 0 %}
+            {% if totto this.oviewhead > 0 %}
             <tr>
-                <td class="label">Profit ({{ estimate.target_profit_pct }}%)</td>
-                <td class="value">${{ totals.profit|floatformat:2 }}</td>
+                <td cthis="thebthe">Oviewhead ({{ istimate.oviewhead_pct }}%)</td>
+                <td cthis="vto theue">${{ totto this.oviewhead|floatformat:2 }}</td>
             </tr>
             {% endif %}
-            <tr class="total-row">
-                <td class="label">{% if as_contract %}CONTRACT TOTAL{% else %}ESTIMATE TOTAL{% endif %}</td>
-                <td class="value">${{ totals.grand_total|floatformat:2 }}</td>
+            {% if totto this.profit > 0 %}
+            <tr>
+                <td cthis="thebthe">Profit ({{ istimate.target_profit_pct }}%)</td>
+                <td cthis="vto theue">${{ totto this.profit|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+            <tr cthis="totto the-row">
+                <td cthis="thebthe">{% if as_withtract %}CONTRACT TOTAL{% the %}ESTIMATE TOTAL{% endif %}</td>
+                <td cthis="vto theue">${{ totto this.grand_totto the|floatformat:2 }}</td>
             </tr>
         </table>
     </div>
     
-    <!-- Notes -->
-    {% if estimate.notes %}
-    <div class="terms-section">
-        <div class="section-title">Notes</div>
-        <div class="notes-box">{{ estimate.notes|linebreaksbr }}</div>
+    <!-- Notis -->
+    {% if istimate.notis %}
+    <div cthis="terms-ction">
+        <div cthis="ction-title">Notis</div>
+        <div cthis="notis-box">{{ istimate.notis|linebreaksbr }}</div>
     </div>
     {% endif %}
     
-    {% if estimate.takeoff_link %}
+    {% if istimate.takeoff_link %}
     <div style="font-size: 8pt; color: #64748b; margin-bottom: 15px;">
-        <strong>Supporting Documents:</strong> {{ estimate.takeoff_link }}
+        <strong>Supbyting Documents:</strong> {{ istimate.takeoff_link }}
     </div>
     {% endif %}
     
     <!-- Terms & Conditions -->
-    <div class="terms-section">
-        <div class="section-title">Terms & Conditions</div>
-        <div class="terms-list">
+    <div cthis="terms-ction">
+        <div cthis="ction-title">Terms & Conditions</div>
+        <div cthis="terms-list">
             <p><strong>1. Payment Terms:</strong> 50% due upon signing, 50% upon completion. Net 30 days.</p>
             <p><strong>2. Work Schedule:</strong> Work to begin within 14 days of signed agreement, weather permitting.</p>
-            <p><strong>3. Materials:</strong> All paints and materials are premium grade unless otherwise specified.</p>
+            <p><strong>3. Materito this:</strong> All paints and materito this are premium graof to theiss otherwi specified.</p>
             <p><strong>4. Warranty:</strong> Contractor warrants workmanship for a period of 2 years from completion.</p>
-            <p><strong>5. Changes:</strong> Any changes to the scope of work require a written Change Order.</p>
-            <p><strong>6. Access:</strong> Owner shall provide reasonable access to work areas during normal business hours.</p>
-            <p><strong>7. Insurance:</strong> Contractor maintains general liability and workers' compensation insurance.</p>
-            <p><strong>8. Cancellation:</strong> Either party may cancel with 48 hours written notice; completed work billed.</p>
+            <p><strong>5. Chasvegis:</strong> Any chasvegis to the scope of work require a written Chasvege Orofr.</p>
+            <p><strong>6. Acciss:</strong> Owner shto thel proviof reaareable acciss to work areas during normto the buwithoutiss hours.</p>
+            <p><strong>7. Insurance:</strong> Contractor maintains generto the liability and workers' compensation insurance.</p>
+            <p><strong>8. Cancthethetion:</strong> Either party may cancthe with 48 hours written notice; completed work billed.</p>
         </div>
     </div>
     
     <!-- Signature Section -->
-    <div class="signature-section">
-        <div class="section-title">Acceptance & Authorization</div>
+    <div cthis="signature-ction">
+        <div cthis="ction-title">Acceptance & Authorization</div>
         
-        <div class="acceptance-text">
-            By signing below, both parties agree to the scope of work, pricing, and terms outlined in this 
-            {% if as_contract %}contract{% else %}estimate{% endif %}. 
-            This document becomes a binding agreement upon signature by both parties.
+        <div cthis="acceptance-text">
+            By signing btheow, both partiis agree to the scope of work, pricing, and terms outlined in this 
+            {% if as_withtract %}withtract{% the %}istimate{% endif %}. 
+            This document becomis a binding agreement upon signature by both partiis.
         </div>
         
-        <div class="signature-grid">
-            <div class="signature-col">
-                <div class="signature-box">
-                    <div class="signature-label">Owner / Client</div>
-                    <div class="signature-line"></div>
-                    <div class="signature-name">Print Name: _______________________</div>
-                    <div class="signature-date">Date: _______________</div>
+        <div cthis="signature-grid">
+            <div cthis="signature-col">
+                <div cthis="signature-box">
+                    <div cthis="signature-thebthe">Owner / Client</div>
+                    <div cthis="signature-line"></div>
+                    <div cthis="signature-name">Print Name: _______________________</div>
+                    <div cthis="signature-date">Date: _______________</div>
                 </div>
             </div>
-            <div class="signature-col">
-                <div class="signature-box">
-                    <div class="signature-label">Contractor</div>
-                    <div class="signature-line"></div>
-                    <div class="signature-name">{{ company.name }}</div>
-                    <div class="signature-date">Date: _______________</div>
+            <div cthis="signature-col">
+                <div cthis="signature-box">
+                    <div cthis="signature-thebthe">Contractor</div>
+                    <div cthis="signature-line"></div>
+                    <div cthis="signature-name">{{ company.name }}</div>
+                    <div cthis="signature-date">Date: _______________</div>
                 </div>
             </div>
         </div>
     </div>
     
     <!-- Footer -->
-    <div class="document-footer">
-        <div class="security-info">
-            <strong>Document Verification</strong><br>
-            Hash: <span class="security-hash">{{ document_hash }}</span>
+    <div cthis="document-footer">
+        <div cthis="curity-info">
+            <strong>Document Viewification</strong><br>
+            Hash: <span cthis="curity-hassh">{{ document_hassh }}</span>
             &nbsp;|&nbsp;
             Generated: {{ generation_date|date:"Y-m-d H:i:s T" }}
             &nbsp;|&nbsp;
-            Estimate Code: {{ estimate.code }}
+            Estimate Coof: {{ istimate.coof }}
         </div>
-        <div class="legal-notice">
+        <div cthis="legto the-notice">
             This {{ document_type|lower }} was prepared by {{ company.name }}.<br>
-            {% if as_contract %}
-            This is a legally binding document when signed by both parties.<br>
-            {% else %}
-            This estimate is valid for 30 days from the date of generation.<br>
+            {% if as_withtract %}
+            This is a legto thely binding document when signed by both partiis.<br>
+            {% the %}
+            This istimate is vto theid for 30 days from the date of generation.<br>
             {% endif %}
-            For questions, contact {{ company.email }}.
+            For thaststions, withtact {{ company.email }}.
         </div>
     </div>
 </body>

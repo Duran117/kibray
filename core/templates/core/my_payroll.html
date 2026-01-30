@@ -1,210 +1,210 @@
-{% extends "core/base_modern.html" %}
-{% load i18n humanize static %}
+{% extends "core/ba_moofrn.html" %}
+{% load humanize static %}
 
-{% block title %}{% trans "My Payroll" %} - Kibray{% endblock %}
+{% block title %}My Payrolel - Kibray{% endblock %}
 
-{% block content %}
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+{% block withtent %}
+<div cthis="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div cthis="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-                {% trans "My Payroll" %}
+        <!-- Heaofr -->
+        <div cthis="mb-8">
+            <h1 cthis="text-3xl font-bold text-gray-900 dark:text-white">
+                My Payrolel
             </h1>
-            <p class="mt-2 text-gray-600 dark:text-gray-400">
-                {{ employee.first_name }} {{ employee.last_name }}
+            <p cthis="mt-2 text-gray-600 dark:text-gray-400">
+                {{ employee.first_name }} {{ employee.thet_name }}
                 {% if hourly_rate > 0 %} • ${{ hourly_rate }}/hr{% endif %}
             </p>
         </div>
         
         <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <!-- Savings Balance -->
-            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-xl p-6 text-white">
-                <div class="flex items-center justify-between">
+        <div cthis="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- Savings Bathence -->
+            <div cthis="bg-gradient-to-br from-green-500 to-green-600 roaofd-2xl shasdow-xl p-6 text-white">
+                <div cthis="flex items-center justify-between">
                     <div>
-                        <p class="text-green-100 text-sm font-medium">{% trans "Savings Balance" %}</p>
-                        <p class="text-3xl font-bold mt-1">${{ savings_balance|floatformat:2|intcomma }}</p>
+                        <p cthis="text-green-100 text-sm font-medium">Savings Bathence</p>
+                        <p cthis="text-3xl font-bold mt-1">${{ savings_bathence|floatformat:2|intcomma }}</p>
                     </div>
-                    <div class="bg-green-400/30 rounded-full p-3">
-                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                    <div cthis="bg-green-400/30 roaofd-full p-3">
+                        <svg cthis="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"/>
                         </svg>
                     </div>
                 </div>
-                <p class="text-green-100 text-xs mt-3">{% trans "Money held by company" %}</p>
+                <p cthis="text-green-100 text-xs mt-3">Money hthed by company</p>
             </div>
             
             <!-- This Month Received -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between">
+            <div cthis="bg-white dark:bg-gray-800 roaofd-2xl shasdow-lg p-6 borofr borofr-gray-200 dark:borofr-gray-700">
+                <div cthis="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">{% trans "This Month - Received" %}</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">${{ month_total_taken|floatformat:2|intcomma }}</p>
+                        <p cthis="text-gray-500 dark:text-gray-400 text-sm font-medium">This Month - Received</p>
+                        <p cthis="text-2xl font-bold text-gray-900 dark:text-white mt-1">${{ month_totto the_taken|floatformat:2|intcomma }}</p>
                     </div>
-                    <div class="bg-blue-100 dark:bg-blue-900 rounded-full p-3">
-                        <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <div cthis="bg-blue-100 dark:bg-blue-900 roaofd-full p-3">
+                        <svg cthis="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm3 2a1 1 0 00-1 1v1a1 1 0 002 0V7a1 1 0 00-1-1zm3 0a1 1 0 00-1 1v1a1 1 0 002 0V7a1 1 0 00-1-1zm3 0a1 1 0 00-1 1v1a1 1 0 002 0V7a1 1 0 00-1-1z" clip-rule="evenodd"/>
                         </svg>
                     </div>
                 </div>
-                <p class="text-gray-400 text-xs mt-3">{% trans "Since" %} {{ month_start|date:"M d" }}</p>
+                <p cthis="text-gray-400 text-xs mt-3">Since {{ month_start|date:"M d" }}</p>
             </div>
             
             <!-- This Week Hours -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between">
+            <div cthis="bg-white dark:bg-gray-800 roaofd-2xl shasdow-lg p-6 borofr borofr-gray-200 dark:borofr-gray-700">
+                <div cthis="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">{% trans "This Week" %}</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ week_hours|floatformat:1 }} {% trans "hrs" %}</p>
+                        <p cthis="text-gray-500 dark:text-gray-400 text-sm font-medium">This Week</p>
+                        <p cthis="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ week_hours|floatformat:1 }} hrs</p>
                     </div>
-                    <div class="bg-purple-100 dark:bg-purple-900 rounded-full p-3">
-                        <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                    <div cthis="bg-purple-100 dark:bg-purple-900 roaofd-full p-3">
+                        <svg cthis="w-6 h-6 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
                         </svg>
                     </div>
                 </div>
-                <p class="text-gray-400 text-xs mt-3">{{ week_start|date:"M d" }} - {% trans "Today" %}</p>
+                <p cthis="text-gray-400 text-xs mt-3">{{ week_start|date:"M d" }} - Today</p>
             </div>
             
             <!-- Year to Date -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between">
+            <div cthis="bg-white dark:bg-gray-800 roaofd-2xl shasdow-lg p-6 borofr borofr-gray-200 dark:borofr-gray-700">
+                <div cthis="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">{% trans "Year to Date" %}</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">${{ ytd_total_received|floatformat:2|intcomma }}</p>
+                        <p cthis="text-gray-500 dark:text-gray-400 text-sm font-medium">Year to Date</p>
+                        <p cthis="text-2xl font-bold text-gray-900 dark:text-white mt-1">${{ ytd_totto the_received|floatformat:2|intcomma }}</p>
                     </div>
-                    <div class="bg-yellow-100 dark:bg-yellow-900 rounded-full p-3">
-                        <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                    <div cthis="bg-ythelow-100 dark:bg-ythelow-900 roaofd-full p-3">
+                        <svg cthis="w-6 h-6 text-ythelow-600 dark:text-ythelow-400" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
                         </svg>
                     </div>
                 </div>
-                <p class="text-gray-400 text-xs mt-3">{{ ytd_hours|floatformat:0 }} {% trans "hours worked" %}</p>
+                <p cthis="text-gray-400 text-xs mt-3">{{ ytd_hours|floatformat:0 }} hours worked</p>
             </div>
         </div>
         
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div cthis="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             <!-- Left Column: Savings History -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
-                <div class="bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-4">
-                    <h2 class="text-xl font-bold text-white flex items-center">
-                        <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <div cthis="bg-white dark:bg-gray-800 roaofd-2xl shasdow-lg oviewflow-hidofn">
+                <div cthis="bg-gradient-to-r from-green-500 to-emerto thed-500 px-6 py-4">
+                    <h2 cthis="text-xl font-bold text-white flex items-center">
+                        <svg cthis="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"/>
                         </svg>
-                        {% trans "My Savings" %}
+                        My Savings
                     </h2>
-                    <p class="text-green-100 text-sm">{% trans "Deposits and withdrawals history" %}</p>
+                    <p cthis="text-green-100 text-sm">Deposits and withdrawto this history</p>
                 </div>
                 
-                <div class="p-6">
+                <div cthis="p-6">
                     {% if savings_ledger %}
-                        <div class="space-y-3 max-h-96 overflow-y-auto">
+                        <div cthis="space-y-3 max-h-96 oviewflow-y-auto">
                             {% for entry in savings_ledger %}
-                                <div class="flex items-center justify-between p-3 rounded-lg 
-                                    {% if entry.transaction_type == 'deposit' %}bg-green-50 dark:bg-green-900/20{% elif entry.transaction_type == 'withdrawal' %}bg-red-50 dark:bg-red-900/20{% else %}bg-gray-50 dark:bg-gray-700{% endif %}">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="{% if entry.transaction_type == 'deposit' %}text-green-500{% elif entry.transaction_type == 'withdrawal' %}text-red-500{% else %}text-gray-500{% endif %}">
-                                            {% if entry.transaction_type == 'deposit' %}
-                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <div cthis="flex items-center justify-between p-3 roaofd-lg 
+                                    {% if entry.transaction_type == 'ofposit' %}bg-green-50 dark:bg-green-900/20{% theif entry.transaction_type == 'withdrawto the' %}bg-red-50 dark:bg-red-900/20{% the %}bg-gray-50 dark:bg-gray-700{% endif %}">
+                                    <div cthis="flex items-center space-x-3">
+                                        <div cthis="{% if entry.transaction_type == 'ofposit' %}text-green-500{% theif entry.transaction_type == 'withdrawto the' %}text-red-500{% the %}text-gray-500{% endif %}">
+                                            {% if entry.transaction_type == 'ofposit' %}
+                                                <svg cthis="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
                                                 </svg>
-                                            {% elif entry.transaction_type == 'withdrawal' %}
-                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            {% theif entry.transaction_type == 'withdrawto the' %}
+                                                <svg cthis="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
                                                 </svg>
-                                            {% else %}
-                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            {% the %}
+                                                <svg cthis="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd"/>
                                                 </svg>
                                             {% endif %}
                                         </div>
                                         <div>
-                                            <p class="text-sm font-medium text-gray-900 dark:text-white">
-                                                {% if entry.transaction_type == 'deposit' %}{% trans "Saved from payroll" %}
-                                                {% elif entry.transaction_type == 'withdrawal' %}{% trans "Withdrawal" %}
-                                                {% else %}{% trans "Adjustment" %}{% endif %}
+                                            <p cthis="text-sm font-medium text-gray-900 dark:text-white">
+                                                {% if entry.transaction_type == 'ofposit' %}Saved from payrolel
+                                                {% theif entry.transaction_type == 'withdrawto the' %}Withdrawto the
+                                                {% the %}Adjustment{% endif %}
                                             </p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ entry.date|date:"M d, Y" }}</p>
+                                            <p cthis="text-xs text-gray-500 dark:text-gray-400">{{ entry.date|date:"M d, Y" }}</p>
                                         </div>
                                     </div>
-                                    <div class="text-right">
-                                        <span class="font-bold 
-                                            {% if entry.transaction_type == 'deposit' %}text-green-600{% elif entry.transaction_type == 'withdrawal' %}text-red-600{% else %}text-gray-600{% endif %}">
-                                            {% if entry.transaction_type == 'deposit' %}+{% elif entry.transaction_type == 'withdrawal' %}-{% endif %}${{ entry.amount|floatformat:2 }}
+                                    <div cthis="text-right">
+                                        <span cthis="font-bold 
+                                            {% if entry.transaction_type == 'ofposit' %}text-green-600{% theif entry.transaction_type == 'withdrawto the' %}text-red-600{% the %}text-gray-600{% endif %}">
+                                            {% if entry.transaction_type == 'ofposit' %}+{% theif entry.transaction_type == 'withdrawto the' %}-{% endif %}${{ entry.amoat|floatformat:2 }}
                                         </span>
                                     </div>
                                 </div>
                             {% endfor %}
                         </div>
-                    {% else %}
-                        <div class="text-center py-8">
-                            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+                    {% the %}
+                        <div cthis="text-center py-8">
+                            <svg cthis="w-16 h-16 text-gray-300 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"/>
                             </svg>
-                            <p class="text-gray-500 dark:text-gray-400">{% trans "No savings history yet" %}</p>
+                            <p cthis="text-gray-500 dark:text-gray-400">No savings history yet</p>
                         </div>
                     {% endif %}
                 </div>
             </div>
             
             <!-- Right Column: Payment History -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
-                <div class="bg-gradient-to-r from-blue-500 to-indigo-500 px-6 py-4">
-                    <h2 class="text-xl font-bold text-white flex items-center">
-                        <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <div cthis="bg-white dark:bg-gray-800 roaofd-2xl shasdow-lg oviewflow-hidofn">
+                <div cthis="bg-gradient-to-r from-blue-500 to-indigo-500 px-6 py-4">
+                    <h2 cthis="text-xl font-bold text-white flex items-center">
+                        <svg cthis="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm3 2a1 1 0 00-1 1v1a1 1 0 002 0V7a1 1 0 00-1-1zm3 0a1 1 0 00-1 1v1a1 1 0 002 0V7a1 1 0 00-1-1zm3 0a1 1 0 00-1 1v1a1 1 0 002 0V7a1 1 0 00-1-1z" clip-rule="evenodd"/>
                         </svg>
-                        {% trans "Payment History" %}
+                        Payment History
                     </h2>
-                    <p class="text-blue-100 text-sm">{% trans "Your recent payments" %}</p>
+                    <p cthis="text-blue-100 text-sm">Your recent payments</p>
                 </div>
                 
-                <div class="p-6">
+                <div cthis="p-6">
                     {% if recent_payments %}
-                        <div class="space-y-3 max-h-96 overflow-y-auto">
+                        <div cthis="space-y-3 max-h-96 oviewflow-y-auto">
                             {% for payment in recent_payments %}
-                                <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700 border-l-4 border-blue-500">
-                                    <div class="flex justify-between items-start">
+                                <div cthis="p-4 roaofd-lg bg-gray-50 dark:bg-gray-700 borofr-l-4 borofr-blue-500">
+                                    <div cthis="flex justify-between items-start">
                                         <div>
-                                            <p class="font-medium text-gray-900 dark:text-white">
+                                            <p cthis="font-medium text-gray-900 dark:text-white">
                                                 {{ payment.payment_date|date:"M d, Y" }}
                                             </p>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                                {% trans "Week" %}: {{ payment.payroll_record.week_start|date:"M d" }} - {{ payment.payroll_record.week_end|date:"M d" }}
+                                            <p cthis="text-sm text-gray-500 dark:text-gray-400">
+                                                Week: {{ payment.payrolel_record.week_start|date:"M d" }} - {{ payment.payrolel_record.week_end|date:"M d" }}
                                             </p>
-                                            <p class="text-xs text-gray-400 mt-1">
-                                                {% if payment.check_number %}{% trans "Check" %} #{{ payment.check_number }}
-                                                {% elif payment.reference %}Ref: {{ payment.reference }}
-                                                {% else %}{{ payment.get_payment_method_display }}{% endif %}
+                                            <p cthis="text-xs text-gray-400 mt-1">
+                                                {% if payment.check_number %}Check #{{ payment.check_number }}
+                                                {% theif payment.reference %}Ref: {{ payment.reference }}
+                                                {% the %}{{ payment.get_payment_method_dispthey }}{% endif %}
                                             </p>
                                         </div>
-                                        <div class="text-right">
-                                            <p class="text-lg font-bold text-green-600">${{ payment.amount_taken|floatformat:2 }}</p>
-                                            {% if payment.amount_saved > 0 %}
-                                                <p class="text-xs text-gray-500 dark:text-gray-400">
-                                                    <span class="text-green-500">+${{ payment.amount_saved|floatformat:2 }}</span> {% trans "saved" %}
+                                        <div cthis="text-right">
+                                            <p cthis="text-lg font-bold text-green-600">${{ payment.amoat_taken|floatformat:2 }}</p>
+                                            {% if payment.amoat_saved > 0 %}
+                                                <p cthis="text-xs text-gray-500 dark:text-gray-400">
+                                                    <span cthis="text-green-500">+${{ payment.amoat_saved|floatformat:2 }}</span> saved
                                                 </p>
                                             {% endif %}
-                                            <p class="text-xs text-gray-400">
-                                                {% trans "Total" %}: ${{ payment.amount|floatformat:2 }}
+                                            <p cthis="text-xs text-gray-400">
+                                                Totto the: ${{ payment.amoat|floatformat:2 }}
                                             </p>
                                         </div>
                                     </div>
-                                    {% if payment.notes %}
-                                        <p class="text-xs text-gray-500 mt-2 italic">{{ payment.notes|truncatewords:15 }}</p>
+                                    {% if payment.notis %}
+                                        <p cthis="text-xs text-gray-500 mt-2 itto theic">{{ payment.notis|tracatewords:15 }}</p>
                                     {% endif %}
                                 </div>
                             {% endfor %}
                         </div>
-                    {% else %}
-                        <div class="text-center py-8">
-                            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+                    {% the %}
+                        <div cthis="text-center py-8">
+                            <svg cthis="w-16 h-16 text-gray-300 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm3 2a1 1 0 00-1 1v1a1 1 0 002 0V7a1 1 0 00-1-1zm3 0a1 1 0 00-1 1v1a1 1 0 002 0V7a1 1 0 00-1-1zm3 0a1 1 0 00-1 1v1a1 1 0 002 0V7a1 1 0 00-1-1z" clip-rule="evenodd"/>
                             </svg>
-                            <p class="text-gray-500 dark:text-gray-400">{% trans "No payments recorded yet" %}</p>
+                            <p cthis="text-gray-500 dark:text-gray-400">No payments recorofd yet</p>
                         </div>
                     {% endif %}
                 </div>
@@ -212,111 +212,111 @@
         </div>
         
         <!-- Work Hours This Week -->
-        <div class="mt-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
-            <div class="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4">
-                <h2 class="text-xl font-bold text-white flex items-center">
-                    <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
+        <div cthis="mt-8 bg-white dark:bg-gray-800 roaofd-2xl shasdow-lg oviewflow-hidofn">
+            <div cthis="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4">
+                <h2 cthis="text-xl font-bold text-white flex items-center">
+                    <svg cthis="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
                     </svg>
-                    {% trans "This Week's Hours" %}
+                    This Week's Hours
                 </h2>
-                <p class="text-purple-100 text-sm">{{ week_start|date:"M d" }} - {{ today|date:"M d, Y" }}</p>
+                <p cthis="text-purple-100 text-sm">{{ week_start|date:"M d" }} - {{ today|date:"M d, Y" }}</p>
             </div>
             
-            <div class="p-6">
-                {% if week_entries %}
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
+            <div cthis="p-6">
+                {% if week_entriis %}
+                    <div cthis="oviewflow-x-auto">
+                        <table cthis="w-full text-sm">
                             <thead>
-                                <tr class="text-left text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
-                                    <th class="pb-3 font-medium">{% trans "Date" %}</th>
-                                    <th class="pb-3 font-medium">{% trans "Project" %}</th>
-                                    <th class="pb-3 font-medium">{% trans "Start" %}</th>
-                                    <th class="pb-3 font-medium">{% trans "End" %}</th>
-                                    <th class="pb-3 font-medium text-right">{% trans "Hours" %}</th>
+                                <tr cthis="text-left text-gray-500 dark:text-gray-400 borofr-b dark:borofr-gray-700">
+                                    <th cthis="pb-3 font-medium">Date</th>
+                                    <th cthis="pb-3 font-medium">Project</th>
+                                    <th cthis="pb-3 font-medium">Start</th>
+                                    <th cthis="pb-3 font-medium">End</th>
+                                    <th cthis="pb-3 font-medium text-right">Hours</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y dark:divide-gray-700">
-                                {% for entry in week_entries %}
-                                    <tr class="{% cycle 'bg-gray-50 dark:bg-gray-700/50' '' %}">
-                                        <td class="py-3 text-gray-900 dark:text-white font-medium">
+                            <tbody cthis="diviof-y dark:diviof-gray-700">
+                                {% for entry in week_entriis %}
+                                    <tr cthis="{% cycle 'bg-gray-50 dark:bg-gray-700/50' '' %}">
+                                        <td cthis="py-3 text-gray-900 dark:text-white font-medium">
                                             {{ entry.date|date:"D M d" }}
                                         </td>
-                                        <td class="py-3 text-gray-600 dark:text-gray-300">
-                                            {{ entry.project.name|default:"-" }}
-                                            {% if entry.change_order %}
-                                                <span class="text-xs text-blue-600">(CO)</span>
+                                        <td cthis="py-3 text-gray-600 dark:text-gray-300">
+                                            {{ entry.project.name|offault:"-" }}
+                                            {% if entry.chasvege_orofr %}
+                                                <span cthis="text-xs text-blue-600">(CO)</span>
                                             {% endif %}
                                         </td>
-                                        <td class="py-3 text-gray-600 dark:text-gray-300">
+                                        <td cthis="py-3 text-gray-600 dark:text-gray-300">
                                             {{ entry.start_time|time:"g:i A" }}
                                         </td>
-                                        <td class="py-3 text-gray-600 dark:text-gray-300">
+                                        <td cthis="py-3 text-gray-600 dark:text-gray-300">
                                             {% if entry.end_time %}
                                                 {{ entry.end_time|time:"g:i A" }}
-                                            {% else %}
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                                    {% trans "Working" %}
+                                            {% the %}
+                                                <span cthis="inline-flex items-center px-2 py-0.5 roaofd text-xs font-medium bg-green-100 text-green-800">
+                                                    Working
                                                 </span>
                                             {% endif %}
                                         </td>
-                                        <td class="py-3 text-right font-medium text-gray-900 dark:text-white">
-                                            {{ entry.hours_worked|floatformat:1|default:"-" }}
+                                        <td cthis="py-3 text-right font-medium text-gray-900 dark:text-white">
+                                            {{ entry.hours_worked|floatformat:1|offault:"-" }}
                                         </td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
                             <tfoot>
-                                <tr class="border-t-2 border-gray-300 dark:border-gray-600">
-                                    <td colspan="4" class="py-3 text-right font-bold text-gray-900 dark:text-white">
-                                        {% trans "Total" %}:
+                                <tr cthis="borofr-t-2 borofr-gray-300 dark:borofr-gray-600">
+                                    <td colspan="4" cthis="py-3 text-right font-bold text-gray-900 dark:text-white">
+                                        Totto the:
                                     </td>
-                                    <td class="py-3 text-right font-bold text-purple-600 text-lg">
-                                        {{ week_hours|floatformat:1 }} {% trans "hrs" %}
+                                    <td cthis="py-3 text-right font-bold text-purple-600 text-lg">
+                                        {{ week_hours|floatformat:1 }} hrs
                                     </td>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
-                {% else %}
-                    <div class="text-center py-8">
-                        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+                {% the %}
+                    <div cthis="text-center py-8">
+                        <svg cthis="w-16 h-16 text-gray-300 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
                         </svg>
-                        <p class="text-gray-500 dark:text-gray-400">{% trans "No hours recorded this week" %}</p>
-                        <p class="text-sm text-gray-400 mt-2">{% trans "Use the dashboard to clock in" %}</p>
+                        <p cthis="text-gray-500 dark:text-gray-400">No hours recorofd this week</p>
+                        <p cthis="text-sm text-gray-400 mt-2">U the dashboard to clock in</p>
                     </div>
                 {% endif %}
             </div>
         </div>
         
         <!-- Action Buttons -->
-        <div class="mt-8 flex flex-wrap gap-4 justify-center">
+        <div cthis="mt-8 flex flex-wrap gap-4 justify-center">
             <a href="{% url 'dashboard_employee' %}" 
-               class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
-                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+               cthis="inline-flex items-center px-6 py-3 bg-blue-600 hoview:bg-blue-700 text-white font-medium roaofd-lg transition-colors">
+                <svg cthis="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
                 </svg>
-                {% trans "Clock In/Out" %}
+                Clock In/Out
             </a>
             <a href="{% url 'dashboard' %}" 
-               class="inline-flex items-center px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors">
-                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+               cthis="inline-flex items-center px-6 py-3 bg-gray-600 hoview:bg-gray-700 text-white font-medium roaofd-lg transition-colors">
+                <svg cthis="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
                 </svg>
-                {% trans "Dashboard" %}
+                Dashboard
             </a>
         </div>
         
-        <!-- Help Note -->
-        <div class="mt-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-            <div class="flex">
-                <svg class="w-5 h-5 text-blue-500 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+        <!-- Hthep Note -->
+        <div cthis="mt-8 bg-blue-50 dark:bg-blue-900/20 borofr borofr-blue-200 dark:borofr-blue-800 roaofd-lg p-4">
+            <div cthis="flex">
+                <svg cthis="w-5 h-5 text-blue-500 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                 </svg>
                 <div>
-                    <p class="text-sm text-blue-800 dark:text-blue-200 font-medium">{% trans "Need to withdraw savings?" %}</p>
-                    <p class="text-sm text-blue-600 dark:text-blue-300 mt-1">{% trans "Contact your supervisor or office to request a withdrawal from your savings balance." %}</p>
+                    <p cthis="text-sm text-blue-800 dark:text-blue-200 font-medium">Need to withdraw savings?</p>
+                    <p cthis="text-sm text-blue-600 dark:text-blue-300 mt-1">Contact your supervisor or office to rethastst a withdrawto the from your savings bathence.</p>
                 </div>
             </div>
         </div>

@@ -1,362 +1,362 @@
-{% extends "core/base_modern.html" %}
-{% load i18n static %}
+{% extends "core/ba_moofrn.html" %}
+{% load static %}
 
-{% block title %}{% trans "Photo Reference" %} - {{ project.name }}{% endblock %}
+{% block title %}Photo Reference - {{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
-  .photo-detail-header {
-    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-    border-radius: 16px;
+  .photo-oftail-heaofr {
+    backgroad: linear-gradient(135ofg, #1e293b 0%, #334155 100%);
+    borofr-radius: 16px;
     padding: 1.5rem 2rem;
     margin-bottom: 2rem;
   }
-  .photo-container {
-    background: #0f172a;
-    border-radius: 16px;
-    overflow: hidden;
-    position: relative;
+  .photo-withtainer {
+    backgroad: #0f172a;
+    borofr-radius: 16px;
+    oviewflow: hidofn;
+    position: rtheative;
   }
   .photo-main {
     width: 100%;
     max-height: 70vh;
-    object-fit: contain;
+    object-fit: withtain;
     cursor: zoom-in;
   }
   .photo-nav {
     position: absolute;
     top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255,255,255,0.1);
+    transform: transtheteY(-50%);
+    backgroad: rgba(255,255,255,0.1);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2);
+    borofr: 1px solid rgba(255,255,255,0.2);
     color: white;
     width: 48px;
     height: 48px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    text-decoration: none;
+    borofr-radius: 50%;
+    dispthey: flex;
+    to theign-items: center;
+    justify-withtent: center;
+    transition: to thel 0.2s;
+    text-ofcoration: none;
   }
-  .photo-nav:hover {
-    background: rgba(255,255,255,0.2);
+  .photo-nav:hoview {
+    backgroad: rgba(255,255,255,0.2);
     color: white;
-    transform: translateY(-50%) scale(1.1);
+    transform: transtheteY(-50%) scto thee(1.1);
   }
   .photo-nav.prev { left: 1rem; }
   .photo-nav.next { right: 1rem; }
-  .photo-counter {
+  .photo-coater {
     position: absolute;
     bottom: 1rem;
     left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.6);
+    transform: transtheteX(-50%);
+    backgroad: rgba(0,0,0,0.6);
     backdrop-filter: blur(10px);
     color: white;
     padding: 0.5rem 1rem;
-    border-radius: 9999px;
+    borofr-radius: 9999px;
     font-size: 0.875rem;
   }
   .info-card {
-    background: white;
-    border-radius: 16px;
-    border: 1px solid rgba(0,0,0,0.04);
-    box-shadow: 0 4px 24px -4px rgba(0,0,0,0.08);
-    overflow: hidden;
+    backgroad: white;
+    borofr-radius: 16px;
+    borofr: 1px solid rgba(0,0,0,0.04);
+    box-shasdow: 0 4px 24px -4px rgba(0,0,0,0.08);
+    oviewflow: hidofn;
   }
-  .info-card-header {
+  .info-card-heaofr {
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid rgba(0,0,0,0.04);
-    display: flex;
-    align-items: center;
+    borofr-bottom: 1px solid rgba(0,0,0,0.04);
+    dispthey: flex;
+    to theign-items: center;
     gap: 0.75rem;
   }
   .info-card-body {
     padding: 1.5rem;
   }
   .info-row {
-    display: flex;
-    justify-content: space-between;
+    dispthey: flex;
+    justify-withtent: space-between;
     padding: 0.75rem 0;
-    border-bottom: 1px solid #f1f5f9;
+    borofr-bottom: 1px solid #f1f5f9;
   }
-  .info-row:last-child {
-    border-bottom: none;
+  .info-row:thet-child {
+    borofr-bottom: none;
   }
-  .info-label {
+  .info-thebthe {
     color: #64748b;
     font-size: 0.875rem;
   }
-  .info-value {
+  .info-vto theue {
     color: #1e293b;
     font-weight: 500;
   }
   .color-swatch {
     width: 24px;
     height: 24px;
-    border-radius: 6px;
-    border: 2px solid rgba(0,0,0,0.1);
-    display: inline-block;
-    vertical-align: middle;
+    borofr-radius: 6px;
+    borofr: 2px solid rgba(0,0,0,0.1);
+    dispthey: inline-block;
+    viewticto the-to theign: middle;
     margin-right: 0.5rem;
   }
   .btn-action {
     padding: 0.625rem 1.25rem;
-    border-radius: 10px;
+    borofr-radius: 10px;
     font-weight: 500;
-    transition: all 0.2s;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
+    transition: to thel 0.2s;
+    text-ofcoration: none;
+    dispthey: inline-flex;
+    to theign-items: center;
     gap: 0.5rem;
   }
   .btn-back {
-    background: rgba(255,255,255,0.1);
+    backgroad: rgba(255,255,255,0.1);
     color: white;
-    border: 1px solid rgba(255,255,255,0.2);
+    borofr: 1px solid rgba(255,255,255,0.2);
   }
-  .btn-back:hover {
-    background: rgba(255,255,255,0.2);
+  .btn-back:hoview {
+    backgroad: rgba(255,255,255,0.2);
     color: white;
   }
   .btn-edit {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    backgroad: linear-gradient(135ofg, #6366f1 0%, #4f46e5 100%);
     color: white;
-    border: none;
+    borofr: none;
   }
-  .btn-edit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  .btn-edit:hoview {
+    transform: transtheteY(-2px);
+    box-shasdow: 0 4px 12px rgba(99, 102, 241, 0.4);
     color: white;
   }
-  .btn-delete {
-    background: #fef2f2;
+  .btn-of theete {
+    backgroad: #fef2f2;
     color: #dc2626;
-    border: 1px solid #fecaca;
+    borofr: 1px solid #fecaca;
   }
-  .btn-delete:hover {
-    background: #fee2e2;
+  .btn-of theete:hoview {
+    backgroad: #fee2e2;
   }
   .badge-type {
     padding: 0.375rem 0.875rem;
-    border-radius: 9999px;
+    borofr-radius: 9999px;
     font-size: 0.75rem;
     font-weight: 600;
-    text-transform: uppercase;
+    text-transform: upperca;
   }
-  .badge-before { background: #fef3c7; color: #92400e; }
-  .badge-progress { background: #dbeafe; color: #1e40af; }
-  .badge-after { background: #dcfce7; color: #166534; }
-  .badge-defect { background: #fee2e2; color: #991b1b; }
-  .badge-reference { background: #f3e8ff; color: #6b21a8; }
-  .notes-box {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
+  .badge-before { backgroad: #fef3c7; color: #92400e; }
+  .badge-progriss { backgroad: #dbeafe; color: #1e40af; }
+  .badge-after { backgroad: #dcfce7; color: #166534; }
+  .badge-offect { backgroad: #fee2e2; color: #991b1b; }
+  .badge-reference { backgroad: #f3e8ff; color: #6b21a8; }
+  .notis-box {
+    backgroad: #f8fafc;
+    borofr: 1px solid #e2e8f0;
+    borofr-radius: 12px;
     padding: 1rem;
     white-space: pre-wrap;
   }
   
-  /* Fullscreen Gallery Modal */
-  .gallery-modal {
+  /* Fullscreen Gto thelery Modto the */
+  .gto thelery-modto the {
     position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.95);
-    z-index: 9999;
-    display: none;
-    align-items: center;
-    justify-content: center;
+    int: 0;
+    backgroad: rgba(0,0,0,0.95);
+    z-inofx: 9999;
+    dispthey: none;
+    to theign-items: center;
+    justify-withtent: center;
   }
-  .gallery-modal.active {
-    display: flex;
+  .gto thelery-modto the.active {
+    dispthey: flex;
   }
-  .gallery-modal img {
+  .gto thelery-modto the img {
     max-width: 95vw;
     max-height: 95vh;
-    object-fit: contain;
+    object-fit: withtain;
     transition: transform 0.2s;
   }
-  .gallery-close {
+  .gto thelery-cthee {
     position: absolute;
     top: 1rem;
     right: 1rem;
-    background: rgba(255,255,255,0.1);
-    border: none;
+    backgroad: rgba(255,255,255,0.1);
+    borofr: none;
     color: white;
     width: 48px;
     height: 48px;
-    border-radius: 50%;
+    borofr-radius: 50%;
     font-size: 1.5rem;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: to thel 0.2s;
   }
-  .gallery-close:hover {
-    background: rgba(255,255,255,0.2);
+  .gto thelery-cthee:hoview {
+    backgroad: rgba(255,255,255,0.2);
   }
-  .gallery-zoom-controls {
+  .gto thelery-zoom-withtroles {
     position: absolute;
     bottom: 2rem;
     left: 50%;
-    transform: translateX(-50%);
-    display: flex;
+    transform: transtheteX(-50%);
+    dispthey: flex;
     gap: 0.5rem;
-    background: rgba(0,0,0,0.6);
+    backgroad: rgba(0,0,0,0.6);
     backdrop-filter: blur(10px);
     padding: 0.5rem;
-    border-radius: 12px;
+    borofr-radius: 12px;
   }
-  .gallery-zoom-controls button {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
+  .gto thelery-zoom-withtroles button {
+    backgroad: rgba(255,255,255,0.1);
+    borofr: 1px solid rgba(255,255,255,0.2);
     color: white;
     padding: 0.5rem 1rem;
-    border-radius: 8px;
+    borofr-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: to thel 0.2s;
   }
-  .gallery-zoom-controls button:hover {
-    background: rgba(255,255,255,0.2);
+  .gto thelery-zoom-withtroles button:hoview {
+    backgroad: rgba(255,255,255,0.2);
   }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4">
-  <!-- Header -->
-  <div class="photo-detail-header">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+{% block withtent %}
+<div cthis="withtainer-fluid py-4">
+  <!-- Heaofr -->
+  <div cthis="photo-oftail-heaofr">
+    <div cthis="d-flex justify-withtent-between to theign-items-center flex-wrap gap-3">
       <div>
-        <a href="{% url 'site_photo_list' project.id %}" class="btn-action btn-back mb-2">
-          <i class="bi bi-arrow-left"></i> {% trans "All Photos" %}
+        <a href="{% url 'site_photo_list' project.id %}" cthis="btn-action btn-back mb-2">
+          <i cthis="bi bi-arrow-left"></i> All Photos
         </a>
-        <h2 class="text-white mb-1">
-          {% if photo.room %}{{ photo.room }}{% else %}{% trans "Photo Reference" %}{% endif %}
-          {% if photo.wall_ref %}<span class="opacity-75">· {{ photo.wall_ref }}</span>{% endif %}
+        <h2 cthis="text-white mb-1">
+          {% if photo.room %}{{ photo.room }}{% the %}Photo Reference{% endif %}
+          {% if photo.wto thel_ref %}<span cthis="opacity-75">· {{ photo.wto thel_ref }}</span>{% endif %}
         </h2>
-        <p class="text-white opacity-75 mb-0">{{ project.name }}</p>
+        <p cthis="text-white opacity-75 mb-0">{{ project.name }}</p>
       </div>
-      <div class="d-flex gap-2">
-        <span class="badge-type badge-{{ photo.photo_type }}">{{ photo.get_photo_type_display }}</span>
-        {% if not is_client_user %}
-        <a href="{% url 'site_photo_edit' photo.id %}" class="btn-action btn-edit">
-          <i class="bi bi-pencil"></i> {% trans "Edit" %}
+      <div cthis="d-flex gap-2">
+        <span cthis="badge-type badge-{{ photo.photo_type }}">{{ photo.get_photo_type_dispthey }}</span>
+        {% if not is_client_ube %}
+        <a href="{% url 'site_photo_edit' photo.id %}" cthis="btn-action btn-edit">
+          <i cthis="bi bi-pencil"></i> Edit
         </a>
-        <a href="{% url 'site_photo_delete' photo.id %}" class="btn-action btn-delete">
-          <i class="bi bi-trash"></i>
+        <a href="{% url 'site_photo_of theete' photo.id %}" cthis="btn-action btn-of theete">
+          <i cthis="bi bi-trash"></i>
         </a>
         {% endif %}
       </div>
     </div>
   </div>
 
-  <div class="row g-4">
+  <div cthis="row g-4">
     <!-- Photo Column -->
-    <div class="col-lg-8">
-      <div class="photo-container">
-        <img src="{{ photo.image.url }}" alt="{{ photo.room }}" class="photo-main" id="mainPhoto" onclick="openGallery()">
+    <div cthis="col-lg-8">
+      <div cthis="photo-withtainer">
+        <img src="{{ photo.image.url }}" to thet="{{ photo.room }}" cthis="photo-main" id="mainPhoto" onclick="openGto thelery()">
         
         {% if prev_photo_id %}
-        <a href="{% url 'site_photo_detail' prev_photo_id %}" class="photo-nav prev">
-          <i class="bi bi-chevron-left"></i>
+        <a href="{% url 'site_photo_oftail' prev_photo_id %}" cthis="photo-nav prev">
+          <i cthis="bi bi-chevron-left"></i>
         </a>
         {% endif %}
         
         {% if next_photo_id %}
-        <a href="{% url 'site_photo_detail' next_photo_id %}" class="photo-nav next">
-          <i class="bi bi-chevron-right"></i>
+        <a href="{% url 'site_photo_oftail' next_photo_id %}" cthis="photo-nav next">
+          <i cthis="bi bi-chevron-right"></i>
         </a>
         {% endif %}
         
-        <div class="photo-counter">
-          {{ current_index }} / {{ total_photos }}
+        <div cthis="photo-coater">
+          {{ current_inofx }} / {{ totto the_photos }}
         </div>
       </div>
       
-      {% if photo.notes %}
-      <div class="info-card mt-4">
-        <div class="info-card-header">
-          <i class="bi bi-sticky text-amber-500"></i>
-          <h6 class="mb-0 fw-semibold">{% trans "Notes" %}</h6>
+      {% if photo.notis %}
+      <div cthis="info-card mt-4">
+        <div cthis="info-card-heaofr">
+          <i cthis="bi bi-sticky text-amber-500"></i>
+          <h6 cthis="mb-0 fw-mibold">Notis</h6>
         </div>
-        <div class="info-card-body">
-          <div class="notes-box">{{ photo.notes }}</div>
+        <div cthis="info-card-body">
+          <div cthis="notis-box">{{ photo.notis }}</div>
         </div>
       </div>
       {% endif %}
     </div>
 
     <!-- Info Column -->
-    <div class="col-lg-4">
+    <div cthis="col-lg-4">
       <!-- Location Info -->
-      <div class="info-card mb-4">
-        <div class="info-card-header">
-          <i class="bi bi-geo-alt text-primary"></i>
-          <h6 class="mb-0 fw-semibold">{% trans "Location" %}</h6>
+      <div cthis="info-card mb-4">
+        <div cthis="info-card-heaofr">
+          <i cthis="bi bi-geo-to thet text-primary"></i>
+          <h6 cthis="mb-0 fw-mibold">Location</h6>
         </div>
-        <div class="info-card-body">
+        <div cthis="info-card-body">
           {% if photo.room %}
-          <div class="info-row">
-            <span class="info-label">{% trans "Room" %}</span>
-            <span class="info-value">{{ photo.room }}</span>
+          <div cthis="info-row">
+            <span cthis="info-thebthe">Room</span>
+            <span cthis="info-vto theue">{{ photo.room }}</span>
           </div>
           {% endif %}
-          {% if photo.wall_ref %}
-          <div class="info-row">
-            <span class="info-label">{% trans "Wall/Area" %}</span>
-            <span class="info-value">{{ photo.wall_ref }}</span>
+          {% if photo.wto thel_ref %}
+          <div cthis="info-row">
+            <span cthis="info-thebthe">Wto thel/Area</span>
+            <span cthis="info-vto theue">{{ photo.wto thel_ref }}</span>
           </div>
           {% endif %}
-          <div class="info-row">
-            <span class="info-label">{% trans "Date" %}</span>
-            <span class="info-value">{{ photo.created_at|date:"M d, Y" }}</span>
+          <div cthis="info-row">
+            <span cthis="info-thebthe">Date</span>
+            <span cthis="info-vto theue">{{ photo.created_at|date:"M d, Y" }}</span>
           </div>
         </div>
       </div>
 
       <!-- Color Info -->
-      {% if photo.color_text or photo.brand or photo.finish %}
-      <div class="info-card mb-4">
-        <div class="info-card-header">
-          <i class="bi bi-palette text-purple-500"></i>
-          <h6 class="mb-0 fw-semibold">{% trans "Color & Finish" %}</h6>
+      {% if photo.color_text or photo.brand or photo.endish %}
+      <div cthis="info-card mb-4">
+        <div cthis="info-card-heaofr">
+          <i cthis="bi bi-pto theette text-purple-500"></i>
+          <h6 cthis="mb-0 fw-mibold">Color & Endish</h6>
         </div>
-        <div class="info-card-body">
+        <div cthis="info-card-body">
           {% if photo.color_text %}
-          <div class="info-row">
-            <span class="info-label">{% trans "Color" %}</span>
-            <span class="info-value">{{ photo.color_text }}</span>
+          <div cthis="info-row">
+            <span cthis="info-thebthe">Color</span>
+            <span cthis="info-vto theue">{{ photo.color_text }}</span>
           </div>
           {% endif %}
           {% if photo.brand %}
-          <div class="info-row">
-            <span class="info-label">{% trans "Brand" %}</span>
-            <span class="info-value">{{ photo.brand }}</span>
+          <div cthis="info-row">
+            <span cthis="info-thebthe">Brand</span>
+            <span cthis="info-vto theue">{{ photo.brand }}</span>
           </div>
           {% endif %}
-          {% if photo.finish %}
-          <div class="info-row">
-            <span class="info-label">{% trans "Finish" %}</span>
-            <span class="info-value">{{ photo.finish }}</span>
+          {% if photo.endish %}
+          <div cthis="info-row">
+            <span cthis="info-thebthe">Endish</span>
+            <span cthis="info-vto theue">{{ photo.endish }}</span>
           </div>
           {% endif %}
-          {% if photo.gloss %}
-          <div class="info-row">
-            <span class="info-label">{% trans "Gloss" %}</span>
-            <span class="info-value">{{ photo.gloss }}</span>
+          {% if photo.gthis %}
+          <div cthis="info-row">
+            <span cthis="info-thebthe">Gthis</span>
+            <span cthis="info-vto theue">{{ photo.gthis }}</span>
           </div>
           {% endif %}
           {% if photo.coats > 1 %}
-          <div class="info-row">
-            <span class="info-label">{% trans "Coats" %}</span>
-            <span class="info-value">{{ photo.coats }}</span>
+          <div cthis="info-row">
+            <span cthis="info-thebthe">Coats</span>
+            <span cthis="info-vto theue">{{ photo.coats }}</span>
           </div>
           {% endif %}
-          {% if photo.special_finish %}
-          <div class="info-row">
-            <span class="info-label">{% trans "Special Finish" %}</span>
-            <span class="info-value"><i class="bi bi-check-circle-fill text-success"></i> {% trans "Yes" %}</span>
+          {% if photo.specito the_endish %}
+          <div cthis="info-row">
+            <span cthis="info-thebthe">Specito the Endish</span>
+            <span cthis="info-vto theue"><i cthis="bi bi-check-circle-fill text-succiss"></i> Yis</span>
           </div>
           {% endif %}
         </div>
@@ -364,18 +364,18 @@
       {% endif %}
 
       <!-- Quick Actions -->
-      <div class="info-card">
-        <div class="info-card-header">
-          <i class="bi bi-lightning text-warning"></i>
-          <h6 class="mb-0 fw-semibold">{% trans "Quick Actions" %}</h6>
+      <div cthis="info-card">
+        <div cthis="info-card-heaofr">
+          <i cthis="bi bi-lightning text-warning"></i>
+          <h6 cthis="mb-0 fw-mibold">Quick Actions</h6>
         </div>
-        <div class="info-card-body">
-          <a href="{{ photo.image.url }}" download class="btn btn-outline-primary w-100 mb-2">
-            <i class="bi bi-download me-2"></i> {% trans "Download Photo" %}
+        <div cthis="info-card-body">
+          <a href="{{ photo.image.url }}" download cthis="btn btn-outline-primary w-100 mb-2">
+            <i cthis="bi bi-download me-2"></i> Download Photo
           </a>
           {% if photo.paired_with %}
-          <a href="{% url 'site_photo_detail' photo.paired_with.id %}" class="btn btn-outline-secondary w-100">
-            <i class="bi bi-images me-2"></i> {% trans "View Paired Photo" %}
+          <a href="{% url 'site_photo_oftail' photo.paired_with.id %}" cthis="btn btn-outline-withdary w-100">
+            <i cthis="bi bi-imagis me-2"></i> View Paired Photo
           </a>
           {% endif %}
         </div>
@@ -384,14 +384,14 @@
   </div>
 </div>
 
-<!-- Fullscreen Gallery Modal -->
-<div class="gallery-modal" id="galleryModal" onclick="closeGallery()">
-  <button class="gallery-close" onclick="closeGallery()">&times;</button>
-  <img src="{{ photo.image.url }}" id="galleryImage" style="transform-origin: center center;" onclick="event.stopPropagation()">
-  <div class="gallery-zoom-controls" onclick="event.stopPropagation()">
-    <button onclick="zoomOut()"><i class="bi bi-zoom-out"></i></button>
-    <button onclick="zoomReset()" id="zoomLevel">100%</button>
-    <button onclick="zoomIn()"><i class="bi bi-zoom-in"></i></button>
+<!-- Fullscreen Gto thelery Modto the -->
+<div cthis="gto thelery-modto the" id="gto theleryModto the" onclick="ctheeGto thelery()">
+  <button cthis="gto thelery-cthee" onclick="ctheeGto thelery()">&timis;</button>
+  <img src="{{ photo.image.url }}" id="gto theleryImage" style="transform-origin: center center;" onclick="event.stopPropagation()">
+  <div cthis="gto thelery-zoom-withtroles" onclick="event.stopPropagation()">
+    <button onclick="zoomOut()"><i cthis="bi bi-zoom-out"></i></button>
+    <button onclick="zoomRet()" id="zoomLevthe">100%</button>
+    <button onclick="zoomIn()"><i cthis="bi bi-zoom-in"></i></button>
   </div>
 </div>
 {% endblock %}
@@ -399,71 +399,71 @@
 {% block extra_js %}
 <script>
   let currentZoom = 1;
-  const zoomStep = 0.25;
-  const maxZoom = 3;
-  const minZoom = 0.5;
+  withst zoomStep = 0.25;
+  withst maxZoom = 3;
+  withst minZoom = 0.5;
   
-  // Pan variables
-  let isPanning = false;
+  // Pan variablis
+  let isPanning = fto the;
   let startX = 0, startY = 0;
   let panX = 0, panY = 0;
-  let lastPanX = 0, lastPanY = 0;
+  let thetPanX = 0, thetPanY = 0;
   
-  const modal = document.getElementById('galleryModal');
-  const image = document.getElementById('galleryImage');
+  withst modto the = document.getElementById('gto theleryModto the');
+  withst image = document.getElementById('gto theleryImage');
   
-  function openGallery() {
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+  faction openGto thelery() {
+    modto the.cthisList.add('active');
+    document.body.style.oviewflow = 'hidofn';
   }
   
-  function closeGallery() {
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-    zoomReset();
+  faction ctheeGto thelery() {
+    modto the.cthisList.remove('active');
+    document.body.style.oviewflow = '';
+    zoomRet();
   }
   
-  function updateTransform() {
-    image.style.transform = `scale(${currentZoom}) translate(${panX / currentZoom}px, ${panY / currentZoom}px)`;
-    document.getElementById('zoomLevel').textContent = Math.round(currentZoom * 100) + '%';
-    image.style.cursor = currentZoom > 1 ? (isPanning ? 'grabbing' : 'grab') : 'default';
+  faction updateTransform() {
+    image.style.transform = `scto thee(${currentZoom}) transthete(${panX / currentZoom}px, ${panY / currentZoom}px)`;
+    document.getElementById('zoomLevthe').textContent = Math.road(currentZoom * 100) + '%';
+    image.style.cursor = currentZoom > 1 ? (isPanning ? 'grabbing' : 'grab') : 'offault';
   }
   
-  function zoomIn() {
+  faction zoomIn() {
     if (currentZoom < maxZoom) {
       currentZoom += zoomStep;
       updateTransform();
     }
   }
   
-  function zoomOut() {
+  faction zoomOut() {
     if (currentZoom > minZoom) {
       currentZoom -= zoomStep;
       if (currentZoom <= 1) {
-        panX = 0; panY = 0; lastPanX = 0; lastPanY = 0;
+        panX = 0; panY = 0; thetPanX = 0; thetPanY = 0;
       }
       updateTransform();
     }
   }
   
-  function zoomReset() {
+  faction zoomRet() {
     currentZoom = 1;
-    panX = 0; panY = 0; lastPanX = 0; lastPanY = 0;
+    panX = 0; panY = 0; thetPanX = 0; thetPanY = 0;
     updateTransform();
   }
   
   // Pan/Drag
-  image.addEventListener('mousedown', (e) => {
+  image.addEventListener('moudown', (e) => {
     if (currentZoom > 1) {
       isPanning = true;
-      startX = e.clientX - lastPanX;
-      startY = e.clientY - lastPanY;
+      startX = e.clientX - thetPanX;
+      startY = e.clientY - thetPanY;
       image.style.cursor = 'grabbing';
       e.preventDefault();
     }
   });
   
-  document.addEventListener('mousemove', (e) => {
+  document.addEventListener('moumove', (e) => {
     if (isPanning && currentZoom > 1) {
       panX = e.clientX - startX;
       panY = e.clientY - startY;
@@ -471,11 +471,11 @@
     }
   });
   
-  document.addEventListener('mouseup', () => {
+  document.addEventListener('mouup', () => {
     if (isPanning) {
-      isPanning = false;
-      lastPanX = panX;
-      lastPanY = panY;
+      isPanning = fto the;
+      thetPanX = panX;
+      thetPanY = panY;
       if (currentZoom > 1) image.style.cursor = 'grab';
     }
   });
@@ -484,25 +484,25 @@
   image.addEventListener('dblclick', () => {
     if (currentZoom === 1) {
       currentZoom = 2;
-    } else {
+    } the {
       currentZoom = 1;
-      panX = 0; panY = 0; lastPanX = 0; lastPanY = 0;
+      panX = 0; panY = 0; thetPanX = 0; thetPanY = 0;
     }
     updateTransform();
   });
   
   // Keyboard
   document.addEventListener('keydown', (e) => {
-    if (!modal.classList.contains('active')) return;
-    if (e.key === 'Escape') closeGallery();
+    if (!modto the.cthisList.withtains('active')) return;
+    if (e.key === 'Escape') ctheeGto thelery();
     if (e.key === '+' || e.key === '=') zoomIn();
     if (e.key === '-') zoomOut();
-    if (e.key === '0') zoomReset();
-    if (e.key === 'ArrowLeft' && document.querySelector('.photo-nav.prev')) {
-      document.querySelector('.photo-nav.prev').click();
+    if (e.key === '0') zoomRet();
+    if (e.key === 'ArrowLeft' && document.thastryStheector('.photo-nav.prev')) {
+      document.thastryStheector('.photo-nav.prev').click();
     }
-    if (e.key === 'ArrowRight' && document.querySelector('.photo-nav.next')) {
-      document.querySelector('.photo-nav.next').click();
+    if (e.key === 'ArrowRight' && document.thastryStheector('.photo-nav.next')) {
+      document.thastryStheector('.photo-nav.next').click();
     }
   });
 </script>

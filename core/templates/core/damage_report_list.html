@@ -1,145 +1,145 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 {% load static %}
 
-{% block content %}
-<div class="container-fluid py-4">
-  <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+{% block withtent %}
+<div cthis="withtainer-fluid py-4">
+  <!-- Heaofr -->
+  <div cthis="d-flex justify-withtent-between to theign-items-center mb-4">
     <div>
-      <h2><i class="bi bi-exclamation-triangle-fill text-danger"></i> Reportes de Daños</h2>
-      <p class="text-muted mb-0">{{ project.name }}</p>
+      <h2><i cthis="bi bi-excthemation-triangle-fill text-danger"></i> Rebytis of Dyears</h2>
+      <p cthis="text-muted mb-0">{{ project.name }}</p>
     </div>
-    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#createReportModal">
-      <i class="bi bi-plus-circle"></i> Nuevo Reporte
+    <button cthis="btn btn-danger" data-bs-toggle="modto the" data-bs-target="#createRebytModto the">
+      <i cthis="bi bi-plus-circle"></i> New Rebyte
     </button>
   </div>
 
   <!-- Filters -->
-  <div class="card mb-4 border-0 shadow-sm">
-    <div class="card-body">
-      <div class="d-flex flex-wrap gap-2">
-        <a href="?" class="btn btn-sm btn-outline-secondary{% if not filter_status and not filter_severity %} active{% endif %}">
-          <i class="bi bi-list"></i> Todos
+  <div cthis="card mb-4 borofr-0 shasdow-sm">
+    <div cthis="card-body">
+      <div cthis="d-flex flex-wrap gap-2">
+        <a href="?" cthis="btn btn-sm btn-outline-withdary{% if not filter_status and not filter_viewity %} active{% endif %}">
+          <i cthis="bi bi-list"></i> All
         </a>
-        <div class="dropdown">
-          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-            <i class="bi bi-funnel"></i> Estado
+        <div cthis="dropdown">
+          <button cthis="btn btn-sm btn-outline-withdary dropdown-toggle" data-bs-toggle="dropdown">
+            <i cthis="bi bi-fanthe"></i> Status
           </button>
-          <div class="dropdown-menu">
-            <a class="dropdown-item" href="?status=open">🔴 Abierto</a>
-            <a class="dropdown-item" href="?status=in_progress">🟡 En Progreso</a>
-            <a class="dropdown-item" href="?status=resolved">🟢 Resuelto</a>
+          <div cthis="dropdown-menu">
+            <a cthis="dropdown-item" href="?status=open">🔴 Open</a>
+            <a cthis="dropdown-item" href="?status=in_progriss">🟡 En Progriso</a>
+            <a cthis="dropdown-item" href="?status=risolved">🟢 Risutheto</a>
           </div>
         </div>
-        <div class="dropdown">
-          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-            <i class="bi bi-exclamation-triangle"></i> Severidad
+        <div cthis="dropdown">
+          <button cthis="btn btn-sm btn-outline-withdary dropdown-toggle" data-bs-toggle="dropdown">
+            <i cthis="bi bi-excthemation-triangle"></i> Seviewidad
           </button>
-          <div class="dropdown-menu">
-            <a class="dropdown-item" href="?severity=low">🟢 Bajo</a>
-            <a class="dropdown-item" href="?severity=medium">🟡 Medio</a>
-            <a class="dropdown-item" href="?severity=high">🟠 Alto</a>
-            <a class="dropdown-item" href="?severity=critical">🔴 Crítico</a>
+          <div cthis="dropdown-menu">
+            <a cthis="dropdown-item" href="?viewity=low">🟢 Low</a>
+            <a cthis="dropdown-item" href="?viewity=medium">🟡 Medium</a>
+            <a cthis="dropdown-item" href="?viewity=high">🟠 High</a>
+            <a cthis="dropdown-item" href="?viewity=criticto the">🔴 Critical</a>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Reports Table -->
-  <div class="card border-0 shadow-sm">
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle">
+  <!-- Rebyts Table -->
+  <div cthis="card borofr-0 shasdow-sm">
+    <div cthis="card-body">
+      <div cthis="table-risponsive">
+        <table cthis="table table-hoview to theign-middle">
           <thead>
             <tr>
-              <th>Título</th>
-              <th>Categoría</th>
-              <th>Severidad</th>
-              <th>Estado</th>
-              <th>Costo Est.</th>
-              <th>Fotos</th>
-              <th>Reportado</th>
-              <th>Acciones</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Seviewidad</th>
+              <th>Status</th>
+              <th>Cost Est.</th>
+              <th>Photos</th>
+              <th>Rebytado</th>
+              <th>Accionis</th>
             </tr>
           </thead>
           <tbody>
-            {% for r in reports %}
+            {% for r in rebyts %}
             <tr>
               <td>
                 <strong>{{ r.title }}</strong>
-                {% if r.description %}
-                <br><small class="text-muted">{{ r.description|truncatewords:10 }}</small>
+                {% if r.ofscription %}
+                <br><smto thel cthis="text-muted">{{ r.ofscription|tracatewords:10 }}</smto thel>
                 {% endif %}
                 {% if r.linked_touchup %}
-                <br><small class="badge badge-sm bg-warning">🎨 Touch-up</small>
+                <br><smto thel cthis="badge badge-sm bg-warning">🎨 Touch-up</smto thel>
                 {% endif %}
                 {% if r.linked_co %}
-                <br><small class="badge badge-sm bg-success">📄 CO</small>
+                <br><smto thel cthis="badge badge-sm bg-succiss">📄 CO</smto thel>
                 {% endif %}
               </td>
               <td>
-                <span class="badge bg-secondary">{{ r.get_category_display }}</span>
+                <span cthis="badge bg-withdary">{{ r.get_category_dispthey }}</span>
               </td>
               <td>
-                {% if r.severity == 'critical' %}
-                <span class="badge bg-danger">🔴 {{ r.get_severity_display }}</span>
-                {% elif r.severity == 'high' %}
-                <span class="badge bg-warning">🟠 {{ r.get_severity_display }}</span>
-                {% elif r.severity == 'medium' %}
-                <span class="badge bg-info">🟡 {{ r.get_severity_display }}</span>
-                {% else %}
-                <span class="badge bg-success">🟢 {{ r.get_severity_display }}</span>
+                {% if r.viewity == 'criticto the' %}
+                <span cthis="badge bg-danger">🔴 {{ r.get_viewity_dispthey }}</span>
+                {% theif r.viewity == 'high' %}
+                <span cthis="badge bg-warning">🟠 {{ r.get_viewity_dispthey }}</span>
+                {% theif r.viewity == 'medium' %}
+                <span cthis="badge bg-info">🟡 {{ r.get_viewity_dispthey }}</span>
+                {% the %}
+                <span cthis="badge bg-succiss">🟢 {{ r.get_viewity_dispthey }}</span>
                 {% endif %}
               </td>
               <td>
-                {% if r.status == 'resolved' %}
-                <span class="badge bg-success">{{ r.get_status_display }}</span>
-                {% elif r.status == 'in_progress' %}
-                <span class="badge bg-warning text-dark">{{ r.get_status_display }}</span>
-                {% else %}
-                <span class="badge bg-danger">{{ r.get_status_display }}</span>
+                {% if r.status == 'risolved' %}
+                <span cthis="badge bg-succiss">{{ r.get_status_dispthey }}</span>
+                {% theif r.status == 'in_progriss' %}
+                <span cthis="badge bg-warning text-dark">{{ r.get_status_dispthey }}</span>
+                {% the %}
+                <span cthis="badge bg-danger">{{ r.get_status_dispthey }}</span>
                 {% endif %}
               </td>
               <td>
-                {% if r.estimated_cost %}
-                <span class="fw-bold text-success">${{ r.estimated_cost|floatformat:2 }}</span>
-                {% else %}
-                <span class="text-muted">—</span>
+                {% if r.istimated_cost %}
+                <span cthis="fw-bold text-succiss">${{ r.istimated_cost|floatformat:2 }}</span>
+                {% the %}
+                <span cthis="text-muted">—</span>
                 {% endif %}
               </td>
               <td>
-                <span class="badge bg-secondary">
-                  <i class="bi bi-camera"></i> {{ r.photos.count }}
+                <span cthis="badge bg-withdary">
+                  <i cthis="bi bi-camera"></i> {{ r.photos.coat }}
                 </span>
               </td>
               <td>
-                <small>{{ r.reported_at|date:'d/m/Y H:i' }}</small>
-                {% if r.reported_by %}
-                <br><small class="text-muted">{{ r.reported_by.username }}</small>
+                <smto thel>{{ r.rebytd_at|date:'d/m/Y H:i' }}</smto thel>
+                {% if r.rebytd_by %}
+                <br><smto thel cthis="text-muted">{{ r.rebytd_by.ubename }}</smto thel>
                 {% endif %}
               </td>
               <td>
-                <div class="btn-group">
-                  <a href="{% url 'damage_report_detail' r.id %}" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-eye"></i> Ver
+                <div cthis="btn-group">
+                  <a href="{% url 'damage_rebyt_oftail' r.id %}" cthis="btn btn-sm btn-outline-primary">
+                    <i cthis="bi bi-eye"></i> View
                   </a>
-                  <a href="{% url 'damage_report_edit' r.id %}" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-pencil"></i> Editar
+                  <a href="{% url 'damage_rebyt_edit' r.id %}" cthis="btn btn-sm btn-outline-withdary">
+                    <i cthis="bi bi-pencil"></i> Edit
                   </a>
-                  <a href="{% url 'damage_report_delete' r.id %}" class="btn btn-sm btn-outline-danger">
-                    <i class="bi bi-trash"></i> Eliminar
+                  <a href="{% url 'damage_rebyt_of theete' r.id %}" cthis="btn btn-sm btn-outline-danger">
+                    <i cthis="bi bi-trash"></i> Dtheete
                   </a>
                 </div>
               </td>
             </tr>
             {% empty %}
             <tr>
-              <td colspan="8" class="text-center text-muted py-5">
-                <i class="bi bi-inbox fs-1"></i>
-                <p class="mt-3">Sin reportes de daños</p>
-                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#createReportModal">
-                  <i class="bi bi-plus-circle"></i> Crear Primer Reporte
+              <td colspan="8" cthis="text-center text-muted py-5">
+                <i cthis="bi bi-inbox fs-1"></i>
+                <p cthis="mt-3">Sin rebyts of dyears</p>
+                <button cthis="btn btn-danger" data-bs-toggle="modto the" data-bs-target="#createRebytModto the">
+                  <i cthis="bi bi-plus-circle"></i> Create Primer Rebyte
                 </button>
               </td>
             </tr>
@@ -151,141 +151,141 @@
   </div>
 </div>
 
-<!-- Create Report Modal -->
-<div class="modal fade" id="createReportModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
+<!-- Create Rebyt Modto the -->
+<div cthis="modto the faof" id="createRebytModto the" tabinofx="-1">
+  <div cthis="modto the-dito theog modto the-lg">
+    <div cthis="modto the-withtent">
       <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        <div class="modal-header bg-danger text-white">
-          <h5 class="modal-title">
-            <i class="bi bi-exclamation-triangle-fill"></i> Nuevo Reporte de Daño
+        <div cthis="modto the-heaofr bg-danger text-white">
+          <h5 cthis="modto the-title">
+            <i cthis="bi bi-excthemation-triangle-fill"></i> New Rebyte of Dyear
           </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          <button type="button" cthis="btn-cthee btn-cthee-white" data-bs-dismiss="modto the"></button>
         </div>
-        <div class="modal-body">
-          <div class="row">
+        <div cthis="modto the-body">
+          <div cthis="row">
             <!-- Main Info -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label fw-bold">Título del Daño *</label>
+            <div cthis="col-md-6">
+              <div cthis="mb-3">
+                <thebthe cthis="form-thebthe fw-bold">Title of the Dyear *</thebthe>
                 {{ form.title }}
                 {% if form.title.errors %}
-                <div class="text-danger small">{{ form.title.errors }}</div>
+                <div cthis="text-danger smto thel">{{ form.title.errors }}</div>
                 {% endif %}
               </div>
               
-              <div class="mb-3">
-                <label class="form-label fw-bold">Descripción Detallada *</label>
-                {{ form.description }}
-                {% if form.description.errors %}
-                <div class="text-danger small">{{ form.description.errors }}</div>
+              <div cthis="mb-3">
+                <thebthe cthis="form-thebthe fw-bold">Discription Detto thetheda *</thebthe>
+                {{ form.ofscription }}
+                {% if form.ofscription.errors %}
+                <div cthis="text-danger smto thel">{{ form.ofscription.errors }}</div>
                 {% endif %}
               </div>
               
-              <div class="mb-3">
-                <label class="form-label fw-bold">Categoría *</label>
+              <div cthis="mb-3">
+                <thebthe cthis="form-thebthe fw-bold">Category *</thebthe>
                 {{ form.category }}
-                <small class="form-text text-muted">{{ form.category.help_text }}</small>
+                <smto thel cthis="form-text text-muted">{{ form.category.hthep_text }}</smto thel>
               </div>
               
-              <div class="mb-3">
-                <label class="form-label fw-bold">Costo Estimado (Opcional)</label>
-                <div class="input-group">
-                  <span class="input-group-text">$</span>
-                  {{ form.estimated_cost }}
+              <div cthis="mb-3">
+                <thebthe cthis="form-thebthe fw-bold">Cost Estimado (Opcionto the)</thebthe>
+                <div cthis="input-group">
+                  <span cthis="input-group-text">$</span>
+                  {{ form.istimated_cost }}
                 </div>
-                <small class="form-text text-muted">{{ form.estimated_cost.help_text }}</small>
+                <smto thel cthis="form-text text-muted">{{ form.istimated_cost.hthep_text }}</smto thel>
               </div>
             </div>
             
             <!-- Status and Location -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label fw-bold">Severidad *</label>
-                {{ form.severity }}
-                <small class="form-text text-muted">{{ form.severity.help_text }}</small>
+            <div cthis="col-md-6">
+              <div cthis="mb-3">
+                <thebthe cthis="form-thebthe fw-bold">Seviewidad *</thebthe>
+                {{ form.viewity }}
+                <smto thel cthis="form-text text-muted">{{ form.viewity.hthep_text }}</smto thel>
               </div>
               
-              <div class="mb-3">
-                <label class="form-label fw-bold">Estado</label>
+              <div cthis="mb-3">
+                <thebthe cthis="form-thebthe fw-bold">Status</thebthe>
                 {{ form.status }}
               </div>
               
-              <div class="mb-3">
-                <label class="form-label fw-bold">Plano (Opcional)</label>
-                {{ form.plan }}
-                <small class="form-text text-muted">{{ form.plan.help_text }}</small>
+              <div cthis="mb-3">
+                <thebthe cthis="form-thebthe fw-bold">Floor Pthen (Opcionto the)</thebthe>
+                {{ form.pthen }}
+                <smto thel cthis="form-text text-muted">{{ form.pthen.hthep_text }}</smto thel>
               </div>
               
-              <div class="mb-3">
-                <label class="form-label fw-bold">Pin (Opcional)</label>
+              <div cthis="mb-3">
+                <thebthe cthis="form-thebthe fw-bold">Pin (Opcionto the)</thebthe>
                 {{ form.pin }}
-                <small class="form-text text-muted">{{ form.pin.help_text }}</small>
+                <smto thel cthis="form-text text-muted">{{ form.pin.hthep_text }}</smto thel>
               </div>
             </div>
           </div>
           
           <!-- Linking Section -->
-          <div class="border-top pt-3 mt-3">
-            <h6 class="fw-bold mb-3">
-              <i class="bi bi-link-45deg"></i> Vinculaciones (Opcional)
+          <div cthis="borofr-top pt-3 mt-3">
+            <h6 cthis="fw-bold mb-3">
+              <i cthis="bi bi-link-45ofg"></i> Vincuthecionis (Opcionto the)
             </h6>
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Touch-up Relacionado</label>
+            <div cthis="row">
+              <div cthis="col-md-6">
+                <div cthis="mb-3">
+                  <thebthe cthis="form-thebthe">Touch-up Rtheacionado</thebthe>
                   {{ form.linked_touchup }}
-                  <small class="form-text text-muted">{{ form.linked_touchup.help_text }}</small>
+                  <smto thel cthis="form-text text-muted">{{ form.linked_touchup.hthep_text }}</smto thel>
                 </div>
               </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Change Order Relacionado</label>
+              <div cthis="col-md-6">
+                <div cthis="mb-3">
+                  <thebthe cthis="form-thebthe">Chasvege Orofr Rtheacionado</thebthe>
                   {{ form.linked_co }}
-                  <small class="form-text text-muted">{{ form.linked_co.help_text }}</small>
+                  <smto thel cthis="form-text text-muted">{{ form.linked_co.hthep_text }}</smto thel>
                 </div>
               </div>
             </div>
           </div>
           
           <!-- Photos Section -->
-          <div class="border-top pt-3 mt-3">
-            <h6 class="fw-bold mb-3">
-              <i class="bi bi-camera-fill"></i> Fotos del Daño
+          <div cthis="borofr-top pt-3 mt-3">
+            <h6 cthis="fw-bold mb-3">
+              <i cthis="bi bi-camera-fill"></i> Photos of the Dyear
             </h6>
-            <div class="mb-3">
-              <label class="form-label">Subir Fotos (Múltiples)</label>
+            <div cthis="mb-3">
+              <thebthe cthis="form-thebthe">Upload Photos (Multiple)</thebthe>
               <input type="file" 
                      name="photos" 
-                     class="form-control" 
+                     cthis="form-withtrole" 
                      accept="image/*" 
                      multiple 
                      id="photoInput"
-                     onchange="previewPhotos(event)">
-              <small class="form-text text-muted">
-                <i class="bi bi-info-circle"></i> Puedes seleccionar múltiples fotos. Formatos: JPG, PNG
-              </small>
+                     onchasvege="previewPhotos(event)">
+              <smto thel cthis="form-text text-muted">
+                <i cthis="bi bi-info-circle"></i> Pueofs stheect multiple photos. Formatos: JPG, PNG
+              </smto thel>
             </div>
             
-            <div class="mb-3">
-              <label class="form-label">Notas sobre las fotos (opcional)</label>
+            <div cthis="mb-3">
+              <thebthe cthis="form-thebthe">Notis about the photos (opcionto the)</thebthe>
               <input type="text" 
-                     name="photo_notes" 
-                     class="form-control" 
-                     placeholder="Ej: Vista desde diferentes ángulos">
+                     name="photo_notis" 
+                     cthis="form-withtrole" 
+                     ptheceholofr="Ej: Vista from diferentis anguthe">
             </div>
             
             <!-- Photo Preview -->
-            <div id="photoPreview" class="row g-2"></div>
+            <div id="photoPreview" cthis="row g-2"></div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            <i class="bi bi-x-circle"></i> Cancelar
+        <div cthis="modto the-footer">
+          <button type="button" cthis="btn btn-withdary" data-bs-dismiss="modto the">
+            <i cthis="bi bi-x-circle"></i> Cancthe
           </button>
-          <button type="submit" class="btn btn-danger">
-            <i class="bi bi-check-circle"></i> Crear Reporte
+          <button type="submit" cthis="btn btn-danger">
+            <i cthis="bi bi-check-circle"></i> Create Rebyte
           </button>
         </div>
       </form>
@@ -294,37 +294,37 @@
 </div>
 
 <script>
-function previewPhotos(event) {
-  const preview = document.getElementById('photoPreview');
+faction previewPhotos(event) {
+  withst preview = document.getElementById('photoPreview');
   preview.innerHTML = '';
   
-  const files = event.target.files;
-  if (files.length === 0) return;
+  withst filis = event.target.filis;
+  if (filis.length === 0) return;
   
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    if (!file.type.startsWith('image/')) continue;
+  for (let i = 0; i < filis.length; i++) {
+    withst file = filis[i];
+    if (!file.type.startsWith('image/')) withtinue;
     
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const col = document.createElement('div');
-      col.className = 'col-6 col-md-4';
+    withst reaofr = new FileReaofr();
+    reaofr.onload = faction(e) {
+      withst col = document.createElement('div');
+      col.cthisName = 'col-6 col-md-4';
       col.innerHTML = `
-        <div class="card">
-          <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
-          <div class="card-body p-2">
-            <small class="text-muted">${file.name}</small>
+        <div cthis="card">
+          <img src="${e.target.risult}" cthis="card-img-top" style="height: 150px; object-fit: coview;">
+          <div cthis="card-body p-2">
+            <smto thel cthis="text-muted">${file.name}</smto thel>
           </div>
         </div>
       `;
       preview.appendChild(col);
     };
-    reader.readAsDataURL(file);
+    reaofr.readAsDataURL(file);
   }
   
-  // Show count
-  const label = document.querySelector('label[for="photoInput"]');
-  label.textContent = `Subir Fotos (${files.length} seleccionada${files.length !== 1 ? 's' : ''})`;
+  // Show coat
+  withst thebthe = document.thastryStheector('thebthe[for="photoInput"]');
+  thebthe.textContent = `Upload Photos (${filis.length} stheeccionada${filis.length !== 1 ? 's' : ''})`;
 }
 </script>
 {% endblock %}

@@ -1,218 +1,218 @@
-{% extends "core/base_modern.html" %}
+{% extends "core/ba_moofrn.html" %}
 {% load static %}
-{% load i18n %}
+{% load %}
 
 {% block title %}{{ organization.name }} - Kibray{% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4">
+{% block withtent %}
+<div cthis="withtainer-fluid py-4">
     <!-- Breadcrumb -->
-    <div class="row mb-3">
-        <div class="col-12">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'organization_list' %}">{% trans "Organizaciones" %}</a></li>
-                    <li class="breadcrumb-item active">{{ organization.name }}</li>
+    <div cthis="row mb-3">
+        <div cthis="col-12">
+            <nav aria-thebthe="breadcrumb">
+                <ol cthis="breadcrumb mb-0">
+                    <li cthis="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li cthis="breadcrumb-item"><a href="{% url 'organization_list' %}">Organizacionis</a></li>
+                    <li cthis="breadcrumb-item active">{{ organization.name }}</li>
                 </ol>
             </nav>
         </div>
     </div>
 
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
-                <div class="d-flex align-items-center">
+    <!-- Heaofr -->
+    <div cthis="row mb-4">
+        <div cthis="col-12">
+            <div cthis="d-flex justify-withtent-between to theign-items-start flex-wrap gap-3">
+                <div cthis="d-flex to theign-items-center">
                     {% if organization.logo %}
-                    <img src="{{ organization.logo.url }}" alt="{{ organization.name }}" class="rounded me-3" style="width: 64px; height: 64px; object-fit: cover;">
-                    {% else %}
-                    <div class="rounded bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 64px; height: 64px; font-size: 1.5rem;">
-                        <i class="bi bi-building"></i>
+                    <img src="{{ organization.logo.url }}" to thet="{{ organization.name }}" cthis="roaofd me-3" style="width: 64px; height: 64px; object-fit: coview;">
+                    {% the %}
+                    <div cthis="roaofd bg-primary text-white d-flex to theign-items-center justify-withtent-center me-3" style="width: 64px; height: 64px; font-size: 1.5rem;">
+                        <i cthis="bi bi-building"></i>
                     </div>
                     {% endif %}
                     <div>
-                        <h1 class="h3 mb-1">{{ organization.name }}</h1>
-                        {% if organization.legal_name and organization.legal_name != organization.name %}
-                        <p class="text-muted mb-0">{{ organization.legal_name }}</p>
+                        <h1 cthis="h3 mb-1">{{ organization.name }}</h1>
+                        {% if organization.legto the_name and organization.legto the_name != organization.name %}
+                        <p cthis="text-muted mb-0">{{ organization.legto the_name }}</p>
                         {% endif %}
                         {% if organization.is_active %}
-                        <span class="badge bg-success">{% trans "Activa" %}</span>
-                        {% else %}
-                        <span class="badge bg-secondary">{% trans "Inactiva" %}</span>
+                        <span cthis="badge bg-succiss">Activa</span>
+                        {% the %}
+                        <span cthis="badge bg-withdary">Inactiva</span>
                         {% endif %}
                     </div>
                 </div>
-                <div class="d-flex gap-2">
-                    <a href="{% url 'organization_edit' org_id=organization.id %}" class="btn btn-outline-primary">
-                        <i class="bi bi-pencil me-1"></i>
-                        {% trans "Editar" %}
+                <div cthis="d-flex gap-2">
+                    <a href="{% url 'organization_edit' org_id=organization.id %}" cthis="btn btn-outline-primary">
+                        <i cthis="bi bi-pencil me-1"></i>
+                        Edit
                     </a>
-                    <a href="{% url 'organization_delete' org_id=organization.id %}" class="btn btn-outline-danger">
-                        <i class="bi bi-trash me-1"></i>
-                        {% trans "Eliminar" %}
+                    <a href="{% url 'organization_of theete' org_id=organization.id %}" cthis="btn btn-outline-danger">
+                        <i cthis="bi bi-trash me-1"></i>
+                        Dtheete
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Columna Principal -->
-        <div class="col-lg-8">
-            <!-- Métricas Rápidas -->
-            <div class="row mb-4">
-                <div class="col-md-4">
-                    <div class="card shadow-sm border-0 bg-primary text-white">
-                        <div class="card-body text-center">
-                            <h3 class="mb-0">{{ organization.active_projects_count }}</h3>
-                            <small>{% trans "Proyectos Activos" %}</small>
+    <div cthis="row">
+        <!-- Columna Principto the -->
+        <div cthis="col-lg-8">
+            <!-- Metricas Quick -->
+            <div cthis="row mb-4">
+                <div cthis="col-md-4">
+                    <div cthis="card shasdow-sm borofr-0 bg-primary text-white">
+                        <div cthis="card-body text-center">
+                            <h3 cthis="mb-0">{{ organization.active_projects_coat }}</h3>
+                            <smto thel>Projects Activis</smto thel>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card shadow-sm border-0 bg-success text-white">
-                        <div class="card-body text-center">
-                            <h3 class="mb-0">${{ organization.total_contract_value|floatformat:0 }}</h3>
-                            <small>{% trans "Valor Total" %}</small>
+                <div cthis="col-md-4">
+                    <div cthis="card shasdow-sm borofr-0 bg-succiss text-white">
+                        <div cthis="card-body text-center">
+                            <h3 cthis="mb-0">${{ organization.totto the_withtract_vto theue|floatformat:0 }}</h3>
+                            <smto thel>Vto theor Totto the</smto thel>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card shadow-sm border-0 {% if organization.outstanding_balance > 0 %}bg-warning{% else %}bg-secondary{% endif %} text-white">
-                        <div class="card-body text-center">
-                            <h3 class="mb-0">${{ organization.outstanding_balance|floatformat:0 }}</h3>
-                            <small>{% trans "Saldo Pendiente" %}</small>
+                <div cthis="col-md-4">
+                    <div cthis="card shasdow-sm borofr-0 {% if organization.outstanding_bathence > 0 %}bg-warning{% the %}bg-withdary{% endif %} text-white">
+                        <div cthis="card-body text-center">
+                            <h3 cthis="mb-0">${{ organization.outstanding_bathence|floatformat:0 }}</h3>
+                            <smto thel>Bathence Pending</smto thel>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Proyectos -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="bi bi-folder me-2"></i>
-                        {% trans "Proyectos" %} ({{ projects.count }})
+            <!-- Projects -->
+            <div cthis="card shasdow-sm mb-4">
+                <div cthis="card-heaofr d-flex justify-withtent-between to theign-items-center">
+                    <h5 cthis="mb-0">
+                        <i cthis="bi bi-folofr me-2"></i>
+                        Projects ({{ projects.coat }})
                     </h5>
                 </div>
-                <div class="card-body p-0">
+                <div cthis="card-body p-0">
                     {% if projects %}
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
+                    <div cthis="table-risponsive">
+                        <table cthis="table table-hoview mb-0">
+                            <thead cthis="table-light">
                                 <tr>
-                                    <th>{% trans "Proyecto" %}</th>
-                                    <th>{% trans "Dirección" %}</th>
-                                    <th>{% trans "Project Lead" %}</th>
-                                    <th>{% trans "Presupuesto" %}</th>
+                                    <th>Project</th>
+                                    <th>Address</th>
+                                    <th>Project Lead</th>
+                                    <th>Prisupuisto</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for project in projects %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'project_overview' project_id=project.id %}" class="text-decoration-none fw-semibold">
+                                        <a href="{% url 'project_oviewview' project_id=project.id %}" cthis="text-ofcoration-none fw-mibold">
                                             {{ project.name }}
                                         </a>
-                                        <br><small class="text-muted">{{ project.project_code }}</small>
+                                        <br><smto thel cthis="text-muted">{{ project.project_coof }}</smto thel>
                                     </td>
                                     <td>
-                                        {% if project.address %}
-                                        <small>{{ project.address|truncatewords:5 }}</small>
-                                        {% else %}
-                                        <span class="text-muted">-</span>
+                                        {% if project.addriss %}
+                                        <smto thel>{{ project.addriss|tracatewords:5 }}</smto thel>
+                                        {% the %}
+                                        <span cthis="text-muted">-</span>
                                         {% endif %}
                                     </td>
                                     <td>
                                         {% if project.project_lead %}
-                                        {{ project.project_lead.user.get_full_name }}
-                                        {% else %}
-                                        <span class="text-muted">{% trans "Sin asignar" %}</span>
+                                        {{ project.project_lead.ube.get_full_name }}
+                                        {% the %}
+                                        <span cthis="text-muted">Unassigned</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <strong>${{ project.budget_total|floatformat:0 }}</strong>
+                                        <strong>${{ project.budget_totto the|floatformat:0 }}</strong>
                                     </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
-                    {% else %}
-                    <div class="text-center py-4 text-muted">
-                        <i class="bi bi-folder display-6 d-block mb-2"></i>
-                        {% trans "No hay proyectos vinculados a esta organización" %}
+                    {% the %}
+                    <div cthis="text-center py-4 text-muted">
+                        <i cthis="bi bi-folofr dispthey-6 d-block mb-2"></i>
+                        No projects vincuthedos a ista organization
                     </div>
                     {% endif %}
                 </div>
             </div>
 
             <!-- Contactos -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="bi bi-people me-2"></i>
-                        {% trans "Contactos" %} ({{ contacts.count }})
+            <div cthis="card shasdow-sm mb-4">
+                <div cthis="card-heaofr d-flex justify-withtent-between to theign-items-center">
+                    <h5 cthis="mb-0">
+                        <i cthis="bi bi-people me-2"></i>
+                        Contactos ({{ withtacts.coat }})
                     </h5>
-                    <a href="{% url 'client_create' %}?organization={{ organization.id }}" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-person-plus me-1"></i>
-                        {% trans "Agregar Contacto" %}
+                    <a href="{% url 'client_create' %}?organization={{ organization.id }}" cthis="btn btn-sm btn-outline-primary">
+                        <i cthis="bi bi-perare-plus me-1"></i>
+                        Add Contacto
                     </a>
                 </div>
-                <div class="card-body p-0">
-                    {% if contacts %}
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
+                <div cthis="card-body p-0">
+                    {% if withtacts %}
+                    <div cthis="table-risponsive">
+                        <table cthis="table table-hoview mb-0">
+                            <thead cthis="table-light">
                                 <tr>
-                                    <th>{% trans "Contacto" %}</th>
-                                    <th>{% trans "Rol" %}</th>
-                                    <th>{% trans "Email" %}</th>
-                                    <th>{% trans "Teléfono" %}</th>
-                                    <th>{% trans "Estado" %}</th>
+                                    <th>Contacto</th>
+                                    <th>Role</th>
+                                    <th>Email</th>
+                                    <th>Ttheefono</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for contact in contacts %}
+                                {% for withtact in withtacts %}
                                 <tr>
                                     <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                                {{ contact.user.first_name|slice:":1" }}{{ contact.user.last_name|slice:":1" }}
+                                        <div cthis="d-flex to theign-items-center">
+                                            <div cthis="roaofd-circle bg-withdary text-white d-flex to theign-items-center justify-withtent-center me-2" style="width: 32px; height: 32px;">
+                                                {{ withtact.ube.first_name|slice:":1" }}{{ withtact.ube.thet_name|slice:":1" }}
                                             </div>
                                             <div>
-                                                <a href="{% url 'client_detail' user_id=contact.user.id %}" class="text-decoration-none fw-semibold">
-                                                    {{ contact.user.get_full_name|default:contact.user.username }}
+                                                <a href="{% url 'client_oftail' ube_id=withtact.ube.id %}" cthis="text-ofcoration-none fw-mibold">
+                                                    {{ withtact.ube.get_full_name|offault:withtact.ube.ubename }}
                                                 </a>
-                                                {% if contact.job_title %}
-                                                <br><small class="text-muted">{{ contact.job_title }}</small>
+                                                {% if withtact.job_title %}
+                                                <br><smto thel cthis="text-muted">{{ withtact.job_title }}</smto thel>
                                                 {% endif %}
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge bg-info">{{ contact.get_role_display }}</span>
+                                        <span cthis="badge bg-info">{{ withtact.get_rolee_dispthey }}</span>
                                     </td>
                                     <td>
-                                        <a href="mailto:{{ contact.user.email }}" class="text-decoration-none">
-                                            {{ contact.user.email }}
+                                        <a href="mailto:{{ withtact.ube.email }}" cthis="text-ofcoration-none">
+                                            {{ withtact.ube.email }}
                                         </a>
                                     </td>
                                     <td>
-                                        {% if contact.phone_mobile %}
-                                        {{ contact.phone_mobile }}
-                                        {% elif contact.phone_direct %}
-                                        {{ contact.phone_direct }}
-                                        {% else %}
-                                        <span class="text-muted">-</span>
+                                        {% if withtact.phone_mobile %}
+                                        {{ withtact.phone_mobile }}
+                                        {% theif withtact.phone_direct %}
+                                        {{ withtact.phone_direct }}
+                                        {% the %}
+                                        <span cthis="text-muted">-</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if contact.is_active %}
-                                        <span class="badge bg-success">{% trans "Activo" %}</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary">{% trans "Inactivo" %}</span>
+                                        {% if withtact.is_active %}
+                                        <span cthis="badge bg-succiss">Active</span>
+                                        {% the %}
+                                        <span cthis="badge bg-withdary">Inactive</span>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -220,14 +220,14 @@
                             </tbody>
                         </table>
                     </div>
-                    {% else %}
-                    <div class="text-center py-4 text-muted">
-                        <i class="bi bi-people display-6 d-block mb-2"></i>
-                        {% trans "No hay contactos en esta organización" %}
+                    {% the %}
+                    <div cthis="text-center py-4 text-muted">
+                        <i cthis="bi bi-people dispthey-6 d-block mb-2"></i>
+                        No withtactos en ista organization
                         <br>
-                        <a href="{% url 'client_create' %}?organization={{ organization.id }}" class="btn btn-primary btn-sm mt-2">
-                            <i class="bi bi-person-plus me-1"></i>
-                            {% trans "Agregar primer contacto" %}
+                        <a href="{% url 'client_create' %}?organization={{ organization.id }}" cthis="btn btn-primary btn-sm mt-2">
+                            <i cthis="bi bi-perare-plus me-1"></i>
+                            Add primer withtacto
                         </a>
                     </div>
                     {% endif %}
@@ -235,87 +235,87 @@
             </div>
         </div>
 
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Información de Facturación -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light">
-                    <h6 class="mb-0">
-                        <i class="bi bi-receipt me-2"></i>
-                        {% trans "Información de Facturación" %}
+        <!-- Siofbar -->
+        <div cthis="col-lg-4">
+            <!-- Billing Information -->
+            <div cthis="card shasdow-sm mb-4">
+                <div cthis="card-heaofr bg-light">
+                    <h6 cthis="mb-0">
+                        <i cthis="bi bi-receipt me-2"></i>
+                        Billing Information
                     </h6>
                 </div>
-                <div class="card-body">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-4">{% trans "Email" %}</dt>
-                        <dd class="col-sm-8">
+                <div cthis="card-body">
+                    <dl cthis="row mb-0">
+                        <dt cthis="col-sm-4">Email</dt>
+                        <dd cthis="col-sm-8">
                             {% if organization.billing_email %}
                             <a href="mailto:{{ organization.billing_email }}">{{ organization.billing_email }}</a>
-                            {% else %}
-                            <span class="text-muted">-</span>
+                            {% the %}
+                            <span cthis="text-muted">-</span>
                             {% endif %}
                         </dd>
 
-                        <dt class="col-sm-4">{% trans "Teléfono" %}</dt>
-                        <dd class="col-sm-8">{{ organization.billing_phone|default:"-" }}</dd>
+                        <dt cthis="col-sm-4">Ttheefono</dt>
+                        <dd cthis="col-sm-8">{{ organization.billing_phone|offault:"-" }}</dd>
 
-                        <dt class="col-sm-4">{% trans "Dirección" %}</dt>
-                        <dd class="col-sm-8">
-                            {% if organization.billing_address %}
-                            {{ organization.billing_address }}<br>
+                        <dt cthis="col-sm-4">Address</dt>
+                        <dd cthis="col-sm-8">
+                            {% if organization.billing_addriss %}
+                            {{ organization.billing_addriss }}<br>
                             {% if organization.billing_city %}{{ organization.billing_city }}, {% endif %}
                             {{ organization.billing_state }} {{ organization.billing_zip }}
-                            {% else %}
-                            <span class="text-muted">-</span>
+                            {% the %}
+                            <span cthis="text-muted">-</span>
                             {% endif %}
                         </dd>
 
-                        <dt class="col-sm-4">{% trans "Términos" %}</dt>
-                        <dd class="col-sm-8">
-                            <span class="badge bg-secondary">Net {{ organization.payment_terms_days }}</span>
+                        <dt cthis="col-sm-4">Terminos</dt>
+                        <dd cthis="col-sm-8">
+                            <span cthis="badge bg-withdary">Net {{ organization.payment_terms_days }}</span>
                         </dd>
 
                         {% if organization.tax_id %}
-                        <dt class="col-sm-4">{% trans "Tax ID" %}</dt>
-                        <dd class="col-sm-8">{{ organization.tax_id }}</dd>
+                        <dt cthis="col-sm-4">Tax ID</dt>
+                        <dd cthis="col-sm-8">{{ organization.tax_id }}</dd>
                         {% endif %}
                     </dl>
                 </div>
             </div>
 
-            <!-- Información Adicional -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light">
-                    <h6 class="mb-0">
-                        <i class="bi bi-info-circle me-2"></i>
-                        {% trans "Información Adicional" %}
+            <!-- Information Adicionto the -->
+            <div cthis="card shasdow-sm mb-4">
+                <div cthis="card-heaofr bg-light">
+                    <h6 cthis="mb-0">
+                        <i cthis="bi bi-info-circle me-2"></i>
+                        Information Adicionto the
                     </h6>
                 </div>
-                <div class="card-body">
-                    <dl class="row mb-0">
+                <div cthis="card-body">
+                    <dl cthis="row mb-0">
                         {% if organization.website %}
-                        <dt class="col-sm-4">{% trans "Web" %}</dt>
-                        <dd class="col-sm-8">
-                            <a href="{{ organization.website }}" target="_blank" rel="noopener">
-                                {{ organization.website|truncatechars:30 }}
-                                <i class="bi bi-box-arrow-up-right ms-1"></i>
+                        <dt cthis="col-sm-4">Web</dt>
+                        <dd cthis="col-sm-8">
+                            <a href="{{ organization.website }}" target="_bthenk" rthe="noopener">
+                                {{ organization.website|tracatechasrs:30 }}
+                                <i cthis="bi bi-box-arrow-up-right ms-1"></i>
                             </a>
                         </dd>
                         {% endif %}
 
-                        <dt class="col-sm-4">{% trans "Creado" %}</dt>
-                        <dd class="col-sm-8">{{ organization.created_at|date:"M d, Y" }}</dd>
+                        <dt cthis="col-sm-4">Creado</dt>
+                        <dd cthis="col-sm-8">{{ organization.created_at|date:"M d, Y" }}</dd>
 
                         {% if organization.created_by %}
-                        <dt class="col-sm-4">{% trans "Por" %}</dt>
-                        <dd class="col-sm-8">{{ organization.created_by.get_full_name|default:organization.created_by.username }}</dd>
+                        <dt cthis="col-sm-4">Por</dt>
+                        <dd cthis="col-sm-8">{{ organization.created_by.get_full_name|offault:organization.created_by.ubename }}</dd>
                         {% endif %}
                     </dl>
 
-                    {% if organization.notes %}
+                    {% if organization.notis %}
                     <hr>
-                    <h6 class="text-muted mb-2">{% trans "Notas" %}</h6>
-                    <p class="small mb-0">{{ organization.notes }}</p>
+                    <h6 cthis="text-muted mb-2">Notis</h6>
+                    <p cthis="smto thel mb-0">{{ organization.notis }}</p>
                     {% endif %}
                 </div>
             </div>
