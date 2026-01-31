@@ -785,10 +785,10 @@ class ScheduleItem(models.Model):
     """Item planificable dentro de una categoría del cronograma."""
 
     STATUS_CHOICES = [
-        ("NOT_STARTED", _("No iniciado")),
-        ("IN_PROGRESS", _("En progreso")),
-        ("BLOCKED", _("Bloqueado")),
-        ("DONE", _("Completado")),
+        ("NOT_STARTED", _("Not Started")),
+        ("IN_PROGRESS", _("In Progress")),
+        ("BLOCKED", _("Blocked")),
+        ("DONE", _("Completed")),
     ]
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="schedule_items")
@@ -928,10 +928,10 @@ class ScheduleItemV2(models.Model):
     """
 
     STATUS_CHOICES = [
-        ("planned", _("Planificado")),
-        ("in_progress", _("En progreso")),
-        ("blocked", _("Bloqueado")),
-        ("done", _("Completado")),
+        ("planned", _("Planned")),
+        ("in_progress", _("In Progress")),
+        ("blocked", _("Blocked")),
+        ("done", _("Completed")),
     ]
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="gantt_items")
