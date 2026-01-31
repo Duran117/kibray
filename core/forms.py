@@ -648,18 +648,6 @@ class TaskForm(forms.ModelForm):
             self.fields["dependencies"].queryset = Task.objects.none()
 
 
-# DEPRECATED: PayrollForm y PayrollEntryForm
-# class PayrollForm(forms.ModelForm):
-#     class Meta:
-#         model = Payroll
-#         fields = ["project", "week_start", "week_end", "is_paid", "payment_reference"]
-
-# class PayrollEntryForm(forms.ModelForm):
-#     class Meta:
-#         model = PayrollEntry
-#         fields = ["employee", "hours_worked", "hourly_rate", "notes", "payment_reference"]
-
-
 class ChangeOrderForm(forms.ModelForm):
     PRICING_TYPE_CHOICES = [
         ('FIXED', 'Fixed Price'),

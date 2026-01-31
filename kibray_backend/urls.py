@@ -404,7 +404,7 @@ urlpatterns = [
         views.unassigned_timeentries_view,
         name="unassigned_timeentries",
     ),
-    # Deprecated legacy photo annotation endpoints removed (use /api/v1/changeorder-photo/<id>/...)
+    # Photo Editor
     path(
         "changeorder/photo-editor/",
         views.photo_editor_standalone_view,
@@ -466,7 +466,6 @@ urlpatterns = [
     path("payroll/timeentry/manual/", views.manual_timeentry_create, name="manual_timeentry_create"),
     # Invoices
     path("invoices/", views.invoice_list, name="invoice_list"),
-    # path("invoices/new/", views.invoice_create_view, name="invoice_create"),  # DEPRECATED: Use invoice_builder instead
     path("invoices/builder/<int:project_id>/", views.invoice_builder_view, name="invoice_builder"),
     path("invoices/payments/", views.invoice_payment_dashboard, name="invoice_payment_dashboard"),
     path(
@@ -483,7 +482,6 @@ urlpatterns = [
     path("invoices/<int:invoice_id>/delete/", views.invoice_delete, name="invoice_delete"),
     path("invoices/<int:invoice_id>/cancel/", views.invoice_cancel, name="invoice_cancel"),
     path("invoices/<int:pk>/", views.invoice_detail, name="invoice_detail"),
-    # path("invoices/<int:pk>/edit/", views.invoice_edit, name="invoice_edit"),  # DEPRECATED: Edit from invoice_detail if needed
     path("invoices/<int:pk>/pdf/", views.invoice_pdf, name="invoice_pdf"),
     path("ajax/changeorders/", views.changeorders_ajax, name="changeorders_ajax"),
     path("ajax/changeorder_lines/", views.changeorder_lines_ajax, name="changeorder_lines_ajax"),

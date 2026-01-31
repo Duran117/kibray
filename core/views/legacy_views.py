@@ -1488,14 +1488,6 @@ def timeentry_delete_view(request, entry_id: int):
     return render(request, "core/timeentry_confirm_delete.html", {"timeentry": entry})
 
 
-# --- PAYROLL (DEPRECATED - usar payroll_weekly_review) ---
-# @login_required
-# def payroll_create_view(request):
-#     # Vista obsoleta - reemplazada por sistema de revisión semanal
-#     pass
-
-
-# --- SISTEMA DE NÓMINA MEJORADO ---
 @login_required
 def payroll_weekly_review(request):
     """
@@ -4355,8 +4347,6 @@ def changeorder_board_view(request):
     )
 
 
-# --- PAYROLL SUMMARY (DEPRECATED: reemplazado por payroll_weekly_review) ---
-# --- DASHBOARD ASIGNACIÓN DE CHANGE ORDERS ---
 @login_required
 def unassigned_timeentries_view(request):
     """Lista de TimeEntries sin change_order para asignación masiva por PM/admin."""
@@ -4822,56 +4812,6 @@ def invoice_builder_view(request, project_id):
 
 
 @login_required
-@transaction.atomic
-def invoice_create_view(request):
-    edit_mode = False
-    if request.method == "POST":
-        form = InvoiceForm(request.POST)
-        formset = InvoiceLineFormSet(request.POST, prefix="lines")
-        if form.is_valid() and formset.is_valid():
-            invoice = form.save(commit=False)
-            invoice.save()  # 1) obtener PK
-            form.save_m2m()  # 2) asignar M2M (change_orders)
-
-            # 3) guardar líneas del formset
-            instances = formset.save(commit=False)
-            for ln in instances:
-                ln.invoice = invoice
-                ln.save()
-            for ln in formset.deleted_objects:
-                ln.delete()
-
-            # 4) opcional: agregar líneas por CO seleccionados si no existen
-            selected_cos = form.cleaned_data.get("change_orders") or []
-            for co in selected_cos:
-                if not InvoiceLine.objects.filter(
-                    invoice=invoice, description=co.description, amount=co.amount
-                ).exists():
-                    InvoiceLine.objects.create(
-                        invoice=invoice, description=co.description, amount=co.amount
-                    )
-
-            # 5) recalcular total desde líneas y validar presupuesto
-            total = InvoiceLine.objects.filter(invoice=invoice).aggregate(s=Sum("amount"))["s"] or 0
-            invoice.total_amount = total
-            invoice.full_clean(exclude=None, validate_unique=False)
-            invoice.save(update_fields=["total_amount"])
-
-            messages.success(request, "Factura creada correctamente.")
-            return redirect("dashboard")
-        messages.error(request, "Corrige los errores del formulario.")
-    else:
-        form = InvoiceForm()
-        formset = InvoiceLineFormSet(prefix="lines")
-
-    return render(
-        request,
-        "core/invoice_form.html",
-        {"form": form, "formset": formset, "edit_mode": edit_mode},
-    )
-
-
-@login_required
 def invoice_list(request):
     """
     Invoice list view with filtering by status and project.
@@ -5014,26 +4954,6 @@ def invoice_pdf(request, pk):
             return HttpResponse(result.getvalue(), content_type="application/pdf")
     fallback_bytes = _generate_basic_pdf_from_html(html)
     return HttpResponse(fallback_bytes, content_type="application/pdf")
-
-
-@login_required
-@transaction.atomic
-def invoice_edit(request, pk):
-    invoice = get_object_or_404(Invoice, pk=pk)
-    if request.method == "POST":
-        form = InvoiceForm(request.POST, instance=invoice)
-        formset = InvoiceLineFormSet(request.POST, instance=invoice)
-        if form.is_valid() and formset.is_valid():
-            form.save()
-            formset.save()
-            messages.success(request, "Invoice updated.")
-            return redirect("invoice_detail", pk=invoice.pk)
-    else:
-        form = InvoiceForm(instance=invoice)
-        formset = InvoiceLineFormSet(instance=invoice)
-    return render(
-        request, "core/invoice_form.html", {"form": form, "formset": formset, "edit_mode": True}
-    )
 
 
 @login_required
