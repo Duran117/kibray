@@ -124,12 +124,17 @@
 .costcode-item .code-actions {
     display: flex;
     gap: 0.5rem;
-    opacity: 0;
-    transition: opacity 0.2s;
+    opacity: 1;
 }
 
-.costcode-item:hover .code-actions {
-    opacity: 1;
+@media (min-width: 768px) {
+    .costcode-item .code-actions {
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .costcode-item:hover .code-actions {
+        opacity: 1;
+    }
 }
 
 .costcode-item .status-dot {
@@ -325,9 +330,11 @@
         <div>
             <h1 class="costcode-title">
                 <i class="bi bi-tags me-2"></i>{% trans "Cost Codes" %}
+                <span class="badge bg-success ms-2" style="font-size: 0.6rem; vertical-align: middle;">v2.0</span>
             </h1>
-            <p class="text-muted mb-0">{% trans "Manage cost codes for budgeting and tracking" %}</p>
+            <p class="text-muted mb-0">{% trans "Manage cost codes for budgeting and tracking" %} - {% trans "Hover over items to edit or delete" %}</p>
         </div>
+    </div>
     </div>
 
     <div class="costcode-grid">
