@@ -3303,11 +3303,21 @@ class EstimateLine(models.Model):
     labor_unit_cost = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
     material_unit_cost = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
     other_unit_cost = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
+    # Link to budget line (created when estimate is approved)
+    budget_line = models.ForeignKey(
+        'BudgetLine', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='estimate_lines'
+    )
 
     def direct_cost(self):
         return (self.qty or 0) * (
             self.labor_unit_cost + self.material_unit_cost + self.other_unit_cost
         )
+
+    @property
+    def total_price(self):
+        """Total price for this line (qty * all unit costs)."""
+        return self.direct_cost()
 
     def __str__(self):
         return f"{self.estimate} | {self.cost_code.code}"

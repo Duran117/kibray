@@ -13539,6 +13539,20 @@ def proposal_public_view(request, token):
             proposal.save(update_fields=["accepted", "accepted_at"])
             estimate.save(update_fields=["approved"])
             
+            # --- Auto-create Budget Lines from Estimate (with 30% profit margin) ---
+            try:
+                from core.services.budget_from_estimate import create_budget_from_estimate
+                # Use target_profit_pct from estimate if set, otherwise default 30%
+                profit_margin = estimate.target_profit_pct / Decimal("100") if estimate.target_profit_pct else None
+                budget_lines = create_budget_from_estimate(estimate, profit_margin=profit_margin)
+                import logging
+                logging.getLogger(__name__).info(
+                    f"Auto-created {len(budget_lines)} budget lines for approved Estimate {estimate.code}"
+                )
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"Failed to auto-create budget from estimate: {e}")
+            
             # --- Auto-save Estimate/Contract PDF to Project Files ---
             try:
                 from core.services.document_storage_service import auto_save_estimate_pdf
