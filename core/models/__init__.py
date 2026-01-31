@@ -3204,7 +3204,10 @@ class BudgetLine(models.Model):
     )
 
     def save(self, *a, **k):
-        self.baseline_amount = (self.qty or 0) * (self.unit_cost or 0)
+        # Round qty and unit_cost to 2 decimals before calculating
+        qty = Decimal(str(self.qty or 0)).quantize(Decimal("0.01"))
+        unit_cost = Decimal(str(self.unit_cost or 0)).quantize(Decimal("0.01"))
+        self.baseline_amount = (qty * unit_cost).quantize(Decimal("0.01"))
         if self.revised_amount == 0:
             self.revised_amount = self.baseline_amount
         self.full_clean(exclude=None)  # valida clean()

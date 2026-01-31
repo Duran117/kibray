@@ -7,12 +7,17 @@ Flow:
 3. BudgetLine.baseline_amount = EstimateLine.total_price * (1 - profit_margin)
    Default profit margin is 30% (configurable per project)
 """
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 import logging
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_PROFIT_MARGIN = Decimal("0.30")  # 30% default margin
+
+
+def round_money(value):
+    """Round to 2 decimal places for money values."""
+    return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
 def create_budget_from_estimate(estimate, profit_margin=None):
@@ -50,8 +55,8 @@ def create_budget_from_estimate(estimate, profit_margin=None):
         ).first()
         
         # Calculate budget amount (estimate price - profit margin)
-        estimate_price = est_line.total_price or Decimal("0")
-        budget_amount = estimate_price * (Decimal("1") - profit_margin)
+        estimate_price = Decimal(str(est_line.total_price or 0))
+        budget_amount = round_money(estimate_price * (Decimal("1") - profit_margin))
         
         if existing:
             # Update existing budget line
@@ -60,7 +65,7 @@ def create_budget_from_estimate(estimate, profit_margin=None):
             existing.unit = est_line.unit
             # Unit cost is the total budget divided by qty
             if est_line.qty and est_line.qty > 0:
-                existing.unit_cost = budget_amount / est_line.qty
+                existing.unit_cost = round_money(budget_amount / est_line.qty)
             else:
                 existing.unit_cost = budget_amount
             existing.baseline_amount = budget_amount
@@ -78,7 +83,7 @@ def create_budget_from_estimate(estimate, profit_margin=None):
             # Calculate unit_cost from total / qty
             unit_cost = Decimal("0")
             if est_line.qty and est_line.qty > 0:
-                unit_cost = budget_amount / est_line.qty
+                unit_cost = round_money(budget_amount / est_line.qty)
             
             budget_line = BudgetLine.objects.create(
                 project=project,
@@ -157,16 +162,16 @@ def get_estimate_to_budget_summary(estimate, profit_margin=None):
     
     summary = []
     for est_line in estimate.lines.select_related('cost_code').all():
-        estimate_price = est_line.total_price or Decimal("0")
-        profit_amount = estimate_price * profit_margin
-        budget_amount = estimate_price - profit_amount
+        estimate_price = Decimal(str(est_line.total_price or 0))
+        profit_amount = round_money(estimate_price * profit_margin)
+        budget_amount = round_money(estimate_price - profit_amount)
         
         summary.append({
             'cost_code': est_line.cost_code.code,
             'cost_code_name': est_line.cost_code.name,
             'description': est_line.description,
-            'estimate_price': estimate_price,
-            'profit_margin_pct': profit_margin * 100,
+            'estimate_price': round_money(estimate_price),
+            'profit_margin_pct': float(profit_margin * 100),
             'profit_amount': profit_amount,
             'budget_amount': budget_amount,
         })
