@@ -13843,7 +13843,32 @@ def project_cost_codes(request, project_id):
     
     # Get unique categories from existing codes + defaults
     existing_categories = list(CostCode.objects.exclude(category__isnull=True).exclude(category='').values_list('category', flat=True).distinct())
-    default_categories = ['Labor', 'Material', 'Equipment', 'Subcontractor', 'Other']
+    default_categories = [
+        'Interior Painting',
+        'Exterior Painting',
+        'Interior',
+        'Exterior',
+        'Electrical',
+        'Plumbing',
+        'HVAC',
+        'Flooring',
+        'Drywall',
+        'Framing',
+        'Roofing',
+        'Windows & Doors',
+        'Cabinets',
+        'Countertops',
+        'Appliances',
+        'Landscaping',
+        'Concrete',
+        'Demolition',
+        'Cleanup',
+        'Labor',
+        'Material',
+        'Equipment',
+        'Subcontractor',
+        'Other',
+    ]
     all_categories = list(set(existing_categories + default_categories))
     all_categories.sort()
     
