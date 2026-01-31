@@ -326,8 +326,8 @@
             </div>
             <div class="total-item">
                 <div class="label">{% trans "Variance" %}</div>
-                <div class="value {% if total_revised > total_baseline %}text-warning{% endif %}">
-                    ${{ total_revised|add:total_baseline|intcomma }}
+                <div class="value {% if variance > 0 %}text-warning{% elif variance < 0 %}text-success{% endif %}">
+                    {% if variance >= 0 %}+{% endif %}${{ variance|intcomma }}
                 </div>
             </div>
         </div>

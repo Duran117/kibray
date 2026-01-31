@@ -13769,6 +13769,7 @@ def project_budget_detail(request, project_id):
     # Calcular totales
     total_baseline = sum(line.baseline_amount for line in budget_lines)
     total_revised = sum(line.revised_amount for line in budget_lines)
+    variance = total_revised - total_baseline
     
     context = {
         'project': project,
@@ -13777,6 +13778,7 @@ def project_budget_detail(request, project_id):
         'can_edit': can_edit,
         'total_baseline': total_baseline,
         'total_revised': total_revised,
+        'variance': variance,
         'active_tab': 'budget',
     }
     
