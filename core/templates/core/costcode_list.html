@@ -1,11 +1,135 @@
 {% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Cost Codes" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+.cc-wrapper { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+.cc-header { margin-bottom: 2rem; }
+.cc-header h1 { font-size: 1.75rem; font-weight: 700; color: #1e293b; }
+.cc-grid { display: grid; grid-template-columns: 1fr 320px; gap: 2rem; }
+@media (max-width: 900px) { .cc-grid { grid-template-columns: 1fr; } }
+.cc-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 1rem; }
+.cc-card-header { padding: 0.75rem 1rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+.cc-card-header .count { margin-left: auto; font-size: 0.8rem; color: #64748b; font-weight: normal; }
+.cc-list { list-style: none; padding: 0; margin: 0; }
+.cc-item { display: flex; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; gap: 0.75rem; }
+.cc-item:last-child { border-bottom: none; }
+.cc-item:hover { background: #fafbfc; }
+.cc-badge { padding: 0.3rem 0.6rem; background: #1e293b; color: white; border-radius: 5px; font-family: monospace; font-size: 0.8rem; font-weight: 600; min-width: 70px; text-align: center; }
+.cc-name { flex: 1; color: #334155; }
+.cc-status { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 9999px; }
+.cc-status.active { background: #d1fae5; color: #065f46; }
+.cc-status.inactive { background: #fee2e2; color: #991b1b; }
+.cc-actions { display: flex; gap: 0.25rem; }
+.btn-icon { padding: 0.3rem 0.4rem; background: transparent; border: 1px solid #e2e8f0; border-radius: 4px; cursor: pointer; color: #64748b; }
+.btn-icon:hover { background: #f1f5f9; }
+.btn-icon.danger:hover { background: #fef2f2; color: #dc2626; }
+.form-card { background: white; border-radius: 12px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 1rem; }
+.form-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+.form-group { margin-bottom: 0.875rem; }
+.form-group label { display: block; font-size: 0.75rem; font-weight: 500; color: #64748b; margin-bottom: 0.25rem; }
+.form-group input, .form-group select { width: 100%; padding: 0.6rem; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.875rem; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: #3b82f6; }
+.btn-submit { width: 100%; padding: 0.75rem; background: #10b981; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+.btn-submit:hover { background: #059669; }
+.btn-submit.editing { background: #3b82f6; }
+.btn-cancel { width: 100%; padding: 0.5rem; background: #f1f5f9; border: none; border-radius: 6px; cursor: pointer; margin-top: 0.5rem; }
+.empty { padding: 2rem; text-align: center; color: #94a3b8; }
+</style>
+{% endblock %}
+
 {% block content %}
-<h3>Cost Codes</h3>
-<table class="table table-sm">
-  <tr><th>Code</th><th>Name</th><th>Category</th><th>Active</th></tr>
-  {% for c in codes %}
-    <tr><td>{{ c.code }}</td><td>{{ c.name }}</td><td>{{ c.category }}</td><td>{{ c.active }}</td></tr>
-  {% empty %}<tr><td colspan="4">No cost codes.</td></tr>{% endfor %}
-</table>
-<form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary btn-sm">Add</button></form>
+<div class="cc-wrapper">
+    <div class="cc-header">
+        <h1><i class="bi bi-tags me-2"></i>{% trans "Cost Codes" %}</h1>
+        <p class="text-muted">{% trans "Global cost codes for all projects" %}</p>
+    </div>
+    <div class="cc-grid">
+        <div>
+            {% regroup codes by category as category_list %}
+            {% for cat in category_list %}
+            <div class="cc-card">
+                <div class="cc-card-header"><i class="bi bi-tag"></i> {{ cat.grouper|default:"Uncategorized" }} <span class="count">{{ cat.list|length }}</span></div>
+                <ul class="cc-list">
+                    {% for code in cat.list %}
+                    <li class="cc-item">
+                        <span class="cc-badge">{{ code.code }}</span>
+                        <span class="cc-name">{{ code.name }}</span>
+                        <span class="cc-status {% if code.active %}active{% else %}inactive{% endif %}">{% if code.active %}Active{% else %}Inactive{% endif %}</span>
+                        <div class="cc-actions">
+                            <button class="btn-icon" onclick="editCode({{ code.id }},'{{ code.code }}','{{ code.name|escapejs }}','{{ code.category|escapejs }}',{{ code.active|yesno:'true,false' }})"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-icon danger" onclick="deleteCode({{ code.id }},'{{ code.code }}')"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% empty %}
+            <div class="cc-card"><div class="empty"><i class="bi bi-inbox" style="font-size:2rem;"></i><p>{% trans "No cost codes yet." %}</p></div></div>
+            {% endfor %}
+        </div>
+        <div>
+            <form method="post" class="form-card" id="ccForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" id="formAction" value="create">
+                <input type="hidden" name="costcode_id" id="costcodeId">
+                <h3 id="formTitle"><i class="bi bi-plus-circle me-1"></i>{% trans "Add Cost Code" %}</h3>
+                <div class="form-group">
+                    <label>{% trans "Code" %} *</label>
+                    <input type="text" name="code" id="inputCode" required maxlength="20" placeholder="WIN, DOR..." style="text-transform:uppercase;">
+                </div>
+                <div class="form-group">
+                    <label>{% trans "Name" %} *</label>
+                    <input type="text" name="name" id="inputName" required>
+                </div>
+                <div class="form-group">
+                    <label>{% trans "Category" %}</label>
+                    <select name="category" id="inputCategory">
+                        <option value="">{% trans "Select..." %}</option>
+                        {% for cat in categories %}<option value="{{ cat }}">{{ cat }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group" id="activeGroup" style="display:none;">
+                    <label><input type="checkbox" name="active" id="inputActive" checked> {% trans "Active" %}</label>
+                </div>
+                <button type="submit" class="btn-submit" id="submitBtn">{% trans "Create" %}</button>
+                <button type="button" class="btn-cancel" id="cancelBtn" onclick="resetForm()" style="display:none;">{% trans "Cancel" %}</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+function editCode(id,code,name,category,active){
+    document.getElementById('formAction').value='update';
+    document.getElementById('costcodeId').value=id;
+    document.getElementById('inputCode').value=code;
+    document.getElementById('inputName').value=name;
+    document.getElementById('inputCategory').value=category;
+    document.getElementById('inputActive').checked=active;
+    document.getElementById('formTitle').innerHTML='<i class="bi bi-pencil me-1"></i>Edit';
+    document.getElementById('submitBtn').textContent='Save';
+    document.getElementById('submitBtn').classList.add('editing');
+    document.getElementById('activeGroup').style.display='block';
+    document.getElementById('cancelBtn').style.display='block';
+}
+function resetForm(){
+    document.getElementById('ccForm').reset();
+    document.getElementById('formAction').value='create';
+    document.getElementById('costcodeId').value='';
+    document.getElementById('formTitle').innerHTML='<i class="bi bi-plus-circle me-1"></i>Add Cost Code';
+    document.getElementById('submitBtn').textContent='Create';
+    document.getElementById('submitBtn').classList.remove('editing');
+    document.getElementById('activeGroup').style.display='none';
+    document.getElementById('cancelBtn').style.display='none';
+}
+function deleteCode(id,code){
+    if(confirm('Delete "'+code+'"?')){
+        var f=document.createElement('form');f.method='POST';
+        f.innerHTML='<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><input type="hidden" name="action" value="delete"><input type="hidden" name="costcode_id" value="'+id+'">';
+        document.body.appendChild(f);f.submit();
+    }
+}
+</script>
 {% endblock %}

@@ -5350,22 +5350,24 @@ def costcode_list_view(request):
     """Cost Code management view with full CRUD operations."""
     codes = CostCode.objects.all().order_by("category", "code")
     
-    # Get unique categories for the dropdown
-    categories = CostCode.objects.exclude(category__isnull=True).exclude(category='').values_list('category', flat=True).distinct().order_by('category')
-    categories = list(categories)
+    # Default categories for construction
+    default_categories = [
+        'Appliances', 'Cabinets', 'Cleanup', 'Concrete', 'Countertops',
+        'Demolition', 'Drywall', 'Electrical', 'Equipment', 'Exterior',
+        'Exterior Painting', 'Flooring', 'Framing', 'HVAC', 'Interior',
+        'Interior Painting', 'Labor', 'Landscaping', 'Material', 'Plumbing',
+        'Roofing', 'Subcontractor', 'Windows & Doors', 'Other',
+    ]
     
-    # Add default categories if not present
-    default_categories = ['Labor', 'Material', 'Equipment', 'Subcontractor', 'Other']
-    for cat in default_categories:
-        if cat not in categories:
-            categories.append(cat)
-    categories.sort()
+    # Get existing categories normalized
+    existing_raw = CostCode.objects.exclude(category__isnull=True).exclude(category='').values_list('category', flat=True).distinct()
+    existing_normalized = {cat.strip().title() for cat in existing_raw}
+    categories = sorted(set(default_categories) | existing_normalized)
     
     if request.method == "POST":
         action = request.POST.get('action', 'create')
         
         if action == 'create':
-            # Get category from hidden input (set by JS)
             category = request.POST.get('category', '').strip()
             code = request.POST.get('code', '').strip().upper()
             name = request.POST.get('name', '').strip()
@@ -5407,7 +5409,7 @@ def costcode_list_view(request):
                     messages.error(request, _("Cost code not found."))
             return redirect("costcode_list")
     
-    return render(request, "core/costcode_list_modern.html", {
+    return render(request, "core/costcode_list.html", {
         "codes": codes,
         "categories": categories,
     })
@@ -13841,41 +13843,49 @@ def project_cost_codes(request, project_id):
     
     cost_codes = CostCode.objects.all().order_by('category', 'code')
     
-    # Get unique categories from existing codes + defaults
-    existing_categories = list(CostCode.objects.exclude(category__isnull=True).exclude(category='').values_list('category', flat=True).distinct())
+    # Default categories for construction
     default_categories = [
-        'Interior Painting',
-        'Exterior Painting',
-        'Interior',
-        'Exterior',
-        'Electrical',
-        'Plumbing',
-        'HVAC',
-        'Flooring',
-        'Drywall',
-        'Framing',
-        'Roofing',
-        'Windows & Doors',
-        'Cabinets',
-        'Countertops',
         'Appliances',
-        'Landscaping',
-        'Concrete',
-        'Demolition',
+        'Cabinets',
         'Cleanup',
-        'Labor',
-        'Material',
+        'Concrete',
+        'Countertops',
+        'Demolition',
+        'Drywall',
+        'Electrical',
         'Equipment',
+        'Exterior',
+        'Exterior Painting',
+        'Flooring',
+        'Framing',
+        'HVAC',
+        'Interior',
+        'Interior Painting',
+        'Labor',
+        'Landscaping',
+        'Material',
+        'Plumbing',
+        'Roofing',
         'Subcontractor',
+        'Windows & Doors',
         'Other',
     ]
-    all_categories = list(set(existing_categories + default_categories))
-    all_categories.sort()
     
-    # Agrupar por categoría
+    # Get existing categories, normalize to title case
+    existing_raw = CostCode.objects.exclude(category__isnull=True).exclude(category='').values_list('category', flat=True).distinct()
+    existing_normalized = set()
+    for cat in existing_raw:
+        # Normalize: "interior painting" -> "Interior Painting"
+        normalized = cat.strip().title()
+        existing_normalized.add(normalized)
+    
+    # Merge and deduplicate
+    all_categories = sorted(set(default_categories) | existing_normalized)
+    
+    # Agrupar por categoría (normalizado)
     codes_by_category = defaultdict(list)
     for cc in cost_codes:
-        cat = cc.category or _('Uncategorized')
+        cat = (cc.category or '').strip().title() or _('Uncategorized')
         codes_by_category[cat].append(cc)
     
     context = {
