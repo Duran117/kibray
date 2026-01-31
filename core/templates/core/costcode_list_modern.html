@@ -1,0 +1,566 @@
+{% extends "core/base_modern.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Cost Codes" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+.costcode-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.costcode-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.costcode-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.costcode-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+    .costcode-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.costcode-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.costcode-card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.costcode-card-body {
+    padding: 1.25rem;
+}
+
+/* Category Groups */
+.category-group {
+    margin-bottom: 1.5rem;
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    font-weight: 600;
+    color: #475569;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 0.75rem;
+}
+
+.category-header .badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+}
+
+.costcode-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    background: #f8fafc;
+    transition: all 0.2s;
+}
+
+.costcode-item:hover {
+    background: #f1f5f9;
+}
+
+.costcode-item .code-badge {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    min-width: 80px;
+    text-align: center;
+}
+
+.costcode-item .code-info {
+    flex: 1;
+    margin-left: 1rem;
+}
+
+.costcode-item .code-name {
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.costcode-item .code-category {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.costcode-item .code-actions {
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.costcode-item:hover .code-actions {
+    opacity: 1;
+}
+
+.costcode-item .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.costcode-item .status-dot.active {
+    background: #10b981;
+}
+
+.costcode-item .status-dot.inactive {
+    background: #94a3b8;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.375rem;
+    font-size: 0.875rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.form-hint {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+}
+
+.suggested-codes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.suggested-code {
+    padding: 0.35rem 0.75rem;
+    background: #e0f2fe;
+    color: #0369a1;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.suggested-code:hover {
+    background: #0ea5e9;
+    color: white;
+}
+
+.category-select-wrapper {
+    position: relative;
+}
+
+.category-input-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.category-input-group select {
+    flex: 1;
+}
+
+.category-input-group input {
+    flex: 1;
+}
+
+.btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8rem;
+}
+
+.btn-icon {
+    padding: 0.375rem 0.5rem;
+    background: transparent;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    background: #f1f5f9;
+}
+
+.btn-icon.danger:hover {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+/* Modal */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+.modal-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    transform: translateY(-20px);
+    transition: transform 0.3s;
+}
+
+.modal-backdrop.active .modal-content {
+    transform: translateY(0);
+}
+
+.modal-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h5 {
+    font-weight: 600;
+    margin: 0;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #64748b;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    opacity: 0.5;
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="costcode-container">
+    <div class="costcode-header">
+        <div>
+            <h1 class="costcode-title">
+                <i class="bi bi-tags me-2"></i>{% trans "Cost Codes" %}
+            </h1>
+            <p class="text-muted mb-0">{% trans "Manage cost codes for budgeting and tracking" %}</p>
+        </div>
+    </div>
+
+    <div class="costcode-grid">
+        <!-- Cost Codes List -->
+        <div class="costcode-card">
+            <div class="costcode-card-header">
+                <span><i class="bi bi-list-ul me-2"></i>{% trans "All Cost Codes" %}</span>
+                <span class="badge bg-primary">{{ codes|length }} {% trans "codes" %}</span>
+            </div>
+            <div class="costcode-card-body">
+                {% regroup codes by category as category_list %}
+                {% for category in category_list %}
+                <div class="category-group">
+                    <div class="category-header">
+                        <i class="bi bi-tag"></i>
+                        {{ category.grouper|default:"Uncategorized" }}
+                        <span class="badge bg-secondary">{{ category.list|length }}</span>
+                    </div>
+                    {% for code in category.list %}
+                    <div class="costcode-item" data-id="{{ code.id }}">
+                        <span class="status-dot {% if code.active %}active{% else %}inactive{% endif %}"></span>
+                        <span class="code-badge">{{ code.code }}</span>
+                        <div class="code-info">
+                            <div class="code-name">{{ code.name }}</div>
+                        </div>
+                        <div class="code-actions">
+                            <button class="btn-icon" onclick="editCostCode({{ code.id }}, '{{ code.code }}', '{{ code.name }}', '{{ code.category }}', {{ code.active|yesno:'true,false' }})" title="{% trans 'Edit' %}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn-icon danger" onclick="deleteCostCode({{ code.id }}, '{{ code.code }}')" title="{% trans 'Delete' %}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <i class="bi bi-tags"></i>
+                    <p>{% trans "No cost codes yet" %}</p>
+                    <p class="small">{% trans "Add your first cost code using the form" %}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Add Cost Code Form -->
+        <div>
+            <div class="costcode-card">
+                <div class="costcode-card-header">
+                    <span><i class="bi bi-plus-circle me-2"></i>{% trans "Add Cost Code" %}</span>
+                </div>
+                <div class="costcode-card-body">
+                    <form method="post" id="addCostCodeForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="create">
+                        
+                        <div class="form-group">
+                            <label class="form-label">{% trans "Code" %} *</label>
+                            <input type="text" name="code" id="newCode" class="form-control" 
+                                   placeholder="{% trans 'e.g., WIN for Windows' %}" required maxlength="20">
+                            <div class="form-hint">{% trans "Short identifier (e.g., WIN for Windows)" %}</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">{% trans "Name" %} *</label>
+                            <input type="text" name="name" id="newName" class="form-control" 
+                                   placeholder="{% trans 'Full name' %}" required maxlength="120">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">{% trans "Category" %}</label>
+                            <div class="category-input-group">
+                                <select name="category_select" id="categorySelect" class="form-control" onchange="handleCategoryChange()">
+                                    <option value="">{% trans "Select category..." %}</option>
+                                    {% for cat in categories %}
+                                    <option value="{{ cat }}">{{ cat }}</option>
+                                    {% endfor %}
+                                    <option value="__new__">+ {% trans "New Category..." %}</option>
+                                </select>
+                            </div>
+                            <input type="hidden" name="category" id="categoryInput">
+                            <div id="newCategoryWrapper" style="display: none; margin-top: 0.5rem;">
+                                <input type="text" id="newCategoryInput" class="form-control" 
+                                       placeholder="{% trans 'Enter new category name' %}">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-check">
+                                <input type="checkbox" name="active" class="form-check-input" checked>
+                                <span class="form-check-label">{% trans "Active" %}</span>
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-plus-lg me-1"></i>{% trans "Add Cost Code" %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Suggested Codes -->
+            <div class="costcode-card mt-3">
+                <div class="costcode-card-header">
+                    <span><i class="bi bi-lightbulb me-2"></i>{% trans "Suggested Codes" %}</span>
+                </div>
+                <div class="costcode-card-body">
+                    <p class="text-muted small mb-2">{% trans "Common cost codes for construction projects:" %}</p>
+                    <div class="suggested-codes">
+                        <span class="suggested-code" onclick="suggestCode('WIN', 'Windows')">WIN</span>
+                        <span class="suggested-code" onclick="suggestCode('DOR', 'Doors')">DOR</span>
+                        <span class="suggested-code" onclick="suggestCode('FLR', 'Flooring')">FLR</span>
+                        <span class="suggested-code" onclick="suggestCode('ELC', 'Electrical')">ELC</span>
+                        <span class="suggested-code" onclick="suggestCode('PLB', 'Plumbing')">PLB</span>
+                        <span class="suggested-code" onclick="suggestCode('CAB', 'Cabinets')">CAB</span>
+                        <span class="suggested-code" onclick="suggestCode('PNT', 'Painting')">PNT</span>
+                        <span class="suggested-code" onclick="suggestCode('DRY', 'Drywall')">DRY</span>
+                        <span class="suggested-code" onclick="suggestCode('ROF', 'Roofing')">ROF</span>
+                        <span class="suggested-code" onclick="suggestCode('FRM', 'Framing')">FRM</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-backdrop" id="editModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5><i class="bi bi-pencil me-2"></i>{% trans "Edit Cost Code" %}</h5>
+            <button type="button" class="btn-close" onclick="closeEditModal()"></button>
+        </div>
+        <form method="post" id="editCostCodeForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update">
+            <input type="hidden" name="costcode_id" id="editId">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">{% trans "Code" %} *</label>
+                    <input type="text" name="code" id="editCode" class="form-control" required maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{% trans "Name" %} *</label>
+                    <input type="text" name="name" id="editName" class="form-control" required maxlength="120">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{% trans "Category" %}</label>
+                    <input type="text" name="category" id="editCategory" class="form-control" 
+                           placeholder="{% trans 'Enter category' %}">
+                    <div class="form-hint">{% trans "You can enter any category name" %}</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-check">
+                        <input type="checkbox" name="active" id="editActive" class="form-check-input">
+                        <span class="form-check-label">{% trans "Active" %}</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-primary">{% trans "Save Changes" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function handleCategoryChange() {
+    const select = document.getElementById('categorySelect');
+    const newCatWrapper = document.getElementById('newCategoryWrapper');
+    const categoryInput = document.getElementById('categoryInput');
+    const newCatInput = document.getElementById('newCategoryInput');
+    
+    if (select.value === '__new__') {
+        newCatWrapper.style.display = 'block';
+        newCatInput.focus();
+        categoryInput.value = '';
+    } else {
+        newCatWrapper.style.display = 'none';
+        categoryInput.value = select.value;
+    }
+}
+
+// Update hidden input when new category is typed
+document.getElementById('newCategoryInput')?.addEventListener('input', function() {
+    document.getElementById('categoryInput').value = this.value;
+});
+
+function suggestCode(code, name) {
+    document.getElementById('newCode').value = code;
+    document.getElementById('newName').value = name;
+    document.getElementById('newCode').focus();
+}
+
+function editCostCode(id, code, name, category, active) {
+    document.getElementById('editId').value = id;
+    document.getElementById('editCode').value = code;
+    document.getElementById('editName').value = name;
+    document.getElementById('editCategory').value = category;
+    document.getElementById('editActive').checked = active;
+    document.getElementById('editModal').classList.add('active');
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').classList.remove('active');
+}
+
+function deleteCostCode(id, code) {
+    if (confirm(`{% trans "Delete cost code" %} "${code}"? {% trans "This cannot be undone." %}`)) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.innerHTML = `
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="costcode_id" value="${id}">
+        `;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Close modal on backdrop click
+document.getElementById('editModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeEditModal();
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeEditModal();
+});
+</script>
+{% endblock %}

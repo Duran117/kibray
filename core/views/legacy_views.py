@@ -5347,12 +5347,70 @@ def project_profit_dashboard(request, project_id):
 
 @login_required
 def costcode_list_view(request):
-    codes = CostCode.objects.all().order_by("code")
-    form = CostCodeForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        return redirect("costcode_list")
-    return render(request, "core/costcode_list.html", {"codes": codes, "form": form})
+    """Cost Code management view with full CRUD operations."""
+    codes = CostCode.objects.all().order_by("category", "code")
+    
+    # Get unique categories for the dropdown
+    categories = CostCode.objects.exclude(category__isnull=True).exclude(category='').values_list('category', flat=True).distinct().order_by('category')
+    categories = list(categories)
+    
+    # Add default categories if not present
+    default_categories = ['Labor', 'Material', 'Equipment', 'Subcontractor', 'Other']
+    for cat in default_categories:
+        if cat not in categories:
+            categories.append(cat)
+    categories.sort()
+    
+    if request.method == "POST":
+        action = request.POST.get('action', 'create')
+        
+        if action == 'create':
+            # Get category from hidden input (set by JS)
+            category = request.POST.get('category', '').strip()
+            code = request.POST.get('code', '').strip().upper()
+            name = request.POST.get('name', '').strip()
+            active = request.POST.get('active') == 'on'
+            
+            if code and name:
+                CostCode.objects.create(
+                    code=code,
+                    name=name,
+                    category=category,
+                    active=active
+                )
+                messages.success(request, _("Cost code created successfully."))
+            return redirect("costcode_list")
+            
+        elif action == 'update':
+            costcode_id = request.POST.get('costcode_id')
+            if costcode_id:
+                try:
+                    costcode = CostCode.objects.get(pk=costcode_id)
+                    costcode.code = request.POST.get('code', '').strip().upper()
+                    costcode.name = request.POST.get('name', '').strip()
+                    costcode.category = request.POST.get('category', '').strip()
+                    costcode.active = request.POST.get('active') == 'on'
+                    costcode.save()
+                    messages.success(request, _("Cost code updated successfully."))
+                except CostCode.DoesNotExist:
+                    messages.error(request, _("Cost code not found."))
+            return redirect("costcode_list")
+            
+        elif action == 'delete':
+            costcode_id = request.POST.get('costcode_id')
+            if costcode_id:
+                try:
+                    costcode = CostCode.objects.get(pk=costcode_id)
+                    costcode.delete()
+                    messages.success(request, _("Cost code deleted."))
+                except CostCode.DoesNotExist:
+                    messages.error(request, _("Cost code not found."))
+            return redirect("costcode_list")
+    
+    return render(request, "core/costcode_list_modern.html", {
+        "codes": codes,
+        "categories": categories,
+    })
 
 
 @login_required
