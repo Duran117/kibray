@@ -13798,10 +13798,6 @@ def project_cost_codes(request, project_id):
             code = request.POST.get('code', '').strip().upper()
             name = request.POST.get('name', '').strip()
             category = request.POST.get('category', '').strip()
-            # Check for custom category
-            new_category = request.POST.get('new_category', '').strip()
-            if new_category:
-                category = new_category
             
             if code and name:
                 try:
@@ -13824,9 +13820,7 @@ def project_cost_codes(request, project_id):
                     costcode = CostCode.objects.get(pk=costcode_id)
                     costcode.code = request.POST.get('code', '').strip().upper()
                     costcode.name = request.POST.get('name', '').strip()
-                    category = request.POST.get('category', '').strip()
-                    new_category = request.POST.get('new_category', '').strip()
-                    costcode.category = new_category if new_category else category
+                    costcode.category = request.POST.get('category', '').strip()
                     costcode.active = request.POST.get('active') == 'on'
                     costcode.save()
                     messages.success(request, _('Cost code updated successfully.'))
