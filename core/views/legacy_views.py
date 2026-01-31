@@ -13792,27 +13792,66 @@ def project_cost_codes(request, project_id):
     can_edit = request.user.is_staff or request.user.is_superuser
     
     if request.method == 'POST' and can_edit:
-        code = request.POST.get('code', '').strip().upper()
-        name = request.POST.get('name', '').strip()
-        category = request.POST.get('category', '').strip()
+        action = request.POST.get('action', 'create')
         
-        if code and name:
-            try:
-                CostCode.objects.create(
-                    code=code,
-                    name=name,
-                    category=category,
-                    active=True,
-                )
-                messages.success(request, _('Cost code created successfully.'))
-            except IntegrityError:
-                messages.error(request, _('A cost code with that code already exists.'))
-        else:
-            messages.error(request, _('Code and name are required.'))
+        if action == 'create':
+            code = request.POST.get('code', '').strip().upper()
+            name = request.POST.get('name', '').strip()
+            category = request.POST.get('category', '').strip()
+            # Check for custom category
+            new_category = request.POST.get('new_category', '').strip()
+            if new_category:
+                category = new_category
+            
+            if code and name:
+                try:
+                    CostCode.objects.create(
+                        code=code,
+                        name=name,
+                        category=category,
+                        active=True,
+                    )
+                    messages.success(request, _('Cost code created successfully.'))
+                except IntegrityError:
+                    messages.error(request, _('A cost code with that code already exists.'))
+            else:
+                messages.error(request, _('Code and name are required.'))
+        
+        elif action == 'update':
+            costcode_id = request.POST.get('costcode_id')
+            if costcode_id:
+                try:
+                    costcode = CostCode.objects.get(pk=costcode_id)
+                    costcode.code = request.POST.get('code', '').strip().upper()
+                    costcode.name = request.POST.get('name', '').strip()
+                    category = request.POST.get('category', '').strip()
+                    new_category = request.POST.get('new_category', '').strip()
+                    costcode.category = new_category if new_category else category
+                    costcode.active = request.POST.get('active') == 'on'
+                    costcode.save()
+                    messages.success(request, _('Cost code updated successfully.'))
+                except CostCode.DoesNotExist:
+                    messages.error(request, _('Cost code not found.'))
+        
+        elif action == 'delete':
+            costcode_id = request.POST.get('costcode_id')
+            if costcode_id:
+                try:
+                    costcode = CostCode.objects.get(pk=costcode_id)
+                    costcode.delete()
+                    messages.success(request, _('Cost code deleted.'))
+                except CostCode.DoesNotExist:
+                    messages.error(request, _('Cost code not found.'))
         
         return redirect('project_cost_codes', project_id=project.id)
     
     cost_codes = CostCode.objects.all().order_by('category', 'code')
+    
+    # Get unique categories from existing codes + defaults
+    existing_categories = list(CostCode.objects.exclude(category__isnull=True).exclude(category='').values_list('category', flat=True).distinct())
+    default_categories = ['Labor', 'Material', 'Equipment', 'Subcontractor', 'Other']
+    all_categories = list(set(existing_categories + default_categories))
+    all_categories.sort()
     
     # Agrupar por categoría
     codes_by_category = defaultdict(list)
@@ -13826,7 +13865,7 @@ def project_cost_codes(request, project_id):
         'codes_by_category': dict(codes_by_category),
         'can_edit': can_edit,
         'active_tab': 'costcodes',
-        'categories': ['labor', 'material', 'equipment', 'subcontractor', 'other'],
+        'categories': all_categories,
     }
     
     return render(request, 'core/project_cost_codes.html', context)
