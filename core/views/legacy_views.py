@@ -13744,7 +13744,7 @@ def project_financials_hub(request, project_id):
 @login_required
 def project_budget_detail(request, project_id):
     """
-    Vista de detalle del budget con capacidad de agregar/editar líneas.
+    Vista de detalle del budget con capacidad de agregar/editar/eliminar líneas.
     Solo staff/admin puede editar.
     """
     project = get_object_or_404(Project, pk=project_id)
@@ -13753,29 +13753,64 @@ def project_budget_detail(request, project_id):
     can_edit = request.user.is_staff or request.user.is_superuser
     
     if request.method == 'POST' and can_edit:
-        # Procesar nueva línea de budget
-        cost_code_id = request.POST.get('cost_code')
-        description = request.POST.get('description', '')
-        qty = request.POST.get('qty', 0)
-        unit = request.POST.get('unit', '')
-        unit_cost = request.POST.get('unit_cost', 0)
+        action = request.POST.get('action', 'add')
         
-        if cost_code_id:
-            try:
-                cost_code = CostCode.objects.get(pk=cost_code_id)
-                BudgetLine.objects.create(
-                    project=project,
-                    cost_code=cost_code,
-                    description=description,
-                    qty=Decimal(str(qty)) if qty else Decimal('0'),
-                    unit=unit,
-                    unit_cost=Decimal(str(unit_cost)) if unit_cost else Decimal('0'),
-                )
-                messages.success(request, _('Budget line added successfully.'))
-            except (CostCode.DoesNotExist, InvalidOperation) as e:
-                messages.error(request, _('Error adding budget line.'))
+        # DELETE action
+        if action == 'delete':
+            line_id = request.POST.get('line_id')
+            if line_id:
+                try:
+                    line = BudgetLine.objects.get(pk=line_id, project=project)
+                    line.delete()
+                    messages.success(request, _('Budget line deleted successfully.'))
+                except BudgetLine.DoesNotExist:
+                    messages.error(request, _('Budget line not found.'))
+            return redirect('project_budget_detail', project_id=project.id)
         
-        return redirect('project_budget_detail', project_id=project.id)
+        # EDIT action
+        elif action == 'edit':
+            line_id = request.POST.get('line_id')
+            if line_id:
+                try:
+                    line = BudgetLine.objects.get(pk=line_id, project=project)
+                    line.description = request.POST.get('description', line.description)
+                    line.qty = Decimal(str(request.POST.get('qty', line.qty) or 0))
+                    line.unit = request.POST.get('unit', line.unit)
+                    line.unit_cost = Decimal(str(request.POST.get('unit_cost', line.unit_cost) or 0))
+                    # Allow editing revised_amount directly
+                    revised = request.POST.get('revised_amount')
+                    if revised:
+                        line.revised_amount = Decimal(str(revised))
+                    line.save()
+                    messages.success(request, _('Budget line updated successfully.'))
+                except (BudgetLine.DoesNotExist, InvalidOperation) as e:
+                    messages.error(request, _('Error updating budget line.'))
+            return redirect('project_budget_detail', project_id=project.id)
+        
+        # ADD action (default)
+        else:
+            cost_code_id = request.POST.get('cost_code')
+            description = request.POST.get('description', '')
+            qty = request.POST.get('qty', 0)
+            unit = request.POST.get('unit', '')
+            unit_cost = request.POST.get('unit_cost', 0)
+            
+            if cost_code_id:
+                try:
+                    cost_code = CostCode.objects.get(pk=cost_code_id)
+                    BudgetLine.objects.create(
+                        project=project,
+                        cost_code=cost_code,
+                        description=description,
+                        qty=Decimal(str(qty)) if qty else Decimal('0'),
+                        unit=unit,
+                        unit_cost=Decimal(str(unit_cost)) if unit_cost else Decimal('0'),
+                    )
+                    messages.success(request, _('Budget line added successfully.'))
+                except (CostCode.DoesNotExist, InvalidOperation) as e:
+                    messages.error(request, _('Error adding budget line.'))
+            
+            return redirect('project_budget_detail', project_id=project.id)
     
     budget_lines = project.budget_lines.select_related('cost_code').order_by('cost_code__code')
     cost_codes = CostCode.objects.filter(active=True).order_by('code')

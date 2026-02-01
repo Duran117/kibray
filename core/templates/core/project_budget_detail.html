@@ -390,12 +390,18 @@
                     {% if can_edit %}
                     <td>
                         <div class="row-actions">
-                            <button class="btn-icon" title="{% trans 'Edit' %}">
+                            <button type="button" class="btn-icon" title="{% trans 'Edit' %}" 
+                                    onclick="openEditModal({{ line.id }}, '{{ line.description|escapejs }}', '{{ line.qty }}', '{{ line.unit|escapejs }}', '{{ line.unit_cost }}', '{{ line.revised_amount }}')">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <button class="btn-icon danger" title="{% trans 'Delete' %}">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                            <form method="post" style="display: inline;" onsubmit="return confirm('{% trans "Are you sure you want to delete this budget line?" %}');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="line_id" value="{{ line.id }}">
+                                <button type="submit" class="btn-icon danger" title="{% trans 'Delete' %}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
                         </div>
                     </td>
                     {% endif %}
@@ -474,4 +480,201 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Edit Modal -->
+{% if can_edit %}
+<div id="editModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="bi bi-pencil"></i> {% trans "Edit Budget Line" %}</h3>
+            <button type="button" class="btn-close" onclick="closeEditModal()">&times;</button>
+        </div>
+        <form method="post" id="editForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" name="line_id" id="edit_line_id">
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>{% trans "Description" %}</label>
+                    <input type="text" name="description" id="edit_description" class="form-control">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{% trans "Quantity" %}</label>
+                        <input type="number" name="qty" id="edit_qty" step="0.01" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>{% trans "Unit" %}</label>
+                        <input type="text" name="unit" id="edit_unit" class="form-control">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{% trans "Unit Cost" %}</label>
+                        <input type="number" name="unit_cost" id="edit_unit_cost" step="0.01" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>{% trans "Revised Amount" %}</label>
+                        <input type="number" name="revised_amount" id="edit_revised_amount" step="0.01" class="form-control">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-primary">{% trans "Save Changes" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #64748b;
+    line-height: 1;
+}
+
+.btn-close:hover { color: #1e293b; }
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-body .form-group {
+    margin-bottom: 1rem;
+}
+
+.modal-body .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.modal-body .form-control {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.modal-body .form-control:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 0 0 12px 12px;
+}
+
+.btn {
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+}
+
+.btn-secondary:hover {
+    background: #e2e8f0;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border: none;
+    color: white;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+</style>
+
+<script>
+function openEditModal(lineId, description, qty, unit, unitCost, revisedAmount) {
+    document.getElementById('edit_line_id').value = lineId;
+    document.getElementById('edit_description').value = description;
+    document.getElementById('edit_qty').value = qty;
+    document.getElementById('edit_unit').value = unit;
+    document.getElementById('edit_unit_cost').value = unitCost;
+    document.getElementById('edit_revised_amount').value = revisedAmount;
+    document.getElementById('editModal').style.display = 'flex';
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+document.getElementById('editModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeEditModal();
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeEditModal();
+});
+</script>
+{% endif %}
 {% endblock %}
