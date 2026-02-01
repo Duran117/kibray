@@ -327,11 +327,11 @@ EstimateLineFormSet = inlineformset_factory(
         "labor_unit_cost",
         "material_unit_cost",
         "other_unit_cost",
+        "unit_price",
     ],
     extra=1,
     can_delete=True,
 )
-
 
 class EstimateForm(forms.ModelForm):
     class Meta:

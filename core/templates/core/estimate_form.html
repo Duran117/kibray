@@ -509,10 +509,11 @@ textarea.form-input {
                                 <th>{% trans "Cost Code" %}</th>
                                 <th>{% trans "Description" %}</th>
                                 <th class="text-right">{% trans "Qty" %}</th>
-                                <th>{% trans "Unit" %}</th>
+                                <th>{% trans "UOM" %}</th>
                                 <th class="text-right">{% trans "Material" %}</th>
                                 <th class="text-right">{% trans "Labor" %}</th>
                                 <th class="text-right">{% trans "Other" %}</th>
+                                <th class="text-right">{% trans "Unit Price" %}</th>
                                 <th class="text-right">{% trans "Total" %}</th>
                                 <th>{% trans "Del" %}</th>
                             </tr>
@@ -550,25 +551,31 @@ textarea.form-input {
                                 <td>
                                     <input type="text" name="{{ line_form.unit.html_name }}" 
                                            id="{{ line_form.unit.id_for_label }}" class="unit-input"
-                                           value="{{ line_form.unit.value|default:'' }}" placeholder="ea">
+                                           value="{{ line_form.unit.value|default:'' }}" placeholder="sqft">
                                 </td>
                                 <td>
                                     <input type="number" name="{{ line_form.material_unit_cost.html_name }}" 
-                                           id="{{ line_form.material_unit_cost.id_for_label }}" class="cost-input"
+                                           id="{{ line_form.material_unit_cost.id_for_label }}" class="cost-input material-cost"
                                            value="{{ line_form.material_unit_cost.value|default:'0' }}" 
                                            step="0.01" min="0" placeholder="0" onchange="calcLine(this)">
                                 </td>
                                 <td>
                                     <input type="number" name="{{ line_form.labor_unit_cost.html_name }}" 
-                                           id="{{ line_form.labor_unit_cost.id_for_label }}" class="cost-input"
+                                           id="{{ line_form.labor_unit_cost.id_for_label }}" class="cost-input labor-cost"
                                            value="{{ line_form.labor_unit_cost.value|default:'0' }}" 
                                            step="0.01" min="0" placeholder="0" onchange="calcLine(this)">
                                 </td>
                                 <td>
                                     <input type="number" name="{{ line_form.other_unit_cost.html_name }}" 
-                                           id="{{ line_form.other_unit_cost.id_for_label }}" class="cost-input"
+                                           id="{{ line_form.other_unit_cost.id_for_label }}" class="cost-input other-cost"
                                            value="{{ line_form.other_unit_cost.value|default:'0' }}" 
                                            step="0.01" min="0" placeholder="0" onchange="calcLine(this)">
+                                </td>
+                                <td>
+                                    <input type="number" name="{{ line_form.unit_price.html_name }}" 
+                                           id="{{ line_form.unit_price.id_for_label }}" class="cost-input unit-price-input"
+                                           value="{{ line_form.unit_price.value|default:'0' }}" 
+                                           step="0.01" min="0" placeholder="Auto" onchange="calcLine(this)">
                                 </td>
                                 <td>
                                     <span class="line-total-display">$0.00</span>
@@ -653,10 +660,11 @@ document.addEventListener('DOMContentLoaded', function() {
             <td><select name="lines-${n}-cost_code" class="cost-code-select">${costCodeOpts}</select></td>
             <td><input type="text" name="lines-${n}-description" class="description-input" placeholder="Description"></td>
             <td><input type="number" name="lines-${n}-qty" class="qty-input" step="0.01" min="0" placeholder="0" onchange="calcLine(this)"></td>
-            <td><input type="text" name="lines-${n}-unit" class="unit-input" placeholder="ea"></td>
-            <td><input type="number" name="lines-${n}-material_unit_cost" class="cost-input" step="0.01" min="0" value="0" onchange="calcLine(this)"></td>
-            <td><input type="number" name="lines-${n}-labor_unit_cost" class="cost-input" step="0.01" min="0" value="0" onchange="calcLine(this)"></td>
-            <td><input type="number" name="lines-${n}-other_unit_cost" class="cost-input" step="0.01" min="0" value="0" onchange="calcLine(this)"></td>
+            <td><input type="text" name="lines-${n}-unit" class="unit-input" placeholder="sqft"></td>
+            <td><input type="number" name="lines-${n}-material_unit_cost" class="cost-input material-cost" step="0.01" min="0" value="0" onchange="calcLine(this)"></td>
+            <td><input type="number" name="lines-${n}-labor_unit_cost" class="cost-input labor-cost" step="0.01" min="0" value="0" onchange="calcLine(this)"></td>
+            <td><input type="number" name="lines-${n}-other_unit_cost" class="cost-input other-cost" step="0.01" min="0" value="0" onchange="calcLine(this)"></td>
+            <td><input type="number" name="lines-${n}-unit_price" class="cost-input unit-price-input" step="0.01" min="0" value="0" placeholder="Auto" onchange="calcLine(this)"></td>
             <td><span class="line-total-display">$0.00</span></td>
             <td style="text-align:center;"><input type="checkbox" name="lines-${n}-DELETE" class="delete-checkbox" onchange="updateSummary()"></td>
         `;
@@ -684,21 +692,46 @@ function calcLine(el) {
     const m = parseFloat(row.querySelector('[name$="-material_unit_cost"]')?.value) || 0;
     const l = parseFloat(row.querySelector('[name$="-labor_unit_cost"]')?.value) || 0;
     const o = parseFloat(row.querySelector('[name$="-other_unit_cost"]')?.value) || 0;
-    const t = q * (m + l + o);
+    const directUnitPrice = parseFloat(row.querySelector('[name$="-unit_price"]')?.value) || 0;
+    
+    // If direct unit_price is set (> 0), use it. Otherwise use sum of material+labor+other
+    const effectiveUnitPrice = directUnitPrice > 0 ? directUnitPrice : (m + l + o);
+    
+    // Update the unit_price field display if it's auto-calculated
+    const unitPriceInput = row.querySelector('[name$="-unit_price"]');
+    if (unitPriceInput && directUnitPrice === 0 && (m + l + o) > 0) {
+        unitPriceInput.placeholder = (m + l + o).toFixed(2);
+    }
+    
+    const t = q * effectiveUnitPrice;
     row.querySelector('.line-total-display').textContent = '$' + t.toFixed(2);
     updateSummary();
 }
 
 function updateSummary() {
-    let totMat=0, totLab=0, totOther=0;
+    let totMat=0, totLab=0, totOther=0, totDirect=0;
     document.querySelectorAll('.line-item-row').forEach(r => {
         if(r.querySelector('[name$="-DELETE"]')?.checked) return;
         const q = parseFloat(r.querySelector('[name$="-qty"]')?.value) || 0;
-        totMat += q * (parseFloat(r.querySelector('[name$="-material_unit_cost"]')?.value) || 0);
-        totLab += q * (parseFloat(r.querySelector('[name$="-labor_unit_cost"]')?.value) || 0);
-        totOther += q * (parseFloat(r.querySelector('[name$="-other_unit_cost"]')?.value) || 0);
+        const m = parseFloat(r.querySelector('[name$="-material_unit_cost"]')?.value) || 0;
+        const l = parseFloat(r.querySelector('[name$="-labor_unit_cost"]')?.value) || 0;
+        const o = parseFloat(r.querySelector('[name$="-other_unit_cost"]')?.value) || 0;
+        const directUnitPrice = parseFloat(r.querySelector('[name$="-unit_price"]')?.value) || 0;
+        
+        // If direct unit_price is set, use it entirely as "other" for calculations
+        // Otherwise use the breakdown
+        if (directUnitPrice > 0) {
+            totDirect += q * directUnitPrice;
+            // For markup purposes, treat direct price as "other"
+            totOther += q * directUnitPrice;
+        } else {
+            totMat += q * m;
+            totLab += q * l;
+            totOther += q * o;
+            totDirect += q * (m + l + o);
+        }
     });
-    const direct = totMat + totLab + totOther;
+    
     const mmPct = parseFloat(document.getElementById('id_markup_material')?.value) || 0;
     const lmPct = parseFloat(document.getElementById('id_markup_labor')?.value) || 0;
     const ohPct = parseFloat(document.getElementById('id_overhead_pct')?.value) || 0;
@@ -706,12 +739,12 @@ function updateSummary() {
     
     const matMk = totMat * mmPct / 100;
     const labMk = totLab * lmPct / 100;
-    const oh = direct * ohPct / 100;
-    const pr = direct * prPct / 100;
-    const total = direct + matMk + labMk + oh + pr;
+    const oh = totDirect * ohPct / 100;
+    const pr = totDirect * prPct / 100;
+    const total = totDirect + matMk + labMk + oh + pr;
     
     const f = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
-    document.getElementById('sumDirect').textContent = f(direct);
+    document.getElementById('sumDirect').textContent = f(totDirect);
     document.getElementById('sumMatMarkup').textContent = f(matMk);
     document.getElementById('sumLabMarkup').textContent = f(labMk);
     document.getElementById('sumOverhead').textContent = f(oh);

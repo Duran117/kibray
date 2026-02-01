@@ -3302,24 +3302,31 @@ class EstimateLine(models.Model):
     cost_code = models.ForeignKey(CostCode, on_delete=models.PROTECT)
     description = models.CharField(max_length=200, blank=True)
     qty = models.DecimalField(max_digits=12, decimal_places=2)
-    unit = models.CharField(max_length=20, blank=True)
+    unit = models.CharField(max_length=20, blank=True, help_text="Unit of measure: sqft, pcs, hours, etc.")
     labor_unit_cost = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
     material_unit_cost = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
     other_unit_cost = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
+    # Direct unit price (optional - if set, overrides material+labor+other)
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"), 
+                                      help_text="Direct unit price. If 0, uses sum of material+labor+other.")
     # Link to budget line (created when estimate is approved)
     budget_line = models.ForeignKey(
         'BudgetLine', on_delete=models.SET_NULL, null=True, blank=True,
         related_name='estimate_lines'
     )
 
+    def get_effective_unit_price(self):
+        """Returns the effective unit price - either direct or sum of components."""
+        if self.unit_price and self.unit_price > 0:
+            return self.unit_price
+        return self.labor_unit_cost + self.material_unit_cost + self.other_unit_cost
+
     def direct_cost(self):
-        return (self.qty or 0) * (
-            self.labor_unit_cost + self.material_unit_cost + self.other_unit_cost
-        )
+        return (self.qty or 0) * self.get_effective_unit_price()
 
     @property
     def total_price(self):
-        """Total price for this line (qty * all unit costs)."""
+        """Total price for this line (qty * effective unit price)."""
         return self.direct_cost()
 
     def __str__(self):

@@ -62,7 +62,9 @@
                 <th>Code</th>
                 <th>Descripción</th>
                 <th class="text-end">Qty</th>
-                <th class="text-end">Costo Directo</th>
+                <th>UOM</th>
+                <th class="text-end">Unit Price</th>
+                <th class="text-end">Total</th>
               </tr>
             </thead>
             <tbody>
@@ -70,11 +72,13 @@
               <tr>
                 <td>{{ line.cost_code.code }}</td>
                 <td>{{ line.description|default:line.cost_code.name }}</td>
-                <td class="text-end">{{ line.qty }} {{ line.unit }}</td>
+                <td class="text-end">{{ line.qty }}</td>
+                <td>{{ line.unit }}</td>
+                <td class="text-end">${{ line.get_effective_unit_price|floatformat:2 }}</td>
                 <td class="text-end">${{ line.direct_cost|floatformat:2 }}</td>
               </tr>
             {% empty %}
-              <tr><td colspan="4" class="text-center text-muted">Sin partidas</td></tr>
+              <tr><td colspan="6" class="text-center text-muted">Sin partidas</td></tr>
             {% endfor %}
             </tbody>
           </table>
