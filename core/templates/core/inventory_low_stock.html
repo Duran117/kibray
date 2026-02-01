@@ -64,7 +64,7 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <a href="{% url 'materials_request_create' %}?item={{ entry.item.id }}" 
+                                    <a href="{% url 'materials_request' entry.item.project.id %}?item={{ entry.item.id }}" 
                                        class="btn btn-sm btn-primary">
                                         <i class="fas fa-shopping-cart"></i> {% trans "Solicitar" %}
                                     </a>
