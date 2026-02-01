@@ -207,21 +207,21 @@
                             <th>Partida</th>
                             <th>Descripción</th>
                             <th class="text-end">Cantidad</th>
-                            <th class="text-end">Costo Unit.</th>
+                            <th>UOM</th>
+                            <th class="text-end">Precio Unit.</th>
                             <th class="text-end">Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for line in lines %}
-                            {% with total_unit_cost=line.labor_unit_cost|add:line.material_unit_cost|add:line.other_unit_cost %}
                             <tr>
                                 <td>{{ line.cost_code.code }}</td>
                                 <td>{{ line.description|default:line.cost_code.name }}</td>
-                                <td class="text-end">{{ line.qty|floatformat:2 }} {{ line.unit }}</td>
-                                <td class="text-end">${{ total_unit_cost|floatformat:2 }}</td>
-                                <td class="text-end">${{ line.qty|mul:total_unit_cost|floatformat:2 }}</td>
+                                <td class="text-end">{{ line.qty|floatformat:2 }}</td>
+                                <td>{{ line.unit }}</td>
+                                <td class="text-end">${{ line.get_effective_unit_price|floatformat:2 }}</td>
+                                <td class="text-end">${{ line.direct_cost|floatformat:2 }}</td>
                             </tr>
-                            {% endwith %}
                         {% endfor %}
                     </tbody>
                 </table>

@@ -13591,14 +13591,16 @@ def proposal_public_view(request, token):
     project = estimate.project
     lines = estimate.lines.select_related("cost_code").all()
 
-    # Calculate totals
-    subtotal = sum(
-        (line.qty * (line.labor_unit_cost + line.material_unit_cost + line.other_unit_cost))
-        for line in lines
-    )
+    # Calculate totals using the effective unit price (handles both direct price and breakdown)
+    subtotal = sum(line.direct_cost() for line in lines)
+    
+    # Calculate material/labor totals for markup purposes
+    total_material = sum(line.qty * line.material_unit_cost for line in lines if not (line.unit_price and line.unit_price > 0))
+    total_labor = sum(line.qty * line.labor_unit_cost for line in lines if not (line.unit_price and line.unit_price > 0))
+    
     # Apply markups and overheads
-    markup_material_amount = subtotal * (estimate.markup_material / Decimal("100"))
-    markup_labor_amount = subtotal * (estimate.markup_labor / Decimal("100"))
+    markup_material_amount = total_material * (estimate.markup_material / Decimal("100"))
+    markup_labor_amount = total_labor * (estimate.markup_labor / Decimal("100"))
     overhead_amount = subtotal * (estimate.overhead_pct / Decimal("100"))
     profit_amount = subtotal * (estimate.target_profit_pct / Decimal("100"))
 

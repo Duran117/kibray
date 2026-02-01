@@ -243,34 +243,46 @@ def _build_estimate_context(estimate: "Estimate", as_contract: bool) -> dict[str
     total_labor = Decimal("0")
     total_material = Decimal("0")
     total_other = Decimal("0")
+    total_direct_price = Decimal("0")
     
     line_data = []
     for line in lines:
+        # Use the effective unit price method from the model
+        effective_unit_price = line.get_effective_unit_price()
+        line_total = line.qty * effective_unit_price
+        
+        # Track breakdown for markup calculations
         labor = line.qty * line.labor_unit_cost
         material = line.qty * line.material_unit_cost
         other = line.qty * line.other_unit_cost
-        total = labor + material + other
         
-        total_labor += labor
-        total_material += material
-        total_other += other
+        # If direct unit_price is used, add it to "other" for markup purposes
+        if line.unit_price and line.unit_price > 0:
+            total_other += line_total
+        else:
+            total_labor += labor
+            total_material += material
+            total_other += other
+        
+        total_direct_price += line_total
         
         line_data.append({
             "cost_code": line.cost_code.code,
             "description": line.description,
             "qty": line.qty,
             "unit": line.unit,
+            "unit_price": effective_unit_price,
             "labor": labor,
             "material": material,
             "other": other,
-            "total": total,
+            "total": line_total,
         })
     
-    subtotal = total_labor + total_material + total_other
+    subtotal = total_direct_price
     
     # Apply markups
-    labor_markup = subtotal * (estimate.markup_labor / 100) if estimate.markup_labor else Decimal("0")
-    material_markup = subtotal * (estimate.markup_material / 100) if estimate.markup_material else Decimal("0")
+    labor_markup = total_labor * (estimate.markup_labor / 100) if estimate.markup_labor else Decimal("0")
+    material_markup = total_material * (estimate.markup_material / 100) if estimate.markup_material else Decimal("0")
     overhead = subtotal * (estimate.overhead_pct / 100) if estimate.overhead_pct else Decimal("0")
     profit = subtotal * (estimate.target_profit_pct / 100) if estimate.target_profit_pct else Decimal("0")
     

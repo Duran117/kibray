@@ -447,12 +447,11 @@
         <table class="items-table">
             <thead>
                 <tr>
-                    <th style="width: 12%;">Code</th>
-                    <th style="width: 38%;">Description</th>
+                    <th style="width: 10%;">Code</th>
+                    <th style="width: 32%;">Description</th>
                     <th style="width: 8%;" class="text-right">Qty</th>
-                    <th style="width: 8%;">Unit</th>
-                    <th style="width: 10%;" class="text-right">Labor</th>
-                    <th style="width: 12%;" class="text-right">Material</th>
+                    <th style="width: 8%;">UOM</th>
+                    <th style="width: 12%;" class="text-right">Unit Price</th>
                     <th style="width: 12%;" class="text-right">Total</th>
                 </tr>
             </thead>
@@ -463,13 +462,12 @@
                     <td>{{ line.description|default:"-" }}</td>
                     <td class="text-right">{{ line.qty|floatformat:1 }}</td>
                     <td>{{ line.unit|default:"EA" }}</td>
-                    <td class="text-right">${{ line.labor|floatformat:2 }}</td>
-                    <td class="text-right">${{ line.material|floatformat:2 }}</td>
+                    <td class="text-right">${{ line.unit_price|floatformat:2 }}</td>
                     <td class="text-right"><strong>${{ line.total|floatformat:2 }}</strong></td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" style="text-align: center; color: #9ca3af;">No line items</td>
+                    <td colspan="6" style="text-align: center; color: #9ca3af;">No line items</td>
                 </tr>
                 {% endfor %}
             </tbody>
