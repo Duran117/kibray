@@ -2275,9 +2275,10 @@ def client_project_view(request, project_id):
     
     base_contract_total = Decimal("0")
     if latest_estimate:
-        base_contract_total = latest_estimate.lines.aggregate(
-            total=Sum("total_price")
-        )["total"] or Decimal("0")
+        # total_price is a property, so we need to sum manually
+        base_contract_total = sum(
+            line.total_price for line in latest_estimate.lines.all()
+        ) or Decimal("0")
     
     # Change Orders
     approved_cos = ChangeOrder.objects.filter(
@@ -5432,25 +5433,55 @@ def budget_lines_view(request, project_id):
 
 @login_required
 def estimate_create_view(request, project_id):
+    import logging
+    logger = logging.getLogger(__name__)
+    
     project = get_object_or_404(Project, pk=project_id)
     version = (project.estimates.aggregate(m=Max("version"))["m"] or 0) + 1
     cost_codes = CostCode.objects.all().order_by("code")
     
     if request.method == "POST":
         form = EstimateForm(request.POST)
-        formset = EstimateLineFormSet(request.POST)
+        formset = EstimateLineFormSet(request.POST, prefix='lines')
+        
+        logger.info(f"Estimate form POST received for project {project_id}")
+        logger.info(f"Form valid: {form.is_valid()}")
+        logger.info(f"Formset valid: {formset.is_valid()}")
+        
+        if not form.is_valid():
+            logger.warning(f"Form errors: {form.errors}")
+            messages.error(request, _("Please correct the errors in the form."))
+            
+        if not formset.is_valid():
+            logger.warning(f"Formset errors: {formset.errors}")
+            # Count non-empty lines that have errors
+            line_errors = [e for e in formset.errors if e]
+            if line_errors:
+                messages.error(request, _("Please correct the errors in the line items."))
+        
         if form.is_valid() and formset.is_valid():
             est = form.save(commit=False)
             est.project = project
             est.version = version
             est.save()
             formset.instance = est
-            formset.save()
-            messages.success(request, _("Estimate created successfully!"))
+            
+            # Save lines and filter out empty ones
+            saved_lines = []
+            for line_form in formset:
+                if line_form.cleaned_data and not line_form.cleaned_data.get('DELETE', False):
+                    if line_form.cleaned_data.get('cost_code'):
+                        line = line_form.save(commit=False)
+                        line.estimate = est
+                        line.save()
+                        saved_lines.append(line)
+            
+            logger.info(f"Created Estimate {est.code} with {len(saved_lines)} lines")
+            messages.success(request, _("Estimate created successfully! You can now send it to the client for approval."))
             return redirect("estimate_detail", estimate_id=est.id)
     else:
         form = EstimateForm()
-        formset = EstimateLineFormSet()
+        formset = EstimateLineFormSet(prefix='lines')
     
     return render(
         request,
@@ -5467,7 +5498,42 @@ def estimate_create_view(request, project_id):
 
 @login_required
 def estimate_detail_view(request, estimate_id):
+    import logging
+    logger = logging.getLogger(__name__)
+    
     est = get_object_or_404(Estimate, pk=estimate_id)
+    
+    # Handle manual approval action
+    if request.method == "POST" and request.POST.get("action") == "approve_manual":
+        if not est.approved:
+            from decimal import Decimal
+            
+            est.approved = True
+            est.save(update_fields=["approved"])
+            
+            # Auto-create Budget Lines
+            try:
+                from core.services.budget_from_estimate import create_budget_from_estimate
+                profit_margin = est.target_profit_pct / Decimal("100") if est.target_profit_pct else None
+                budget_lines = create_budget_from_estimate(est, profit_margin=profit_margin)
+                logger.info(f"Created {len(budget_lines)} budget lines for manually approved Estimate {est.code}")
+                messages.success(request, _(f"Estimate approved! {len(budget_lines)} budget lines created with profit margin deducted."))
+            except Exception as e:
+                logger.error(f"Failed to create budget lines: {e}")
+                messages.warning(request, _("Estimate approved but failed to create budget lines automatically."))
+            
+            # Auto-save PDF as contract
+            try:
+                from core.services.document_storage_service import auto_save_estimate_pdf
+                auto_save_estimate_pdf(est, user=request.user, as_contract=True, overwrite=True)
+                messages.info(request, _("Contract PDF saved to project documents."))
+            except Exception as e:
+                logger.warning(f"Failed to auto-save PDF: {e}")
+        else:
+            messages.info(request, _("Estimate was already approved."))
+        
+        return redirect("estimate_detail", estimate_id=est.id)
+    
     lines = est.lines.select_related("cost_code")
     direct = sum(line.direct_cost() for line in lines)
     material_markup = direct * (est.markup_material / 100)
@@ -5475,6 +5541,16 @@ def estimate_detail_view(request, estimate_id):
     overhead = direct * (est.overhead_pct / 100)
     target_profit = direct * (est.target_profit_pct / 100)
     proposed_price = direct + material_markup + labor_markup + overhead + target_profit
+    
+    # Get budget preview if not yet approved
+    budget_preview = None
+    if not est.approved:
+        try:
+            from core.services.budget_from_estimate import get_estimate_to_budget_summary
+            budget_preview = get_estimate_to_budget_summary(est)
+        except Exception:
+            pass
+    
     return render(
         request,
         "core/estimate_detail.html",
@@ -5483,6 +5559,7 @@ def estimate_detail_view(request, estimate_id):
             "lines": lines,
             "direct": direct,
             "proposed_price": proposed_price,
+            "budget_preview": budget_preview,
         },
     )
 

@@ -90,7 +90,60 @@
         <div class="text-center mt-3">
           <h4 class="fw-bold">Propuesto: ${{ proposed_price|floatformat:2 }}</h4>
         </div>
+        
+        <!-- Approval Status & Action -->
+        <hr class="my-3">
+        <div class="text-center">
+          {% if estimate.approved %}
+            <div class="alert alert-success mb-2 py-2">
+              <i class="bi bi-check-circle-fill"></i> <strong>{% trans "Approved" %}</strong>
+            </div>
+            <small class="text-muted">{% trans "Budget lines have been created for this estimate." %}</small>
+          {% else %}
+            <div class="alert alert-warning mb-2 py-2">
+              <i class="bi bi-clock"></i> <strong>{% trans "Pending Approval" %}</strong>
+            </div>
+            <form method="post" class="mt-2">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="approve_manual">
+              <button type="submit" class="btn btn-success btn-sm w-100" 
+                      onclick="return confirm('{% trans "Approve this estimate? This will create budget lines with profit margin deducted and save the contract PDF." %}');">
+                <i class="bi bi-check-lg"></i> {% trans "Approve Manually" %}
+              </button>
+            </form>
+            <p class="text-muted small mt-2">{% trans "Approving will create budget lines automatically." %}</p>
+          {% endif %}
+        </div>
       </div>
+      
+      <!-- Budget Preview (if not approved) -->
+      {% if budget_preview and not estimate.approved %}
+      <div class="card mt-3">
+        <div class="card-header bg-info text-white py-2">
+          <i class="bi bi-calculator"></i> {% trans "Budget Preview" %} <small>({{ estimate.target_profit_pct }}% {% trans "profit deducted" %})</small>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr class="small">
+                <th>{% trans "Cost Code" %}</th>
+                <th class="text-end">{% trans "Estimate" %}</th>
+                <th class="text-end">{% trans "Budget" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in budget_preview %}
+              <tr class="small">
+                <td>{{ item.cost_code }}</td>
+                <td class="text-end">${{ item.estimate_price|floatformat:2 }}</td>
+                <td class="text-end text-success">${{ item.budget_amount|floatformat:2 }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
     </div>
   </div>
 
