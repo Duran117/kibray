@@ -5497,6 +5497,77 @@ def estimate_create_view(request, project_id):
 
 
 @login_required
+def estimate_edit_view(request, estimate_id):
+    """Edit an existing estimate."""
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    estimate = get_object_or_404(Estimate, pk=estimate_id)
+    project = estimate.project
+    cost_codes = CostCode.objects.all().order_by("code")
+    
+    # Prevent editing approved estimates
+    if estimate.approved:
+        messages.warning(request, _("This estimate has been approved and cannot be edited."))
+        return redirect("estimate_detail", estimate_id=estimate.id)
+    
+    if request.method == "POST":
+        form = EstimateForm(request.POST, instance=estimate)
+        formset = EstimateLineFormSet(request.POST, instance=estimate, prefix='lines')
+        
+        logger.info(f"Estimate edit POST received for estimate {estimate_id}")
+        logger.info(f"Form valid: {form.is_valid()}")
+        logger.info(f"Formset valid: {formset.is_valid()}")
+        
+        if not form.is_valid():
+            logger.warning(f"Form errors: {form.errors}")
+            messages.error(request, _("Please correct the errors in the form."))
+            
+        if not formset.is_valid():
+            logger.warning(f"Formset errors: {formset.errors}")
+            line_errors = [e for e in formset.errors if e]
+            if line_errors:
+                messages.error(request, _("Please correct the errors in the line items."))
+        
+        if form.is_valid() and formset.is_valid():
+            est = form.save()
+            
+            # Save lines
+            saved_lines = []
+            for line_form in formset:
+                if line_form.cleaned_data:
+                    if line_form.cleaned_data.get('DELETE', False):
+                        if line_form.instance.pk:
+                            line_form.instance.delete()
+                    elif line_form.cleaned_data.get('cost_code'):
+                        line = line_form.save(commit=False)
+                        line.estimate = est
+                        line.save()
+                        saved_lines.append(line)
+            
+            logger.info(f"Updated Estimate {est.code} with {len(saved_lines)} lines")
+            messages.success(request, _("Estimate updated successfully!"))
+            return redirect("estimate_detail", estimate_id=est.id)
+    else:
+        form = EstimateForm(instance=estimate)
+        formset = EstimateLineFormSet(instance=estimate, prefix='lines')
+    
+    return render(
+        request,
+        "core/estimate_form.html",
+        {
+            "project": project,
+            "form": form,
+            "formset": formset,
+            "estimate": estimate,
+            "version": estimate.version,
+            "cost_codes": cost_codes,
+            "is_edit": True,
+        },
+    )
+
+
+@login_required
 def estimate_detail_view(request, estimate_id):
     import logging
     logger = logging.getLogger(__name__)

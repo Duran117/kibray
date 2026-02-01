@@ -550,6 +550,7 @@ urlpatterns = [
         name="estimate_create",
     ),
     path("estimates/<int:estimate_id>/", views.estimate_detail_view, name="estimate_detail"),
+    path("estimates/<int:estimate_id>/edit/", views.estimate_edit_view, name="estimate_edit"),
     path(
         "estimates/<int:estimate_id>/send-email/",
         views.estimate_send_email,

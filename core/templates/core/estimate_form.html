@@ -1,7 +1,7 @@
 {% extends "core/base_modern.html" %}
 {% load i18n static %}
 
-{% block title %}{% trans "Create Estimate" %} - {{ project.name }}{% endblock %}
+{% block title %}{% if is_edit %}{% trans "Edit Estimate" %}{% else %}{% trans "Create Estimate" %}{% endif %} - {{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -420,7 +420,7 @@ textarea.form-input {
         <span class="separator"><i class="bi bi-chevron-right"></i></span>
         <a href="{% url 'project_estimates' project.id %}">{% trans "Estimates" %}</a>
         <span class="separator"><i class="bi bi-chevron-right"></i></span>
-        <span class="current">{% trans "New" %}</span>
+        <span class="current">{% if is_edit %}{% trans "Edit" %}{% else %}{% trans "New" %}{% endif %}</span>
     </nav>
 
     <!-- Header -->
@@ -429,12 +429,12 @@ textarea.form-input {
             <div>
                 <h1>
                     <i class="bi bi-calculator-fill"></i>
-                    {% trans "Create Estimate" %}
+                    {% if is_edit %}{% trans "Edit Estimate" %}{% else %}{% trans "Create Estimate" %}{% endif %}
                 </h1>
                 <p class="subtitle">{{ project.name }}{% if project.client %} • {{ project.client }}{% endif %}</p>
             </div>
             <span class="version-badge">
-                <i class="bi bi-hash"></i> v{{ version }}
+                <i class="bi bi-hash"></i> v{{ version }}{% if is_edit %} ({{ estimate.code }}){% endif %}
             </span>
         </div>
     </div>
@@ -630,13 +630,13 @@ textarea.form-input {
 
         <!-- Actions -->
         <div class="form-actions">
-            <a href="{% url 'project_estimates' project.id %}" class="btn-cancel">
+            <a href="{% if is_edit %}{% url 'estimate_detail' estimate.id %}{% else %}{% url 'project_estimates' project.id %}{% endif %}" class="btn-cancel">
                 <i class="bi bi-x-lg"></i>
                 {% trans "Cancel" %}
             </a>
             <button type="submit" class="btn-submit">
                 <i class="bi bi-check-lg"></i>
-                {% trans "Create Estimate" %}
+                {% if is_edit %}{% trans "Save Changes" %}{% else %}{% trans "Create Estimate" %}{% endif %}
             </button>
         </div>
     </form>

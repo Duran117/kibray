@@ -21,6 +21,12 @@
   <div class="toolbar d-flex justify-content-between align-items-center">
     <h3 class="mb-0">Cotización {{ estimate.code }} <small class="text-muted">v{{ estimate.version }}</small></h3>
     <div class="d-flex gap-2">
+      <!-- Edit Button (only if not approved) -->
+      {% if not estimate.approved %}
+      <a href="{% url 'estimate_edit' estimate.id %}" class="btn btn-outline-warning" title="Editar">
+        <i class="bi bi-pencil"></i> Editar
+      </a>
+      {% endif %}
       <!-- PDF Downloads -->
       <div class="btn-group">
         <a href="{% url 'estimate_pdf_view' estimate.id %}" target="_blank" class="btn btn-outline-success" title="Ver PDF">
