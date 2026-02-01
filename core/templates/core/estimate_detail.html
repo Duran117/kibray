@@ -37,7 +37,11 @@
         </ul>
       </div>
       <button id="openEmailModal" type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#emailModal">Enviar al Cliente</button>
-      <a href="{% url 'proposal_public' estimate.proposal.client_view_token %}" target="_blank" class="btn btn-outline-secondary"{% if not estimate.proposal %} disabled{% endif %}>Ver Público</a>
+      {% if estimate.proposal and estimate.proposal.client_view_token %}
+        <a href="{% url 'proposal_public' estimate.proposal.client_view_token %}" target="_blank" class="btn btn-outline-secondary">Ver Público</a>
+      {% else %}
+        <button type="button" class="btn btn-outline-secondary" disabled title="Envía primero al cliente para generar el enlace público">Ver Público</button>
+      {% endif %}
     </div>
   </div>
 
