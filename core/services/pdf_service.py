@@ -124,6 +124,185 @@ def _fallback_pdf_from_html(html: str) -> bytes:
     return buffer.getvalue()
 
 
+def generate_estimate_pdf_reportlab(estimate, as_contract: bool = False) -> bytes:
+    """Generate professional Estimate/Contract PDF using ReportLab."""
+    from reportlab.lib.pagesizes import LETTER
+    from reportlab.lib.units import inch
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
+    
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=LETTER,
+                           leftMargin=0.5*inch, rightMargin=0.5*inch,
+                           topMargin=0.5*inch, bottomMargin=0.5*inch)
+    
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    title_style = ParagraphStyle(
+        'Title',
+        parent=styles['Heading1'],
+        fontSize=18,
+        textColor=colors.HexColor('#059669'),
+        alignment=TA_CENTER,
+        spaceAfter=12
+    )
+    
+    header_style = ParagraphStyle(
+        'Header',
+        parent=styles['Heading2'],
+        fontSize=12,
+        textColor=colors.HexColor('#374151'),
+        spaceBefore=12,
+        spaceAfter=6
+    )
+    
+    normal_style = ParagraphStyle(
+        'Normal',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.HexColor('#4b5563')
+    )
+    
+    small_style = ParagraphStyle(
+        'Small',
+        parent=styles['Normal'],
+        fontSize=8,
+        textColor=colors.HexColor('#6b7280')
+    )
+    
+    elements = []
+    
+    # Title
+    doc_type = "SUBCONTRACT AGREEMENT" if as_contract else "ESTIMATE"
+    elements.append(Paragraph(f"<b>{doc_type}</b>", title_style))
+    elements.append(Paragraph(f"{estimate.code}", normal_style))
+    elements.append(Spacer(1, 12))
+    
+    # Project Info
+    project = estimate.project
+    info_data = [
+        ['Project:', project.name, 'Date:', estimate.created_at.strftime('%Y-%m-%d') if estimate.created_at else '-'],
+        ['Address:', project.address or '-', 'Version:', f'v{estimate.version}'],
+        ['Client:', str(project.client) if project.client else '-', '', ''],
+    ]
+    
+    info_table = Table(info_data, colWidths=[1*inch, 2.5*inch, 0.8*inch, 2*inch])
+    info_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#6b7280')),
+        ('TEXTCOLOR', (2, 0), (2, -1), colors.HexColor('#6b7280')),
+        ('FONTNAME', (1, 0), (1, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (3, 0), (3, -1), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    elements.append(info_table)
+    elements.append(Spacer(1, 16))
+    
+    # Line Items Header
+    elements.append(Paragraph("<b>Scope of Work</b>", header_style))
+    
+    # Line Items Table
+    lines = estimate.lines.select_related('cost_code').all()
+    
+    table_data = [['Code', 'Description', 'Qty', 'UOM', 'Unit Price', 'Total']]
+    
+    for line in lines:
+        unit_price = line.get_effective_unit_price()
+        total = line.direct_cost()
+        table_data.append([
+            line.cost_code.code if line.cost_code else '-',
+            line.description or (line.cost_code.name if line.cost_code else '-'),
+            f'{line.qty:.2f}',
+            line.unit or 'EA',
+            f'${unit_price:,.2f}',
+            f'${total:,.2f}'
+        ])
+    
+    if not lines:
+        table_data.append(['-', 'No items', '-', '-', '-', '-'])
+    
+    line_table = Table(table_data, colWidths=[0.8*inch, 2.8*inch, 0.6*inch, 0.6*inch, 1*inch, 1*inch])
+    line_table.setStyle(TableStyle([
+        # Header row
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f3f4f6')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#374151')),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('TOPPADDING', (0, 0), (-1, 0), 8),
+        # Body rows
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+        ('TEXTCOLOR', (0, 1), (-1, -1), colors.HexColor('#4b5563')),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+        ('TOPPADDING', (0, 1), (-1, -1), 6),
+        # Alignment
+        ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+        ('ALIGN', (4, 0), (5, -1), 'RIGHT'),
+        # Grid
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e5e7eb')),
+        # Alternating rows
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
+    ]))
+    elements.append(line_table)
+    elements.append(Spacer(1, 16))
+    
+    # Summary
+    subtotal = sum(line.direct_cost() for line in lines)
+    
+    # Calculate markups
+    total_material = sum(line.qty * line.material_unit_cost for line in lines if not (line.unit_price and line.unit_price > 0))
+    total_labor = sum(line.qty * line.labor_unit_cost for line in lines if not (line.unit_price and line.unit_price > 0))
+    
+    labor_markup = total_labor * (estimate.markup_labor / 100) if estimate.markup_labor else Decimal("0")
+    material_markup = total_material * (estimate.markup_material / 100) if estimate.markup_material else Decimal("0")
+    overhead = subtotal * (estimate.overhead_pct / 100) if estimate.overhead_pct else Decimal("0")
+    profit = subtotal * (estimate.target_profit_pct / 100) if estimate.target_profit_pct else Decimal("0")
+    
+    grand_total = subtotal + labor_markup + material_markup + overhead + profit
+    
+    summary_data = [
+        ['', 'Direct Costs:', f'${subtotal:,.2f}'],
+    ]
+    
+    if labor_markup > 0:
+        summary_data.append(['', f'Labor Markup ({estimate.markup_labor}%):', f'${labor_markup:,.2f}'])
+    if material_markup > 0:
+        summary_data.append(['', f'Material Markup ({estimate.markup_material}%):', f'${material_markup:,.2f}'])
+    if overhead > 0:
+        summary_data.append(['', f'Overhead ({estimate.overhead_pct}%):', f'${overhead:,.2f}'])
+    if profit > 0:
+        summary_data.append(['', f'Profit ({estimate.target_profit_pct}%):', f'${profit:,.2f}'])
+    
+    summary_data.append(['', 'TOTAL:', f'${grand_total:,.2f}'])
+    
+    summary_table = Table(summary_data, colWidths=[3.5*inch, 2*inch, 1.3*inch])
+    summary_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+        ('TEXTCOLOR', (1, 0), (1, -1), colors.HexColor('#6b7280')),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        # Total row bold
+        ('FONTNAME', (1, -1), (-1, -1), 'Helvetica-Bold'),
+        ('TEXTCOLOR', (1, -1), (-1, -1), colors.HexColor('#059669')),
+        ('FONTSIZE', (1, -1), (-1, -1), 11),
+        ('TOPPADDING', (0, -1), (-1, -1), 8),
+        ('LINEABOVE', (1, -1), (-1, -1), 1, colors.HexColor('#059669')),
+    ]))
+    elements.append(summary_table)
+    
+    # Footer
+    elements.append(Spacer(1, 24))
+    elements.append(Paragraph(f"<i>Generated on {timezone.now().strftime('%Y-%m-%d %H:%M')}</i>", small_style))
+    elements.append(Paragraph(f"<i>Kibray Painting • Licensed & Insured</i>", small_style))
+    
+    doc.build(elements)
+    return buffer.getvalue()
+
+
 class PDFDocumentGenerator:
     """Generator for professional legal PDF documents."""
     
@@ -152,13 +331,19 @@ class PDFDocumentGenerator:
     @staticmethod
     def generate_estimate_pdf(estimate: "Estimate", as_contract: bool = False) -> bytes:
         """Generate a professional PDF for an Estimate (optionally as contract)."""
-        context = _build_estimate_context(estimate, as_contract)
+        # Use ReportLab directly for reliable PDF generation
+        if HAS_REPORTLAB:
+            return generate_estimate_pdf_reportlab(estimate, as_contract)
         
-        template_name = "core/contract_signed_pdf.html" if as_contract else "core/estimate_pdf.html"
-        template = get_template(template_name)
-        html = template.render(context)
+        # Fallback to HTML rendering if xhtml2pdf is available
+        if HAS_PISA:
+            context = _build_estimate_context(estimate, as_contract)
+            template_name = "core/contract_signed_pdf.html" if as_contract else "core/estimate_pdf.html"
+            template = get_template(template_name)
+            html = template.render(context)
+            return _render_html_to_pdf(html)
         
-        return _render_html_to_pdf(html)
+        raise RuntimeError("No PDF generation library available")
 
 
 def _build_changeorder_context(co: "ChangeOrder") -> dict[str, Any]:
