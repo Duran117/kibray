@@ -5652,6 +5652,21 @@ def estimate_detail_view(request, estimate_id):
         
         return redirect("estimate_detail", estimate_id=est.id)
     
+    # Handle regenerate PDF action
+    if request.method == "POST" and request.POST.get("action") == "regenerate_pdf":
+        try:
+            from core.services.document_storage_service import auto_save_estimate_pdf
+            result = auto_save_estimate_pdf(est, user=request.user, as_contract=est.approved, overwrite=True)
+            if result:
+                messages.success(request, _("PDF regenerated successfully!"))
+            else:
+                messages.error(request, _("Failed to regenerate PDF."))
+        except Exception as e:
+            logger.error(f"Failed to regenerate PDF: {e}")
+            messages.error(request, _(f"Error: {str(e)}"))
+        
+        return redirect("estimate_detail", estimate_id=est.id)
+    
     lines = est.lines.select_related("cost_code")
     direct = sum(line.direct_cost() for line in lines)
     material_markup = direct * (est.markup_material / 100)
