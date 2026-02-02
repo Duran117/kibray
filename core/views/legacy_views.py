@@ -11683,7 +11683,8 @@ def file_download(request, file_id):
     if file_obj.file:
         try:
             # Increment download counter
-            file_obj.increment_download_count()
+            file_obj.download_count = (file_obj.download_count or 0) + 1
+            file_obj.save(update_fields=['download_count'])
             
             # Get content type
             content_type, _ = mimetypes.guess_type(file_obj.name)
