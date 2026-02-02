@@ -936,10 +936,12 @@
       {% endfor %}
     </nav>
     
-    <!-- Add Folder -->
+    <!-- Add Folder - Only for staff -->
+    {% if not is_client_view %}
     <div class="doc-add-folder" onclick="openModal('createFolderModal')">
       <i class="bi bi-plus-lg"></i> {% trans "Nueva Carpeta" %}
     </div>
+    {% endif %}
   </aside>
   
   <!-- ============================================
@@ -990,11 +992,13 @@
           </ul>
         </div>
         
-        <!-- Upload Button -->
+        {% if not is_client_view %}
+        <!-- Upload Button - Only for staff -->
         <button class="doc-btn doc-btn-primary" onclick="openModal('uploadModal')">
           <i class="bi bi-cloud-upload"></i>
           <span class="d-none d-sm-inline">{% trans "Subir" %}</span>
         </button>
+        {% endif %}
       </div>
     </div>
     
@@ -1052,9 +1056,11 @@
             <button class="doc-btn-icon" onclick="event.stopPropagation(); toggleFavorite({{ file.id }})" title="{% trans 'Favorito' %}">
               <i class="bi bi-star{% if file.is_favorited %}-fill{% endif %}"></i>
             </button>
+            {% if not is_client_view %}
             <button class="doc-btn-icon" onclick="event.stopPropagation(); togglePublic({{ file.id }})" title="{% trans 'Compartir con Cliente' %}">
               <i class="bi bi-people{% if file.is_public %}-fill{% endif %}" style="{% if file.is_public %}color: #10b981;{% endif %}"></i>
             </button>
+            {% endif %}
           </div>
         </div>
         {% endfor %}
@@ -1065,19 +1071,25 @@
       <div class="doc-empty">
         <i class="bi bi-folder2-open"></i>
         <h3>{% trans "No hay archivos aquí" %}</h3>
+        {% if is_client_view %}
+        <p>{% trans "No hay documentos compartidos en esta carpeta" %}</p>
+        {% else %}
         <p>{% trans "Sube tu primer archivo o arrastra archivos a esta carpeta" %}</p>
         <button class="doc-btn doc-btn-primary" onclick="openModal('uploadModal')">
           <i class="bi bi-cloud-upload"></i> {% trans "Subir Archivo" %}
         </button>
+        {% endif %}
       </div>
       {% endif %}
       
+      {% if not is_client_view %}
       <!-- Drop Zone (shown on drag) -->
       <div class="doc-upload-zone" id="dropZone" style="display: none;">
         <i class="bi bi-cloud-arrow-up"></i>
         <h4>{% trans "Suelta los archivos aquí" %}</h4>
         <p>{% trans "para subirlos a esta carpeta" %}</p>
       </div>
+      {% endif %}
     </div>
   </main>
   
@@ -1102,6 +1114,7 @@
   </aside>
 </div>
 
+{% if not is_client_view %}
 <!-- ============================================
      UPLOAD MODAL
      ============================================ -->
@@ -1210,6 +1223,7 @@
     </form>
   </div>
 </div>
+{% endif %}
 
 {% endblock %}
 
@@ -1219,9 +1233,11 @@
 let currentView = 'grid';
 let selectedFileId = null;
 const projectId = {{ project.id }};
+const isClientView = {{ is_client_view|yesno:"true,false" }};
 
 // Update upload form action when category is selected
 function updateUploadAction() {
+  if (isClientView) return; // Clients can't upload
   const select = document.getElementById('categorySelect');
   if (select) {
     const categoryId = select.value;
@@ -1317,6 +1333,33 @@ function loadFileDetails(fileId) {
     .then(r => r.json())
     .then(data => {
       const panel = document.getElementById('panelContent');
+      
+      // Build action buttons based on user role
+      let actionButtons = `
+        <div class="doc-panel-actions" style="display: flex; gap: 8px; margin: 16px 0;">
+          <a href="/files/${fileId}/download/" class="doc-btn doc-btn-primary" style="flex: 1; text-align: center; text-decoration: none;">
+            <i class="bi bi-download"></i> {% trans "Descargar" %}
+          </a>
+          <button class="doc-btn doc-btn-secondary" onclick="toggleFavorite(${fileId})" style="flex: 1;">
+            <i class="bi bi-star${data.is_favorited ? '-fill' : ''}"></i> {% trans "Favorito" %}
+          </button>
+        </div>
+      `;
+      
+      // Only show edit/delete buttons for staff
+      if (!isClientView) {
+        actionButtons += `
+        <div class="doc-panel-actions" style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <button class="doc-btn doc-btn-secondary" onclick="shareFile(${fileId})" style="flex: 1;">
+            <i class="bi bi-share"></i> {% trans "Compartir" %}
+          </button>
+          <button class="doc-btn doc-btn-secondary" onclick="deleteFile(${fileId})" style="flex: 1; color: #ef4444; border-color: #ef4444;">
+            <i class="bi bi-trash"></i> {% trans "Delete" %}
+          </button>
+        </div>
+        `;
+      }
+      
       panel.innerHTML = `
         <div class="doc-panel-preview">
           ${data.file_type === 'image' 
@@ -1328,22 +1371,7 @@ function loadFileDetails(fileId) {
         <div class="doc-panel-filename">${data.name}</div>
         
         <!-- Action Buttons -->
-        <div class="doc-panel-actions" style="display: flex; gap: 8px; margin: 16px 0;">
-          <a href="/files/${fileId}/download/" class="doc-btn doc-btn-primary" style="flex: 1; text-align: center; text-decoration: none;">
-            <i class="bi bi-download"></i> {% trans "Descargar" %}
-          </a>
-          <button class="doc-btn doc-btn-secondary" onclick="toggleFavorite(${fileId})" style="flex: 1;">
-            <i class="bi bi-star${data.is_favorited ? '-fill' : ''}"></i> {% trans "Favorito" %}
-          </button>
-        </div>
-        <div class="doc-panel-actions" style="display: flex; gap: 8px; margin-bottom: 16px;">
-          <button class="doc-btn doc-btn-secondary" onclick="shareFile(${fileId})" style="flex: 1;">
-            <i class="bi bi-share"></i> {% trans "Compartir" %}
-          </button>
-          <button class="doc-btn doc-btn-secondary" onclick="deleteFile(${fileId})" style="flex: 1; color: #ef4444; border-color: #ef4444;">
-            <i class="bi bi-trash"></i> {% trans "Eliminar" %}
-          </button>
-        </div>
+        ${actionButtons}
         
         <div class="doc-panel-section">
           <div class="doc-panel-section-title">{% trans "Información" %}</div>
@@ -1414,14 +1442,18 @@ function loadWorkflowStatus(fileId) {
     .then(data => {
       const container = document.getElementById('workflowContent');
       if (!data.has_workflow) {
-        container.innerHTML = `
-          <div style="text-align: center; padding: 12px;">
-            <p style="font-size: 13px; color: var(--doc-text-secondary); margin-bottom: 12px;">
-              {% trans "Sin workflow activo" %}
-            </p>
+        // Only staff can start workflows
+        const startButton = isClientView ? '' : `
             <button class="doc-btn doc-btn-secondary" onclick="startWorkflow(${fileId})" style="width: 100%;">
               <i class="bi bi-play-circle"></i> {% trans "Iniciar Aprobación" %}
             </button>
+        `;
+        container.innerHTML = `
+          <div style="text-align: center; padding: 12px;">
+            <p style="font-size: 13px; color: var(--doc-text-secondary); margin-bottom: ${isClientView ? '0' : '12px'};">
+              {% trans "Sin workflow activo" %}
+            </p>
+            ${startButton}
           </div>
         `;
       } else {
@@ -1465,7 +1497,7 @@ function loadWorkflowStatus(fileId) {
             </div>
             ` : ''}
             
-            ${data.can_start && data.status !== 'in_progress' && data.status !== 'pending' ? `
+            ${!isClientView && data.can_start && data.status !== 'in_progress' && data.status !== 'pending' ? `
             <button class="doc-btn doc-btn-secondary" onclick="startWorkflow(${fileId})" style="width: 100%; margin-top: 12px;">
               <i class="bi bi-arrow-clockwise"></i> {% trans "Nuevo Workflow" %}
             </button>
@@ -1753,66 +1785,71 @@ function toggleSidebar() {
   document.getElementById('docSidebar').classList.toggle('open');
 }
 
-// Drag & Drop
+// Drag & Drop - Only for staff users
 const dropZone = document.getElementById('dropZone');
 const filesContainer = document.getElementById('filesContainer');
 const modalDropZone = document.getElementById('modalDropZone');
 const fileInput = document.getElementById('fileInput');
 
-['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-  filesContainer.addEventListener(eventName, e => {
-    e.preventDefault();
-    e.stopPropagation();
+if (!isClientView && filesContainer) {
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    filesContainer.addEventListener(eventName, e => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
   });
-});
 
-filesContainer.addEventListener('dragenter', () => {
-  dropZone.style.display = 'block';
-});
+  filesContainer.addEventListener('dragenter', () => {
+    if (dropZone) dropZone.style.display = 'block';
+  });
 
-filesContainer.addEventListener('dragleave', e => {
-  if (!filesContainer.contains(e.relatedTarget)) {
-    dropZone.style.display = 'none';
-  }
-});
+  filesContainer.addEventListener('dragleave', e => {
+    if (!filesContainer.contains(e.relatedTarget)) {
+      if (dropZone) dropZone.style.display = 'none';
+    }
+  });
 
-filesContainer.addEventListener('drop', e => {
-  dropZone.style.display = 'none';
-  const files = e.dataTransfer.files;
-  if (files.length) {
-    handleFiles(files);
-  }
-});
+  filesContainer.addEventListener('drop', e => {
+    if (dropZone) dropZone.style.display = 'none';
+    const files = e.dataTransfer.files;
+    if (files.length) {
+      handleFiles(files);
+    }
+  });
+}
 
-// Modal drop zone
-modalDropZone.addEventListener('click', () => fileInput.click());
-modalDropZone.addEventListener('dragover', e => {
-  e.preventDefault();
-  modalDropZone.classList.add('dragover');
-});
-modalDropZone.addEventListener('dragleave', () => {
-  modalDropZone.classList.remove('dragover');
-});
-modalDropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  modalDropZone.classList.remove('dragover');
-  fileInput.files = e.dataTransfer.files;
-  showSelectedFiles(e.dataTransfer.files);
-});
+// Modal drop zone - Only for staff
+if (!isClientView && modalDropZone && fileInput) {
+  modalDropZone.addEventListener('click', () => fileInput.click());
+  modalDropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    modalDropZone.classList.add('dragover');
+  });
+  modalDropZone.addEventListener('dragleave', () => {
+    modalDropZone.classList.remove('dragover');
+  });
+  modalDropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    modalDropZone.classList.remove('dragover');
+    fileInput.files = e.dataTransfer.files;
+    showSelectedFiles(e.dataTransfer.files);
+  });
 
-fileInput.addEventListener('change', e => {
-  showSelectedFiles(e.target.files);
-  // Auto-fill name field with filename (without extension) if empty
-  const nameField = document.getElementById('fileName');
-  if (nameField && !nameField.value && e.target.files.length > 0) {
-    const filename = e.target.files[0].name;
-    // Remove extension for cleaner name
-    nameField.value = filename.replace(/\.[^/.]+$/, "");
-  }
-});
+  fileInput.addEventListener('change', e => {
+    showSelectedFiles(e.target.files);
+    // Auto-fill name field with filename (without extension) if empty
+    const nameField = document.getElementById('fileName');
+    if (nameField && !nameField.value && e.target.files.length > 0) {
+      const filename = e.target.files[0].name;
+      // Remove extension for cleaner name
+      nameField.value = filename.replace(/\.[^/.]+$/, "");
+    }
+  });
+}
 
 function showSelectedFiles(files) {
   const list = document.getElementById('filesList');
+  if (!list) return;
   list.innerHTML = Array.from(files).map(f => `
     <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--doc-bg); border-radius: var(--radius-md); margin-bottom: 4px;">
       <i class="bi bi-file-earmark" style="color: var(--doc-text-secondary);"></i>
@@ -1823,14 +1860,16 @@ function showSelectedFiles(files) {
 }
 
 function handleFiles(files) {
-  // Quick upload via drag & drop
+  // Quick upload via drag & drop - Staff only
+  if (isClientView) return;
+  
   const formData = new FormData();
   Array.from(files).forEach(f => formData.append('files', f));
   formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
   
   // Show upload modal with files
   openModal('uploadModal');
-  fileInput.files = files;
+  if (fileInput) fileInput.files = files;
   showSelectedFiles(files);
 }
 

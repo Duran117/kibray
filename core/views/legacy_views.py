@@ -2342,15 +2342,16 @@ def client_project_view(request, project_id):
 @login_required
 def client_documents_view(request, project_id):
     """
-    Dedicated documents view for clients.
-    Shows all public files shared with the client for a specific project.
+    Documents workspace view for clients.
+    Uses the same workspace as PM but only shows PUBLIC files.
+    SECURITY: Only shows files marked as is_public=True for the specific project.
     """
-    from core.models import ClientProjectAccess, ProjectFile, FileCategory
-    from django.db.models import Prefetch
+    from core.models import ClientProjectAccess, ProjectFile, FileCategory, DocumentTag
+    from django.db.models import Q, Count
     
     project = get_object_or_404(Project, id=project_id)
 
-    # Access control (same as client_project_view)
+    # === STRICT ACCESS CONTROL ===
     profile = getattr(request.user, "profile", None)
     has_explicit_access = ClientProjectAccess.objects.filter(
         user=request.user, project=project
@@ -2368,36 +2369,82 @@ def client_documents_view(request, project_id):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
 
-    # Get public files for this project
-    public_files = ProjectFile.objects.filter(
-        project=project,
-        is_public=True
-    ).select_related("category", "uploaded_by").order_by("-uploaded_at")
+    # === GET CATEGORIES (only show those with public files) ===
+    # Get categories that have at least one public file
+    categories = FileCategory.objects.filter(
+        project=project
+    ).annotate(
+        public_file_count=Count('files', filter=Q(files__is_public=True))
+    ).filter(parent=None).order_by('order')
     
-    # Group by category
-    categories_with_files = FileCategory.objects.filter(
+    # Get selected category
+    selected_category_id = request.GET.get("category")
+    selected_category = None
+    if selected_category_id:
+        selected_category = FileCategory.objects.filter(
+            id=selected_category_id, 
+            project=project
+        ).first()
+
+    # === BUILD FILE QUERYSET - ONLY PUBLIC FILES ===
+    files = ProjectFile.objects.filter(
+        project=project,
+        is_public=True  # CRITICAL: Only public files for clients
+    ).select_related("category", "uploaded_by").prefetch_related("document_tags")
+
+    # Filter by category
+    if selected_category_id:
+        files = files.filter(category_id=selected_category_id)
+
+    # Filter by favorites (client can have their own favorites)
+    if request.GET.get("favorites"):
+        files = files.filter(is_favorited=True)
+
+    # Filter by tag
+    tag_filter = request.GET.get("tag")
+    if tag_filter:
+        files = files.filter(document_tags__id=tag_filter)
+
+    # Search filter
+    search_query = request.GET.get("q")
+    if search_query:
+        files = files.filter(
+            Q(name__icontains=search_query)
+            | Q(description__icontains=search_query)
+            | Q(tags__icontains=search_query)
+        )
+
+    files = files.order_by("-uploaded_at")
+
+    # Get all tags that have public files
+    all_tags = DocumentTag.objects.filter(
         project=project,
         files__is_public=True
-    ).distinct().prefetch_related(
-        Prefetch(
-            "files",
-            queryset=ProjectFile.objects.filter(is_public=True).order_by("-uploaded_at"),
-            to_attr="public_files"
-        )
+    ).distinct()
+    
+    # Stats (only public files)
+    total_files = ProjectFile.objects.filter(project=project, is_public=True).count()
+    favorites_count = ProjectFile.objects.filter(
+        project=project, is_public=True, is_favorited=True
+    ).count()
+
+    return render(
+        request,
+        "core/documents_workspace.html",  # Same workspace template, with is_client_view flag
+        {
+            "project": project,
+            "categories": categories,
+            "files": files,
+            "selected_category": selected_category,
+            "selected_category_id": selected_category_id,
+            "search_query": search_query or "",
+            "all_tags": all_tags,
+            "total_files": total_files,
+            "favorites_count": favorites_count,
+            "public_count": total_files,  # All visible files are public for client
+            "is_client_view": True,  # Flag to hide upload/edit features
+        },
     )
-    
-    # Stats
-    total_files = public_files.count()
-    total_size = sum(f.file_size for f in public_files)
-    
-    context = {
-        "project": project,
-        "public_files": public_files,
-        "categories_with_files": categories_with_files,
-        "total_files": total_files,
-        "total_size": total_size,
-    }
-    return render(request, "core/client_documents.html", context)
 
 
 @login_required
@@ -11489,8 +11536,13 @@ def project_files_view(request, project_id):
 
 @login_required
 def file_category_create(request, project_id):
-    """Create a new file category"""
+    """Create a new file category - Staff only"""
     from core.forms import FileCategoryForm
+
+    # Security: Only staff can create categories
+    if not request.user.is_staff:
+        messages.error(request, _("You don't have permission to create folders"))
+        return redirect("client_documents", project_id=project_id)
 
     if request.method != "POST":
         return redirect("project_files", project_id=project_id)
@@ -11513,9 +11565,13 @@ def file_category_create(request, project_id):
 @login_required
 @require_POST
 def file_upload(request, project_id, category_id):
-    """Upload a file to a category"""
+    """Upload a file to a category - Staff only"""
     from core.forms import ProjectFileForm
     from core.models import FileCategory
+
+    # Security: Only staff can upload files
+    if not request.user.is_staff:
+        return JsonResponse({"error": gettext("No tienes permiso para subir archivos")}, status=403)
 
     project = get_object_or_404(Project, id=project_id)
     
@@ -11585,22 +11641,52 @@ def file_delete(request, file_id):
 def file_download(request, file_id):
     """Download a file"""
     from core.models import ProjectFile
+    from django.http import FileResponse
+    import mimetypes
 
     file_obj = get_object_or_404(ProjectFile, id=file_id)
 
-    # Check permissions
+    # Check permissions - client can only download public files from their projects
     profile = getattr(request.user, "profile", None)
-    if not file_obj.is_public and profile and profile.role == "client":
-        return HttpResponseForbidden("No tienes permiso para descargar este archivo")
+    if profile and profile.role == "client":
+        if not file_obj.is_public:
+            return HttpResponseForbidden("No tienes permiso para descargar este archivo")
+        # Also verify client has access to this project
+        from core.models import ClientProjectAccess
+        has_access = ClientProjectAccess.objects.filter(
+            user=request.user, project=file_obj.project
+        ).exists()
+        is_project_client = (
+            file_obj.project.client and 
+            hasattr(file_obj.project.client, 'user') and 
+            file_obj.project.client.user == request.user
+        )
+        if not (has_access or is_project_client):
+            return HttpResponseForbidden("No tienes acceso a este proyecto")
 
     # Serve file
     if file_obj.file:
-        # Increment download counter
-        file_obj.increment_download()
-        
-        response = HttpResponse(file_obj.file, content_type="application/octet-stream")
-        response["Content-Disposition"] = f'attachment; filename="{file_obj.name}"'
-        return response
+        try:
+            # Increment download counter
+            file_obj.increment_download()
+            
+            # Get content type
+            content_type, _ = mimetypes.guess_type(file_obj.name)
+            if not content_type:
+                content_type = "application/octet-stream"
+            
+            # Use FileResponse for better handling (works with S3 and local)
+            response = FileResponse(
+                file_obj.file.open('rb'),
+                content_type=content_type,
+                as_attachment=True,
+                filename=file_obj.name
+            )
+            return response
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"File download error: {e}")
+            return HttpResponseNotFound(f"Error al descargar: {str(e)}")
 
     return HttpResponseNotFound("Archivo no encontrado")
 
@@ -11636,9 +11722,30 @@ def file_edit_metadata(request, file_id):
 @login_required
 def file_details_api(request, file_id):
     """API endpoint to get file details for the panel"""
-    from core.models import ProjectFile
+    from core.models import ProjectFile, ClientProjectAccess
 
     file_obj = get_object_or_404(ProjectFile, id=file_id)
+    
+    # === ACCESS CONTROL ===
+    profile = getattr(request.user, "profile", None)
+    is_client = profile and profile.role == "client"
+    
+    if is_client:
+        # Client can only see public files from their projects
+        if not file_obj.is_public:
+            return JsonResponse({"error": "No tienes permiso"}, status=403)
+        
+        # Verify client has access to this project
+        has_access = ClientProjectAccess.objects.filter(
+            user=request.user, project=file_obj.project
+        ).exists()
+        is_project_client = (
+            file_obj.project.client and 
+            hasattr(file_obj.project.client, 'user') and 
+            file_obj.project.client.user == request.user
+        )
+        if not (has_access or is_project_client):
+            return JsonResponse({"error": "No tienes acceso a este proyecto"}, status=403)
     
     # Icon color mapping
     icon_colors = {
@@ -11651,6 +11758,7 @@ def file_details_api(request, file_id):
         "other": "#6b7280",
     }
     
+    # Build response - limit info for clients
     data = {
         "id": file_obj.id,
         "name": file_obj.name,
@@ -11665,6 +11773,7 @@ def file_details_api(request, file_id):
         "version": file_obj.version or "",
         "is_favorited": file_obj.is_favorited,
         "download_count": file_obj.download_count,
+        "is_client_view": is_client,  # Flag to hide edit features in frontend
         "tags": [
             {"id": t.id, "name": t.name, "color": t.color}
             for t in file_obj.document_tags.all()
@@ -11678,9 +11787,30 @@ def file_details_api(request, file_id):
 @require_POST
 def file_toggle_favorite(request, file_id):
     """Toggle file favorite status"""
-    from core.models import ProjectFile
+    from core.models import ProjectFile, ClientProjectAccess
 
     file_obj = get_object_or_404(ProjectFile, id=file_id)
+    
+    # === ACCESS CONTROL ===
+    profile = getattr(request.user, "profile", None)
+    is_client = profile and profile.role == "client"
+    
+    if is_client:
+        # Client can only favorite public files from their projects
+        if not file_obj.is_public:
+            return JsonResponse({"error": "No tienes permiso"}, status=403)
+        
+        has_access = ClientProjectAccess.objects.filter(
+            user=request.user, project=file_obj.project
+        ).exists()
+        is_project_client = (
+            file_obj.project.client and 
+            hasattr(file_obj.project.client, 'user') and 
+            file_obj.project.client.user == request.user
+        )
+        if not (has_access or is_project_client):
+            return JsonResponse({"error": "No tienes acceso"}, status=403)
+    
     file_obj.is_favorited = not file_obj.is_favorited
     file_obj.save(update_fields=["is_favorited"])
     
@@ -11693,8 +11823,12 @@ def file_toggle_favorite(request, file_id):
 @login_required
 @require_POST
 def file_toggle_public(request, file_id):
-    """Toggle file public status (visible to client)"""
+    """Toggle file public status (visible to client) - STAFF ONLY"""
     from core.models import ProjectFile
+
+    # Only staff can change public status
+    if not request.user.is_staff:
+        return JsonResponse({"error": "Solo staff puede cambiar estado público"}, status=403)
 
     file_obj = get_object_or_404(ProjectFile, id=file_id)
     file_obj.is_public = not file_obj.is_public
@@ -11716,7 +11850,6 @@ def file_toggle_public(request, file_id):
 # ========================================================================================
 # FILE SHARING SYSTEM (Odoo-style)
 # ========================================================================================
-
 
 @login_required
 @require_POST
@@ -12004,9 +12137,13 @@ def workflow_template_create(request, project_id):
 @login_required
 @require_POST
 def workflow_start(request, file_id):
-    """Start a workflow for a document"""
+    """Start a workflow for a document - Staff only"""
     from core.models import ProjectFile, DocumentWorkflow, DocumentWorkflowTemplate
     import json
+
+    # Only staff can start workflows
+    if not request.user.is_staff:
+        return JsonResponse({"error": gettext("No tienes permiso para iniciar workflows")}, status=403)
 
     file_obj = get_object_or_404(ProjectFile, id=file_id)
     
@@ -12060,6 +12197,14 @@ def workflow_detail(request, workflow_id):
 
     workflow = get_object_or_404(DocumentWorkflow, id=workflow_id)
     
+    # Security: Non-staff can only see workflows for public files they have access to
+    if not request.user.is_staff:
+        file_obj = workflow.file
+        if not file_obj.is_public:
+            return JsonResponse({"error": gettext("No tienes acceso a este archivo")}, status=403)
+        if not file_obj.project.clients.filter(id=request.user.id).exists():
+            return JsonResponse({"error": gettext("No tienes acceso a este proyecto")}, status=403)
+    
     # Get all steps with their actions
     steps_data = []
     if workflow.template:
@@ -12105,6 +12250,15 @@ def workflow_action(request, workflow_id):
     import json
 
     workflow = get_object_or_404(DocumentWorkflow, id=workflow_id)
+    
+    # Security: Non-staff can only act on workflows for public files they have access to
+    if not request.user.is_staff:
+        file_obj = workflow.file
+        if not file_obj.is_public:
+            return JsonResponse({"error": gettext("No tienes acceso a este archivo")}, status=403)
+        # Check they have access to the project
+        if not file_obj.project.clients.filter(id=request.user.id).exists():
+            return JsonResponse({"error": gettext("No tienes acceso a este proyecto")}, status=403)
     
     if workflow.status not in ["pending", "in_progress"]:
         return JsonResponse({"error": gettext("Workflow ya finalizado")}, status=400)
@@ -12180,13 +12334,20 @@ def file_workflow_status(request, file_id):
 
     file_obj = get_object_or_404(ProjectFile, id=file_id)
     
+    # Security: Non-staff can only see workflows for public files they have access to
+    if not request.user.is_staff:
+        if not file_obj.is_public:
+            return JsonResponse({"error": gettext("No tienes acceso a este archivo")}, status=403)
+        if not file_obj.project.clients.filter(id=request.user.id).exists():
+            return JsonResponse({"error": gettext("No tienes acceso a este proyecto")}, status=403)
+    
     # Get active or latest workflow
     workflow = DocumentWorkflow.objects.filter(file=file_obj).order_by("-initiated_at").first()
     
     if not workflow:
         return JsonResponse({
             "has_workflow": False,
-            "can_start": True,
+            "can_start": request.user.is_staff,  # Only staff can start
         })
     
     return JsonResponse({
@@ -12195,7 +12356,7 @@ def file_workflow_status(request, file_id):
         "status": workflow.status,
         "status_display": workflow.get_status_display(),
         "progress": workflow.get_progress_percentage(),
-        "can_start": workflow.status in ["approved", "rejected", "cancelled"],
+        "can_start": request.user.is_staff and workflow.status in ["approved", "rejected", "cancelled"],
     })
 
 
