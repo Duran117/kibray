@@ -873,7 +873,7 @@
       <div class="doc-sidebar-title">{% trans "Workspaces" %}</div>
       <div class="doc-search">
         <i class="bi bi-search"></i>
-        <input type="text" placeholder="{% trans 'Buscar archivos...' %}" id="searchInput">
+        <input type="text" placeholder="{% trans 'Search files...' %}" id="searchInput">
       </div>
     </div>
     
@@ -883,14 +883,14 @@
            data-category="all"
            onclick="selectFolder(null)">
         <span class="doc-folder-icon"><i class="bi bi-grid-3x3-gap"></i></span>
-        <span class="doc-folder-name">{% trans "Todos los archivos" %}</span>
+        <span class="doc-folder-name">{% trans "All Files" %}</span>
         <span class="doc-folder-count">{{ total_files }}</span>
       </div>
       
       <!-- Favorites -->
       <div class="doc-folder-item" data-category="favorites" onclick="selectFolder('favorites')">
         <span class="doc-folder-icon"><i class="bi bi-star" style="color: #f59e0b;"></i></span>
-        <span class="doc-folder-name">{% trans "Favoritos" %}</span>
+        <span class="doc-folder-name">{% trans "Favorites" %}</span>
         <span class="doc-folder-count">{{ favorites_count }}</span>
       </div>
       
@@ -898,7 +898,7 @@
       <!-- Shared with Client (only visible to PM) -->
       <div class="doc-folder-item" data-category="public" onclick="selectFolder('public')">
         <span class="doc-folder-icon"><i class="bi bi-people" style="color: #10b981;"></i></span>
-        <span class="doc-folder-name">{% trans "Compartido con Cliente" %}</span>
+        <span class="doc-folder-name">{% trans "Shared with Client" %}</span>
         <span class="doc-folder-count">{{ public_count }}</span>
       </div>
       {% endif %}
@@ -941,7 +941,7 @@
     <!-- Add Folder - Only for staff -->
     {% if not is_client_view %}
     <div class="doc-add-folder" onclick="openModal('createFolderModal')">
-      <i class="bi bi-plus-lg"></i> {% trans "Nueva Carpeta" %}
+      <i class="bi bi-plus-lg"></i> {% trans "New Folder" %}
     </div>
     {% endif %}
   </aside>
@@ -959,11 +959,11 @@
         {% if is_client_view %}
         <a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a>
         <i class="bi bi-chevron-right"></i>
-        <a href="{% url 'client_documents' project.id %}">{% trans "Documentos" %}</a>
+        <a href="{% url 'client_documents' project.id %}">{% trans "Documents" %}</a>
         {% else %}
         <a href="{% url 'project_overview' project.id %}">{{ project.name }}</a>
         <i class="bi bi-chevron-right"></i>
-        <a href="{% url 'project_files' project.id %}">{% trans "Documentos" %}</a>
+        <a href="{% url 'project_files' project.id %}">{% trans "Documents" %}</a>
         {% endif %}
         {% if selected_category %}
         <i class="bi bi-chevron-right"></i>
@@ -974,10 +974,10 @@
       <div class="doc-toolbar-actions">
         <!-- View Toggle -->
         <div class="doc-view-toggle">
-          <button class="active" onclick="setView('grid')" title="Vista cuadrícula">
+          <button class="active" onclick="setView('grid')" title="Grid view">
             <i class="bi bi-grid-3x3-gap"></i>
           </button>
-          <button onclick="setView('list')" title="Vista lista">
+          <button onclick="setView('list')" title="List view">
             <i class="bi bi-list-ul"></i>
           </button>
         </div>
@@ -995,7 +995,7 @@
               </a>
             </li>
             {% empty %}
-            <li><span class="dropdown-item text-muted">{% trans "Sin tags" %}</span></li>
+            <li><span class="dropdown-item text-muted">{% trans "No tags" %}</span></li>
             {% endfor %}
           </ul>
         </div>
@@ -1004,7 +1004,7 @@
         <!-- Upload Button - Only for staff -->
         <button class="doc-btn doc-btn-primary" onclick="openModal('uploadModal')">
           <i class="bi bi-cloud-upload"></i>
-          <span class="d-none d-sm-inline">{% trans "Subir" %}</span>
+          <span class="d-none d-sm-inline">{% trans "Upload" %}</span>
         </button>
         {% endif %}
       </div>
@@ -1058,14 +1058,14 @@
           <div class="doc-file-row-size">{{ file.get_size_display }}</div>
           <div class="doc-file-row-date">{{ file.uploaded_at|date:"d/m/Y" }}</div>
           <div class="doc-file-row-actions">
-            <button class="doc-btn-icon" onclick="event.stopPropagation(); downloadFile({{ file.id }})" title="{% trans 'Descargar' %}">
+            <button class="doc-btn-icon" onclick="event.stopPropagation(); downloadFile({{ file.id }})" title="{% trans 'Download' %}">
               <i class="bi bi-download"></i>
             </button>
-            <button class="doc-btn-icon" onclick="event.stopPropagation(); toggleFavorite({{ file.id }})" title="{% trans 'Favorito' %}">
+            <button class="doc-btn-icon" onclick="event.stopPropagation(); toggleFavorite({{ file.id }})" title="{% trans 'Favorite' %}">
               <i class="bi bi-star{% if file.is_favorited %}-fill{% endif %}"></i>
             </button>
             {% if not is_client_view %}
-            <button class="doc-btn-icon" onclick="event.stopPropagation(); togglePublic({{ file.id }})" title="{% trans 'Compartir con Cliente' %}">
+            <button class="doc-btn-icon" onclick="event.stopPropagation(); togglePublic({{ file.id }})" title="{% trans 'Share with Client' %}">
               <i class="bi bi-people{% if file.is_public %}-fill{% endif %}" style="{% if file.is_public %}color: #10b981;{% endif %}"></i>
             </button>
             {% endif %}
@@ -1078,13 +1078,13 @@
       <!-- Empty State -->
       <div class="doc-empty">
         <i class="bi bi-folder2-open"></i>
-        <h3>{% trans "No hay archivos aquí" %}</h3>
+        <h3>{% trans "No files here" %}</h3>
         {% if is_client_view %}
-        <p>{% trans "No hay documentos compartidos en esta carpeta" %}</p>
+        <p>{% trans "No shared documents in this folder" %}</p>
         {% else %}
-        <p>{% trans "Sube tu primer archivo o arrastra archivos a esta carpeta" %}</p>
+        <p>{% trans "Upload your first file or drag and drop files into this folder" %}</p>
         <button class="doc-btn doc-btn-primary" onclick="openModal('uploadModal')">
-          <i class="bi bi-cloud-upload"></i> {% trans "Subir Archivo" %}
+          <i class="bi bi-cloud-upload"></i> {% trans "Upload File" %}
         </button>
         {% endif %}
       </div>
@@ -1094,8 +1094,8 @@
       <!-- Drop Zone (shown on drag) -->
       <div class="doc-upload-zone" id="dropZone" style="display: none;">
         <i class="bi bi-cloud-arrow-up"></i>
-        <h4>{% trans "Suelta los archivos aquí" %}</h4>
-        <p>{% trans "para subirlos a esta carpeta" %}</p>
+        <h4>{% trans "Drop files here" %}</h4>
+        <p>{% trans "to upload to this folder" %}</p>
       </div>
       {% endif %}
     </div>
@@ -1106,7 +1106,7 @@
        ============================================ -->
   <aside class="doc-panel" id="docPanel">
     <div class="doc-panel-header">
-      <span class="doc-panel-title">{% trans "Detalles" %}</span>
+      <span class="doc-panel-title">{% trans "Details" %}</span>
       <span class="doc-panel-close" onclick="closePanel()">
         <i class="bi bi-x-lg"></i>
       </span>
@@ -1116,7 +1116,7 @@
       <!-- Content loaded dynamically -->
       <div class="doc-empty" style="padding: 40px 0;">
         <i class="bi bi-cursor" style="font-size: 48px;"></i>
-        <p>{% trans "Selecciona un archivo para ver sus detalles" %}</p>
+        <p>{% trans "Select a file to view its details" %}</p>
       </div>
     </div>
   </aside>
@@ -1129,7 +1129,7 @@
 <div class="doc-modal-backdrop" id="uploadModal">
   <div class="doc-modal">
     <div class="doc-modal-header">
-      <h3><i class="bi bi-cloud-upload"></i> {% trans "Subir Archivos" %}</h3>
+      <h3><i class="bi bi-cloud-upload"></i> {% trans "Upload Files" %}</h3>
       <span class="doc-panel-close" onclick="closeModal('uploadModal')">
         <i class="bi bi-x-lg"></i>
       </span>
@@ -1139,7 +1139,7 @@
       <div class="doc-modal-body">
         {% if not selected_category %}
         <div class="doc-form-group" style="margin-bottom: 16px;">
-          <label class="doc-form-label">{% trans "Carpeta destino" %}</label>
+          <label class="doc-form-label">{% trans "Destination folder" %}</label>
           <select name="category_override" class="doc-form-input" id="categorySelect" onchange="updateUploadAction()">
             {% for cat in categories %}
             <option value="{{ cat.id }}">{{ cat.name }}</option>
@@ -1149,30 +1149,30 @@
         {% endif %}
         
         <div class="doc-form-group" style="margin-bottom: 16px;">
-          <label class="doc-form-label">{% trans "Nombre del archivo" %}</label>
-          <input type="text" name="name" class="doc-form-input" id="fileName" placeholder="{% trans 'Se usará el nombre del archivo si se deja vacío' %}">
+          <label class="doc-form-label">{% trans "File name" %}</label>
+          <input type="text" name="name" class="doc-form-input" id="fileName" placeholder="{% trans 'Leave empty to use the original file name' %}">
         </div>
         
         <div class="doc-upload-zone" id="modalDropZone">
           <i class="bi bi-cloud-arrow-up"></i>
-          <h4>{% trans "Arrastra archivos aquí" %}</h4>
-          <p>{% trans "o haz clic para seleccionar" %}</p>
+          <h4>{% trans "Drag files here" %}</h4>
+          <p>{% trans "or click to select" %}</p>
           <input type="file" name="file" id="fileInput" style="display: none;" required>
         </div>
         
         <div id="filesList" style="margin-top: 16px;"></div>
         
         <div class="doc-form-group" style="margin-top: 20px;">
-          <label class="doc-form-label">{% trans "Descripción" %} <span style="color: var(--doc-text-secondary);">({% trans "opcional" %})</span></label>
-          <textarea name="description" class="doc-form-input" rows="2" placeholder="{% trans 'Descripción del archivo...' %}"></textarea>
+          <label class="doc-form-label">{% trans "Description" %} <span style="color: var(--doc-text-secondary);">({% trans "optional" %})</span></label>
+          <textarea name="description" class="doc-form-input" rows="2" placeholder="{% trans 'File description...' %}"></textarea>
         </div>
       </div>
       <div class="doc-modal-footer">
         <button type="button" class="doc-btn doc-btn-secondary" onclick="closeModal('uploadModal')">
-          {% trans "Cancelar" %}
+          {% trans "Cancel" %}
         </button>
         <button type="submit" class="doc-btn doc-btn-primary">
-          <i class="bi bi-upload"></i> {% trans "Subir" %}
+          <i class="bi bi-upload"></i> {% trans "Upload" %}
         </button>
       </div>
     </form>
@@ -1185,7 +1185,7 @@
 <div class="doc-modal-backdrop" id="createFolderModal">
   <div class="doc-modal">
     <div class="doc-modal-header">
-      <h3><i class="bi bi-folder-plus"></i> {% trans "Nueva Carpeta" %}</h3>
+      <h3><i class="bi bi-folder-plus"></i> {% trans "New Folder" %}</h3>
       <span class="doc-panel-close" onclick="closeModal('createFolderModal')">
         <i class="bi bi-x-lg"></i>
       </span>
@@ -1194,14 +1194,14 @@
       {% csrf_token %}
       <div class="doc-modal-body">
         <div class="doc-form-group">
-          <label class="doc-form-label">{% trans "Nombre de la carpeta" %}</label>
-          <input type="text" name="name" class="doc-form-input" required placeholder="{% trans 'Ej: Contratos 2025' %}">
+          <label class="doc-form-label">{% trans "Folder name" %}</label>
+          <input type="text" name="name" class="doc-form-input" required placeholder="{% trans 'E.g.: Contracts 2025' %}">
         </div>
         
         <div class="doc-form-group">
-          <label class="doc-form-label">{% trans "Carpeta padre" %} <span style="color: var(--doc-text-secondary);">({% trans "opcional" %})</span></label>
+          <label class="doc-form-label">{% trans "Parent folder" %} <span style="color: var(--doc-text-secondary);">({% trans "optional" %})</span></label>
           <select name="parent" class="doc-form-input">
-            <option value="">{% trans "Ninguna (carpeta raíz)" %}</option>
+            <option value="">{% trans "None (root folder)" %}</option>
             {% for cat in categories %}
             <option value="{{ cat.id }}">{{ cat.name }}</option>
             {% endfor %}
@@ -1209,23 +1209,23 @@
         </div>
         
         <div class="doc-form-group">
-          <label class="doc-form-label">{% trans "Icono" %}</label>
+          <label class="doc-form-label">{% trans "Icon" %}</label>
           <select name="icon" class="doc-form-input">
-            <option value="bi-folder">📁 Carpeta</option>
-            <option value="bi-file-earmark-text">📄 Documentos</option>
-            <option value="bi-images">🖼️ Fotos</option>
-            <option value="bi-receipt">🧾 Facturas</option>
-            <option value="bi-file-earmark-ruled">📐 Planos</option>
-            <option value="bi-shield-check">🛡️ Contratos</option>
+            <option value="bi-folder">📁 Folder</option>
+            <option value="bi-file-earmark-text">📄 Documents</option>
+            <option value="bi-images">🖼️ Photos</option>
+            <option value="bi-receipt">🧾 Invoices</option>
+            <option value="bi-file-earmark-ruled">📐 Plans</option>
+            <option value="bi-shield-check">🛡️ Contracts</option>
           </select>
         </div>
       </div>
       <div class="doc-modal-footer">
         <button type="button" class="doc-btn doc-btn-secondary" onclick="closeModal('createFolderModal')">
-          {% trans "Cancelar" %}
+          {% trans "Cancel" %}
         </button>
         <button type="submit" class="doc-btn doc-btn-primary">
-          <i class="bi bi-plus-lg"></i> {% trans "Crear" %}
+          <i class="bi bi-plus-lg"></i> {% trans "Create" %}
         </button>
       </div>
     </form>
@@ -1361,10 +1361,10 @@ function loadFileDetails(fileId) {
       let actionButtons = `
         <div class="doc-panel-actions" style="display: flex; gap: 8px; margin: 16px 0;">
           <a href="/files/${fileId}/download/" class="doc-btn doc-btn-primary" style="flex: 1; text-align: center; text-decoration: none;">
-            <i class="bi bi-download"></i> {% trans "Descargar" %}
+            <i class="bi bi-download"></i> {% trans "Download" %}
           </a>
           <button class="doc-btn doc-btn-secondary" onclick="toggleFavorite(${fileId})" style="flex: 1;">
-            <i class="bi bi-star${data.is_favorited ? '-fill' : ''}"></i> {% trans "Favorito" %}
+            <i class="bi bi-star${data.is_favorited ? '-fill' : ''}"></i> {% trans "Favorite" %}
           </button>
         </div>
       `;
@@ -1374,10 +1374,10 @@ function loadFileDetails(fileId) {
         actionButtons += `
         <div class="doc-panel-actions" style="display: flex; gap: 8px; margin-bottom: 16px;">
           <button class="doc-btn doc-btn-secondary" onclick="shareFile(${fileId})" style="flex: 1;">
-            <i class="bi bi-share"></i> {% trans "Compartir" %}
+            <i class="bi bi-share"></i> {% trans "Share" %}
           </button>
           <button class="doc-btn doc-btn-secondary" onclick="deleteFile(${fileId})" style="flex: 1; color: #ef4444; border-color: #ef4444;">
-            <i class="bi bi-trash"></i> {% trans "Eliminar" %}
+            <i class="bi bi-trash"></i> {% trans "Delete" %}
           </button>
         </div>
         `;
@@ -1387,7 +1387,7 @@ function loadFileDetails(fileId) {
           actionButtons += `
           <div class="doc-panel-actions" style="margin-bottom: 16px;">
             <button class="doc-btn doc-btn-secondary" onclick="regeneratePDF(${fileId})" style="width: 100%; background: #f0f9ff; border-color: #0ea5e9; color: #0369a1;">
-              <i class="bi bi-arrow-clockwise"></i> {% trans "Regenerar PDF" %}
+              <i class="bi bi-arrow-clockwise"></i> {% trans "Regenerate PDF" %}
             </button>
           </div>
           `;
@@ -1408,26 +1408,26 @@ function loadFileDetails(fileId) {
         ${actionButtons}
         
         <div class="doc-panel-section">
-          <div class="doc-panel-section-title">{% trans "Información" %}</div>
+          <div class="doc-panel-section-title">{% trans "Information" %}</div>
           <div class="doc-panel-row">
-            <span class="doc-panel-row-label">{% trans "Tamaño" %}</span>
+            <span class="doc-panel-row-label">{% trans "Size" %}</span>
             <span class="doc-panel-row-value">${data.size}</span>
           </div>
           <div class="doc-panel-row">
-            <span class="doc-panel-row-label">{% trans "Tipo" %}</span>
+            <span class="doc-panel-row-label">{% trans "Type" %}</span>
             <span class="doc-panel-row-value">${data.file_type}</span>
           </div>
           <div class="doc-panel-row">
-            <span class="doc-panel-row-label">{% trans "Subido" %}</span>
+            <span class="doc-panel-row-label">{% trans "Uploaded" %}</span>
             <span class="doc-panel-row-value">${data.uploaded_at}</span>
           </div>
           <div class="doc-panel-row">
-            <span class="doc-panel-row-label">{% trans "Por" %}</span>
+            <span class="doc-panel-row-label">{% trans "By" %}</span>
             <span class="doc-panel-row-value">${data.uploaded_by}</span>
           </div>
           ${data.version ? `
           <div class="doc-panel-row">
-            <span class="doc-panel-row-label">{% trans "Versión" %}</span>
+            <span class="doc-panel-row-label">{% trans "Version" %}</span>
             <span class="doc-panel-row-value">${data.version}</span>
           </div>
           ` : ''}
@@ -1444,7 +1444,7 @@ function loadFileDetails(fileId) {
         
         ${data.description ? `
         <div class="doc-panel-section">
-          <div class="doc-panel-section-title">{% trans "Descripción" %}</div>
+          <div class="doc-panel-section-title">{% trans "Description" %}</div>
           <p style="font-size: 13px; color: var(--doc-text);">${data.description}</p>
         </div>
         ` : ''}
@@ -1469,7 +1469,7 @@ function loadFileDetails(fileId) {
       document.getElementById('panelContent').innerHTML = `
         <div style="text-align: center; padding: 20px; color: #ef4444;">
           <i class="bi bi-exclamation-circle" style="font-size: 48px;"></i>
-          <p>{% trans "Error al cargar detalles" %}</p>
+          <p>{% trans "Error loading details" %}</p>
           <small style="color: #888;">${err.message || err}</small>
         </div>
       `;
@@ -1486,13 +1486,13 @@ function loadWorkflowStatus(fileId) {
         // Only staff can start workflows
         const startButton = isClientView ? '' : `
             <button class="doc-btn doc-btn-secondary" onclick="startWorkflow(${fileId})" style="width: 100%;">
-              <i class="bi bi-play-circle"></i> {% trans "Iniciar Aprobación" %}
+              <i class="bi bi-play-circle"></i> {% trans "Start Approval" %}
             </button>
         `;
         container.innerHTML = `
           <div style="text-align: center; padding: 12px;">
             <p style="font-size: 13px; color: var(--doc-text-secondary); margin-bottom: ${isClientView ? '0' : '12px'};">
-              {% trans "Sin workflow activo" %}
+              {% trans "No active workflow" %}
             </p>
             ${startButton}
           </div>
@@ -1524,28 +1524,28 @@ function loadWorkflowStatus(fileId) {
             </div>
             
             <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--doc-text-secondary);">
-              <span>${data.progress}% {% trans "completado" %}</span>
+              <span>${data.progress}% {% trans "completed" %}</span>
             </div>
             
             ${data.status === 'in_progress' ? `
             <div style="margin-top: 16px; display: flex; gap: 8px;">
               <button class="doc-btn doc-btn-primary" onclick="approveWorkflow(${data.workflow_id})" style="flex: 1;">
-                <i class="bi bi-check-lg"></i> {% trans "Aprobar" %}
+                <i class="bi bi-check-lg"></i> {% trans "Approve" %}
               </button>
               <button class="doc-btn doc-btn-secondary" onclick="rejectWorkflow(${data.workflow_id})" style="flex: 1; border-color: #ef4444; color: #ef4444;">
-                <i class="bi bi-x-lg"></i> {% trans "Rechazar" %}
+                <i class="bi bi-x-lg"></i> {% trans "Reject" %}
               </button>
             </div>
             ` : ''}
             
             ${!isClientView && data.can_start && data.status !== 'in_progress' && data.status !== 'pending' ? `
             <button class="doc-btn doc-btn-secondary" onclick="startWorkflow(${fileId})" style="width: 100%; margin-top: 12px;">
-              <i class="bi bi-arrow-clockwise"></i> {% trans "Nuevo Workflow" %}
+              <i class="bi bi-arrow-clockwise"></i> {% trans "New Workflow" %}
             </button>
             ` : ''}
             
             <button class="doc-btn doc-btn-icon" onclick="viewWorkflowDetails(${data.workflow_id})" style="width: 100%; margin-top: 8px; font-size: 12px;">
-              <i class="bi bi-eye"></i> {% trans "Ver Detalles" %}
+              <i class="bi bi-eye"></i> {% trans "View Details" %}
             </button>
           </div>
         `;
@@ -1554,7 +1554,7 @@ function loadWorkflowStatus(fileId) {
     .catch(() => {
       document.getElementById('workflowContent').innerHTML = `
         <p style="font-size: 12px; color: var(--doc-text-secondary); text-align: center;">
-          {% trans "No disponible" %}
+          {% trans "Not available" %}
         </p>
       `;
     });
@@ -1602,7 +1602,7 @@ function approveWorkflow(workflowId) {
 }
 
 function rejectWorkflow(workflowId) {
-  const comment = prompt('{% trans "Motivo del rechazo:" %}', '');
+  const comment = prompt('{% trans "Rejection reason:" %}', '');
   if (comment === null) return;
   fetch(`/api/workflows/${workflowId}/action/`, {
     method: 'POST',
@@ -1638,7 +1638,7 @@ function viewWorkflowDetails(workflowId) {
               <div style="font-size: 11px; color: var(--doc-text-secondary);">${step.type}</div>
               ${step.actions.length > 0 ? step.actions.map(a => `
                 <div style="font-size: 11px; color: var(--doc-text-secondary); margin-top: 4px;">
-                  ${a.action} por ${a.performed_by} - ${new Date(a.performed_at).toLocaleDateString()}
+                  ${a.action} by ${a.performed_by} - ${new Date(a.performed_at).toLocaleDateString()}
                 </div>
               `).join('') : ''}
             </div>
@@ -1652,22 +1652,22 @@ function viewWorkflowDetails(workflowId) {
       modal.innerHTML = `
         <div class="doc-modal" style="max-width: 400px;">
           <div class="doc-modal-header">
-            <h3><i class="bi bi-diagram-3"></i> {% trans "Detalles del Workflow" %}</h3>
+            <h3><i class="bi bi-diagram-3"></i> {% trans "Workflow Details" %}</h3>
             <span class="doc-panel-close" onclick="this.closest('.doc-modal-backdrop').remove()">
               <i class="bi bi-x-lg"></i>
             </span>
           </div>
           <div class="doc-modal-body" style="max-height: 400px; overflow-y: auto;">
             <div style="margin-bottom: 16px;">
-              <div style="font-size: 12px; color: var(--doc-text-secondary);">{% trans "Archivo" %}</div>
+              <div style="font-size: 12px; color: var(--doc-text-secondary);">{% trans "File" %}</div>
               <div style="font-weight: 500;">${data.file_name}</div>
             </div>
             <div style="margin-bottom: 16px;">
-              <div style="font-size: 12px; color: var(--doc-text-secondary);">{% trans "Iniciado por" %}</div>
+              <div style="font-size: 12px; color: var(--doc-text-secondary);">{% trans "Initiated by" %}</div>
               <div>${data.initiated_by || '-'}</div>
             </div>
             <div style="margin-bottom: 16px;">
-              <div style="font-size: 12px; color: var(--doc-text-secondary);">{% trans "Pasos" %}</div>
+              <div style="font-size: 12px; color: var(--doc-text-secondary);">{% trans "Steps" %}</div>
               ${stepsHtml}
             </div>
           </div>
@@ -1736,12 +1736,12 @@ function togglePublic(fileId) {
         icon.classList.remove('bi-people');
         icon.classList.add('bi-people-fill');
         icon.style.color = '#10b981';
-        showToast('{% trans "Archivo ahora visible para el cliente" %}', 'success');
+        showToast('{% trans "File now visible to client" %}', 'success');
       } else {
         icon.classList.remove('bi-people-fill');
         icon.classList.add('bi-people');
         icon.style.color = '';
-        showToast('{% trans "Archivo ocultado del cliente" %}', 'warning');
+        showToast('{% trans "File hidden from client" %}', 'warning');
       }
     });
     // Update public count in sidebar
@@ -1750,7 +1750,7 @@ function togglePublic(fileId) {
       publicCountEl.textContent = data.public_count || parseInt(publicCountEl.textContent) + (data.is_public ? 1 : -1);
     }
   })
-  .catch(() => showToast('{% trans "Error al cambiar visibilidad" %}', 'error'));
+  .catch(() => showToast('{% trans "Error changing visibility" %}', 'error'));
 }
 
 // Download File
@@ -1773,20 +1773,20 @@ function shareFile(fileId) {
       const shareUrl = data.share_url;
       if (navigator.clipboard) {
         navigator.clipboard.writeText(shareUrl);
-        showToast('{% trans "Enlace copiado al portapapeles" %}', 'success');
+        showToast('{% trans "Link copied to clipboard" %}', 'success');
       } else {
-        prompt('{% trans "Copiar enlace:" %}', shareUrl);
+        prompt('{% trans "Copy link:" %}', shareUrl);
       }
     } else if (data.error) {
       showToast(data.error, 'error');
     }
   })
-  .catch(() => showToast('{% trans "Error al generar enlace" %}', 'error'));
+  .catch(() => showToast('{% trans "Error generating link" %}', 'error'));
 }
 
 // Delete File
 function deleteFile(fileId) {
-  if (confirm('{% trans "¿Estás seguro de eliminar este archivo? Esta acción no se puede deshacer." %}')) {
+  if (confirm('{% trans "Are you sure you want to delete this file? This action cannot be undone." %}')) {
     // Create form and submit
     const form = document.createElement('form');
     form.method = 'POST';
@@ -1805,11 +1805,11 @@ function deleteFile(fileId) {
 
 // Regenerate PDF for Contract/Estimate documents
 function regeneratePDF(fileId) {
-  if (confirm('{% trans "¿Regenerar el PDF? Se actualizará con los datos más recientes del estimado." %}')) {
+  if (confirm('{% trans "Regenerate PDF? It will be updated with the latest estimate data." %}')) {
     const btn = event.target.closest('button');
     const originalText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> {% trans "Generando..." %}';
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> {% trans "Generating..." %}';
     
     fetch(`/api/files/${fileId}/regenerate-pdf/`, {
       method: 'POST',
@@ -1821,20 +1821,20 @@ function regeneratePDF(fileId) {
     .then(r => r.json())
     .then(data => {
       if (data.success) {
-        showToast('{% trans "PDF regenerado correctamente" %}', 'success');
+        showToast('{% trans "PDF regenerated successfully" %}', 'success');
         // Reload file details to show updated version
         loadFileDetails(data.file_id || fileId);
         // Reload file list to refresh any changes
         setTimeout(() => location.reload(), 1000);
       } else {
-        showToast(data.error || '{% trans "Error al regenerar PDF" %}', 'error');
+        showToast(data.error || '{% trans "Error regenerating PDF" %}', 'error');
         btn.disabled = false;
         btn.innerHTML = originalText;
       }
     })
     .catch(err => {
       console.error('Error regenerating PDF:', err);
-      showToast('{% trans "Error al regenerar PDF" %}', 'error');
+      showToast('{% trans "Error regenerating PDF" %}', 'error');
       btn.disabled = false;
       btn.innerHTML = originalText;
     });
