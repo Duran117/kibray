@@ -1338,8 +1338,23 @@ function selectFile(fileId) {
 // Load File Details
 function loadFileDetails(fileId) {
   fetch(`/api/files/${fileId}/details/`)
-    .then(r => r.json())
+    .then(r => {
+      if (!r.ok) {
+        throw new Error(`HTTP ${r.status}`);
+      }
+      return r.json();
+    })
     .then(data => {
+      if (data.error) {
+        console.error('API error:', data.error);
+        document.getElementById('panelContent').innerHTML = `
+          <div style="text-align: center; padding: 20px; color: #ef4444;">
+            <i class="bi bi-exclamation-circle" style="font-size: 48px;"></i>
+            <p>${data.error}</p>
+          </div>
+        `;
+        return;
+      }
       const panel = document.getElementById('panelContent');
       
       // Build action buttons based on user role
@@ -1449,8 +1464,15 @@ function loadFileDetails(fileId) {
       // Load workflow status
       loadWorkflowStatus(fileId);
     })
-    .catch(() => {
-      // Fallback if API not available
+    .catch(err => {
+      console.error('Error loading file details:', err);
+      document.getElementById('panelContent').innerHTML = `
+        <div style="text-align: center; padding: 20px; color: #ef4444;">
+          <i class="bi bi-exclamation-circle" style="font-size: 48px;"></i>
+          <p>{% trans "Error al cargar detalles" %}</p>
+          <small style="color: #888;">${err.message || err}</small>
+        </div>
+      `;
     });
 }
 

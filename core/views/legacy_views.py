@@ -11774,6 +11774,15 @@ def file_details_api(request, file_id):
     }
     
     # Build response - limit info for clients
+    # Check if file can be regenerated (for estimate/contract PDFs)
+    can_regenerate = False
+    if not is_client:
+        if file_obj.document_type in ['contract', 'estimate']:
+            can_regenerate = True
+        elif file_obj.name and ('Contract_' in file_obj.name or 'Estimate_' in file_obj.name):
+            # Also detect by filename pattern for older files without document_type
+            can_regenerate = True
+    
     data = {
         "id": file_obj.id,
         "name": file_obj.name,
@@ -11790,7 +11799,7 @@ def file_details_api(request, file_id):
         "download_count": file_obj.download_count,
         "is_client_view": is_client,  # Flag to hide edit features in frontend
         "document_type": file_obj.document_type or "",  # For regenerate PDF button
-        "can_regenerate_pdf": file_obj.document_type in ['contract', 'estimate'] and not is_client,
+        "can_regenerate_pdf": can_regenerate,
         "tags": [
             {"id": t.id, "name": t.name, "color": t.color}
             for t in file_obj.document_tags.all()
@@ -11813,8 +11822,12 @@ def file_regenerate_pdf(request, file_id):
     
     file_obj = get_object_or_404(ProjectFile, id=file_id)
     
-    # Check if this is a contract/estimate PDF
-    if file_obj.document_type not in ['contract', 'estimate']:
+    # Check if this is a contract/estimate PDF (by document_type or filename pattern)
+    is_regenerable = file_obj.document_type in ['contract', 'estimate']
+    if not is_regenerable and file_obj.name:
+        is_regenerable = 'Contract_' in file_obj.name or 'Estimate_' in file_obj.name
+    
+    if not is_regenerable:
         return JsonResponse({"error": gettext("Este archivo no es un contrato/estimado regenerable")}, status=400)
     
     # Try to find the source estimate
