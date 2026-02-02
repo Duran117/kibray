@@ -11668,7 +11668,7 @@ def file_download(request, file_id):
     if file_obj.file:
         try:
             # Increment download counter
-            file_obj.increment_download()
+            file_obj.increment_download_count()
             
             # Get content type
             content_type, _ = mimetypes.guess_type(file_obj.name)
