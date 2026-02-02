@@ -629,6 +629,7 @@ urlpatterns = [
     path("files/<int:file_id>/edit/", views.file_edit_metadata, name="file_edit_metadata"),
     # File API endpoints
     path("api/files/<int:file_id>/details/", views.file_details_api, name="file_details_api"),
+    path("api/files/<int:file_id>/regenerate-pdf/", views.file_regenerate_pdf, name="file_regenerate_pdf"),
     path("api/files/<int:file_id>/favorite/", views.file_toggle_favorite, name="file_toggle_favorite"),
     path("api/files/<int:file_id>/toggle-public/", views.file_toggle_public, name="file_toggle_public"),
     path("api/files/<int:file_id>/share/", views.file_generate_share_link, name="file_generate_share_link"),

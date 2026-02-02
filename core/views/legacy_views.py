@@ -11789,6 +11789,8 @@ def file_details_api(request, file_id):
         "is_favorited": file_obj.is_favorited,
         "download_count": file_obj.download_count,
         "is_client_view": is_client,  # Flag to hide edit features in frontend
+        "document_type": file_obj.document_type or "",  # For regenerate PDF button
+        "can_regenerate_pdf": file_obj.document_type in ['contract', 'estimate'] and not is_client,
         "tags": [
             {"id": t.id, "name": t.name, "color": t.color}
             for t in file_obj.document_tags.all()
@@ -11796,6 +11798,68 @@ def file_details_api(request, file_id):
     }
     
     return JsonResponse(data)
+
+
+@login_required
+@require_POST
+def file_regenerate_pdf(request, file_id):
+    """Regenerate PDF for Contract/Estimate documents - STAFF ONLY"""
+    from core.models import ProjectFile, Estimate
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    if not request.user.is_staff:
+        return JsonResponse({"error": gettext("Solo staff puede regenerar PDFs")}, status=403)
+    
+    file_obj = get_object_or_404(ProjectFile, id=file_id)
+    
+    # Check if this is a contract/estimate PDF
+    if file_obj.document_type not in ['contract', 'estimate']:
+        return JsonResponse({"error": gettext("Este archivo no es un contrato/estimado regenerable")}, status=400)
+    
+    # Try to find the source estimate
+    estimate = None
+    if file_obj.source_content_type and file_obj.source_object_id:
+        from django.contrib.contenttypes.models import ContentType
+        ct = file_obj.source_content_type
+        if ct.model == 'estimate':
+            estimate = Estimate.objects.filter(id=file_obj.source_object_id).first()
+    
+    # If not linked, try to find by filename pattern
+    if not estimate and file_obj.name:
+        import re
+        # Pattern: Contract_KPIS1000_PRJ-2026-002.pdf or Estimate_KPIS1000_PRJ-2026-002.pdf
+        match = re.search(r'(Contract|Estimate)_([A-Z0-9]+)_', file_obj.name)
+        if match:
+            code = match.group(2)
+            estimate = Estimate.objects.filter(
+                code__icontains=code,
+                project=file_obj.project
+            ).first()
+    
+    if not estimate:
+        return JsonResponse({"error": gettext("No se encontró el estimado asociado a este archivo")}, status=404)
+    
+    try:
+        from core.services.document_storage_service import auto_save_estimate_pdf
+        result = auto_save_estimate_pdf(
+            estimate, 
+            user=request.user, 
+            as_contract=estimate.approved,
+            overwrite=True
+        )
+        if result:
+            logger.info(f"PDF regenerated for estimate {estimate.code} by {request.user.username}")
+            return JsonResponse({
+                "success": True,
+                "message": gettext("PDF regenerado correctamente"),
+                "file_id": result.id,
+            })
+        else:
+            return JsonResponse({"error": gettext("Error al regenerar PDF")}, status=500)
+    except Exception as e:
+        logger.error(f"Failed to regenerate PDF: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 @login_required
