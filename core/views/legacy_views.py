@@ -11776,8 +11776,9 @@ def file_details_api(request, file_id):
     # Build response - limit info for clients
     # Check if file can be regenerated (for estimate/contract PDFs)
     can_regenerate = False
+    document_type = getattr(file_obj, 'document_type', '') or ''
     if not is_client:
-        if file_obj.document_type in ['contract', 'estimate']:
+        if document_type in ['contract', 'estimate']:
             can_regenerate = True
         elif file_obj.name and ('Contract_' in file_obj.name or 'Estimate_' in file_obj.name):
             # Also detect by filename pattern for older files without document_type
@@ -11798,7 +11799,7 @@ def file_details_api(request, file_id):
         "is_favorited": file_obj.is_favorited,
         "download_count": file_obj.download_count,
         "is_client_view": is_client,  # Flag to hide edit features in frontend
-        "document_type": file_obj.document_type or "",  # For regenerate PDF button
+        "document_type": document_type,  # For regenerate PDF button
         "can_regenerate_pdf": can_regenerate,
         "tags": [
             {"id": t.id, "name": t.name, "color": t.color}
@@ -11823,7 +11824,8 @@ def file_regenerate_pdf(request, file_id):
     file_obj = get_object_or_404(ProjectFile, id=file_id)
     
     # Check if this is a contract/estimate PDF (by document_type or filename pattern)
-    is_regenerable = file_obj.document_type in ['contract', 'estimate']
+    document_type = getattr(file_obj, 'document_type', '') or ''
+    is_regenerable = document_type in ['contract', 'estimate']
     if not is_regenerable and file_obj.name:
         is_regenerable = 'Contract_' in file_obj.name or 'Estimate_' in file_obj.name
     
@@ -11832,11 +11834,13 @@ def file_regenerate_pdf(request, file_id):
     
     # Try to find the source estimate
     estimate = None
-    if file_obj.source_content_type and file_obj.source_object_id:
+    source_content_type = getattr(file_obj, 'source_content_type', None)
+    source_object_id = getattr(file_obj, 'source_object_id', None)
+    if source_content_type and source_object_id:
         from django.contrib.contenttypes.models import ContentType
-        ct = file_obj.source_content_type
+        ct = source_content_type
         if ct.model == 'estimate':
-            estimate = Estimate.objects.filter(id=file_obj.source_object_id).first()
+            estimate = Estimate.objects.filter(id=source_object_id).first()
     
     # If not linked, try to find by filename pattern
     if not estimate and file_obj.name:
