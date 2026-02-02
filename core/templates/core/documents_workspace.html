@@ -894,12 +894,14 @@
         <span class="doc-folder-count">{{ favorites_count }}</span>
       </div>
       
-      <!-- Shared with Client -->
+      {% if not is_client_view %}
+      <!-- Shared with Client (only visible to PM) -->
       <div class="doc-folder-item" data-category="public" onclick="selectFolder('public')">
         <span class="doc-folder-icon"><i class="bi bi-people" style="color: #10b981;"></i></span>
         <span class="doc-folder-name">{% trans "Compartido con Cliente" %}</span>
         <span class="doc-folder-count">{{ public_count }}</span>
       </div>
+      {% endif %}
       
       <hr style="margin: 12px 16px; border: none; border-top: 1px solid var(--doc-border);">
       
@@ -954,9 +956,15 @@
         <button class="doc-btn-icon d-lg-none" onclick="toggleSidebar()">
           <i class="bi bi-list"></i>
         </button>
+        {% if is_client_view %}
+        <a href="{% url 'client_project_view' project.id %}">{{ project.name }}</a>
+        <i class="bi bi-chevron-right"></i>
+        <a href="{% url 'client_documents' project.id %}">{% trans "Documentos" %}</a>
+        {% else %}
         <a href="{% url 'project_overview' project.id %}">{{ project.name }}</a>
         <i class="bi bi-chevron-right"></i>
         <a href="{% url 'project_files' project.id %}">{% trans "Documentos" %}</a>
+        {% endif %}
         {% if selected_category %}
         <i class="bi bi-chevron-right"></i>
         <span class="current">{{ selected_category.name }}</span>
