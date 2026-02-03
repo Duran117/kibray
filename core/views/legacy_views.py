@@ -3661,12 +3661,12 @@ def damage_report_update_status(request, report_id):
 def _ensure_default_channels(project, user):
     group, _ = ChatChannel.objects.get_or_create(
         project=project,
-        name="Grupo",
+        name="Group",
         defaults={"channel_type": "group", "is_default": True, "created_by": user},
     )
     direct, _ = ChatChannel.objects.get_or_create(
         project=project,
-        name="Directo",
+        name="Direct",
         defaults={"channel_type": "direct", "is_default": True, "created_by": user},
     )
     # Ensure participants
