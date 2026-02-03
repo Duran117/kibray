@@ -1352,8 +1352,8 @@ def generate_contract_pdf_reportlab(contract: "Contract") -> bytes:
         normal_style
     ))
     
-    # Page break before signatures
-    elements.append(PageBreak())
+    # Spacer before signatures (no page break - flows naturally)
+    elements.append(Spacer(1, 24))
     
     # =========================================================================
     # ACKNOWLEDGEMENTS AND SIGNATURES
