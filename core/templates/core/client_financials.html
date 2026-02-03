@@ -372,9 +372,12 @@
                                     CO #{{ co.id }}
                                 </a>
                                 <div class="text-muted small">{{ co.description|truncatewords:8 }}</div>
+                                {% if co.pricing_type == 'T_AND_M' %}
+                                <span class="badge bg-info text-white" style="font-size: 0.65rem;">T&M</span>
+                                {% endif %}
                             </div>
                             <div class="text-end">
-                                <div class="fw-bold">{{ co.amount|currency }}</div>
+                                <div class="fw-bold">{{ co.calculated_total|default:co.amount|currency }}</div>
                                 <span class="status-badge status-{{ co.status }}">{{ co.get_status_display }}</span>
                             </div>
                         </div>

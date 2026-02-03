@@ -2297,16 +2297,38 @@ def client_project_view(request, project_id):
             line.total_price for line in latest_estimate.lines.all()
         ) or Decimal("0")
     
-    # Change Orders
-    approved_cos = ChangeOrder.objects.filter(
-        project=project, status__in=['approved', 'sent', 'billed', 'paid']
-    ).order_by('-date_created')
-    pending_cos = ChangeOrder.objects.filter(
-        project=project, status='pending'
-    ).order_by('-date_created')
+    # Change Orders - considering client signature status
+    all_project_cos = ChangeOrder.objects.filter(project=project).order_by('-date_created')
     
-    approved_cos_total = sum(co.amount or Decimal("0") for co in approved_cos)
-    pending_cos_total = sum(co.amount or Decimal("0") for co in pending_cos)
+    # Approved and SIGNED by client - these are truly approved
+    approved_cos = all_project_cos.filter(
+        status__in=['approved', 'sent', 'billed', 'paid']
+    ).exclude(signed_at__isnull=True, status='approved')  # Exclude approved but not signed
+    
+    # Pending includes:
+    # 1. status='pending' (waiting admin approval)
+    # 2. status='approved' but signed_at=None (approved by admin, waiting client signature)
+    pending_for_admin = all_project_cos.filter(status='pending')
+    pending_for_client = all_project_cos.filter(status='approved', signed_at__isnull=True)
+    pending_cos = pending_for_admin | pending_for_client
+    
+    # Calculate totals - for T&M COs, calculate dynamic total from time entries & expenses
+    from core.services.financial_service import ChangeOrderService
+    
+    def get_co_total(co):
+        """Get CO total - for T&M calculates from time entries & expenses"""
+        if co.pricing_type == 'T_AND_M':
+            billable = ChangeOrderService.get_billable_amount(co)
+            return billable.get('grand_total', Decimal("0"))
+        return co.amount or Decimal("0")
+    
+    # Annotate COs for template use
+    for co in all_project_cos:
+        co.calculated_total = get_co_total(co)
+        co.pending_client_signature = (co.status == 'approved' and not co.signed_at)
+    
+    approved_cos_total = sum(get_co_total(co) for co in approved_cos)
+    pending_cos_total = sum(get_co_total(co) for co in pending_cos)
     total_contract_value = base_contract_total + approved_cos_total
 
     # === PROGRESO DEL PROYECTO (usando Gantt V2/V1) ===
@@ -2504,13 +2526,40 @@ def client_financials_view(request, project_id):
     
     # Change Orders by status
     all_change_orders = ChangeOrder.objects.filter(project=project).order_by('-date_created')
-    approved_cos = all_change_orders.filter(status__in=['approved', 'sent', 'billed', 'paid'])
-    pending_cos = all_change_orders.filter(status='pending')
+    
+    # Approved and SIGNED by client - these are truly approved
+    approved_cos = all_change_orders.filter(
+        status__in=['approved', 'sent', 'billed', 'paid']
+    ).exclude(signed_at__isnull=True, status='approved')  # Exclude approved but not signed
+    
+    # Pending includes: 
+    # 1. status='pending' (waiting admin approval)
+    # 2. status='approved' but signed_at=None (approved by admin, waiting client signature)
+    pending_for_admin = all_change_orders.filter(status='pending')
+    pending_for_client = all_change_orders.filter(status='approved', signed_at__isnull=True)
+    pending_cos = pending_for_admin | pending_for_client  # Union of both querysets
+    
     billed_cos = all_change_orders.filter(status__in=['billed', 'paid'])
     
-    approved_cos_total = sum(co.amount or Decimal("0") for co in approved_cos)
-    pending_cos_total = sum(co.amount or Decimal("0") for co in pending_cos)
-    billed_cos_total = sum(co.amount or Decimal("0") for co in billed_cos)
+    # Calculate totals - for T&M COs, calculate dynamic total from time entries & expenses
+    from core.services.financial_service import ChangeOrderService
+    
+    def get_co_total(co):
+        """Get CO total - for T&M calculates from time entries & expenses"""
+        if co.pricing_type == 'T_AND_M':
+            billable = ChangeOrderService.get_billable_amount(co)
+            return billable.get('grand_total', Decimal("0"))
+        return co.amount or Decimal("0")
+    
+    # Annotate each CO with its calculated total for template use
+    for co in all_change_orders:
+        co.calculated_total = get_co_total(co)
+        # Mark if pending client signature
+        co.pending_client_signature = (co.status == 'approved' and not co.signed_at)
+    
+    approved_cos_total = sum(get_co_total(co) for co in approved_cos)
+    pending_cos_total = sum(get_co_total(co) for co in pending_cos)
+    billed_cos_total = sum(get_co_total(co) for co in billed_cos)
     total_contract_value = base_contract_total + approved_cos_total
     
     # === INVOICES DATA ===
@@ -2553,12 +2602,16 @@ def client_financials_view(request, project_id):
         'colors': json.dumps(['#667eea', '#17a2b8', '#28a745']),
     }
     
+    # Total for all COs
+    all_cos_total = approved_cos_total + pending_cos_total
+    
     context = {
         "project": project,
         "latest_estimate": latest_estimate,
         "estimate_lines": estimate_lines,
         "lines_billing_data": lines_billing_data,
         "base_contract_total": base_contract_total,
+        "change_orders": all_change_orders,  # Alias for template compatibility
         "all_change_orders": all_change_orders,
         "approved_cos": approved_cos,
         "pending_cos": pending_cos,
@@ -2566,6 +2619,7 @@ def client_financials_view(request, project_id):
         "approved_cos_total": approved_cos_total,
         "pending_cos_total": pending_cos_total,
         "billed_cos_total": billed_cos_total,
+        "all_cos_total": all_cos_total,
         "total_contract_value": total_contract_value,
         "invoices": invoices,
         "total_invoiced": total_invoiced,
@@ -4050,29 +4104,29 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
             # Filtrar emails vacíos
             internal_recipients = [e for e in internal_recipients if e]
 
-            subject = f"CO #{changeorder.id} firmado por cliente"
+            subject = f"CO #{changeorder.id} signed by client"
             body_lines = [
-                f"Change Order #{changeorder.id} ha sido firmado.",
-                f"Proyecto: {changeorder.project.name if changeorder.project else '-'}",
-                f"Descripción: {changeorder.description[:180]}"
+                f"Change Order #{changeorder.id} has been signed.",
+                f"Project: {changeorder.project.name if changeorder.project else '-'}",
+                f"Description: {changeorder.description[:180]}"
                 + ("..." if len(changeorder.description) > 180 else ""),
-                f"Tipo de precio: {changeorder.pricing_type}",
-                f"Firmado por: {signer_name}",
-                f"Fecha/Hora: {timezone.localtime(changeorder.signed_at).strftime('%Y-%m-%d %H:%M:%S')}",
+                f"Pricing Type: {changeorder.pricing_type}",
+                f"Signed by: {signer_name}",
+                f"Date/Time: {timezone.localtime(changeorder.signed_at).strftime('%Y-%m-%d %H:%M:%S')}",
             ]
 
             if changeorder.pricing_type == "T_AND_M":
                 body_lines.append(
-                    f"Tarifa Labor: ${changeorder.get_effective_billing_rate():.2f} | Markup Materiales: {changeorder.material_markup_pct}%"
+                    f"Labor Rate: ${changeorder.get_effective_billing_rate():.2f} | Material Markup: {changeorder.material_markup_pct}%"
                 )
             else:
-                body_lines.append(f"Monto fijo aprobado: ${changeorder.amount:.2f}")
+                body_lines.append(f"Approved Fixed Amount: ${changeorder.amount:.2f}")
 
             body_lines.append("---")
-            body_lines.append("Este correo es automático. No responder.")
+            body_lines.append("This is an automated email. Do not reply.")
             message_body = "\n".join(body_lines)
 
-            # Enviar a staff interno
+            # Send to internal staff
             if internal_recipients:
                 with contextlib.suppress(Exception):
                     send_mail(
@@ -4083,40 +4137,32 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
                         fail_silently=True,
                     )
 
-            # Enviar confirmación al cliente si proporcionó correo
+            # Send confirmation to client if they provided email
             if customer_email:
                 with contextlib.suppress(Exception):
                     send_mail(
-                        f"Confirmación firma CO #{changeorder.id}",
-                        "Gracias por firmar el Change Order. Hemos registrado su aprobación.",
+                        f"Signature Confirmation CO #{changeorder.id}",
+                        "Thank you for signing the Change Order. We have recorded your approval.",
                         getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@kibray.com"),
                         [customer_email],
                         fail_silently=True,
                     )
 
-            # --- PDF Generation (Paso 3) ---
+            # --- PDF Generation (Paso 3) - Using ReportLab ---
             try:
-                pdf_template = get_template("core/changeorder_pdf.html")
-                html = pdf_template.render({"changeorder": changeorder})
-                if pisa:
-                    pdf_io = BytesIO()
-                    try:
-                        pisa.CreatePDF(html, dest=pdf_io)
-                        pdf_bytes = pdf_io.getvalue()
-                    except Exception:
-                        pdf_bytes = b""
-                else:
-                    pdf_bytes = _generate_basic_pdf_from_html(html)
+                from core.services.pdf_service import generate_signed_changeorder_pdf
+                from django.core.files.base import ContentFile
+                
+                pdf_bytes = generate_signed_changeorder_pdf(changeorder)
                 if pdf_bytes:
-                    from django.core.files.base import ContentFile
-
                     changeorder.signed_pdf = ContentFile(
                         pdf_bytes, name=f"co_{changeorder.id}_signed.pdf"
                     )
                     changeorder.save(update_fields=["signed_pdf"])
-            except Exception:
-                # No bloquear flujo por fallo de PDF
-                pass
+            except Exception as pdf_error:
+                # Log but don't block flow
+                import logging
+                logging.getLogger(__name__).warning(f"CO PDF generation failed: {pdf_error}")
 
             # --- Auto-save PDF to Project Files (Paso 4) ---
             try:
@@ -4127,8 +4173,15 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
                 import logging
                 logging.getLogger(__name__).warning(f"Failed to auto-save CO PDF: {e}")
 
+            # --- Generate download token for client ---
+            from django.core import signing
+            download_token = signing.dumps({"changeorder_id": changeorder.id})
+
             return render(
-                request, "core/changeorder_signature_success.html", {"changeorder": changeorder}
+                request, "core/changeorder_signature_success.html", {
+                    "changeorder": changeorder,
+                    "download_token": download_token,
+                }
             )
         except Exception as e:
             return render(
@@ -4346,22 +4399,8 @@ def color_sample_client_signature_view(request, sample_id, token=None):
             except Exception:
                 pass
 
-            # --- Generate PDF (optional) ---
-            try:
-                pdf_template = get_template("core/color_sample_approval_pdf.html")
-                html = pdf_template.render({"color_sample": color_sample})
-                if pisa:
-                    pdf_io = BytesIO()
-                    try:
-                        pisa.CreatePDF(html, dest=pdf_io)
-                        pdf_io.getvalue()
-                    except Exception:
-                        pass
-                else:
-                    _generate_basic_pdf_from_html(html)
-            except Exception:
-                # Don't block flow due to PDF failure
-                pass
+            # --- Generate PDF using ReportLab ---
+            # Note: PDF is auto-saved to Project Files below, no need for inline generation here
 
             # --- Auto-save PDF to Project Files ---
             try:
@@ -4372,10 +4411,14 @@ def color_sample_client_signature_view(request, sample_id, token=None):
                 import logging
                 logging.getLogger(__name__).warning(f"Failed to auto-save ColorSample PDF: {e}")
 
+            # --- Generate download token for client ---
+            from django.core import signing
+            download_token = signing.dumps({"sample_id": color_sample.id})
+
             return render(
                 request,
                 "core/color_sample_signature_success.html",
-                {"color_sample": color_sample},
+                {"color_sample": color_sample, "download_token": download_token},
             )
         except Exception as e:
             return render(
@@ -15041,3 +15084,76 @@ def my_payroll(request):
     
     return render(request, "core/my_payroll.html", context)
 
+
+# =============================================================================
+# PUBLIC PDF DOWNLOAD VIEWS (for clients after signing)
+# =============================================================================
+
+def changeorder_public_pdf_download(request, changeorder_id, token):
+    """
+    Public view to download Change Order PDF after signing.
+    Validates token (HMAC) with 30-day expiration.
+    """
+    from django.core import signing
+    from core.services.pdf_service import generate_signed_changeorder_pdf
+    
+    changeorder = get_object_or_404(ChangeOrder, pk=changeorder_id)
+    
+    # Validate token
+    try:
+        payload = signing.loads(token, max_age=60 * 60 * 24 * 30)  # 30 days
+        if payload.get("changeorder_id") != changeorder.id:
+            return HttpResponseForbidden("Token does not match this Change Order.")
+    except signing.SignatureExpired:
+        return HttpResponseForbidden("Download link has expired. Please contact us for a new link.")
+    except signing.BadSignature:
+        return HttpResponseForbidden("Invalid download link.")
+    
+    # Check if signed
+    if not changeorder.signed_at:
+        return HttpResponseForbidden("This Change Order has not been signed yet.")
+    
+    try:
+        pdf_bytes = generate_signed_changeorder_pdf(changeorder)
+        
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        filename = f"ChangeOrder_{changeorder.id}_{changeorder.project.project_code}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    except Exception as e:
+        return HttpResponse(f"Error generating PDF: {str(e)}", status=500)
+
+
+def colorsample_public_pdf_download(request, sample_id, token):
+    """
+    Public view to download Color Sample PDF after signing.
+    Validates token (HMAC) with 30-day expiration.
+    """
+    from django.core import signing
+    from core.services.pdf_service import generate_signed_colorsample_pdf
+    
+    colorsample = get_object_or_404(ColorSample, pk=sample_id)
+    
+    # Validate token
+    try:
+        payload = signing.loads(token, max_age=60 * 60 * 24 * 30)  # 30 days
+        if payload.get("sample_id") != colorsample.id:
+            return HttpResponseForbidden("Token does not match this Color Sample.")
+    except signing.SignatureExpired:
+        return HttpResponseForbidden("Download link has expired. Please contact us for a new link.")
+    except signing.BadSignature:
+        return HttpResponseForbidden("Invalid download link.")
+    
+    # Check if signed
+    if not colorsample.client_signed_at:
+        return HttpResponseForbidden("This Color Sample has not been approved yet.")
+    
+    try:
+        pdf_bytes = generate_signed_colorsample_pdf(colorsample)
+        
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        filename = f"ColorSample_{colorsample.sample_number or colorsample.id}_{colorsample.code}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    except Exception as e:
+        return HttpResponse(f"Error generating PDF: {str(e)}", status=500)

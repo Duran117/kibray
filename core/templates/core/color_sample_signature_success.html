@@ -76,6 +76,17 @@
                     </div>
                 </div>
                 
+                <!-- Download PDF Button -->
+                {% if download_token %}
+                <div class="text-center pt-2">
+                    <a href="{% url 'colorsample_public_pdf_download' sample_id=color_sample.id token=download_token %}" 
+                       class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl shadow-lg transition font-medium">
+                        <i class="bi bi-file-pdf"></i>
+                        {% trans "Download Approval Document" %}
+                    </a>
+                </div>
+                {% endif %}
+                
                 <!-- Actions -->
                 <div class="text-center pt-4">
                     <a href="{% url 'client_project_view' color_sample.project.id %}" 

@@ -1,11 +1,12 @@
 {% load static %}
 {% load i18n %}
+{% load humanize %}
 <!DOCTYPE html>
-<html lang="{{ request.LANGUAGE_CODE|default:'es' }}">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Detalle Cotización - {{ estimate.project.name }}</title>
+  <title>Estimate {{ estimate.code }} - {{ estimate.project.name }}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <style>
@@ -14,165 +15,127 @@
     .badge-section span { font-size:0.85rem; }
     .total-box { background:#eef3ff; border-radius:8px; padding:1rem; }
     textarea#id_message { min-height:260px; }
+    .action-card { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .action-card h5 { color: white; }
   </style>
 </head>
 <body class="bg-light">
 <div class="container py-4">
-  <div class="toolbar d-flex justify-content-between align-items-center">
-    <h3 class="mb-0">Cotización {{ estimate.code }} <small class="text-muted">v{{ estimate.version }}</small></h3>
-    <div class="d-flex gap-2">
-      <!-- Edit Button (only if not approved) -->
+  <div class="toolbar d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h3 class="mb-0">Estimate {{ estimate.code }} <small class="text-muted">v{{ estimate.version }}</small></h3>
+      <small class="text-muted">{{ estimate.project.name }} &bull; {{ estimate.project.client }}</small>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
       {% if not estimate.approved %}
-      <a href="{% url 'estimate_edit' estimate.id %}" class="btn btn-outline-warning" title="Editar">
-        <i class="bi bi-pencil"></i> Editar
+      <a href="{% url 'estimate_edit' estimate.id %}" class="btn btn-outline-warning" title="Edit">
+        <i class="bi bi-pencil"></i> Edit
       </a>
       {% endif %}
-      <!-- PDF Downloads -->
       <div class="btn-group">
-        <a href="{% url 'estimate_pdf_view' estimate.id %}" target="_blank" class="btn btn-outline-success" title="Ver PDF">
-          <i class="bi bi-file-pdf"></i> Ver PDF
+        <a href="{% url 'estimate_pdf_view' estimate.id %}" target="_blank" class="btn btn-outline-success" title="View PDF">
+          <i class="bi bi-file-pdf"></i> View PDF
         </a>
-        <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+        <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
           <span class="visually-hidden">Toggle Dropdown</span>
         </button>
         <ul class="dropdown-menu">
-          <li><a class="dropdown-item" href="{% url 'estimate_pdf_download' estimate.id %}"><i class="bi bi-download"></i> Descargar Estimado</a></li>
-          <li><a class="dropdown-item" href="{% url 'estimate_pdf_download' estimate.id %}?contract=1"><i class="bi bi-file-earmark-text"></i> Descargar como Contrato</a></li>
-          <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item" href="{% url 'estimate_pdf_view' estimate.id %}?contract=1" target="_blank"><i class="bi bi-eye"></i> Ver como Contrato</a></li>
+          <li><a class="dropdown-item" href="{% url 'estimate_pdf_download' estimate.id %}"><i class="bi bi-download"></i> Download Estimate</a></li>
+          <li><a class="dropdown-item" href="{% url 'estimate_pdf_download' estimate.id %}?contract=1"><i class="bi bi-file-earmark-text"></i> Download as Contract</a></li>
         </ul>
       </div>
-      <button id="openEmailModal" type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#emailModal">Enviar al Cliente</button>
+      <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#emailModal">
+        <i class="bi bi-envelope"></i> Send to Client
+      </button>
       {% if estimate.proposal and estimate.proposal.client_view_token %}
-        <a href="{% url 'proposal_public' estimate.proposal.client_view_token %}" target="_blank" class="btn btn-outline-secondary">Ver Público</a>
-      {% else %}
-        <button type="button" class="btn btn-outline-secondary" disabled title="Envía primero al cliente para generar el enlace público">Ver Público</button>
+        <a href="{% url 'proposal_public' estimate.proposal.client_view_token %}" target="_blank" class="btn btn-outline-secondary">
+          <i class="bi bi-eye"></i> View Public Link
+        </a>
       {% endif %}
     </div>
   </div>
 
   {% if messages %}
     {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     {% endfor %}
   {% endif %}
 
   <div class="row">
     <div class="col-lg-8">
       <div class="card mb-4">
-        <div class="card-header">Partidas</div>
+        <div class="card-header d-flex justify-content-between"><span><i class="bi bi-list-check"></i> Line Items</span><span class="badge bg-secondary">{{ lines|length }} items</span></div>
         <div class="table-responsive">
-          <table class="table table-sm cost-table align-middle">
-            <thead>
-              <tr>
-                <th>Code</th>
-                <th>Descripción</th>
-                <th class="text-end">Qty</th>
-                <th>UOM</th>
-                <th class="text-end">Unit Price</th>
-                <th class="text-end">Total</th>
-              </tr>
-            </thead>
+          <table class="table table-sm cost-table align-middle mb-0">
+            <thead><tr><th>Code</th><th>Description</th><th class="text-end">Qty</th><th>UOM</th><th class="text-end">Unit Price</th><th class="text-end">Total</th></tr></thead>
             <tbody>
             {% for line in lines %}
-              <tr>
-                <td>{{ line.cost_code.code }}</td>
-                <td>{{ line.description|default:line.cost_code.name }}</td>
-                <td class="text-end">{{ line.qty }}</td>
-                <td>{{ line.unit }}</td>
-                <td class="text-end">${{ line.get_effective_unit_price|floatformat:2 }}</td>
-                <td class="text-end">${{ line.direct_cost|floatformat:2 }}</td>
-              </tr>
+              <tr><td><code>{{ line.cost_code.code }}</code></td><td>{{ line.description|default:line.cost_code.name }}</td><td class="text-end">{{ line.qty|floatformat:2 }}</td><td>{{ line.unit }}</td><td class="text-end">${{ line.get_effective_unit_price|floatformat:2 }}</td><td class="text-end"><strong>${{ line.direct_cost|floatformat:2 }}</strong></td></tr>
             {% empty %}
-              <tr><td colspan="6" class="text-center text-muted">Sin partidas</td></tr>
+              <tr><td colspan="6" class="text-center text-muted py-4">No line items</td></tr>
             {% endfor %}
             </tbody>
+            <tfoot class="table-light"><tr><td colspan="5" class="text-end"><strong>Subtotal:</strong></td><td class="text-end"><strong>${{ direct|floatformat:2 }}</strong></td></tr></tfoot>
           </table>
         </div>
       </div>
     </div>
     <div class="col-lg-4">
-      <div class="total-box">
-        <h5 class="mb-3">Resumen Financiero</h5>
+      <div class="total-box mb-3">
+        <h5 class="mb-3"><i class="bi bi-calculator"></i> Financial Summary</h5>
         <ul class="list-unstyled mb-2">
-          <li class="d-flex justify-content-between"><span>Costos Directos</span><strong>${{ direct|floatformat:2 }}</strong></li>
-          <li class="d-flex justify-content-between"><span>Markup Material</span><strong>{{ estimate.markup_material }}%</strong></li>
-          <li class="d-flex justify-content-between"><span>Markup Mano Obra</span><strong>{{ estimate.markup_labor }}%</strong></li>
-          <li class="d-flex justify-content-between"><span>Overhead</span><strong>{{ estimate.overhead_pct }}%</strong></li>
-          <li class="d-flex justify-content-between"><span>Profit Objetivo</span><strong>{{ estimate.target_profit_pct }}%</strong></li>
+          <li class="d-flex justify-content-between py-1"><span>Direct Costs</span><strong>${{ direct|floatformat:2 }}</strong></li>
+          <li class="d-flex justify-content-between py-1 text-muted small"><span>Material Markup</span><span>{{ estimate.markup_material }}%</span></li>
+          <li class="d-flex justify-content-between py-1 text-muted small"><span>Labor Markup</span><span>{{ estimate.markup_labor }}%</span></li>
+          <li class="d-flex justify-content-between py-1 text-muted small"><span>Overhead</span><span>{{ estimate.overhead_pct }}%</span></li>
+          <li class="d-flex justify-content-between py-1 text-muted small"><span>Target Profit</span><span>{{ estimate.target_profit_pct }}%</span></li>
         </ul>
-        <div class="text-center mt-3">
-          <h4 class="fw-bold">Propuesto: ${{ proposed_price|floatformat:2 }}</h4>
-        </div>
-        
-        <!-- Approval Status & Action -->
-        <hr class="my-3">
-        <div class="text-center">
-          {% if estimate.approved %}
-            <div class="alert alert-success mb-2 py-2">
-              <i class="bi bi-check-circle-fill"></i> <strong>{% trans "Approved" %}</strong>
-            </div>
-            <small class="text-muted">{% trans "Budget lines have been created for this estimate." %}</small>
-            
-            <!-- Contract Management -->
-            {% if estimate.contract %}
-            <div class="mt-3">
-              <a href="{% url 'contract_edit' estimate.contract.id %}" class="btn btn-primary btn-sm w-100 mb-2">
-                <i class="bi bi-file-earmark-text"></i> {% trans "Edit Contract" %}
-                <span class="badge bg-light text-dark ms-1">{{ estimate.contract.get_status_display }}</span>
-              </a>
-            </div>
-            {% endif %}
-            
-            <!-- Regenerate PDF button -->
-            <form method="post" class="mt-2">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="regenerate_pdf">
-              <button type="submit" class="btn btn-outline-primary btn-sm">
-                <i class="bi bi-arrow-clockwise"></i> {% trans "Regenerate PDF" %}
-              </button>
-            </form>
-          {% else %}
-            <div class="alert alert-warning mb-2 py-2">
-              <i class="bi bi-clock"></i> <strong>{% trans "Pending Approval" %}</strong>
-            </div>
-            <form method="post" class="mt-2">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="approve_manual">
-              <button type="submit" class="btn btn-success btn-sm w-100" 
-                      onclick="return confirm('{% trans "Approve this estimate? This will create budget lines with profit margin deducted and save the contract PDF." %}');">
-                <i class="bi bi-check-lg"></i> {% trans "Approve Manually" %}
-              </button>
-            </form>
-            <p class="text-muted small mt-2">{% trans "Approving will create budget lines automatically." %}</p>
-          {% endif %}
-        </div>
+        <hr>
+        <div class="text-center"><span class="text-muted">Proposed Price</span><h3 class="fw-bold text-primary mb-0">${{ proposed_price|floatformat:2 }}</h3></div>
       </div>
       
-      <!-- Budget Preview (if not approved) -->
+      <div class="card mb-3"><div class="card-body">
+        {% if estimate.approved %}
+          <div class="alert alert-success mb-3 py-2 text-center"><i class="bi bi-check-circle-fill"></i> <strong>Approved</strong></div>
+          {% if estimate.contract %}
+          <div class="mb-3">
+            <a href="{% url 'contract_edit' estimate.contract.id %}" class="btn btn-primary w-100 mb-2"><i class="bi bi-file-earmark-text"></i> Edit Contract <span class="badge bg-light text-dark ms-1">{{ estimate.contract.get_status_display }}</span></a>
+            {% if estimate.contract.client_view_token %}
+            <a href="{% url 'contract_client_view' token=estimate.contract.client_view_token %}" target="_blank" class="btn btn-outline-primary w-100"><i class="bi bi-link-45deg"></i> Client Signing Link</a>
+            {% endif %}
+          </div>
+          {% endif %}
+          <form method="post">{% csrf_token %}<input type="hidden" name="action" value="regenerate_pdf"><button type="submit" class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-arrow-clockwise"></i> Regenerate PDF</button></form>
+        {% else %}
+          <div class="alert alert-warning mb-3 py-2 text-center"><i class="bi bi-clock"></i> <strong>Pending Approval</strong></div>
+          {% if not estimate.proposal or not estimate.proposal.client_view_token %}
+          <div class="action-card mb-3">
+            <h5 class="mb-2"><i class="bi bi-send"></i> Ready to Share?</h5>
+            <p class="small opacity-75 mb-3">Publish this estimate to the client portal.</p>
+            <button type="button" class="btn btn-light w-100" data-bs-toggle="modal" data-bs-target="#emailModal"><i class="bi bi-envelope-paper"></i> Send to Client</button>
+          </div>
+          {% else %}
+          <div class="alert alert-info mb-3"><i class="bi bi-check-circle"></i> <strong>Published</strong><br><small>Client can view and approve.</small></div>
+          {% endif %}
+          <hr>
+          <p class="text-muted small text-center mb-2">Or approve manually:</p>
+          <form method="post">{% csrf_token %}<input type="hidden" name="action" value="approve_manual"><button type="submit" class="btn btn-success w-100" onclick="return confirm('Approve this estimate? This will create budget lines and generate the contract.');"><i class="bi bi-check-lg"></i> Approve Manually</button></form>
+          <p class="text-muted small mt-2 text-center">This will create budget lines automatically.</p>
+        {% endif %}
+      </div></div>
+      
       {% if budget_preview and not estimate.approved %}
-      <div class="card mt-3">
-        <div class="card-header bg-info text-white py-2">
-          <i class="bi bi-calculator"></i> {% trans "Budget Preview" %} <small>({{ estimate.target_profit_pct }}% {% trans "profit deducted" %})</small>
-        </div>
+      <div class="card">
+        <div class="card-header bg-info text-white py-2"><i class="bi bi-calculator"></i> Budget Preview <small>({{ estimate.target_profit_pct }}% profit deducted)</small></div>
         <div class="table-responsive">
           <table class="table table-sm mb-0">
-            <thead>
-              <tr class="small">
-                <th>{% trans "Cost Code" %}</th>
-                <th class="text-end">{% trans "Estimate" %}</th>
-                <th class="text-end">{% trans "Budget" %}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for item in budget_preview %}
-              <tr class="small">
-                <td>{{ item.cost_code }}</td>
-                <td class="text-end">${{ item.estimate_price|floatformat:2 }}</td>
-                <td class="text-end text-success">${{ item.budget_amount|floatformat:2 }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
+            <thead><tr class="small"><th>Cost Code</th><th class="text-end">Estimate</th><th class="text-end">Budget</th></tr></thead>
+            <tbody>{% for item in budget_preview %}<tr class="small"><td>{{ item.cost_code }}</td><td class="text-end">${{ item.estimate_price|floatformat:2 }}</td><td class="text-end text-success">${{ item.budget_amount|floatformat:2 }}</td></tr>{% endfor %}</tbody>
           </table>
         </div>
       </div>
@@ -180,38 +143,20 @@
     </div>
   </div>
 
-  <!-- Modal Email -->
-  <div class="modal fade" id="emailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal fade" id="emailModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Enviar Cotización por Email</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
-        <div class="modal-body" id="emailModalBody">
-          <div class="text-center text-muted py-5" id="emailLoading">
-            <div class="spinner-border" role="status"></div>
-            <p class="mt-3 mb-0">Cargando formulario...</p>
-          </div>
-        </div>
+        <div class="modal-header"><h5 class="modal-title"><i class="bi bi-envelope"></i> Send Estimate to Client</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body" id="emailModalBody"><div class="text-center text-muted py-5"><div class="spinner-border"></div><p class="mt-3 mb-0">Loading form...</p></div></div>
       </div>
     </div>
   </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-(function() {
-  const modal = document.getElementById('emailModal');
-  modal.addEventListener('show.bs.modal', function() {
-    const body = document.getElementById('emailModalBody');
-    const loading = document.getElementById('emailLoading');
-    fetch("{% url 'estimate_send_email' estimate.id %}?partial=1")
-      .then(r => r.text())
-      .then(html => { body.innerHTML = html; })
-      .catch(err => { body.innerHTML = '<div class="alert alert-danger">Error cargando formulario.</div>'; console.error(err); });
-  });
-})();
+document.getElementById('emailModal').addEventListener('show.bs.modal', function() {
+  fetch("{% url 'estimate_send_email' estimate.id %}?partial=1").then(r=>r.text()).then(html=>{document.getElementById('emailModalBody').innerHTML=html;}).catch(e=>{document.getElementById('emailModalBody').innerHTML='<div class="alert alert-danger">Error loading form.</div>';});
+});
 </script>
 </body>
 </html>

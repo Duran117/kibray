@@ -1694,14 +1694,352 @@ def generate_signed_contract_pdf_reportlab(contract: "Contract") -> bytes:
     return buffer.getvalue()
 
 
+def generate_changeorder_pdf_reportlab(changeorder: "ChangeOrder") -> bytes:
+    """Generate professional Change Order PDF using ReportLab."""
+    from reportlab.lib.pagesizes import LETTER
+    from reportlab.lib.units import inch
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
+    
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=LETTER,
+                           leftMargin=0.6*inch, rightMargin=0.6*inch,
+                           topMargin=0.5*inch, bottomMargin=0.5*inch)
+    
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    title_style = ParagraphStyle(
+        'Title', parent=styles['Heading1'], fontSize=20,
+        textColor=colors.HexColor('#1e3a5f'), alignment=TA_CENTER, spaceAfter=6
+    )
+    header_style = ParagraphStyle(
+        'Header', parent=styles['Heading2'], fontSize=12,
+        textColor=colors.HexColor('#1e3a5f'), spaceBefore=16, spaceAfter=8
+    )
+    normal_style = ParagraphStyle(
+        'Normal', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#374151')
+    )
+    small_style = ParagraphStyle(
+        'Small', parent=styles['Normal'], fontSize=8, textColor=colors.HexColor('#64748b')
+    )
+    
+    elements = []
+    
+    # === LETTERHEAD ===
+    letterhead_data = [
+        [Paragraph(f"<b>{COMPANY_INFO['name'].upper()}</b>", 
+                   ParagraphStyle('Company', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#1e3a5f'))),
+         Paragraph(f"{COMPANY_INFO['address']}<br/>{COMPANY_INFO['phone']}<br/>{COMPANY_INFO['email']}", small_style)]
+    ]
+    letterhead = Table(letterhead_data, colWidths=[4*inch, 3*inch])
+    letterhead.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+        ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor('#1e3a5f')),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+    ]))
+    elements.append(letterhead)
+    elements.append(Spacer(1, 20))
+    
+    # === TITLE ===
+    elements.append(Paragraph("<b>CHANGE ORDER</b>", title_style))
+    elements.append(Paragraph(f"Document #CO-{changeorder.id:05d}", 
+                              ParagraphStyle('Subtitle', parent=normal_style, alignment=TA_CENTER)))
+    elements.append(Spacer(1, 16))
+    
+    # === STATUS BADGE ===
+    status = changeorder.status.upper() if changeorder.status else "PENDING"
+    status_color = colors.HexColor('#059669') if status == 'APPROVED' else colors.HexColor('#f59e0b')
+    status_table = Table([[Paragraph(f"<b>{status}</b>", 
+                          ParagraphStyle('Status', parent=normal_style, textColor=colors.white, alignment=TA_CENTER))]], 
+                         colWidths=[1.5*inch])
+    status_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, 0), status_color),
+        ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+        ('TOPPADDING', (0, 0), (0, 0), 6),
+        ('BOTTOMPADDING', (0, 0), (0, 0), 6),
+        ('LEFTPADDING', (0, 0), (0, 0), 12),
+        ('RIGHTPADDING', (0, 0), (0, 0), 12),
+    ]))
+    elements.append(status_table)
+    elements.append(Spacer(1, 16))
+    
+    # === PROJECT & CO INFO ===
+    project = changeorder.project
+    pricing_type = "Fixed Price" if changeorder.pricing_type == "FIXED" else "Time & Materials"
+    
+    info_data = [
+        [Paragraph("<b>PROJECT INFORMATION</b>", header_style), Paragraph("<b>CHANGE ORDER DETAILS</b>", header_style)],
+        [Paragraph(f"<b>Project:</b> {project.name if project else '-'}", normal_style),
+         Paragraph(f"<b>Date Created:</b> {changeorder.date_created.strftime('%B %d, %Y') if changeorder.date_created else '-'}", normal_style)],
+        [Paragraph(f"<b>Project Code:</b> {project.project_code if project else '-'}", normal_style),
+         Paragraph(f"<b>Pricing Type:</b> {pricing_type}", normal_style)],
+        [Paragraph(f"<b>Client:</b> {project.client if project else '-'}", normal_style),
+         Paragraph(f"<b>Amount:</b> <font color='#059669'><b>${changeorder.amount:,.2f}</b></font>", normal_style)],
+    ]
+    
+    info_table = Table(info_data, colWidths=[3.5*inch, 3.5*inch])
+    info_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('LINEBELOW', (0, 0), (-1, 0), 1, colors.HexColor('#e2e8f0')),
+    ]))
+    elements.append(info_table)
+    elements.append(Spacer(1, 16))
+    
+    # === SCOPE OF WORK ===
+    elements.append(Paragraph("<b>SCOPE OF WORK</b>", header_style))
+    desc_style = ParagraphStyle('Desc', parent=normal_style, leftIndent=10, borderColor=colors.HexColor('#1e3a5f'),
+                                 borderWidth=0, borderPadding=8)
+    description = changeorder.description or "No description provided."
+    elements.append(Paragraph(description.replace('\n', '<br/>'), desc_style))
+    elements.append(Spacer(1, 20))
+    
+    # === TERMS & CONDITIONS ===
+    elements.append(Paragraph("<b>TERMS & CONDITIONS</b>", header_style))
+    terms = [
+        "1. This Change Order becomes effective upon signature by both parties.",
+        "2. Work described herein is in addition to the original contract scope.",
+        "3. Payment terms follow the original contract unless otherwise specified.",
+        "4. Any additional changes require a new Change Order.",
+        "5. This Change Order is subject to the terms of the original contract agreement."
+    ]
+    for term in terms:
+        elements.append(Paragraph(term, small_style))
+    elements.append(Spacer(1, 24))
+    
+    # === SIGNATURES ===
+    elements.append(Paragraph("<b>AUTHORIZATION & SIGNATURES</b>", header_style))
+    
+    signed_by = changeorder.signed_by or "_________________________"
+    signed_date = changeorder.signed_at.strftime('%B %d, %Y') if changeorder.signed_at else "_______________"
+    
+    sig_data = [
+        [Paragraph("<b>CLIENT SIGNATURE</b>", small_style), Paragraph("<b>CONTRACTOR SIGNATURE</b>", small_style)],
+        [Paragraph("<br/><br/>_________________________", normal_style), Paragraph("<br/><br/>_________________________", normal_style)],
+        [Paragraph(f"{signed_by}", normal_style), Paragraph(f"{COMPANY_INFO['name']}", normal_style)],
+        [Paragraph(f"Date: {signed_date}", small_style), Paragraph("Date: _______________", small_style)],
+    ]
+    
+    sig_table = Table(sig_data, colWidths=[3.5*inch, 3.5*inch])
+    sig_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('BOX', (0, 0), (0, -1), 1, colors.HexColor('#d1d5db')),
+        ('BOX', (1, 0), (1, -1), 1, colors.HexColor('#d1d5db')),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f8fafc')),
+    ]))
+    elements.append(sig_table)
+    elements.append(Spacer(1, 24))
+    
+    # === FOOTER ===
+    hash_data = {"id": changeorder.id, "amount": str(changeorder.amount), "project": project.name if project else ""}
+    doc_hash = _generate_document_hash(hash_data)
+    
+    footer_text = f"Document Hash: {doc_hash} | Generated: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    if changeorder.signed_ip:
+        footer_text += f" | Signing IP: {changeorder.signed_ip}"
+    
+    elements.append(Paragraph(footer_text, ParagraphStyle('Footer', parent=small_style, alignment=TA_CENTER)))
+    elements.append(Paragraph(f"<i>This document was electronically generated by {COMPANY_INFO['name']}.</i>", 
+                              ParagraphStyle('FooterNote', parent=small_style, alignment=TA_CENTER)))
+    
+    doc.build(elements)
+    return buffer.getvalue()
+
+
+def generate_colorsample_pdf_reportlab(colorsample: "ColorSample") -> bytes:
+    """Generate professional Color Sample Approval PDF using ReportLab."""
+    from reportlab.lib.pagesizes import LETTER
+    from reportlab.lib.units import inch
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
+    
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=LETTER,
+                           leftMargin=0.6*inch, rightMargin=0.6*inch,
+                           topMargin=0.5*inch, bottomMargin=0.5*inch)
+    
+    styles = getSampleStyleSheet()
+    
+    # Custom styles with purple theme
+    title_style = ParagraphStyle(
+        'Title', parent=styles['Heading1'], fontSize=20,
+        textColor=colors.HexColor('#7c3aed'), alignment=TA_CENTER, spaceAfter=6
+    )
+    header_style = ParagraphStyle(
+        'Header', parent=styles['Heading2'], fontSize=12,
+        textColor=colors.HexColor('#7c3aed'), spaceBefore=16, spaceAfter=8
+    )
+    normal_style = ParagraphStyle(
+        'Normal', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#374151')
+    )
+    small_style = ParagraphStyle(
+        'Small', parent=styles['Normal'], fontSize=8, textColor=colors.HexColor('#64748b')
+    )
+    
+    elements = []
+    
+    # === LETTERHEAD ===
+    letterhead_data = [
+        [Paragraph(f"<b>{COMPANY_INFO['name'].upper()}</b>", 
+                   ParagraphStyle('Company', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#7c3aed'))),
+         Paragraph(f"{COMPANY_INFO['address']}<br/>{COMPANY_INFO['phone']}<br/>{COMPANY_INFO['email']}", small_style)]
+    ]
+    letterhead = Table(letterhead_data, colWidths=[4*inch, 3*inch])
+    letterhead.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+        ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor('#7c3aed')),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+    ]))
+    elements.append(letterhead)
+    elements.append(Spacer(1, 20))
+    
+    # === TITLE ===
+    elements.append(Paragraph("<b>COLOR SAMPLE APPROVAL</b>", title_style))
+    sample_num = colorsample.sample_number or colorsample.id
+    elements.append(Paragraph(f"Sample #{sample_num} | Version {getattr(colorsample, 'version', 1)}", 
+                              ParagraphStyle('Subtitle', parent=normal_style, alignment=TA_CENTER)))
+    elements.append(Spacer(1, 16))
+    
+    # === STATUS BADGE ===
+    status = colorsample.status.upper() if colorsample.status else "PENDING"
+    status_color = colors.HexColor('#059669') if status == 'APPROVED' else colors.HexColor('#f59e0b')
+    status_table = Table([[Paragraph(f"<b>✓ {status}</b>", 
+                          ParagraphStyle('Status', parent=normal_style, textColor=colors.white, alignment=TA_CENTER))]], 
+                         colWidths=[1.5*inch])
+    status_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, 0), status_color),
+        ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+        ('TOPPADDING', (0, 0), (0, 0), 6),
+        ('BOTTOMPADDING', (0, 0), (0, 0), 6),
+    ]))
+    elements.append(status_table)
+    elements.append(Spacer(1, 20))
+    
+    # === COLOR INFORMATION ===
+    elements.append(Paragraph("<b>COLOR DETAILS</b>", header_style))
+    
+    color_data = [
+        [Paragraph("<b>Color Code</b>", small_style), Paragraph("<b>Color Name</b>", small_style), 
+         Paragraph("<b>Brand</b>", small_style), Paragraph("<b>Finish</b>", small_style)],
+        [Paragraph(f"<font size='14'><b>{colorsample.code or '-'}</b></font>", normal_style),
+         Paragraph(f"{colorsample.name or '-'}", normal_style),
+         Paragraph(f"{colorsample.brand or '-'}", normal_style),
+         Paragraph(f"{colorsample.finish or '-'}", normal_style)],
+    ]
+    
+    color_table = Table(color_data, colWidths=[1.8*inch, 2*inch, 1.7*inch, 1.5*inch])
+    color_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#faf5ff')),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e9d5ff')),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(color_table)
+    elements.append(Spacer(1, 16))
+    
+    # === PROJECT & LOCATION ===
+    project = colorsample.project
+    elements.append(Paragraph("<b>PROJECT & LOCATION</b>", header_style))
+    
+    project_data = [
+        [Paragraph(f"<b>Project:</b> {project.name if project else '-'}", normal_style),
+         Paragraph(f"<b>Project Code:</b> {project.project_code if project else '-'}", normal_style)],
+        [Paragraph(f"<b>Application Location:</b> {colorsample.room_location or 'Not specified'}", normal_style),
+         Paragraph(f"<b>Room Group:</b> {getattr(colorsample, 'room_group', '-') or '-'}", normal_style)],
+    ]
+    
+    project_table = Table(project_data, colWidths=[3.5*inch, 3.5*inch])
+    project_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    elements.append(project_table)
+    elements.append(Spacer(1, 16))
+    
+    # === NOTES ===
+    if colorsample.notes:
+        elements.append(Paragraph("<b>NOTES</b>", header_style))
+        elements.append(Paragraph(colorsample.notes.replace('\n', '<br/>'), normal_style))
+        elements.append(Spacer(1, 16))
+    
+    # === APPROVAL SECTION ===
+    elements.append(Paragraph("<b>CLIENT APPROVAL</b>", header_style))
+    
+    signed_name = colorsample.client_signed_name or "_________________________"
+    signed_date = colorsample.client_signed_at.strftime('%B %d, %Y at %I:%M %p') if colorsample.client_signed_at else "_______________"
+    
+    approval_data = [
+        [Paragraph("<b>Approved By:</b>", small_style), Paragraph(f"{signed_name}", normal_style)],
+        [Paragraph("<b>Approval Date:</b>", small_style), Paragraph(f"{signed_date}", normal_style)],
+        [Paragraph("<b>Approval ID:</b>", small_style), Paragraph(f"#{colorsample.id}", normal_style)],
+    ]
+    
+    approval_table = Table(approval_data, colWidths=[1.5*inch, 5.5*inch])
+    approval_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f0fdf4')),
+        ('BOX', (0, 0), (-1, -1), 2, colors.HexColor('#059669')),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('LEFTPADDING', (0, 0), (-1, -1), 12),
+    ]))
+    elements.append(approval_table)
+    elements.append(Spacer(1, 24))
+    
+    # === IMPORTANT NOTICE ===
+    notice_style = ParagraphStyle('Notice', parent=small_style, backColor=colors.HexColor('#fef3c7'),
+                                   borderColor=colors.HexColor('#fbbf24'), borderWidth=1, borderPadding=8)
+    elements.append(Paragraph(
+        "<b>Important:</b> Color appearance may vary based on lighting conditions, surface texture, and surrounding colors. "
+        "A small test application is recommended before full application. Final color should be verified in natural daylight.",
+        notice_style
+    ))
+    elements.append(Spacer(1, 20))
+    
+    # === FOOTER ===
+    hash_data = {"id": colorsample.id, "code": colorsample.code, "project": project.name if project else ""}
+    doc_hash = _generate_document_hash(hash_data)
+    
+    footer_text = f"Document Hash: {doc_hash} | Generated: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    if colorsample.approval_ip:
+        footer_text += f" | Signing IP: {colorsample.approval_ip}"
+    
+    elements.append(Paragraph(footer_text, ParagraphStyle('Footer', parent=small_style, alignment=TA_CENTER)))
+    elements.append(Paragraph(f"<i>This document was electronically generated by {COMPANY_INFO['name']}.</i>", 
+                              ParagraphStyle('FooterNote', parent=small_style, alignment=TA_CENTER)))
+    
+    doc.build(elements)
+    return buffer.getvalue()
+
+
 # Convenience functions
 def generate_signed_changeorder_pdf(changeorder: "ChangeOrder") -> bytes:
     """Generate PDF for signed Change Order."""
+    if HAS_REPORTLAB:
+        return generate_changeorder_pdf_reportlab(changeorder)
     return PDFDocumentGenerator.generate_changeorder_pdf(changeorder)
 
 
 def generate_signed_colorsample_pdf(colorsample: "ColorSample") -> bytes:
     """Generate PDF for signed Color Sample."""
+    if HAS_REPORTLAB:
+        return generate_colorsample_pdf_reportlab(colorsample)
     return PDFDocumentGenerator.generate_colorsample_pdf(colorsample)
 
 

@@ -633,22 +633,28 @@
         <!-- BOTONES -->
         <footer class="co-actions">
             <a href="{% url 'changeorder_board' %}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Volver al Board
+                <i class="bi bi-arrow-left"></i> Back to Board
+            </a>
+            <a href="{% url 'changeorder_pdf_view' changeorder_id=changeorder.id %}" class="btn btn-outline" style="border-color: #dc2626; color: #dc2626;" target="_blank">
+                <i class="bi bi-file-pdf"></i> View PDF
+            </a>
+            <a href="{% url 'changeorder_pdf_download' changeorder_id=changeorder.id %}" class="btn btn-outline" style="border-color: #dc2626; color: #dc2626;">
+                <i class="bi bi-download"></i> Download PDF
             </a>
             <a href="{% url 'changeorder_cost_breakdown' changeorder.id %}" class="btn btn-outline" style="border-color: #8b5cf6; color: #8b5cf6;">
-                <i class="bi bi-calculator"></i> Ver Desglose de Costos
+                <i class="bi bi-calculator"></i> View Cost Breakdown
             </a>
             {% if changeorder.status in 'billed,paid' %}
             <a href="{% url 'changeorder_billing_history' changeorder.id %}" class="btn btn-outline" style="border-color: #059669; color: #059669;">
-                <i class="bi bi-receipt-cutoff"></i> Ver Historial de Facturación
+                <i class="bi bi-receipt-cutoff"></i> View Billing History
             </a>
             {% endif %}
             <a href="{% url 'changeorder_edit' changeorder.id %}" class="btn btn-primary">
-                <i class="bi bi-pencil"></i> Editar
+                <i class="bi bi-pencil"></i> Edit
             </a>
             {% if changeorder.status == 'approved' %}
             <button class="btn btn-success" onclick="sendToClient({{ changeorder.id }})">
-                <i class="bi bi-send"></i> Enviar al Cliente
+                <i class="bi bi-send"></i> Send to Client
             </button>
             {% endif %}
         </footer>

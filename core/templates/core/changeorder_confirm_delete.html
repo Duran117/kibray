@@ -1,6 +1,7 @@
 {% extends "core/base_modern.html" %}
+{% load i18n %}
 
-{% block title %}Eliminar Change Order - Kibray{% endblock %}
+{% block title %}{% trans "Delete Change Order" %} - Kibray{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -99,30 +100,30 @@
             <i class="bi bi-exclamation-triangle"></i>
         </div>
         
-        <h2 class="delete-title">¿Eliminar Change Order?</h2>
+        <h2 class="delete-title">{% trans "Delete Change Order?" %}</h2>
         <p class="delete-warning">
-            Esta acción no se puede deshacer. Todos los datos relacionados con este Change Order se perderán permanentemente.
+            {% trans "This action cannot be undone. All data related to this Change Order will be permanently deleted." %}
         </p>
         
         <div class="co-details">
             <div class="co-details-row">
-                <span class="co-details-label">CO #:</span>
+                <span class="co-details-label">{% trans "CO #" %}:</span>
                 <span class="co-details-value">CO-{{ changeorder.id|stringformat:"04d" }}</span>
             </div>
             <div class="co-details-row">
-                <span class="co-details-label">Proyecto:</span>
+                <span class="co-details-label">{% trans "Project" %}:</span>
                 <span class="co-details-value">{{ changeorder.project.name }}</span>
             </div>
             <div class="co-details-row">
-                <span class="co-details-label">Monto:</span>
+                <span class="co-details-label">{% trans "Amount" %}:</span>
                 <span class="co-details-value">${{ changeorder.amount|floatformat:2 }}</span>
             </div>
             <div class="co-details-row">
-                <span class="co-details-label">Estado:</span>
+                <span class="co-details-label">{% trans "Status" %}:</span>
                 <span class="co-details-value">{{ changeorder.get_status_display }}</span>
             </div>
             <div class="co-details-row">
-                <span class="co-details-label">Descripción:</span>
+                <span class="co-details-label">{% trans "Description" %}:</span>
                 <span class="co-details-value">{{ changeorder.description|truncatewords:15 }}</span>
             </div>
         </div>
@@ -131,10 +132,10 @@
             {% csrf_token %}
             <div class="btn-group-delete">
                 <a href="{% url 'changeorder_board' %}" class="btn btn-secondary">
-                    <i class="bi bi-x-circle"></i> Cancelar
+                    <i class="bi bi-x-circle"></i> {% trans "Cancel" %}
                 </a>
                 <button type="submit" class="btn btn-danger">
-                    <i class="bi bi-trash"></i> Sí, Eliminar
+                    <i class="bi bi-trash"></i> {% trans "Yes, Delete" %}
                 </button>
             </div>
         </form>

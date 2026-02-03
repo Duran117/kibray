@@ -43,10 +43,15 @@
             {% trans "Review" %}
         </a>
         <!-- PDF Download -->
-        <a href="{% url 'colorsample_pdf_view' sample.id %}" target="_blank"
+        <a href="{% url 'colorsample_pdf_view' colorsample_id=sample.id %}" target="_blank"
            class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium">
             <i class="bi bi-file-pdf"></i>
             {% trans "PDF" %}
+        </a>
+        <a href="{% url 'colorsample_pdf_download' colorsample_id=sample.id %}" 
+           class="inline-flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition font-medium">
+            <i class="bi bi-download"></i>
+            {% trans "Download" %}
         </a>
         {% if user.is_staff or user.profile.role == 'project_manager' %}
         <a href="{% url 'color_sample_edit' sample.id %}" 

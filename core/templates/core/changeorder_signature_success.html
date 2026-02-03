@@ -137,6 +137,21 @@
             <img src="{{ changeorder.signature_image.url }}" alt="Digital Signature">
         </div>
         {% endif %}
+        
+        <!-- Download PDF Button -->
+        {% if download_token %}
+        <div style="margin-top: 1.5rem; text-align: center;">
+            <a href="{% url 'changeorder_public_pdf_download' changeorder_id=changeorder.id token=download_token %}" 
+               style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; 
+                      background: linear-gradient(135deg, #1e3a5f, #2d5a8a); color: white; 
+                      text-decoration: none; border-radius: 0.5rem; font-weight: 600;
+                      box-shadow: 0 4px 6px rgba(30, 58, 95, 0.3); transition: all 0.2s ease;">
+                <i class="bi bi-file-pdf"></i>
+                {% trans "Download Signed Document" %}
+            </a>
+        </div>
+        {% endif %}
+        
         <div class="back-link">
             <a href="{% url 'dashboard_client' %}?project_id={{ changeorder.project.id }}">
                 <i class="bi bi-arrow-left me-1"></i> {% trans "Return to Dashboard" %}

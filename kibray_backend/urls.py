@@ -421,6 +421,17 @@ urlpatterns = [
         views.color_sample_client_signature_view,
         name="color_sample_client_signature_token",
     ),
+    # Public PDF Downloads (for clients after signing)
+    path(
+        "changeorder/<int:changeorder_id>/pdf/<str:token>/",
+        views.changeorder_public_pdf_download,
+        name="changeorder_public_pdf_download",
+    ),
+    path(
+        "colors/sample/<int:sample_id>/pdf/<str:token>/",
+        views.colorsample_public_pdf_download,
+        name="colorsample_public_pdf_download",
+    ),
     # Client Requests
     path(
         "projects/<int:project_id>/client-requests/new/",
