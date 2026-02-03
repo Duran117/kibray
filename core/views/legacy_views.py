@@ -925,6 +925,21 @@ def dashboard_client(request):
             status__in=['proposed', 'review']
         ).order_by('-created_at')[:5]
 
+        # Contracts pending signature
+        from core.models import Contract
+        pending_contracts = Contract.objects.filter(
+            project=project,
+            status='pending_signature'
+        ).order_by('-created_at')[:5]
+        
+        # Recently signed contracts
+        signed_contracts = Contract.objects.filter(
+            project=project,
+            status__in=['signed', 'active']
+        ).exclude(
+            client_signed_at__isnull=True
+        ).order_by('-client_signed_at')[:3]
+
         # Recent Daily Logs (only published ones for clients)
         from core.models import DailyLog
         recent_daily_logs = DailyLog.objects.filter(
@@ -947,6 +962,8 @@ def dashboard_client(request):
                 "pending_change_orders": pending_change_orders,
                 "signed_change_orders": signed_change_orders,
                 "pending_color_samples": pending_color_samples,
+                "pending_contracts": pending_contracts,
+                "signed_contracts": signed_contracts,
                 "recent_daily_logs": recent_daily_logs,
             }
         )

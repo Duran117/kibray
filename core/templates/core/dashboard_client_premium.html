@@ -223,7 +223,7 @@
      style="animation-delay: {{ forloop.counter0 }}00ms">
     
     <!-- Urgent Actions Banner (if any) -->
-    {% if data.pending_change_orders or data.balance > 0 %}
+    {% if data.pending_contracts or data.pending_change_orders or data.balance > 0 %}
     <div class="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-100 flex items-center justify-between">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
@@ -232,7 +232,9 @@
             <div>
                 <p class="text-sm font-medium text-amber-900">Action Required</p>
                 <p class="text-xs text-amber-700">
-                    {% if data.pending_change_orders %}{{ data.pending_change_orders|length }} document(s) awaiting your signature{% endif %}
+                    {% if data.pending_contracts %}{{ data.pending_contracts|length }} contract(s) ready for signature{% endif %}
+                    {% if data.pending_contracts and data.pending_change_orders %} · {% endif %}
+                    {% if data.pending_change_orders %}{{ data.pending_change_orders|length }} change order(s) awaiting signature{% endif %}
                     {% if data.pending_change_orders and data.balance > 0 %} · {% endif %}
                     {% if data.balance > 0 %}Outstanding balance: ${{ data.balance|floatformat:0|intcomma }}{% endif %}
                 </p>
@@ -525,6 +527,29 @@
                 <div class="space-y-6">
                     <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Your Actions</h3>
                     
+                    <!-- Pending Contracts -->
+                    {% if data.pending_contracts %}
+                    <div class="space-y-2">
+                        {% for contract in data.pending_contracts %}
+                        <a href="{% url 'contract_client_view' token=contract.client_view_token %}" 
+                           class="block p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 elegant-hover group">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-medium text-emerald-700 uppercase tracking-wide">
+                                    <i class="bi bi-file-earmark-text me-1"></i>Contract Ready
+                                </span>
+                                <span class="text-sm font-semibold text-emerald-900">${{ contract.total_amount|floatformat:0|intcomma }}</span>
+                            </div>
+                            <p class="text-sm font-medium text-slate-900 line-clamp-1">{{ contract.contract_number }}</p>
+                            <div class="flex items-center gap-1 mt-2 text-xs text-emerald-600 group-hover:text-emerald-700">
+                                <i class="bi bi-pen"></i>
+                                <span>Review & Sign Contract</span>
+                                <i class="bi bi-arrow-right ml-auto opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
                     <!-- Pending Change Orders -->
                     {% if data.pending_change_orders %}
                     <div class="space-y-2">
@@ -605,9 +630,20 @@
                     </div>
 
                     <!-- Recently Signed -->
-                    {% if data.signed_change_orders %}
+                    {% if data.signed_change_orders or data.signed_contracts %}
                     <div>
                         <p class="text-xs text-slate-400 uppercase tracking-wide mb-3">Recently Completed</p>
+                        {% for contract in data.signed_contracts %}
+                        <div class="flex items-center gap-3 py-2">
+                            <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                                <i class="bi bi-file-earmark-check text-emerald-600"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm text-slate-700">Contract {{ contract.contract_number }} signed</p>
+                                <p class="text-xs text-slate-400">{{ contract.client_signed_at|date:"M d" }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
                         {% for co in data.signed_change_orders %}
                         <div class="flex items-center gap-3 py-2">
                             <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
