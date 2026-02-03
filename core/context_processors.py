@@ -17,10 +17,11 @@ def company(request):
     return {
         "company": {
             "name": "Kibray Paint & Stain LLC",
-            "address_line1": "P.O Box 25881",
-            "city_state_zip": "Silverthorne, CO 80498",
-            "phone": "970-333-4872",
+            "address_line1": "P.O. Box 25881",
+            "city_state_zip": "Silverthorne, CO 80497",
+            "phone": "(970) 333-4872",
             "email": "jduran@kibraypainting.net",
+            "website": "kibraypainting.net",
             "logo_path": "brand/logo.svg",
         }
     }

@@ -40,9 +40,10 @@ logger = logging.getLogger(__name__)
 # Company information for contracts
 COMPANY_INFO = {
     "name": "Kibray Paint & Stain LLC",
-    "address": "Breckenridge, CO",
-    "phone": "(970) 453-7890",
-    "email": "info@kibraypaint.com",
+    "address": "P.O. Box 25881, Silverthorne, CO 80497",
+    "phone": "(970) 333-4872",
+    "email": "jduran@kibraypainting.net",
+    "website": "kibraypainting.net",
     "license": "Licensed & Insured",
 }
 

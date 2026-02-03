@@ -1049,6 +1049,8 @@ urlpatterns = [
     path("lang/<str:code>/", views.set_language_view, name="set_language_code"),
     # Public proposal approval (no login required)
     path("proposals/<str:token>/", views.proposal_public_view, name="proposal_public"),
+    # Staff contract edit view
+    path("contracts/edit/<int:contract_id>/", views.contract_edit_view, name="contract_edit"),
     # Public contract view/sign (no login required)
     path("contracts/<str:token>/", views.contract_client_view, name="contract_client_view"),
 ]

@@ -4936,10 +4936,10 @@ def invoice_detail(request, pk):
     # Company Info (Kibray Paint & Stain LLC)
     company = {
         "name": "Kibray Paint & Stain LLC",
-        "address": "P.O. BOX 25881",
+        "address": "P.O. Box 25881",
         "city_state_zip": "Silverthorne, CO 80497",
-        "phone": "(970) 555-0123",
-        "email": "info@kibraypainting.net",
+        "phone": "(970) 333-4872",
+        "email": "jduran@kibraypainting.net",
         "website": "kibraypainting.net",
         "logo_path": "images/kibray-logo.png",
     }
@@ -14094,6 +14094,100 @@ def proposal_public_view(request, token):
     }
 
     return render(request, "core/proposal_public.html", context)
+
+
+# --- STAFF CONTRACT EDIT VIEW ---
+@login_required
+def contract_edit_view(request, contract_id):
+    """
+    Staff view to edit contract details (dates, payment schedule, etc.)
+    and regenerate PDF.
+    """
+    from core.models import Contract
+    from core.services.contract_service import ContractService
+    from datetime import datetime
+    import json
+    
+    if not request.user.is_staff:
+        messages.error(request, _("You don't have permission to edit contracts."))
+        return redirect("home")
+    
+    contract = get_object_or_404(Contract, id=contract_id)
+    estimate = contract.estimate
+    project = contract.project
+    
+    if request.method == "POST":
+        action = request.POST.get("action")
+        
+        if action == "update_dates":
+            # Update schedule dates
+            start_date_str = request.POST.get("start_date")
+            completion_date_str = request.POST.get("completion_date")
+            
+            try:
+                if start_date_str:
+                    contract.start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+                else:
+                    contract.start_date = None
+                    
+                if completion_date_str:
+                    contract.completion_date = datetime.strptime(completion_date_str, "%Y-%m-%d").date()
+                else:
+                    contract.completion_date = None
+                
+                contract.save(update_fields=["start_date", "completion_date", "updated_at"])
+                messages.success(request, _("Contract dates updated successfully."))
+            except ValueError as e:
+                messages.error(request, _("Invalid date format."))
+        
+        elif action == "update_payment_schedule":
+            # Update payment schedule from JSON
+            try:
+                payment_schedule_json = request.POST.get("payment_schedule", "[]")
+                payment_schedule = json.loads(payment_schedule_json)
+                
+                # Recalculate amounts based on percentages
+                total = float(contract.total_amount)
+                for payment in payment_schedule:
+                    payment["amount"] = str(round(total * payment["percentage"] / 100, 2))
+                
+                contract.payment_schedule = payment_schedule
+                contract.save(update_fields=["payment_schedule", "updated_at"])
+                messages.success(request, _("Payment schedule updated successfully."))
+            except (json.JSONDecodeError, KeyError) as e:
+                messages.error(request, _("Invalid payment schedule format."))
+        
+        elif action == "regenerate_pdf":
+            # Regenerate PDF with current contract data
+            try:
+                result = ContractService.generate_contract_pdf(contract, request.user)
+                if result:
+                    messages.success(request, _("Contract PDF regenerated successfully."))
+                else:
+                    messages.error(request, _("Failed to regenerate PDF."))
+            except Exception as e:
+                messages.error(request, _(f"Error regenerating PDF: {str(e)}"))
+        
+        elif action == "send_to_client":
+            # Mark as ready and get client link
+            if contract.status == 'draft':
+                contract.status = 'pending_signature'
+                contract.save(update_fields=["status", "updated_at"])
+            messages.success(request, _("Contract ready for client signature."))
+        
+        return redirect("contract_edit", contract_id=contract.id)
+    
+    # GET: Display edit form
+    context = {
+        "contract": contract,
+        "estimate": estimate,
+        "project": project,
+        "lines": estimate.lines.select_related("cost_code").all(),
+        "client_url": request.build_absolute_uri(f"/contracts/{contract.client_view_token}/"),
+        "payment_schedule_json": json.dumps(contract.payment_schedule or []),
+    }
+    
+    return render(request, "core/contract_edit.html", context)
 
 
 # --- PUBLIC CONTRACT VIEW (FOR CLIENT SIGNATURE) ---

@@ -52,11 +52,11 @@ except ImportError:
 
 # Company information for letterhead
 COMPANY_INFO = {
-    "name": "Kibray Painting",
-    "address": "North Carolina, USA",
-    "phone": "",
-    "email": "info@kibray.com",
-    "website": "www.kibray.com",
+    "name": "Kibray Paint & Stain LLC",
+    "address": "P.O. Box 25881, Silverthorne, CO 80497",
+    "phone": "(970) 333-4872",
+    "email": "jduran@kibraypainting.net",
+    "website": "kibraypainting.net",
     "license": "Licensed & Insured",
 }
 

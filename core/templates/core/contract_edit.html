@@ -1,0 +1,454 @@
+{% extends "core/base_shell.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Edit Contract" %} - {{ contract.contract_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .contract-header {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+    .contract-header h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+    .contract-header .subtitle {
+        opacity: 0.9;
+        font-size: 0.875rem;
+    }
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .status-draft { background: #fef3c7; color: #92400e; }
+    .status-pending_signature { background: #dbeafe; color: #1e40af; }
+    .status-signed { background: #d1fae5; color: #065f46; }
+    .status-revision_requested { background: #fee2e2; color: #991b1b; }
+    .status-active { background: #d1fae5; color: #065f46; }
+    .status-cancelled { background: #f3f4f6; color: #6b7280; }
+    
+    .card {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+    }
+    .card-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .card-header h2 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #111827;
+        margin: 0;
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .form-group label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.375rem;
+    }
+    .form-control {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: #059669;
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+        border: none;
+    }
+    .btn-primary {
+        background: #059669;
+        color: white;
+    }
+    .btn-primary:hover {
+        background: #047857;
+    }
+    .btn-secondary {
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #d1d5db;
+    }
+    .btn-secondary:hover {
+        background: #e5e7eb;
+    }
+    .btn-outline {
+        background: transparent;
+        color: #059669;
+        border: 1px solid #059669;
+    }
+    .btn-outline:hover {
+        background: #059669;
+        color: white;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    @media (max-width: 640px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    .info-item {
+        padding: 0.75rem;
+        background: #f9fafb;
+        border-radius: 0.5rem;
+    }
+    .info-item .label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+    .info-item .value {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #111827;
+    }
+    
+    .client-link-box {
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-radius: 0.5rem;
+        padding: 1rem;
+    }
+    .client-link-box .url {
+        font-family: monospace;
+        font-size: 0.75rem;
+        background: white;
+        padding: 0.5rem;
+        border-radius: 0.375rem;
+        word-break: break-all;
+        margin: 0.5rem 0;
+    }
+    
+    .payment-schedule-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .payment-schedule-table th,
+    .payment-schedule-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .payment-schedule-table th {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+    }
+    
+    .actions-bar {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .scope-table {
+        width: 100%;
+        font-size: 0.75rem;
+        border-collapse: collapse;
+    }
+    .scope-table th {
+        background: #f3f4f6;
+        padding: 0.5rem;
+        text-align: left;
+        font-weight: 600;
+    }
+    .scope-table td {
+        padding: 0.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .scope-table .text-right {
+        text-align: right;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-4xl">
+    <!-- Header -->
+    <div class="contract-header">
+        <div class="flex justify-between items-start flex-wrap gap-4">
+            <div>
+                <h1>{% trans "Contract" %} {{ contract.contract_number }}</h1>
+                <p class="subtitle">{{ project.name }}</p>
+            </div>
+            <div>
+                <span class="status-badge status-{{ contract.status }}">
+                    {{ contract.get_status_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="p-4 rounded-lg mb-2 {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Contract Info -->
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="bi bi-file-earmark-text me-2"></i>{% trans "Contract Information" %}</h2>
+        </div>
+        <div class="card-body">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="label">{% trans "Estimate" %}</div>
+                    <div class="value">{{ estimate.code }} (v{{ estimate.version }})</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">{% trans "Total Amount" %}</div>
+                    <div class="value">${{ contract.total_amount|floatformat:2 }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">{% trans "Client" %}</div>
+                    <div class="value">{{ project.client|default:"Not specified" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">{% trans "Project Address" %}</div>
+                    <div class="value">{{ project.address|default:"Not specified" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">{% trans "Created" %}</div>
+                    <div class="value">{{ contract.created_at|date:"M d, Y" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">{% trans "Version" %}</div>
+                    <div class="value">v{{ contract.version }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Schedule Dates -->
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="bi bi-calendar-event me-2"></i>{% trans "Project Schedule" %}</h2>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_dates">
+                
+                <div class="info-grid">
+                    <div class="form-group">
+                        <label for="start_date">{% trans "Start Date" %}</label>
+                        <input type="date" 
+                               id="start_date" 
+                               name="start_date" 
+                               class="form-control"
+                               value="{{ contract.start_date|date:'Y-m-d' }}">
+                        <small class="text-gray-500">{% trans "When work is scheduled to begin" %}</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="completion_date">{% trans "Estimated Completion Date" %}</label>
+                        <input type="date" 
+                               id="completion_date" 
+                               name="completion_date" 
+                               class="form-control"
+                               value="{{ contract.completion_date|date:'Y-m-d' }}">
+                        <small class="text-gray-500">{% trans "Estimated substantial completion" %}</small>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg"></i> {% trans "Save Dates" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Payment Schedule -->
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="bi bi-cash-stack me-2"></i>{% trans "Payment Schedule" %}</h2>
+        </div>
+        <div class="card-body">
+            <table class="payment-schedule-table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Payment" %}</th>
+                        <th>{% trans "Percentage" %}</th>
+                        <th>{% trans "Amount" %}</th>
+                        <th>{% trans "Due" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in contract.payment_schedule %}
+                    <tr>
+                        <td>{{ payment.name }}</td>
+                        <td>{{ payment.percentage }}%</td>
+                        <td>${{ payment.amount|floatformat:2 }}</td>
+                        <td>{{ payment.due_trigger }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-gray-500">{% trans "No payment schedule defined" %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="mt-4 text-sm text-gray-600">
+                <i class="bi bi-info-circle me-1"></i>
+                {% trans "Default payment schedule is 33% deposit, 33% at 50% completion, 34% at substantial completion." %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scope of Work Preview -->
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="bi bi-list-check me-2"></i>{% trans "Scope of Work" %}</h2>
+        </div>
+        <div class="card-body">
+            <table class="scope-table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Code" %}</th>
+                        <th>{% trans "Description" %}</th>
+                        <th class="text-right">{% trans "Qty" %}</th>
+                        <th class="text-right">{% trans "Total" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for line in lines %}
+                    <tr>
+                        <td>{{ line.cost_code.code|default:"-" }}</td>
+                        <td>{{ line.description|default:line.cost_code.name }}</td>
+                        <td class="text-right">{{ line.qty|floatformat:1 }} {{ line.unit|default:"EA" }}</td>
+                        <td class="text-right">${{ line.direct_cost|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-gray-500">{% trans "No items" %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Client Link -->
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="bi bi-link-45deg me-2"></i>{% trans "Client Signing Link" %}</h2>
+        </div>
+        <div class="card-body">
+            <div class="client-link-box">
+                <p class="text-sm text-green-800">
+                    <i class="bi bi-shield-check me-1"></i>
+                    {% trans "Share this secure link with your client to view and sign the contract:" %}
+                </p>
+                <div class="url" id="client-url">{{ client_url }}</div>
+                <button type="button" class="btn btn-outline" onclick="copyClientUrl()">
+                    <i class="bi bi-clipboard"></i> {% trans "Copy Link" %}
+                </button>
+            </div>
+            
+            {% if contract.client_signed_at %}
+            <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p class="text-green-800">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <strong>{% trans "Signed by:" %}</strong> {{ contract.client_signed_name }}<br>
+                    <strong>{% trans "Date:" %}</strong> {{ contract.client_signed_at|date:"M d, Y H:i" }}<br>
+                    <strong>{% trans "IP:" %}</strong> {{ contract.client_ip_address }}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Actions Bar -->
+    <div class="actions-bar">
+        <form method="post" class="inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="regenerate_pdf">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-arrow-clockwise"></i> {% trans "Regenerate PDF" %}
+            </button>
+        </form>
+        
+        {% if contract.pdf_file %}
+        <a href="{{ contract.pdf_file.file.url }}" target="_blank" class="btn btn-secondary">
+            <i class="bi bi-file-pdf"></i> {% trans "View PDF" %}
+        </a>
+        {% endif %}
+        
+        <a href="{% url 'estimate_detail' contract.estimate.id %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Estimate" %}
+        </a>
+        
+        <a href="{{ client_url }}" target="_blank" class="btn btn-outline">
+            <i class="bi bi-eye"></i> {% trans "Preview Client View" %}
+        </a>
+    </div>
+</div>
+
+<script>
+function copyClientUrl() {
+    const url = document.getElementById('client-url').textContent;
+    navigator.clipboard.writeText(url).then(() => {
+        alert('{% trans "Link copied to clipboard!" %}');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+    });
+}
+</script>
+{% endblock %}

@@ -114,8 +114,18 @@
             </div>
             <small class="text-muted">{% trans "Budget lines have been created for this estimate." %}</small>
             
+            <!-- Contract Management -->
+            {% if estimate.contract %}
+            <div class="mt-3">
+              <a href="{% url 'contract_edit' estimate.contract.id %}" class="btn btn-primary btn-sm w-100 mb-2">
+                <i class="bi bi-file-earmark-text"></i> {% trans "Edit Contract" %}
+                <span class="badge bg-light text-dark ms-1">{{ estimate.contract.get_status_display }}</span>
+              </a>
+            </div>
+            {% endif %}
+            
             <!-- Regenerate PDF button -->
-            <form method="post" class="mt-3">
+            <form method="post" class="mt-2">
               {% csrf_token %}
               <input type="hidden" name="action" value="regenerate_pdf">
               <button type="submit" class="btn btn-outline-primary btn-sm">
