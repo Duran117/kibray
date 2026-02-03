@@ -152,10 +152,67 @@ from core.services.earned_value import compute_project_ev  # noqa: E402
 from core.services.financial_service import FinancialAnalyticsService  # BI Module 21  # noqa: E402
 
 
+# ===== SECURITY HELPER: Check project access =====
+def _check_user_project_access(user, project):
+    """
+    SECURITY: Verify if a user has access to a specific project.
+    
+    Returns:
+        tuple: (has_access: bool, redirect_url: str or None)
+    
+    Rules:
+        - Staff/superusers can access all projects
+        - Clients can only access projects where they are the contact
+        - Users with explicit ClientProjectAccess can access
+        - Assigned users (if field exists) can access
+    """
+    from core.models import ClientProjectAccess
+    
+    # Staff can access all projects
+    if user.is_staff or user.is_superuser:
+        return True, None
+    
+    # Check explicit granular access
+    has_explicit_access = ClientProjectAccess.objects.filter(
+        user=user, project=project
+    ).exists()
+    if has_explicit_access:
+        return True, None
+    
+    # Check if user is the client contact for this project
+    if project.client:
+        # Check by email
+        if project.client.email and project.client.email == user.email:
+            return True, None
+        # Check by linked user
+        if hasattr(project.client, 'user') and project.client.user == user:
+            return True, None
+        if project.client.user_id == user.id:
+            return True, None
+    
+    # Check if user is assigned to the project (for workers/PMs)
+    if hasattr(project, 'assigned_to') and project.assigned_to.filter(id=user.id).exists():
+        return True, None
+    
+    # No access
+    profile = getattr(user, "profile", None)
+    if profile and profile.role == "client":
+        return False, "dashboard_client"
+    return False, "dashboard"
+# ===== END SECURITY HELPER =====
+
+
 # --- CLIENT REQUESTS ---
 @login_required
 def client_request_create(request, project_id):
     project = get_object_or_404(Project, id=project_id)
+    
+    # SECURITY: Check project access
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("You don't have access to this project."))
+        return redirect(redirect_url)
+    
     if request.method == "POST":
         title = request.POST.get("title")
         description = request.POST.get("description", "")
@@ -178,8 +235,19 @@ def client_requests_list(request, project_id=None):
 
     if project_id:
         project = get_object_or_404(Project, id=project_id)
+        
+        # SECURITY: Check project access
+        has_access, redirect_url = _check_user_project_access(request.user, project)
+        if not has_access:
+            messages.error(request, _("You don't have access to this project."))
+            return redirect(redirect_url)
+        
         qs = ClientRequest.objects.filter(project=project).order_by("-created_at")
     else:
+        # Without project_id, only staff can see all requests
+        if not request.user.is_staff:
+            messages.error(request, _("Access denied."))
+            return redirect("dashboard_client")
         project = None
         qs = ClientRequest.objects.all().select_related("project").order_by("-created_at")
     return render(request, "core/client_requests_list.html", {"project": project, "requests": qs})
@@ -1226,6 +1294,13 @@ def dashboard_view(request):
 @login_required
 def project_pdf_view(request, project_id):
     project = get_object_or_404(Project, id=project_id)
+    
+    # SECURITY: Check project access
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("You don't have access to this project."))
+        return redirect(redirect_url)
+    
     incomes = Income.objects.filter(project=project)
     expenses = Expense.objects.filter(project=project)
     time_entries = TimeEntry.objects.filter(project=project)
@@ -2646,6 +2721,13 @@ def client_financials_view(request, project_id):
 @login_required
 def color_sample_list(request, project_id):
     project = get_object_or_404(Project, id=project_id)
+    
+    # SECURITY: Check project access
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("You don't have access to this project."))
+        return redirect(redirect_url)
+    
     samples = project.color_samples.select_related("created_by").all().order_by("-created_at")
 
     # Calculate status counts before filtering
@@ -2683,10 +2765,12 @@ def color_sample_list(request, project_id):
 @login_required
 def color_sample_create(request, project_id):
     project = get_object_or_404(Project, id=project_id)
-    profile = getattr(request.user, "profile", None)
-    if not (request.user.is_staff or (profile and profile.role in ["client", "project_manager"])):
-        messages.error(request, "Access denied.")
-        return redirect("dashboard")
+    
+    # SECURITY: Check project access
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("You don't have access to this project."))
+        return redirect(redirect_url)
 
     if request.method == "POST":
         form = ColorSampleForm(request.POST, request.FILES)
@@ -2885,6 +2969,13 @@ def floor_plan_list(request, project_id):
     """List all floor plans for a project, grouped by level"""
 
     project = get_object_or_404(Project, id=project_id)
+    
+    # SECURITY: Check project access
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("You don't have access to this project."))
+        return redirect(redirect_url)
+    
     plans = project.floor_plans.all().order_by("level", "name")
 
     # Group plans by level
@@ -2918,10 +3009,13 @@ def floor_plan_list(request, project_id):
 @login_required
 def floor_plan_create(request, project_id):
     project = get_object_or_404(Project, id=project_id)
-    profile = getattr(request.user, "profile", None)
-    if not (request.user.is_staff or (profile and profile.role in ["project_manager", "client"])):
-        messages.error(request, "Acceso denegado.")
-        return redirect("dashboard")
+    
+    # SECURITY: Check project access
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("You don't have access to this project."))
+        return redirect(redirect_url)
+    
     if request.method == "POST":
         form = FloorPlanForm(request.POST, request.FILES)
         if form.is_valid():
@@ -3323,6 +3417,13 @@ def touchup_board(request, project_id):
     from django.core.paginator import Paginator
 
     project = get_object_or_404(Project, id=project_id)
+    
+    # SECURITY: Check project access
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("You don't have access to this project."))
+        return redirect(redirect_url)
+    
     qs = (
         project.tasks.filter(is_touchup=True)
         .select_related("assigned_to", "created_by")
@@ -3457,6 +3558,12 @@ def damage_report_list(request, project_id):
     from core.models import DamagePhoto
 
     project = get_object_or_404(Project, id=project_id)
+    
+    # SECURITY: Check project access
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("You don't have access to this project."))
+        return redirect(redirect_url)
 
     # Handle creation
     if request.method == "POST":
@@ -4330,6 +4437,13 @@ def photo_editor_standalone_view(request):
 @login_required
 def get_approved_colors(request, project_id):
     """API endpoint to get approved colors for a project"""
+    project = get_object_or_404(Project, id=project_id)
+    
+    # SECURITY: Check project access
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        return JsonResponse({"error": "Access denied"}, status=403)
+    
     colors = (
         ColorSample.objects.filter(project_id=project_id, status="approved")
         .values("id", "code", "name", "brand", "finish")
@@ -4652,6 +4766,7 @@ def payroll_summary_view(request):
 
 
 @login_required
+@staff_member_required
 def invoice_builder_view(request, project_id):
     """
     SMART INVOICE CREATION
@@ -5372,6 +5487,7 @@ def invoice_cancel(request, invoice_id):
 
 
 @login_required
+@staff_member_required
 def project_profit_dashboard(request, project_id):
     """
     Project Profit Dashboard: Real-time visibility of margins and financial health.
@@ -5574,6 +5690,7 @@ def costcode_list_view(request):
 
 
 @login_required
+@staff_member_required
 def budget_lines_view(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     form = BudgetLineForm(request.POST or None)
@@ -5589,6 +5706,7 @@ def budget_lines_view(request, project_id):
 
 
 @login_required
+@staff_member_required
 def estimate_create_view(request, project_id):
     import logging
     logger = logging.getLogger(__name__)
@@ -5970,6 +6088,7 @@ def estimate_send_email(request, estimate_id):
 
 
 @login_required
+@staff_member_required
 def daily_log_view(request, project_id):
     """
     Vista para gestionar Daily Logs de un proyecto.
@@ -6314,6 +6433,7 @@ def daily_log_create(request, project_id):
 
 
 @login_required
+@staff_member_required
 def rfi_list_view(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     form = RFIForm(request.POST or None)
@@ -6329,6 +6449,7 @@ def rfi_list_view(request, project_id):
 
 
 @login_required
+@staff_member_required
 def rfi_answer_view(request, rfi_id):
     rfi = get_object_or_404(RFI, pk=rfi_id)
     form = RFIAnswerForm(request.POST or None, instance=rfi)
