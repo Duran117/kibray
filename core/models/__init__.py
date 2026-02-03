@@ -3459,6 +3459,18 @@ class Contract(models.Model):
         help_text="Number of times revisions were requested"
     )
     
+    # Project Schedule - Admin defines these dates
+    start_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Planned project start date"
+    )
+    completion_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Estimated substantial completion date"
+    )
+    
     # Document tracking
     pdf_file = models.ForeignKey(
         'ProjectFile',

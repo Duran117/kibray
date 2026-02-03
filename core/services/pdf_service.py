@@ -842,9 +842,13 @@ def generate_contract_pdf_reportlab(contract: "Contract") -> bytes:
     # =========================================================================
     elements.append(Paragraph("ARTICLE 3: PROJECT SCHEDULE", article_style))
     
+    # Format dates or show placeholder
+    start_date_str = contract.start_date.strftime('%B %d, %Y') if contract.start_date else "To Be Determined"
+    completion_date_str = contract.completion_date.strftime('%B %d, %Y') if contract.completion_date else "To Be Determined"
+    
     elements.append(Paragraph(
-        "<b>3.1 Commencement and Completion.</b> - Start Date: {{START_DATE}} - Substantial "
-        "Completion: {{COMPLETION_DATE}}<br/><br/>"
+        f"<b>3.1 Commencement and Completion.</b> - Start Date: <b>{start_date_str}</b> - Substantial "
+        f"Completion: <b>{completion_date_str}</b><br/><br/>"
         "These dates are <b>estimates</b> and may be adjusted for weather, site conditions, or other factors "
         "beyond Contractor's control. \"Substantial completion\" means all work is complete except "
         "for minor punchlist items that do not prevent normal use.",

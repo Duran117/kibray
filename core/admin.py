@@ -73,6 +73,7 @@ from .models import (
     TaskTemplate,
     TimeEntry,
     UserStatus,
+    Contract,
 )
 
 
@@ -1631,3 +1632,109 @@ class StrategicDependencyAdmin(admin.ModelAdmin):
     list_display = ("predecessor", "successor", "dependency_type", "lag_days")
     list_filter = ("dependency_type",)
     search_fields = ("predecessor__title", "successor__title")
+
+
+# ============================================================================
+# CONTRACT ADMIN
+# ============================================================================
+@admin.register(Contract)
+class ContractAdmin(admin.ModelAdmin):
+    list_display = (
+        "contract_number",
+        "project",
+        "status",
+        "total_amount",
+        "start_date",
+        "completion_date",
+        "created_at",
+    )
+    list_filter = ("status", "created_at")
+    search_fields = ("contract_number", "project__name", "estimate__code")
+    readonly_fields = (
+        "contract_number",
+        "client_view_token",
+        "created_at",
+        "updated_at",
+        "client_signed_at",
+        "client_ip_address",
+        "revision_count",
+    )
+    date_hierarchy = "created_at"
+    
+    fieldsets = (
+        ("Contract Info", {
+            "fields": (
+                "contract_number",
+                "estimate",
+                "project",
+                "status",
+                "version",
+            )
+        }),
+        ("Schedule", {
+            "fields": (
+                "start_date",
+                "completion_date",
+            ),
+            "description": "Define the project start and estimated completion dates"
+        }),
+        ("Financial", {
+            "fields": (
+                "total_amount",
+                "payment_schedule",
+            )
+        }),
+        ("Client Signature", {
+            "fields": (
+                "client_signature",
+                "client_signed_name",
+                "client_signed_at",
+                "client_ip_address",
+            ),
+            "classes": ("collapse",)
+        }),
+        ("Contractor Signature", {
+            "fields": (
+                "contractor_signed_at",
+                "contractor_signed_by",
+            ),
+            "classes": ("collapse",)
+        }),
+        ("Revisions", {
+            "fields": (
+                "revision_notes",
+                "revision_requested_at",
+                "revision_count",
+            ),
+            "classes": ("collapse",)
+        }),
+        ("Documents", {
+            "fields": (
+                "pdf_file",
+                "signed_pdf_file",
+            ),
+            "classes": ("collapse",)
+        }),
+        ("Access", {
+            "fields": (
+                "client_view_token",
+                "created_at",
+                "updated_at",
+            ),
+            "classes": ("collapse",)
+        }),
+    )
+    
+    actions = ["regenerate_pdf"]
+    
+    @admin.action(description="Regenerate Contract PDF")
+    def regenerate_pdf(self, request, queryset):
+        from core.services.contract_service import ContractService
+        count = 0
+        for contract in queryset:
+            try:
+                ContractService.generate_contract_pdf(contract, request.user)
+                count += 1
+            except Exception as e:
+                self.message_user(request, f"Error regenerating {contract.contract_number}: {e}", level="error")
+        self.message_user(request, f"Successfully regenerated {count} contract PDFs.")
