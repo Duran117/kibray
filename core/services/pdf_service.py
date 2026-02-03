@@ -505,36 +505,47 @@ def _build_estimate_context(estimate: "Estimate", as_contract: bool) -> dict[str
 
 
 # ============================================================================
-# CONTRACT PDF GENERATION
+# CONTRACT PDF GENERATION - Full Professional Contract Template
+# Based on Colorado Painting Services Contract Template
 # ============================================================================
 
 def generate_contract_pdf_reportlab(contract: "Contract") -> bytes:
     """
     Generate professional Contract PDF using ReportLab.
     
-    This generates a full legal contract with:
-    - Company header
-    - Contract details
-    - Scope of work (from estimate lines)
-    - Payment schedule
-    - Terms and conditions
-    - Signature fields
+    Full legal contract based on Colorado painting services template with:
+    - ARTICLE 1: Scope of Work
+    - ARTICLE 2: Contract Sum and Payment Terms
+    - ARTICLE 3: Project Schedule
+    - ARTICLE 4: Changes and Additions
+    - ARTICLE 5: Warranties
+    - ARTICLE 6: Insurance and Liability
+    - ARTICLE 7: Liens and Payment Protection
+    - ARTICLE 8: Permits and Compliance
+    - ARTICLE 9: Site Conditions and Cleanup
+    - ARTICLE 10: Termination
+    - ARTICLE 11: Dispute Resolution
+    - ARTICLE 12: Indemnification
+    - ARTICLE 13: General Provisions
+    - ARTICLE 14: Colorado-Specific Provisions
+    - Acknowledgements and Signatures
     """
     from reportlab.lib.pagesizes import LETTER
     from reportlab.lib.units import inch
     from reportlab.lib import colors
-    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, ListFlowable, ListItem
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT, TA_JUSTIFY
+    from decimal import Decimal
     
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer, 
         pagesize=LETTER,
-        leftMargin=0.75*inch, 
-        rightMargin=0.75*inch,
-        topMargin=0.75*inch, 
-        bottomMargin=0.75*inch
+        leftMargin=0.6*inch, 
+        rightMargin=0.6*inch,
+        topMargin=0.5*inch, 
+        bottomMargin=0.5*inch
     )
     
     styles = getSampleStyleSheet()
@@ -543,37 +554,61 @@ def generate_contract_pdf_reportlab(contract: "Contract") -> bytes:
     title_style = ParagraphStyle(
         'ContractTitle',
         parent=styles['Heading1'],
-        fontSize=18,
+        fontSize=16,
         textColor=colors.HexColor('#059669'),
         alignment=TA_CENTER,
-        spaceAfter=12,
+        spaceAfter=6,
+        fontName='Helvetica-Bold'
+    )
+    
+    article_style = ParagraphStyle(
+        'ArticleHeader',
+        parent=styles['Heading2'],
+        fontSize=11,
+        textColor=colors.HexColor('#059669'),
+        spaceBefore=12,
+        spaceAfter=6,
         fontName='Helvetica-Bold'
     )
     
     section_style = ParagraphStyle(
         'SectionHeader',
-        parent=styles['Heading2'],
-        fontSize=12,
+        parent=styles['Heading3'],
+        fontSize=9,
         textColor=colors.HexColor('#1f2937'),
-        spaceBefore=16,
-        spaceAfter=8,
+        spaceBefore=8,
+        spaceAfter=4,
         fontName='Helvetica-Bold'
     )
     
     normal_style = ParagraphStyle(
         'ContractNormal',
         parent=styles['Normal'],
-        fontSize=9,
+        fontSize=8,
         textColor=colors.HexColor('#374151'),
         alignment=TA_JUSTIFY,
-        spaceAfter=6
+        spaceAfter=4,
+        leading=10
+    )
+    
+    bold_style = ParagraphStyle(
+        'ContractBold',
+        parent=normal_style,
+        fontName='Helvetica-Bold'
     )
     
     small_style = ParagraphStyle(
         'ContractSmall',
         parent=styles['Normal'],
-        fontSize=8,
-        textColor=colors.HexColor('#6b7280')
+        fontSize=7,
+        textColor=colors.HexColor('#6b7280'),
+        leading=9
+    )
+    
+    italic_style = ParagraphStyle(
+        'ContractItalic',
+        parent=small_style,
+        fontName='Helvetica-Oblique'
     )
     
     elements = []
@@ -582,236 +617,808 @@ def generate_contract_pdf_reportlab(contract: "Contract") -> bytes:
     estimate = contract.estimate
     project = contract.project
     lines = estimate.lines.select_related('cost_code').all()
+    client = project.client
+    
+    # Get client info
+    client_name = str(client) if client else "{{CUSTOMER_NAME}}"
+    client_address = getattr(client, 'address', None) or "{{CUSTOMER_ADDRESS}}"
+    client_city_state = getattr(client, 'city_state_zip', None) or "{{CUSTOMER_CITY_STATE_ZIP}}"
+    client_phone = getattr(client, 'phone', None) or "{{CUSTOMER_PHONE}}"
+    client_email = getattr(client, 'email', None) or "{{CUSTOMER_EMAIL}}"
     
     # =========================================================================
-    # HEADER
+    # HEADER - PAINTING SERVICES CONTRACT
     # =========================================================================
     elements.append(Paragraph("<b>PAINTING SERVICES CONTRACT</b>", title_style))
-    elements.append(Paragraph(f"Contract No: {contract.contract_number}", 
-                              ParagraphStyle('Center', parent=normal_style, alignment=TA_CENTER)))
-    elements.append(Spacer(1, 20))
+    elements.append(Spacer(1, 4))
     
-    # =========================================================================
-    # PARTIES
-    # =========================================================================
-    elements.append(Paragraph("<b>PARTIES</b>", section_style))
-    
-    parties_text = f"""
-    This Painting Services Contract ("Contract") is entered into as of {contract.created_at.strftime('%B %d, %Y')} by and between:
-    <br/><br/>
-    <b>CONTRACTOR:</b><br/>
-    {COMPANY_INFO['name']}<br/>
-    {COMPANY_INFO['address']}<br/>
-    Phone: {COMPANY_INFO['phone']}<br/>
-    Email: {COMPANY_INFO['email']}<br/>
-    <br/>
-    <b>CUSTOMER:</b><br/>
-    {project.client or 'N/A'}<br/>
-    Project Address: {project.address or 'N/A'}<br/>
-    """
-    elements.append(Paragraph(parties_text, normal_style))
+    header_data = [
+        [f"Contract Number: {contract.contract_number}", f"Date: {contract.created_at.strftime('%B %d, %Y')}"]
+    ]
+    header_table = Table(header_data, colWidths=[3.5*inch, 3.5*inch])
+    header_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+        ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+        ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+    ]))
+    elements.append(header_table)
     elements.append(Spacer(1, 12))
     
     # =========================================================================
-    # PROJECT INFORMATION
+    # PARTIES TO THIS AGREEMENT
     # =========================================================================
-    elements.append(Paragraph("<b>PROJECT INFORMATION</b>", section_style))
+    elements.append(Paragraph("<b>PARTIES TO THIS AGREEMENT</b>", article_style))
     
-    project_data = [
-        ['Project Name:', project.name, 'Estimate Code:', estimate.code],
-        ['Project Address:', project.address or '-', 'Version:', f'v{estimate.version}'],
-        ['Contract Date:', contract.created_at.strftime('%Y-%m-%d'), 'Contract Version:', f'v{contract.version}'],
-    ]
-    
-    project_table = Table(project_data, colWidths=[1.2*inch, 2.3*inch, 1.2*inch, 1.8*inch])
-    project_table.setStyle(TableStyle([
-        ('FONTSIZE', (0, 0), (-1, -1), 9),
-        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#6b7280')),
-        ('TEXTCOLOR', (2, 0), (2, -1), colors.HexColor('#6b7280')),
-        ('FONTNAME', (1, 0), (1, -1), 'Helvetica-Bold'),
-        ('FONTNAME', (3, 0), (3, -1), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ('TOPPADDING', (0, 0), (-1, -1), 6),
-        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f9fafb')),
-        ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#e5e7eb')),
-    ]))
-    elements.append(project_table)
-    elements.append(Spacer(1, 16))
-    
-    # =========================================================================
-    # SCOPE OF WORK
-    # =========================================================================
-    elements.append(Paragraph("<b>SCOPE OF WORK</b>", section_style))
-    elements.append(Paragraph(
-        "Contractor agrees to perform the following painting and finishing services:",
-        normal_style
-    ))
+    parties_text = f"""
+    <b>CONTRACTOR:</b> {COMPANY_INFO['name']}<br/>
+    {COMPANY_INFO['address']}<br/>
+    Phone: {COMPANY_INFO['phone']} | Email: {COMPANY_INFO['email']}<br/>
+    <i>Licensed &amp; Insured</i><br/><br/>
+    <b>CUSTOMER:</b> {client_name}<br/>
+    {client_address}<br/>
+    {client_city_state}<br/>
+    Phone: {client_phone} | Email: {client_email}<br/><br/>
+    <b>PROJECT:</b> {project.name}<br/>
+    Location: {project.address or 'TBD'}<br/>
+    Estimate Reference: {estimate.code} (v{estimate.version})
+    """
+    elements.append(Paragraph(parties_text, normal_style))
     elements.append(Spacer(1, 8))
     
-    # Line Items Table
-    table_data = [['Code', 'Description', 'Qty', 'Unit', 'Unit Price', 'Total']]
+    # Recitals
+    recitals = """
+    <b>RECITALS:</b> Customer desires to engage Contractor to provide professional painting services at 
+    the Project Location. Contractor agrees to perform such services in accordance with the terms 
+    of this Contract. In consideration of the mutual covenants and agreements contained herein, 
+    the parties agree as follows:
+    """
+    elements.append(Paragraph(recitals, normal_style))
+    elements.append(Spacer(1, 8))
+    
+    # =========================================================================
+    # ARTICLE 1: SCOPE OF WORK
+    # =========================================================================
+    elements.append(Paragraph("ARTICLE 1: SCOPE OF WORK", article_style))
+    
+    # 1.1 Services
+    elements.append(Paragraph(
+        f"<b>1.1 Services.</b> Contractor agrees to provide professional painting services as detailed in Estimate "
+        f"{estimate.code}, which is incorporated herein by reference. The work includes:",
+        normal_style
+    ))
+    
+    # Scope table
+    scope_data = [['Code', 'Description', 'Qty', 'Unit', 'Unit Price', 'Total']]
+    subtotal = Decimal("0")
     
     for line in lines:
         unit_price = line.get_effective_unit_price()
         total = line.direct_cost()
-        table_data.append([
+        subtotal += total
+        scope_data.append([
             line.cost_code.code if line.cost_code else '-',
-            (line.description or (line.cost_code.name if line.cost_code else '-'))[:40],
-            f'{line.qty:.2f}',
+            (line.description or (line.cost_code.name if line.cost_code else '-'))[:50],
+            f'{line.qty:.1f}',
             line.unit or 'EA',
             f'${unit_price:,.2f}',
             f'${total:,.2f}'
         ])
     
     if not lines:
-        table_data.append(['-', 'No items specified', '-', '-', '-', '-'])
+        scope_data.append(['-', 'See attached scope document', '-', '-', '-', '-'])
     
-    line_table = Table(table_data, colWidths=[0.7*inch, 2.6*inch, 0.5*inch, 0.5*inch, 0.9*inch, 0.9*inch])
-    line_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#059669')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+    scope_table = Table(scope_data, colWidths=[0.7*inch, 2.8*inch, 0.5*inch, 0.5*inch, 0.8*inch, 0.9*inch])
+    scope_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f3f4f6')),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 9),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
-        ('TOPPADDING', (0, 0), (-1, 0), 8),
-        ('FONTSIZE', (0, 1), (-1, -1), 8),
-        ('TEXTCOLOR', (0, 1), (-1, -1), colors.HexColor('#374151')),
-        ('BOTTOMPADDING', (0, 1), (-1, -1), 5),
-        ('TOPPADDING', (0, 1), (-1, -1), 5),
-        ('ALIGN', (2, 0), (2, -1), 'CENTER'),
-        ('ALIGN', (4, 0), (5, -1), 'RIGHT'),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d1d5db')),
-        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
+        ('FONTSIZE', (0, 0), (-1, -1), 7),
+        ('ALIGN', (2, 0), (-1, -1), 'RIGHT'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e5e7eb')),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
     ]))
-    elements.append(line_table)
-    elements.append(Spacer(1, 16))
+    elements.append(scope_table)
+    elements.append(Spacer(1, 8))
+    
+    # 1.2 Standards
+    elements.append(Paragraph(
+        "<b>1.2 Standards.</b> All work will be performed in a professional and workmanlike manner "
+        "according to industry standards, manufacturer specifications, and accepted painting practices. "
+        "Contractor will use quality materials suitable for their intended purpose and Colorado climate conditions.",
+        normal_style
+    ))
+    
+    # 1.3 Surface Preparation
+    elements.append(Paragraph(
+        "<b>1.3 Surface Preparation.</b> Contractor will perform surface preparation necessary for proper "
+        "paint adhesion, including: - Cleaning surfaces to remove dirt, chalk, and debris - Scraping loose "
+        "or peeling paint - Sanding to smooth surfaces and feather edges - Patching minor cracks and "
+        "holes (less than 2 inches) - Priming bare surfaces and stains",
+        normal_style
+    ))
+    
+    # 1.4 Excluded Work
+    elements.append(Paragraph(
+        "<b>IMPORTANT:</b> Contractor is NOT responsible for pre-existing conditions including: structural "
+        "defects, water damage, mold, rot, extensive plaster/drywall repairs (requiring more than minor "
+        "patching), lead paint abatement, asbestos removal, or underlying substrate failure. If such "
+        "conditions are discovered, Contractor will promptly notify Customer. Work will not proceed in "
+        "affected areas without Customer's written authorization and agreement on additional costs.",
+        normal_style
+    ))
+    
+    # 1.4 Excluded Work List
+    elements.append(Paragraph(
+        "<b>1.4 Excluded Work.</b> Unless specifically included in Scope of Work, the following are excluded: "
+        "- Moving furniture (Customer must move or protect furnishings) - Extensive surface repairs "
+        "beyond minor patching - Structural, plumbing, or electrical repairs - Repair of damage caused "
+        "by water intrusion, settling, or structural movement - Window washing or cleaning beyond "
+        "paint removal - Landscaping restoration or lawn repair - Removal of wallpaper (unless "
+        "specifically included)",
+        normal_style
+    ))
+    
+    # 1.5 Customer's Responsibility
+    elements.append(Paragraph(
+        "<b>1.5 Customer's Responsibility.</b> Customer shall: - Remove or protect all furniture, window "
+        "treatments, wall hangings, and personal items - Provide clear access to all work areas - Secure "
+        "pets during work hours - Provide access to water and electricity at no cost - Make color "
+        "selections in a timely manner to avoid delays",
+        normal_style
+    ))
     
     # =========================================================================
-    # CONTRACT SUM
+    # ARTICLE 2: CONTRACT SUM AND PAYMENT TERMS
     # =========================================================================
-    elements.append(Paragraph("<b>CONTRACT SUM</b>", section_style))
+    elements.append(Paragraph("ARTICLE 2: CONTRACT SUM AND PAYMENT TERMS", article_style))
     
     # Calculate totals
-    subtotal = sum(line.direct_cost() for line in lines)
-    total_material = sum(
-        line.qty * line.material_unit_cost 
-        for line in lines 
-        if not (line.unit_price and line.unit_price > 0)
-    )
-    total_labor = sum(
-        line.qty * line.labor_unit_cost 
-        for line in lines 
-        if not (line.unit_price and line.unit_price > 0)
-    )
-    
-    from decimal import Decimal
-    labor_markup = total_labor * (estimate.markup_labor / 100) if estimate.markup_labor else Decimal("0")
-    material_markup = total_material * (estimate.markup_material / 100) if estimate.markup_material else Decimal("0")
+    labor_markup = subtotal * (estimate.markup_labor / 100) if estimate.markup_labor else Decimal("0")
+    material_markup = subtotal * (estimate.markup_material / 100) if estimate.markup_material else Decimal("0")
     overhead = subtotal * (estimate.overhead_pct / 100) if estimate.overhead_pct else Decimal("0")
     profit = subtotal * (estimate.target_profit_pct / 100) if estimate.target_profit_pct else Decimal("0")
     
-    summary_data = [['', 'Direct Costs:', f'${subtotal:,.2f}']]
+    elements.append(Paragraph(
+        f"<b>2.1 Contract Sum.</b> The total Contract Sum is <b>${contract.total_amount:,.2f}</b> which includes: "
+        f"- All labor and supervision - All materials (paint, primers, caulk, etc.) - Equipment and tools - "
+        f"Colorado sales tax (where applicable) - All items specified in Estimate {estimate.code}",
+        normal_style
+    ))
     
-    if labor_markup > 0:
-        summary_data.append(['', f'Labor Markup ({estimate.markup_labor}%):', f'${labor_markup:,.2f}'])
-    if material_markup > 0:
-        summary_data.append(['', f'Material Markup ({estimate.markup_material}%):', f'${material_markup:,.2f}'])
-    if overhead > 0:
-        summary_data.append(['', f'Overhead ({estimate.overhead_pct}%):', f'${overhead:,.2f}'])
-    if profit > 0:
-        summary_data.append(['', f'Profit ({estimate.target_profit_pct}%):', f'${profit:,.2f}'])
-    
-    summary_data.append(['', 'TOTAL CONTRACT AMOUNT:', f'${contract.total_amount:,.2f}'])
-    
-    summary_table = Table(summary_data, colWidths=[3*inch, 2.2*inch, 1.3*inch])
-    summary_table.setStyle(TableStyle([
-        ('FONTSIZE', (0, 0), (-1, -1), 9),
-        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
-        ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
-        ('TEXTCOLOR', (1, 0), (1, -2), colors.HexColor('#6b7280')),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ('FONTNAME', (1, -1), (-1, -1), 'Helvetica-Bold'),
-        ('TEXTCOLOR', (1, -1), (-1, -1), colors.HexColor('#059669')),
-        ('FONTSIZE', (1, -1), (-1, -1), 12),
-        ('TOPPADDING', (0, -1), (-1, -1), 8),
-        ('LINEABOVE', (1, -1), (-1, -1), 1.5, colors.HexColor('#059669')),
-    ]))
-    elements.append(summary_table)
-    elements.append(Spacer(1, 16))
-    
-    # =========================================================================
-    # PAYMENT SCHEDULE
-    # =========================================================================
-    elements.append(Paragraph("<b>PAYMENT SCHEDULE</b>", section_style))
+    # 2.2 Payment Schedule
+    elements.append(Paragraph("<b>2.2 Payment Schedule.</b>", normal_style))
     
     payment_schedule = contract.payment_schedule or []
     if payment_schedule:
-        payment_text = "Customer agrees to pay Contractor according to the following schedule:<br/><br/>"
+        payment_text = ""
         for payment in payment_schedule:
-            payment_text += f"• <b>{payment['name']}</b>: ${Decimal(payment['amount']):,.2f} ({payment['percentage']}%) - {payment['due_trigger']}<br/>"
+            amount = Decimal(payment['amount'])
+            payment_text += f"• <b>{payment['name']}</b>: ${amount:,.2f} ({payment['percentage']}%) - {payment['due_trigger']}<br/>"
         elements.append(Paragraph(payment_text, normal_style))
-    else:
-        elements.append(Paragraph("Payment terms to be agreed upon separately.", normal_style))
     
-    elements.append(Spacer(1, 12))
+    # 2.3 Payment Methods
+    elements.append(Paragraph(
+        "<b>2.3 Payment Methods.</b> Contractor accepts: - Personal checks (payable to \"Kibray Paint &amp; Stain "
+        "LLC\") - Cash - Credit cards: Visa, MasterCard, American Express (3% processing fee) - "
+        "ACH/Bank transfer (details provided upon request)",
+        normal_style
+    ))
+    
+    # 2.4 Payment Terms
+    elements.append(Paragraph(
+        "<b>2.4 Payment Terms.</b> All payments are due within <b>three (3) business days</b> of invoice date. "
+        f"Invoices will be sent to {client_email} and can also be paid online at [payment portal].",
+        normal_style
+    ))
+    
+    # 2.5 Late Payment
+    elements.append(Paragraph(
+        "<b>2.5 Late Payment.</b> Payments not received within ten (10) days of due date will incur: - Late fee "
+        "of <b>1.5% per month</b> (18% APR) on outstanding balance - Contractor reserves the right to "
+        "suspend work if payment is more than 15 days past due - Customer remains responsible for "
+        "late fees even if work is suspended",
+        normal_style
+    ))
+    
+    # 2.6 Retainage
+    elements.append(Paragraph(
+        "<b>2.6 Retainage.</b> Per Colorado law (HB21-1167), Customer may withhold up to <b>5% of completed "
+        "work</b> until final completion and acceptance. Final payment including retainage is due within "
+        "<b>seven (7) days</b> of substantial completion.",
+        normal_style
+    ))
+    
+    # 2.7 Collection Costs
+    elements.append(Paragraph(
+        "<b>2.7 Collection Costs.</b> If legal action is required to collect payment, Customer agrees to pay: - All "
+        "reasonable attorney fees - Court costs and filing fees - Collection agency fees - Interest at <b>12% "
+        "per annum</b> (per C.R.S. §38-22-101(5)) - Cost of filing and enforcing mechanic's lien",
+        normal_style
+    ))
     
     # =========================================================================
-    # TERMS AND CONDITIONS (Abbreviated)
+    # ARTICLE 3: PROJECT SCHEDULE
     # =========================================================================
-    elements.append(Paragraph("<b>TERMS AND CONDITIONS</b>", section_style))
+    elements.append(Paragraph("ARTICLE 3: PROJECT SCHEDULE", article_style))
     
-    terms = """
-    <b>1. WORK STANDARDS:</b> All work shall be performed in a professional manner consistent with industry standards.
-    <br/><br/>
-    <b>2. MATERIALS:</b> Contractor shall furnish all materials, equipment, and labor necessary to complete the work.
-    <br/><br/>
-    <b>3. WARRANTY:</b> Contractor warrants workmanship for a period of ONE (1) YEAR from substantial completion.
-    <br/><br/>
-    <b>4. INSURANCE:</b> Contractor maintains liability insurance and workers' compensation as required by Colorado law.
-    <br/><br/>
-    <b>5. CHANGES:</b> Any changes to the scope of work must be agreed upon in writing through a Change Order.
-    <br/><br/>
-    <b>6. LATE PAYMENT:</b> Unpaid balances accrue interest at 1.5% per month (18% annually).
-    <br/><br/>
-    <b>7. GOVERNING LAW:</b> This Contract shall be governed by the laws of the State of Colorado.
-    """
-    elements.append(Paragraph(terms, normal_style))
+    elements.append(Paragraph(
+        "<b>3.1 Commencement and Completion.</b> - Start Date: {{START_DATE}} - Substantial "
+        "Completion: {{COMPLETION_DATE}}<br/><br/>"
+        "These dates are <b>estimates</b> and may be adjusted for weather, site conditions, or other factors "
+        "beyond Contractor's control. \"Substantial completion\" means all work is complete except "
+        "for minor punchlist items that do not prevent normal use.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>3.2 Weather Dependencies.</b> Painting requires specific environmental conditions:<br/>"
+        "<b>Exterior Work:</b> - Temperature: 50°F - 90°F - No precipitation within 24 hours before or 24-48 "
+        "hours after application - Humidity: Below 85% - Wind: Below 15 mph (for spray applications)<br/>"
+        "<b>Interior Work:</b> - Adequate ventilation - Climate control (heating/cooling operational) - "
+        "Humidity below 70%<br/>"
+        "Schedule will be extended for unsuitable weather <b>at no additional cost</b> to Customer.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>3.3 Permissible Delays.</b> The completion date will be extended for: (a) Adverse weather "
+        "conditions unsuitable for painting (b) Acts or omissions of Customer or Customer's agents "
+        "(c) Changes in scope of work (d) Delays in Customer's color or material selections "
+        "(e) Unforeseen site conditions requiring additional work (f) Labor disputes, strikes, or material shortages "
+        "(g) Fire, casualty, or acts of God (h) Discovery of hazardous materials "
+        "(i) Governmental restrictions or delays in permits (j) Other causes beyond Contractor's reasonable control",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>3.4 Access.</b> Customer must provide access to work areas during normal business hours "
+        "(Monday-Friday, 8:00 AM - 5:00 PM). Repeated failure to provide access may result in schedule "
+        "delays and additional mobilization charges.",
+        normal_style
+    ))
+    
+    # =========================================================================
+    # ARTICLE 4: CHANGES AND ADDITIONS
+    # =========================================================================
+    elements.append(Paragraph("ARTICLE 4: CHANGES AND ADDITIONS", article_style))
+    
+    elements.append(Paragraph(
+        "<b>4.1 Change Orders Required.</b> <b>ALL changes</b> to scope, schedule, or price must be documented "
+        "in a <b>written Change Order</b> signed by both parties before work commences. Verbal agreements "
+        "are not binding.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>4.2 Customer-Requested Changes.</b> Customer may request changes, but Contractor is not "
+        "obligated to perform work beyond original scope without: - Contractor agrees to changes - Contractor "
+        "will provide written estimate - Customer must approve in writing before work begins - Contract "
+        "Sum and schedule will be adjusted accordingly",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>4.3 Additional Work Pricing.</b> Work performed outside original scope without written Change "
+        "Order will be billed at: - Labor: <b>$85/hour</b> (includes supervision) - Materials: <b>Cost + 20% "
+        "markup</b> - Equipment rental: <b>Actual cost + 15%</b>",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>4.4 Concealed Conditions.</b> If Contractor encounters concealed or unforeseen conditions (rot, "
+        "mold, structural defects, etc.), Contractor will: - Stop work in affected area - Notify Customer "
+        "within 24 hours - Provide estimate for addressing condition - Await Customer's written "
+        "authorization before proceeding",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>4.5 Customer Color Changes.</b> Customer may change colors before application begins at no "
+        "charge. Color changes after application has begun will be charged as additional work at rates in "
+        "Section 4.3.",
+        normal_style
+    ))
+    
+    # =========================================================================
+    # ARTICLE 5: WARRANTIES
+    # =========================================================================
+    elements.append(Paragraph("ARTICLE 5: WARRANTIES", article_style))
+    
+    elements.append(Paragraph(
+        "<b>5.1 Workmanship Warranty.</b> Contractor warrants that all work will be: - Performed in a "
+        "professional and workmanlike manner - Free from defects in workmanship for <b>ONE (1) YEAR</b> "
+        "from date of substantial completion - Completed using proper techniques and industry standards",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>5.2 Materials Warranty.</b> Paint and materials are warranted by their respective "
+        "manufacturers. Contractor will provide manufacturer warranty documentation. <b>Contractor "
+        "does not warrant materials beyond manufacturer's warranty.</b>",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>5.3 Warranty Exclusions.</b> This warranty does NOT cover: - Damage caused by Customer or "
+        "third parties - Normal wear and tear - Failure to properly maintain painted surfaces - Damage "
+        "from water intrusion, leaks, or moisture - Settling, cracking, or movement of structure - "
+        "Improper ventilation or extreme environmental conditions - Color fading from UV exposure "
+        "(exterior) - Damage from cleaning with harsh chemicals - Areas painted over Customer-"
+        "supplied paint - Pre-existing conditions or defects in substrate - Acts of God, vandalism, or "
+        "casualty",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>5.4 Warranty Claims.</b> To make a warranty claim, Customer must: - Notify Contractor <b>in "
+        "writing within 30 days</b> of discovering defect - Provide photos documenting the issue - Provide "
+        "access for Contractor to inspect - Allow Contractor reasonable time to remedy",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>5.5 Warranty Remedy.</b> Contractor's <b>sole obligation</b> under this warranty is to repair or "
+        "repaint defective work <b>at no charge</b> for labor. Customer pays for any materials needed (paint, "
+        "primer). <b>Warranty is non-transferable</b> unless Contractor provides written consent.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>5.6 Limitation.</b> THIS WARRANTY IS IN LIEU OF ALL OTHER WARRANTIES, EXPRESS OR "
+        "IMPLIED, INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY OR FITNESS "
+        "FOR A PARTICULAR PURPOSE.",
+        bold_style
+    ))
+    
+    # =========================================================================
+    # ARTICLE 6: INSURANCE AND LIABILITY
+    # =========================================================================
+    elements.append(Paragraph("ARTICLE 6: INSURANCE AND LIABILITY", article_style))
+    
+    elements.append(Paragraph(
+        "<b>6.1 Contractor's Insurance.</b> Contractor maintains: - <b>General Liability</b>: $1,000,000 per "
+        "occurrence / $2,000,000 aggregate - <b>Automobile Liability</b>: $1,000,000 combined single limit - "
+        "<b>Workers' Compensation</b>: Statutory limits for all employees - <b>Umbrella Liability</b>: $1,000,000 "
+        "occurrence/aggregate<br/>Certificates of insurance available upon request.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>6.2 Customer's Insurance.</b> Customer is responsible for maintaining adequate insurance on "
+        "property and contents. <b>Contractor is not responsible for damage to items not properly "
+        "protected or removed by Customer.</b>",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>6.3 Limitation of Liability.</b> TO THE MAXIMUM EXTENT PERMITTED BY COLORADO LAW: "
+        "- Contractor's total liability under this Contract shall not exceed the <b>total Contract Sum</b> - "
+        "Contractor shall not be liable for indirect, incidental, consequential, or punitive damages - "
+        "Contractor shall not be liable for lost profits, lost business, or loss of use - Customer's remedy is "
+        "limited to repair or replacement of defective work",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>6.4 Property Protection.</b> Contractor will: - Use drop cloths and protective coverings - Protect "
+        "floors, fixtures, and surfaces not being painted - Remove paint splatters and overspray - Clean "
+        "work areas daily<br/><b>Contractor is not responsible for damage to items Customer failed to remove or "
+        "protect.</b>",
+        normal_style
+    ))
+    
+    # =========================================================================
+    # ARTICLE 7: LIENS AND PAYMENT PROTECTION
+    # =========================================================================
+    elements.append(Paragraph("ARTICLE 7: LIENS AND PAYMENT PROTECTION", article_style))
+    
+    elements.append(Paragraph(
+        "<b>7.1 Mechanic's Lien Rights.</b> Under Colorado law (C.R.S. §38-22-101 et seq.), <b>Contractor has "
+        "the right to file a mechanic's lien</b> against the property for unpaid amounts. This is "
+        "Contractor's legal protection for payment.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>7.2 Notice to Owner.</b> COLORADO LAW NOTICE: Contractor has mechanic's lien rights. "
+        "Failure to pay may result in a lien against the property. Customer acknowledges receiving this "
+        "notice as required by law.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>7.3 Lien Waiver.</b> Upon receipt of <b>full payment</b>, Contractor will provide Customer with a final "
+        "lien waiver and release.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>7.4 Subordinate Liens.</b> If Contractor files a lien, Customer agrees to subordinate any refinance "
+        "or sale until lien is satisfied.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>7.5 Owner Verification.</b> Customer represents and warrants that: - Customer is the legal owner "
+        "of the property, OR - Customer has obtained owner's written consent to perform work<br/>"
+        "If Customer is not the owner, Customer agrees to <b>indemnify and hold Contractor harmless</b> "
+        "from any claims by property owner.",
+        normal_style
+    ))
+    
+    # =========================================================================
+    # ARTICLE 8: PERMITS AND COMPLIANCE
+    # =========================================================================
+    elements.append(Paragraph("ARTICLE 8: PERMITS AND COMPLIANCE", article_style))
+    
+    elements.append(Paragraph(
+        "<b>8.1 Permits.</b> <b>Painting does not require permits</b> in most Colorado jurisdictions (per "
+        "research). If permits are required, Customer is responsible for obtaining and paying for "
+        "permits.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>8.2 HOA Approval.</b> If property is in an HOA, <b>Customer is responsible</b> for obtaining HOA "
+        "approval for colors and work. Contractor is not responsible for delays due to HOA requirements.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>8.3 Code Compliance.</b> All work will comply with applicable Colorado building codes and local "
+        "ordinances.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>8.4 Lead Paint.</b> If structure was built before 1978, it may contain lead paint. Contractor is <b>EPA "
+        "RRP certified</b> [if applicable - verify]. Customer acknowledges receipt of EPA lead paint "
+        "pamphlet. If lead paint testing or abatement is required, this is <b>not included</b> in Contract Sum.",
+        normal_style
+    ))
+    
+    # =========================================================================
+    # ARTICLE 9: SITE CONDITIONS AND CLEANUP
+    # =========================================================================
+    elements.append(Paragraph("ARTICLE 9: SITE CONDITIONS AND CLEANUP", article_style))
+    
+    elements.append(Paragraph(
+        "<b>9.1 Daily Cleanup.</b> Contractor will: - Maintain reasonably clean work site - Remove debris and "
+        "materials daily - Sweep work areas - Dispose of waste properly",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>9.2 Final Cleanup.</b> Upon completion, Contractor will: - Remove all equipment, materials, and "
+        "debris - Clean paint splatters and overspray - Sweep and vacuum work areas - Touch up as "
+        "needed",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>9.3 Customer's Cleanup.</b> Customer is responsible for: - Final deep cleaning - Window "
+        "washing - Landscaping restoration - Lawn repair from equipment access",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>9.4 Disposal.</b> Contractor will dispose of paint waste in accordance with Colorado "
+        "environmental regulations.",
+        normal_style
+    ))
+    
+    # =========================================================================
+    # ARTICLE 10: TERMINATION
+    # =========================================================================
+    elements.append(Paragraph("ARTICLE 10: TERMINATION", article_style))
+    
+    elements.append(Paragraph(
+        "<b>10.1 Termination by Customer.</b> Customer may terminate this Contract:<br/><br/>"
+        "<b>(A) For Convenience:</b> Upon <b>seven (7) days' written notice</b>. Customer may terminate for "
+        "any reason. Upon termination, Customer shall pay: - All work completed to date (prorated) - All "
+        "materials purchased and delivered - Demobilization costs - <b>20% of unearned Contract Sum</b> "
+        "as liquidated damages for lost profit<br/><br/>"
+        "<b>(B) For Cause:</b> If Contractor: - Abandons the work for more than 10 days without cause - Fails "
+        "to perform work according to Contract after written notice and 10 days to cure - Breaches "
+        "material term after notice and opportunity to cure<br/>"
+        "If terminated for cause, Customer pays only for work completed.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>10.2 Termination by Contractor.</b> Contractor may terminate this Contract <b>immediately</b> upon "
+        "written notice if: - Customer fails to make payment when due and fails to cure within <b>5 days</b> of "
+        "notice - Customer repeatedly fails to provide site access - Customer interferes with Contractor's "
+        "work - Customer breaches material term of Contract - Conditions make work unsafe or "
+        "impossible<br/><br/>"
+        "Upon termination by Contractor, Customer shall <b>immediately</b> pay: - All work completed to "
+        "date - All materials purchased and delivered - Demobilization costs - <b>15% of unearned "
+        "Contract Sum</b> as liquidated damages - All collection costs including attorney fees",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>10.3 Effect of Termination.</b> Upon termination: - Contractor will cease work - Contractor will "
+        "remove equipment and materials - Contractor will secure work area - Customer will make final "
+        "payment within 7 days - Both parties released from further obligations except payment",
+        normal_style
+    ))
+    
+    # =========================================================================
+    # ARTICLE 11: DISPUTE RESOLUTION
+    # =========================================================================
+    elements.append(Paragraph("ARTICLE 11: DISPUTE RESOLUTION", article_style))
+    
+    elements.append(Paragraph(
+        "<b>11.1 Negotiation First.</b> Before initiating legal proceedings, parties agree to attempt to resolve "
+        "disputes through good-faith negotiation for <b>fifteen (15) days</b>.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>11.2 Mediation.</b> If negotiation fails, parties may agree to <b>non-binding mediation</b>. Mediation "
+        "costs split equally. Mediation will be conducted in Summit County, Colorado.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>11.3 Legal Action.</b> If mediation fails or is declined, either party may pursue legal action in: - "
+        "State or federal courts in <b>Summit County, Colorado</b> - Small claims court (if claim is within "
+        "jurisdictional limits)",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>11.4 Jury Waiver.</b> <b>BOTH PARTIES WAIVE RIGHT TO TRIAL BY JURY</b> for any claims arising "
+        "from this Contract.",
+        bold_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>11.5 Attorney Fees.</b> <b>The prevailing party</b> in any legal action shall recover: - Reasonable "
+        "attorney fees - Court costs - Expert witness fees - All costs of litigation",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>11.6 Venue.</b> Exclusive venue for any legal action is <b>Summit County, Colorado</b>.",
+        normal_style
+    ))
+    
+    # =========================================================================
+    # ARTICLE 12: INDEMNIFICATION
+    # =========================================================================
+    elements.append(Paragraph("ARTICLE 12: INDEMNIFICATION", article_style))
+    
+    elements.append(Paragraph(
+        "<b>12.1 Contractor's Indemnity.</b> Contractor shall indemnify and hold harmless Customer from "
+        "claims arising from: - Contractor's negligence in performing work - Bodily injury caused by "
+        "Contractor's employees or agents - Property damage caused by Contractor's negligence<br/>"
+        "<b>BUT ONLY</b> to the extent of Contractor's insurance coverage and only for Contractor's "
+        "own negligence.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>12.2 Customer's Indemnity.</b> Customer shall indemnify and hold harmless Contractor from: - "
+        "Customer's breach of this Contract - Customer's negligence or willful misconduct - Defects in "
+        "the property not caused by Contractor - Claims by property owner (if Customer is not owner) - "
+        "Liens or encumbrances on property existing before this Contract - Damage to items Customer "
+        "failed to remove or protect - Injury to persons on property not caused by Contractor",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>12.3 Mutual Release.</b> Neither party shall be liable for consequential, indirect, or punitive "
+        "damages.",
+        normal_style
+    ))
+    
+    # =========================================================================
+    # ARTICLE 13: GENERAL PROVISIONS
+    # =========================================================================
+    elements.append(Paragraph("ARTICLE 13: GENERAL PROVISIONS", article_style))
+    
+    elements.append(Paragraph(
+        f"<b>13.1 Entire Agreement.</b> This Contract, including incorporated Estimate "
+        f"{estimate.code}, constitutes the <b>entire agreement</b> between parties. All prior "
+        f"negotiations, representations, or agreements are superseded.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>13.2 Amendments.</b> This Contract may be modified <b>only by written Change Order</b> signed by "
+        "both parties.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>13.3 Governing Law.</b> This Contract shall be governed by the <b>laws of the State of Colorado</b> "
+        "without regard to conflicts of law principles.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>13.4 Severability.</b> If any provision is held invalid or unenforceable, remaining provisions "
+        "remain in full force.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>13.5 Waiver.</b> Failure to enforce any provision does not waive right to enforce it in the future.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>13.6 Assignment.</b> - Contractor may assign this Contract without Customer consent - "
+        "<b>Customer may NOT assign</b> without Contractor's written consent",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>13.7 Independent Contractor.</b> Contractor is an independent contractor, not an employee. "
+        "Contractor responsible for all employment taxes, workers' compensation, and insurance for its "
+        "employees.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        f"<b>13.8 Notices.</b> All notices must be in writing and sent to:<br/>"
+        f"<b>To Contractor:</b><br/>"
+        f"{COMPANY_INFO['name']}<br/>"
+        f"{COMPANY_INFO['address']}<br/>"
+        f"Email: {COMPANY_INFO['email']}<br/><br/>"
+        f"<b>To Customer:</b><br/>"
+        f"{client_name}<br/>"
+        f"{client_address}<br/>"
+        f"{client_email}<br/>"
+        f"Email constitutes valid notice if sent to above addresses.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>13.9 Survival.</b> Articles 5 (Warranties), 7 (Liens), 8 (Permits), 10 (Termination), 11 (Disputes), "
+        "and 12 (Indemnification) survive completion or termination.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>13.10 Force Majeure.</b> Neither party liable for delays or failure to perform due to: acts of God, "
+        "fire, flood, earthquake, war, terrorism, government action, epidemic, pandemic, labor disputes, "
+        "or other causes beyond reasonable control.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>13.11 Headings.</b> Article headings are for convenience only and do not affect interpretation.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>13.12 Counterparts.</b> This Contract may be executed in counterparts, each constituting an "
+        "original.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>13.13 Electronic Signatures.</b> Electronic signatures are valid and binding.",
+        normal_style
+    ))
+    
+    # =========================================================================
+    # ARTICLE 14: COLORADO-SPECIFIC PROVISIONS
+    # =========================================================================
+    elements.append(Paragraph("ARTICLE 14: COLORADO-SPECIFIC PROVISIONS", article_style))
+    
+    elements.append(Paragraph(
+        "<b>14.1 Required Contracts in Writing.</b> Per C.R.S. §38-22-101(3), contracts over $500 must be in "
+        "writing. This Contract satisfies that requirement.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>14.2 Retainage Limits.</b> Per HB21-1167, retainage on private projects limited to <b>5% maximum</b>.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>14.3 Mechanic's Lien Notice.</b> REQUIRED NOTICE UNDER C.R.S. §38-22-101: Contractor has "
+        "the right to file a mechanic's lien for unpaid work. Customer acknowledges this notice.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>14.4 Right to Rescind.</b> IF THIS CONTRACT WAS SIGNED AT CUSTOMER'S RESIDENCE and "
+        "Customer did not initiate contact for this specific project, Customer may have a <b>three (3) "
+        "business day right to cancel</b> under Colorado Consumer Protection Act (C.R.S. §6-1-105). To "
+        "cancel, Customer must notify Contractor in writing within 3 business days.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>14.5 No Waiver of Lien Rights on Retainage.</b> Per Colorado law, final payment does not waive "
+        "lien rights for retainage withheld.",
+        normal_style
+    ))
+    
+    elements.append(Paragraph(
+        "<b>14.6 Interest on Unpaid Amounts.</b> Per C.R.S. §38-22-101(5), unpaid amounts accrue interest "
+        "at <b>12% per annum or contract rate, whichever is higher</b>.",
+        normal_style
+    ))
     
     # Page break before signatures
     elements.append(PageBreak())
     
     # =========================================================================
-    # SIGNATURES
+    # ACKNOWLEDGEMENTS AND SIGNATURES
     # =========================================================================
-    elements.append(Paragraph("<b>SIGNATURES</b>", section_style))
+    elements.append(Paragraph("ACKNOWLEDGEMENTS AND SIGNATURES", article_style))
+    
     elements.append(Paragraph(
-        "By signing below, both parties agree to be bound by the terms and conditions of this Contract.",
-        normal_style
+        "<b>BY SIGNING BELOW, BOTH PARTIES ACKNOWLEDGE THAT:</b>",
+        bold_style
     ))
+    
+    ack_items = [
+        "They have read and understand all terms of this Contract",
+        "They have had opportunity to consult with legal counsel",
+        "They agree to be bound by all terms and conditions",
+        "This Contract represents the complete agreement",
+        "Customer acknowledges Contractor's mechanic's lien rights",
+        "Customer received Lead Paint Pamphlet (if applicable)",
+        "Customer received copy of this signed Contract"
+    ]
+    
+    ack_text = ""
+    for i, item in enumerate(ack_items, 1):
+        ack_text += f"{i}. {item}<br/>"
+    elements.append(Paragraph(ack_text, normal_style))
     elements.append(Spacer(1, 20))
     
     # Signature table
     sig_data = [
         ['CONTRACTOR:', '', 'CUSTOMER:', ''],
+        [f'{COMPANY_INFO["name"]}', '', f'{client_name}', ''],
         ['', '', '', ''],
-        ['Signature: _______________________', '', 'Signature: _______________________', ''],
+        ['By: _______________________________', '', 'By: _______________________________', ''],
         ['', '', '', ''],
-        [f'Name: {COMPANY_INFO["name"]}', '', f'Name: {project.client or "_______________________"}', ''],
+        ['Date: _____________', '', 'Date: _____________', ''],
         ['', '', '', ''],
-        ['Date: _______________________', '', 'Date: _______________________', ''],
+        ['Jesus Perez Duran, President', '', f'Print Name: ___________________', ''],
     ]
     
-    sig_table = Table(sig_data, colWidths=[2.8*inch, 0.4*inch, 2.8*inch, 0.4*inch])
+    sig_table = Table(sig_data, colWidths=[3*inch, 0.5*inch, 3*inch, 0.5*inch])
     sig_table.setStyle(TableStyle([
         ('FONTSIZE', (0, 0), (-1, -1), 9),
         ('FONTNAME', (0, 0), (0, 0), 'Helvetica-Bold'),
         ('FONTNAME', (2, 0), (2, 0), 'Helvetica-Bold'),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('FONTNAME', (0, 1), (0, 1), 'Helvetica'),
+        ('FONTNAME', (2, 1), (2, 1), 'Helvetica'),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
     ]))
     elements.append(sig_table)
+    elements.append(Spacer(1, 20))
+    
+    # Acceptance
+    elements.append(Paragraph(
+        f"<b>ACCEPTANCE:</b> Customer acknowledges receipt of signed copy of this Contract and "
+        f"incorporated Estimate {estimate.code}.",
+        normal_style
+    ))
+    elements.append(Spacer(1, 20))
+    
+    # Legal disclaimer
+    elements.append(Paragraph(
+        "<i>This contract template should be reviewed by a Colorado-licensed attorney before use. Laws "
+        "change and individual circumstances vary. This template is for informational purposes and does "
+        "not constitute legal advice.</i>",
+        italic_style
+    ))
     
     # Footer
-    elements.append(Spacer(1, 30))
+    elements.append(Spacer(1, 20))
     elements.append(Paragraph(
         f"<i>Contract generated on {timezone.now().strftime('%Y-%m-%d %H:%M')} | "
         f"{COMPANY_INFO['name']} - {COMPANY_INFO['license']}</i>",
