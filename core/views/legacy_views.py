@@ -3702,6 +3702,24 @@ def project_chat_premium(request, project_id, channel_id=None):
     """
     project = get_object_or_404(Project, id=project_id)
     
+    # ===== SECURITY: Verify user has access to this project =====
+    if not request.user.is_staff:
+        # Check if user is the client contact for this project
+        is_client_contact = False
+        if project.client:
+            is_client_contact = (
+                project.client.email == request.user.email or 
+                project.client.user == request.user
+            )
+        
+        # Check if user is assigned to the project
+        is_assigned = project.assigned_to.filter(id=request.user.id).exists() if hasattr(project, 'assigned_to') else False
+        
+        if not is_client_contact and not is_assigned:
+            messages.error(request, _("You don't have access to this project."))
+            return redirect("dashboard_client")
+    # ===== END SECURITY CHECK =====
+    
     # Ensure default channels exist
     group, direct = _ensure_default_channels(project, request.user)
     

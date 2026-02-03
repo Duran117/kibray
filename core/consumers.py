@@ -88,6 +88,37 @@ class ProjectChatConsumer(RateLimitMixin, AsyncWebsocketConsumer):
     rate_limit_messages = 30
     rate_limit_window = 60
 
+    @database_sync_to_async
+    def check_project_access(self):
+        """
+        SECURITY: Verify user has access to the project.
+        Staff can access all projects.
+        Clients can only access projects where they are the client contact.
+        """
+        from core.models import Project
+        
+        try:
+            project = Project.objects.get(id=self.project_id)
+        except Project.DoesNotExist:
+            return False
+        
+        # Staff can access all projects
+        if self.user.is_staff:
+            return True
+        
+        # Check if user is the client contact for this project
+        if project.client:
+            if project.client.email == self.user.email:
+                return True
+            if project.client.user_id == self.user.id:
+                return True
+        
+        # Check if user is assigned to the project
+        if hasattr(project, 'assigned_to') and project.assigned_to.filter(id=self.user.id).exists():
+            return True
+        
+        return False
+
     async def connect(self):
         """Accept WebSocket connection and join project chat group"""
         # Activate language from querystring
@@ -109,6 +140,13 @@ class ProjectChatConsumer(RateLimitMixin, AsyncWebsocketConsumer):
         ):  # type: ignore[union-attr]
             await self.close()
             return
+
+        # ===== SECURITY: Verify user has access to this project =====
+        has_access = await self.check_project_access()
+        if not has_access:
+            await self.close()
+            return
+        # ===== END SECURITY CHECK =====
 
         # Join room group
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
