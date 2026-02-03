@@ -904,12 +904,22 @@ def dashboard_client(request):
 
         # Change Orders pending client signature
         from core.models import ChangeOrder
+        from core.services.financial_service import ChangeOrderService
+        
         pending_change_orders = ChangeOrder.objects.filter(
             project=project,
             status__in=['pending', 'sent', 'approved'],
         ).filter(
             Q(signature_image__isnull=True) | Q(signature_image='')
         ).order_by('-date_created')[:5]
+        
+        # Calculate T&M totals for each pending CO
+        for co in pending_change_orders:
+            if co.pricing_type == 'T_AND_M':
+                tm_data = ChangeOrderService.get_billable_amount(co)
+                co.calculated_total = tm_data.get('grand_total', Decimal("0"))
+            else:
+                co.calculated_total = co.amount or Decimal("0")
         
         # Recently signed Change Orders
         signed_change_orders = ChangeOrder.objects.filter(
