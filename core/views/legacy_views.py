@@ -5640,13 +5640,29 @@ def estimate_detail_view(request, estimate_id):
                 logger.error(f"Failed to create budget lines: {e}")
                 messages.warning(request, _("Estimate approved but failed to create budget lines automatically."))
             
-            # Auto-save PDF as contract
+            # Auto-create Contract with new professional format
             try:
+                from core.services.contract_service import ContractService
+                contract = ContractService.create_contract_from_estimate(
+                    estimate=est,
+                    user=request.user,
+                    auto_generate_pdf=True
+                )
+                messages.info(request, _("Contract created and PDF saved to project documents."))
+                logger.info(f"Created contract {contract.contract_number} for estimate {est.code}")
+            except ValueError as ve:
+                # Contract already exists - just regenerate PDF
+                if hasattr(est, 'contract') and est.contract:
+                    ContractService.generate_contract_pdf(est.contract, request.user)
+                    messages.info(request, _("Contract PDF regenerated."))
+                else:
+                    logger.warning(f"Contract creation error: {ve}")
+            except Exception as e:
+                logger.warning(f"Failed to create contract: {e}")
+                # Fallback to old PDF generation
                 from core.services.document_storage_service import auto_save_estimate_pdf
                 auto_save_estimate_pdf(est, user=request.user, as_contract=True, overwrite=True)
-                messages.info(request, _("Contract PDF saved to project documents."))
-            except Exception as e:
-                logger.warning(f"Failed to auto-save PDF: {e}")
+                messages.info(request, _("Contract PDF saved to project documents (legacy format)."))
         else:
             messages.info(request, _("Estimate was already approved."))
         
@@ -5655,12 +5671,35 @@ def estimate_detail_view(request, estimate_id):
     # Handle regenerate PDF action
     if request.method == "POST" and request.POST.get("action") == "regenerate_pdf":
         try:
-            from core.services.document_storage_service import auto_save_estimate_pdf
-            result = auto_save_estimate_pdf(est, user=request.user, as_contract=est.approved, overwrite=True)
-            if result:
-                messages.success(request, _("PDF regenerated successfully!"))
+            if est.approved:
+                # Use new Contract system for approved estimates
+                from core.services.contract_service import ContractService
+                
+                # Get or create contract
+                if hasattr(est, 'contract') and est.contract:
+                    contract = est.contract
+                else:
+                    # Create contract if doesn't exist (for legacy approved estimates)
+                    contract = ContractService.create_contract_from_estimate(
+                        estimate=est,
+                        user=request.user,
+                        auto_generate_pdf=False
+                    )
+                
+                # Regenerate PDF with new professional format
+                result = ContractService.generate_contract_pdf(contract, request.user)
+                if result:
+                    messages.success(request, _("Contract PDF regenerated successfully with professional format!"))
+                else:
+                    messages.error(request, _("Failed to regenerate contract PDF."))
             else:
-                messages.error(request, _("Failed to regenerate PDF."))
+                # For non-approved estimates, use regular estimate PDF
+                from core.services.document_storage_service import auto_save_estimate_pdf
+                result = auto_save_estimate_pdf(est, user=request.user, as_contract=False, overwrite=True)
+                if result:
+                    messages.success(request, _("Estimate PDF regenerated successfully!"))
+                else:
+                    messages.error(request, _("Failed to regenerate PDF."))
         except Exception as e:
             logger.error(f"Failed to regenerate PDF: {e}")
             messages.error(request, _(f"Error: {str(e)}"))
@@ -11859,22 +11898,50 @@ def file_regenerate_pdf(request, file_id):
         return JsonResponse({"error": gettext("No se encontró el estimado asociado a este archivo")}, status=404)
     
     try:
-        from core.services.document_storage_service import auto_save_estimate_pdf
-        result = auto_save_estimate_pdf(
-            estimate, 
-            user=request.user, 
-            as_contract=estimate.approved,
-            overwrite=True
-        )
-        if result:
-            logger.info(f"PDF regenerated for estimate {estimate.code} by {request.user.username}")
-            return JsonResponse({
-                "success": True,
-                "message": gettext("PDF regenerado correctamente"),
-                "file_id": result.id,
-            })
+        if estimate.approved:
+            # Use new Contract system for approved estimates
+            from core.services.contract_service import ContractService
+            
+            # Get or create contract
+            if hasattr(estimate, 'contract') and estimate.contract:
+                contract = estimate.contract
+            else:
+                # Create contract if doesn't exist (for legacy approved estimates)
+                contract = ContractService.create_contract_from_estimate(
+                    estimate=estimate,
+                    user=request.user,
+                    auto_generate_pdf=False
+                )
+            
+            # Regenerate PDF with new professional format
+            result = ContractService.generate_contract_pdf(contract, request.user)
+            if result:
+                logger.info(f"Contract PDF regenerated for estimate {estimate.code} by {request.user.username}")
+                return JsonResponse({
+                    "success": True,
+                    "message": gettext("Contract PDF regenerated with professional format"),
+                    "file_id": result.id,
+                })
+            else:
+                return JsonResponse({"error": gettext("Error al regenerar PDF del contrato")}, status=500)
         else:
-            return JsonResponse({"error": gettext("Error al regenerar PDF")}, status=500)
+            # For non-approved estimates, use regular estimate PDF
+            from core.services.document_storage_service import auto_save_estimate_pdf
+            result = auto_save_estimate_pdf(
+                estimate, 
+                user=request.user, 
+                as_contract=False,
+                overwrite=True
+            )
+            if result:
+                logger.info(f"Estimate PDF regenerated for {estimate.code} by {request.user.username}")
+                return JsonResponse({
+                    "success": True,
+                    "message": gettext("Estimate PDF regenerated"),
+                    "file_id": result.id,
+                })
+            else:
+                return JsonResponse({"error": gettext("Error al regenerar PDF")}, status=500)
     except Exception as e:
         logger.error(f"Failed to regenerate PDF: {e}")
         return JsonResponse({"error": str(e)}, status=500)
