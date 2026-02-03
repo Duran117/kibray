@@ -364,6 +364,7 @@
                         </div>
                     </div>
                     {% else %}
+                    <!-- T&M Pricing Details -->
                     <div class="info-item">
                         <i class="fas fa-clock"></i>
                         <div class="info-content">
@@ -373,6 +374,29 @@
                             </div>
                         </div>
                     </div>
+                    {% if tm_breakdown %}
+                    <div class="info-item">
+                        <i class="fas fa-user-clock"></i>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "Labor" %} ({{ tm_breakdown.labor_hours|floatformat:1 }}h)</div>
+                            <div class="info-value">${{ tm_breakdown.labor_total|floatformat:2 }}</div>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-boxes"></i>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "Materials" %} {% if tm_breakdown.material_markup_pct %}(+{{ tm_breakdown.material_markup_pct }}%){% endif %}</div>
+                            <div class="info-value">${{ tm_breakdown.material_total|floatformat:2 }}</div>
+                        </div>
+                    </div>
+                    <div class="info-item" style="background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; padding: 12px;">
+                        <i class="fas fa-calculator" style="color: white;"></i>
+                        <div class="info-content">
+                            <div class="info-label" style="color: rgba(255,255,255,0.8);">{% trans "Current Total" %}</div>
+                            <div class="info-value amount" style="color: white; font-size: 1.5rem;">${{ tm_breakdown.grand_total|floatformat:2 }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
                     {% endif %}
                 </div>
                 

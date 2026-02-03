@@ -118,6 +118,20 @@
                 <span class="info-label">{% trans "Billing Type" %}:</span>
                 <span class="info-value">{% trans "Time and Materials" %}</span>
             </div>
+            {% if tm_breakdown %}
+            <div class="info-row">
+                <span class="info-label">{% trans "Labor" %} ({{ tm_breakdown.labor_hours|floatformat:1 }}h):</span>
+                <span class="info-value">${{ tm_breakdown.labor_total|floatformat:2 }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">{% trans "Materials" %}:</span>
+                <span class="info-value">${{ tm_breakdown.material_total|floatformat:2 }}</span>
+            </div>
+            <div class="info-row" style="background: #f0fdf4; padding: 8px; border-radius: 8px;">
+                <span class="info-label" style="font-weight: 700;">{% trans "Total to Date" %}:</span>
+                <span class="info-value" style="font-weight: 700; color: #059669;">${{ tm_breakdown.grand_total|floatformat:2 }}</span>
+            </div>
+            {% endif %}
             {% endif %}
         </div>
         {% if changeorder.pricing_type == 'FIXED' %}
@@ -126,7 +140,7 @@
         </div>
         {% else %}
         <div class="pricing-badge pricing-tm">
-            <i class="bi bi-clock-fill me-1"></i> {% trans "Time and Materials (T&M)" %}
+            <i class="bi bi-clock-fill me-1"></i> {% trans "Time and Materials (T&M)" %}{% if tm_breakdown %}: ${{ tm_breakdown.grand_total|floatformat:2 }}{% endif %}
         </div>
         {% endif %}
         {% if changeorder.signature_image %}

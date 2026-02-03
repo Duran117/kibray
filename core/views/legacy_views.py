@@ -4018,6 +4018,12 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
     """
     changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
 
+    # --- Calculate T&M total if applicable ---
+    tm_breakdown = None
+    if changeorder.pricing_type == 'T_AND_M':
+        from core.services.financial_service import ChangeOrderService
+        tm_breakdown = ChangeOrderService.get_billable_amount(changeorder)
+
     # --- Token validation (solo si se proporciona en la URL) ---
     if token is not None:
         try:
@@ -4032,7 +4038,10 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
     # Si ya está firmado mostrar pantalla correspondiente
     if changeorder.signature_image:
         return render(
-            request, "core/changeorder_signature_already_signed.html", {"changeorder": changeorder}
+            request, "core/changeorder_signature_already_signed.html", {
+                "changeorder": changeorder,
+                "tm_breakdown": tm_breakdown,
+            }
         )
 
     if request.method == "POST":
@@ -4051,6 +4060,7 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
                 "core/changeorder_signature_form.html",
                 {
                     "changeorder": changeorder,
+                    "tm_breakdown": tm_breakdown,
                     "error": "Por favor, dibuje su firma antes de continuar.",
                 },
             )
@@ -4058,7 +4068,11 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
             return render(
                 request,
                 "core/changeorder_signature_form.html",
-                {"changeorder": changeorder, "error": "Por favor, ingrese su nombre completo."},
+                {
+                    "changeorder": changeorder,
+                    "tm_breakdown": tm_breakdown,
+                    "error": "Por favor, ingrese su nombre completo.",
+                },
             )
 
         try:
@@ -4180,6 +4194,7 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
             return render(
                 request, "core/changeorder_signature_success.html", {
                     "changeorder": changeorder,
+                    "tm_breakdown": tm_breakdown,
                     "download_token": download_token,
                 }
             )
@@ -4187,10 +4202,17 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
             return render(
                 request,
                 "core/changeorder_signature_form.html",
-                {"changeorder": changeorder, "error": f"Error al procesar la firma: {e}"},
+                {
+                    "changeorder": changeorder,
+                    "tm_breakdown": tm_breakdown,
+                    "error": f"Error al procesar la firma: {e}",
+                },
             )
 
-    return render(request, "core/changeorder_signature_form.html", {"changeorder": changeorder})
+    return render(request, "core/changeorder_signature_form.html", {
+        "changeorder": changeorder,
+        "tm_breakdown": tm_breakdown,
+    })
 
 
 @login_required
