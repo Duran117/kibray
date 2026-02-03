@@ -504,6 +504,585 @@ def _build_estimate_context(estimate: "Estimate", as_contract: bool) -> dict[str
     }
 
 
+# ============================================================================
+# CONTRACT PDF GENERATION
+# ============================================================================
+
+def generate_contract_pdf_reportlab(contract: "Contract") -> bytes:
+    """
+    Generate professional Contract PDF using ReportLab.
+    
+    This generates a full legal contract with:
+    - Company header
+    - Contract details
+    - Scope of work (from estimate lines)
+    - Payment schedule
+    - Terms and conditions
+    - Signature fields
+    """
+    from reportlab.lib.pagesizes import LETTER
+    from reportlab.lib.units import inch
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT, TA_JUSTIFY
+    
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, 
+        pagesize=LETTER,
+        leftMargin=0.75*inch, 
+        rightMargin=0.75*inch,
+        topMargin=0.75*inch, 
+        bottomMargin=0.75*inch
+    )
+    
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    title_style = ParagraphStyle(
+        'ContractTitle',
+        parent=styles['Heading1'],
+        fontSize=18,
+        textColor=colors.HexColor('#059669'),
+        alignment=TA_CENTER,
+        spaceAfter=12,
+        fontName='Helvetica-Bold'
+    )
+    
+    section_style = ParagraphStyle(
+        'SectionHeader',
+        parent=styles['Heading2'],
+        fontSize=12,
+        textColor=colors.HexColor('#1f2937'),
+        spaceBefore=16,
+        spaceAfter=8,
+        fontName='Helvetica-Bold'
+    )
+    
+    normal_style = ParagraphStyle(
+        'ContractNormal',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.HexColor('#374151'),
+        alignment=TA_JUSTIFY,
+        spaceAfter=6
+    )
+    
+    small_style = ParagraphStyle(
+        'ContractSmall',
+        parent=styles['Normal'],
+        fontSize=8,
+        textColor=colors.HexColor('#6b7280')
+    )
+    
+    elements = []
+    
+    # Get data
+    estimate = contract.estimate
+    project = contract.project
+    lines = estimate.lines.select_related('cost_code').all()
+    
+    # =========================================================================
+    # HEADER
+    # =========================================================================
+    elements.append(Paragraph("<b>PAINTING SERVICES CONTRACT</b>", title_style))
+    elements.append(Paragraph(f"Contract No: {contract.contract_number}", 
+                              ParagraphStyle('Center', parent=normal_style, alignment=TA_CENTER)))
+    elements.append(Spacer(1, 20))
+    
+    # =========================================================================
+    # PARTIES
+    # =========================================================================
+    elements.append(Paragraph("<b>PARTIES</b>", section_style))
+    
+    parties_text = f"""
+    This Painting Services Contract ("Contract") is entered into as of {contract.created_at.strftime('%B %d, %Y')} by and between:
+    <br/><br/>
+    <b>CONTRACTOR:</b><br/>
+    {COMPANY_INFO['name']}<br/>
+    {COMPANY_INFO['address']}<br/>
+    Phone: {COMPANY_INFO['phone']}<br/>
+    Email: {COMPANY_INFO['email']}<br/>
+    <br/>
+    <b>CUSTOMER:</b><br/>
+    {project.client or 'N/A'}<br/>
+    Project Address: {project.address or 'N/A'}<br/>
+    """
+    elements.append(Paragraph(parties_text, normal_style))
+    elements.append(Spacer(1, 12))
+    
+    # =========================================================================
+    # PROJECT INFORMATION
+    # =========================================================================
+    elements.append(Paragraph("<b>PROJECT INFORMATION</b>", section_style))
+    
+    project_data = [
+        ['Project Name:', project.name, 'Estimate Code:', estimate.code],
+        ['Project Address:', project.address or '-', 'Version:', f'v{estimate.version}'],
+        ['Contract Date:', contract.created_at.strftime('%Y-%m-%d'), 'Contract Version:', f'v{contract.version}'],
+    ]
+    
+    project_table = Table(project_data, colWidths=[1.2*inch, 2.3*inch, 1.2*inch, 1.8*inch])
+    project_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#6b7280')),
+        ('TEXTCOLOR', (2, 0), (2, -1), colors.HexColor('#6b7280')),
+        ('FONTNAME', (1, 0), (1, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (3, 0), (3, -1), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f9fafb')),
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#e5e7eb')),
+    ]))
+    elements.append(project_table)
+    elements.append(Spacer(1, 16))
+    
+    # =========================================================================
+    # SCOPE OF WORK
+    # =========================================================================
+    elements.append(Paragraph("<b>SCOPE OF WORK</b>", section_style))
+    elements.append(Paragraph(
+        "Contractor agrees to perform the following painting and finishing services:",
+        normal_style
+    ))
+    elements.append(Spacer(1, 8))
+    
+    # Line Items Table
+    table_data = [['Code', 'Description', 'Qty', 'Unit', 'Unit Price', 'Total']]
+    
+    for line in lines:
+        unit_price = line.get_effective_unit_price()
+        total = line.direct_cost()
+        table_data.append([
+            line.cost_code.code if line.cost_code else '-',
+            (line.description or (line.cost_code.name if line.cost_code else '-'))[:40],
+            f'{line.qty:.2f}',
+            line.unit or 'EA',
+            f'${unit_price:,.2f}',
+            f'${total:,.2f}'
+        ])
+    
+    if not lines:
+        table_data.append(['-', 'No items specified', '-', '-', '-', '-'])
+    
+    line_table = Table(table_data, colWidths=[0.7*inch, 2.6*inch, 0.5*inch, 0.5*inch, 0.9*inch, 0.9*inch])
+    line_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#059669')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('TOPPADDING', (0, 0), (-1, 0), 8),
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+        ('TEXTCOLOR', (0, 1), (-1, -1), colors.HexColor('#374151')),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 5),
+        ('TOPPADDING', (0, 1), (-1, -1), 5),
+        ('ALIGN', (2, 0), (2, -1), 'CENTER'),
+        ('ALIGN', (4, 0), (5, -1), 'RIGHT'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d1d5db')),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
+    ]))
+    elements.append(line_table)
+    elements.append(Spacer(1, 16))
+    
+    # =========================================================================
+    # CONTRACT SUM
+    # =========================================================================
+    elements.append(Paragraph("<b>CONTRACT SUM</b>", section_style))
+    
+    # Calculate totals
+    subtotal = sum(line.direct_cost() for line in lines)
+    total_material = sum(
+        line.qty * line.material_unit_cost 
+        for line in lines 
+        if not (line.unit_price and line.unit_price > 0)
+    )
+    total_labor = sum(
+        line.qty * line.labor_unit_cost 
+        for line in lines 
+        if not (line.unit_price and line.unit_price > 0)
+    )
+    
+    from decimal import Decimal
+    labor_markup = total_labor * (estimate.markup_labor / 100) if estimate.markup_labor else Decimal("0")
+    material_markup = total_material * (estimate.markup_material / 100) if estimate.markup_material else Decimal("0")
+    overhead = subtotal * (estimate.overhead_pct / 100) if estimate.overhead_pct else Decimal("0")
+    profit = subtotal * (estimate.target_profit_pct / 100) if estimate.target_profit_pct else Decimal("0")
+    
+    summary_data = [['', 'Direct Costs:', f'${subtotal:,.2f}']]
+    
+    if labor_markup > 0:
+        summary_data.append(['', f'Labor Markup ({estimate.markup_labor}%):', f'${labor_markup:,.2f}'])
+    if material_markup > 0:
+        summary_data.append(['', f'Material Markup ({estimate.markup_material}%):', f'${material_markup:,.2f}'])
+    if overhead > 0:
+        summary_data.append(['', f'Overhead ({estimate.overhead_pct}%):', f'${overhead:,.2f}'])
+    if profit > 0:
+        summary_data.append(['', f'Profit ({estimate.target_profit_pct}%):', f'${profit:,.2f}'])
+    
+    summary_data.append(['', 'TOTAL CONTRACT AMOUNT:', f'${contract.total_amount:,.2f}'])
+    
+    summary_table = Table(summary_data, colWidths=[3*inch, 2.2*inch, 1.3*inch])
+    summary_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+        ('TEXTCOLOR', (1, 0), (1, -2), colors.HexColor('#6b7280')),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('FONTNAME', (1, -1), (-1, -1), 'Helvetica-Bold'),
+        ('TEXTCOLOR', (1, -1), (-1, -1), colors.HexColor('#059669')),
+        ('FONTSIZE', (1, -1), (-1, -1), 12),
+        ('TOPPADDING', (0, -1), (-1, -1), 8),
+        ('LINEABOVE', (1, -1), (-1, -1), 1.5, colors.HexColor('#059669')),
+    ]))
+    elements.append(summary_table)
+    elements.append(Spacer(1, 16))
+    
+    # =========================================================================
+    # PAYMENT SCHEDULE
+    # =========================================================================
+    elements.append(Paragraph("<b>PAYMENT SCHEDULE</b>", section_style))
+    
+    payment_schedule = contract.payment_schedule or []
+    if payment_schedule:
+        payment_text = "Customer agrees to pay Contractor according to the following schedule:<br/><br/>"
+        for payment in payment_schedule:
+            payment_text += f"• <b>{payment['name']}</b>: ${Decimal(payment['amount']):,.2f} ({payment['percentage']}%) - {payment['due_trigger']}<br/>"
+        elements.append(Paragraph(payment_text, normal_style))
+    else:
+        elements.append(Paragraph("Payment terms to be agreed upon separately.", normal_style))
+    
+    elements.append(Spacer(1, 12))
+    
+    # =========================================================================
+    # TERMS AND CONDITIONS (Abbreviated)
+    # =========================================================================
+    elements.append(Paragraph("<b>TERMS AND CONDITIONS</b>", section_style))
+    
+    terms = """
+    <b>1. WORK STANDARDS:</b> All work shall be performed in a professional manner consistent with industry standards.
+    <br/><br/>
+    <b>2. MATERIALS:</b> Contractor shall furnish all materials, equipment, and labor necessary to complete the work.
+    <br/><br/>
+    <b>3. WARRANTY:</b> Contractor warrants workmanship for a period of ONE (1) YEAR from substantial completion.
+    <br/><br/>
+    <b>4. INSURANCE:</b> Contractor maintains liability insurance and workers' compensation as required by Colorado law.
+    <br/><br/>
+    <b>5. CHANGES:</b> Any changes to the scope of work must be agreed upon in writing through a Change Order.
+    <br/><br/>
+    <b>6. LATE PAYMENT:</b> Unpaid balances accrue interest at 1.5% per month (18% annually).
+    <br/><br/>
+    <b>7. GOVERNING LAW:</b> This Contract shall be governed by the laws of the State of Colorado.
+    """
+    elements.append(Paragraph(terms, normal_style))
+    
+    # Page break before signatures
+    elements.append(PageBreak())
+    
+    # =========================================================================
+    # SIGNATURES
+    # =========================================================================
+    elements.append(Paragraph("<b>SIGNATURES</b>", section_style))
+    elements.append(Paragraph(
+        "By signing below, both parties agree to be bound by the terms and conditions of this Contract.",
+        normal_style
+    ))
+    elements.append(Spacer(1, 20))
+    
+    # Signature table
+    sig_data = [
+        ['CONTRACTOR:', '', 'CUSTOMER:', ''],
+        ['', '', '', ''],
+        ['Signature: _______________________', '', 'Signature: _______________________', ''],
+        ['', '', '', ''],
+        [f'Name: {COMPANY_INFO["name"]}', '', f'Name: {project.client or "_______________________"}', ''],
+        ['', '', '', ''],
+        ['Date: _______________________', '', 'Date: _______________________', ''],
+    ]
+    
+    sig_table = Table(sig_data, colWidths=[2.8*inch, 0.4*inch, 2.8*inch, 0.4*inch])
+    sig_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('FONTNAME', (0, 0), (0, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (2, 0), (2, 0), 'Helvetica-Bold'),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(sig_table)
+    
+    # Footer
+    elements.append(Spacer(1, 30))
+    elements.append(Paragraph(
+        f"<i>Contract generated on {timezone.now().strftime('%Y-%m-%d %H:%M')} | "
+        f"{COMPANY_INFO['name']} - {COMPANY_INFO['license']}</i>",
+        ParagraphStyle('Footer', parent=small_style, alignment=TA_CENTER)
+    ))
+    
+    doc.build(elements)
+    return buffer.getvalue()
+
+
+def generate_signed_contract_pdf_reportlab(contract: "Contract") -> bytes:
+    """
+    Generate signed Contract PDF with client signature embedded.
+    
+    This is similar to the unsigned version but includes:
+    - "EXECUTED" watermark
+    - Client signature image
+    - Signature timestamp
+    - IP address for audit
+    """
+    from reportlab.lib.pagesizes import LETTER
+    from reportlab.lib.units import inch
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT, TA_JUSTIFY
+    import base64
+    
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, 
+        pagesize=LETTER,
+        leftMargin=0.75*inch, 
+        rightMargin=0.75*inch,
+        topMargin=0.75*inch, 
+        bottomMargin=0.75*inch
+    )
+    
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    title_style = ParagraphStyle(
+        'ContractTitle',
+        parent=styles['Heading1'],
+        fontSize=18,
+        textColor=colors.HexColor('#059669'),
+        alignment=TA_CENTER,
+        spaceAfter=6,
+        fontName='Helvetica-Bold'
+    )
+    
+    executed_style = ParagraphStyle(
+        'ExecutedStamp',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=colors.HexColor('#059669'),
+        alignment=TA_CENTER,
+        spaceAfter=12,
+        fontName='Helvetica-Bold',
+        borderColor=colors.HexColor('#059669'),
+        borderWidth=2,
+        borderPadding=8,
+    )
+    
+    section_style = ParagraphStyle(
+        'SectionHeader',
+        parent=styles['Heading2'],
+        fontSize=12,
+        textColor=colors.HexColor('#1f2937'),
+        spaceBefore=16,
+        spaceAfter=8,
+        fontName='Helvetica-Bold'
+    )
+    
+    normal_style = ParagraphStyle(
+        'ContractNormal',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.HexColor('#374151'),
+        alignment=TA_JUSTIFY,
+        spaceAfter=6
+    )
+    
+    small_style = ParagraphStyle(
+        'ContractSmall',
+        parent=styles['Normal'],
+        fontSize=8,
+        textColor=colors.HexColor('#6b7280')
+    )
+    
+    elements = []
+    
+    # Get data
+    estimate = contract.estimate
+    project = contract.project
+    lines = estimate.lines.select_related('cost_code').all()
+    
+    # =========================================================================
+    # HEADER WITH EXECUTED STAMP
+    # =========================================================================
+    elements.append(Paragraph("<b>PAINTING SERVICES CONTRACT</b>", title_style))
+    elements.append(Paragraph(f"Contract No: {contract.contract_number}", 
+                              ParagraphStyle('Center', parent=normal_style, alignment=TA_CENTER)))
+    elements.append(Spacer(1, 10))
+    
+    # EXECUTED stamp
+    executed_text = f"✓ CONTRACT EXECUTED - Signed on {contract.client_signed_at.strftime('%B %d, %Y at %H:%M') if contract.client_signed_at else 'N/A'}"
+    elements.append(Paragraph(executed_text, executed_style))
+    elements.append(Spacer(1, 16))
+    
+    # =========================================================================
+    # PARTIES (same as unsigned)
+    # =========================================================================
+    elements.append(Paragraph("<b>PARTIES</b>", section_style))
+    
+    parties_text = f"""
+    This Painting Services Contract ("Contract") is entered into as of {contract.created_at.strftime('%B %d, %Y')} by and between:
+    <br/><br/>
+    <b>CONTRACTOR:</b><br/>
+    {COMPANY_INFO['name']}<br/>
+    {COMPANY_INFO['address']}<br/>
+    <br/>
+    <b>CUSTOMER:</b><br/>
+    {project.client or 'N/A'}<br/>
+    Project Address: {project.address or 'N/A'}<br/>
+    """
+    elements.append(Paragraph(parties_text, normal_style))
+    elements.append(Spacer(1, 12))
+    
+    # =========================================================================
+    # PROJECT INFO (abbreviated for signed version)
+    # =========================================================================
+    elements.append(Paragraph("<b>PROJECT INFORMATION</b>", section_style))
+    
+    project_data = [
+        ['Project Name:', project.name, 'Contract Amount:', f'${contract.total_amount:,.2f}'],
+        ['Project Address:', project.address or '-', 'Contract Version:', f'v{contract.version}'],
+    ]
+    
+    project_table = Table(project_data, colWidths=[1.2*inch, 2.3*inch, 1.2*inch, 1.8*inch])
+    project_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#6b7280')),
+        ('TEXTCOLOR', (2, 0), (2, -1), colors.HexColor('#6b7280')),
+        ('FONTNAME', (1, 0), (1, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (3, 0), (3, -1), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f0fdf4')),
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#059669')),
+    ]))
+    elements.append(project_table)
+    elements.append(Spacer(1, 16))
+    
+    # =========================================================================
+    # SCOPE OF WORK (abbreviated)
+    # =========================================================================
+    elements.append(Paragraph("<b>SCOPE OF WORK</b>", section_style))
+    
+    # Line Items Table (same as unsigned)
+    table_data = [['Code', 'Description', 'Qty', 'Unit', 'Unit Price', 'Total']]
+    
+    for line in lines:
+        unit_price = line.get_effective_unit_price()
+        total = line.direct_cost()
+        table_data.append([
+            line.cost_code.code if line.cost_code else '-',
+            (line.description or (line.cost_code.name if line.cost_code else '-'))[:40],
+            f'{line.qty:.2f}',
+            line.unit or 'EA',
+            f'${unit_price:,.2f}',
+            f'${total:,.2f}'
+        ])
+    
+    if not lines:
+        table_data.append(['-', 'No items specified', '-', '-', '-', '-'])
+    
+    line_table = Table(table_data, colWidths=[0.7*inch, 2.6*inch, 0.5*inch, 0.5*inch, 0.9*inch, 0.9*inch])
+    line_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#059669')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d1d5db')),
+        ('ALIGN', (4, 0), (5, -1), 'RIGHT'),
+    ]))
+    elements.append(line_table)
+    elements.append(Spacer(1, 16))
+    
+    # Total
+    elements.append(Paragraph(
+        f"<b>TOTAL CONTRACT AMOUNT: ${contract.total_amount:,.2f}</b>",
+        ParagraphStyle('Total', parent=normal_style, fontSize=12, textColor=colors.HexColor('#059669'))
+    ))
+    
+    # Page break before signatures
+    elements.append(PageBreak())
+    
+    # =========================================================================
+    # SIGNATURE SECTION
+    # =========================================================================
+    elements.append(Paragraph("<b>EXECUTION</b>", section_style))
+    elements.append(Paragraph(
+        "This Contract has been executed by both parties as indicated below.",
+        normal_style
+    ))
+    elements.append(Spacer(1, 20))
+    
+    # Customer signature
+    elements.append(Paragraph("<b>CUSTOMER SIGNATURE:</b>", section_style))
+    
+    # Try to include signature image
+    if contract.client_signature:
+        try:
+            # Read signature file
+            contract.client_signature.seek(0)
+            sig_bytes = contract.client_signature.read()
+            sig_buffer = BytesIO(sig_bytes)
+            sig_image = Image(sig_buffer, width=2*inch, height=0.75*inch)
+            elements.append(sig_image)
+        except Exception:
+            elements.append(Paragraph("[Signature on file]", normal_style))
+    else:
+        elements.append(Paragraph("[Digital signature captured]", normal_style))
+    
+    elements.append(Spacer(1, 8))
+    
+    sig_details = f"""
+    <b>Signed by:</b> {contract.client_signed_name or 'N/A'}<br/>
+    <b>Date/Time:</b> {contract.client_signed_at.strftime('%B %d, %Y at %H:%M:%S %Z') if contract.client_signed_at else 'N/A'}<br/>
+    <b>IP Address:</b> {contract.client_ip_address or 'N/A'}
+    """
+    elements.append(Paragraph(sig_details, small_style))
+    
+    elements.append(Spacer(1, 20))
+    
+    # Contractor counter-signature
+    elements.append(Paragraph("<b>CONTRACTOR ACCEPTANCE:</b>", section_style))
+    
+    if contract.contractor_signed_at:
+        contractor_sig = f"""
+        <b>Accepted by:</b> {COMPANY_INFO['name']}<br/>
+        <b>Authorized Representative:</b> {contract.contractor_signed_by.get_full_name() if contract.contractor_signed_by else 'Authorized Representative'}<br/>
+        <b>Date/Time:</b> {contract.contractor_signed_at.strftime('%B %d, %Y at %H:%M:%S') if contract.contractor_signed_at else 'N/A'}
+        """
+    else:
+        contractor_sig = f"""
+        <b>Accepted by:</b> {COMPANY_INFO['name']}<br/>
+        <b>Status:</b> Pending contractor acceptance
+        """
+    elements.append(Paragraph(contractor_sig, small_style))
+    
+    # Footer with verification info
+    elements.append(Spacer(1, 40))
+    
+    # Generate document hash for verification
+    import hashlib
+    hash_data = f"{contract.id}|{contract.contract_number}|{contract.client_signed_at}|{contract.total_amount}"
+    doc_hash = hashlib.sha256(hash_data.encode()).hexdigest()[:12].upper()
+    
+    elements.append(Paragraph(
+        f"<i>Document ID: {contract.contract_number} | Verification: {doc_hash}<br/>"
+        f"Generated: {timezone.now().strftime('%Y-%m-%d %H:%M')} | "
+        f"{COMPANY_INFO['name']} - {COMPANY_INFO['license']}</i>",
+        ParagraphStyle('Footer', parent=small_style, alignment=TA_CENTER)
+    ))
+    
+    doc.build(elements)
+    return buffer.getvalue()
+
+
 # Convenience functions
 def generate_signed_changeorder_pdf(changeorder: "ChangeOrder") -> bytes:
     """Generate PDF for signed Change Order."""
@@ -525,5 +1104,7 @@ __all__ = [
     "generate_signed_changeorder_pdf",
     "generate_signed_colorsample_pdf",
     "generate_estimate_pdf",
+    "generate_contract_pdf_reportlab",
+    "generate_signed_contract_pdf_reportlab",
     "COMPANY_INFO",
 ]

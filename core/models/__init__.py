@@ -3345,6 +3345,259 @@ class Proposal(models.Model):
         return f"Proposal {self.estimate.code} ({self.estimate.project.name})"
 
 
+class Contract(models.Model):
+    """
+    Contract model for the estimate-to-contract workflow.
+    
+    Workflow:
+    1. Estimate approved → Contract auto-created (status='pending_signature')
+    2. Contract sent to client portal
+    3. Client signs → status='signed' → Project activated
+    4. OR Client requests changes → status='revision_requested' → Admin edits → New cycle
+    """
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('pending_signature', 'Pending Signature'),
+        ('revision_requested', 'Revision Requested'),
+        ('signed', 'Signed'),
+        ('active', 'Active'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    # Core relationships
+    estimate = models.OneToOneField(
+        Estimate, 
+        on_delete=models.CASCADE, 
+        related_name="contract",
+        help_text="Source estimate for this contract"
+    )
+    project = models.ForeignKey(
+        Project, 
+        on_delete=models.CASCADE, 
+        related_name="contracts",
+        help_text="Project this contract belongs to"
+    )
+    
+    # Contract identification
+    contract_number = models.CharField(
+        max_length=50, 
+        unique=True, 
+        blank=True,
+        help_text="Auto-generated: {estimate.code}-C"
+    )
+    version = models.PositiveIntegerField(default=1)
+    status = models.CharField(
+        max_length=30, 
+        choices=STATUS_CHOICES, 
+        default='pending_signature'
+    )
+    
+    # Financial summary (cached from estimate)
+    total_amount = models.DecimalField(
+        max_digits=14, 
+        decimal_places=2, 
+        default=Decimal("0"),
+        help_text="Total contract amount including all markups"
+    )
+    
+    # Payment schedule
+    payment_schedule = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Payment milestones: [{name, percentage, amount, due_trigger}]"
+    )
+    
+    # Client signature fields
+    client_signature = models.ImageField(
+        upload_to="contracts/signatures/%Y/%m/",
+        null=True, 
+        blank=True,
+        help_text="Client's digital signature image"
+    )
+    client_signed_name = models.CharField(
+        max_length=200, 
+        blank=True,
+        help_text="Client's typed name for signature"
+    )
+    client_signed_at = models.DateTimeField(
+        null=True, 
+        blank=True,
+        help_text="Timestamp when client signed"
+    )
+    client_ip_address = models.GenericIPAddressField(
+        null=True, 
+        blank=True,
+        help_text="Client's IP address at signing"
+    )
+    
+    # Contractor signature (auto-filled)
+    contractor_signed_at = models.DateTimeField(
+        null=True, 
+        blank=True,
+        help_text="Timestamp when contractor countersigned"
+    )
+    contractor_signed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="signed_contracts",
+        help_text="Staff member who countersigned"
+    )
+    
+    # Revision tracking
+    revision_notes = models.TextField(
+        blank=True,
+        help_text="Client's notes when requesting revisions"
+    )
+    revision_requested_at = models.DateTimeField(
+        null=True, 
+        blank=True
+    )
+    revision_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of times revisions were requested"
+    )
+    
+    # Document tracking
+    pdf_file = models.ForeignKey(
+        'ProjectFile',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="contract_source",
+        help_text="Generated contract PDF in project files"
+    )
+    signed_pdf_file = models.ForeignKey(
+        'ProjectFile',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="signed_contract_source",
+        help_text="Signed contract PDF in project files"
+    )
+    
+    # Access token for client portal
+    client_view_token = models.CharField(
+        max_length=36, 
+        unique=True, 
+        blank=True,
+        help_text="UUID token for client access without login"
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Contract"
+        verbose_name_plural = "Contracts"
+    
+    def __str__(self):
+        return f"Contract {self.contract_number} - {self.project.name}"
+    
+    def save(self, *args, **kwargs):
+        import uuid
+        
+        # Auto-generate contract number from estimate code
+        if not self.contract_number and self.estimate_id:
+            self.contract_number = f"{self.estimate.code}-C"
+        
+        # Auto-generate client view token
+        if not self.client_view_token:
+            self.client_view_token = str(uuid.uuid4())
+        
+        # Cache total amount from estimate
+        if self.estimate_id and not self.total_amount:
+            self.total_amount = self.calculate_total_from_estimate()
+        
+        # Auto-generate payment schedule if empty
+        if not self.payment_schedule and self.total_amount:
+            self.payment_schedule = self.generate_default_payment_schedule()
+        
+        super().save(*args, **kwargs)
+    
+    def calculate_total_from_estimate(self) -> Decimal:
+        """Calculate total contract amount from estimate lines and markups."""
+        if not self.estimate:
+            return Decimal("0")
+        
+        lines = self.estimate.lines.all()
+        subtotal = sum(line.direct_cost() for line in lines)
+        
+        # Get component totals for markup calculation
+        total_material = sum(
+            line.qty * line.material_unit_cost 
+            for line in lines 
+            if not (line.unit_price and line.unit_price > 0)
+        )
+        total_labor = sum(
+            line.qty * line.labor_unit_cost 
+            for line in lines 
+            if not (line.unit_price and line.unit_price > 0)
+        )
+        
+        # Apply markups
+        labor_markup = total_labor * (self.estimate.markup_labor / 100) if self.estimate.markup_labor else Decimal("0")
+        material_markup = total_material * (self.estimate.markup_material / 100) if self.estimate.markup_material else Decimal("0")
+        overhead = subtotal * (self.estimate.overhead_pct / 100) if self.estimate.overhead_pct else Decimal("0")
+        profit = subtotal * (self.estimate.target_profit_pct / 100) if self.estimate.target_profit_pct else Decimal("0")
+        
+        return subtotal + labor_markup + material_markup + overhead + profit
+    
+    def generate_default_payment_schedule(self) -> list:
+        """Generate default 33/33/34 payment schedule."""
+        if not self.total_amount:
+            return []
+        
+        total = self.total_amount
+        deposit = round(total * Decimal("0.33"), 2)
+        progress = round(total * Decimal("0.33"), 2)
+        final = total - deposit - progress
+        
+        return [
+            {
+                "name": "Deposit",
+                "percentage": 33,
+                "amount": str(deposit),
+                "due_trigger": "Due upon contract signing"
+            },
+            {
+                "name": "Progress Payment",
+                "percentage": 33,
+                "amount": str(progress),
+                "due_trigger": "Due at 50% completion"
+            },
+            {
+                "name": "Final Payment",
+                "percentage": 34,
+                "amount": str(final),
+                "due_trigger": "Due upon substantial completion"
+            }
+        ]
+    
+    @property
+    def is_signed(self) -> bool:
+        """Check if contract has been signed by client."""
+        return bool(self.client_signed_at)
+    
+    @property
+    def is_active(self) -> bool:
+        """Check if contract is active (signed and countersigned)."""
+        return self.status == 'active'
+    
+    @property
+    def can_be_signed(self) -> bool:
+        """Check if contract is in a state where it can be signed."""
+        return self.status == 'pending_signature'
+    
+    def get_client_url(self) -> str:
+        """Get the URL for client to view/sign contract."""
+        from django.urls import reverse
+        return reverse('contract_client_view', kwargs={'token': self.client_view_token})
+
+
 # --- Field Communication ---
 # Weather snapshot (caching daily outdoor conditions for a project)
 class WeatherSnapshot(models.Model):

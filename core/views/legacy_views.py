@@ -13961,7 +13961,27 @@ def proposal_public_view(request, token):
                 import logging
                 logging.getLogger(__name__).warning(f"Failed to auto-create budget from estimate: {e}")
             
-            # --- Auto-save Estimate/Contract PDF to Project Files ---
+            # --- Auto-create Contract from approved Estimate ---
+            contract_url = None
+            try:
+                from core.services.contract_service import ContractService
+                contract = ContractService.create_contract_from_estimate(
+                    estimate=estimate,
+                    user=None,
+                    auto_generate_pdf=True
+                )
+                import logging
+                logging.getLogger(__name__).info(
+                    f"Auto-created contract {contract.contract_number} from approved Estimate {estimate.code}"
+                )
+                # Build contract signing URL
+                from django.urls import reverse
+                contract_url = reverse('contract_client_view', kwargs={'token': contract.client_view_token})
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"Failed to auto-create contract from estimate: {e}")
+            
+            # --- Auto-save Estimate/Contract PDF to Project Files (legacy, keep for backward compatibility) ---
             try:
                 from core.services.document_storage_service import auto_save_estimate_pdf
                 # Save as contract since it's been approved
@@ -13970,10 +13990,18 @@ def proposal_public_view(request, token):
                 import logging
                 logging.getLogger(__name__).warning(f"Failed to auto-save Estimate PDF: {e}")
             
-            messages.success(
-                request,
-                "¡Gracias! Hemos recibido tu aprobación. Comenzaremos a trabajar en tu proyecto.",
-            )
+            # Redirect to contract signing page if contract was created
+            if contract_url:
+                messages.success(
+                    request,
+                    "Thank you! Your estimate has been approved. Please review and sign the contract to proceed."
+                )
+                return redirect(contract_url)
+            else:
+                messages.success(
+                    request,
+                    "Thank you! We have received your approval. We will begin working on your project."
+                )
 
         elif action == "reject":
             feedback = request.POST.get("feedback", "").strip()
@@ -13981,7 +14009,7 @@ def proposal_public_view(request, token):
             proposal.save(update_fields=["client_comment"])
             messages.info(
                 request,
-                "Hemos recibido tus comentarios. Nuestro equipo se pondrá en contacto contigo pronto.",
+                "We have received your comments. Our team will contact you soon."
             )
             # TODO: Notify PM/Admin via email or notification
 
@@ -13999,6 +14027,135 @@ def proposal_public_view(request, token):
     }
 
     return render(request, "core/proposal_public.html", context)
+
+
+# --- PUBLIC CONTRACT VIEW (FOR CLIENT SIGNATURE) ---
+def contract_client_view(request, token):
+    """
+    Public view for clients to view and sign a contract.
+    No login required - access via unique token.
+    
+    GET: Display contract details with signature form
+    POST: Process signature or revision request
+    """
+    from core.models import Contract
+    from core.services.contract_service import ContractService
+    import base64
+    
+    # Get contract by token
+    contract = ContractService.get_contract_by_token(token)
+    
+    if not contract:
+        return HttpResponseNotFound("Contract not found or invalid link.")
+    
+    estimate = contract.estimate
+    project = contract.project
+    lines = estimate.lines.select_related("cost_code").all()
+    
+    # Calculate totals for display
+    subtotal = sum(line.direct_cost() for line in lines)
+    total_material = sum(line.qty * line.material_unit_cost for line in lines if not (line.unit_price and line.unit_price > 0))
+    total_labor = sum(line.qty * line.labor_unit_cost for line in lines if not (line.unit_price and line.unit_price > 0))
+    
+    markup_material_amount = total_material * (estimate.markup_material / Decimal("100")) if estimate.markup_material else Decimal("0")
+    markup_labor_amount = total_labor * (estimate.markup_labor / Decimal("100")) if estimate.markup_labor else Decimal("0")
+    overhead_amount = subtotal * (estimate.overhead_pct / Decimal("100")) if estimate.overhead_pct else Decimal("0")
+    profit_amount = subtotal * (estimate.target_profit_pct / Decimal("100")) if estimate.target_profit_pct else Decimal("0")
+    
+    # Handle POST actions
+    if request.method == "POST":
+        action = request.POST.get("action")
+        
+        if action == "sign" and contract.can_be_signed:
+            # Get signature data
+            client_name = request.POST.get("client_name", "").strip()
+            signature_data_b64 = request.POST.get("signature_data", "")
+            
+            if not client_name:
+                messages.error(request, "Please enter your full name to sign the contract.")
+            else:
+                try:
+                    # Decode signature if provided
+                    signature_bytes = None
+                    if signature_data_b64:
+                        # Remove data URL prefix if present
+                        if "," in signature_data_b64:
+                            signature_data_b64 = signature_data_b64.split(",")[1]
+                        signature_bytes = base64.b64decode(signature_data_b64)
+                    
+                    # Get client IP
+                    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+                    if x_forwarded_for:
+                        client_ip = x_forwarded_for.split(",")[0].strip()
+                    else:
+                        client_ip = request.META.get("REMOTE_ADDR")
+                    
+                    # Sign the contract
+                    contract = ContractService.sign_contract(
+                        contract=contract,
+                        client_name=client_name,
+                        signature_data=signature_bytes,
+                        ip_address=client_ip,
+                        generate_signed_pdf=True,
+                        user=None
+                    )
+                    
+                    messages.success(
+                        request,
+                        "Thank you! Your contract has been signed successfully. "
+                        "You will receive a confirmation email shortly."
+                    )
+                    
+                    # TODO: Send confirmation email to client
+                    # TODO: Notify admin of signed contract
+                    
+                except Exception as e:
+                    logger.error(f"Error signing contract {contract.contract_number}: {e}")
+                    messages.error(request, "An error occurred while signing. Please try again.")
+        
+        elif action == "request_revision" and contract.status in ['pending_signature', 'revision_requested']:
+            revision_notes = request.POST.get("revision_notes", "").strip()
+            
+            if not revision_notes:
+                messages.error(request, "Please provide details about the changes you need.")
+            else:
+                try:
+                    contract = ContractService.request_revision(
+                        contract=contract,
+                        revision_notes=revision_notes
+                    )
+                    
+                    messages.info(
+                        request,
+                        "Your revision request has been submitted. "
+                        "Our team will review and contact you soon."
+                    )
+                    
+                    # TODO: Notify admin of revision request
+                    
+                except Exception as e:
+                    logger.error(f"Error requesting revision for {contract.contract_number}: {e}")
+                    messages.error(request, "An error occurred. Please try again.")
+    
+    # Build context
+    context = {
+        "contract": contract,
+        "estimate": estimate,
+        "project": project,
+        "lines": lines,
+        "subtotal": subtotal,
+        "markup_material": markup_material_amount,
+        "markup_labor": markup_labor_amount,
+        "overhead": overhead_amount,
+        "profit": profit_amount,
+        "total": contract.total_amount,
+        "payment_schedule": contract.payment_schedule or [],
+        "is_signed": contract.is_signed,
+        "can_be_signed": contract.can_be_signed,
+        "status": contract.status,
+    }
+    
+    return render(request, "core/contract_client_view.html", context)
 
 
 @login_required

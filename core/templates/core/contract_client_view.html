@@ -1,0 +1,738 @@
+{% load static %}
+{% load i18n %}
+{% load core_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contract - {{ project.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #059669;
+            --primary-light: #10b981;
+            --primary-dark: #047857;
+            --secondary: #6366f1;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        .contract-card {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        .contract-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .contract-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .contract-header .code {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+        
+        .contract-header .version {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .contract-body {
+            padding: 30px;
+        }
+        
+        .status-banner {
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .status-banner.signed {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            color: var(--primary-dark);
+            border: 1px solid var(--primary-light);
+        }
+        
+        .status-banner.pending {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            border: 1px solid #f59e0b;
+        }
+        
+        .status-banner.revision {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+        
+        .status-banner i {
+            font-size: 1.5rem;
+        }
+        
+        .info-section {
+            margin-bottom: 24px;
+        }
+        
+        .info-section h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--primary-light);
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .info-item label {
+            font-weight: 500;
+            color: #6b7280;
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        .info-item .value {
+            font-size: 1rem;
+            color: #111827;
+            font-weight: 500;
+        }
+        
+        .scope-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 0.9rem;
+        }
+        
+        .scope-table th {
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .scope-table th:last-child,
+        .scope-table td:last-child {
+            text-align: right;
+        }
+        
+        .scope-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .scope-table tr:nth-child(even) {
+            background: #f9fafb;
+        }
+        
+        .totals-section {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 24px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 0.95rem;
+        }
+        
+        .total-row.grand-total {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary);
+            border-top: 2px solid var(--primary);
+            padding-top: 16px;
+            margin-top: 12px;
+        }
+        
+        .payment-schedule {
+            margin-top: 24px;
+        }
+        
+        .payment-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .payment-item .number {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 16px;
+        }
+        
+        .payment-item .details {
+            flex: 1;
+        }
+        
+        .payment-item .name {
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        .payment-item .trigger {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        
+        .payment-item .amount {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+        
+        /* Signature Section */
+        .signature-section {
+            margin-top: 32px;
+            padding: 24px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border: 2px dashed #d1d5db;
+        }
+        
+        .signature-section h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 16px;
+        }
+        
+        .signature-pad-container {
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        #signature-pad {
+            width: 100%;
+            height: 150px;
+            cursor: crosshair;
+        }
+        
+        .signature-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .btn-clear {
+            padding: 8px 16px;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            color: #374151;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        
+        .btn-clear:hover {
+            background: #e5e7eb;
+        }
+        
+        /* Action Buttons */
+        .actions {
+            margin-top: 32px;
+            text-align: center;
+        }
+        
+        .btn-sign {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border: none;
+            color: white;
+            padding: 16px 60px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 50px;
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .btn-sign:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(5, 150, 105, 0.4);
+        }
+        
+        .btn-sign:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-revision {
+            background: white;
+            border: 2px solid var(--secondary);
+            color: var(--secondary);
+            padding: 14px 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+        
+        .btn-revision:hover {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+        }
+        
+        .modal-header {
+            background: var(--secondary);
+            color: white;
+            border-radius: 16px 16px 0 0;
+        }
+        
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+        
+        /* Terms Section */
+        .terms-section {
+            margin-top: 24px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            color: #4b5563;
+        }
+        
+        .terms-section h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 12px;
+        }
+        
+        /* Signature Display (for signed contracts) */
+        .signature-display {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #d1d5db;
+        }
+        
+        .signature-display img {
+            max-width: 300px;
+            max-height: 100px;
+        }
+        
+        .signature-info {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .contract-body {
+                padding: 20px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .payment-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .payment-item .number {
+                margin-right: 0;
+                margin-bottom: 8px;
+            }
+            
+            .btn-sign {
+                width: 100%;
+                padding: 16px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="contract-card">
+        <!-- Header -->
+        <div class="contract-header">
+            <h1><i class="bi bi-file-earmark-text me-2"></i>Painting Services Contract</h1>
+            <div class="code">{{ contract.contract_number }}</div>
+            <div class="version">Version {{ contract.version }}</div>
+        </div>
+        
+        <div class="contract-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <!-- Status Banner -->
+            {% if is_signed %}
+                <div class="status-banner signed">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <div>
+                        <strong>Contract Signed</strong><br>
+                        <small>Signed by {{ contract.client_signed_name }} on {{ contract.client_signed_at|date:"F d, Y \a\t H:i" }}</small>
+                    </div>
+                </div>
+            {% elif status == 'revision_requested' %}
+                <div class="status-banner revision">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    <div>
+                        <strong>Revision Requested</strong><br>
+                        <small>Our team is reviewing your requested changes.</small>
+                    </div>
+                </div>
+            {% else %}
+                <div class="status-banner pending">
+                    <i class="bi bi-hourglass-split"></i>
+                    <div>
+                        <strong>Awaiting Your Signature</strong><br>
+                        <small>Please review the contract details below and sign to proceed.</small>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Project Information -->
+            <div class="info-section">
+                <h3><i class="bi bi-building me-2"></i>Project Information</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Project Name</label>
+                        <div class="value">{{ project.name }}</div>
+                    </div>
+                    <div class="info-item">
+                        <label>Address</label>
+                        <div class="value">{{ project.address|default:"N/A" }}</div>
+                    </div>
+                    <div class="info-item">
+                        <label>Client</label>
+                        <div class="value">{{ project.client|default:"N/A" }}</div>
+                    </div>
+                    <div class="info-item">
+                        <label>Contract Date</label>
+                        <div class="value">{{ contract.created_at|date:"F d, Y" }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Scope of Work -->
+            <div class="info-section">
+                <h3><i class="bi bi-list-check me-2"></i>Scope of Work</h3>
+                <table class="scope-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Description</th>
+                            <th>Qty</th>
+                            <th>Unit</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for line in lines %}
+                            <tr>
+                                <td>{{ line.cost_code.code|default:"-" }}</td>
+                                <td>{{ line.description|default:line.cost_code.name|default:"-" }}</td>
+                                <td>{{ line.qty|floatformat:2 }}</td>
+                                <td>{{ line.unit|default:"EA" }}</td>
+                                <td>${{ line.get_effective_unit_price|floatformat:2 }}</td>
+                                <td>${{ line.direct_cost|floatformat:2 }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">No items specified</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Contract Sum -->
+            <div class="totals-section">
+                <h3 class="mb-3"><i class="bi bi-calculator me-2"></i>Contract Sum</h3>
+                <div class="total-row">
+                    <span>Direct Costs</span>
+                    <span>${{ subtotal|floatformat:2 }}</span>
+                </div>
+                {% if markup_material %}
+                    <div class="total-row">
+                        <span>Material Markup ({{ estimate.markup_material }}%)</span>
+                        <span>${{ markup_material|floatformat:2 }}</span>
+                    </div>
+                {% endif %}
+                {% if markup_labor %}
+                    <div class="total-row">
+                        <span>Labor Markup ({{ estimate.markup_labor }}%)</span>
+                        <span>${{ markup_labor|floatformat:2 }}</span>
+                    </div>
+                {% endif %}
+                {% if overhead %}
+                    <div class="total-row">
+                        <span>Overhead ({{ estimate.overhead_pct }}%)</span>
+                        <span>${{ overhead|floatformat:2 }}</span>
+                    </div>
+                {% endif %}
+                {% if profit %}
+                    <div class="total-row">
+                        <span>Profit ({{ estimate.target_profit_pct }}%)</span>
+                        <span>${{ profit|floatformat:2 }}</span>
+                    </div>
+                {% endif %}
+                <div class="total-row grand-total">
+                    <span>Total Contract Amount</span>
+                    <span>${{ total|floatformat:2 }}</span>
+                </div>
+            </div>
+            
+            <!-- Payment Schedule -->
+            {% if payment_schedule %}
+                <div class="payment-schedule">
+                    <h3 class="mb-3"><i class="bi bi-calendar-check me-2"></i>Payment Schedule</h3>
+                    {% for payment in payment_schedule %}
+                        <div class="payment-item">
+                            <div class="number">{{ forloop.counter }}</div>
+                            <div class="details">
+                                <div class="name">{{ payment.name }}</div>
+                                <div class="trigger">{{ payment.due_trigger }}</div>
+                            </div>
+                            <div class="amount">${{ payment.amount }} ({{ payment.percentage }}%)</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- Terms & Conditions Summary -->
+            <div class="terms-section">
+                <h4><i class="bi bi-file-text me-2"></i>Terms & Conditions</h4>
+                <p><strong>1. WORK STANDARDS:</strong> All work shall be performed in a professional manner consistent with industry standards.</p>
+                <p><strong>2. MATERIALS:</strong> Contractor shall furnish all materials, equipment, and labor necessary to complete the work.</p>
+                <p><strong>3. WARRANTY:</strong> Contractor warrants workmanship for a period of ONE (1) YEAR from substantial completion.</p>
+                <p><strong>4. INSURANCE:</strong> Contractor maintains liability insurance and workers' compensation as required by Colorado law.</p>
+                <p><strong>5. CHANGES:</strong> Any changes to the scope of work must be agreed upon in writing through a Change Order.</p>
+                <p><strong>6. LATE PAYMENT:</strong> Unpaid balances accrue interest at 1.5% per month (18% annually).</p>
+                <p><strong>7. GOVERNING LAW:</strong> This Contract shall be governed by the laws of the State of Colorado.</p>
+            </div>
+            
+            <!-- Signature Section -->
+            {% if is_signed %}
+                <!-- Show signed info -->
+                <div class="signature-section">
+                    <h3><i class="bi bi-pen me-2"></i>Contract Execution</h3>
+                    <div class="signature-display">
+                        {% if contract.client_signature %}
+                            <img src="{{ contract.client_signature.url }}" alt="Client Signature">
+                        {% else %}
+                            <p class="text-muted mb-0"><i class="bi bi-check-lg"></i> Digital signature captured</p>
+                        {% endif %}
+                        <div class="signature-info">
+                            <strong>Signed by:</strong> {{ contract.client_signed_name }}<br>
+                            <strong>Date:</strong> {{ contract.client_signed_at|date:"F d, Y \a\t H:i:s T" }}<br>
+                            {% if contract.client_ip_address %}
+                                <strong>IP Address:</strong> {{ contract.client_ip_address }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% elif can_be_signed %}
+                <!-- Signature Form -->
+                <form method="post" id="signatureForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="sign">
+                    <input type="hidden" name="signature_data" id="signatureData">
+                    
+                    <div class="signature-section">
+                        <h3><i class="bi bi-pen me-2"></i>Sign Contract</h3>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Your Full Name <span class="text-danger">*</span></label>
+                            <input type="text" name="client_name" class="form-control form-control-lg" 
+                                   placeholder="Enter your full legal name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Your Signature</label>
+                            <div class="signature-pad-container">
+                                <canvas id="signature-pad"></canvas>
+                            </div>
+                            <div class="signature-controls">
+                                <button type="button" class="btn-clear" onclick="clearSignature()">
+                                    <i class="bi bi-eraser me-1"></i> Clear
+                                </button>
+                                <small class="text-muted ms-2">Draw your signature above using mouse or touch</small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">
+                                I have read and agree to the terms and conditions of this contract.
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="actions">
+                        <button type="submit" class="btn-sign" id="submitBtn">
+                            <i class="bi bi-check-lg me-2"></i>Sign Contract
+                        </button>
+                        <br>
+                        <button type="button" class="btn-revision" data-bs-toggle="modal" data-bs-target="#revisionModal">
+                            <i class="bi bi-chat-left-text me-2"></i>Request Changes
+                        </button>
+                    </div>
+                </form>
+            {% else %}
+                <!-- Cannot sign (revision requested or other status) -->
+                <div class="signature-section">
+                    <h3><i class="bi bi-info-circle me-2"></i>Contract Status</h3>
+                    <p class="mb-0">
+                        {% if status == 'revision_requested' %}
+                            Your revision request is being reviewed. You will be notified when the updated contract is ready.
+                        {% else %}
+                            This contract is currently not available for signing. Please contact us for assistance.
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Revision Request Modal -->
+    <div class="modal fade" id="revisionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-chat-left-text me-2"></i>Request Changes</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="request_revision">
+                    <div class="modal-body">
+                        <p class="text-muted">Please describe the changes you need. Our team will review and update the contract accordingly.</p>
+                        <div class="mb-3">
+                            <label class="form-label">Your Requested Changes <span class="text-danger">*</span></label>
+                            <textarea name="revision_notes" class="form-control" rows="5" 
+                                      placeholder="Please describe what changes you need..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send me-1"></i>Submit Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script>
+        // Signature Pad Setup
+        const canvas = document.getElementById('signature-pad');
+        let signaturePad = null;
+        
+        if (canvas) {
+            signaturePad = new SignaturePad(canvas, {
+                backgroundColor: 'rgb(255, 255, 255)',
+                penColor: 'rgb(0, 0, 0)'
+            });
+            
+            // Resize canvas to fit container
+            function resizeCanvas() {
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                const container = canvas.parentElement;
+                canvas.width = container.offsetWidth * ratio;
+                canvas.height = 150 * ratio;
+                canvas.getContext('2d').scale(ratio, ratio);
+                signaturePad.clear();
+            }
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+        }
+        
+        function clearSignature() {
+            if (signaturePad) {
+                signaturePad.clear();
+            }
+        }
+        
+        // Form submission
+        const form = document.getElementById('signatureForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                // Capture signature data
+                const signatureDataInput = document.getElementById('signatureData');
+                if (signaturePad && !signaturePad.isEmpty()) {
+                    signatureDataInput.value = signaturePad.toDataURL('image/png');
+                }
+                
+                // Disable button to prevent double submission
+                const btn = document.getElementById('submitBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Processing...';
+            });
+        }
+    </script>
+</body>
+</html>
