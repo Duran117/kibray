@@ -351,7 +351,7 @@ class DailyLogForm(forms.ModelForm):
             "date",
             "weather",
             "crew_count",
-            "schedule_item",
+            "gantt_item",
             "schedule_progress_percent",
             "completed_tasks",
             "accomplishments",
@@ -367,9 +367,9 @@ class DailyLogForm(forms.ModelForm):
                 attrs={"class": "form-control", "placeholder": _("e.g.: Sunny, 75°F")}
             ),
             "crew_count": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
-            "schedule_item": forms.Select(attrs={"class": "form-select"}),
+            "gantt_item": forms.Select(attrs={"class": "form-select"}),
             "schedule_progress_percent": forms.NumberInput(
-                attrs={"class": "form-control", "min": "0", "max": "100", "step": "0.01"}
+                attrs={"class": "form-control", "min": "0", "max": "100", "step": "1"}
             ),
             "completed_tasks": forms.CheckboxSelectMultiple(),
             "accomplishments": forms.Textarea(
@@ -398,7 +398,7 @@ class DailyLogForm(forms.ModelForm):
             "is_published": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
         help_texts = {
-            "schedule_item": _("Main calendar activity (e.g.: Cover and Prep)"),
+            "gantt_item": _("Main Gantt activity (e.g.: Cover and Prep)"),
             "schedule_progress_percent": _("Progress percentage for this activity"),
             "completed_tasks": _("Select tasks that were completed or progressed today"),
             "is_published": _("Check to make visible to client and owner"),
@@ -409,10 +409,14 @@ class DailyLogForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if project:
-            # Filter schedule items for this project
-            self.fields["schedule_item"].queryset = Schedule.objects.filter(
+            # Filter ScheduleItem (Gantt items) for this project
+            from core.models import ScheduleItem
+            self.fields["gantt_item"].queryset = ScheduleItem.objects.filter(
                 project=project
-            ).order_by("start_datetime")
+            ).select_related("category").order_by("category__order", "order")
+            
+            # Add labels with category for better UX
+            self.fields["gantt_item"].label_from_instance = lambda obj: f"{obj.category.name} → {obj.title}" if obj.category else obj.title
 
             # Filter tasks for this project
             self.fields["completed_tasks"].queryset = (
@@ -420,6 +424,23 @@ class DailyLogForm(forms.ModelForm):
                 .select_related("assigned_to")
                 .order_by("-created_at")
             )
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        # Update ScheduleItem progress when saving
+        if instance.gantt_item and instance.schedule_progress_percent:
+            gantt_item = instance.gantt_item
+            gantt_item.percent_complete = int(instance.schedule_progress_percent)
+            if gantt_item.percent_complete >= 100:
+                gantt_item.status = "DONE"
+            elif gantt_item.percent_complete > 0:
+                gantt_item.status = "IN_PROGRESS"
+            gantt_item.save(update_fields=["percent_complete", "status"])
+        
+        if commit:
+            instance.save()
+        return instance
 
 
 class DailyLogPhotoForm(forms.ModelForm):

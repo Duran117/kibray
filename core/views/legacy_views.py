@@ -6368,7 +6368,7 @@ def daily_log_create(request, project_id):
     """Dedicated view to create a new Daily Log"""
 
     from core.forms import DailyLogForm
-    from core.models import Schedule, Task
+    from core.models import ScheduleItem, Task
 
     project = get_object_or_404(Project, pk=project_id)
 
@@ -6400,7 +6400,7 @@ def daily_log_create(request, project_id):
                 )
                 dl.photos.add(photo)
 
-            messages.success(request, "Daily Log created successfully")
+            messages.success(request, _("Daily Log created successfully"))
             return redirect("daily_log_detail", log_id=dl.id)
     else:
         # Default values
@@ -6417,16 +6417,16 @@ def daily_log_create(request, project_id):
         .order_by("created_at")
     )
 
-    # Get active schedule items
-    active_schedules = Schedule.objects.filter(
-        project=project, start_datetime__lte=date.today()
-    ).order_by("-start_datetime")[:10]
+    # Get active Gantt schedule items (not completed)
+    active_schedule_items = ScheduleItem.objects.filter(
+        project=project
+    ).exclude(status="DONE").select_related("category").order_by("category__order", "order")[:15]
 
     context = {
         "project": project,
         "form": form,
         "pending_tasks": pending_tasks,
-        "active_schedules": active_schedules,
+        "active_schedule_items": active_schedule_items,
     }
 
     return render(request, "core/daily_log_create.html", context)

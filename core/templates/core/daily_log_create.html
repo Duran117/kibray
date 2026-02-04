@@ -166,12 +166,12 @@
           <div class="form-card-body">
             <div class="info-hint">
               <i class="bi bi-info-circle"></i>
-              <span>{% trans "Select the main calendar activity worked on today (e.g.: Cover and Prep = 10% of total project)" %}</span>
+              <span>{% trans "Select the Gantt activity worked on today and update its progress percentage." %}</span>
             </div>
             <div class="row g-3">
               <div class="col-md-8">
-                <label class="form-label">{% trans "Schedule Activity" %}</label>
-                {{ form.schedule_item }}
+                <label class="form-label">{% trans "Gantt Activity" %}</label>
+                {{ form.gantt_item }}
               </div>
               <div class="col-md-4">
                 <label class="form-label">{% trans "Progress (%)" %}</label>
@@ -179,18 +179,26 @@
               </div>
             </div>
 
-            {% if active_schedules %}
+            {% if active_schedule_items %}
             <div class="mt-4">
-              <p class="text-slate-500 mb-2" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">{% trans "Recent Activities" %}</p>
+              <p class="text-slate-500 mb-2" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">{% trans "Active Gantt Items" %}</p>
               <div class="task-list">
-                {% for sched in active_schedules|slice:":5" %}
+                {% for item in active_schedule_items %}
                 <div class="task-item d-flex align-items-center gap-2">
-                  <i class="bi bi-calendar-event text-slate-400"></i>
-                  <span class="fw-medium text-slate-700">{{ sched.title }}</span>
-                  <span class="text-slate-400 ms-auto">{{ sched.start_datetime|date:"M d" }}</span>
+                  <i class="bi bi-kanban{% if item.status == 'IN_PROGRESS' %}-fill text-amber-500{% else %} text-slate-400{% endif %}"></i>
+                  <span class="fw-medium text-slate-700">{{ item.title }}</span>
+                  <span class="badge {% if item.percent_complete >= 100 %}bg-success{% elif item.percent_complete > 0 %}bg-warning text-dark{% else %}bg-secondary{% endif %} ms-auto">{{ item.percent_complete }}%</span>
                 </div>
                 {% endfor %}
               </div>
+            </div>
+            {% else %}
+            <div class="mt-4 text-center py-4">
+              <i class="bi bi-calendar-x text-slate-300" style="font-size: 2rem;"></i>
+              <p class="text-slate-500 mt-2 mb-0">{% trans "No Gantt items found for this project." %}</p>
+              <a href="{% url 'gantt_chart' project.id %}" class="btn btn-sm btn-outline-primary mt-2">
+                <i class="bi bi-plus-lg me-1"></i>{% trans "Create Schedule Items" %}
+              </a>
             </div>
             {% endif %}
           </div>

@@ -3678,15 +3678,26 @@ class DailyLog(models.Model):
     delays = models.TextField(blank=True, help_text="Delays or problems encountered")
     next_day_plan = models.TextField(blank=True, help_text="Plan for the next day")
 
-    # Main Schedule progress
+    # Main Schedule progress (legacy - kept for backwards compatibility)
     schedule_item = models.ForeignKey(
         "Schedule",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="daily_logs",
-        help_text="Main schedule activity (e.g.: Cover and Prepare)",
+        help_text="Legacy: Main schedule activity",
     )
+    
+    # New: ScheduleItem for Gantt integration
+    gantt_item = models.ForeignKey(
+        "ScheduleItem",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="daily_logs",
+        help_text="Gantt schedule item (e.g.: Cover and Prepare)",
+    )
+    
     schedule_progress_percent = models.DecimalField(
         max_digits=5,
         decimal_places=2,
