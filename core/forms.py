@@ -407,6 +407,12 @@ class DailyLogForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         project = kwargs.pop("project", None)
         super().__init__(*args, **kwargs)
+        
+        # Make optional fields not required (model has defaults)
+        self.fields["gantt_item"].required = False
+        self.fields["schedule_progress_percent"].required = False
+        self.fields["completed_tasks"].required = False
+        self.fields["crew_count"].required = False
 
         if project:
             # Filter ScheduleItem (Gantt items) for this project
