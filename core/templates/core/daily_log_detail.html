@@ -407,7 +407,8 @@
       </div>
       {% endif %}
 
-      <!-- Metadata Card -->
+      <!-- Metadata Card - Show details for staff, simplified for clients -->
+      {% if request.user.profile.role != 'client' %}
       <div class="info-card">
         <div class="info-card-header">
           <i class="bi bi-info-circle text-slate-500"></i>
@@ -432,6 +433,7 @@
           </div>
         </div>
       </div>
+      {% endif %}
 
       <!-- Actions -->
       <div class="d-grid gap-2 mt-4">

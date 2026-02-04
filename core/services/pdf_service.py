@@ -1856,11 +1856,11 @@ def generate_changeorder_pdf_reportlab(changeorder: "ChangeOrder") -> bytes:
 
 
 def generate_colorsample_pdf_reportlab(colorsample: "ColorSample") -> bytes:
-    """Generate professional Color Sample Approval PDF using ReportLab."""
+    """Generate professional Color Sample Approval PDF using ReportLab with images."""
     from reportlab.lib.pagesizes import LETTER
     from reportlab.lib.units import inch
     from reportlab.lib import colors
-    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
     
@@ -1886,6 +1886,9 @@ def generate_colorsample_pdf_reportlab(colorsample: "ColorSample") -> bytes:
     small_style = ParagraphStyle(
         'Small', parent=styles['Normal'], fontSize=8, textColor=colors.HexColor('#64748b')
     )
+    center_style = ParagraphStyle(
+        'Center', parent=normal_style, alignment=TA_CENTER
+    )
     
     elements = []
     
@@ -1904,14 +1907,14 @@ def generate_colorsample_pdf_reportlab(colorsample: "ColorSample") -> bytes:
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
     ]))
     elements.append(letterhead)
-    elements.append(Spacer(1, 20))
+    elements.append(Spacer(1, 16))
     
     # === TITLE ===
     elements.append(Paragraph("<b>COLOR SAMPLE APPROVAL</b>", title_style))
     sample_num = colorsample.sample_number or colorsample.id
     elements.append(Paragraph(f"Sample #{sample_num} | Version {getattr(colorsample, 'version', 1)}", 
                               ParagraphStyle('Subtitle', parent=normal_style, alignment=TA_CENTER)))
-    elements.append(Spacer(1, 16))
+    elements.append(Spacer(1, 12))
     
     # === STATUS BADGE ===
     status = colorsample.status.upper() if colorsample.status else "PENDING"
@@ -1926,7 +1929,129 @@ def generate_colorsample_pdf_reportlab(colorsample: "ColorSample") -> bytes:
         ('BOTTOMPADDING', (0, 0), (0, 0), 6),
     ]))
     elements.append(status_table)
-    elements.append(Spacer(1, 20))
+    elements.append(Spacer(1, 16))
+    
+    # === SAMPLE IMAGES (CENTER OF DOCUMENT - PROFESSIONAL TABLE LAYOUT) ===
+    elements.append(Paragraph("<b>COLOR SAMPLE IMAGES</b>", header_style))
+    
+    has_sample = bool(colorsample.sample_image)
+    has_reference = bool(colorsample.reference_photo)
+    
+    sample_img = None
+    ref_img = None
+    
+    # Load Sample Image
+    if has_sample:
+        try:
+            colorsample.sample_image.seek(0)
+            img_bytes = colorsample.sample_image.read()
+            img_buffer = BytesIO(img_bytes)
+            sample_img = Image(img_buffer, width=2.6*inch, height=2.6*inch)
+        except Exception:
+            sample_img = None
+    
+    # Load Reference Photo
+    if has_reference:
+        try:
+            colorsample.reference_photo.seek(0)
+            ref_bytes = colorsample.reference_photo.read()
+            ref_buffer = BytesIO(ref_bytes)
+            ref_img = Image(ref_buffer, width=2.6*inch, height=2.6*inch)
+        except Exception:
+            ref_img = None
+    
+    # Build professional image table with subtle borders
+    if sample_img or ref_img:
+        if sample_img and ref_img:
+            # Two images side by side in elegant table
+            img_data = [
+                [Paragraph("<b>Sample Image</b>", center_style), 
+                 Paragraph("<b>Reference Photo</b>", center_style)],
+                [sample_img, ref_img]
+            ]
+            img_table = Table(img_data, colWidths=[3.3*inch, 3.3*inch])
+            img_table.setStyle(TableStyle([
+                # Header row
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#faf5ff')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#7c3aed')),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                # Subtle outer border (purple accent)
+                ('BOX', (0, 0), (-1, -1), 1.5, colors.HexColor('#c4b5fd')),
+                # Inner vertical line separating images
+                ('LINEBEFORE', (1, 0), (1, -1), 0.5, colors.HexColor('#e9d5ff')),
+                # Horizontal line under header
+                ('LINEBELOW', (0, 0), (-1, 0), 0.5, colors.HexColor('#e9d5ff')),
+                # Padding
+                ('TOPPADDING', (0, 0), (-1, 0), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+                ('TOPPADDING', (0, 1), (-1, 1), 12),
+                ('BOTTOMPADDING', (0, 1), (-1, 1), 12),
+                ('LEFTPADDING', (0, 0), (-1, -1), 8),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                # Background for image cells
+                ('BACKGROUND', (0, 1), (-1, 1), colors.white),
+            ]))
+        elif sample_img:
+            # Single sample image centered
+            img_data = [
+                [Paragraph("<b>Sample Image</b>", center_style)],
+                [sample_img]
+            ]
+            img_table = Table(img_data, colWidths=[3.5*inch])
+            img_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (0, 0), colors.HexColor('#faf5ff')),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('BOX', (0, 0), (-1, -1), 1.5, colors.HexColor('#c4b5fd')),
+                ('LINEBELOW', (0, 0), (0, 0), 0.5, colors.HexColor('#e9d5ff')),
+                ('TOPPADDING', (0, 0), (0, 0), 8),
+                ('BOTTOMPADDING', (0, 0), (0, 0), 8),
+                ('TOPPADDING', (0, 1), (0, 1), 12),
+                ('BOTTOMPADDING', (0, 1), (0, 1), 12),
+                ('BACKGROUND', (0, 1), (0, 1), colors.white),
+            ]))
+        else:
+            # Only reference photo
+            img_data = [
+                [Paragraph("<b>Reference Photo</b>", center_style)],
+                [ref_img]
+            ]
+            img_table = Table(img_data, colWidths=[3.5*inch])
+            img_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (0, 0), colors.HexColor('#faf5ff')),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('BOX', (0, 0), (-1, -1), 1.5, colors.HexColor('#c4b5fd')),
+                ('LINEBELOW', (0, 0), (0, 0), 0.5, colors.HexColor('#e9d5ff')),
+                ('TOPPADDING', (0, 0), (0, 0), 8),
+                ('BOTTOMPADDING', (0, 0), (0, 0), 8),
+                ('TOPPADDING', (0, 1), (0, 1), 12),
+                ('BOTTOMPADDING', (0, 1), (0, 1), 12),
+                ('BACKGROUND', (0, 1), (0, 1), colors.white),
+            ]))
+        
+        # Wrap table in a centered container
+        container = Table([[img_table]], colWidths=[7*inch])
+        container.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+        ]))
+        elements.append(container)
+    else:
+        # No images placeholder
+        no_img_table = Table([
+            [Paragraph("<i>No sample images available</i>", center_style)]
+        ], colWidths=[6*inch])
+        no_img_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+            ('BOX', (0, 0), (0, 0), 1, colors.HexColor('#e5e7eb')),
+            ('BACKGROUND', (0, 0), (0, 0), colors.HexColor('#f9fafb')),
+            ('TOPPADDING', (0, 0), (0, 0), 20),
+            ('BOTTOMPADDING', (0, 0), (0, 0), 20),
+        ]))
+        elements.append(no_img_table)
+    
+    elements.append(Spacer(1, 16))
     
     # === COLOR INFORMATION ===
     elements.append(Paragraph("<b>COLOR DETAILS</b>", header_style))
@@ -1950,7 +2075,7 @@ def generate_colorsample_pdf_reportlab(colorsample: "ColorSample") -> bytes:
         ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
     ]))
     elements.append(color_table)
-    elements.append(Spacer(1, 16))
+    elements.append(Spacer(1, 12))
     
     # === PROJECT & LOCATION ===
     project = colorsample.project
@@ -1970,24 +2095,18 @@ def generate_colorsample_pdf_reportlab(colorsample: "ColorSample") -> bytes:
         ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
     ]))
     elements.append(project_table)
-    elements.append(Spacer(1, 16))
+    elements.append(Spacer(1, 12))
     
-    # === NOTES ===
-    if colorsample.notes:
-        elements.append(Paragraph("<b>NOTES</b>", header_style))
-        elements.append(Paragraph(colorsample.notes.replace('\n', '<br/>'), normal_style))
-        elements.append(Spacer(1, 16))
-    
-    # === APPROVAL SECTION ===
+    # === CLIENT APPROVAL SECTION WITH SIGNATURE ===
     elements.append(Paragraph("<b>CLIENT APPROVAL</b>", header_style))
     
     signed_name = colorsample.client_signed_name or "_________________________"
     signed_date = colorsample.client_signed_at.strftime('%B %d, %Y at %I:%M %p') if colorsample.client_signed_at else "_______________"
     
+    # Approval info
     approval_data = [
         [Paragraph("<b>Approved By:</b>", small_style), Paragraph(f"{signed_name}", normal_style)],
         [Paragraph("<b>Approval Date:</b>", small_style), Paragraph(f"{signed_date}", normal_style)],
-        [Paragraph("<b>Approval ID:</b>", small_style), Paragraph(f"#{colorsample.id}", normal_style)],
     ]
     
     approval_table = Table(approval_data, colWidths=[1.5*inch, 5.5*inch])
@@ -2000,7 +2119,35 @@ def generate_colorsample_pdf_reportlab(colorsample: "ColorSample") -> bytes:
         ('LEFTPADDING', (0, 0), (-1, -1), 12),
     ]))
     elements.append(approval_table)
-    elements.append(Spacer(1, 24))
+    elements.append(Spacer(1, 12))
+    
+    # Client Signature Image
+    if colorsample.client_signature:
+        try:
+            colorsample.client_signature.seek(0)
+            sig_bytes = colorsample.client_signature.read()
+            sig_buffer = BytesIO(sig_bytes)
+            sig_image = Image(sig_buffer, width=2.5*inch, height=0.8*inch)
+            
+            sig_table = Table([
+                [Paragraph("<b>Client Signature:</b>", small_style)],
+                [sig_image],
+            ], colWidths=[3*inch])
+            sig_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                ('BOX', (0, 1), (0, 1), 1, colors.HexColor('#059669')),
+                ('BACKGROUND', (0, 1), (0, 1), colors.white),
+            ]))
+            elements.append(sig_table)
+        except Exception:
+            elements.append(Paragraph("<i>[Digital signature on file]</i>", small_style))
+    else:
+        elements.append(Paragraph("<i>[Signature pending]</i>", small_style))
+    
+    elements.append(Spacer(1, 16))
     
     # === IMPORTANT NOTICE ===
     notice_style = ParagraphStyle('Notice', parent=small_style, backColor=colors.HexColor('#fef3c7'),
@@ -2010,7 +2157,7 @@ def generate_colorsample_pdf_reportlab(colorsample: "ColorSample") -> bytes:
         "A small test application is recommended before full application. Final color should be verified in natural daylight.",
         notice_style
     ))
-    elements.append(Spacer(1, 20))
+    elements.append(Spacer(1, 16))
     
     # === FOOTER ===
     hash_data = {"id": colorsample.id, "code": colorsample.code, "project": project.name if project else ""}

@@ -2001,6 +2001,7 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
 class ClientProjectAccess(models.Model):
     ROLE_CHOICES = [
         ("client", "Client"),
+        ("owner", "Project Owner"),
         ("external_pm", "External PM"),
         ("viewer", "Viewer"),
     ]
@@ -2019,6 +2020,16 @@ class ClientProjectAccess(models.Model):
 
     def __str__(self):
         return f"{self.user.username} → {self.project.name} ({self.role})"
+
+    def get_role_display_name(self):
+        """Return a friendly display name for the role."""
+        role_names = {
+            "client": "Client",
+            "owner": "Project Owner", 
+            "external_pm": "External PM",
+            "viewer": "Viewer",
+        }
+        return role_names.get(self.role, self.role.title())
 
 
 # ---------------------

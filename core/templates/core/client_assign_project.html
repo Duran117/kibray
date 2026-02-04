@@ -93,10 +93,17 @@
                                         </small>
                                     </td>
                                     <td class="text-center">
-                                        <form method="post" style="display: inline;">
+                                        <form method="post" class="d-flex align-items-center gap-2 justify-content-center">
                                             {% csrf_token %}
                                             <input type="hidden" name="project_id" value="{{ project.id }}">
                                             <input type="hidden" name="action" value="add">
+                                            <select name="access_role" class="form-select form-select-sm" style="width: auto; min-width: 130px;">
+                                                {% for role_value, role_label in role_choices %}
+                                                <option value="{{ role_value }}" {% if role_value == "client" %}selected{% endif %}>
+                                                    {{ role_label }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
                                             <button type="submit" class="btn btn-sm btn-success">
                                                 <i class="bi bi-plus-circle me-1"></i>
                                                 {% trans "Asignar" %}
@@ -132,12 +139,20 @@
                     <i class="bi bi-info-circle me-2"></i>
                     {% trans "Project Access Information" %}
                 </h6>
+                <p class="mb-2"><strong>{% trans "Available Roles:" %}</strong></p>
+                <ul class="mb-3">
+                    <li><strong>Client:</strong> {% trans "Your direct client (e.g., General Contractor)" %}</li>
+                    <li><strong>Project Owner:</strong> {% trans "The property owner who needs to approve items" %}</li>
+                    <li><strong>External PM:</strong> {% trans "External project manager with view access" %}</li>
+                    <li><strong>Viewer:</strong> {% trans "Read-only access to project updates" %}</li>
+                </ul>
+                <hr>
+                <p class="mb-2"><strong>{% trans "Access Permissions:" %}</strong></p>
                 <ul class="mb-0">
-                    <li>{% trans "The client will be able to see the project dashboard and progress" %}</li>
-                    <li>{% trans "They will have permission to create change requests (Client Requests)" %}</li>
-                    <li>{% trans "They will be able to view and comment on assigned tasks" %}</li>
+                    <li>{% trans "Client & Owner can see project dashboard and approve colors" %}</li>
+                    <li>{% trans "They will have permission to create change requests" %}</li>
                     <li>{% trans "They will receive notifications about project updates" %}</li>
-                    <li>{% trans "You can remove access at any time from the client profile" %}</li>
+                    <li>{% trans "Approvals will show who made them (Client vs Owner)" %}</li>
                 </ul>
             </div>
 

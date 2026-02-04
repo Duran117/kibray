@@ -17,6 +17,7 @@ export { GanttDependencyLines } from './GanttDependencyLines';
 export { SlideOverPanel } from './SlideOverPanel';
 export { CreateItemModal } from './CreateItemModal';
 export { CreateTaskModal } from './CreateTaskModal';
+export { EditStageModal } from './EditStageModal';
 export { CalendarView } from './CalendarView';
 export type { CalendarViewProps } from './CalendarView';
 export { ViewSwitcher } from './ViewSwitcher';

@@ -30,6 +30,8 @@ import { SlideOverPanel } from './SlideOverPanel';
 import { CreateItemModal } from './CreateItemModal';
 import { CreateTaskModal } from './CreateTaskModal';
 import { CalendarView } from './CalendarView';
+import { EditStageModal } from './EditStageModal';
+import { getGanttApi } from '../api/ganttApi';
 
 // Constants
 const SIDEBAR_WIDTH = 280;
@@ -146,6 +148,8 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
   const [taskModalItem, setTaskModalItem] = useState<GanttItem | null>(null);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isEditStageModalOpen, setIsEditStageModalOpen] = useState(false);
+  const [editingStage, setEditingStage] = useState<GanttCategory | null>(null);
   const { zoom, setZoom } = useZoom(initialZoom);
 
   // Detect mobile viewport
@@ -338,6 +342,53 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
     setCreateModalDate(new Date());
     setIsCreateModalOpen(true);
   }, []);
+
+  // Stage editing handlers
+  const handleCategoryEdit = useCallback((category: GanttCategory) => {
+    setEditingStage(category);
+    setIsEditStageModalOpen(true);
+  }, []);
+
+  const handleStageSave = useCallback(async (stageId: number, updates: Partial<GanttCategory>) => {
+    const api = getGanttApi();
+    
+    // Optimistic update
+    const originalCategories = [...localCategories];
+    setLocalCategories(prev => prev.map(cat =>
+      cat.id === stageId ? { ...cat, ...updates } : cat
+    ));
+
+    try {
+      await api.updateCategory(stageId, updates);
+    } catch (error) {
+      // Revert on error
+      setLocalCategories(originalCategories);
+      throw error;
+    }
+  }, [localCategories]);
+
+  const handleStageDelete = useCallback(async (stageId: number) => {
+    const api = getGanttApi();
+    
+    // Optimistic update
+    const originalCategories = [...localCategories];
+    setLocalCategories(prev => prev.filter(cat => cat.id !== stageId));
+    
+    // Move items from this category to uncategorized
+    const originalItems = [...items];
+    setItems(prev => prev.map(item =>
+      item.category_id === stageId ? { ...item, category_id: null } : item
+    ));
+
+    try {
+      await api.deleteCategory(stageId);
+    } catch (error) {
+      // Revert on error
+      setLocalCategories(originalCategories);
+      setItems(originalItems);
+      throw error;
+    }
+  }, [localCategories, items]);
 
   const handlePanelClose = useCallback(() => {
     setIsPanelOpen(false);
@@ -577,6 +628,7 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
               handleItemClick(item);
               if (isMobile) setIsMobileSidebarOpen(false);
             }}
+            onCategoryEdit={canEdit ? handleCategoryEdit : undefined}
             canEdit={canEdit}
           />
         </div>
@@ -723,6 +775,19 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
           setTaskModalItem(null);
         }}
         teamMembers={teamMembers}
+      />
+
+      {/* Edit stage modal */}
+      <EditStageModal
+        isOpen={isEditStageModalOpen}
+        stage={editingStage}
+        onClose={() => {
+          setIsEditStageModalOpen(false);
+          setEditingStage(null);
+        }}
+        onSave={handleStageSave}
+        onDelete={handleStageDelete}
+        itemCount={editingStage ? items.filter(i => i.category_id === editingStage.id).length : 0}
       />
     </div>
   );

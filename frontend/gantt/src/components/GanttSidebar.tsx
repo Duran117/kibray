@@ -23,6 +23,7 @@ interface GanttSidebarProps {
   collapsedCategories: Set<number>;
   onToggleCategory: (categoryId: number) => void;
   onItemClick: (item: GanttItem) => void;
+  onCategoryEdit?: (category: GanttCategory) => void;
   canEdit: boolean;
 }
 
@@ -34,6 +35,7 @@ export const GanttSidebar: React.FC<GanttSidebarProps> = ({
   collapsedCategories,
   onToggleCategory,
   onItemClick,
+  onCategoryEdit,
   canEdit,
 }) => {
   // Build flat list of rows respecting hierarchy and collapse state
@@ -130,7 +132,7 @@ export const GanttSidebar: React.FC<GanttSidebarProps> = ({
           return (
             <div
               key={`cat-${category.id}`}
-              className="flex items-center gap-2 px-3 border-b border-gray-100 bg-gray-50 hover:bg-gray-100 cursor-pointer select-none transition-colors"
+              className="flex items-center gap-2 px-3 border-b border-gray-100 bg-gray-50 hover:bg-gray-100 cursor-pointer select-none transition-colors group"
               style={{ height: rowHeight }}
               onClick={() => category.id !== -1 && onToggleCategory(category.id)}
             >
@@ -155,12 +157,28 @@ export const GanttSidebar: React.FC<GanttSidebarProps> = ({
               />
               
               {/* Category name */}
-              <span className="font-semibold text-sm text-gray-800 truncate">
+              <span className="font-semibold text-sm text-gray-800 truncate flex-1">
                 {category.name}
               </span>
               
+              {/* Edit button (show on hover, only for real categories) */}
+              {category.id !== -1 && canEdit && onCategoryEdit && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCategoryEdit(category);
+                  }}
+                  className="p-1 hover:bg-gray-300 rounded transition-all opacity-0 group-hover:opacity-100"
+                  title="Edit stage"
+                >
+                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+              )}
+
               {/* Item count */}
-              <span className="ml-auto text-xs text-gray-400">
+              <span className="text-xs text-gray-400">
                 {items.filter(i => i.category_id === category.id).length}
               </span>
             </div>

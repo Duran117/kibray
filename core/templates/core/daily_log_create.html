@@ -251,7 +251,20 @@
             </div>
             <div class="mb-3">
               <label class="form-label">{% trans "Photos" %}</label>
-              <input type="file" name="photos" class="form-control" accept="image/*" multiple>
+              <input type="file" name="photos" id="photoInput" class="form-control" accept="image/*" multiple>
+              
+              <!-- Photo count badge -->
+              <div id="photoCount" class="mt-2" style="display: none;">
+                <span class="badge bg-purple-100 text-purple-700 px-3 py-2" style="font-size: 0.875rem;">
+                  <i class="bi bi-images me-1"></i>
+                  <span id="photoCountNumber">0</span> {% trans "photos selected" %}
+                </span>
+              </div>
+              
+              <!-- Photo preview grid -->
+              <div id="photoPreview" class="mt-3" style="display: none;">
+                <div class="d-flex flex-wrap gap-2" id="previewGrid"></div>
+              </div>
             </div>
             <div>
               <label class="form-label">{% trans "Photo Description" %}</label>
@@ -347,4 +360,106 @@
     </div>
   </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const photoInput = document.getElementById('photoInput');
+  const photoCount = document.getElementById('photoCount');
+  const photoCountNumber = document.getElementById('photoCountNumber');
+  const photoPreview = document.getElementById('photoPreview');
+  const previewGrid = document.getElementById('previewGrid');
+  
+  if (photoInput) {
+    photoInput.addEventListener('change', function(e) {
+      const files = e.target.files;
+      
+      // Clear previous previews
+      previewGrid.innerHTML = '';
+      
+      if (files.length > 0) {
+        // Show count badge
+        photoCount.style.display = 'block';
+        photoCountNumber.textContent = files.length;
+        
+        // Show preview container
+        photoPreview.style.display = 'block';
+        
+        // Create previews for each file
+        Array.from(files).forEach((file, index) => {
+          const reader = new FileReader();
+          
+          reader.onload = function(e) {
+            const previewItem = document.createElement('div');
+            previewItem.className = 'photo-preview-item';
+            previewItem.style.cssText = `
+              position: relative;
+              width: 80px;
+              height: 80px;
+              border-radius: 8px;
+              overflow: hidden;
+              border: 2px solid #e9d5ff;
+              background: #faf5ff;
+            `;
+            
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.cssText = `
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+            `;
+            img.title = file.name;
+            
+            // Add file number badge
+            const badge = document.createElement('span');
+            badge.className = 'position-absolute';
+            badge.style.cssText = `
+              top: 2px;
+              right: 2px;
+              background: rgba(124, 58, 237, 0.9);
+              color: white;
+              font-size: 10px;
+              padding: 2px 5px;
+              border-radius: 4px;
+              font-weight: 600;
+            `;
+            badge.textContent = index + 1;
+            
+            previewItem.appendChild(img);
+            previewItem.appendChild(badge);
+            previewGrid.appendChild(previewItem);
+          };
+          
+          reader.readAsDataURL(file);
+        });
+        
+        // Add "more" indicator if too many photos
+        if (files.length > 8) {
+          const moreIndicator = document.createElement('div');
+          moreIndicator.style.cssText = `
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+          `;
+          moreIndicator.textContent = `+${files.length - 8}`;
+          previewGrid.appendChild(moreIndicator);
+        }
+      } else {
+        // Hide if no files
+        photoCount.style.display = 'none';
+        photoPreview.style.display = 'none';
+      }
+    });
+  }
+});
+</script>
 {% endblock %}

@@ -251,7 +251,21 @@
                                         <small class="text-muted">{{ access.project.address }}</small>
                                     </td>
                                     <td>
+                                        {% if access.role == "owner" %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-house-door me-1"></i>{{ access.get_role_display }}
+                                        </span>
+                                        {% elif access.role == "client" %}
+                                        <span class="badge bg-primary">
+                                            <i class="bi bi-person me-1"></i>{{ access.get_role_display }}
+                                        </span>
+                                        {% elif access.role == "external_pm" %}
+                                        <span class="badge bg-secondary">
+                                            <i class="bi bi-person-badge me-1"></i>{{ access.get_role_display }}
+                                        </span>
+                                        {% else %}
                                         <span class="badge bg-info">{{ access.get_role_display }}</span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         <div>

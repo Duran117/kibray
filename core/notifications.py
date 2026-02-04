@@ -42,13 +42,13 @@ def notify_task_assigned(task, assigned_to):
 
 
 def notify_task_completed(task, completer):
-    """Notify client/PM when task is completed."""
+    """Notify client/owner/PM when task is completed."""
     from core.models import ClientProjectAccess
 
     link = reverse("client_project_view", args=[task.project.id])
-    # Notify client
+    # Notify clients and owners
     client_users = ClientProjectAccess.objects.filter(
-        project=task.project, role="client"
+        project=task.project, role__in=["client", "owner"]
     ).values_list("user", flat=True)
     for uid in client_users:
         try:
@@ -88,9 +88,9 @@ def notify_color_approved(color_sample, approver):
     from core.models import ClientProjectAccess
 
     link = reverse("color_sample_detail", args=[color_sample.id])
-    # Notify client
+    # Notify clients and owners
     client_users = ClientProjectAccess.objects.filter(
-        project=color_sample.project, role="client"
+        project=color_sample.project, role__in=["client", "owner"]
     ).values_list("user", flat=True)
     for uid in client_users:
         try:

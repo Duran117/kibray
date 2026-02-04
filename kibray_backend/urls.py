@@ -279,6 +279,11 @@ urlpatterns = [
         views.color_sample_quick_action,
         name="color_sample_quick_action",
     ),
+    path(
+        "colors/sample/<int:sample_id>/client-feedback/",
+        views.color_sample_client_feedback,
+        name="color_sample_client_feedback",
+    ),
     # Floor Plans
     path("projects/<int:project_id>/plans/", views.floor_plan_list, name="floor_plan_list"),
     path("projects/<int:project_id>/plans/new/", views.floor_plan_create, name="floor_plan_create"),

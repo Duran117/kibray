@@ -2795,10 +2795,21 @@ def color_sample_create(request, project_id):
 
 @login_required
 def color_sample_detail(request, sample_id):
-    from core.models import ColorSample
+    from core.models import ColorSample, ClientProjectAccess
 
     sample = get_object_or_404(ColorSample, id=sample_id)
     project = sample.project
+    
+    # Check access for clients
+    profile = getattr(request.user, "profile", None)
+    if profile and profile.role == "client":
+        has_access = ClientProjectAccess.objects.filter(
+            user=request.user, project=project
+        ).exists() or project.client == request.user.username
+        if not has_access:
+            messages.error(request, "You don't have access to this project.")
+            return redirect("dashboard_client")
+    
     return render(
         request,
         "core/color_sample_detail.html",
@@ -2902,6 +2913,74 @@ def color_sample_quick_action(request, sample_id):
             )
 
     return JsonResponse({"error": "Invalid action"}, status=400)
+
+
+@login_required
+def color_sample_client_feedback(request, sample_id):
+    """Handle client feedback on color samples (request changes or add comment)."""
+    from core.models import ColorSample
+    from core.notifications import notify_color_review
+    
+    sample = get_object_or_404(ColorSample, id=sample_id)
+    project = sample.project
+    
+    # Check access - client must have access to this project
+    profile = getattr(request.user, "profile", None)
+    if not profile:
+        messages.error(request, "Access denied.")
+        return redirect("dashboard")
+    
+    # Allow clients, PMs, and staff
+    if profile.role == "client":
+        from core.models import ClientProjectAccess
+        has_access = ClientProjectAccess.objects.filter(
+            user=request.user, project=project
+        ).exists() or project.client == request.user.username
+        if not has_access:
+            messages.error(request, "You don't have access to this project.")
+            return redirect("dashboard_client")
+    elif profile.role not in ["project_manager", "designer"] and not request.user.is_staff:
+        messages.error(request, "Access denied.")
+        return redirect("dashboard")
+    
+    if request.method == "POST":
+        action = request.POST.get("action")
+        feedback = request.POST.get("feedback", "").strip()
+        
+        if not feedback:
+            messages.error(request, _("Please enter your feedback."))
+            return redirect("color_sample_detail", sample_id=sample_id)
+        
+        if action == "request_changes":
+            # Add feedback to client_notes and move to 'review' status
+            existing_notes = sample.client_notes or ""
+            timestamp = timezone.now().strftime("%Y-%m-%d %H:%M")
+            new_note = f"[{timestamp}] Change requested by {request.user.get_full_name() or request.user.username}:\n{feedback}"
+            sample.client_notes = f"{new_note}\n\n{existing_notes}".strip() if existing_notes else new_note
+            sample.status = "review"
+            sample.save()
+            
+            # Notify PM
+            notify_color_review(sample, request.user)
+            
+            messages.success(request, _("Your feedback has been sent. The team will review your request."))
+        
+        elif action == "comment":
+            # Just add comment to client_notes
+            existing_notes = sample.client_notes or ""
+            timestamp = timezone.now().strftime("%Y-%m-%d %H:%M")
+            new_note = f"[{timestamp}] Comment from {request.user.get_full_name() or request.user.username}:\n{feedback}"
+            sample.client_notes = f"{new_note}\n\n{existing_notes}".strip() if existing_notes else new_note
+            sample.save()
+            
+            # Notify PM
+            notify_color_review(sample, request.user)
+            
+            messages.success(request, _("Your comment has been added."))
+        
+        return redirect("color_sample_detail", sample_id=sample_id)
+    
+    return redirect("color_sample_detail", sample_id=sample_id)
 
 
 @login_required
@@ -6131,11 +6210,11 @@ def daily_log_view(request, project_id):
     else:
         form = DailyLogForm(project=project) if can_create else None
 
-    # Listar logs del proyecto (ordenados por fecha)
+    # Listar logs del proyecto (ordenados por fecha descendente - más reciente primero)
     logs = (
         project.daily_logs.select_related("created_by", "schedule_item")
         .prefetch_related("completed_tasks", "photos")
-        .all()
+        .order_by("-date")
     )
 
     # Filtros
@@ -13670,6 +13749,7 @@ def client_assign_project(request, user_id):
     if request.method == "POST":
         project_id = request.POST.get("project_id")
         action = request.POST.get("action", "add")
+        access_role = request.POST.get("access_role", "client")  # Get role from form
 
         if not project_id:
             messages.error(request, "Proyecto no especificado.")
@@ -13678,14 +13758,20 @@ def client_assign_project(request, user_id):
         project = get_object_or_404(Project, id=project_id)
 
         if action == "add":
+            # Validate role
+            valid_roles = [r[0] for r in ClientProjectAccess.ROLE_CHOICES]
+            if access_role not in valid_roles:
+                access_role = "client"
+            
             access, created = ClientProjectAccess.objects.get_or_create(
                 user=client,
                 project=project,
-                defaults={"role": "client", "can_comment": True, "can_create_tasks": True},
+                defaults={"role": access_role, "can_comment": True, "can_create_tasks": True},
             )
             if created:
+                role_display = dict(ClientProjectAccess.ROLE_CHOICES).get(access_role, access_role)
                 messages.success(
-                    request, f'Cliente asignado al proyecto "{project.name}" exitosamente.'
+                    request, f'Cliente asignado al proyecto "{project.name}" como {role_display}.'
                 )
             else:
                 messages.info(request, f'El cliente ya tiene acceso al proyecto "{project.name}".')
@@ -13698,6 +13784,18 @@ def client_assign_project(request, user_id):
                 messages.success(request, f'Acceso al proyecto "{project.name}" removido.')
             else:
                 messages.info(request, "El cliente no tenía acceso a ese proyecto.")
+        
+        elif action == "update_role":
+            # Update existing access role
+            access_role = request.POST.get("new_role", "client")
+            valid_roles = [r[0] for r in ClientProjectAccess.ROLE_CHOICES]
+            if access_role in valid_roles:
+                updated = ClientProjectAccess.objects.filter(
+                    user=client, project=project
+                ).update(role=access_role)
+                if updated:
+                    role_display = dict(ClientProjectAccess.ROLE_CHOICES).get(access_role, access_role)
+                    messages.success(request, f'Rol actualizado a {role_display} para "{project.name}".')
 
         return redirect("client_detail", user_id=client.id)
 
@@ -13712,6 +13810,7 @@ def client_assign_project(request, user_id):
     context = {
         "client": client,
         "available_projects": available_projects,
+        "role_choices": ClientProjectAccess.ROLE_CHOICES,  # Pass role choices to template
     }
 
     return render(request, "core/client_assign_project.html", context)
