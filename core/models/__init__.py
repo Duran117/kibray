@@ -2009,9 +2009,24 @@ class ClientProjectAccess(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="project_accesses")
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="client_accesses")
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="client")
-    can_comment = models.BooleanField(default=True)
-    can_create_tasks = models.BooleanField(default=True)
+    
+    # Basic permissions
+    can_comment = models.BooleanField(default=True, help_text=_("Can add comments to items"))
+    can_create_tasks = models.BooleanField(default=True, help_text=_("Can create tasks/requests"))
+    
+    # Approval permissions (typically for Client role, not Owner in this workflow)
+    can_approve_change_orders = models.BooleanField(default=False, help_text=_("Can approve/reject Change Orders"))
+    can_approve_colors = models.BooleanField(default=False, help_text=_("Can approve color samples"))
+    
+    # Financial visibility
+    can_view_financials = models.BooleanField(default=False, help_text=_("Can see budget, costs, invoices"))
+    
+    # Notifications
+    receive_daily_reports = models.BooleanField(default=True, help_text=_("Receives daily progress emails"))
+    receive_notifications = models.BooleanField(default=True, help_text=_("Receives in-app notifications"))
+    
     granted_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         unique_together = ("user", "project")
@@ -2030,6 +2045,47 @@ class ClientProjectAccess(models.Model):
             "viewer": "Viewer",
         }
         return role_names.get(self.role, self.role.title())
+    
+    def save(self, *args, **kwargs):
+        """Set default permissions based on role if this is a new record."""
+        if not self.pk:  # New record
+            self._set_default_permissions_for_role()
+        super().save(*args, **kwargs)
+    
+    def _set_default_permissions_for_role(self):
+        """Set sensible defaults based on the selected role."""
+        if self.role == "client":
+            # Client (GC) - has approval power and sees financials
+            self.can_comment = True
+            self.can_create_tasks = True
+            self.can_approve_change_orders = True
+            self.can_approve_colors = True
+            self.can_view_financials = True
+            self.receive_daily_reports = True
+        elif self.role == "owner":
+            # Owner (Homeowner) - observes but doesn't approve (unless explicitly set)
+            self.can_comment = True
+            self.can_create_tasks = True
+            self.can_approve_change_orders = False  # GC approves, not homeowner
+            self.can_approve_colors = False  # GC approves
+            self.can_view_financials = False  # Usually doesn't see your costs
+            self.receive_daily_reports = True  # Wants to stay informed
+        elif self.role == "external_pm":
+            # External PM - can see most things, limited approvals
+            self.can_comment = True
+            self.can_create_tasks = True
+            self.can_approve_change_orders = False
+            self.can_approve_colors = False
+            self.can_view_financials = True
+            self.receive_daily_reports = True
+        elif self.role == "viewer":
+            # Viewer - read only
+            self.can_comment = False
+            self.can_create_tasks = False
+            self.can_approve_change_orders = False
+            self.can_approve_colors = False
+            self.can_view_financials = False
+            self.receive_daily_reports = False
 
 
 # ---------------------

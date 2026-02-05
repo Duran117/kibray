@@ -2712,11 +2712,11 @@ class QuickAddProjectOwnerForm(forms.Form):
     )
     access_role = forms.ChoiceField(
         choices=[
-            ("owner", "Project Owner (Dueño)"),
-            ("client", "Client (Cliente)"),
-            ("viewer", "Viewer (Solo lectura)"),
+            ("client", "Client (GC/Contractor) - Full Permissions"),
+            ("owner", "Project Owner (Homeowner) - Observer"),
+            ("viewer", "Viewer (Read-only)"),
         ],
-        initial="owner",
+        initial="client",
         widget=forms.Select(attrs={"class": "form-control"}),
         label="Rol de Acceso",
     )
@@ -2803,14 +2803,17 @@ class QuickAddProjectOwnerForm(forms.Form):
             )
         
         # Crear o actualizar acceso al proyecto
-        access, created = ClientProjectAccess.objects.update_or_create(
+        # Let the model's save() method set default permissions based on role
+        access, created = ClientProjectAccess.objects.get_or_create(
             user=user,
             project=project,
-            defaults={
-                "role": access_role,
-                "can_comment": True,
-                "can_create_tasks": access_role in ["owner", "client"],
-            }
+            defaults={"role": access_role}  # Model will set permissions in save()
         )
+        
+        if not created:
+            # If access existed, update the role and let the model reset permissions
+            access.role = access_role
+            access._set_default_permissions_for_role()
+            access.save()
         
         return user, temp_password, is_new_user

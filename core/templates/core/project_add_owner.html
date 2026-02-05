@@ -68,13 +68,41 @@
                         <div class="mb-3">
                             <label class="form-label">{{ form.access_role.label }}</label>
                             {{ form.access_role }}
-                            <small class="text-muted">
-                                <ul class="mb-0 mt-1">
-                                    <li><strong>Owner:</strong> {% trans "Full access, can approve change orders and colors" %}</li>
-                                    <li><strong>Client:</strong> {% trans "Can view project updates, add comments and tasks" %}</li>
-                                    <li><strong>Viewer:</strong> {% trans "Read-only access to project updates" %}</li>
-                                </ul>
-                            </small>
+                            <div class="mt-2">
+                                <!-- Client Role Description -->
+                                <div id="role-desc-client" class="alert alert-info py-2 role-description" style="display: none;">
+                                    <strong><i class="bi bi-briefcase me-1"></i> {% trans "Client (GC/Contractor)" %}</strong>
+                                    <ul class="mb-0 small mt-1">
+                                        <li>✅ {% trans "Approve Change Orders" %}</li>
+                                        <li>✅ {% trans "Approve Color Samples" %}</li>
+                                        <li>✅ {% trans "View Financial Information" %}</li>
+                                        <li>✅ {% trans "Add comments and create tasks" %}</li>
+                                        <li>✅ {% trans "Receive daily reports" %}</li>
+                                    </ul>
+                                </div>
+                                <!-- Owner Role Description -->
+                                <div id="role-desc-owner" class="alert alert-warning py-2 role-description" style="display: none;">
+                                    <strong><i class="bi bi-house-door me-1"></i> {% trans "Project Owner (Homeowner)" %}</strong>
+                                    <ul class="mb-0 small mt-1">
+                                        <li>✅ {% trans "View project progress and updates" %}</li>
+                                        <li>✅ {% trans "Add comments and create requests" %}</li>
+                                        <li>✅ {% trans "Receive daily reports" %}</li>
+                                        <li>❌ {% trans "Cannot approve Change Orders (GC approves)" %}</li>
+                                        <li>❌ {% trans "Cannot see financial details" %}</li>
+                                    </ul>
+                                    <small class="text-muted">{% trans "Ideal for property owners who want to stay informed" %}</small>
+                                </div>
+                                <!-- Viewer Role Description -->
+                                <div id="role-desc-viewer" class="alert alert-secondary py-2 role-description" style="display: none;">
+                                    <strong><i class="bi bi-eye me-1"></i> {% trans "Viewer (Read Only)" %}</strong>
+                                    <ul class="mb-0 small mt-1">
+                                        <li>✅ {% trans "View project progress" %}</li>
+                                        <li>❌ {% trans "Cannot comment or create tasks" %}</li>
+                                        <li>❌ {% trans "Cannot approve anything" %}</li>
+                                        <li>❌ {% trans "No notifications" %}</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="mb-4">
@@ -200,6 +228,27 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Focus on first name field
     document.getElementById('{{ form.first_name.id_for_label }}')?.focus();
+    
+    // Show/hide role descriptions based on selected role
+    const roleSelect = document.getElementById('{{ form.access_role.id_for_label }}');
+    const roleDescriptions = document.querySelectorAll('.role-description');
+    
+    function updateRoleDescription() {
+        const selectedRole = roleSelect.value;
+        roleDescriptions.forEach(desc => {
+            desc.style.display = 'none';
+        });
+        const activeDesc = document.getElementById('role-desc-' + selectedRole);
+        if (activeDesc) {
+            activeDesc.style.display = 'block';
+        }
+    }
+    
+    if (roleSelect) {
+        roleSelect.addEventListener('change', updateRoleDescription);
+        // Show initial description
+        updateRoleDescription();
+    }
 });
 </script>
 {% endblock %}
