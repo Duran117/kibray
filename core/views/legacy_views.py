@@ -6178,6 +6178,12 @@ def daily_log_view(request, project_id):
     from core.models import DailyLogPhoto
 
     project = get_object_or_404(Project, pk=project_id)
+    
+    # SECURITY: Check project access
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("You don't have access to this project."))
+        return redirect(redirect_url or "dashboard_client")
 
     # Verificar permisos (PM, admin, superuser)
     profile = getattr(request.user, "profile", None)
@@ -6390,10 +6396,15 @@ def daily_log_detail(request, log_id):
         messages.error(request, "No tienes permiso para ver Daily Logs")
         return redirect("dashboard_employee")
 
-    # Clientes solo ven publicados
-    if role == "client" and not log.is_published:
-        messages.error(request, "Este Daily Log no está disponible")
-        return redirect("dashboard_client")
+    # Clientes: verificar acceso al proyecto Y que esté publicado
+    if role == "client":
+        has_access, redirect_url = _check_user_project_access(request.user, log.project)
+        if not has_access:
+            messages.error(request, _("You don't have access to this project."))
+            return redirect("dashboard_client")
+        if not log.is_published:
+            messages.error(request, "Este Daily Log no está disponible")
+            return redirect("dashboard_client")
 
     # POST: Agregar más fotos
     if request.method == "POST" and role in ["admin", "superuser", "project_manager"]:
@@ -9123,6 +9134,13 @@ def site_photo_list(request, project_id):
     from core.models import Project, SitePhoto
 
     project = get_object_or_404(Project, pk=project_id)
+    
+    # SECURITY: Check project access
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("You don't have access to this project."))
+        return redirect(redirect_url or "dashboard_client")
+    
     photos = SitePhoto.objects.filter(project=project).order_by("-created_at")
     
     # Filter by photo type if specified
@@ -10907,6 +10925,12 @@ def sop_create_wizard(request, template_id=None):
 def project_minutes_list(request, project_id):
     """Lista todas las minutas de un proyecto (timeline horizontal)"""
     project = get_object_or_404(Project, id=project_id)
+    
+    # SECURITY: Check project access
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("You don't have access to this project."))
+        return redirect(redirect_url or "dashboard_client")
 
     from core.models import ProjectMinute
 
