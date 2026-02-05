@@ -2055,7 +2055,7 @@ class ClientProjectAccess(models.Model):
     def _set_default_permissions_for_role(self):
         """Set sensible defaults based on the selected role."""
         if self.role == "client":
-            # Client (GC) - has approval power and sees financials
+            # Client (GC) - full permissions
             self.can_comment = True
             self.can_create_tasks = True
             self.can_approve_change_orders = True
@@ -2063,13 +2063,13 @@ class ClientProjectAccess(models.Model):
             self.can_view_financials = True
             self.receive_daily_reports = True
         elif self.role == "owner":
-            # Owner (Homeowner) - observes but doesn't approve (unless explicitly set)
+            # Owner (Homeowner) - same permissions as client
             self.can_comment = True
             self.can_create_tasks = True
-            self.can_approve_change_orders = False  # GC approves, not homeowner
-            self.can_approve_colors = False  # GC approves
-            self.can_view_financials = False  # Usually doesn't see your costs
-            self.receive_daily_reports = True  # Wants to stay informed
+            self.can_approve_change_orders = True
+            self.can_approve_colors = True
+            self.can_view_financials = True
+            self.receive_daily_reports = True
         elif self.role == "external_pm":
             # External PM - can see most things, limited approvals
             self.can_comment = True

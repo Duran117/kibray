@@ -2712,8 +2712,8 @@ class QuickAddProjectOwnerForm(forms.Form):
     )
     access_role = forms.ChoiceField(
         choices=[
-            ("client", "Client (GC/Contractor) - Full Permissions"),
-            ("owner", "Project Owner (Homeowner) - Observer"),
+            ("client", "Client (GC/Contractor)"),
+            ("owner", "Project Owner (Homeowner)"),
             ("viewer", "Viewer (Read-only)"),
         ],
         initial="client",
