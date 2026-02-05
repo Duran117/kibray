@@ -208,8 +208,8 @@ def send_task_status_notification(task, old_status, new_status):
         Notification.objects.create(
             user=user,
             notification_type=notif_type,
-            title=_("Cambio de Status: {}").format(task.title),
-            message=_('La tarea "{}" cambió de {} a {}').format(task.title, old_status, new_status),
+            title=_("Status Change: {}").format(task.title),
+            message=_('Task "{}" changed from {} to {}').format(task.title, old_status, new_status),
             link_url=f"/task/{task.pk}/",
             related_object_type="Task",
             related_object_id=task.pk,

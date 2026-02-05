@@ -4259,8 +4259,8 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
             Notification.objects.create(
                 user=assign.pm,
                 notification_type="material_usage",
-                title="Consumo de material",
-                message=f"{request.user.get_full_name()} consumió {quantity} de {item.name}.",
+                title="Material consumption",
+                message=f"{request.user.get_full_name()} consumed {quantity} of {item.name}.",
                 related_object_type="inventory-movement",
                 related_object_id=movement.id,
             )
@@ -4269,8 +4269,8 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
             Notification.objects.create(
                 user=admin,
                 notification_type="material_usage",
-                title="Consumo registrado",
-                message=f"{quantity} de {item.name} consumido en proyecto {project_id}.",
+                title="Consumption recorded",
+                message=f"{quantity} of {item.name} consumed in project {project_id}.",
                 related_object_type="inventory-movement",
                 related_object_id=movement.id,
             )
@@ -4282,7 +4282,7 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
             "item_name": item.name,
             "consumed_quantity": quantity,
             "remaining_quantity": remaining,
-            "message": "Consumo registrado correctamente",
+            "message": "Consumption recorded successfully",
         }
         return Response(ReportUsageResultSerializer(payload).data, status=201)
 
@@ -4339,8 +4339,8 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
             Notification.objects.create(
                 user=assign.pm,
                 notification_type="material_request",
-                title="Nueva solicitud rápida",
-                message=f"{request.user.get_full_name()} solicitó {quantity} de {item_name} (urgencia: {needed_when}).",
+                title="New quick request",
+                message=f"{request.user.get_full_name()} requested {quantity} of {item_name} (urgency: {needed_when}).",
                 related_object_type="material-request",
                 related_object_id=req.id,
             )

@@ -253,8 +253,8 @@ def notify_pm_assignment(sender, instance: "ProjectManagerAssignment", created: 
     Notification.objects.create(
         user=instance.pm,
         notification_type="pm_assigned",
-        title="Has sido asignado como PM",
-        message=f"Fuiste asignado al proyecto '{instance.project.name}' como {instance.role}.",
+        title="You have been assigned as PM",
+        message=f"You were assigned to project '{instance.project.name}' as {instance.role}.",
         related_object_type="project",
         related_object_id=instance.project_id,
     )
@@ -263,8 +263,8 @@ def notify_pm_assignment(sender, instance: "ProjectManagerAssignment", created: 
         Notification.objects.create(
             user=admin,
             notification_type="pm_assigned",
-            title="Nuevo PM asignado",
-            message=f"{instance.pm.username} fue asignado al proyecto '{instance.project.name}'.",
+            title="New PM assigned",
+            message=f"{instance.pm.username} was assigned to project '{instance.project.name}'.",
             related_object_type="project",
             related_object_id=instance.project_id,
         )
@@ -322,8 +322,8 @@ class ColorApproval(models.Model):
             Notification.objects.create(
                 user=pm,
                 notification_type="color_approved",
-                title="Color aprobado",
-                message=f"'{self.color_name}' aprobado para {self.project.name}.",
+                title="Color approved",
+                message=f"'{self.color_name}' approved for {self.project.name}.",
                 related_object_type="project",
                 related_object_id=self.project_id,
             )
@@ -1540,7 +1540,7 @@ class Task(models.Model):
 
         link = reverse("task_detail", args=[self.id])
         changed_by = getattr(self, "_current_user", None)
-        changed_by_name = changed_by.username if changed_by else "Sistema"
+        changed_by_name = changed_by.username if changed_by else "System"
         assigned_user = (
             self.assigned_to.user if self.assigned_to and self.assigned_to.user else None
         )
@@ -1550,8 +1550,8 @@ class Task(models.Model):
                 notification_type="task_completed"
                 if self.status == "Completed"
                 else "task_created",
-                title=f"Tarea actualizada: {self.title}",
-                message=f'{changed_by_name} cambió el estado de "{self.title}" de {old_status} a {self.status}',
+                title=f"Task updated: {self.title}",
+                message=f'{changed_by_name} changed the status of "{self.title}" from {old_status} to {self.status}',
                 related_object_type="task",
                 related_object_id=self.id,
                 link_url=link,
@@ -1563,8 +1563,8 @@ class Task(models.Model):
                     Notification.objects.create(
                         user=pm,
                         notification_type="task_completed",
-                        title=f"Tarea {self.status.lower()}: {self.title}",
-                        message=f'{changed_by_name} cambió "{self.title}" ({self.project.name}) de {old_status} a {self.status}',
+                        title=f"Task {self.status.lower()}: {self.title}",
+                        message=f'{changed_by_name} changed "{self.title}" ({self.project.name}) from {old_status} to {self.status}',
                         related_object_type="task",
                         related_object_id=self.id,
                         link_url=link,
@@ -1577,7 +1577,7 @@ class Task(models.Model):
 
         link = reverse("task_detail", args=[self.id])
         assigned_by = getattr(self, "_current_user", None)
-        assigned_by_name = assigned_by.username if assigned_by else "Sistema"
+        assigned_by_name = assigned_by.username if assigned_by else "System"
         assigned_user = (
             self.assigned_to.user if self.assigned_to and self.assigned_to.user else None
         )
@@ -1585,8 +1585,8 @@ class Task(models.Model):
             Notification.objects.create(
                 user=assigned_user,
                 notification_type="task_assigned",
-                title=f"Nueva asignación: {self.title}",
-                message=f'{assigned_by_name} te asignó la tarea "{self.title}" en {self.project.name}',
+                title=f"New assignment: {self.title}",
+                message=f'{assigned_by_name} assigned you the task "{self.title}" in {self.project.name}',
                 related_object_type="task",
                 related_object_id=self.id,
                 link_url=link,
@@ -4303,7 +4303,7 @@ class MaterialRequest(models.Model):
         return movement
 
     def _notify_admins_new_request(self):
-        """Q14.4: Notificar admins de nueva solicitud"""
+        """Q14.4: Notify admins of new request"""
         from django.contrib.auth.models import User
         from django.urls import reverse
 
@@ -4316,15 +4316,15 @@ class MaterialRequest(models.Model):
             Notification.objects.create(
                 user=admin,
                 notification_type="task_created",  # Reuse existing type
-                title=f"Nueva solicitud de materiales MR#{self.id}",
-                message=f"{self.requested_by.username if self.requested_by else 'Usuario'} solicita materiales para {self.project.name}",
+                title=f"New materials request MR#{self.id}",
+                message=f"{self.requested_by.username if self.requested_by else 'User'} requested materials for {self.project.name}",
                 related_object_type="material_request",
                 related_object_id=self.id,
                 link_url=link,
             )
 
     def _notify_requester_approved(self):
-        """Q14.4: Notificar solicitante de aprobación"""
+        """Q14.4: Notify requester of approval"""
         from django.urls import reverse
 
         from core.models import Notification
@@ -4336,15 +4336,15 @@ class MaterialRequest(models.Model):
         Notification.objects.create(
             user=self.requested_by,
             notification_type="task_completed",
-            title=f"Solicitud MR#{self.id} aprobada",
-            message=f"Tu solicitud de materiales para {self.project.name} ha sido aprobada",
+            title=f"Request MR#{self.id} approved",
+            message=f"Your materials request for {self.project.name} has been approved",
             related_object_type="material_request",
             related_object_id=self.id,
             link_url=link,
         )
 
     def _notify_requester_ordered(self):
-        """Notificar que materiales fueron ordenados"""
+        """Notify that materials were ordered"""
         from django.urls import reverse
 
         from core.models import Notification
@@ -4356,15 +4356,15 @@ class MaterialRequest(models.Model):
         Notification.objects.create(
             user=self.requested_by,
             notification_type="task_completed",
-            title=f"Materiales MR#{self.id} ordenados",
-            message=f"Los materiales para {self.project.name} han sido ordenados",
+            title=f"Materials MR#{self.id} ordered",
+            message=f"Materials for {self.project.name} have been ordered",
             related_object_type="material_request",
             related_object_id=self.id,
             link_url=link,
         )
 
     def _notify_requester_received(self):
-        """Q14.14: Notificar PM cuando materiales son recibidos"""
+        """Q14.14: Notify PM when materials are received"""
         from django.urls import reverse
 
         from core.models import Notification
@@ -4376,15 +4376,15 @@ class MaterialRequest(models.Model):
         Notification.objects.create(
             user=self.requested_by,
             notification_type="task_completed",
-            title=f"Materiales MR#{self.id} recibidos",
-            message=f"Los materiales para {self.project.name} han sido recibidos completamente",
+            title=f"Materials MR#{self.id} received",
+            message=f"Materials for {self.project.name} have been fully received",
             related_object_type="material_request",
             related_object_id=self.id,
             link_url=link,
         )
 
     def _notify_partial_receipt(self):
-        """Q14.10: Notificar de recepción parcial"""
+        """Q14.10: Notify of partial receipt"""
         from django.contrib.auth.models import User
         from django.urls import reverse
 
@@ -4400,8 +4400,8 @@ class MaterialRequest(models.Model):
             Notification.objects.create(
                 user=user,
                 notification_type="task_created",
-                title=f"Recepción parcial MR#{self.id}",
-                message=f"Solo se recibió parte de los materiales para {self.project.name}. Revisar faltantes.",
+                title=f"Partial receipt MR#{self.id}",
+                message=f"Only part of the materials for {self.project.name} were received. Review missing items.",
                 related_object_type="material_request",
                 related_object_id=self.id,
                 link_url=link,
@@ -6725,11 +6725,11 @@ class InventoryMovement(models.Model):
         self.save(update_fields=["applied"])
 
     def _check_low_stock_alert(self, stock):
-        """Q15.5: Verificar y notificar si el stock está bajo"""
+        """Q15.5: Check and notify if stock is low"""
         threshold = self.item.get_effective_threshold()
 
         if threshold and stock.quantity < threshold:
-            # Notificar admins
+            # Notify admins
             from django.contrib.auth.models import User
 
             from core.models import Notification
@@ -6740,8 +6740,8 @@ class InventoryMovement(models.Model):
                 Notification.objects.create(
                     user=admin,
                     notification_type="task_created",
-                    title=f"Stock bajo: {self.item.name}",
-                    message=f"El inventario de {self.item.name} en {stock.location} está bajo el umbral ({stock.quantity} < {threshold})",
+                    title=f"Low stock: {self.item.name}",
+                    message=f"Inventory of {self.item.name} at {stock.location} is below threshold ({stock.quantity} < {threshold})",
                     related_object_type="inventory",
                     related_object_id=stock.id,
                     link_url="/inventory/",

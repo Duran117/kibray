@@ -17,8 +17,8 @@ def notify_task_created(task, creator):
         Notification.objects.create(
             user=pm,
             notification_type="task_created",
-            title=f"Nueva tarea: {task.title}",
-            message=f"{creator.username} creó una tarea en {task.project.name}",
+            title=f"New task: {task.title}",
+            message=f"{creator.username} created a task in {task.project.name}",
             related_object_type="task",
             related_object_id=task.id,
             link_url=link,
@@ -33,8 +33,8 @@ def notify_task_assigned(task, assigned_to):
     Notification.objects.create(
         user=assigned_to.user,
         notification_type="task_assigned",
-        title=f"Tarea asignada: {task.title}",
-        message=f'Has sido asignado a "{task.title}" en {task.project.name}',
+        title=f"Task assigned: {task.title}",
+        message=f'You have been assigned to "{task.title}" in {task.project.name}',
         related_object_type="task",
         related_object_id=task.id,
         link_url=link,
@@ -56,8 +56,8 @@ def notify_task_completed(task, completer):
             Notification.objects.create(
                 user=u,
                 notification_type="task_completed",
-                title=f"Tarea completada: {task.title}",
-                message=f'{completer.username} completó "{task.title}"',
+                title=f"Task completed: {task.title}",
+                message=f'{completer.username} completed "{task.title}"',
                 related_object_type="task",
                 related_object_id=task.id,
                 link_url=link,
