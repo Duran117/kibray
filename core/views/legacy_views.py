@@ -16,7 +16,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core import signing
 from django.core.exceptions import ValidationError
-from django.core.mail import EmailMultiAlternatives, send_mail
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Max, Q, Sum
@@ -6093,9 +6092,14 @@ def estimate_send_email(request, estimate_id):
                     + "</p>"
                     + f"<p><a href='{public_url}' style='display:inline-block;padding:12px 20px;background:#4CAF50;color:#fff;text-decoration:none;border-radius:6px;'>Ver y Aprobar Cotización</a></p>"
                 )
-                email = EmailMultiAlternatives(subject, message, sender, [recipient])
-                email.attach_alternative(html_body, "text/html")
-                email.send()
+                from core.services.email_service import KibrayEmailService
+                KibrayEmailService.send_html_email(
+                    to_email=recipient,
+                    subject=subject,
+                    text_content=message,
+                    html_content=html_body,
+                    fail_silently=False
+                )
                 messages.success(request, "Propuesta enviada correctamente al cliente.")
             except Exception as e:
                 success_flag = False

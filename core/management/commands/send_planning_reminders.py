@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -13,6 +12,8 @@ class Command(BaseCommand):
         parser.add_argument("--dry-run", action="store_true", help="Do not send emails, just list plans")
 
     def handle(self, *args, **options):
+        from core.services.email_service import KibrayEmailService
+        
         now = timezone.now()
         # Plans whose deadline passed within last 24h and still DRAFT
         window_start = now - timezone.timedelta(hours=24)
@@ -38,7 +39,12 @@ class Command(BaseCommand):
                 self.stdout.write(f"[DRY] Would send reminder to {pm.email} for plan {plan.id}")
             else:
                 try:
-                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [pm.email], fail_silently=True)
+                    KibrayEmailService.send_simple_notification(
+                        to_emails=[pm.email],
+                        subject=subject,
+                        message=body,
+                        fail_silently=True
+                    )
                     count += 1
                 except Exception as e:
                     self.stderr.write(f"Failed to send to {pm.email}: {e}")

@@ -11,7 +11,6 @@ import logging
 
 from celery import shared_task
 from django.conf import settings
-from django.core.mail import send_mail
 from django.db.models import Q, Sum
 from django.utils import timezone
 
@@ -544,6 +543,7 @@ def send_pending_notifications():
     Finds unsent notifications and sends them via email.
     """
     from core.models import Notification
+    from core.services.email_service import KibrayEmailService
 
     # Get notifications marked for email but not yet sent
     pending = Notification.objects.filter(
@@ -556,17 +556,19 @@ def send_pending_notifications():
 
     for notification in pending:
         try:
-            send_mail(
+            email_sent = KibrayEmailService.send_simple_notification(
+                to_emails=[notification.user.email],
                 subject=notification.title,
                 message=notification.message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[notification.user.email],
                 fail_silently=False,
             )
 
-            notification.sent_via_email = True
-            notification.save(update_fields=["sent_via_email"])
-            sent_count += 1
+            if email_sent:
+                notification.sent_via_email = True
+                notification.save(update_fields=["sent_via_email"])
+                sent_count += 1
+            else:
+                error_count += 1
 
         except Exception as e:
             logger.error(f"Failed to send email notification {notification.id}: {e}")

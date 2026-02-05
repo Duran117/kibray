@@ -306,3 +306,36 @@ class KibrayEmailService:
             if not fail_silently:
                 raise
             return False
+
+    @classmethod
+    def send_html_email(
+        cls,
+        to_email: str,
+        subject: str,
+        text_content: str,
+        html_content: str,
+        fail_silently: bool = True
+    ) -> bool:
+        """
+        Send an email with custom HTML content (not using templates).
+        
+        Used for proposal/estimate emails where content is user-generated.
+        """
+        try:
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=text_content,
+                from_email=cls._get_default_from_email(),
+                to=[to_email]
+            )
+            email.attach_alternative(html_content, "text/html")
+            email.send(fail_silently=fail_silently)
+            
+            logger.info(f"HTML email sent to {to_email}: {subject}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to send HTML email to {to_email}: {e}")
+            if not fail_silently:
+                raise
+            return False
