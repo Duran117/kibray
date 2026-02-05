@@ -3865,16 +3865,29 @@ class DailyLogScheduleProgress(models.Model):
         return f"{self.daily_log.date} - {self.schedule_item.name}: {self.progress_percent}%"
     
     def save(self, *args, **kwargs):
+        import logging
+        logger = logging.getLogger(__name__)
+        
         super().save(*args, **kwargs)
+        
         # Auto-update the Gantt item's progress
         if self.schedule_item and self.progress_percent is not None:
+            old_progress = self.schedule_item.progress
+            old_status = self.schedule_item.status
+            
             self.schedule_item.progress = self.progress_percent
             if self.progress_percent >= 100:
                 self.schedule_item.status = 'done'
             elif self.progress_percent > 0:
                 self.schedule_item.status = 'in_progress'
-            # Only update if progress changed
+            
             self.schedule_item.save(update_fields=['progress', 'status'])
+            
+            logger.info(
+                f"[DailyLogScheduleProgress] Updated Gantt item '{self.schedule_item.name}': "
+                f"progress {old_progress}% -> {self.progress_percent}%, "
+                f"status '{old_status}' -> '{self.schedule_item.status}'"
+            )
 
 
 class DailyLogPhoto(models.Model):
