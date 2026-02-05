@@ -44,7 +44,7 @@ def get_master_schedule_data(request):
     - metadata: counts and date range
     """
 
-    from core.models import ChangeOrder, Invoice, Project, ScheduleItem
+    from core.models import ChangeOrder, Invoice, Project, ScheduleItemV2
 
     # Optional models (keep resilient)
     try:
@@ -129,32 +129,32 @@ def get_master_schedule_data(request):
     # === Granular schedule items (per project) ===
     schedule_items_data = []
     schedule_items_qs = (
-        ScheduleItem.objects.filter(project__is_archived=False)
-        .select_related("project", "category")
+        ScheduleItemV2.objects.filter(project__is_archived=False)
+        .select_related("project", "phase")
         .order_by("project_id", "order", "id")
     )
 
     status_colors = {
-        "NOT_STARTED": "#cbd5e1",  # slate-300
-        "IN_PROGRESS": "#3b82f6",  # blue-500
-        "BLOCKED": "#ef4444",  # red-500
-        "DONE": "#10b981",  # emerald-500
+        "planned": "#cbd5e1",  # slate-300
+        "in_progress": "#3b82f6",  # blue-500
+        "blocked": "#ef4444",  # red-500
+        "done": "#10b981",  # emerald-500
     }
 
     for item in schedule_items_qs:
-        start_date = item.planned_start or item.planned_end or today
-        end_date = item.planned_end or item.planned_start or start_date
+        start_date = item.start_date or item.end_date or today
+        end_date = item.end_date or item.start_date or start_date
         schedule_items_data.append(
             {
                 "id": item.id,
                 "project": item.project_id,
-                "title": item.title,
+                "title": item.name,
                 "start_date": start_date.isoformat(),
                 "end_date": end_date.isoformat(),
-                "percent_complete": item.percent_complete,
+                "percent_complete": item.progress,
                 "status": item.status,
                 "is_milestone": item.is_milestone,
-                "category_name": item.category.name if item.category else None,
+                "category_name": item.phase.name if item.phase else None,
                 "color": status_colors.get(item.status, "#94a3b8"),
                 # Use existing Django route (singular) to avoid 404s when clicking details
                 "url": f"/schedule/item/{item.id}/edit/",

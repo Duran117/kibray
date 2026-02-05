@@ -3801,6 +3801,79 @@ class DailyLog(models.Model):
             )
         self.save(update_fields=["is_complete", "incomplete_reason"])
         return self.is_complete
+    
+    def get_schedule_progress_entries(self):
+        """Get all schedule progress entries for this daily log."""
+        return self.schedule_progress_entries.all().select_related('schedule_item')
+    
+    def update_gantt_items_progress(self):
+        """Update the progress of all linked Gantt items based on reported progress."""
+        for entry in self.schedule_progress_entries.all():
+            if entry.schedule_item and entry.progress_percent is not None:
+                item = entry.schedule_item
+                # Update the item's progress to the reported value
+                item.progress = entry.progress_percent
+                # Update status based on progress
+                if entry.progress_percent >= 100:
+                    item.status = 'done'
+                elif entry.progress_percent > 0:
+                    item.status = 'in_progress'
+                item.save(update_fields=['progress', 'status'])
+
+
+class DailyLogScheduleProgress(models.Model):
+    """
+    Tracks progress on multiple Gantt schedule items within a single Daily Log.
+    Allows PM to report progress on several activities that were worked on the same day.
+    """
+    daily_log = models.ForeignKey(
+        DailyLog,
+        on_delete=models.CASCADE,
+        related_name="schedule_progress_entries",
+    )
+    schedule_item = models.ForeignKey(
+        "ScheduleItemV2",
+        on_delete=models.CASCADE,
+        related_name="daily_log_progress",
+        help_text="Gantt activity worked on",
+    )
+    progress_percent = models.PositiveIntegerField(
+        default=0,
+        help_text="Progress percentage for this activity (0-100)",
+    )
+    notes = models.TextField(
+        blank=True,
+        help_text="Notes specific to this activity's progress",
+    )
+    hours_worked = models.DecimalField(
+        max_digits=4,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        help_text="Hours worked on this activity",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("daily_log", "schedule_item")
+        ordering = ["schedule_item__order", "schedule_item__name"]
+        verbose_name = "Daily Log Schedule Progress"
+        verbose_name_plural = "Daily Log Schedule Progress Entries"
+
+    def __str__(self):
+        return f"{self.daily_log.date} - {self.schedule_item.name}: {self.progress_percent}%"
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Optionally auto-update the Gantt item's progress
+        if self.schedule_item:
+            self.schedule_item.progress = self.progress_percent
+            if self.progress_percent >= 100:
+                self.schedule_item.status = 'done'
+            elif self.progress_percent > 0:
+                self.schedule_item.status = 'in_progress'
+            self.schedule_item.save(update_fields=['progress', 'status'])
 
 
 class DailyLogPhoto(models.Model):

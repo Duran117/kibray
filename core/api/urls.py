@@ -83,7 +83,7 @@ from .views import (
     ProjectInventoryViewSet,
     ProjectManagerAssignmentViewSet,
     PushSubscriptionViewSet,  # ⭐ PWA Push Notifications
-    ScheduleCategoryViewSet,
+    SchedulePhaseViewSet,
     ScheduleItemViewSet,
     SitePhotoViewSet,
     TaskDependencyViewSet,
@@ -156,8 +156,8 @@ router.register(r"files", ProjectFileViewSet, basename="file")
 router.register(r"users", UserViewSetNew, basename="user")
 router.register(r"changeorders", ChangeOrderViewSetNew, basename="changeorder")
 
-# Schedule
-router.register(r"schedule/categories", ScheduleCategoryViewSet, basename="schedule-category")
+# Schedule (V2)
+router.register(r"schedule/phases", SchedulePhaseViewSet, basename="schedule-phase")
 router.register(r"schedule/items", ScheduleItemViewSet, basename="schedule-item")
 
 # Financial (NEW)

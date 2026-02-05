@@ -46,13 +46,13 @@ from .models import (
     ResourceAssignment,
     Risk,
     Schedule,
-    ScheduleCategory,
-    ScheduleItem,
+    SchedulePhaseV2,
     ScheduleItemV2,
     SitePhoto,
     Task,
     TimeEntry,
     TouchUpPin,
+    DailyLogScheduleProgress,
 )
 
 
@@ -462,6 +462,66 @@ class DailyLogPhotoForm(forms.ModelForm):
                 attrs={"class": "form-control", "placeholder": _("Descripción de la foto...")}
             ),
         }
+
+
+class DailyLogScheduleProgressForm(forms.ModelForm):
+    """Formulario para registrar progreso en una actividad del schedule"""
+    
+    class Meta:
+        model = DailyLogScheduleProgress
+        fields = ["schedule_item", "progress_percent", "notes", "hours_worked"]
+        widgets = {
+            "schedule_item": forms.Select(attrs={"class": "form-select schedule-item-select"}),
+            "progress_percent": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": "0",
+                "max": "100",
+                "placeholder": _("% Progress")
+            }),
+            "notes": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 2,
+                "placeholder": _("Notes about this activity...")
+            }),
+            "hours_worked": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": "0",
+                "max": "24",
+                "step": "0.5",
+                "placeholder": _("Hours")
+            }),
+        }
+        labels = {
+            "schedule_item": _("Schedule Activity"),
+            "progress_percent": _("Progress %"),
+            "notes": _("Notes"),
+            "hours_worked": _("Hours Worked"),
+        }
+    
+    def __init__(self, *args, project=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if project:
+            self.fields["schedule_item"].queryset = ScheduleItemV2.objects.filter(
+                project=project
+            ).select_related("phase").order_by("phase__order", "order")
+            self.fields["schedule_item"].label_from_instance = lambda obj: f"{obj.phase.name} → {obj.name}" if obj.phase else obj.name
+        self.fields["schedule_item"].required = True
+        self.fields["progress_percent"].required = False
+        self.fields["notes"].required = False
+        self.fields["hours_worked"].required = False
+
+
+# Formset for multiple schedule progress entries per daily log
+DailyLogScheduleProgressFormSet = inlineformset_factory(
+    DailyLog,
+    DailyLogScheduleProgress,
+    form=DailyLogScheduleProgressForm,
+    fields=["schedule_item", "progress_percent", "notes", "hours_worked"],
+    extra=1,  # Start with 1 empty form
+    can_delete=True,
+    min_num=0,
+    validate_min=False,
+)
 
 
 class DamageReportForm(forms.ModelForm):
@@ -1262,93 +1322,71 @@ class PlanPinForm(forms.ModelForm):
         }
 
 
-# ---- Schedule Category & Item Forms ----
-class ScheduleCategoryForm(forms.ModelForm):
-    """Formulario para crear/editar categorías del cronograma jerárquico."""
+# ---- Schedule Phase & Item Forms (V2) ----
+class SchedulePhaseForm(forms.ModelForm):
+    """Formulario para crear/editar fases del cronograma V2."""
 
     class Meta:
-        model = ScheduleCategory
-        fields = ["name", "parent", "order", "cost_code"]
+        model = SchedulePhaseV2
+        fields = ["name", "order", "color"]
         widgets = {
             "name": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Ej: Preparación"}
             ),
-            "parent": forms.Select(attrs={"class": "form-control"}),
             "order": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
-            "cost_code": forms.Select(attrs={"class": "form-control"}),
+            "color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
         }
-
-    def __init__(self, *args, **kwargs):
-        project = kwargs.pop("project", None)
-        super().__init__(*args, **kwargs)
-        # Filter parent to same project if editing
-        if project:
-            self.fields["parent"].queryset = ScheduleCategory.objects.filter(project=project)
-            self.fields["cost_code"].queryset = CostCode.objects.filter(active=True)
-        else:
-            self.fields["parent"].queryset = ScheduleCategory.objects.none()
 
 
 class ScheduleItemForm(forms.ModelForm):
-    """Formulario para crear/editar ítems del cronograma."""
+    """Formulario para crear/editar ítems del cronograma V2."""
 
     class Meta:
-        model = ScheduleItem
+        model = ScheduleItemV2
         fields = [
-            "category",
-            "title",
+            "phase",
+            "name",
             "description",
             "order",
-            "planned_start",
-            "planned_end",
+            "start_date",
+            "end_date",
             "status",
-            "percent_complete",
-            "budget_line",
-            "estimate_line",
-            "cost_code",
+            "progress",
+            "is_milestone",
         ]
         widgets = {
-            "category": forms.Select(attrs={"class": "form-control"}),
-            "title": forms.TextInput(
+            "phase": forms.Select(attrs={"class": "form-control"}),
+            "name": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Ej: Enmascarar ventanas"}
             ),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
             "order": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
-            "planned_start": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
-            "planned_end": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "start_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "end_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "status": forms.Select(attrs={"class": "form-control"}),
-            "percent_complete": forms.NumberInput(
+            "progress": forms.NumberInput(
                 attrs={"class": "form-control", "min": "0", "max": "100"}
             ),
-            "budget_line": forms.Select(attrs={"class": "form-control"}),
-            "estimate_line": forms.Select(attrs={"class": "form-control"}),
-            "cost_code": forms.Select(attrs={"class": "form-control"}),
+            "is_milestone": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
     def __init__(self, *args, **kwargs):
         project = kwargs.pop("project", None)
         super().__init__(*args, **kwargs)
-        # Make category optional since we can create new one on the fly
-        self.fields["category"].required = False
+        # Make phase optional since we can create new one on the fly
+        self.fields["phase"].required = False
         if project:
-            self.fields["category"].queryset = ScheduleCategory.objects.filter(project=project)
-            self.fields["budget_line"].queryset = BudgetLine.objects.filter(project=project)
-            self.fields["estimate_line"].queryset = EstimateLine.objects.filter(
-                estimate__project=project
-            )
-            self.fields["cost_code"].queryset = CostCode.objects.filter(active=True)
+            self.fields["phase"].queryset = SchedulePhaseV2.objects.filter(project=project)
         else:
-            self.fields["category"].queryset = ScheduleCategory.objects.none()
-            self.fields["budget_line"].queryset = BudgetLine.objects.none()
-            self.fields["estimate_line"].queryset = EstimateLine.objects.none()
+            self.fields["phase"].queryset = SchedulePhaseV2.objects.none()
 
     def clean(self):
         cleaned = super().clean()
-        start = cleaned.get("planned_start")
-        end = cleaned.get("planned_end")
+        start = cleaned.get("start_date")
+        end = cleaned.get("end_date")
         if start and end and end < start:
-            self.add_error("planned_end", "La fecha de fin no puede ser anterior a la de inicio.")
-        pct = cleaned.get("percent_complete", 0)
+            self.add_error("end_date", "La fecha de fin no puede ser anterior a la de inicio.")
+        pct = cleaned.get("progress", 0)
         if pct < 0 or pct > 100:
             self.add_error("percent_complete", "El porcentaje debe estar entre 0 y 100.")
 
@@ -1549,8 +1587,8 @@ class PlannedActivityForm(forms.ModelForm):
         daily_plan = kwargs.pop("daily_plan", None)
         super().__init__(*args, **kwargs)
         if daily_plan:
-            # Limitar schedule items del mismo proyecto
-            self.fields["schedule_item"].queryset = ScheduleItem.objects.filter(
+            # Limitar schedule items del mismo proyecto (V2)
+            self.fields["schedule_item"].queryset = ScheduleItemV2.objects.filter(
                 project=daily_plan.project
             ).order_by("order")
             # Limitar activity templates activos

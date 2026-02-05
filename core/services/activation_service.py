@@ -3,7 +3,7 @@ Project Activation Service
 Automates transition from Sales (Estimate) to Production (Schedule, Budget, Tasks, Invoices).
 
 This service handles the conversion of approved estimates into operational entities:
-- ScheduleItems for Gantt visualization
+- ScheduleItemV2 for Gantt visualization (V2 system)
 - BudgetLines for financial control
 - Tasks for daily operations
 - Invoices for deposits/advances
@@ -23,8 +23,8 @@ from core.models import (
     Invoice,
     InvoiceLine,
     Project,
-    ScheduleCategory,
-    ScheduleItem,
+    SchedulePhaseV2,
+    ScheduleItemV2,
     Task,
 )
 
@@ -64,9 +64,9 @@ class ProjectActivationService:
         start_date,
         items_to_schedule: Optional[List[EstimateLine]] = None,
         selected_line_ids: Optional[List[int]] = None,
-    ) -> list[ScheduleItem]:
+    ) -> list[ScheduleItemV2]:
         """
-        Create ScheduleItems from EstimateLines.
+        Create ScheduleItemV2 from EstimateLines.
 
         Args:
             start_date: Project start date
@@ -74,10 +74,10 @@ class ProjectActivationService:
                              If None, schedules all estimate lines.
 
         Returns:
-            List of created ScheduleItems
+            List of created ScheduleItemV2
         """
-        # Get or create default category
-        category, _ = ScheduleCategory.objects.get_or_create(
+        # Get or create default phase
+        phase, _ = SchedulePhaseV2.objects.get_or_create(
             project=self.project, name="General", defaults={"order": 0}
         )
 
@@ -118,18 +118,16 @@ class ProjectActivationService:
                 or f"{line.cost_code.name if line.cost_code else 'Item'} - {line.qty} {line.unit}"
             )
 
-            schedule_item = ScheduleItem.objects.create(
+            schedule_item = ScheduleItemV2.objects.create(
                 project=self.project,
-                category=category,
-                title=title[:200],  # Limit to model max_length
+                phase=phase,
+                name=title[:200],  # Limit to model max_length
                 description=line.description or "",
-                planned_start=current_date,
-                planned_end=end_date,
-                status="NOT_STARTED",
-                percent_complete=0,
+                start_date=current_date,
+                end_date=end_date,
+                status="planned",
+                progress=0,
                 order=idx,
-                cost_code=line.cost_code,
-                estimate_line=line,
             )
 
             created_items.append(schedule_item)
@@ -175,10 +173,10 @@ class ProjectActivationService:
 
     @transaction.atomic
     def create_tasks_from_schedule(
-        self, schedule_items: list[ScheduleItem], assigned_to=None
+        self, schedule_items: list[ScheduleItemV2], assigned_to=None
     ) -> list[Task]:
         """
-        Create operational Tasks from ScheduleItems.
+        Create operational Tasks from ScheduleItemV2.
 
         Args:
             schedule_items: List of schedule items to convert
@@ -192,11 +190,11 @@ class ProjectActivationService:
         for schedule_item in schedule_items:
             task = Task.objects.create(
                 project=self.project,
-                title=schedule_item.title,
+                title=schedule_item.name,
                 description=schedule_item.description or "",
                 status="Pending",
                 priority="medium",
-                due_date=schedule_item.planned_end,
+                due_date=schedule_item.end_date,
                 assigned_to=assigned_to,
             )
 

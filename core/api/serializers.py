@@ -28,8 +28,8 @@ from core.models import (
     ProjectFile,  # ⭐ Added for Phase 4 File Manager
     ProjectManagerAssignment,
     PushSubscription,  # ⭐ PWA Push Notifications
-    ScheduleCategory,
-    ScheduleItem,
+    SchedulePhaseV2,
+    ScheduleItemV2,
     Task,
     TaskTemplate,
     WeatherSnapshot,
@@ -415,7 +415,7 @@ class TaskSerializer(serializers.ModelSerializer):
     )
     project_name = serializers.CharField(source="project.name", read_only=True)
     schedule_item = serializers.PrimaryKeyRelatedField(
-        queryset=ScheduleItem.objects.all(), required=False, allow_null=True
+        queryset=ScheduleItemV2.objects.all(), required=False, allow_null=True, source="schedule_item_v2"
     )
     # Make priority and due_date writable for API updates
     priority = serializers.ChoiceField(choices=["low", "medium", "high", "urgent"], required=False)
@@ -840,67 +840,60 @@ class ProjectListSerializer(serializers.ModelSerializer):
         read_only_fields = ["created_at"]
 
 
-class ScheduleCategorySerializer(serializers.ModelSerializer):
+class SchedulePhaseSerializer(serializers.ModelSerializer):
     item_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = ScheduleCategory
+        model = SchedulePhaseV2
         fields = [
             "id",
             "project",
             "name",
             "order",
-            "parent",
-            "is_phase",
+            "color",
             "start_date",
             "end_date",
-            "cost_code",
+            "weight_percent",
             "item_count",
-            "percent_complete",
+            "calculated_progress",
         ]
-        read_only_fields = ["item_count"]
+        read_only_fields = ["item_count", "calculated_progress"]
 
     def get_item_count(self, obj):
         return obj.items.count()
 
 
 class ScheduleItemSerializer(serializers.ModelSerializer):
-    category_name = serializers.CharField(source="category.name", read_only=True, allow_null=True)
-    # Map legacy 'name' used by frontend to model field 'title'
-    # Allow partial updates without requiring name/title
-    name = serializers.CharField(source="title", required=False)
-    # Allow frontend to omit category; viewset will assign a default if missing
-    category = serializers.PrimaryKeyRelatedField(
-        queryset=ScheduleCategory.objects.all(), required=False, allow_null=True
+    phase_name = serializers.CharField(source="phase.name", read_only=True, allow_null=True)
+    # Allow frontend to omit phase; viewset will assign a default if missing
+    phase = serializers.PrimaryKeyRelatedField(
+        queryset=SchedulePhaseV2.objects.all(), required=False, allow_null=True
     )
 
     class Meta:
-        model = ScheduleItem
+        model = ScheduleItemV2
         fields = [
             "id",
             "project",
-            "category",
-            "category_name",
+            "phase",
+            "phase_name",
             "name",
             "description",
             "order",
-            "planned_start",
-            "planned_end",
+            "start_date",
+            "end_date",
             "status",
-            "percent_complete",
+            "progress",
             "is_milestone",
-            "cost_code",
-            "budget_line",
-            "estimate_line",
+            "weight_percent",
+            "calculated_progress",
         ]
         # Enable partial updates for PATCH requests
         extra_kwargs = {
             "project": {"required": False},
-            "planned_start": {"required": False},
-            "planned_end": {"required": False},
+            "start_date": {"required": False},
+            "end_date": {"required": False},
         }
-
-    # dependencies removed (not present on model); could be reintroduced later
 
 
 # =============================================================================

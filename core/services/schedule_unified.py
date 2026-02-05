@@ -1,8 +1,7 @@
 """
 Unified Schedule Service
 ========================
-Provides unified access to schedule data from both V1 (legacy) and V2 (new) systems.
-Prefers V2 data when available, falls back to V1 for backwards compatibility.
+Provides unified access to schedule data from V2 system.
 """
 
 from datetime import date, timedelta
@@ -13,11 +12,7 @@ from django.contrib.auth.models import User
 
 from core.models import (
     Project,
-    # V1 (Legacy) models
-    Schedule,
-    ScheduleCategory,
-    ScheduleItem,
-    # V2 (New) models
+    # V2 models
     SchedulePhaseV2,
     ScheduleItemV2,
     ScheduleTaskV2,
@@ -26,17 +21,10 @@ from core.models import (
 
 def get_project_schedule_data(project: Project) -> Dict[str, Any]:
     """
-    Get unified schedule data for a project.
-    Returns phases/items from V2 if available, otherwise from V1.
+    Get schedule data for a project from V2.
     """
-    # Try V2 first
     v2_phases = SchedulePhaseV2.objects.filter(project=project).prefetch_related('items')
-    
-    if v2_phases.exists():
-        return _get_v2_schedule_data(project, v2_phases)
-    
-    # Fall back to V1
-    return _get_v1_schedule_data(project)
+    return _get_v2_schedule_data(project, v2_phases)
 
 
 def _get_v2_schedule_data(project: Project, phases) -> Dict[str, Any]:
@@ -120,104 +108,13 @@ def _get_v2_schedule_data(project: Project, phases) -> Dict[str, Any]:
     }
 
 
-def _get_v1_schedule_data(project: Project) -> Dict[str, Any]:
-    """Get schedule data from V1 (legacy) models."""
-    categories = ScheduleCategory.objects.filter(project=project).prefetch_related('schedule_items')
-    
-    phases_data = []
-    all_items = []
-    
-    for category in categories:
-        items = category.schedule_items.all()
-        items_data = []
-        
-        for item in items:
-            item_data = {
-                'id': item.id,
-                'title': item.title,
-                'description': item.description or '',
-                'start_date': item.planned_start,
-                'end_date': item.planned_end,
-                'status': _map_v1_status(item.status),
-                'progress': item.percent_complete or 0,
-                'is_milestone': item.is_milestone,
-                'assigned_to': item.assigned_to,
-                'assigned_to_name': item.assigned_to.get_full_name() if item.assigned_to else None,
-                'color': item.color or category.color or '#6B7280',
-                'phase_id': category.id,
-                'phase_name': category.name,
-                'source': 'v1',
-            }
-            items_data.append(item_data)
-            all_items.append(item_data)
-        
-        phases_data.append({
-            'id': category.id,
-            'name': category.name,
-            'color': category.color or '#6B7280',
-            'order': category.order or 0,
-            'start_date': min((i['start_date'] for i in items_data), default=None),
-            'end_date': max((i['end_date'] for i in items_data), default=None),
-            'items': items_data,
-            'items_count': len(items_data),
-            'source': 'v1',
-        })
-    
-    # Also get orphan items (without category)
-    orphan_items = ScheduleItem.objects.filter(project=project, category__isnull=True)
-    for item in orphan_items:
-        item_data = {
-            'id': item.id,
-            'title': item.title,
-            'description': item.description or '',
-            'start_date': item.planned_start,
-            'end_date': item.planned_end,
-            'status': _map_v1_status(item.status),
-            'progress': item.percent_complete or 0,
-            'is_milestone': item.is_milestone,
-            'assigned_to': item.assigned_to,
-            'assigned_to_name': item.assigned_to.get_full_name() if item.assigned_to else None,
-            'color': item.color or '#6B7280',
-            'phase_id': None,
-            'phase_name': 'Uncategorized',
-            'source': 'v1',
-        }
-        all_items.append(item_data)
-    
-    # Calculate overall progress
-    total_items = len(all_items)
-    if total_items > 0:
-        avg_progress = sum(i['progress'] for i in all_items) / total_items
-    else:
-        avg_progress = 0
-    
-    return {
-        'phases': phases_data,
-        'items': all_items,
-        'total_items': total_items,
-        'avg_progress': avg_progress,
-        'source': 'v1',
-    }
-
-
-def _map_v1_status(status: str) -> str:
-    """Map V1 status to V2 status format."""
-    mapping = {
-        'NOT_STARTED': 'planned',
-        'IN_PROGRESS': 'in_progress',
-        'COMPLETED': 'done',
-        'ON_HOLD': 'blocked',
-    }
-    return mapping.get(status, 'planned')
-
-
 def get_upcoming_milestones(
     project: Optional[Project] = None,
     user: Optional[User] = None,
     days_ahead: int = 30,
 ) -> List[Dict[str, Any]]:
     """
-    Get upcoming milestones from both V1 and V2 systems.
+    Get upcoming milestones.
     
     Args:
         project: Filter by specific project
@@ -248,42 +145,10 @@ def get_upcoming_milestones(
             'date': item.start_date,
             'project': item.project,
             'project_name': item.project.name,
-            'phase_name': item.phase.name,
+            'phase_name': item.phase.name if item.phase else 'Sin fase',
             'status': item.status,
             'assigned_to': item.assigned_to,
             'source': 'v2',
-        })
-    
-    # Query V1 milestones
-    v1_query = ScheduleItem.objects.filter(
-        is_milestone=True,
-        planned_start__gte=today,
-        planned_start__lte=end_date,
-        status__in=['NOT_STARTED', 'IN_PROGRESS'],
-    ).select_related('project', 'category', 'assigned_to')
-    
-    if project:
-        v1_query = v1_query.filter(project=project)
-    if user:
-        v1_query = v1_query.filter(project__pm_assignments__pm=user)
-    
-    # Exclude V1 milestones if V2 data exists for the same project
-    v2_project_ids = set(m['project'].id for m in milestones)
-    
-    for item in v1_query:
-        if item.project_id in v2_project_ids:
-            continue  # Skip V1 if V2 exists for this project
-        
-        milestones.append({
-            'id': item.id,
-            'title': item.title,
-            'date': item.planned_start,
-            'project': item.project,
-            'project_name': item.project.name,
-            'phase_name': item.category.name if item.category else 'Uncategorized',
-            'status': _map_v1_status(item.status),
-            'assigned_to': item.assigned_to,
-            'source': 'v1',
         })
     
     # Sort by date
@@ -313,10 +178,7 @@ def get_schedule_items_for_date_range(
     if user:
         v2_query = v2_query.filter(project__pm_assignments__pm=user)
     
-    v2_project_ids = set()
-    
     for item in v2_query:
-        v2_project_ids.add(item.project_id)
         items.append({
             'id': item.id,
             'title': item.name,
@@ -325,7 +187,7 @@ def get_schedule_items_for_date_range(
             'end_date': item.end_date,
             'project': item.project,
             'project_name': item.project.name,
-            'phase_name': item.phase.name,
+            'phase_name': item.phase.name if item.phase else 'Sin fase',
             'status': item.status,
             'progress': item.progress,
             'is_milestone': item.is_milestone,
@@ -334,44 +196,12 @@ def get_schedule_items_for_date_range(
             'source': 'v2',
         })
     
-    # Query V1 items (excluding projects that have V2 data)
-    v1_query = ScheduleItem.objects.filter(
-        Q(planned_start__lte=end_date, planned_end__gte=start_date)
-    ).select_related('project', 'category', 'assigned_to')
-    
-    if project:
-        v1_query = v1_query.filter(project=project)
-    if user:
-        v1_query = v1_query.filter(project__pm_assignments__pm=user)
-    
-    for item in v1_query:
-        if item.project_id in v2_project_ids:
-            continue  # Skip V1 if V2 exists
-        
-        items.append({
-            'id': item.id,
-            'title': item.title,
-            'description': item.description or '',
-            'start_date': item.planned_start,
-            'end_date': item.planned_end,
-            'project': item.project,
-            'project_name': item.project.name,
-            'phase_name': item.category.name if item.category else 'Uncategorized',
-            'status': _map_v1_status(item.status),
-            'progress': item.percent_complete or 0,
-            'is_milestone': item.is_milestone,
-            'assigned_to': item.assigned_to,
-            'color': item.color or '#6B7280',
-            'source': 'v1',
-        })
-    
     return items
 
 
 def get_project_progress(project: Project) -> Dict[str, Any]:
     """
     Calculate project progress from schedule data.
-    Prefers V2 data if available.
     """
     schedule_data = get_project_schedule_data(project)
     
@@ -395,7 +225,7 @@ def get_project_progress(project: Project) -> Dict[str, Any]:
     # Planned includes 'planned' and 'not_started'
     planned = sum(1 for i in items if i['status'] in ('planned', 'not_started') and i.get('progress', 0) == 0)
     
-    # Use weighted progress from schedule_data (already calculated correctly for V2)
+    # Use weighted progress from schedule_data
     avg_progress = schedule_data['avg_progress']
     
     return {
@@ -432,18 +262,37 @@ def get_upcoming_gantt_items(
     end_date = today + timedelta(days=days_ahead)
     items = []
     
-    # Check if project has V2 data
-    v2_phases = SchedulePhaseV2.objects.filter(project=project)
+    # Get V2 items
+    v2_items = ScheduleItemV2.objects.filter(
+        project=project,
+        start_date__gte=today,
+        start_date__lte=end_date,
+    ).select_related('phase', 'assigned_to').order_by('start_date')[:limit]
     
-    if v2_phases.exists():
-        # Get V2 items
-        v2_items = ScheduleItemV2.objects.filter(
+    for item in v2_items:
+        items.append({
+            'id': item.id,
+            'title': item.name,
+            'start_date': item.start_date,
+            'end_date': item.end_date,
+            'phase_name': item.phase.name if item.phase else None,
+            'phase_color': item.phase.color if item.phase else item.color,
+            'status': item.status,
+            'progress': item.progress,
+            'is_milestone': item.is_milestone,
+            'assigned_to': item.assigned_to,
+            'color': item.color,
+            'source': 'v2_gantt',
+        })
+    
+    # If no items found in date range, get the next N items regardless of date
+    if not items:
+        v2_items_future = ScheduleItemV2.objects.filter(
             project=project,
-            start_date__gte=today,
-            start_date__lte=end_date,
+            start_date__gt=today,
         ).select_related('phase', 'assigned_to').order_by('start_date')[:limit]
         
-        for item in v2_items:
+        for item in v2_items_future:
             items.append({
                 'id': item.id,
                 'title': item.name,
@@ -458,165 +307,5 @@ def get_upcoming_gantt_items(
                 'color': item.color,
                 'source': 'v2_gantt',
             })
-        
-        # If no items found in date range, get the next N items regardless of date
-        if not items:
-            v2_items_future = ScheduleItemV2.objects.filter(
-                project=project,
-                start_date__gt=today,
-            ).select_related('phase', 'assigned_to').order_by('start_date')[:limit]
-            
-            for item in v2_items_future:
-                items.append({
-                    'id': item.id,
-                    'title': item.name,
-                    'start_date': item.start_date,
-                    'end_date': item.end_date,
-                    'phase_name': item.phase.name if item.phase else None,
-                    'phase_color': item.phase.color if item.phase else item.color,
-                    'status': item.status,
-                    'progress': item.progress,
-                    'is_milestone': item.is_milestone,
-                    'assigned_to': item.assigned_to,
-                    'color': item.color,
-                    'source': 'v2_gantt',
-                })
-    else:
-        # Fall back to V1 items
-        v1_items = ScheduleItem.objects.filter(
-            project=project,
-            planned_start__gte=today,
-            planned_start__lte=end_date,
-        ).select_related('category', 'assigned_to').order_by('planned_start')[:limit]
-        
-        for item in v1_items:
-            items.append({
-                'id': item.id,
-                'title': item.title,
-                'start_date': item.planned_start,
-                'end_date': item.planned_end,
-                'phase_name': item.category.name if item.category else None,
-                'phase_color': item.category.color if item.category else '#6B7280',
-                'status': _map_v1_status(item.status),
-                'progress': item.percent_complete or 0,
-                'is_milestone': item.is_milestone,
-                'assigned_to': item.assigned_to,
-                'color': item.color or '#6B7280',
-                'source': 'v1_gantt',
-            })
-        
-        # If no items found, get future items
-        if not items:
-            v1_items_future = ScheduleItem.objects.filter(
-                project=project,
-                planned_start__gt=today,
-            ).select_related('category', 'assigned_to').order_by('planned_start')[:limit]
-            
-            for item in v1_items_future:
-                items.append({
-                    'id': item.id,
-                    'title': item.title,
-                    'start_date': item.planned_start,
-                    'end_date': item.planned_end,
-                    'phase_name': item.category.name if item.category else None,
-                    'phase_color': item.category.color if item.category else '#6B7280',
-                    'status': _map_v1_status(item.status),
-                    'progress': item.percent_complete or 0,
-                    'is_milestone': item.is_milestone,
-                    'assigned_to': item.assigned_to,
-                    'color': item.color or '#6B7280',
-                    'source': 'v1_gantt',
-                })
     
     return items
-
-
-def migrate_v1_to_v2(project: Project, dry_run: bool = True) -> Dict[str, Any]:
-    """
-    Migrate V1 schedule data to V2 for a project.
-    
-    Args:
-        project: The project to migrate
-        dry_run: If True, don't actually create records, just return what would be created
-    
-    Returns:
-        Summary of migration
-    """
-    if has_v2_schedule(project):
-        return {
-            'success': False,
-            'message': 'Project already has V2 schedule data',
-            'phases_created': 0,
-            'items_created': 0,
-        }
-    
-    categories = ScheduleCategory.objects.filter(project=project).prefetch_related('schedule_items')
-    
-    phases_to_create = []
-    items_to_create = []
-    
-    for category in categories:
-        phase_data = {
-            'project': project,
-            'name': category.name,
-            'color': category.color or '#4F46E5',
-            'order': category.order or 0,
-        }
-        
-        items = category.schedule_items.all()
-        if items:
-            phase_data['start_date'] = min(i.planned_start for i in items if i.planned_start)
-            phase_data['end_date'] = max(i.planned_end for i in items if i.planned_end)
-        
-        phases_to_create.append({
-            'phase_data': phase_data,
-            'items': list(items),
-            'category_id': category.id,
-        })
-    
-    if dry_run:
-        return {
-            'success': True,
-            'dry_run': True,
-            'phases_to_create': len(phases_to_create),
-            'items_to_create': sum(len(p['items']) for p in phases_to_create),
-            'details': [
-                {
-                    'phase_name': p['phase_data']['name'],
-                    'items_count': len(p['items']),
-                }
-                for p in phases_to_create
-            ],
-        }
-    
-    # Actually create the records
-    phases_created = 0
-    items_created = 0
-    
-    for phase_info in phases_to_create:
-        phase = SchedulePhaseV2.objects.create(**phase_info['phase_data'])
-        phases_created += 1
-        
-        for item in phase_info['items']:
-            ScheduleItemV2.objects.create(
-                project=project,
-                phase=phase,
-                name=item.title,
-                description=item.description or '',
-                start_date=item.planned_start,
-                end_date=item.planned_end,
-                status=_map_v1_status(item.status),
-                progress=item.percent_complete or 0,
-                is_milestone=item.is_milestone,
-                assigned_to=item.assigned_to,
-                color=item.color or phase.color,
-                order=item.order or 0,
-            )
-            items_created += 1
-    
-    return {
-        'success': True,
-        'dry_run': False,
-        'phases_created': phases_created,
-        'items_created': items_created,
-    }

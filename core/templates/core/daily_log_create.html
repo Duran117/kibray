@@ -157,7 +157,7 @@
           </div>
         </div>
 
-        <!-- Schedule Progress Card -->
+        <!-- Schedule Progress Card - Multiple Activities -->
         <div class="form-card">
           <div class="form-card-header" style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);">
             <i class="bi bi-graph-up-arrow text-emerald-600"></i>
@@ -166,18 +166,52 @@
           <div class="form-card-body">
             <div class="info-hint">
               <i class="bi bi-info-circle"></i>
-              <span>{% trans "Select the Gantt activity worked on today and update its progress percentage." %}</span>
+              <span>{% trans "Add progress for each Gantt activity you worked on today. You can add multiple activities." %}</span>
             </div>
-            <div class="row g-3">
-              <div class="col-md-8">
-                <label class="form-label">{% trans "Gantt Activity" %}</label>
-                {{ form.gantt_item_v2 }}
+            
+            <!-- Formset Management Form -->
+            {{ schedule_formset.management_form }}
+            
+            <div id="schedule-progress-forms">
+              {% for schedule_form in schedule_formset %}
+              <div class="schedule-progress-entry mb-3 p-3" style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <div class="row g-2 align-items-end">
+                  <div class="col-md-5">
+                    <label class="form-label" style="font-size: 0.75rem;">{% trans "Activity" %}</label>
+                    {{ schedule_form.schedule_item }}
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label" style="font-size: 0.75rem;">{% trans "Progress %" %}</label>
+                    {{ schedule_form.progress_percent }}
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label" style="font-size: 0.75rem;">{% trans "Hours" %}</label>
+                    {{ schedule_form.hours_worked }}
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label" style="font-size: 0.75rem;">{% trans "Notes" %}</label>
+                    {{ schedule_form.notes }}
+                  </div>
+                  <div class="col-md-1 text-end">
+                    {% if schedule_form.DELETE %}
+                    <label class="form-label" style="font-size: 0.75rem;">&nbsp;</label>
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-schedule-btn" title="{% trans 'Remove' %}">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                    {{ schedule_form.DELETE }}
+                    {% endif %}
+                  </div>
+                </div>
+                <!-- Hidden fields -->
+                {{ schedule_form.id }}
               </div>
-              <div class="col-md-4">
-                <label class="form-label">{% trans "Progress (%)" %}</label>
-                {{ form.schedule_progress_percent }}
-              </div>
+              {% endfor %}
             </div>
+            
+            <!-- Add More Button -->
+            <button type="button" id="add-schedule-progress" class="btn btn-outline-success w-100 mt-2" style="border-style: dashed;">
+              <i class="bi bi-plus-circle me-2"></i>{% trans "Add Another Activity" %}
+            </button>
 
             {% if active_schedule_items %}
             <div class="mt-4">
@@ -365,6 +399,85 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // ========================================
+  // Schedule Progress Formset Management
+  // ========================================
+  const scheduleFormsContainer = document.getElementById('schedule-progress-forms');
+  const addScheduleBtn = document.getElementById('add-schedule-progress');
+  const totalFormsInput = document.querySelector('[name="schedule-TOTAL_FORMS"]');
+  
+  if (addScheduleBtn && scheduleFormsContainer && totalFormsInput) {
+    // Get template from first form
+    const firstEntry = scheduleFormsContainer.querySelector('.schedule-progress-entry');
+    
+    addScheduleBtn.addEventListener('click', function() {
+      const formCount = parseInt(totalFormsInput.value);
+      const newForm = firstEntry.cloneNode(true);
+      
+      // Update form indices
+      newForm.innerHTML = newForm.innerHTML.replace(/schedule-\d+-/g, `schedule-${formCount}-`);
+      newForm.innerHTML = newForm.innerHTML.replace(/schedule-\d+$/g, `schedule-${formCount}`);
+      
+      // Clear values in new form
+      newForm.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(input => {
+        input.value = '';
+      });
+      newForm.querySelectorAll('select').forEach(select => {
+        select.selectedIndex = 0;
+      });
+      newForm.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+      });
+      // Clear hidden id field for new entries
+      const idInput = newForm.querySelector('input[name$="-id"]');
+      if (idInput) idInput.value = '';
+      
+      scheduleFormsContainer.appendChild(newForm);
+      totalFormsInput.value = formCount + 1;
+      
+      // Attach remove handler to new button
+      attachRemoveHandlers();
+    });
+    
+    function attachRemoveHandlers() {
+      document.querySelectorAll('.remove-schedule-btn').forEach(btn => {
+        btn.onclick = function() {
+          const entry = this.closest('.schedule-progress-entry');
+          const deleteInput = entry.querySelector('input[name$="-DELETE"]');
+          if (deleteInput) {
+            // Mark for deletion
+            deleteInput.checked = true;
+            entry.style.display = 'none';
+          } else {
+            // Just remove if it's a new form
+            const idInput = entry.querySelector('input[name$="-id"]');
+            if (!idInput || !idInput.value) {
+              entry.remove();
+              // Update total forms count
+              totalFormsInput.value = parseInt(totalFormsInput.value) - 1;
+            }
+          }
+        };
+      });
+    }
+    attachRemoveHandlers();
+    
+    // Auto-set 100% progress complete status
+    scheduleFormsContainer.addEventListener('change', function(e) {
+      if (e.target.name && e.target.name.includes('progress_percent')) {
+        const val = parseInt(e.target.value);
+        if (val > 100) {
+          e.target.value = 100;
+        } else if (val < 0) {
+          e.target.value = 0;
+        }
+      }
+    });
+  }
+  
+  // ========================================
+  // Photo Upload Preview
+  // ========================================
   const photoInput = document.getElementById('photoInput');
   const photoCount = document.getElementById('photoCount');
   const photoCountNumber = document.getElementById('photoCountNumber');

@@ -60,8 +60,8 @@ from core.models import (
     ProjectInventory,
     ProjectManagerAssignment,
     PushSubscription,  # ⭐ PWA Push Notifications
-    ScheduleCategory,
-    ScheduleItem,
+    SchedulePhaseV2,
+    ScheduleItemV2,
     SitePhoto,
     Task,
     TaskDependency,
@@ -113,8 +113,6 @@ from .serializers import (
     PushSubscriptionSerializer,  # ⭐ PWA Push Notifications
     QuickMaterialRequestSerializer,
     ReportUsageResultSerializer,
-    ScheduleCategorySerializer,
-    ScheduleItemSerializer,
     SitePhotoSerializer,
     TaskDependencySerializer,
     TaskSerializer,
@@ -124,6 +122,10 @@ from .serializers import (
     TwoFactorEnableSerializer,
     TwoFactorTokenObtainPairSerializer,
     WeatherSnapshotSerializer,
+)
+from .serializer_classes.schedule_v2_serializers import (
+    SchedulePhaseV2Serializer,
+    ScheduleItemV2Serializer,
 )
 
 user_model = get_user_model()
@@ -2207,53 +2209,46 @@ class ColorSampleViewSet(viewsets.ModelViewSet):
 # a duplicated class name (F811) and isn't wired to the router anymore.
 
 
-# Schedule Categories
-class ScheduleCategoryViewSet(viewsets.ModelViewSet):
-    serializer_class = ScheduleCategorySerializer
+# Schedule Phases (V2)
+class SchedulePhaseViewSet(viewsets.ModelViewSet):
+    serializer_class = SchedulePhaseV2Serializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         project_id = self.request.query_params.get("project")
-        qs = ScheduleCategory.objects.select_related("project", "parent")
+        qs = SchedulePhaseV2.objects.select_related("project")
         if project_id:
             qs = qs.filter(project_id=project_id)
         return qs.order_by("order")
 
 
-# Schedule Items
+# Schedule Items (V2)
 class ScheduleItemViewSet(viewsets.ModelViewSet):
-    serializer_class = ScheduleItemSerializer
+    serializer_class = ScheduleItemV2Serializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         project_id = self.request.query_params.get("project")
-        # Removed deprecated 'dependencies' prefetch (relation no longer exists on model)
-        qs = ScheduleItem.objects.select_related("project", "category", "cost_code")
+        qs = ScheduleItemV2.objects.select_related("project", "phase", "cost_code")
         if project_id:
             qs = qs.filter(project_id=project_id)
         return qs.order_by("order")
 
     def perform_create(self, serializer):
-        """Ensure a category exists even if frontend omits it.
-
-            Frontend initial Gantt create flow currently sends: project, name(title), planned_start, planned_end, status,
-        percent_complete, is_milestone, description - but may omit 'category'. The model requires a non-null category.
-            To keep UX simple, we auto-provision or reuse a default category named 'General' for the given project when
-            none is supplied. This prevents 400 validation errors while allowing later explicit categorization.
-        """
+        """Ensure a phase exists even if frontend omits it."""
         data = serializer.validated_data
-        category = data.get("category")
+        phase = data.get("phase")
         project = data.get("project")
-        if category is None:
-            from core.models import ScheduleCategory
+        if phase is None and project:
+            from core.models import SchedulePhaseV2
 
-            # Prefer existing 'General' category; if absent create it with order=0.
-            category, _created = ScheduleCategory.objects.get_or_create(
+            # Prefer existing 'General' phase; if absent create it with order=0.
+            phase, _created = SchedulePhaseV2.objects.get_or_create(
                 project=project,
                 name="General",
                 defaults={"order": 0},
             )
-            serializer.save(category=category)
+            serializer.save(phase=phase)
         else:
             serializer.save()
 
@@ -2271,13 +2266,13 @@ class ScheduleItemViewSet(viewsets.ModelViewSet):
                 continue
 
             try:
-                item = ScheduleItem.objects.get(id=item_id)
+                item = ScheduleItemV2.objects.get(id=item_id)
                 for field, value in update_data.items():
                     if hasattr(item, field):
                         setattr(item, field, value)
                 item.save()
                 updated_items.append(item)
-            except ScheduleItem.DoesNotExist:
+            except ScheduleItemV2.DoesNotExist:
                 continue
 
         serializer = self.get_serializer(updated_items, many=True)

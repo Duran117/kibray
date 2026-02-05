@@ -12,8 +12,8 @@ from .models import (
     Employee,
     PMBlockedDay,
     Project,
-    ScheduleCategory,
-    ScheduleItem,
+    SchedulePhaseV2,
+    ScheduleItemV2,
     Task,
 )
 
@@ -120,12 +120,12 @@ def save_task_event(data, user):
     return JsonResponse({"success": True, "event_id": task.id, "type": "task"})
 
 
-def _get_default_schedule_category(project):
-    """Return a schedule category for the project, creating a minimalist default if missing."""
-    category = project.schedule_categories.order_by("order", "id").first()
-    if category:
-        return category
-    return ScheduleCategory.objects.create(project=project, name="General", order=0)
+def _get_default_schedule_phase(project):
+    """Return a schedule phase for the project, creating a default if missing."""
+    phase = SchedulePhaseV2.objects.filter(project=project).order_by("order", "id").first()
+    if phase:
+        return phase
+    return SchedulePhaseV2.objects.create(project=project, name="General", order=0)
 
 
 def save_milestone_event(data, user):
@@ -135,20 +135,20 @@ def save_milestone_event(data, user):
     end_date = data.get("end_date") or start_date
 
     project = get_object_or_404(Project, pk=project_id)
-    category = _get_default_schedule_category(project)
+    phase = _get_default_schedule_phase(project)
 
     planned_start = datetime.strptime(start_date, "%Y-%m-%d").date()
     planned_end = datetime.strptime(end_date, "%Y-%m-%d").date()
 
-    milestone = ScheduleItem.objects.create(
+    milestone = ScheduleItemV2.objects.create(
         project=project,
-        category=category,
-        title=title,
-        planned_start=planned_start,
-        planned_end=planned_end,
+        phase=phase,
+        name=title,
+        start_date=planned_start,
+        end_date=planned_end,
         is_milestone=True,
-        status="NOT_STARTED",
-        percent_complete=0,
+        status="planned",
+        progress=0,
         description="",
         order=0,
     )

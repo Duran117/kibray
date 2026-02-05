@@ -99,7 +99,7 @@ from core.forms import (  # noqa: E402
     RFIAnswerForm,
     RFIForm,
     RiskForm,
-    ScheduleCategoryForm,
+    SchedulePhaseForm,
     ScheduleForm,
     ScheduleItemForm,
     TimeEntryForm,
@@ -143,8 +143,8 @@ from core.models import (  # noqa: E402
     ResourceAssignment,
     Risk,
     Schedule,
-    ScheduleCategory,
-    ScheduleItem,
+    SchedulePhaseV2,
+    ScheduleItemV2,
     Task,
     TimeEntry,
 )
@@ -6378,11 +6378,11 @@ def project_activation_view(request, project_id):
 @login_required
 def daily_log_detail(request, log_id):
     """Vista detallada de un Daily Log específico"""
-    from core.models import DailyLog, DailyLogPhoto
+    from core.models import DailyLog, DailyLogPhoto, DailyLogScheduleProgress
 
     log = get_object_or_404(
-        DailyLog.objects.select_related("project", "created_by", "schedule_item").prefetch_related(
-            "completed_tasks", "photos"
+        DailyLog.objects.select_related("project", "created_by", "schedule_item", "gantt_item_v2").prefetch_related(
+            "completed_tasks", "photos", "schedule_progress_entries__schedule_item__phase"
         ),
         id=log_id,
     )
@@ -6418,10 +6418,16 @@ def daily_log_detail(request, log_id):
         messages.success(request, _("%(count)s foto(s) agregada(s)") % {"count": len(photos)})
         return redirect("daily_log_detail", log_id=log.id)
 
+    # Get multiple schedule progress entries
+    schedule_progress_entries = log.schedule_progress_entries.select_related(
+        "schedule_item", "schedule_item__phase"
+    ).order_by("schedule_item__phase__order", "schedule_item__order")
+
     context = {
         "log": log,
         "project": log.project,
         "can_edit": role in ["admin", "superuser", "project_manager"],
+        "schedule_progress_entries": schedule_progress_entries,
     }
 
     return render(request, "core/daily_log_detail.html", context)
@@ -6457,7 +6463,7 @@ def daily_log_delete(request, log_id):
 def daily_log_create(request, project_id):
     """Dedicated view to create a new Daily Log"""
 
-    from core.forms import DailyLogForm
+    from core.forms import DailyLogForm, DailyLogScheduleProgressFormSet, DailyLogScheduleProgressForm
     from core.models import ScheduleItemV2, Task
 
     project = get_object_or_404(Project, pk=project_id)
@@ -6471,12 +6477,37 @@ def daily_log_create(request, project_id):
 
     if request.method == "POST":
         form = DailyLogForm(request.POST, project=project)
+        schedule_formset = DailyLogScheduleProgressFormSet(request.POST, prefix='schedule')
+        
         if form.is_valid():
             dl = form.save(commit=False)
             dl.project = project
             dl.created_by = request.user
             dl.save()
             form.save_m2m()
+
+            # Process multiple schedule progress entries
+            schedule_formset = DailyLogScheduleProgressFormSet(request.POST, instance=dl, prefix='schedule')
+            if schedule_formset.is_valid():
+                progress_entries = schedule_formset.save(commit=False)
+                for entry in progress_entries:
+                    entry.daily_log = dl
+                    entry.save()
+                    
+                    # Update the ScheduleItemV2 progress
+                    if entry.schedule_item and entry.progress_percent is not None:
+                        item = entry.schedule_item
+                        item.progress = int(entry.progress_percent)
+                        if item.progress >= 100:
+                            item.status = "done"
+                            item.progress = 100
+                        elif item.progress > 0:
+                            item.status = "in_progress"
+                        item.save(update_fields=["progress", "status"])
+                
+                # Handle deletions
+                for obj in schedule_formset.deleted_objects:
+                    obj.delete()
 
             # Process photos
             photos = request.FILES.getlist("photos")
@@ -6499,6 +6530,14 @@ def daily_log_create(request, project_id):
             "is_published": False,
         }
         form = DailyLogForm(initial=initial, project=project)
+        schedule_formset = DailyLogScheduleProgressFormSet(prefix='schedule')
+        
+        # Set project queryset for each form in formset
+        for schedule_form in schedule_formset:
+            schedule_form.fields["schedule_item"].queryset = ScheduleItemV2.objects.filter(
+                project=project
+            ).select_related("phase").order_by("phase__order", "order")
+            schedule_form.fields["schedule_item"].label_from_instance = lambda obj: f"{obj.phase.name} → {obj.name}" if obj.phase else obj.name
 
     # Get pending/in-progress tasks for suggestions
     pending_tasks = (
@@ -6515,6 +6554,7 @@ def daily_log_create(request, project_id):
     context = {
         "project": project,
         "form": form,
+        "schedule_formset": schedule_formset,
         "pending_tasks": pending_tasks,
         "active_schedule_items": active_schedule_items,
     }
@@ -10370,17 +10410,17 @@ def daily_plan_create(request, project_id):
 
             for idx, item_id in enumerate(selected_items):
                 try:
-                    schedule_item = ScheduleItem.objects.get(id=int(item_id), project=project)
+                    schedule_item = ScheduleItemV2.objects.get(id=int(item_id), project=project)
                     PlannedActivity.objects.create(
                         daily_plan=plan,
-                        schedule_item=schedule_item,
-                        title=schedule_item.title,
+                        schedule_item_v2=schedule_item,
+                        title=schedule_item.name,
                         description=schedule_item.description,
                         order=idx,
                         status="PENDING",
                         progress_percentage=0,
                     )
-                except ScheduleItem.DoesNotExist:
+                except ScheduleItemV2.DoesNotExist:
                     continue
 
             messages.success(
@@ -10451,7 +10491,7 @@ def daily_plan_edit(request, plan_id):
 
                 # Resolve relations
                 template = ActivityTemplate.objects.get(pk=template_id) if template_id else None
-                schedule = ScheduleItem.objects.get(pk=schedule_id) if schedule_id else None
+                schedule = ScheduleItemV2.objects.get(pk=schedule_id) if schedule_id else None
 
                 # Default title from template if not provided
                 if not title and template:
@@ -10465,7 +10505,7 @@ def daily_plan_edit(request, plan_id):
                     title=title,
                     description=description,
                     activity_template=template,
-                    schedule_item=schedule,
+                    schedule_item_v2=schedule,
                     estimated_hours=hours if hours else None,
                     order=plan.activities.count() + 1,
                 )
@@ -11398,83 +11438,88 @@ def schedule_generator_view(request, project_id):
         if action == "generate_from_estimate" and approved_estimate and can_manage:
             return _generate_schedule_from_estimate(request, project, approved_estimate)
 
-        # Create category
+        # Create phase
         elif action == "create_category" and can_manage:
-            form = ScheduleCategoryForm(request.POST, project=project)
+            form = SchedulePhaseForm(request.POST)
             if form.is_valid():
-                cat = form.save(commit=False)
-                cat.project = project
-                cat.save()
-                messages.success(request, f'Categoría "{cat.name}" creada.')
+                phase = form.save(commit=False)
+                phase.project = project
+                phase.save()
+                messages.success(request, f'Fase "{phase.name}" creada.')
                 return redirect("schedule_generator", project_id=project.id)
             else:
-                messages.error(request, "Error al crear categoría.")
+                messages.error(request, "Error al crear fase.")
 
         # Create item
         elif action == "create_item" and can_manage:
-            # Permitir crear categoría al vuelo si viene 'new_category_name'
+            # Permitir crear fase al vuelo si viene 'new_category_name'
             new_cat_name = (request.POST.get("new_category_name") or "").strip()
-            category_id = request.POST.get("category")
+            phase_id = request.POST.get("phase")
 
-            # Validate: must have either existing category OR new category name
-            if not category_id and not new_cat_name:
+            # Validate: must have either existing phase OR new phase name
+            if not phase_id and not new_cat_name:
                 messages.error(
                     request,
-                    "Debes seleccionar una categoría existente o escribir el nombre de una nueva.",
+                    "Debes seleccionar una fase existente o escribir el nombre de una nueva.",
                 )
                 return redirect("schedule_generator", project_id=project.id)
 
-            if new_cat_name and not category_id:
-                cat = ScheduleCategory.objects.create(project=project, name=new_cat_name, order=0)
-                # inyectar id en POST mutable clone
-                post = request.POST.copy()
-                post["category"] = str(cat.id)
-                form = ScheduleItemForm(post, project=project)
-            else:
-                form = ScheduleItemForm(request.POST, project=project)
+            if new_cat_name and not phase_id:
+                phase = SchedulePhaseV2.objects.create(project=project, name=new_cat_name, order=0)
+                phase_id = phase.id
 
-            if form.is_valid():
-                item = form.save(commit=False)
-                item.project = project
-                item.save()
-                messages.success(request, f'Ítem "{item.title}" creado.')
-                return redirect("schedule_generator", project_id=project.id)
+            # Create item directly with V2
+            name = request.POST.get("name") or request.POST.get("title")
+            description = request.POST.get("description", "")
+            start_date = request.POST.get("start_date") or request.POST.get("planned_start")
+            end_date = request.POST.get("end_date") or request.POST.get("planned_end")
+            
+            if name and start_date and end_date and phase_id:
+                phase = SchedulePhaseV2.objects.get(id=phase_id)
+                item = ScheduleItemV2.objects.create(
+                    project=project,
+                    phase=phase,
+                    name=name,
+                    description=description,
+                    start_date=start_date,
+                    end_date=end_date,
+                    status="planned",
+                    progress=0,
+                )
+                messages.success(request, f'Ítem "{item.name}" creado.')
             else:
                 messages.error(request, "Error al crear ítem. Verifica los campos.")
+            return redirect("schedule_generator", project_id=project.id)
 
         # Update item progress
         elif action == "recalc_progress":
             item_id = request.POST.get("item_id")
             if item_id:
-                item = get_object_or_404(ScheduleItem, id=item_id, project=project)
-                item.recalculate_progress(save=True)
+                item = get_object_or_404(ScheduleItemV2, id=item_id, project=project)
+                # V2 uses calculated_progress property
                 messages.success(
                     request,
-                    _("Progreso recalculado: %(percent)s%%") % {"percent": item.percent_complete},
+                    _("Progreso recalculado: %(percent)s%%") % {"percent": item.calculated_progress},
                 )
                 return redirect("schedule_generator", project_id=project.id)
 
     # GET: render form and data
-    categories = (
-        ScheduleCategory.objects.filter(project=project)
-        .prefetch_related("items", "children")
+    phases = (
+        SchedulePhaseV2.objects.filter(project=project)
+        .prefetch_related("items")
         .order_by("order", "name")
     )
-    orphan_items = ScheduleItem.objects.filter(project=project, category__isnull=True).order_by(
-        "order", "title"
+    orphan_items = ScheduleItemV2.objects.filter(project=project, phase__isnull=True).order_by(
+        "order", "name"
     )
-
-    category_form = ScheduleCategoryForm(project=project)
-    item_form = ScheduleItemForm(project=project)
 
     context = {
         "project": project,
-        "categories": categories,
+        "phases": phases,
+        "categories": phases,  # Keep 'categories' for template compatibility
         "orphan_items": orphan_items,
         "approved_estimate": approved_estimate,
         "can_manage": can_manage,
-        "category_form": category_form,
-        "item_form": item_form,
     }
 
     return render(request, "core/schedule_generator.html", context)
@@ -11482,12 +11527,12 @@ def schedule_generator_view(request, project_id):
 
 def _generate_schedule_from_estimate(request, project, estimate):
     """
-    Auto-genera categorías e ítems desde un estimado aprobado.
-    Agrupa por cost_code.category y crea ScheduleItem por cada EstimateLine.
+    Auto-genera fases e ítems V2 desde un estimado aprobado.
+    Agrupa por cost_code.category y crea ScheduleItemV2 por cada EstimateLine.
     """
     try:
         with transaction.atomic():
-            created_cats = {}
+            created_phases = {}
             created_items = 0
 
             # Get all estimate lines grouped by cost code category
@@ -11497,44 +11542,49 @@ def _generate_schedule_from_estimate(request, project, estimate):
 
             for line in lines:
                 cc = line.cost_code
-                cat_name = cc.category.capitalize() if cc.category else "General"
+                phase_name = cc.category.capitalize() if cc.category else "General"
 
-                # Get or create category
-                if cat_name not in created_cats:
-                    cat, created = ScheduleCategory.objects.get_or_create(
+                # Get or create phase
+                if phase_name not in created_phases:
+                    phase, created = SchedulePhaseV2.objects.get_or_create(
                         project=project,
-                        name=cat_name,
-                        defaults={"cost_code": cc, "order": len(created_cats)},
+                        name=phase_name,
+                        defaults={"order": len(created_phases)},
                     )
-                    created_cats[cat_name] = cat
+                    created_phases[phase_name] = phase
                 else:
-                    cat = created_cats[cat_name]
+                    phase = created_phases[phase_name]
 
                 # Create schedule item from estimate line
-                item_title = f"{cc.code} - {line.description or cc.name}"
+                item_name = f"{cc.code} - {line.description or cc.name}"
 
                 # Check if already exists
-                existing = ScheduleItem.objects.filter(
-                    project=project, category=cat, title=item_title
+                existing = ScheduleItemV2.objects.filter(
+                    project=project, phase=phase, name=item_name
                 ).first()
 
                 if not existing:
-                    ScheduleItem.objects.create(
+                    # Default dates from project
+                    start_date = project.start_date or timezone.now().date()
+                    end_date = project.end_date or (start_date + timedelta(days=30))
+                    
+                    ScheduleItemV2.objects.create(
                         project=project,
-                        category=cat,
-                        title=item_title,
+                        phase=phase,
+                        name=item_name,
                         description=line.description or "",
                         order=created_items,
-                        estimate_line=line,
                         cost_code=cc,
-                        status="NOT_STARTED",
-                        percent_complete=0,
+                        status="planned",
+                        progress=0,
+                        start_date=start_date,
+                        end_date=end_date,
                     )
                     created_items += 1
 
             messages.success(
                 request,
-                f"Generado: {len(created_cats)} categorías y {created_items} ítems desde el estimado {estimate.code}.",
+                f"Generado: {len(created_phases)} fases y {created_items} ítems desde el estimado {estimate.code}.",
             )
     except Exception as e:
         messages.error(request, _("Error al generar cronograma: %(error)s") % {"error": str(e)})
@@ -11544,28 +11594,28 @@ def _generate_schedule_from_estimate(request, project, estimate):
 
 @login_required
 def schedule_category_edit(request, category_id):
-    """Edit schedule category."""
-    category = get_object_or_404(ScheduleCategory, id=category_id)
-    project = category.project
+    """Edit schedule phase (V2)."""
+    phase = get_object_or_404(SchedulePhaseV2, id=category_id)
+    project = phase.project
 
     if not (request.user.is_staff or request.user == project.client):
         return HttpResponseForbidden()
 
     if request.method == "POST":
-        form = ScheduleCategoryForm(request.POST, instance=category, project=project)
+        form = SchedulePhaseForm(request.POST, instance=phase)
         if form.is_valid():
             form.save()
-            messages.success(request, f'Categoría "{category.name}" actualizada.')
+            messages.success(request, f'Fase "{phase.name}" actualizada.')
             return redirect("schedule_generator", project_id=project.id)
     else:
-        form = ScheduleCategoryForm(instance=category, project=project)
+        form = SchedulePhaseForm(instance=phase)
 
     return render(
         request,
         "core/schedule_category_form.html",
         {
             "form": form,
-            "category": category,
+            "category": phase,
             "project": project,
         },
     )
@@ -11573,17 +11623,17 @@ def schedule_category_edit(request, category_id):
 
 @login_required
 def schedule_category_delete(request, category_id):
-    """Delete schedule category."""
-    category = get_object_or_404(ScheduleCategory, id=category_id)
-    project = category.project
+    """Delete schedule phase (V2)."""
+    phase = get_object_or_404(SchedulePhaseV2, id=category_id)
+    project = phase.project
 
     if not (request.user.is_staff or request.user == project.client):
         return HttpResponseForbidden()
 
     if request.method == "POST":
-        cat_name = category.name
-        category.delete()
-        messages.success(request, f'Categoría "{cat_name}" eliminada.')
+        phase_name = phase.name
+        phase.delete()
+        messages.success(request, f'Fase "{phase_name}" eliminada.')
         return redirect("schedule_generator", project_id=project.id)
 
     return render(
@@ -14074,7 +14124,7 @@ def project_delete(request, project_id):
         has_timeentries = TimeEntry.objects.filter(project=project).exists()
         has_changeorders = ChangeOrder.objects.filter(project=project).exists()
         has_dailylogs = DailyLog.objects.filter(project=project).exists()
-        has_schedules = ScheduleItem.objects.filter(project=project).exists()
+        has_schedules = ScheduleItemV2.objects.filter(project=project).exists()
         has_invoices = Invoice.objects.filter(project=project).exists()
 
         if any(
@@ -14108,7 +14158,7 @@ def project_delete(request, project_id):
     co_count = ChangeOrder.objects.filter(project=project).count()
     task_count = Task.objects.filter(project=project).count()
     dailylog_count = DailyLog.objects.filter(project=project).count()
-    schedule_count = ScheduleItem.objects.filter(project=project).count()
+    schedule_count = ScheduleItemV2.objects.filter(project=project).count()
     invoice_count = Invoice.objects.filter(project=project).count()
 
     context = {
