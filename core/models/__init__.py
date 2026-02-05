@@ -3699,14 +3699,24 @@ class DailyLog(models.Model):
         help_text="Legacy: Main schedule activity",
     )
     
-    # New: ScheduleItem for Gantt integration
+    # New: ScheduleItem for Gantt integration (V1 - Legacy)
     gantt_item = models.ForeignKey(
         "ScheduleItem",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="daily_logs",
-        help_text="Gantt schedule item (e.g.: Cover and Prepare)",
+        help_text="Gantt schedule item V1 (legacy)",
+    )
+    
+    # Gantt V2 item (current system)
+    gantt_item_v2 = models.ForeignKey(
+        "ScheduleItemV2",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="daily_logs",
+        help_text="Gantt V2 schedule item (e.g.: Cover and Prepare)",
     )
     
     schedule_progress_percent = models.DecimalField(

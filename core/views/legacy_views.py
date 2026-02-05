@@ -6458,7 +6458,7 @@ def daily_log_create(request, project_id):
     """Dedicated view to create a new Daily Log"""
 
     from core.forms import DailyLogForm
-    from core.models import ScheduleItem, Task
+    from core.models import ScheduleItemV2, Task
 
     project = get_object_or_404(Project, pk=project_id)
 
@@ -6507,10 +6507,10 @@ def daily_log_create(request, project_id):
         .order_by("created_at")
     )
 
-    # Get active Gantt schedule items (not completed)
-    active_schedule_items = ScheduleItem.objects.filter(
+    # Get active Gantt V2 schedule items (not completed)
+    active_schedule_items = ScheduleItemV2.objects.filter(
         project=project
-    ).exclude(status="DONE").select_related("category").order_by("category__order", "order")[:15]
+    ).exclude(status="done").select_related("phase").order_by("phase__order", "order")[:15]
 
     context = {
         "project": project,

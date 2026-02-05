@@ -171,7 +171,7 @@
             <div class="row g-3">
               <div class="col-md-8">
                 <label class="form-label">{% trans "Gantt Activity" %}</label>
-                {{ form.gantt_item }}
+                {{ form.gantt_item_v2 }}
               </div>
               <div class="col-md-4">
                 <label class="form-label">{% trans "Progress (%)" %}</label>
@@ -185,9 +185,9 @@
               <div class="task-list">
                 {% for item in active_schedule_items %}
                 <div class="task-item d-flex align-items-center gap-2">
-                  <i class="bi bi-kanban{% if item.status == 'IN_PROGRESS' %}-fill text-amber-500{% else %} text-slate-400{% endif %}"></i>
-                  <span class="fw-medium text-slate-700">{{ item.title }}</span>
-                  <span class="badge {% if item.percent_complete >= 100 %}bg-success{% elif item.percent_complete > 0 %}bg-warning text-dark{% else %}bg-secondary{% endif %} ms-auto">{{ item.percent_complete }}%</span>
+                  <i class="bi bi-kanban{% if item.status == 'in_progress' %}-fill text-amber-500{% else %} text-slate-400{% endif %}"></i>
+                  <span class="fw-medium text-slate-700">{{ item.name }}</span>
+                  <span class="badge {% if item.progress >= 100 %}bg-success{% elif item.progress > 0 %}bg-warning text-dark{% else %}bg-secondary{% endif %} ms-auto">{{ item.progress|default:0 }}%</span>
                 </div>
                 {% endfor %}
               </div>

@@ -343,6 +343,7 @@ class DailyLogForm(forms.ModelForm):
     """
     Form to create/edit Daily Logs.
     Includes task selector and schedule activity picker.
+    Uses ScheduleItemV2 (Gantt V2) for schedule integration.
     """
 
     class Meta:
@@ -351,7 +352,7 @@ class DailyLogForm(forms.ModelForm):
             "date",
             "weather",
             "crew_count",
-            "gantt_item",
+            "gantt_item_v2",
             "schedule_progress_percent",
             "completed_tasks",
             "accomplishments",
@@ -367,7 +368,7 @@ class DailyLogForm(forms.ModelForm):
                 attrs={"class": "form-control", "placeholder": _("e.g.: Sunny, 75°F")}
             ),
             "crew_count": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
-            "gantt_item": forms.Select(attrs={"class": "form-select"}),
+            "gantt_item_v2": forms.Select(attrs={"class": "form-select"}),
             "schedule_progress_percent": forms.NumberInput(
                 attrs={"class": "form-control", "min": "0", "max": "100", "step": "1"}
             ),
@@ -398,7 +399,7 @@ class DailyLogForm(forms.ModelForm):
             "is_published": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
         help_texts = {
-            "gantt_item": _("Main Gantt activity (e.g.: Cover and Prep)"),
+            "gantt_item_v2": _("Main Gantt activity (e.g.: Cover and Prep)"),
             "schedule_progress_percent": _("Progress percentage for this activity"),
             "completed_tasks": _("Select tasks that were completed or progressed today"),
             "is_published": _("Check to make visible to client and owner"),
@@ -409,20 +410,20 @@ class DailyLogForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         
         # Make optional fields not required (model has defaults)
-        self.fields["gantt_item"].required = False
+        self.fields["gantt_item_v2"].required = False
         self.fields["schedule_progress_percent"].required = False
         self.fields["completed_tasks"].required = False
         self.fields["crew_count"].required = False
 
         if project:
-            # Filter ScheduleItem (Gantt items) for this project
-            from core.models import ScheduleItem
-            self.fields["gantt_item"].queryset = ScheduleItem.objects.filter(
+            # Filter ScheduleItemV2 (Gantt V2 items) for this project
+            from core.models import ScheduleItemV2
+            self.fields["gantt_item_v2"].queryset = ScheduleItemV2.objects.filter(
                 project=project
-            ).select_related("category").order_by("category__order", "order")
+            ).select_related("phase").order_by("phase__order", "order")
             
-            # Add labels with category for better UX
-            self.fields["gantt_item"].label_from_instance = lambda obj: f"{obj.category.name} → {obj.title}" if obj.category else obj.title
+            # Add labels with phase for better UX
+            self.fields["gantt_item_v2"].label_from_instance = lambda obj: f"{obj.phase.name} → {obj.name}" if obj.phase else obj.name
 
             # Filter tasks for this project
             self.fields["completed_tasks"].queryset = (
@@ -434,15 +435,15 @@ class DailyLogForm(forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
         
-        # Update ScheduleItem progress when saving
-        if instance.gantt_item and instance.schedule_progress_percent:
-            gantt_item = instance.gantt_item
-            gantt_item.percent_complete = int(instance.schedule_progress_percent)
-            if gantt_item.percent_complete >= 100:
-                gantt_item.status = "DONE"
-            elif gantt_item.percent_complete > 0:
-                gantt_item.status = "IN_PROGRESS"
-            gantt_item.save(update_fields=["percent_complete", "status"])
+        # Update ScheduleItemV2 progress when saving
+        if instance.gantt_item_v2 and instance.schedule_progress_percent:
+            gantt_item = instance.gantt_item_v2
+            gantt_item.progress = int(instance.schedule_progress_percent)
+            if gantt_item.progress >= 100:
+                gantt_item.status = "done"
+            elif gantt_item.progress > 0:
+                gantt_item.status = "in_progress"
+            gantt_item.save(update_fields=["progress", "status"])
         
         if commit:
             instance.save()
