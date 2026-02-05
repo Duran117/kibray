@@ -5,6 +5,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db import models
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
 
@@ -13,17 +14,38 @@ from core.models import Notification
 
 @login_required
 def notifications_list(request):
-    """Lista de notificaciones del usuario."""
-    qs = request.user.notifications.all()
+    """Lista de notificaciones del usuario con filtrado por seguridad."""
+    user = request.user
+    
+    # Get base queryset - all notifications for the user
+    qs = user.notifications.all()
+    
+    # For clients, ensure they only see notifications for their assigned projects
+    if hasattr(user, 'profile') and user.profile.role == 'client':
+        # Get projects the client has access to
+        client_project_ids = list(user.assigned_projects.values_list('id', flat=True))
+        # Filter notifications to only those for their projects (or no project specified)
+        qs = qs.filter(
+            models.Q(project_id__in=client_project_ids) | models.Q(project__isnull=True)
+        )
+    
+    # Filter by read status
     filter_read = request.GET.get("read")
     if filter_read == "false":
         qs = qs.filter(is_read=False)
     elif filter_read == "true":
         qs = qs.filter(is_read=True)
-    unread_count = request.user.notifications.filter(is_read=False).count()
+    
+    # Filter by project (optional URL parameter)
+    project_id = request.GET.get("project")
+    if project_id:
+        qs = qs.filter(project_id=project_id)
+    
+    unread_count = user.notifications.filter(is_read=False).count()
     paginator = Paginator(qs, 20)
     page = request.GET.get("page", 1)
     notifications = paginator.get_page(page)
+    
     return render(
         request,
         "core/notifications_list.html",

@@ -5902,9 +5902,21 @@ class Notification(models.Model):
         ("chat_message", "Chat Message"),
         ("comment_added", "Comment Added"),
         ("estimate_approved", "Estimate Approved"),
+        ("change_order", "Change Order"),
+        ("daily_log", "Daily Log"),
+        ("invoice", "Invoice"),
+        ("contract", "Contract"),
     ]
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications"
+    )
+    project = models.ForeignKey(
+        "Project",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="notifications",
+        help_text="Project associated with this notification (for filtering)"
     )
     notification_type = models.CharField(max_length=30, choices=NOTIFICATION_TYPES)
     title = models.CharField(max_length=200)

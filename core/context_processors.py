@@ -37,6 +37,8 @@ def onesignal_config(request):
 
 def notification_badges(request):
     """Provides notification counts for navigation badges."""
+    from django.db.models import Q
+    
     badges = {
         "unassigned_time_count": 0,
         "pending_materials_count": 0,
@@ -62,10 +64,19 @@ def notification_badges(request):
             TimeEntry,
         )
 
-        # Notificaciones no leídas (prioridad)
-        badges["unread_notifications_count"] = Notification.objects.filter(
-            user=request.user, is_read=False
-        ).count()
+        user = request.user
+        
+        # Notificaciones no leídas (con filtro de seguridad para clientes)
+        notification_qs = Notification.objects.filter(user=user, is_read=False)
+        
+        # For clients, only count notifications for their assigned projects
+        if hasattr(user, 'profile') and user.profile.role == 'client':
+            client_project_ids = list(user.assigned_projects.values_list('id', flat=True))
+            notification_qs = notification_qs.filter(
+                Q(project_id__in=client_project_ids) | Q(project__isnull=True)
+            )
+        
+        badges["unread_notifications_count"] = notification_qs.count()
 
         # Unassigned time entries (no project assigned)
         badges["unassigned_time_count"] = TimeEntry.objects.filter(project__isnull=True).count()
@@ -79,7 +90,7 @@ def notification_badges(request):
         ).count()
 
         # Pending change order approvals (if user is admin/staff)
-        if request.user.is_staff:
+        if user.is_staff:
             badges["pending_approvals_count"] = ChangeOrder.objects.filter(
                 approval_status="pending"
             ).count()
@@ -93,7 +104,7 @@ def notification_badges(request):
             ).count()
         else:
             # Para usuarios cliente: tareas completadas recientemente (últimos 3 días)
-            if hasattr(request.user, "profile") and request.user.profile.role == "client":
+            if hasattr(user, "profile") and user.profile.role == "client":
                 from django.utils import timezone
 
                 recent_cutoff = timezone.now() - timezone.timedelta(days=3)

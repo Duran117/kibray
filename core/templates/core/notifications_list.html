@@ -1,49 +1,127 @@
 {% extends "core/base_modern.html" %}
+{% load i18n %}
+
 {% block content %}
-<div class="container mt-3">
-  <h3>Notificaciones</h3>
-  <div class="d-flex gap-2 mb-3">
-    <a href="?" class="btn btn-sm btn-outline-secondary{% if not filter_read %} active{% endif %}">Todas</a>
-    <a href="?read=false" class="btn btn-sm btn-outline-primary{% if filter_read == 'false' %} active{% endif %}">Sin leer</a>
-    <a href="?read=true" class="btn btn-sm btn-outline-secondary{% if filter_read == 'true' %} active{% endif %}">Leídas</a>
+<div class="max-w-4xl mx-auto px-4 py-6">
+  {# Header #}
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+        <i class="bi bi-bell text-indigo-600"></i>
+        {% trans "Notifications" %}
+      </h1>
+      <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">
+        {% if unread_count > 0 %}
+          {{ unread_count }} {% trans "unread" %}
+        {% else %}
+          {% trans "All caught up!" %}
+        {% endif %}
+      </p>
+    </div>
     {% if unread_count > 0 %}
-      <form method="post" action="{% url 'notifications_mark_all_read' %}" class="ms-auto">
-        {% csrf_token %}
-        <button class="btn btn-sm btn-success" type="submit">Marcar todas leídas</button>
-      </form>
+    <form method="post" action="{% url 'notifications_mark_all_read' %}">
+      {% csrf_token %}
+      <button class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition">
+        <i class="bi bi-check-all"></i>
+        {% trans "Mark all as read" %}
+      </button>
+    </form>
     {% endif %}
   </div>
-  <div class="list-group">
+
+  {# Filters #}
+  <div class="flex flex-wrap gap-2 mb-4">
+    <a href="?" class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full transition {% if not filter_read %}bg-indigo-600 text-white{% else %}bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600{% endif %}">
+      {% trans "All" %}
+    </a>
+    <a href="?read=false" class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full transition {% if filter_read == 'false' %}bg-indigo-600 text-white{% else %}bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600{% endif %}">
+      <i class="bi bi-circle-fill text-[8px] text-red-500 mr-2"></i>
+      {% trans "Unread" %}
+    </a>
+    <a href="?read=true" class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full transition {% if filter_read == 'true' %}bg-indigo-600 text-white{% else %}bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600{% endif %}">
+      <i class="bi bi-check-circle text-emerald-500 mr-2"></i>
+      {% trans "Read" %}
+    </a>
+  </div>
+
+  {# Notifications List #}
+  <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
     {% for n in notifications %}
-      <a href="{% if n.link_url %}{{ n.link_url }}{% else %}#{% endif %}" class="list-group-item list-group-item-action {% if not n.is_read %}list-group-item-primary{% endif %}">
-        <div class="d-flex justify-content-between">
-          <strong>{{ n.title }}</strong>
-          <small class="text-muted">{{ n.created_at|date:'Y-m-d H:i' }}</small>
-        </div>
-        <p class="mb-1 small">{{ n.message }}</p>
-        <small class="text-muted">{{ n.get_notification_type_display }}</small>
-        {% if not n.is_read %}
-          <form method="post" action="{% url 'notification_mark_read' n.id %}" class="d-inline ms-2" onclick="event.stopPropagation();">
+    <div class="{% if not forloop.first %}border-t border-slate-200 dark:border-slate-700{% endif %} {% if not n.is_read %}bg-indigo-50 dark:bg-indigo-900/20{% endif %} hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
+      <a href="{% if n.link_url %}{{ n.link_url }}{% else %}#{% endif %}" class="block p-4">
+        <div class="flex items-start gap-3">
+          {# Icon based on notification type #}
+          <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center {% if n.notification_type == 'task_assigned' or n.notification_type == 'task_created' %}bg-blue-100 dark:bg-blue-900/30 text-blue-600{% elif n.notification_type == 'task_completed' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600{% elif n.notification_type == 'color_review' or n.notification_type == 'color_approved' or n.notification_type == 'color_rejected' %}bg-purple-100 dark:bg-purple-900/30 text-purple-600{% elif n.notification_type == 'damage_reported' %}bg-red-100 dark:bg-red-900/30 text-red-600{% elif n.notification_type == 'chat_message' %}bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600{% elif n.notification_type == 'change_order' %}bg-amber-100 dark:bg-amber-900/30 text-amber-600{% else %}bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400{% endif %}">
+            <i class="bi bi-{% if n.notification_type == 'task_assigned' or n.notification_type == 'task_created' %}clipboard-check{% elif n.notification_type == 'task_completed' %}check-circle{% elif n.notification_type == 'color_review' %}palette{% elif n.notification_type == 'color_approved' %}palette2{% elif n.notification_type == 'color_rejected' %}x-circle{% elif n.notification_type == 'damage_reported' %}exclamation-triangle{% elif n.notification_type == 'chat_message' %}chat{% elif n.notification_type == 'comment_added' %}chat-dots{% elif n.notification_type == 'change_order' %}file-diff{% elif n.notification_type == 'invoice' %}receipt{% elif n.notification_type == 'contract' %}file-earmark-text{% else %}bell{% endif %}"></i>
+          </div>
+          
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-2">
+              <h3 class="text-sm font-semibold text-slate-800 dark:text-white truncate {% if not n.is_read %}{% endif %}">
+                {% if not n.is_read %}<span class="inline-block w-2 h-2 bg-indigo-600 rounded-full mr-2"></span>{% endif %}
+                {{ n.title }}
+              </h3>
+              <span class="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
+                {{ n.created_at|timesince }} {% trans "ago" %}
+              </span>
+            </div>
+            {% if n.message %}
+            <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">{{ n.message }}</p>
+            {% endif %}
+            <div class="flex items-center gap-3 mt-2">
+              <span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
+                {{ n.get_notification_type_display }}
+              </span>
+              {% if n.project %}
+              <span class="text-xs text-slate-500 dark:text-slate-400">
+                <i class="bi bi-folder2 mr-1"></i>{{ n.project.name }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
+          
+          {% if not n.is_read %}
+          <form method="post" action="{% url 'notification_mark_read' n.id %}" onclick="event.stopPropagation(); event.preventDefault(); this.submit();" class="flex-shrink-0">
             {% csrf_token %}
-            <button class="btn btn-sm btn-outline-secondary" type="submit">Marcar leída</button>
+            <button type="submit" class="p-2 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition" title="{% trans 'Mark as read' %}">
+              <i class="bi bi-check-lg"></i>
+            </button>
           </form>
-        {% endif %}
+          {% endif %}
+        </div>
       </a>
+    </div>
     {% empty %}
-      <div class="list-group-item text-center text-muted">No hay notificaciones.</div>
+    <div class="p-12 text-center">
+      <i class="bi bi-bell-slash text-5xl text-slate-300 dark:text-slate-600"></i>
+      <p class="text-slate-500 dark:text-slate-400 mt-4">{% trans "No notifications to show" %}</p>
+      {% if filter_read == 'false' %}
+      <p class="text-sm text-slate-400 dark:text-slate-500 mt-1">{% trans "You're all caught up!" %}</p>
+      {% endif %}
+    </div>
     {% endfor %}
   </div>
+
+  {# Pagination #}
   {% if notifications.has_other_pages %}
-  <nav class="mt-3">
-    <ul class="pagination">
-      {% if notifications.has_previous %}
-        <li class="page-item"><a class="page-link" href="?page={{ notifications.previous_page_number }}{% if filter_read %}&read={{ filter_read }}{% endif %}">Anterior</a></li>
-      {% endif %}
-      <li class="page-item disabled"><span class="page-link">Pág. {{ notifications.number }} de {{ notifications.paginator.num_pages }}</span></li>
-      {% if notifications.has_next %}
-        <li class="page-item"><a class="page-link" href="?page={{ notifications.next_page_number }}{% if filter_read %}&read={{ filter_read }}{% endif %}">Siguiente</a></li>
-      {% endif %}
-    </ul>
+  <nav class="flex items-center justify-center gap-2 mt-6">
+    {% if notifications.has_previous %}
+    <a href="?page={{ notifications.previous_page_number }}{% if filter_read %}&read={{ filter_read }}{% endif %}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition">
+      <i class="bi bi-chevron-left mr-1"></i>
+      {% trans "Previous" %}
+    </a>
+    {% endif %}
+    
+    <span class="px-4 py-2 text-sm text-slate-500 dark:text-slate-400">
+      {% trans "Page" %} {{ notifications.number }} {% trans "of" %} {{ notifications.paginator.num_pages }}
+    </span>
+    
+    {% if notifications.has_next %}
+    <a href="?page={{ notifications.next_page_number }}{% if filter_read %}&read={{ filter_read }}{% endif %}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition">
+      {% trans "Next" %}
+      <i class="bi bi-chevron-right ml-1"></i>
+    </a>
+    {% endif %}
   </nav>
   {% endif %}
 </div>

@@ -26,10 +26,10 @@
             </a>
             
             <a href="{% url 'notifications_list' %}" class="sidebar-item {% if request.resolver_match.url_name == 'notifications_list' %}active{% endif %}">
-                <i class="bi bi-bell"></i>
+                <i class="bi bi-bell{% if badges.unread_notifications_count|default:0 > 0 %}-fill text-amber-400{% endif %}"></i>
                 <span>{% trans "Notifications" %}</span>
                 {% if badges.unread_notifications_count|default:0 > 0 %}
-                <span class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ badges.unread_notifications_count }}</span>
+                <span class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse">{{ badges.unread_notifications_count }}</span>
                 {% endif %}
             </a>
         </div>
@@ -215,10 +215,10 @@
                     <span>{% trans "My Dashboard" %}</span>
                 </a>
                 <a href="{% url 'notifications_list' %}" class="sidebar-item {% if request.resolver_match.url_name == 'notifications_list' %}active{% endif %}">
-                    <i class="bi bi-bell"></i>
+                    <i class="bi bi-bell{% if badges.unread_notifications_count|default:0 > 0 %}-fill text-amber-400{% endif %}"></i>
                     <span>{% trans "Notifications" %}</span>
                     {% if badges.unread_notifications_count|default:0 > 0 %}
-                    <span class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ badges.unread_notifications_count }}</span>
+                    <span class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse">{{ badges.unread_notifications_count }}</span>
                     {% endif %}
                 </a>
             </div>

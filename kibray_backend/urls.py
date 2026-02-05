@@ -55,7 +55,7 @@ urlpatterns = [
     path("calendar/", views.navigation_app_view, name="navigation_calendar"),
     path("chat/", views.navigation_app_view, name="navigation_chat"),
     path("reports/", views.navigation_app_view, name="navigation_reports"),
-    path("notifications/", views.navigation_app_view, name="navigation_notifications"),
+    # notifications/ handled by Django views below (notif_views.notifications_list)
     path("search/", views.navigation_app_view, name="navigation_search"),
     # Admin
     path("admin/", admin.site.urls),
