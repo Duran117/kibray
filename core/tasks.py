@@ -983,6 +983,176 @@ def cleanup_old_websocket_metrics():
         }
 
 
+@shared_task(name="core.tasks.process_signature_post_tasks")
+def process_signature_post_tasks(document_type: str, document_id: int, signer_name: str, customer_email: str = None):
+    """
+    Process post-signature tasks in background:
+    - Send email notifications
+    - Generate signed PDF
+    - Auto-save to project files
+    
+    This prevents the signature page from blocking while these operations complete.
+    """
+    try:
+        from django.contrib.auth import get_user_model
+        from django.core.files.base import ContentFile
+        from django.utils import timezone
+        
+        User = get_user_model()
+        
+        if document_type == "changeorder":
+            from core.models import ChangeOrder
+            document = ChangeOrder.objects.get(id=document_id)
+            project_name = document.project.name if document.project else '-'
+            
+            # Determine amount/rate info for email
+            amount_str = None
+            rate_info = None
+            if document.pricing_type == "T_AND_M":
+                rate_info = f"Labor Rate: ${document.get_effective_billing_rate():.2f} | Material Markup: {document.material_markup_pct}%"
+            else:
+                amount_str = f"{document.amount:.2f}" if document.amount else None
+            
+            # --- Email notifications ---
+            from core.services.email_service import KibrayEmailService
+            
+            internal_recipients = list(
+                User.objects.filter(is_staff=True, is_active=True).values_list("email", flat=True)
+            )
+            internal_recipients = [e for e in internal_recipients if e]
+            
+            if internal_recipients:
+                try:
+                    KibrayEmailService.send_changeorder_signed_notification(
+                        to_emails=internal_recipients,
+                        co_number=document.id,
+                        project_name=project_name,
+                        description=document.description,
+                        pricing_type=document.pricing_type,
+                        signed_by=signer_name,
+                        signed_at=timezone.localtime(document.signed_at).strftime('%Y-%m-%d %H:%M:%S') if document.signed_at else '',
+                        amount=amount_str,
+                        rate_info=rate_info,
+                    )
+                    logger.info(f"CO #{document_id}: Internal notification emails sent")
+                except Exception as e:
+                    logger.warning(f"CO #{document_id}: Failed to send internal emails: {e}")
+            
+            # Send to customer if provided
+            if customer_email:
+                try:
+                    KibrayEmailService.send_signature_confirmation(
+                        to_email=customer_email,
+                        document_type="Change Order",
+                        document_number=str(document.id),
+                        signed_by=signer_name,
+                        signed_at=timezone.localtime(document.signed_at).strftime('%Y-%m-%d %H:%M:%S') if document.signed_at else '',
+                        project_name=project_name,
+                    )
+                    logger.info(f"CO #{document_id}: Customer confirmation email sent to {customer_email}")
+                except Exception as e:
+                    logger.warning(f"CO #{document_id}: Failed to send customer email: {e}")
+            
+            # --- PDF Generation ---
+            try:
+                from core.services.pdf_service import generate_signed_changeorder_pdf
+                
+                pdf_bytes = generate_signed_changeorder_pdf(document)
+                if pdf_bytes:
+                    document.signed_pdf = ContentFile(
+                        pdf_bytes, name=f"co_{document.id}_signed.pdf"
+                    )
+                    document.save(update_fields=["signed_pdf"])
+                    logger.info(f"CO #{document_id}: Signed PDF generated")
+            except Exception as e:
+                logger.warning(f"CO #{document_id}: PDF generation failed: {e}")
+            
+            # --- Auto-save to project files ---
+            try:
+                from core.services.document_storage_service import auto_save_changeorder_pdf
+                auto_save_changeorder_pdf(document, user=None, overwrite=True)
+                logger.info(f"CO #{document_id}: PDF auto-saved to project files")
+            except Exception as e:
+                logger.warning(f"CO #{document_id}: Failed to auto-save PDF: {e}")
+        
+        elif document_type == "color_sample":
+            from core.models import ColorSample
+            document = ColorSample.objects.get(id=document_id)
+            project_name = document.project.name if document.project else '-'
+            
+            # --- Email notifications ---
+            from core.services.email_service import KibrayEmailService
+            
+            internal_recipients = list(
+                User.objects.filter(is_staff=True, is_active=True).values_list("email", flat=True)
+            )
+            internal_recipients = [e for e in internal_recipients if e]
+            
+            # Send to each internal recipient
+            for recipient_email in internal_recipients:
+                try:
+                    KibrayEmailService.send_colorsample_signed_notification(
+                        to_email=recipient_email,
+                        color_name=document.name or "Color Sample",
+                        color_code=document.code or str(document.id),
+                        project_name=project_name,
+                        signed_by=signer_name,
+                        signed_at=timezone.localtime(document.client_signed_at).strftime('%Y-%m-%d %H:%M:%S') if document.client_signed_at else '',
+                        client_ip=document.client_signed_ip or '',
+                        location=document.room_location or 'N/A',
+                    )
+                    logger.info(f"Color Sample #{document_id}: Notification sent to {recipient_email}")
+                except Exception as e:
+                    logger.warning(f"Color Sample #{document_id}: Failed to send email to {recipient_email}: {e}")
+            
+            # Send to customer if provided
+            if customer_email:
+                try:
+                    KibrayEmailService.send_signature_confirmation(
+                        to_email=customer_email,
+                        document_type="Color Sample",
+                        document_number=document.code or str(document.id),
+                        signed_by=signer_name,
+                        signed_at=timezone.localtime(document.client_signed_at).strftime('%Y-%m-%d %H:%M:%S') if document.client_signed_at else '',
+                        project_name=project_name,
+                    )
+                    logger.info(f"Color Sample #{document_id}: Customer confirmation email sent")
+                except Exception as e:
+                    logger.warning(f"Color Sample #{document_id}: Failed to send customer email: {e}")
+            
+            # --- PDF Generation ---
+            try:
+                from core.services.pdf_service import generate_signed_color_sample_pdf
+                
+                pdf_bytes = generate_signed_color_sample_pdf(document)
+                if pdf_bytes:
+                    document.signed_pdf = ContentFile(
+                        pdf_bytes, name=f"color_sample_{document.id}_signed.pdf"
+                    )
+                    document.save(update_fields=["signed_pdf"])
+                    logger.info(f"Color Sample #{document_id}: Signed PDF generated")
+            except Exception as e:
+                logger.warning(f"Color Sample #{document_id}: PDF generation failed: {e}")
+            
+            # --- Auto-save to project files ---
+            try:
+                from core.services.document_storage_service import auto_save_colorsample_pdf
+                auto_save_colorsample_pdf(document, user=None, overwrite=True)
+                logger.info(f"Color Sample #{document_id}: PDF auto-saved to project files")
+            except Exception as e:
+                logger.warning(f"Color Sample #{document_id}: Failed to auto-save PDF: {e}")
+        
+        return {
+            "status": "success",
+            "document_type": document_type,
+            "document_id": document_id,
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in process_signature_post_tasks: {e}")
+        return {"status": "error", "error": str(e)}
+
+
 @shared_task(name="core.tasks.cleanup_old_assignments")
 def cleanup_old_assignments(days: int = 30):
     """

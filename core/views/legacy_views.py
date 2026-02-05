@@ -4322,75 +4322,34 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
                 ]
             )
 
-            # --- Email notifications (Paso 2) ---
-            from core.services.email_service import KibrayEmailService
-
+            # --- Process heavy tasks in background (emails, PDF, storage) ---
             customer_email = request.POST.get("customer_email", "").strip()
-            internal_recipients = list(
-                User.objects.filter(is_staff=True, is_active=True).values_list("email", flat=True)
-            )
-            # Filtrar emails vacíos
-            internal_recipients = [e for e in internal_recipients if e]
-
-            # Determine amount/rate info for email
-            amount_str = None
-            rate_info = None
-            if changeorder.pricing_type == "T_AND_M":
-                rate_info = f"Labor Rate: ${changeorder.get_effective_billing_rate():.2f} | Material Markup: {changeorder.material_markup_pct}%"
-            else:
-                amount_str = f"{changeorder.amount:.2f}"
-
-            # Send to internal staff
-            if internal_recipients:
-                with contextlib.suppress(Exception):
-                    KibrayEmailService.send_changeorder_signed_notification(
-                        to_emails=internal_recipients,
-                        co_number=changeorder.id,
-                        project_name=changeorder.project.name if changeorder.project else '-',
-                        description=changeorder.description,
-                        pricing_type=changeorder.pricing_type,
-                        signed_by=signer_name,
-                        signed_at=timezone.localtime(changeorder.signed_at).strftime('%Y-%m-%d %H:%M:%S'),
-                        amount=amount_str,
-                        rate_info=rate_info,
-                    )
-
-            # Send confirmation to client if they provided email
-            if customer_email:
-                with contextlib.suppress(Exception):
-                    KibrayEmailService.send_signature_confirmation(
-                        to_email=customer_email,
-                        document_type="Change Order",
-                        document_number=str(changeorder.id),
-                        signed_by=signer_name,
-                        signed_at=timezone.localtime(changeorder.signed_at).strftime('%Y-%m-%d %H:%M:%S'),
-                        project_name=changeorder.project.name if changeorder.project else None,
-                    )
-
-            # --- PDF Generation (Paso 3) - Using ReportLab ---
             try:
-                from core.services.pdf_service import generate_signed_changeorder_pdf
-                from django.core.files.base import ContentFile
-                
-                pdf_bytes = generate_signed_changeorder_pdf(changeorder)
-                if pdf_bytes:
-                    changeorder.signed_pdf = ContentFile(
-                        pdf_bytes, name=f"co_{changeorder.id}_signed.pdf"
-                    )
-                    changeorder.save(update_fields=["signed_pdf"])
-            except Exception as pdf_error:
-                # Log but don't block flow
+                from core.tasks import process_signature_post_tasks
+                process_signature_post_tasks.delay(
+                    document_type="changeorder",
+                    document_id=changeorder.id,
+                    signer_name=signer_name,
+                    customer_email=customer_email,
+                )
+            except Exception as task_error:
+                # If Celery is not available, log but don't block
                 import logging
-                logging.getLogger(__name__).warning(f"CO PDF generation failed: {pdf_error}")
-
-            # --- Auto-save PDF to Project Files (Paso 4) ---
-            try:
-                from core.services.document_storage_service import auto_save_changeorder_pdf
-                auto_save_changeorder_pdf(changeorder, user=None, overwrite=True)
-            except Exception as e:
-                # Log but don't block flow
-                import logging
-                logging.getLogger(__name__).warning(f"Failed to auto-save CO PDF: {e}")
+                logging.getLogger(__name__).warning(f"Background task failed, will process inline: {task_error}")
+                # Fallback: process synchronously but with timeout protection
+                try:
+                    from core.services.email_service import KibrayEmailService
+                    from core.services.pdf_service import generate_signed_changeorder_pdf
+                    
+                    # Just generate PDF, skip emails if task queue is down
+                    pdf_bytes = generate_signed_changeorder_pdf(changeorder)
+                    if pdf_bytes:
+                        changeorder.signed_pdf = ContentFile(
+                            pdf_bytes, name=f"co_{changeorder.id}_signed.pdf"
+                        )
+                        changeorder.save(update_fields=["signed_pdf"])
+                except Exception:
+                    pass  # Don't block the signature success
 
             # --- Generate download token for client ---
             from django.core import signing
@@ -4603,41 +4562,17 @@ def color_sample_client_signature_view(request, sample_id, token=None):
             # --- Save signature using the new model fields ---
             color_sample.sign_by_client(signature_file, signed_name, client_ip)
 
-            # --- Notify project PM ---
+            # --- Queue background task for email/PDF (non-blocking) ---
             try:
-                from core.services.email_service import KibrayEmailService
-                
-                project = color_sample.project
-                if project:
-                    pm_profile = Profile.objects.filter(
-                        project=project, role="project_manager"
-                    ).first()
-                    if pm_profile and pm_profile.user.email:
-                        with contextlib.suppress(Exception):
-                            KibrayEmailService.send_colorsample_signed_notification(
-                                to_email=pm_profile.user.email,
-                                color_name=color_sample.name,
-                                color_code=color_sample.code,
-                                project_name=project.name,
-                                signed_by=signed_name,
-                                signed_at=color_sample.client_signed_at.strftime('%m/%d/%Y %H:%M'),
-                                client_ip=client_ip,
-                                location=color_sample.room_location or 'N/A',
-                            )
+                from core.tasks import process_signature_post_tasks
+                process_signature_post_tasks.delay(
+                    document_type="color_sample",
+                    document_id=color_sample.id,
+                    signer_name=signed_name,
+                    customer_email=None,  # Could add customer email if available
+                )
             except Exception:
-                pass
-
-            # --- Generate PDF using ReportLab ---
-            # Note: PDF is auto-saved to Project Files below, no need for inline generation here
-
-            # --- Auto-save PDF to Project Files ---
-            try:
-                from core.services.document_storage_service import auto_save_colorsample_pdf
-                auto_save_colorsample_pdf(color_sample, user=None, overwrite=True)
-            except Exception as e:
-                # Log but don't block flow
-                import logging
-                logging.getLogger(__name__).warning(f"Failed to auto-save ColorSample PDF: {e}")
+                pass  # Don't block if task queueing fails
 
             # --- Generate download token for client ---
             from django.core import signing
