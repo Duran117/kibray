@@ -2655,3 +2655,162 @@ class ActivationWizardForm(forms.Form):
             )
 
         return cleaned_data
+
+
+# ===== QUICK ADD OWNER/CLIENT TO PROJECT =====
+class QuickAddProjectOwnerForm(forms.Form):
+    """Formulario rápido para agregar un dueño/cliente a un proyecto.
+    Crea el usuario automáticamente y lo asigna al proyecto con acceso.
+    """
+    
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "correo@ejemplo.com",
+                "autocomplete": "email"
+            }
+        ),
+        label="Correo Electrónico",
+    )
+    first_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Nombre",
+                "autocomplete": "given-name"
+            }
+        ),
+        label="Nombre",
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Apellido",
+                "autocomplete": "family-name"
+            }
+        ),
+        label="Apellido",
+    )
+    phone = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "(123) 456-7890",
+                "autocomplete": "tel"
+            }
+        ),
+        label="Teléfono",
+    )
+    access_role = forms.ChoiceField(
+        choices=[
+            ("owner", "Project Owner (Dueño)"),
+            ("client", "Client (Cliente)"),
+            ("viewer", "Viewer (Solo lectura)"),
+        ],
+        initial="owner",
+        widget=forms.Select(attrs={"class": "form-control"}),
+        label="Rol de Acceso",
+    )
+    send_credentials = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        label="Enviar credenciales por email",
+    )
+
+    def clean_email(self):
+        """Validar email y verificar si ya existe"""
+        email = self.cleaned_data.get("email")
+        if not email:
+            raise ValidationError("El correo electrónico es obligatorio.")
+        
+        email = email.lower().strip()
+        
+        # Validación de formato
+        import re
+        email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        if not re.match(email_regex, email):
+            raise ValidationError("Formato de correo electrónico inválido.")
+        
+        return email
+
+    def save(self, project, created_by=None):
+        """Crea el usuario y lo asigna al proyecto.
+        
+        Args:
+            project: El proyecto al que se asignará el cliente
+            created_by: Usuario que realiza la creación (para auditoría)
+        
+        Returns:
+            tuple: (user, temp_password, is_new_user)
+        """
+        import secrets
+        import string
+        from django.contrib.auth import get_user_model
+        from core.models import Profile, ClientProjectAccess
+        
+        User = get_user_model()
+        email = self.cleaned_data["email"]
+        first_name = self.cleaned_data["first_name"]
+        last_name = self.cleaned_data["last_name"]
+        phone = self.cleaned_data.get("phone", "")
+        access_role = self.cleaned_data["access_role"]
+        
+        # Verificar si el usuario ya existe
+        existing_user = User.objects.filter(email__iexact=email).first()
+        is_new_user = existing_user is None
+        temp_password = None
+        
+        if existing_user:
+            user = existing_user
+        else:
+            # Generar contraseña temporal segura
+            alphabet = string.ascii_letters + string.digits + "!@#$%&*"
+            temp_password = "".join(secrets.choice(alphabet) for i in range(12))
+            
+            # Asegurar complejidad mínima
+            while not (
+                any(c.isupper() for c in temp_password)
+                and any(c.islower() for c in temp_password)
+                and any(c.isdigit() for c in temp_password)
+            ):
+                temp_password = "".join(secrets.choice(alphabet) for i in range(12))
+            
+            # Crear usuario
+            user = User.objects.create_user(
+                username=email,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                password=temp_password,
+                is_staff=False,
+                is_active=True,
+            )
+            
+            # Crear perfil de cliente
+            Profile.objects.get_or_create(
+                user=user,
+                defaults={"role": "client", "phone": phone}
+            )
+        
+        # Crear o actualizar acceso al proyecto
+        access, created = ClientProjectAccess.objects.update_or_create(
+            user=user,
+            project=project,
+            defaults={
+                "role": access_role,
+                "can_comment": True,
+                "can_create_tasks": access_role in ["owner", "client"],
+            }
+        )
+        
+        return user, temp_password, is_new_user

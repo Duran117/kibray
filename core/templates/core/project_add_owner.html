@@ -1,0 +1,205 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Add Owner/Client" %} - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-6">
+            <!-- Header -->
+            <div class="d-flex align-items-center mb-4">
+                <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div>
+                    <h4 class="mb-0">{% trans "Add Owner/Client to Project" %}</h4>
+                    <small class="text-muted">{{ project.name }}</small>
+                </div>
+            </div>
+
+            <!-- Add Owner Form Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-plus me-2"></i>
+                        {% trans "Quick Add Owner/Client" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        {% trans "Enter the owner or client's information. If the user doesn't exist, a new account will be created automatically with a temporary password." %}
+                    </p>
+
+                    <form method="post" id="addOwnerForm">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.first_name.label }} <span class="text-danger">*</span></label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger small">{{ form.first_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.last_name.label }} <span class="text-danger">*</span></label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger small">{{ form.last_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.email.label }} <span class="text-danger">*</span></label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small">{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                            <small class="text-muted">{% trans "This will also be used as the username for login." %}</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.phone.label }}</label>
+                            {{ form.phone }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.access_role.label }}</label>
+                            {{ form.access_role }}
+                            <small class="text-muted">
+                                <ul class="mb-0 mt-1">
+                                    <li><strong>Owner:</strong> {% trans "Full access, can approve change orders and colors" %}</li>
+                                    <li><strong>Client:</strong> {% trans "Can view project updates, add comments and tasks" %}</li>
+                                    <li><strong>Viewer:</strong> {% trans "Read-only access to project updates" %}</li>
+                                </ul>
+                            </small>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.send_credentials }}
+                                <label class="form-check-label" for="{{ form.send_credentials.id_for_label }}">
+                                    {{ form.send_credentials.label }}
+                                </label>
+                            </div>
+                            <small class="text-muted">{% trans "If unchecked, you'll need to manually share the temporary password." %}</small>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
+                                {% trans "Cancel" %}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-person-plus me-1"></i>
+                                {% trans "Add to Project" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Current Project Access -->
+            {% if current_accesses %}
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-people me-2"></i>
+                        {% trans "Current Project Access" %}
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{% trans "User" %}</th>
+                                    <th>{% trans "Role" %}</th>
+                                    <th>{% trans "Granted" %}</th>
+                                    <th class="text-end">{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for access in current_accesses %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar avatar-sm bg-{{ access.role|default:'secondary' }} text-white rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                                {{ access.user.first_name|slice:":1"|upper }}{{ access.user.last_name|slice:":1"|upper }}
+                                            </div>
+                                            <div>
+                                                <strong>{{ access.user.get_full_name|default:access.user.username }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ access.user.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if access.role == "owner" %}
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-house-door me-1"></i>{{ access.get_role_display }}
+                                            </span>
+                                        {% elif access.role == "client" %}
+                                            <span class="badge bg-primary">
+                                                <i class="bi bi-person me-1"></i>{{ access.get_role_display }}
+                                            </span>
+                                        {% elif access.role == "external_pm" %}
+                                            <span class="badge bg-info">
+                                                <i class="bi bi-briefcase me-1"></i>{{ access.get_role_display }}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="bi bi-eye me-1"></i>{{ access.get_role_display }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ access.granted_at|date:"M d, Y" }}
+                                        </small>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'client_detail' access.user.id %}" class="btn btn-sm btn-outline-primary" title="{% trans 'View Client' %}">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                {% trans "No owners or clients have been assigned to this project yet." %}
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-format phone number
+    const phoneInput = document.getElementById('{{ form.phone.id_for_label }}');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 10) {
+                value = '(' + value.substring(0, 3) + ') ' + value.substring(3, 6) + '-' + value.substring(6, 10);
+            }
+            e.target.value = value;
+        });
+    }
+    
+    // Focus on first name field
+    document.getElementById('{{ form.first_name.id_for_label }}')?.focus();
+});
+</script>
+{% endblock %}

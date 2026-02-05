@@ -977,6 +977,12 @@ urlpatterns = [
         views.client_assign_project,
         name="client_assign_project",
     ),
+    # Add owner/client to project quickly
+    path(
+        "project/<int:project_id>/add-owner/",
+        views.project_add_owner,
+        name="project_add_owner",
+    ),
     # ===== GESTIÓN DE ORGANIZACIONES DE CLIENTES =====
     path("organizations/", views.organization_list, name="organization_list"),
     path("organizations/create/", views.organization_create, name="organization_create"),

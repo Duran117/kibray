@@ -730,9 +730,44 @@
           <i class="bi bi-diagram-3"></i>
           {% trans "Abrir Gantt" %}
         </a>
-        <button class="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition" title="{% trans 'Más opciones' %}">
-          <i class="bi bi-three-dots"></i>
-        </button>
+        <!-- Add Owner/Client Button -->
+        <a href="{% url 'project_add_owner' project.id %}" class="inline-flex items-center gap-2 px-3 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm font-medium" title="{% trans 'Add Owner/Client' %}">
+          <i class="bi bi-person-plus"></i>
+          <span class="hidden lg:inline">{% trans "Add Owner" %}</span>
+        </a>
+        <!-- More Options Dropdown (Bootstrap) -->
+        <div class="dropdown">
+          <button class="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{% trans 'Más opciones' %}">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-lg">
+            <li>
+              <a href="{% url 'project_add_owner' project.id %}" class="dropdown-item">
+                <i class="bi bi-person-plus text-amber-500 me-2"></i>
+                {% trans "Add Owner/Client" %}
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'project_edit' project.id %}" class="dropdown-item">
+                <i class="bi bi-pencil text-blue-500 me-2"></i>
+                {% trans "Edit Project" %}
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'client_list' %}" class="dropdown-item">
+                <i class="bi bi-people text-green-500 me-2"></i>
+                {% trans "Manage Clients" %}
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a href="{% url 'daily_log_create' project.id %}" class="dropdown-item">
+                <i class="bi bi-journal-plus text-purple-500 me-2"></i>
+                {% trans "New Daily Log" %}
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
     
