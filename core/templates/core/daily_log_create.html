@@ -196,7 +196,7 @@
             <div class="mt-4 text-center py-4">
               <i class="bi bi-calendar-x text-slate-300" style="font-size: 2rem;"></i>
               <p class="text-slate-500 mt-2 mb-0">{% trans "No Gantt items found for this project." %}</p>
-              <a href="{% url 'gantt_chart' project.id %}" class="btn btn-sm btn-outline-primary mt-2">
+              <a href="{% url 'schedule_gantt_react' project.id %}" class="btn btn-sm btn-outline-primary mt-2">
                 <i class="bi bi-plus-lg me-1"></i>{% trans "Create Schedule Items" %}
               </a>
             </div>
