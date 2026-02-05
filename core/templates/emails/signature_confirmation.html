@@ -1,0 +1,42 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Signature Confirmation{% endblock %}
+
+{% block content %}
+<h1 class="greeting" style="font-size: 24px; font-weight: 600; color: #1a1a2e; margin: 0 0 25px 0;">Thank You</h1>
+
+<p class="message-text" style="color: #555555; margin: 0 0 25px 0; font-size: 16px; line-height: 1.7;">
+    Your signature has been recorded successfully. Below are the details of your approval.
+</p>
+
+<div class="project-badge" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #ffffff; padding: 18px 25px; border-radius: 8px; margin: 25px 0; text-align: center;">
+    <p class="project-badge-label" style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; margin: 0 0 5px 0;">{{ document_type }}</p>
+    <p class="project-badge-name" style="font-size: 20px; font-weight: 600; margin: 0;">#{{ document_number }}</p>
+</div>
+
+<div class="info-box" style="background-color: #e8f5e9; border-left: 4px solid #28a745; padding: 25px; margin: 30px 0; border-radius: 0 8px 8px 0;">
+    <p class="info-box-title" style="font-size: 13px; font-weight: 600; color: #28a745; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 15px 0;">✓ Approved</p>
+    <div class="info-row" style="margin: 12px 0;">
+        <span class="info-label" style="font-size: 13px; color: #888888; display: inline-block; width: 120px;">Signed By</span>
+        <span class="info-value" style="font-size: 15px; color: #1a1a2e; font-weight: 600;">{{ signed_by }}</span>
+    </div>
+    <div class="info-row" style="margin: 12px 0;">
+        <span class="info-label" style="font-size: 13px; color: #888888; display: inline-block; width: 120px;">Date & Time</span>
+        <span class="info-value" style="font-size: 15px; color: #1a1a2e; font-weight: 600;">{{ signed_at }}</span>
+    </div>
+    {% if project_name %}
+    <div class="info-row" style="margin: 12px 0;">
+        <span class="info-label" style="font-size: 13px; color: #888888; display: inline-block; width: 120px;">Project</span>
+        <span class="info-value" style="font-size: 15px; color: #1a1a2e; font-weight: 600;">{{ project_name }}</span>
+    </div>
+    {% endif %}
+</div>
+
+<p class="message-text" style="color: #555555; margin: 25px 0 0 0; font-size: 15px; text-align: center;">
+    A copy of this confirmation has been saved to our records.
+</p>
+{% endblock %}
+
+{% block footer_extra %}
+If you did not authorize this signature, please contact us immediately.<br><br>
+{% endblock %}

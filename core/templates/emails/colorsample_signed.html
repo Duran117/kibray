@@ -1,0 +1,60 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Color Sample Signed - {{ project_name }}{% endblock %}
+
+{% block content %}
+<h1 class="greeting" style="font-size: 24px; font-weight: 600; color: #1a1a2e; margin: 0 0 25px 0;">Color Sample Approved</h1>
+
+<p class="message-text" style="color: #555555; margin: 0 0 25px 0; font-size: 16px; line-height: 1.7;">
+    A color sample has been signed and approved by the client.
+</p>
+
+<div class="project-badge" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #ffffff; padding: 18px 25px; border-radius: 8px; margin: 25px 0; text-align: center;">
+    <p class="project-badge-label" style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; margin: 0 0 5px 0;">Color Sample</p>
+    <p class="project-badge-name" style="font-size: 20px; font-weight: 600; margin: 0;">{{ color_name }}</p>
+</div>
+
+<div class="info-box" style="background-color: #f8f9fa; border-left: 4px solid #1a1a2e; padding: 25px; margin: 30px 0; border-radius: 0 8px 8px 0;">
+    <p class="info-box-title" style="font-size: 13px; font-weight: 600; color: #888888; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 15px 0;">Sample Details</p>
+    <div class="info-row" style="margin: 12px 0;">
+        <span class="info-label" style="font-size: 13px; color: #888888; display: inline-block; width: 120px;">Project</span>
+        <span class="info-value" style="font-size: 15px; color: #1a1a2e; font-weight: 600;">{{ project_name }}</span>
+    </div>
+    <div class="info-row" style="margin: 12px 0;">
+        <span class="info-label" style="font-size: 13px; color: #888888; display: inline-block; width: 120px;">Color Code</span>
+        <span class="info-value" style="font-size: 15px; color: #1a1a2e; font-weight: 600;">{{ color_code }}</span>
+    </div>
+    {% if location %}
+    <div class="info-row" style="margin: 12px 0;">
+        <span class="info-label" style="font-size: 13px; color: #888888; display: inline-block; width: 120px;">Location</span>
+        <span class="info-value" style="font-size: 15px; color: #1a1a2e; font-weight: 600;">{{ location }}</span>
+    </div>
+    {% endif %}
+</div>
+
+<div class="divider" style="height: 1px; background-color: #eee; margin: 30px 0;"></div>
+
+<div class="info-box" style="background-color: #e8f5e9; border-left: 4px solid #28a745; padding: 25px; margin: 30px 0; border-radius: 0 8px 8px 0;">
+    <p class="info-box-title" style="font-size: 13px; font-weight: 600; color: #28a745; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 15px 0;">✓ Client Approval</p>
+    <div class="info-row" style="margin: 12px 0;">
+        <span class="info-label" style="font-size: 13px; color: #888888; display: inline-block; width: 120px;">Signed By</span>
+        <span class="info-value" style="font-size: 15px; color: #1a1a2e; font-weight: 600;">{{ signed_by }}</span>
+    </div>
+    <div class="info-row" style="margin: 12px 0;">
+        <span class="info-label" style="font-size: 13px; color: #888888; display: inline-block; width: 120px;">Date & Time</span>
+        <span class="info-value" style="font-size: 15px; color: #1a1a2e; font-weight: 600;">{{ signed_at }}</span>
+    </div>
+    <div class="info-row" style="margin: 12px 0;">
+        <span class="info-label" style="font-size: 13px; color: #888888; display: inline-block; width: 120px;">IP Address</span>
+        <span class="info-value" style="font-size: 15px; color: #1a1a2e; font-weight: 600;">{{ client_ip }}</span>
+    </div>
+</div>
+
+{% if view_url %}
+<div class="cta-container" style="text-align: center; margin: 35px 0;">
+    <a href="{{ view_url }}" class="cta-button" style="display: inline-block; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #ffffff !important; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 15px; font-weight: 600; letter-spacing: 0.5px;">
+        View Color Sample →
+    </a>
+</div>
+{% endif %}
+{% endblock %}

@@ -4322,8 +4322,7 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
             )
 
             # --- Email notifications (Paso 2) ---
-            from django.conf import settings
-            from django.core.mail import send_mail
+            from core.services.email_service import KibrayEmailService
 
             customer_email = request.POST.get("customer_email", "").strip()
             internal_recipients = list(
@@ -4332,48 +4331,39 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
             # Filtrar emails vacíos
             internal_recipients = [e for e in internal_recipients if e]
 
-            subject = f"CO #{changeorder.id} signed by client"
-            body_lines = [
-                f"Change Order #{changeorder.id} has been signed.",
-                f"Project: {changeorder.project.name if changeorder.project else '-'}",
-                f"Description: {changeorder.description[:180]}"
-                + ("..." if len(changeorder.description) > 180 else ""),
-                f"Pricing Type: {changeorder.pricing_type}",
-                f"Signed by: {signer_name}",
-                f"Date/Time: {timezone.localtime(changeorder.signed_at).strftime('%Y-%m-%d %H:%M:%S')}",
-            ]
-
+            # Determine amount/rate info for email
+            amount_str = None
+            rate_info = None
             if changeorder.pricing_type == "T_AND_M":
-                body_lines.append(
-                    f"Labor Rate: ${changeorder.get_effective_billing_rate():.2f} | Material Markup: {changeorder.material_markup_pct}%"
-                )
+                rate_info = f"Labor Rate: ${changeorder.get_effective_billing_rate():.2f} | Material Markup: {changeorder.material_markup_pct}%"
             else:
-                body_lines.append(f"Approved Fixed Amount: ${changeorder.amount:.2f}")
-
-            body_lines.append("---")
-            body_lines.append("This is an automated email. Do not reply.")
-            message_body = "\n".join(body_lines)
+                amount_str = f"{changeorder.amount:.2f}"
 
             # Send to internal staff
             if internal_recipients:
                 with contextlib.suppress(Exception):
-                    send_mail(
-                        subject,
-                        message_body,
-                        getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@kibray.com"),
-                        internal_recipients,
-                        fail_silently=True,
+                    KibrayEmailService.send_changeorder_signed_notification(
+                        to_emails=internal_recipients,
+                        co_number=changeorder.id,
+                        project_name=changeorder.project.name if changeorder.project else '-',
+                        description=changeorder.description,
+                        pricing_type=changeorder.pricing_type,
+                        signed_by=signer_name,
+                        signed_at=timezone.localtime(changeorder.signed_at).strftime('%Y-%m-%d %H:%M:%S'),
+                        amount=amount_str,
+                        rate_info=rate_info,
                     )
 
             # Send confirmation to client if they provided email
             if customer_email:
                 with contextlib.suppress(Exception):
-                    send_mail(
-                        f"Signature Confirmation CO #{changeorder.id}",
-                        "Thank you for signing the Change Order. We have recorded your approval.",
-                        getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@kibray.com"),
-                        [customer_email],
-                        fail_silently=True,
+                    KibrayEmailService.send_signature_confirmation(
+                        to_email=customer_email,
+                        document_type="Change Order",
+                        document_number=str(changeorder.id),
+                        signed_by=signer_name,
+                        signed_at=timezone.localtime(changeorder.signed_at).strftime('%Y-%m-%d %H:%M:%S'),
+                        project_name=changeorder.project.name if changeorder.project else None,
                     )
 
             # --- PDF Generation (Paso 3) - Using ReportLab ---
@@ -4614,30 +4604,24 @@ def color_sample_client_signature_view(request, sample_id, token=None):
 
             # --- Notify project PM ---
             try:
+                from core.services.email_service import KibrayEmailService
+                
                 project = color_sample.project
                 if project:
                     pm_profile = Profile.objects.filter(
                         project=project, role="project_manager"
                     ).first()
                     if pm_profile and pm_profile.user.email:
-                        subject = f"Color Sample #{color_sample.id} signed by client"
-                        message_body = (
-                            f"Color sample '{color_sample.name}' (Code: {color_sample.code}) "
-                            f"has been signed by:\n\n"
-                            f"Name: {signed_name}\n"
-                            f"Date: {color_sample.client_signed_at.strftime('%m/%d/%Y %H:%M')}\n"
-                            f"IP: {client_ip}\n\n"
-                            f"Project: {project.name}\n"
-                            f"Location: {color_sample.room_location or 'N/A'}\n\n"
-                            f"This is an automated message. Do not reply."
-                        )
                         with contextlib.suppress(Exception):
-                            send_mail(
-                                subject,
-                                message_body,
-                                getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@kibray.com"),
-                                [pm_profile.user.email],
-                                fail_silently=True,
+                            KibrayEmailService.send_colorsample_signed_notification(
+                                to_email=pm_profile.user.email,
+                                color_name=color_sample.name,
+                                color_code=color_sample.code,
+                                project_name=project.name,
+                                signed_by=signed_name,
+                                signed_at=color_sample.client_signed_at.strftime('%m/%d/%Y %H:%M'),
+                                client_ip=client_ip,
+                                location=color_sample.room_location or 'N/A',
                             )
             except Exception:
                 pass
@@ -13533,10 +13517,8 @@ def client_list(request):
 @staff_member_required
 def client_create(request):
     """Crear nuevo cliente"""
-    from django.conf import settings
-    from django.core.mail import send_mail
-
     from core.forms import ClientCreationForm
+    from core.services.email_service import KibrayEmailService
 
     if request.method == "POST":
         form = ClientCreationForm(request.POST)
@@ -13546,35 +13528,26 @@ def client_create(request):
             # Enviar email de bienvenida si está marcado
             if form.cleaned_data.get("send_welcome_email"):
                 temp_password = form.temp_password
-                email_body = f"""
-Bienvenido a Kibray Construction Management System
-
-Hola {user.first_name},
-
-Tu cuenta ha sido creada exitosamente. Aquí están tus credenciales de acceso:
-
-Usuario: {user.email}
-Contraseña temporal: {temp_password}
-
-Por favor, cambia tu contraseña después del primer inicio de sesión.
-
-Accede al sistema en: {request.build_absolute_uri("/")}
-
-Saludos,
-El equipo de Kibray
-                """
                 try:
-                    send_mail(
-                        "Bienvenido a Kibray",
-                        email_body,
-                        settings.DEFAULT_FROM_EMAIL,
-                        [user.email],
-                        fail_silently=True,
+                    email_sent = KibrayEmailService.send_welcome_credentials(
+                        to_email=user.email,
+                        first_name=user.first_name,
+                        email=user.email,
+                        temp_password=temp_password,
+                        login_url=request.build_absolute_uri('/login/'),
+                        sender_name="Kibray Painting Team",
+                        fail_silently=False
                     )
-                    messages.success(
-                        request,
-                        f"Cliente creado exitosamente. Se ha enviado un email con las credenciales de acceso a {user.email}",
-                    )
+                    if email_sent:
+                        messages.success(
+                            request,
+                            f"Cliente creado exitosamente. Se ha enviado un email con las credenciales de acceso a {user.email}",
+                        )
+                    else:
+                        messages.warning(
+                            request,
+                            f"Cliente creado pero hubo un error al enviar el email. Contacta al cliente directamente.",
+                        )
                 except Exception as e:
                     messages.warning(
                         request,
@@ -13768,10 +13741,8 @@ def client_delete(request, user_id):
 @staff_member_required
 def client_reset_password(request, user_id):
     """Resetear contraseña de un cliente"""
-    from django.conf import settings
-    from django.core.mail import send_mail
-
     from core.forms import ClientPasswordResetForm
+    from core.services.email_service import KibrayEmailService
 
     client = get_object_or_404(User, id=user_id)
 
@@ -13788,18 +13759,24 @@ def client_reset_password(request, user_id):
 
             # Enviar email notificando el cambio
             try:
-                send_mail(
-                    "Tu contraseña ha sido actualizada",
-                    f"Hola {client.first_name},\n\nTu contraseña ha sido actualizada por un administrador.\nNueva contraseña: {new_password}\n\nPor favor, cámbiala después de iniciar sesión.\n\nSaludos,\nEl equipo de Kibray",
-                    settings.DEFAULT_FROM_EMAIL,
-                    [client.email],
-                    fail_silently=True,
+                email_sent = KibrayEmailService.send_password_reset(
+                    to_email=client.email,
+                    email=client.email,
+                    new_password=new_password,
+                    login_url=request.build_absolute_uri('/login/'),
+                    fail_silently=False
                 )
-                messages.success(
-                    request,
-                    _("Contraseña actualizada y email enviado a %(email)s")
-                    % {"email": client.email},
-                )
+                if email_sent:
+                    messages.success(
+                        request,
+                        _("Contraseña actualizada y email enviado a %(email)s")
+                        % {"email": client.email},
+                    )
+                else:
+                    messages.warning(
+                        request,
+                        _("Contraseña actualizada pero hubo un error al enviar el email.")
+                    )
             except Exception as e:
                 messages.warning(
                     request,
@@ -13906,8 +13883,7 @@ def project_add_owner(request, project_id):
     """
     from core.forms import QuickAddProjectOwnerForm
     from core.models import ClientProjectAccess
-    from django.core.mail import send_mail
-    from django.conf import settings
+    from core.services.email_service import KibrayEmailService
     
     project = get_object_or_404(Project, id=project_id)
     
@@ -13920,36 +13896,28 @@ def project_add_owner(request, project_id):
             send_credentials = form.cleaned_data.get("send_credentials", True)
             if is_new_user and temp_password and send_credentials:
                 try:
-                    subject = f"Acceso al Proyecto: {project.name}"
-                    message = f"""
-Hola {user.first_name},
-
-Se te ha otorgado acceso al proyecto "{project.name}" en nuestra plataforma.
-
-Tus credenciales de acceso son:
-- Email/Usuario: {user.email}
-- Contraseña temporal: {temp_password}
-
-Por favor, cambia tu contraseña después de iniciar sesión.
-
-Puedes acceder a: {request.build_absolute_uri('/login/')}
-
-Saludos,
-{request.user.get_full_name() or request.user.username}
-                    """.strip()
-                    
-                    send_mail(
-                        subject=subject,
-                        message=message,
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[user.email],
-                        fail_silently=True,
+                    email_sent = KibrayEmailService.send_welcome_credentials(
+                        to_email=user.email,
+                        first_name=user.first_name,
+                        email=user.email,
+                        temp_password=temp_password,
+                        login_url=request.build_absolute_uri('/login/'),
+                        project_name=project.name,
+                        sender_name=request.user.get_full_name() or request.user.username,
+                        fail_silently=False
                     )
-                    messages.success(
-                        request, 
-                        f'Usuario "{user.get_full_name()}" creado y asignado al proyecto. '
-                        f'Se enviaron las credenciales a {user.email}.'
-                    )
+                    if email_sent:
+                        messages.success(
+                            request, 
+                            f'Usuario "{user.get_full_name()}" creado y asignado al proyecto. '
+                            f'Se enviaron las credenciales a {user.email}.'
+                        )
+                    else:
+                        messages.warning(
+                            request,
+                            f'Usuario creado pero hubo un error al enviar el email. '
+                            f'Contraseña temporal: {temp_password}'
+                        )
                 except Exception as e:
                     messages.warning(
                         request,

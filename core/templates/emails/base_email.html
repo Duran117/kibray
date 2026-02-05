@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{% block title %}Kibray Painting{% endblock %}</title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
+    <style>
+        /* Reset */
+        body, table, td, p, a, li, blockquote {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        table, td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        img {
+            -ms-interpolation-mode: bicubic;
+            border: 0;
+            height: auto;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+        }
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            background-color: #f8f9fa;
+        }
+        
+        /* Typography */
+        .email-body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333333;
+        }
+        
+        /* Container */
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        
+        /* Header */
+        .email-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 40px 40px 35px 40px;
+            text-align: center;
+        }
+        .logo-text {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+        .logo-tagline {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+        
+        /* Content */
+        .email-content {
+            padding: 45px 40px;
+        }
+        .greeting {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin: 0 0 25px 0;
+        }
+        .message-text {
+            color: #555555;
+            margin: 0 0 25px 0;
+            font-size: 16px;
+            line-height: 1.7;
+        }
+        
+        /* Info Box */
+        .info-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #1a1a2e;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .info-box-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #888888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 0 15px 0;
+        }
+        .info-row {
+            margin: 12px 0;
+        }
+        .info-label {
+            font-size: 13px;
+            color: #888888;
+            display: inline-block;
+            width: 120px;
+        }
+        .info-value {
+            font-size: 15px;
+            color: #1a1a2e;
+            font-weight: 600;
+        }
+        
+        /* Project Badge */
+        .project-badge {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #ffffff;
+            padding: 18px 25px;
+            border-radius: 8px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .project-badge-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+        .project-badge-name {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        /* CTA Button */
+        .cta-container {
+            text-align: center;
+            margin: 35px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 16px 40px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        .cta-button:hover {
+            opacity: 0.9;
+        }
+        
+        /* Warning Box */
+        .warning-box {
+            background-color: #fff8e6;
+            border: 1px solid #ffeaa7;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            font-size: 14px;
+            color: #856404;
+        }
+        .warning-box strong {
+            color: #856404;
+        }
+        
+        /* Divider */
+        .divider {
+            height: 1px;
+            background-color: #eee;
+            margin: 30px 0;
+        }
+        
+        /* Footer */
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+        .footer-text {
+            font-size: 13px;
+            color: #888888;
+            margin: 0;
+            line-height: 1.6;
+        }
+        .footer-link {
+            color: #1a1a2e;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer-company {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+        
+        /* Responsive */
+        @media only screen and (max-width: 620px) {
+            .email-container {
+                width: 100% !important;
+            }
+            .email-header, .email-content, .email-footer {
+                padding-left: 25px !important;
+                padding-right: 25px !important;
+            }
+            .greeting {
+                font-size: 22px !important;
+            }
+            .info-label {
+                display: block;
+                width: 100%;
+                margin-bottom: 3px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8f9fa;">
+        <tr>
+            <td style="padding: 30px 15px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" class="email-container" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td class="email-header" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 40px 40px 35px 40px; text-align: center;">
+                            <p class="logo-text" style="font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: 2px; margin: 0;">KIBRAY</p>
+                            <p class="logo-tagline" style="font-size: 12px; color: rgba(255, 255, 255, 0.7); letter-spacing: 3px; text-transform: uppercase; margin-top: 8px;">PAINTING</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td class="email-content email-body" style="padding: 45px 40px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #333333;">
+                            {% block content %}{% endblock %}
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td class="email-footer" style="background-color: #f8f9fa; padding: 30px 40px; text-align: center; border-top: 1px solid #eee;">
+                            <p class="footer-company" style="font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 8px;">Kibray Painting</p>
+                            <p class="footer-text" style="font-size: 13px; color: #888888; margin: 0; line-height: 1.6;">
+                                {% block footer_extra %}{% endblock %}
+                                This is an automated message. Please do not reply to this email.
+                            </p>
+                        </td>
+                    </tr>
+                    
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

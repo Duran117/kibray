@@ -5,7 +5,6 @@ User-related viewsets for the Kibray API
 import contextlib
 
 from django.contrib.auth.models import User
-from django.core.mail import send_mail
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -92,12 +91,11 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
         # Send invitation email
         with contextlib.suppress(Exception):
-            send_mail(
-                "Invitation to Kibray",
-                "You have been invited to join Kibray. Please check your email for activation instructions.",
-                "noreply@kibray.com",
-                [email],
-                fail_silently=False,
+            from core.services.email_service import KibrayEmailService
+            KibrayEmailService.send_simple_notification(
+                to_emails=[email],
+                subject="Invitation to Kibray Painting",
+                message="You have been invited to join Kibray Painting. Please check your email for activation instructions.",
             )
 
         return Response(
