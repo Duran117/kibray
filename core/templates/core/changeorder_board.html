@@ -224,6 +224,30 @@
         color: #64748b;
     }
     
+    /* Status Select Dropdown */
+    .status-select {
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .status-select:hover {
+        border-color: #3b82f6;
+    }
+    
+    .status-select:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        outline: none;
+    }
+    
+    .status-select:disabled {
+        background: #f1f5f9;
+        cursor: wait;
+    }
+    
     /* Actions */
     .co-cell-actions .btn-sm {
         font-size: 11px;
@@ -547,29 +571,17 @@
                     
                     <!-- Status -->
                     <td>
-                        {% if co.status == 'pending' %}
-                            <span class="co-cell-status pending">
-                                <i class="bi bi-clock"></i> Pending
-                            </span>
-                        {% elif co.status == 'approved' %}
-                            <span class="co-cell-status approved">
-                                <i class="bi bi-check-circle"></i> Approved
-                            </span>
-                        {% elif co.status == 'sent' %}
-                            <span class="co-cell-status sent">
-                                <i class="bi bi-send"></i> Sent
-                            </span>
-                        {% elif co.status == 'billed' %}
-                            <span class="co-cell-status billed">
-                                <i class="bi bi-receipt"></i> Billed
-                            </span>
-                        {% elif co.status == 'paid' %}
-                            <span class="co-cell-status paid">
-                                <i class="bi bi-cash"></i> Paid
-                            </span>
-                        {% else %}
-                            {{ co.get_status_display }}
-                        {% endif %}
+                        <select class="form-select form-select-sm status-select" 
+                                data-co-id="{{ co.id }}" 
+                                data-original-status="{{ co.status }}"
+                                style="min-width: 130px; font-size: 12px; padding: 6px 10px;">
+                            <option value="draft" {% if co.status == 'draft' %}selected{% endif %}>📝 Draft</option>
+                            <option value="pending" {% if co.status == 'pending' %}selected{% endif %}>⏳ Pending</option>
+                            <option value="approved" {% if co.status == 'approved' %}selected{% endif %}>✅ Approved</option>
+                            <option value="sent" {% if co.status == 'sent' %}selected{% endif %}>📧 Sent</option>
+                            <option value="billed" {% if co.status == 'billed' %}selected{% endif %}>💵 Billed</option>
+                            <option value="paid" {% if co.status == 'paid' %}selected{% endif %}>💰 Paid</option>
+                        </select>
                     </td>
                     
                     <!-- Date -->
@@ -620,6 +632,81 @@
 
 {% block extra_js %}
 <script>
+// ===== UPDATE STATUS FUNCTION =====
+document.addEventListener('DOMContentLoaded', function() {
+    // Add change listener to all status selects
+    document.querySelectorAll('.status-select').forEach(function(select) {
+        select.addEventListener('change', function() {
+            const coId = this.dataset.coId;
+            const newStatus = this.value;
+            const originalStatus = this.dataset.originalStatus;
+            
+            updateCOStatus(coId, newStatus, this, originalStatus);
+        });
+    });
+});
+
+function updateCOStatus(coId, newStatus, selectElement, originalStatus) {
+    // Show loading state
+    selectElement.disabled = true;
+    
+    fetch(`/api/v1/changeorders/${coId}/update_status/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        selectElement.disabled = false;
+        
+        if (data.success) {
+            // Update the original status data attribute
+            selectElement.dataset.originalStatus = newStatus;
+            
+            // Show success feedback
+            selectElement.style.backgroundColor = '#d1fae5';
+            setTimeout(() => {
+                selectElement.style.backgroundColor = '';
+            }, 1500);
+            
+            // Show toast notification
+            showToast('✅ Status updated to: ' + newStatus);
+        } else {
+            // Revert to original status
+            selectElement.value = originalStatus;
+            alert('❌ Error: ' + (data.error || 'Could not update status'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        selectElement.disabled = false;
+        selectElement.value = originalStatus;
+        alert('❌ Error updating status');
+    });
+}
+
+// Toast notification
+function showToast(message) {
+    // Create toast if it doesn't exist
+    let toast = document.getElementById('statusToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'statusToast';
+        toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: white; padding: 12px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 9999; font-size: 14px; transition: opacity 0.3s;';
+        document.body.appendChild(toast);
+    }
+    
+    toast.textContent = message;
+    toast.style.opacity = '1';
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+    }, 2500);
+}
+
 // ===== SEND TO CLIENT FUNCTION =====
 function sendToClient(coId) {
     if (!confirm('Send this Change Order to the client for signature?')) {

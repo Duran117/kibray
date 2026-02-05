@@ -106,6 +106,37 @@ class ChangeOrderViewSet(viewsets.ModelViewSet):
         serializer = ChangeOrderListSerializer(queryset, many=True)
         return Response(serializer.data)
 
+    @action(detail=True, methods=["post"])
+    def update_status(self, request, pk=None):
+        """Update the status of a change order"""
+        change_order = self.get_object()
+        new_status = request.data.get("status")
+        
+        valid_statuses = ['draft', 'pending', 'approved', 'sent', 'billed', 'paid']
+        
+        if not new_status:
+            return Response(
+                {"error": "Status is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if new_status not in valid_statuses:
+            return Response(
+                {"error": f"Invalid status. Valid options: {', '.join(valid_statuses)}"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        old_status = change_order.status
+        change_order.status = new_status
+        change_order.save(update_fields=['status'])
+        
+        serializer = ChangeOrderListSerializer(change_order)
+        return Response({
+            "success": True,
+            "message": f"Status changed from '{old_status}' to '{new_status}'",
+            "change_order": serializer.data
+        })
+
     def perform_create(self, serializer):
         """Set submission date and generate reference code"""
         # Generate next reference code
