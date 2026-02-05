@@ -970,12 +970,14 @@ def dashboard_client(request):
         client_requests = ClientRequest.objects.filter(project=project).order_by("-created_at")[:5]
 
         # Change Orders pending client signature
+        # Only show COs that are approved/sent and waiting for client signature
         from core.models import ChangeOrder
         from core.services.financial_service import ChangeOrderService
         
         pending_change_orders = ChangeOrder.objects.filter(
             project=project,
-            status__in=['pending', 'sent', 'approved'],
+            status__in=['approved', 'sent'],  # Only approved or sent COs (not pending/draft)
+            signed_at__isnull=True,  # Not yet signed
         ).filter(
             Q(signature_image__isnull=True) | Q(signature_image='')
         ).order_by('-date_created')[:5]

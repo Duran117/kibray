@@ -1313,18 +1313,45 @@ class SOPCompletionAdmin(admin.ModelAdmin):
 # Change Order Admin - Redirige al CO Board después de crear/editar
 @admin.register(ChangeOrder)
 class ChangeOrderAdmin(admin.ModelAdmin):
-    list_display = ("id", "project", "description_short", "amount", "status", "date_created")
+    list_display = ("id", "project", "co_title", "description_short", "amount", "status", "signed_status", "date_created")
     list_filter = ("status", "date_created", "project")
-    search_fields = ("project__name", "description")
-    readonly_fields = ("date_created",)
+    search_fields = ("project__name", "description", "co_title")
+    readonly_fields = ("date_created", "signed_at", "signed_by", "signed_ip")
     date_hierarchy = "date_created"
     ordering = ("-date_created",)
+    actions = ["approve_change_orders", "send_to_client", "mark_as_draft"]
 
     def description_short(self, obj):
         """Muestra una versión corta de la descripción"""
         return obj.description[:50] + "..." if len(obj.description) > 50 else obj.description
-
     description_short.short_description = "Description"
+
+    def signed_status(self, obj):
+        """Muestra si está firmado por el cliente"""
+        if obj.signed_at:
+            return f"✅ {obj.signed_at.strftime('%Y-%m-%d')}"
+        elif obj.status in ['approved', 'sent']:
+            return "⏳ Awaiting signature"
+        return "—"
+    signed_status.short_description = "Client Signature"
+
+    @admin.action(description="✅ Approve selected Change Orders (ready for client)")
+    def approve_change_orders(self, request, queryset):
+        """Aprobar COs seleccionados - listos para enviar al cliente"""
+        updated = queryset.filter(status__in=['draft', 'pending']).update(status='approved')
+        self.message_user(request, f"{updated} Change Order(s) approved and ready for client signature.")
+
+    @admin.action(description="📧 Send to Client for Signature")
+    def send_to_client(self, request, queryset):
+        """Marcar COs como enviados al cliente"""
+        updated = queryset.filter(status__in=['draft', 'pending', 'approved']).update(status='sent')
+        self.message_user(request, f"{updated} Change Order(s) marked as sent to client.")
+
+    @admin.action(description="📝 Mark as Draft")
+    def mark_as_draft(self, request, queryset):
+        """Volver a draft los COs que aún no han sido firmados"""
+        updated = queryset.filter(signed_at__isnull=True).update(status='draft')
+        self.message_user(request, f"{updated} Change Order(s) marked as draft.")
 
     def response_add(self, request, obj, post_url_continue=None):
         """Redirige al CO Board después de crear un CO"""
