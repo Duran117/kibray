@@ -980,7 +980,7 @@ def dashboard_client(request):
             signed_at__isnull=True,  # Not yet signed
         ).filter(
             Q(signature_image__isnull=True) | Q(signature_image='')
-        ).order_by('-date_created')[:5]
+        ).order_by('-date_created')[:10]  # Increased limit to 10
         
         # Calculate T&M totals for each pending CO
         for co in pending_change_orders:

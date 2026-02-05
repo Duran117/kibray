@@ -15892,6 +15892,79 @@ msgstr "Se requiere permiso de personal"
 msgid "Unsupported algorithm: %(alg)s"
 msgstr ""
 
+# ==========================
+# Change Order Signature Form (unique entries)
+# ==========================
+
+msgid "Sign Change Order"
+msgstr "Firmar Orden de Cambio"
+
+msgid "Change Order Signature"
+msgstr "Firma de Orden de Cambio"
+
+msgid "Pricing Type"
+msgstr "Tipo de Precio"
+
+msgid "Fixed Price"
+msgstr "Precio Fijo"
+
+msgid "Time & Materials"
+msgstr "Tiempo y Materiales"
+
+msgid "Labor Rate"
+msgstr "Tarifa por Hora"
+
+msgid "Project Default"
+msgstr "Por Defecto del Proyecto"
+
+msgid "Current Total"
+msgstr "Total Actual"
+
+msgid "Scope of Work"
+msgstr "Alcance del Trabajo"
+
+msgid "Already Signed"
+msgstr "Ya Firmado"
+
+msgid "This change order has been signed and approved."
+msgstr "Esta orden de cambio ha sido firmada y aprobada."
+
+msgid "Signed by:"
+msgstr "Firmado por:"
+
+msgid "Enter your full name"
+msgstr "Ingrese su nombre completo"
+
+msgid "your@email.com"
+msgstr "su@correo.com"
+
+msgid "Receive a copy of the signed document"
+msgstr "Recibir una copia del documento firmado"
+
+msgid "Your Signature"
+msgstr "Su Firma"
+
+msgid "Draw your signature above using mouse or touch"
+msgstr "Dibuje su firma arriba usando el mouse o toque"
+
+msgid "Sign & Approve"
+msgstr "Firmar y Aprobar"
+
+msgid "By signing, you agree to the scope of work and terms described above. Your signature is legally binding."
+msgstr "Al firmar, usted acepta el alcance del trabajo y los términos descritos arriba. Su firma es legalmente vinculante."
+
+msgid "Please provide your signature"
+msgstr "Por favor proporcione su firma"
+
+msgid "The Change Order has been signed and approved successfully."
+msgstr "La Orden de Cambio ha sido firmada y aprobada exitosamente."
+
+msgid "Change Order Already Signed"
+msgstr "Orden de Cambio Ya Firmada"
+
+msgid "This Change Order has already been signed and approved. No further action is required."
+msgstr "Esta Orden de Cambio ya ha sido firmada y aprobada. No se requiere ninguna acción adicional."
+
 #, fuzzy
 #~| msgid "Datos del ticket"
 #~ msgid "Datos de switch incompletos."
