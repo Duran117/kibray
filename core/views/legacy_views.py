@@ -4237,18 +4237,18 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
         from core.services.financial_service import ChangeOrderService
         tm_breakdown = ChangeOrderService.get_billable_amount(changeorder)
 
-    # --- Token validation (solo si se proporciona en la URL) ---
+    # --- Token validation (only if provided in URL) ---
     if token is not None:
         try:
-            payload = signing.loads(token, max_age=60 * 60 * 24 * 7)  # 7 días
+            payload = signing.loads(token, max_age=60 * 60 * 24 * 7)  # 7 days
             if payload.get("co") != changeorder.id:
-                return HttpResponseForbidden("Token no coincide con este Change Order.")
+                return HttpResponseForbidden("Token does not match this Change Order.")
         except signing.SignatureExpired:
-            return HttpResponseForbidden("El enlace de firma ha expirado. Solicite uno nuevo.")
+            return HttpResponseForbidden("The signature link has expired. Please request a new one.")
         except signing.BadSignature:
-            return HttpResponseForbidden("Token inválido o manipulado.")
+            return HttpResponseForbidden("Invalid or tampered token.")
 
-    # Si ya está firmado mostrar pantalla correspondiente
+    # If already signed, show corresponding screen
     if changeorder.signature_image:
         return render(
             request, "core/changeorder_signature_already_signed.html", {
@@ -4274,7 +4274,7 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
                 {
                     "changeorder": changeorder,
                     "tm_breakdown": tm_breakdown,
-                    "error": "Por favor, dibuje su firma antes de continuar.",
+                    "error": "Please draw your signature before continuing.",
                 },
             )
         if not signer_name:
@@ -4284,7 +4284,7 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
                 {
                     "changeorder": changeorder,
                     "tm_breakdown": tm_breakdown,
-                    "error": "Por favor, ingrese su nombre completo.",
+                    "error": "Please enter your full name.",
                 },
             )
 
@@ -4408,7 +4408,7 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
                 {
                     "changeorder": changeorder,
                     "tm_breakdown": tm_breakdown,
-                    "error": f"Error al procesar la firma: {e}",
+                    "error": f"Error processing the signature: {e}",
                 },
             )
 

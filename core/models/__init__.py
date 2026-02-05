@@ -5046,25 +5046,34 @@ class ColorSample(models.Model):
 
         from core.models import Notification
 
-        # Notify admin and PMs
-        recipients = (
-            User.objects.filter(models.Q(is_staff=True) | models.Q(profile__role="project_manager"))
-            .exclude(id=changed_by.id)
-            .distinct()
-        )
+        try:
+            # Notify admin and PMs
+            recipients = User.objects.filter(
+                models.Q(is_staff=True) | models.Q(profile__role="project_manager")
+            ).distinct()
+            
+            # Exclude the user who made the change (if provided)
+            if changed_by is not None:
+                recipients = recipients.exclude(id=changed_by.id)
 
-        link = reverse("color_sample_detail", args=[self.id]) if hasattr(self, "id") else None
+            link = reverse("color_sample_detail", args=[self.id]) if hasattr(self, "id") else None
+            
+            # Determine who made the change for the message
+            changed_by_name = changed_by.username if changed_by else "Client"
 
-        for recipient in recipients:
-            Notification.objects.create(
-                user=recipient,
-                notification_type="color_sample_status",
-                title=f"Color Sample {new_status.title()}: {self.name or self.code}",
-                message=f"{changed_by.username} changed status to {new_status} for sample in {self.project.name}",
-                related_object_type="color_sample",
-                related_object_id=self.id,
-                link_url=link,
-            )
+            for recipient in recipients:
+                Notification.objects.create(
+                    user=recipient,
+                    notification_type="color_sample_status",
+                    title=f"Color Sample {new_status.title().replace('_', ' ')}: {self.name or self.code}",
+                    message=f"{changed_by_name} changed status to {new_status.replace('_', ' ')} for sample in {self.project.name}",
+                    related_object_type="color_sample",
+                    related_object_id=self.id,
+                    link_url=link,
+                )
+        except Exception:
+            # Don't let notification failures break the main flow
+            pass
 
     def generate_sample_number(self):
         """Q19.4: Generate sequential sample number (KPISM10001)"""

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ request.LANGUAGE_CODE|default:'es' }}">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -430,34 +430,34 @@
                 <p>
                     <span class="co-status {{ changeorder.status }}">
                         {% if changeorder.status == 'pending' %}
-                            <i class="bi bi-clock"></i> Pendiente
+                            <i class="bi bi-clock"></i> Pending
                         {% elif changeorder.status == 'approved' %}
-                            <i class="bi bi-check-circle"></i> Aprobado
+                            <i class="bi bi-check-circle"></i> Approved
                         {% elif changeorder.status == 'sent' %}
-                            <i class="bi bi-send"></i> Enviado
+                            <i class="bi bi-send"></i> Sent
                         {% elif changeorder.status == 'billed' %}
-                            <i class="bi bi-receipt"></i> Facturado
+                            <i class="bi bi-receipt"></i> Billed
                         {% elif changeorder.status == 'paid' %}
-                            <i class="bi bi-cash"></i> Pagado
+                            <i class="bi bi-cash"></i> Paid
                         {% endif %}
                     </span>
                 </p>
                 <p class="co-amount">${{ changeorder.amount|floatformat:2 }}</p>
-                <p><strong>Fecha:</strong> {{ changeorder.date_created|date:"d/m/Y" }}</p>
-                <p><strong>Cliente:</strong> {{ changeorder.project.client|default:"Sin cliente" }}</p>
+                <p><strong>Date:</strong> {{ changeorder.date_created|date:"m/d/Y" }}</p>
+                <p><strong>Client:</strong> {{ changeorder.project.client|default:"No client" }}</p>
             </div>
         </header>
 
         <!-- T&M PREVIEW (for Time & Materials COs) -->
         {% if tm_preview %}
         <section class="co-section" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 4px solid #10b981;">
-            <h2 style="color: #065f46;"><i class="bi bi-calculator"></i> Vista Previa T&M - Monto por Facturar</h2>
+            <h2 style="color: #065f46;"><i class="bi bi-calculator"></i> T&M Preview - Billable Amount</h2>
             
             <div style="background: white; border-radius: 8px; padding: 1.5rem; margin-top: 1rem;">
                 <div class="co-two-cols" style="gap: 1.5rem;">
                     <!-- Labor -->
                     <div class="co-label" style="color: #0369a1; font-weight: 600;">
-                        <i class="bi bi-clock-history"></i> Mano de Obra
+                        <i class="bi bi-clock-history"></i> Labor
                     </div>
                     <div class="co-value">
                         <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 0.3rem;">
@@ -470,11 +470,11 @@
 
                     <!-- Materials -->
                     <div class="co-label" style="color: #7c3aed; font-weight: 600;">
-                        <i class="bi bi-box-seam"></i> Materiales
+                        <i class="bi bi-box-seam"></i> Materials
                     </div>
                     <div class="co-value">
                         <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 0.3rem;">
-                            Costo: ${{ tm_preview.raw_material_cost|floatformat:2 }} + {{ changeorder.material_markup_pct|floatformat:0 }}% markup
+                            Cost: ${{ tm_preview.raw_material_cost|floatformat:2 }} + {{ changeorder.material_markup_pct|floatformat:0 }}% markup
                         </div>
                         <div style="font-size: 1.3rem; font-weight: 700; color: #8b5cf6;">
                             ${{ tm_preview.material_total|floatformat:2 }}
@@ -483,14 +483,14 @@
 
                     <!-- Grand Total -->
                     <div class="co-label" style="color: #059669; font-weight: 700; font-size: 1.1rem;">
-                        <i class="bi bi-currency-dollar"></i> Total a Facturar
+                        <i class="bi bi-currency-dollar"></i> Total to Bill
                     </div>
                     <div class="co-value">
                         <div style="font-size: 1.8rem; font-weight: 800; color: #047857;">
                             ${{ tm_preview.grand_total|floatformat:2 }}
                         </div>
                         <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.3rem; font-style: italic;">
-                            <i class="bi bi-info-circle"></i> Monto calculado dinámicamente (Time & Materials)
+                            <i class="bi bi-info-circle"></i> Amount calculated dynamically (Time & Materials)
                         </div>
                     </div>
                 </div>
@@ -498,8 +498,8 @@
                 {% if tm_preview.labor_hours == 0 and tm_preview.raw_material_cost == 0 %}
                 <div style="text-align: center; padding: 1.5rem; background: #fef3c7; border-radius: 8px; margin-top: 1rem; color: #92400e;">
                     <i class="bi bi-exclamation-triangle" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
-                    <p style="margin: 0; font-weight: 600;">No hay horas ni gastos registrados para este Change Order.</p>
-                    <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">El monto facturable es $0.00 hasta que se agreguen entradas de tiempo o materiales.</p>
+                    <p style="margin: 0; font-weight: 600;">No hours or expenses recorded for this Change Order.</p>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">The billable amount is $0.00 until time entries or materials are added.</p>
                 </div>
                 {% endif %}
             </div>
@@ -508,34 +508,34 @@
 
         <!-- INFO PRINCIPAL -->
         <section class="co-section">
-            <h2><i class="bi bi-info-circle"></i> Información del Change Order</h2>
+            <h2><i class="bi bi-info-circle"></i> Change Order Information</h2>
             <div class="co-two-cols">
-                <div class="co-label">Proyecto</div>
+                <div class="co-label">Project</div>
                 <div class="co-value">{{ changeorder.project.name }}</div>
 
-                <div class="co-label">Cliente</div>
-                <div class="co-value">{{ changeorder.project.client|default:"Sin cliente" }}</div>
+                <div class="co-label">Client</div>
+                <div class="co-value">{{ changeorder.project.client|default:"No client" }}</div>
 
-                <div class="co-label">Fecha de creación</div>
-                <div class="co-value">{{ changeorder.date_created|date:"d/m/Y" }}</div>
+                <div class="co-label">Created</div>
+                <div class="co-value">{{ changeorder.date_created|date:"m/d/Y" }}</div>
 
-                <div class="co-label">Estado</div>
+                <div class="co-label">Status</div>
                 <div class="co-value">{{ changeorder.get_status_display }}</div>
             </div>
         </section>
 
-        <!-- DESCRIPCIÓN -->
+        <!-- DESCRIPTION -->
         <section class="co-section">
-            <h2><i class="bi bi-file-text"></i> Descripción del Cambio</h2>
+            <h2><i class="bi bi-file-text"></i> Change Description</h2>
             <div class="co-description">
                 {{ changeorder.description }}
             </div>
         </section>
 
-        <!-- NOTAS -->
+        <!-- NOTES -->
         {% if changeorder.notes %}
         <section class="co-section">
-            <h2><i class="bi bi-sticky"></i> Notas Adicionales</h2>
+            <h2><i class="bi bi-sticky"></i> Additional Notes</h2>
             <div class="co-notes">
                 {{ changeorder.notes|linebreaks }}
             </div>
@@ -545,7 +545,7 @@
         <!-- COLOR INFORMATION -->
         {% if changeorder.color or changeorder.reference_code %}
         <section class="co-section">
-            <h2><i class="bi bi-palette"></i> Información de Color</h2>
+            <h2><i class="bi bi-palette"></i> Color Information</h2>
             <div class="co-two-cols">
                 {% if changeorder.color %}
                 <div class="co-label">Color</div>
@@ -558,7 +558,7 @@
                 {% endif %}
 
                 {% if changeorder.reference_code %}
-                <div class="co-label">Código de Referencia</div>
+                <div class="co-label">Reference Code</div>
                 <div class="co-value">{{ changeorder.reference_code }}</div>
                 {% endif %}
             </div>
@@ -568,7 +568,7 @@
         <!-- PHOTOS -->
         {% if changeorder.photos.all %}
         <section class="co-section">
-            <h2><i class="bi bi-images"></i> Fotos del Proyecto ({{ changeorder.photos.count }})</h2>
+            <h2><i class="bi bi-images"></i> Project Photos ({{ changeorder.photos.count }})</h2>
             <div class="photo-gallery">
                 {% for photo in changeorder.photos.all %}
                 <div class="photo-item">
@@ -578,7 +578,7 @@
                     {% endif %}
                     {% if photo.annotations %}
                     <div class="photo-badge">
-                        <i class="bi bi-pencil"></i> Con anotaciones
+                        <i class="bi bi-pencil"></i> With annotations
                     </div>
                     {% endif %}
                 </div>
@@ -587,34 +587,34 @@
         </section>
         {% endif %}
 
-        <!-- GASTOS -->
+        <!-- EXPENSES -->
         <section class="co-section">
-            <h2><i class="bi bi-receipt-cutoff"></i> Gastos Asociados</h2>
+            <h2><i class="bi bi-receipt-cutoff"></i> Associated Expenses</h2>
             {% if changeorder.expenses.all %}
                 <table class="co-table">
                     <thead>
                         <tr>
-                            <th>Fecha</th>
-                            <th>Descripción</th>
-                            <th>Monto</th>
-                            <th>Documentos</th>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Documents</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for expense in changeorder.expenses.all %}
                         <tr>
-                            <td>{{ expense.date|date:"d/m/Y" }}</td>
+                            <td>{{ expense.date|date:"m/d/Y" }}</td>
                             <td>{{ expense.description }}</td>
                             <td class="co-table-amount">-${{ expense.amount|floatformat:2 }}</td>
                             <td>
                                 {% if expense.receipt %}
                                 <a href="{{ expense.receipt.url }}" target="_blank" class="btn btn-outline">
-                                    <i class="bi bi-paperclip"></i> Recibo
+                                    <i class="bi bi-paperclip"></i> Receipt
                                 </a>
                                 {% endif %}
                                 {% if expense.invoice %}
                                 <a href="{{ expense.invoice.url }}" target="_blank" class="btn btn-outline">
-                                    <i class="bi bi-file-earmark-pdf"></i> Factura
+                                    <i class="bi bi-file-earmark-pdf"></i> Invoice
                                 </a>
                                 {% endif %}
                             </td>
@@ -625,12 +625,12 @@
             {% else %}
                 <div class="empty-state">
                     <i class="bi bi-inbox"></i>
-                    No hay gastos asociados a este Change Order.
+                    No expenses associated with this Change Order.
                 </div>
             {% endif %}
         </section>
 
-        <!-- BOTONES -->
+        <!-- BUTTONS -->
         <footer class="co-actions">
             <a href="{% url 'changeorder_board' %}" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Back to Board
@@ -671,7 +671,7 @@
 
     <script>
     function sendToClient(coId) {
-        if (!confirm('¿Enviar este Change Order al cliente para firma?')) {
+        if (!confirm('Send this Change Order to the client for signature?')) {
             return;
         }
         
@@ -685,15 +685,15 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('✅ Change Order enviado al cliente correctamente');
+                alert('✅ Change Order sent to client successfully');
                 location.reload();
             } else {
-                alert('❌ Error: ' + (data.error || 'No se pudo enviar'));
+                alert('❌ Error: ' + (data.error || 'Could not send'));
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('❌ Error al enviar al cliente');
+            alert('❌ Error sending to client');
         });
     }
 

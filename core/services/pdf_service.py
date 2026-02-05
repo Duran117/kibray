@@ -362,8 +362,14 @@ def _build_changeorder_context(co: "ChangeOrder") -> dict[str, Any]:
     signature_base64 = ""
     if co.signature_image:
         try:
-            co.signature_image.seek(0)
-            signature_base64 = base64.b64encode(co.signature_image.read()).decode("utf-8")
+            # Handle both local and remote storage (S3, etc.)
+            sig_file = co.signature_image
+            if hasattr(sig_file, 'open'):
+                with sig_file.open('rb') as f:
+                    signature_base64 = base64.b64encode(f.read()).decode("utf-8")
+            else:
+                sig_file.seek(0)
+                signature_base64 = base64.b64encode(sig_file.read()).decode("utf-8")
         except Exception:
             pass
     
@@ -394,8 +400,14 @@ def _build_colorsample_context(cs: "ColorSample") -> dict[str, Any]:
     signature_base64 = ""
     if cs.client_signature:
         try:
-            cs.client_signature.seek(0)
-            signature_base64 = base64.b64encode(cs.client_signature.read()).decode("utf-8")
+            # Handle both local and remote storage (S3, etc.)
+            sig_file = cs.client_signature
+            if hasattr(sig_file, 'open'):
+                with sig_file.open('rb') as f:
+                    signature_base64 = base64.b64encode(f.read()).decode("utf-8")
+            else:
+                sig_file.seek(0)
+                signature_base64 = base64.b64encode(sig_file.read()).decode("utf-8")
         except Exception:
             pass
     
@@ -1637,9 +1649,14 @@ def generate_signed_contract_pdf_reportlab(contract: "Contract") -> bytes:
     # Try to include signature image
     if contract.client_signature:
         try:
-            # Read signature file
-            contract.client_signature.seek(0)
-            sig_bytes = contract.client_signature.read()
+            # Handle both local and remote storage (S3, etc.)
+            sig_file = contract.client_signature
+            if hasattr(sig_file, 'open'):
+                with sig_file.open('rb') as f:
+                    sig_bytes = f.read()
+            else:
+                sig_file.seek(0)
+                sig_bytes = sig_file.read()
             sig_buffer = BytesIO(sig_bytes)
             sig_image = Image(sig_buffer, width=2*inch, height=0.75*inch)
             elements.append(sig_image)
@@ -1943,8 +1960,14 @@ def generate_colorsample_pdf_reportlab(colorsample: "ColorSample") -> bytes:
     # Load Sample Image
     if has_sample:
         try:
-            colorsample.sample_image.seek(0)
-            img_bytes = colorsample.sample_image.read()
+            # Handle both local and remote storage (S3, etc.)
+            img_file = colorsample.sample_image
+            if hasattr(img_file, 'open'):
+                with img_file.open('rb') as f:
+                    img_bytes = f.read()
+            else:
+                img_file.seek(0)
+                img_bytes = img_file.read()
             img_buffer = BytesIO(img_bytes)
             sample_img = Image(img_buffer, width=2.6*inch, height=2.6*inch)
         except Exception:
@@ -1953,8 +1976,14 @@ def generate_colorsample_pdf_reportlab(colorsample: "ColorSample") -> bytes:
     # Load Reference Photo
     if has_reference:
         try:
-            colorsample.reference_photo.seek(0)
-            ref_bytes = colorsample.reference_photo.read()
+            # Handle both local and remote storage (S3, etc.)
+            ref_file = colorsample.reference_photo
+            if hasattr(ref_file, 'open'):
+                with ref_file.open('rb') as f:
+                    ref_bytes = f.read()
+            else:
+                ref_file.seek(0)
+                ref_bytes = ref_file.read()
             ref_buffer = BytesIO(ref_bytes)
             ref_img = Image(ref_buffer, width=2.6*inch, height=2.6*inch)
         except Exception:
@@ -2124,8 +2153,14 @@ def generate_colorsample_pdf_reportlab(colorsample: "ColorSample") -> bytes:
     # Client Signature Image
     if colorsample.client_signature:
         try:
-            colorsample.client_signature.seek(0)
-            sig_bytes = colorsample.client_signature.read()
+            # Handle both local and remote storage (S3, etc.)
+            sig_file = colorsample.client_signature
+            if hasattr(sig_file, 'open'):
+                with sig_file.open('rb') as f:
+                    sig_bytes = f.read()
+            else:
+                sig_file.seek(0)
+                sig_bytes = sig_file.read()
             sig_buffer = BytesIO(sig_bytes)
             sig_image = Image(sig_buffer, width=2.5*inch, height=0.8*inch)
             
