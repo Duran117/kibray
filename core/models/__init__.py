@@ -3866,13 +3866,14 @@ class DailyLogScheduleProgress(models.Model):
     
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Optionally auto-update the Gantt item's progress
-        if self.schedule_item:
+        # Auto-update the Gantt item's progress
+        if self.schedule_item and self.progress_percent is not None:
             self.schedule_item.progress = self.progress_percent
             if self.progress_percent >= 100:
                 self.schedule_item.status = 'done'
             elif self.progress_percent > 0:
                 self.schedule_item.status = 'in_progress'
+            # Only update if progress changed
             self.schedule_item.save(update_fields=['progress', 'status'])
 
 

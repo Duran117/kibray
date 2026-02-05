@@ -6492,22 +6492,17 @@ def daily_log_create(request, project_id):
                 progress_entries = schedule_formset.save(commit=False)
                 for entry in progress_entries:
                     entry.daily_log = dl
+                    # The model's save() method will auto-update the ScheduleItemV2 progress
                     entry.save()
-                    
-                    # Update the ScheduleItemV2 progress
-                    if entry.schedule_item and entry.progress_percent is not None:
-                        item = entry.schedule_item
-                        item.progress = int(entry.progress_percent)
-                        if item.progress >= 100:
-                            item.status = "done"
-                            item.progress = 100
-                        elif item.progress > 0:
-                            item.status = "in_progress"
-                        item.save(update_fields=["progress", "status"])
                 
                 # Handle deletions
                 for obj in schedule_formset.deleted_objects:
                     obj.delete()
+            else:
+                # Log formset errors for debugging
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Schedule formset errors: {schedule_formset.errors}")
 
             # Process photos
             photos = request.FILES.getlist("photos")
