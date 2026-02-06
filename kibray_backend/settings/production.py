@@ -199,6 +199,21 @@ CACHES = {
     }
 }
 
+# ============================================
+# CELERY CONFIGURATION FOR BACKGROUND TASKS
+# ============================================
+CELERY_BROKER_URL = REDIS_URL.replace("/0", "/2")  # Use database 2 for Celery broker
+CELERY_RESULT_BACKEND = REDIS_URL.replace("/0", "/3")  # Use database 3 for results
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE  # noqa: F405
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 300  # 5 minutes max per task
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1  # Conservative for memory
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+print("✅ Celery configured with Redis broker")
+
 # Logging - Structured logging for production
 LOGGING = {
     "version": 1,
