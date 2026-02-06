@@ -178,8 +178,7 @@ def alert_incomplete_daily_plans():
                 notification_type="alert",
                 title=f"Daily Plan Overdue: {plan.project.name}",
                 message=f"Daily plan for {plan.plan_date} was due at 5 PM yesterday and is still in DRAFT status.",
-                related_url=f"/daily-plan/{plan.id}/edit/",
-                priority="high",
+                link_url=f"/daily-plan/{plan.id}/edit/",
             )
 
         count += 1
@@ -648,8 +647,7 @@ def generate_daily_plan_reminders():
                     notification_type="reminder",
                     title=f"Tomorrow: {plan.project.name}",
                     message=f"You have {plan.activities.count()} activities scheduled for tomorrow at {plan.project.address}",
-                    related_url="/employee/morning/",
-                    priority="normal",
+                    link_url="/employee/morning/",
                 )
                 sent += 1
 

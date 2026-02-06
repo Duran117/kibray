@@ -5892,9 +5892,10 @@ class FileAttachment(models.Model):
 # ---------------------
 class Notification(models.Model):
     NOTIFICATION_TYPES = [
-        ("task_created", "Tarea creada"),
+        ("task_created", "Task Created"),
         ("task_assigned", "Task Assigned"),
         ("task_completed", "Task Completed"),
+        ("task_alert", "Task Alert"),
         ("color_review", "Color Under Review"),
         ("color_approved", "Color Approved"),
         ("color_rejected", "Color Rejected"),
@@ -5906,6 +5907,9 @@ class Notification(models.Model):
         ("daily_log", "Daily Log"),
         ("invoice", "Invoice"),
         ("contract", "Contract"),
+        ("alert", "Alert"),
+        ("reminder", "Reminder"),
+        ("system", "System"),
     ]
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications"
