@@ -423,6 +423,9 @@
             <div>
                 <div class="co-subtitle">Change Order</div>
                 <h1>CO-{{ changeorder.id|stringformat:"04d" }}</h1>
+                {% if changeorder.co_title %}
+                <p style="font-size: 1.1rem; font-weight: 600; color: #1e293b; margin: 0.3rem 0;">{{ changeorder.co_title }}</p>
+                {% endif %}
                 <p class="co-project-name">{{ changeorder.project.name }}</p>
             </div>
 

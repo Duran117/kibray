@@ -566,6 +566,9 @@
                     <!-- Project / Description -->
                     <td>
                         <div class="co-cell-project-name">{{ co.project.name|truncatewords:8 }}</div>
+                        {% if co.co_title %}
+                        <div class="co-cell-title" style="font-weight: 600; color: #334155; font-size: 13px;">{{ co.co_title|truncatewords:6 }}</div>
+                        {% endif %}
                         <div class="co-cell-description">{{ co.description|truncatewords:12 }}</div>
                     </td>
                     

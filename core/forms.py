@@ -779,7 +779,7 @@ class ChangeOrderForm(forms.ModelForm):
     
     class Meta:
         model = ChangeOrder
-        fields = ["project", "co_title", "description", "pricing_type", "amount", "status", "notes", "color", "reference_code", "billing_hourly_rate", "material_markup_pct"]
+        fields = ["project", "co_title", "description", "pricing_type", "amount", "status", "notes", "color", "reference_code"]
         widgets = {
             "project": forms.Select(attrs={"class": "form-control"}),
             "co_title": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g., Kitchen Cabinets, Bathroom Tile"}),
@@ -798,22 +798,24 @@ class ChangeOrderForm(forms.ModelForm):
         # Set initial values from instance if editing
         if self.instance and self.instance.pk:
             self.fields['pricing_type'].initial = self.instance.pricing_type
-            if hasattr(self.instance, 'labor_rate_override') and self.instance.labor_rate_override:
-                self.fields['billing_hourly_rate'].initial = self.instance.billing_hourly_rate
-            if hasattr(self.instance, 'material_markup_pct'):
-                self.fields['material_markup_pct'].initial = self.instance.material_markup_pct
+            # Map model field labor_rate_override to form field billing_hourly_rate
+            if self.instance.labor_rate_override:
+                self.fields['billing_hourly_rate'].initial = self.instance.labor_rate_override
+            # Map model field material_markup_percent to form field material_markup_pct
+            if hasattr(self.instance, 'material_markup_percent') and self.instance.material_markup_percent is not None:
+                self.fields['material_markup_pct'].initial = self.instance.material_markup_percent
     
     def save(self, commit=True):
         instance = super().save(commit=False)
         # Save pricing type
         instance.pricing_type = self.cleaned_data.get('pricing_type', 'FIXED')
-        # Save T&M fields
+        # Save T&M fields - map form fields to model fields
         billing_rate = self.cleaned_data.get('billing_hourly_rate')
         if billing_rate:
-            instance.billing_hourly_rate = billing_rate
+            instance.labor_rate_override = billing_rate
         markup = self.cleaned_data.get('material_markup_pct')
         if markup is not None:
-            instance.material_markup_pct = markup
+            instance.material_markup_percent = markup
         if commit:
             instance.save()
         return instance
