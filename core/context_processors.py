@@ -70,8 +70,10 @@ def notification_badges(request):
         notification_qs = Notification.objects.filter(user=user, is_read=False)
         
         # For clients, only count notifications for their assigned projects
-        if hasattr(user, 'profile') and user.profile.role == 'client':
-            client_project_ids = list(user.assigned_projects.values_list('id', flat=True))
+        if hasattr(user, 'profile') and user.profile and user.profile.role == 'client':
+            client_project_ids = list(
+                user.project_accesses.filter(is_active=True).values_list('project_id', flat=True)
+            )
             notification_qs = notification_qs.filter(
                 Q(project_id__in=client_project_ids) | Q(project__isnull=True)
             )

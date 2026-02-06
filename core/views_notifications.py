@@ -21,9 +21,11 @@ def notifications_list(request):
     qs = user.notifications.all()
     
     # For clients, ensure they only see notifications for their assigned projects
-    if hasattr(user, 'profile') and user.profile.role == 'client':
-        # Get projects the client has access to
-        client_project_ids = list(user.assigned_projects.values_list('id', flat=True))
+    if hasattr(user, 'profile') and user.profile and user.profile.role == 'client':
+        # Get projects the client has access to via ClientProjectAccess
+        client_project_ids = list(
+            user.project_accesses.filter(is_active=True).values_list('project_id', flat=True)
+        )
         # Filter notifications to only those for their projects (or no project specified)
         qs = qs.filter(
             models.Q(project_id__in=client_project_ids) | models.Q(project__isnull=True)
