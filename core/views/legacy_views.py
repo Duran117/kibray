@@ -242,13 +242,27 @@ def client_requests_list(request, project_id=None):
             return redirect(redirect_url)
         
         qs = ClientRequest.objects.filter(project=project).order_by("-created_at")
-    else:
-        # Without project_id, only staff can see all requests
+        
+        # For non-staff clients, only show their own requests
         if not request.user.is_staff:
-            messages.error(request, _("Access denied."))
-            return redirect("dashboard_client")
-        project = None
-        qs = ClientRequest.objects.all().select_related("project").order_by("-created_at")
+            qs = qs.filter(created_by=request.user)
+    else:
+        # Without project_id
+        if request.user.is_staff:
+            # Staff can see all requests
+            project = None
+            qs = ClientRequest.objects.all().select_related("project").order_by("-created_at")
+        else:
+            # Clients see only their own requests across all their projects
+            project = None
+            client_project_ids = list(
+                request.user.project_accesses.filter(is_active=True).values_list('project_id', flat=True)
+            )
+            qs = ClientRequest.objects.filter(
+                created_by=request.user,
+                project_id__in=client_project_ids
+            ).select_related("project").order_by("-created_at")
+    
     return render(request, "core/client_requests_list.html", {"project": project, "requests": qs})
 
 
