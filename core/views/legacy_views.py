@@ -4577,13 +4577,14 @@ def color_sample_client_signature_view(request, sample_id, token=None):
             color_sample.sign_by_client(signature_file, signed_name, client_ip)
 
             # --- Queue background task for email/PDF (non-blocking) ---
+            customer_email = request.POST.get("customer_email", "").strip()
             try:
                 from core.tasks import process_signature_post_tasks
                 process_signature_post_tasks.delay(
                     document_type="color_sample",
                     document_id=color_sample.id,
                     signer_name=signed_name,
-                    customer_email=None,  # Could add customer email if available
+                    customer_email=customer_email if customer_email else None,
                 )
             except Exception:
                 pass  # Don't block if task queueing fails
