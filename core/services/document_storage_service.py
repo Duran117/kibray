@@ -221,6 +221,9 @@ def save_pdf_to_project_files(
     if not description and source_record:
         description = _build_description_from_source(source_record, document_type)
     
+    # Signed documents (COs, Color Samples) should be public for client access
+    is_public_doc = document_type in ("changeorder", "colorsample")
+    
     project_file = ProjectFile(
         project=project,
         category=category,
@@ -228,7 +231,7 @@ def save_pdf_to_project_files(
         description=description,
         file_type="pdf",
         uploaded_by=user,
-        is_public=False,  # Internal document
+        is_public=is_public_doc,  # Signed documents are public for clients
     )
     
     # Save the file
