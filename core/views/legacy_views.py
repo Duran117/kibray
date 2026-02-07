@@ -1017,6 +1017,16 @@ def dashboard_client(request):
             project=project,
             status__in=['proposed', 'review']
         ).order_by('-created_at')[:5]
+        
+        # Recently signed/approved Color Samples
+        signed_color_samples = ColorSample.objects.filter(
+            project=project,
+            status='approved'
+        ).exclude(
+            client_signature__isnull=True
+        ).exclude(
+            client_signature=''
+        ).order_by('-client_signed_at')[:3]
 
         # Contracts pending signature
         from core.models import Contract
@@ -1055,6 +1065,7 @@ def dashboard_client(request):
                 "pending_change_orders": pending_change_orders,
                 "signed_change_orders": signed_change_orders,
                 "pending_color_samples": pending_color_samples,
+                "signed_color_samples": signed_color_samples,
                 "pending_contracts": pending_contracts,
                 "signed_contracts": signed_contracts,
                 "recent_daily_logs": recent_daily_logs,
@@ -11830,7 +11841,8 @@ def project_files_view(request, project_id):
         ("Daily Logs Photos", "daily_logs", "bi-camera-fill", "primary"),
         ("Documents", "documents", "bi-file-earmark-text", "info"),
         ("Datasheets", "datasheets", "bi-file-spreadsheet", "success"),
-        ("COs Firmados", "cos_signed", "bi-file-earmark-check", "warning"),
+        ("Signed Change Orders", "cos_signed", "bi-file-earmark-check", "warning"),
+        ("Signed Color Samples", "colorsamples_signed", "bi-palette", "purple"),
         ("Invoices", "invoices", "bi-receipt", "success"),
         ("Contracts", "contracts", "bi-file-earmark-ruled", "danger"),
         ("Photos", "photos", "bi-images", "primary"),

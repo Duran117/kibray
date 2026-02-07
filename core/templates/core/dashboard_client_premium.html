@@ -630,7 +630,7 @@
                     </div>
 
                     <!-- Recently Signed -->
-                    {% if data.signed_change_orders or data.signed_contracts %}
+                    {% if data.signed_change_orders or data.signed_contracts or data.signed_color_samples %}
                     <div>
                         <p class="text-xs text-slate-400 uppercase tracking-wide mb-3">Recently Completed</p>
                         {% for contract in data.signed_contracts %}
@@ -652,6 +652,17 @@
                             <div class="flex-1">
                                 <p class="text-sm text-slate-700">CO #{{ co.id }} signed</p>
                                 <p class="text-xs text-slate-400">{{ co.signed_at|date:"M d" }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% for sample in data.signed_color_samples %}
+                        <div class="flex items-center gap-3 py-2">
+                            <div class="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
+                                <i class="bi bi-palette text-violet-600"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm text-slate-700">Color {{ sample.name|default:sample.code }} approved</p>
+                                <p class="text-xs text-slate-400">{{ sample.client_signed_at|date:"M d" }}</p>
                             </div>
                         </div>
                         {% endfor %}

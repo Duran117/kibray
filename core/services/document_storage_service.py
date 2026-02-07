@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 # Document type to category mapping
 DOCUMENT_TYPE_CATEGORY = {
     "changeorder": "cos_signed",
-    "colorsample": "cos_signed", 
+    "colorsample": "colorsamples_signed", 
     "estimate": "contracts",
     "contract": "contracts",
     "invoice": "invoices",
@@ -54,8 +54,8 @@ DOCUMENT_TYPE_CATEGORY = {
 
 # Document type to folder name mapping
 DOCUMENT_TYPE_FOLDER_NAME = {
-    "changeorder": "COs Firmados",
-    "colorsample": "COs Firmados",
+    "changeorder": "Signed Change Orders",
+    "colorsample": "Signed Color Samples",
     "estimate": "Contracts",
     "contract": "Contracts",
     "invoice": "Invoices",
@@ -94,12 +94,14 @@ def _get_or_create_category(
     # Get icon and color based on type
     icon_map = {
         "cos_signed": "bi-file-earmark-check",
+        "colorsamples_signed": "bi-palette",
         "contracts": "bi-file-earmark-ruled",
         "invoices": "bi-receipt",
         "documents": "bi-file-earmark-text",
     }
     color_map = {
         "cos_signed": "warning",
+        "colorsamples_signed": "purple",
         "contracts": "danger",
         "invoices": "success",
         "documents": "info",
