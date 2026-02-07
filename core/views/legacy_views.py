@@ -12080,6 +12080,64 @@ def file_download(request, file_id):
                 filename=file_obj.name
             )
             return response
+        except FileNotFoundError:
+            # File doesn't exist on disk - try to regenerate if it's a signed document
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"File not found on disk: {file_obj.name}, attempting regeneration...")
+            
+            # Try to regenerate CO or ColorSample PDFs
+            if file_obj.name.startswith("CO_") or file_obj.name.startswith("ChangeOrder_"):
+                try:
+                    from core.models import ChangeOrder
+                    from core.services.pdf_service import generate_signed_changeorder_pdf
+                    from django.core.files.base import ContentFile
+                    
+                    # Extract CO ID from filename (CO_13_xxx or ChangeOrder_13_xxx)
+                    parts = file_obj.name.split("_")
+                    co_id = int(parts[1])
+                    co = ChangeOrder.objects.get(id=co_id)
+                    
+                    if co.signed_at:
+                        pdf_bytes = generate_signed_changeorder_pdf(co)
+                        # Save regenerated file
+                        file_obj.file.save(file_obj.name, ContentFile(pdf_bytes), save=True)
+                        logger.info(f"Regenerated CO PDF: {file_obj.name}")
+                        
+                        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+                        response['Content-Disposition'] = f'attachment; filename="{file_obj.name}"'
+                        return response
+                except Exception as regen_error:
+                    logger.error(f"Failed to regenerate CO PDF: {regen_error}")
+            
+            elif file_obj.name.startswith("ColorSample_"):
+                try:
+                    from core.models import ColorSample
+                    from core.services.pdf_service import generate_signed_colorsample_pdf
+                    from django.core.files.base import ContentFile
+                    
+                    # Extract sample ID from filename (ColorSample_XX_code_project.pdf)
+                    parts = file_obj.name.split("_")
+                    sample_id = parts[1]
+                    # Could be ID or sample_number
+                    cs = ColorSample.objects.filter(
+                        models.Q(id=sample_id) | models.Q(sample_number=sample_id),
+                        project=file_obj.project
+                    ).first()
+                    
+                    if cs and cs.client_signed_at:
+                        pdf_bytes = generate_signed_colorsample_pdf(cs)
+                        # Save regenerated file
+                        file_obj.file.save(file_obj.name, ContentFile(pdf_bytes), save=True)
+                        logger.info(f"Regenerated ColorSample PDF: {file_obj.name}")
+                        
+                        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+                        response['Content-Disposition'] = f'attachment; filename="{file_obj.name}"'
+                        return response
+                except Exception as regen_error:
+                    logger.error(f"Failed to regenerate ColorSample PDF: {regen_error}")
+            
+            return HttpResponseNotFound("El archivo no está disponible. Por favor contacte al administrador.")
         except Exception as e:
             import logging
             logging.getLogger(__name__).error(f"File download error: {e}")
@@ -12836,7 +12894,7 @@ def workflow_action(request, workflow_id):
 @login_required
 def file_workflow_status(request, file_id):
     """Get workflow status for a file"""
-    from core.models import ProjectFile, DocumentWorkflow
+    from core.models import ProjectFile, DocumentWorkflow, ClientProjectAccess
 
     file_obj = get_object_or_404(ProjectFile, id=file_id)
     
@@ -12844,7 +12902,11 @@ def file_workflow_status(request, file_id):
     if not request.user.is_staff:
         if not file_obj.is_public:
             return JsonResponse({"error": gettext("No tienes acceso a este archivo")}, status=403)
-        if not file_obj.project.clients.filter(id=request.user.id).exists():
+        # Check client access via ClientProjectAccess
+        has_access = ClientProjectAccess.objects.filter(
+            user=request.user, project=file_obj.project
+        ).exists()
+        if not has_access:
             return JsonResponse({"error": gettext("No tienes acceso a este proyecto")}, status=403)
     
     # Get active or latest workflow
