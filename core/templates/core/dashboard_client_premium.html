@@ -576,7 +576,7 @@
                     <div class="space-y-2">
                         <p class="text-xs text-slate-400 uppercase tracking-wide">Color Approvals</p>
                         {% for sample in data.pending_color_samples|slice:":3" %}
-                        <a href="{% url 'color_sample_client_signature' sample_id=sample.id %}" 
+                        <a href="{% url 'color_sample_detail' sample_id=sample.id %}" 
                            class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 elegant-hover group">
                             {% if sample.sample_image %}
                             <img src="{{ sample.sample_image.url }}" alt="{{ sample.name }}" 

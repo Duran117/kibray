@@ -37,11 +37,13 @@
         </div>
     </div>
     <div class="flex flex-wrap items-center gap-2">
+        {% if user.is_staff or user.profile.role in 'project_manager,designer' %}
         <a href="{% url 'color_sample_review' sample.id %}" 
            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-medium">
             <i class="bi bi-pencil-square"></i>
             {% trans "Review" %}
         </a>
+        {% endif %}
         <!-- PDF Download -->
         <a href="{% url 'colorsample_pdf_view' colorsample_id=sample.id %}" target="_blank"
            class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium">
