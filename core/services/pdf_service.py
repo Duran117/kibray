@@ -1716,7 +1716,7 @@ def generate_changeorder_pdf_reportlab(changeorder: "ChangeOrder") -> bytes:
     from reportlab.lib.pagesizes import LETTER
     from reportlab.lib.units import inch
     from reportlab.lib import colors
-    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
     
@@ -1833,14 +1833,75 @@ def generate_changeorder_pdf_reportlab(changeorder: "ChangeOrder") -> bytes:
     # === SIGNATURES ===
     elements.append(Paragraph("<b>AUTHORIZATION & SIGNATURES</b>", header_style))
     
+    # --- Client Signature ---
+    client_sig_content = []
+    client_sig_content.append(Paragraph("<b>CLIENT SIGNATURE</b>", small_style))
+    
+    # Try to load client signature image
+    client_sig_img = None
+    if changeorder.signature_image:
+        try:
+            sig_file = changeorder.signature_image
+            if hasattr(sig_file, 'open'):
+                with sig_file.open('rb') as f:
+                    sig_bytes = f.read()
+            else:
+                sig_file.seek(0)
+                sig_bytes = sig_file.read()
+            sig_buffer = BytesIO(sig_bytes)
+            client_sig_img = Image(sig_buffer, width=2.5*inch, height=0.8*inch)
+        except Exception:
+            client_sig_img = None
+    
+    if client_sig_img:
+        client_sig_content.append(Spacer(1, 8))
+        client_sig_content.append(client_sig_img)
+    else:
+        client_sig_content.append(Paragraph("<br/><br/>_________________________", normal_style))
+    
     signed_by = changeorder.signed_by or "_________________________"
     signed_date = changeorder.signed_at.strftime('%B %d, %Y') if changeorder.signed_at else "_______________"
+    client_sig_content.append(Paragraph(f"{signed_by}", normal_style))
+    client_sig_content.append(Paragraph(f"Date: {signed_date}", small_style))
     
+    # --- Contractor Signature ---
+    contractor_sig_content = []
+    contractor_sig_content.append(Paragraph("<b>CONTRACTOR SIGNATURE</b>", small_style))
+    
+    # Try to load contractor signature image
+    contractor_sig_img = None
+    if hasattr(changeorder, 'contractor_signature') and changeorder.contractor_signature:
+        try:
+            sig_file = changeorder.contractor_signature
+            if hasattr(sig_file, 'open'):
+                with sig_file.open('rb') as f:
+                    sig_bytes = f.read()
+            else:
+                sig_file.seek(0)
+                sig_bytes = sig_file.read()
+            sig_buffer = BytesIO(sig_bytes)
+            contractor_sig_img = Image(sig_buffer, width=2.5*inch, height=0.8*inch)
+        except Exception:
+            contractor_sig_img = None
+    
+    if contractor_sig_img:
+        contractor_sig_content.append(Spacer(1, 8))
+        contractor_sig_content.append(contractor_sig_img)
+    else:
+        contractor_sig_content.append(Paragraph("<br/><br/>_________________________", normal_style))
+    
+    contractor_signed_by = getattr(changeorder, 'contractor_signed_by', '') or COMPANY_INFO['name']
+    contractor_signed_date = ""
+    if hasattr(changeorder, 'contractor_signed_at') and changeorder.contractor_signed_at:
+        contractor_signed_date = changeorder.contractor_signed_at.strftime('%B %d, %Y')
+    else:
+        contractor_signed_date = "_______________"
+    contractor_sig_content.append(Paragraph(f"{contractor_signed_by}", normal_style))
+    contractor_sig_content.append(Paragraph(f"Date: {contractor_signed_date}", small_style))
+    
+    # Build signature table
     sig_data = [
-        [Paragraph("<b>CLIENT SIGNATURE</b>", small_style), Paragraph("<b>CONTRACTOR SIGNATURE</b>", small_style)],
-        [Paragraph("<br/><br/>_________________________", normal_style), Paragraph("<br/><br/>_________________________", normal_style)],
-        [Paragraph(f"{signed_by}", normal_style), Paragraph(f"{COMPANY_INFO['name']}", normal_style)],
-        [Paragraph(f"Date: {signed_date}", small_style), Paragraph("Date: _______________", small_style)],
+        [client_sig_content, contractor_sig_content],
     ]
     
     sig_table = Table(sig_data, colWidths=[3.5*inch, 3.5*inch])

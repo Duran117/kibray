@@ -4405,6 +4405,105 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
 
 
 @login_required
+def changeorder_contractor_signature_view(request, changeorder_id):
+    """Vista para capturar firma del contratista/admin en Change Orders.
+    Solo accesible por staff/superuser.
+    """
+    if not request.user.is_staff:
+        return HttpResponseForbidden("Only staff members can sign as contractor.")
+    
+    changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
+
+    # Calculate T&M total if applicable
+    tm_breakdown = None
+    if changeorder.pricing_type == 'T_AND_M':
+        from core.services.financial_service import ChangeOrderService
+        tm_breakdown = ChangeOrderService.get_billable_amount(changeorder)
+
+    # Check if contractor already signed
+    if changeorder.contractor_signature:
+        messages.info(request, "Este Change Order ya fue firmado por el contratista.")
+        return redirect("changeorder_detail", co_id=changeorder.id)
+
+    if request.method == "POST":
+        import base64
+        import uuid
+
+        from django.core.files.base import ContentFile
+        from django.utils import timezone
+
+        signature_data = request.POST.get("signature_data")
+        signer_name = request.POST.get("signer_name", "").strip() or request.user.get_full_name() or request.user.username
+
+        if not signature_data:
+            messages.error(request, "Por favor dibuja tu firma antes de continuar.")
+            return render(
+                request,
+                "core/changeorder_contractor_signature_form.html",
+                {
+                    "changeorder": changeorder,
+                    "tm_breakdown": tm_breakdown,
+                },
+            )
+
+        try:
+            format_str, imgstr = signature_data.split(";base64,")
+            ext = format_str.split("/")[-1]
+            signature_file = ContentFile(
+                base64.b64decode(imgstr),
+                name=f"contractor_sig_co_{changeorder.id}_{uuid.uuid4().hex[:8]}.{ext}",
+            )
+
+            changeorder.contractor_signature = signature_file
+            changeorder.contractor_signed_by = signer_name
+            changeorder.contractor_signed_at = timezone.now()
+            changeorder.save(
+                update_fields=[
+                    "contractor_signature",
+                    "contractor_signed_by",
+                    "contractor_signed_at",
+                ]
+            )
+
+            # Regenerate PDF if both signatures are present
+            if changeorder.signature_image:
+                try:
+                    from core.services.pdf_service import generate_changeorder_pdf_reportlab
+                    pdf_bytes = generate_changeorder_pdf_reportlab(changeorder)
+                    if pdf_bytes:
+                        changeorder.signed_pdf = ContentFile(
+                            pdf_bytes, name=f"co_{changeorder.id}_signed.pdf"
+                        )
+                        changeorder.save(update_fields=["signed_pdf"])
+                        
+                        # Auto-save to project files
+                        from core.services.document_storage_service import auto_save_signed_document
+                        auto_save_signed_document(changeorder, "changeorder")
+                except Exception as e:
+                    import logging
+                    logging.getLogger(__name__).warning(f"Error regenerating PDF: {e}")
+
+            messages.success(request, f"Change Order #{changeorder.co_number} firmado exitosamente como contratista.")
+            return redirect("changeorder_detail", co_id=changeorder.id)
+            
+        except Exception as e:
+            messages.error(request, f"Error procesando la firma: {e}")
+            return render(
+                request,
+                "core/changeorder_contractor_signature_form.html",
+                {
+                    "changeorder": changeorder,
+                    "tm_breakdown": tm_breakdown,
+                },
+            )
+
+    return render(request, "core/changeorder_contractor_signature_form.html", {
+        "changeorder": changeorder,
+        "tm_breakdown": tm_breakdown,
+    })
+
+
+@login_required
 def changeorder_create_view(request):
     if request.method == "POST":
         form = ChangeOrderForm(request.POST, request.FILES)

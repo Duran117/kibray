@@ -1,0 +1,492 @@
+{% load static currency_extras i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Contractor Signature" %} - CO-{{ changeorder.id }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e3a5f;
+            --primary-light: #2d4a6f;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-400: #9ca3af;
+            --gray-600: #4b5563;
+            --gray-800: #1f2937;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8eef8 50%, #f5f0ff 100%);
+            min-height: 100vh;
+            padding: 24px 16px;
+            color: var(--gray-800);
+        }
+        
+        .container { max-width: 640px; margin: 0 auto; }
+        
+        .signature-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(30, 58, 95, 0.15);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 28px 24px;
+            text-align: center;
+        }
+        
+        .card-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .card-header .project-name {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        
+        .card-body { padding: 28px 24px; }
+        
+        .co-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-50) 100%);
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            border: 1px solid var(--gray-200);
+            margin-bottom: 20px;
+        }
+        
+        .co-badge i { color: var(--primary); }
+        
+        .info-grid { display: grid; gap: 12px; margin-bottom: 24px; }
+        
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--gray-50);
+            border-radius: 12px;
+            border: 1px solid var(--gray-100);
+        }
+        
+        .info-item i { width: 20px; text-align: center; color: var(--primary); margin-top: 2px; }
+        .info-content { flex: 1; }
+        .info-label { font-size: 0.75rem; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+        .info-value { font-size: 0.95rem; font-weight: 500; color: var(--gray-800); }
+        .info-value.amount { font-size: 1.1rem; font-weight: 700; color: var(--success); }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-badge.signed { background: #dcfce7; color: #166534; }
+        .status-badge.pending { background: #fef3c7; color: #92400e; }
+        
+        .client-signature-preview {
+            background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%);
+            border: 1px solid #86efac;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .client-signature-preview h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #166534;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .client-signature-preview img {
+            max-width: 200px;
+            max-height: 80px;
+            border: 1px solid #86efac;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--gray-200), transparent); margin: 24px 0; }
+        
+        .form-section { margin-bottom: 24px; }
+        .form-label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--gray-800); margin-bottom: 8px; }
+        .form-label i { color: var(--primary); margin-right: 6px; }
+        
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(30, 58, 95, 0.1);
+        }
+        
+        .signature-section { margin-bottom: 24px; }
+        .signature-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .signature-label .label-text { font-size: 0.875rem; font-weight: 600; color: var(--gray-800); display: flex; align-items: center; gap: 6px; }
+        .signature-label .label-text i { color: var(--primary); }
+        
+        .clear-btn {
+            background: transparent;
+            border: none;
+            color: var(--gray-400);
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .clear-btn:hover { background: var(--gray-100); color: var(--gray-600); }
+        
+        .signature-canvas-wrapper {
+            border: 2px dashed var(--gray-300);
+            border-radius: 16px;
+            background: var(--gray-50);
+            padding: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .signature-canvas-wrapper:focus-within,
+        .signature-canvas-wrapper.drawing {
+            border-color: var(--primary);
+            border-style: solid;
+            box-shadow: 0 0 0 4px rgba(30, 58, 95, 0.1);
+        }
+        
+        #signature-pad {
+            width: 100%;
+            height: 200px;
+            background: white;
+            border-radius: 12px;
+            cursor: crosshair;
+            touch-action: none;
+        }
+        
+        .signature-instructions {
+            text-align: center;
+            padding: 12px;
+            color: var(--gray-400);
+            font-size: 0.85rem;
+        }
+        
+        .error-alert {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .error-alert i { color: var(--danger); font-size: 1.1rem; }
+        .error-alert span { color: var(--danger); font-weight: 500; font-size: 0.9rem; }
+        
+        .btn-group { display: flex; gap: 12px; }
+        
+        .submit-btn {
+            flex: 1;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(30, 58, 95, 0.3);
+        }
+        
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 58, 95, 0.4);
+        }
+        
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        .cancel-btn {
+            padding: 16px 24px;
+            background: var(--gray-100);
+            color: var(--gray-600);
+            border: none;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .cancel-btn:hover { background: var(--gray-200); color: var(--gray-800); }
+        
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid white;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        .submit-btn.loading .spinner { display: block; }
+        .submit-btn.loading .btn-text { display: none; }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .legal-text {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--gray-400);
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 480px) {
+            body { padding: 16px 12px; }
+            .card-header { padding: 24px 20px; }
+            .card-body { padding: 20px 16px; }
+            #signature-pad { height: 180px; }
+            .btn-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="signature-card">
+            <div class="card-header">
+                <h1>
+                    <i class="fas fa-user-tie"></i>
+                    {% trans "Contractor Signature" %}
+                </h1>
+                <div class="project-name">{{ changeorder.project.name }}</div>
+            </div>
+            
+            <div class="card-body">
+                <!-- CO Info -->
+                {% if changeorder.co_title %}
+                <h2 class="h5 fw-semibold text-dark mb-3">{{ changeorder.co_title }}</h2>
+                {% endif %}
+                
+                <div class="co-badge">
+                    <i class="fas fa-hashtag"></i>
+                    CO-{{ changeorder.co_number|default:changeorder.id }}
+                </div>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <i class="fas fa-dollar-sign"></i>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "Amount" %}</div>
+                            <div class="info-value amount">
+                                {% if tm_breakdown %}
+                                    ${{ tm_breakdown.grand_total|floatformat:2 }}
+                                {% else %}
+                                    ${{ changeorder.amount|floatformat:2 }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <i class="fas fa-info-circle"></i>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "Client Signature Status" %}</div>
+                            <div class="info-value">
+                                {% if changeorder.signature_image %}
+                                <span class="status-badge signed">
+                                    <i class="fas fa-check-circle"></i>
+                                    {% trans "Signed by" %} {{ changeorder.signed_by }}
+                                </span>
+                                {% else %}
+                                <span class="status-badge pending">
+                                    <i class="fas fa-clock"></i>
+                                    {% trans "Pending client signature" %}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if changeorder.signature_image %}
+                <div class="client-signature-preview">
+                    <h3><i class="fas fa-check-circle"></i> {% trans "Client Signature" %}</h3>
+                    <img src="{{ changeorder.signature_image.url }}" alt="Client Signature">
+                    <div class="mt-2 small text-muted">
+                        {{ changeorder.signed_by }} - {{ changeorder.signed_at|date:"M d, Y H:i" }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="divider"></div>
+                
+                <form method="post" id="signature-form">
+                    {% csrf_token %}
+                    
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="error-alert">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    
+                    <div class="form-section">
+                        <label class="form-label" for="signer_name">
+                            <i class="fas fa-user"></i>
+                            {% trans "Your Name" %}
+                        </label>
+                        <input type="text" id="signer_name" name="signer_name" class="form-input" 
+                               value="{{ request.user.get_full_name|default:request.user.username }}"
+                               placeholder="{% trans 'Enter your name' %}">
+                    </div>
+                    
+                    <div class="signature-section">
+                        <div class="signature-label">
+                            <span class="label-text">
+                                <i class="fas fa-pen-nib"></i>
+                                {% trans "Contractor Signature" %}
+                            </span>
+                            <button type="button" class="clear-btn" id="clear-signature">
+                                <i class="fas fa-undo"></i> {% trans "Clear" %}
+                            </button>
+                        </div>
+                        
+                        <div class="signature-canvas-wrapper" id="canvas-wrapper">
+                            <canvas id="signature-pad"></canvas>
+                        </div>
+                        
+                        <div class="signature-instructions">
+                            <i class="fas fa-hand-pointer"></i>
+                            {% trans "Draw your signature above" %}
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" name="signature_data" id="signature-data">
+                    
+                    <div class="btn-group">
+                        <a href="{% url 'changeorder_detail' co_id=changeorder.id %}" class="cancel-btn">
+                            <i class="fas fa-arrow-left"></i> {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="submit-btn" id="submit-btn">
+                            <span class="btn-text"><i class="fas fa-check-circle"></i> {% trans "Sign as Contractor" %}</span>
+                            <div class="spinner"></div>
+                        </button>
+                    </div>
+                    
+                    <div class="legal-text">
+                        <i class="fas fa-shield-alt"></i>
+                        {% trans "By signing, you authorize this Change Order on behalf of the company." %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('signature-pad');
+            if (!canvas) return;
+            
+            const wrapper = document.getElementById('canvas-wrapper');
+            const form = document.getElementById('signature-form');
+            const signatureData = document.getElementById('signature-data');
+            const clearBtn = document.getElementById('clear-signature');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            function resizeCanvas() {
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width * ratio;
+                canvas.height = rect.height * ratio;
+                const ctx = canvas.getContext("2d");
+                ctx.scale(ratio, ratio);
+                signaturePad.clear();
+            }
+            
+            const signaturePad = new SignaturePad(canvas, {
+                backgroundColor: 'rgb(255, 255, 255)',
+                penColor: 'rgb(30, 58, 95)',
+                minWidth: 1,
+                maxWidth: 3
+            });
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            signaturePad.addEventListener('beginStroke', function() { wrapper.classList.add('drawing'); });
+            signaturePad.addEventListener('endStroke', function() { wrapper.classList.remove('drawing'); });
+            
+            clearBtn.addEventListener('click', function() { signaturePad.clear(); });
+            
+            form.addEventListener('submit', function(e) {
+                if (signaturePad.isEmpty()) {
+                    e.preventDefault();
+                    alert('{% trans "Please provide your signature" %}');
+                    return false;
+                }
+                signatureData.value = signaturePad.toDataURL('image/png');
+                submitBtn.classList.add('loading');
+                submitBtn.disabled = true;
+            });
+        });
+    </script>
+</body>
+</html>

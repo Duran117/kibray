@@ -398,6 +398,11 @@ urlpatterns = [
         views.changeorder_customer_signature_view,
         name="changeorder_customer_signature_token",
     ),
+    path(
+        "changeorder/<int:changeorder_id>/contractor-sign/",
+        views.changeorder_contractor_signature_view,
+        name="changeorder_contractor_signature",
+    ),
     path("changeorder/add/", views.changeorder_create_view, name="changeorder_create"),
     path("changeorder/<int:co_id>/edit/", views.changeorder_edit_view, name="changeorder_edit"),
     path(

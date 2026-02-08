@@ -2159,6 +2159,14 @@ class ChangeOrder(models.Model):
     )
     # Compatibilidad: PDF firmado generado por flujo de firmas
     signed_pdf = models.FileField(upload_to="changeorders/signed_pdfs/", null=True, blank=True)
+    
+    # Contractor/Admin signature fields
+    contractor_signature = models.ImageField(
+        upload_to="changeorders/contractor_signatures/", blank=True, null=True,
+        help_text="Firma digital del contratista/admin"
+    )
+    contractor_signed_by = models.CharField(max_length=255, blank=True, help_text="Nombre del firmante contratista")
+    contractor_signed_at = models.DateTimeField(blank=True, null=True, help_text="Fecha/hora de firma del contratista")
 
     def __init__(self, *args, **kwargs):
         """Map test aliases to actual field names."""

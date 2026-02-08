@@ -634,6 +634,58 @@
         </section>
 
         <!-- BUTTONS -->
+        <!-- SIGNATURES SECTION -->
+        <section class="co-section">
+            <h2><i class="bi bi-pen"></i> Signatures</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                <!-- Client Signature -->
+                <div style="padding: 1.25rem; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <div style="font-weight: 600; color: #64748b; margin-bottom: 0.75rem; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <i class="bi bi-person"></i> Client Signature
+                    </div>
+                    {% if changeorder.signature_image %}
+                    <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 0.75rem;">
+                        <img src="{{ changeorder.signature_image.url }}" alt="Client Signature" style="max-width: 200px; max-height: 80px;">
+                    </div>
+                    <div style="color: #1e293b; font-weight: 500;">{{ changeorder.signed_by }}</div>
+                    <div style="color: #64748b; font-size: 0.875rem;">{{ changeorder.signed_at|date:"M d, Y - g:i A" }}</div>
+                    {% else %}
+                    <div style="color: #94a3b8; font-style: italic; padding: 1rem 0;">
+                        <i class="bi bi-clock"></i> Awaiting client signature
+                    </div>
+                    <a href="{% url 'changeorder_customer_signature' changeorder.id %}" 
+                       class="btn btn-outline" style="border-color: #667eea; color: #667eea; margin-top: 0.5rem;">
+                        <i class="bi bi-link-45deg"></i> Get Signature Link
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <!-- Contractor Signature -->
+                <div style="padding: 1.25rem; background: #f0f9ff; border-radius: 12px; border: 1px solid #bae6fd;">
+                    <div style="font-weight: 600; color: #0369a1; margin-bottom: 0.75rem; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <i class="bi bi-building"></i> Contractor Signature
+                    </div>
+                    {% if changeorder.contractor_signature %}
+                    <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #bae6fd; margin-bottom: 0.75rem;">
+                        <img src="{{ changeorder.contractor_signature.url }}" alt="Contractor Signature" style="max-width: 200px; max-height: 80px;">
+                    </div>
+                    <div style="color: #1e293b; font-weight: 500;">{{ changeorder.contractor_signed_by }}</div>
+                    <div style="color: #64748b; font-size: 0.875rem;">{{ changeorder.contractor_signed_at|date:"M d, Y - g:i A" }}</div>
+                    {% else %}
+                    <div style="color: #94a3b8; font-style: italic; padding: 1rem 0;">
+                        <i class="bi bi-clock"></i> Awaiting contractor signature
+                    </div>
+                    {% if request.user.is_staff %}
+                    <a href="{% url 'changeorder_contractor_signature' changeorder.id %}" 
+                       class="btn" style="background: #0369a1; color: white; margin-top: 0.5rem;">
+                        <i class="bi bi-pen"></i> Sign as Contractor
+                    </a>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
         <footer class="co-actions">
             <a href="{% url 'changeorder_board' %}" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Back to Board
