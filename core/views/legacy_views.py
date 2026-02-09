@@ -1684,7 +1684,16 @@ def payroll_weekly_review(request):
                     start_val = request.POST.get(f"start_{emp_id}_{i}")
                     end_val = request.POST.get(f"end_{emp_id}_{i}")
                     
-                    # Buscar entrada existente para este día
+                    # Contar TODAS las entradas del día (incluyendo CO)
+                    all_entries_count = TimeEntry.objects.filter(
+                        employee=emp, date=day
+                    ).count()
+                    
+                    # Si hay múltiples entradas, NO modificar (inputs están disabled)
+                    if all_entries_count > 1:
+                        continue
+                    
+                    # Buscar entrada existente BASE para este día (solo si hay 0 o 1 entrada)
                     existing_entry = TimeEntry.objects.filter(
                         employee=emp, date=day, change_order__isnull=True
                     ).first()
@@ -1709,6 +1718,7 @@ def payroll_weekly_review(request):
                             )
                     elif existing_entry and not start_val and not end_val:
                         # Si se borraron ambos campos, eliminar la entrada
+                        # SOLO si hay exactamente 1 entrada (la base)
                         existing_entry.delete()
                 
                 # Actualizar PayrollRecord
