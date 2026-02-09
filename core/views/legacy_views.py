@@ -7549,19 +7549,20 @@ def dashboard_employee(request):
             old_project = open_entry.project
             old_co = open_entry.change_order
             
-            # Helper: calcular minutos entre dos tiempos
-            def minutes_between(start, end):
+            # Helper: calcular segundos entre dos tiempos (para detectar clicks accidentales)
+            def seconds_between(start, end):
                 if not start or not end:
                     return 0
-                s = start.hour * 60 + start.minute
-                e = end.hour * 60 + end.minute
+                s = start.hour * 3600 + start.minute * 60 + getattr(start, 'second', 0)
+                e = end.hour * 3600 + end.minute * 60 + getattr(end, 'second', 0)
                 if e < s:
-                    e += 24 * 60
+                    e += 24 * 3600
                 return e - s
             
-            # Helper: verificar si es un switch instantáneo (< 1 minuto)
+            # Helper: verificar si es un switch instantáneo (< 30 segundos)
+            # Solo para clicks accidentales/errores, NO para trabajo real
             def is_instant_switch():
-                return minutes_between(open_entry.start_time, current_time) < 1
+                return seconds_between(open_entry.start_time, current_time) < 30
             
             # Helper function para recalcular hours_worked si es necesario
             def ensure_hours_calculated(entry, context_name):
@@ -7954,19 +7955,20 @@ def dashboard_pm(request):
             old_project = open_entry.project
             old_co = open_entry.change_order
             
-            # Helper: calcular minutos entre dos tiempos
-            def minutes_between(start, end):
+            # Helper: calcular segundos entre dos tiempos (para detectar clicks accidentales)
+            def seconds_between(start, end):
                 if not start or not end:
                     return 0
-                s = start.hour * 60 + start.minute
-                e = end.hour * 60 + end.minute
+                s = start.hour * 3600 + start.minute * 60 + getattr(start, 'second', 0)
+                e = end.hour * 3600 + end.minute * 60 + getattr(end, 'second', 0)
                 if e < s:
-                    e += 24 * 60
+                    e += 24 * 3600
                 return e - s
             
-            # Helper: verificar si es un switch instantáneo (< 1 minuto)
+            # Helper: verificar si es un switch instantáneo (< 30 segundos)
+            # Solo para clicks accidentales/errores, NO para trabajo real
             def is_instant_switch():
-                return minutes_between(open_entry.start_time, current_time) < 1
+                return seconds_between(open_entry.start_time, current_time) < 30
             
             # Helper function para recalcular hours_worked si es necesario
             def ensure_hours_calculated(entry, context_name):
