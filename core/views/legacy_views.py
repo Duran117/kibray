@@ -593,8 +593,34 @@ def dashboard_admin(request):
                     try:
                         new_project = Project.objects.get(id=target_id)
                         
+                        # Cerrar entrada actual
                         open_entry.end_time = current_time
                         open_entry.save()
+                        
+                        # Verificar que hours_worked se calculó correctamente
+                        if open_entry.hours_worked is None or open_entry.hours_worked == 0:
+                            logger.warning(
+                                f"[Switch Project] hours_worked=0 for entry {open_entry.id}. "
+                                f"start={open_entry.start_time}, end={open_entry.end_time}"
+                            )
+                            # Recalcular manualmente
+                            open_entry.refresh_from_db()
+                            if open_entry.hours_worked is None or open_entry.hours_worked == 0:
+                                # Forzar recálculo
+                                if open_entry.start_time and open_entry.end_time:
+                                    s = open_entry.start_time.hour * 60 + open_entry.start_time.minute
+                                    e = open_entry.end_time.hour * 60 + open_entry.end_time.minute
+                                    if e < s:
+                                        e += 24 * 60
+                                    minutes = e - s
+                                    hours = Decimal(minutes) / Decimal(60)
+                                    if hours >= Decimal("5.0"):
+                                        lunch_min = 12 * 60 + 30
+                                        if s < lunch_min <= e:
+                                            hours -= Decimal("0.5")
+                                    open_entry.hours_worked = hours.quantize(Decimal("0.01"))
+                                    open_entry.save(update_fields=['hours_worked'])
+                                    logger.info(f"[Switch Project] Forced recalc: {hours}h")
                         
                         TimeEntry.objects.create(
                             employee=employee,
@@ -7523,10 +7549,33 @@ def dashboard_employee(request):
             old_project = open_entry.project
             old_co = open_entry.change_order
             
+            # Helper function para recalcular hours_worked si es necesario
+            def ensure_hours_calculated(entry, context_name):
+                if entry.hours_worked is None or entry.hours_worked == 0:
+                    logger.warning(
+                        f"[{context_name}] hours_worked=0 for entry {entry.id}. "
+                        f"start={entry.start_time}, end={entry.end_time}"
+                    )
+                    if entry.start_time and entry.end_time:
+                        s = entry.start_time.hour * 60 + entry.start_time.minute
+                        e = entry.end_time.hour * 60 + entry.end_time.minute
+                        if e < s:
+                            e += 24 * 60
+                        minutes = e - s
+                        hours = Decimal(minutes) / Decimal(60)
+                        if hours >= Decimal("5.0"):
+                            lunch_min = 12 * 60 + 30
+                            if s < lunch_min <= e:
+                                hours -= Decimal("0.5")
+                        entry.hours_worked = hours.quantize(Decimal("0.01"))
+                        entry.save(update_fields=['hours_worked'])
+                        logger.info(f"[{context_name}] Forced recalc: {hours}h")
+            
             if switch_type == "base":
                 # Cerrar entrada actual y crear nueva sin CO
                 open_entry.end_time = current_time
                 open_entry.save()
+                ensure_hours_calculated(open_entry, "Emp Switch Base")
                 
                 # Crear nueva entrada sin CO
                 TimeEntry.objects.create(
@@ -7559,6 +7608,7 @@ def dashboard_employee(request):
                         # Cerrar entrada actual
                         open_entry.end_time = current_time
                         open_entry.save()
+                        ensure_hours_calculated(open_entry, "Emp Switch CO")
                         
                         # Crear nueva entrada con el nuevo CO
                         TimeEntry.objects.create(
@@ -7599,6 +7649,7 @@ def dashboard_employee(request):
                             # Cerrar entrada actual
                             open_entry.end_time = current_time
                             open_entry.save()
+                            ensure_hours_calculated(open_entry, "Emp Switch Project")
                             
                             # Crear nueva entrada en el nuevo proyecto
                             TimeEntry.objects.create(
@@ -7849,9 +7900,32 @@ def dashboard_pm(request):
             old_project = open_entry.project
             old_co = open_entry.change_order
             
+            # Helper function para recalcular hours_worked si es necesario
+            def ensure_hours_calculated(entry, context_name):
+                if entry.hours_worked is None or entry.hours_worked == 0:
+                    logger.warning(
+                        f"[{context_name}] hours_worked=0 for entry {entry.id}. "
+                        f"start={entry.start_time}, end={entry.end_time}"
+                    )
+                    if entry.start_time and entry.end_time:
+                        s = entry.start_time.hour * 60 + entry.start_time.minute
+                        e = entry.end_time.hour * 60 + entry.end_time.minute
+                        if e < s:
+                            e += 24 * 60
+                        minutes = e - s
+                        hours = Decimal(minutes) / Decimal(60)
+                        if hours >= Decimal("5.0"):
+                            lunch_min = 12 * 60 + 30
+                            if s < lunch_min <= e:
+                                hours -= Decimal("0.5")
+                        entry.hours_worked = hours.quantize(Decimal("0.01"))
+                        entry.save(update_fields=['hours_worked'])
+                        logger.info(f"[{context_name}] Forced recalc: {hours}h")
+            
             if switch_type == "base":
                 open_entry.end_time = current_time
                 open_entry.save()
+                ensure_hours_calculated(open_entry, "PM Switch Base")
                 
                 TimeEntry.objects.create(
                     employee=employee,
@@ -7881,6 +7955,7 @@ def dashboard_pm(request):
                         )
                         open_entry.end_time = current_time
                         open_entry.save()
+                        ensure_hours_calculated(open_entry, "PM Switch CO")
                         
                         TimeEntry.objects.create(
                             employee=employee,
@@ -7907,8 +7982,10 @@ def dashboard_pm(request):
                     try:
                         new_project = Project.objects.get(id=target_id)
                         
+                        # Cerrar entrada actual
                         open_entry.end_time = current_time
                         open_entry.save()
+                        ensure_hours_calculated(open_entry, "PM Switch Project")
                         
                         TimeEntry.objects.create(
                             employee=employee,
