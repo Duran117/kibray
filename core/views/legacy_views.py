@@ -7549,6 +7549,20 @@ def dashboard_employee(request):
             old_project = open_entry.project
             old_co = open_entry.change_order
             
+            # Helper: calcular minutos entre dos tiempos
+            def minutes_between(start, end):
+                if not start or not end:
+                    return 0
+                s = start.hour * 60 + start.minute
+                e = end.hour * 60 + end.minute
+                if e < s:
+                    e += 24 * 60
+                return e - s
+            
+            # Helper: verificar si es un switch instantáneo (< 1 minuto)
+            def is_instant_switch():
+                return minutes_between(open_entry.start_time, current_time) < 1
+            
             # Helper function para recalcular hours_worked si es necesario
             def ensure_hours_calculated(entry, context_name):
                 if entry.hours_worked is None or entry.hours_worked == 0:
@@ -7572,28 +7586,40 @@ def dashboard_employee(request):
                         logger.info(f"[{context_name}] Forced recalc: {hours}h")
             
             if switch_type == "base":
-                # Cerrar entrada actual y crear nueva sin CO
-                open_entry.end_time = current_time
-                open_entry.save()
-                ensure_hours_calculated(open_entry, "Emp Switch Base")
-                
-                # Crear nueva entrada sin CO
-                TimeEntry.objects.create(
-                    employee=employee,
-                    project=old_project,
-                    change_order=None,
-                    budget_line=open_entry.budget_line,
-                    date=today,
-                    start_time=current_time,
-                    end_time=None,
-                    notes=f"Switched from CO: {old_co.title if old_co else 'N/A'}",
-                    cost_code=open_entry.cost_code,
-                )
-                messages.success(
-                    request,
-                    _("✓ Entry closed (%(hours)s hrs). Now on base work (no Change Order). Previously: %(co)s")
-                    % {"hours": open_entry.hours_worked, "co": old_co.title if old_co else "N/A"},
-                )
+                # Si es switch instantáneo (< 1 min), solo actualizar la entrada actual
+                if is_instant_switch():
+                    logger.info(f"[Emp Switch Base] Instant switch - updating current entry {open_entry.id}")
+                    open_entry.change_order = None
+                    open_entry.notes = f"Quick switch to base work (was: {old_co.title if old_co else 'N/A'})"
+                    open_entry.save()
+                    messages.success(
+                        request,
+                        _("✓ Switched to base work (instant). Previously: %(co)s")
+                        % {"co": old_co.title if old_co else "N/A"},
+                    )
+                else:
+                    # Cerrar entrada actual y crear nueva sin CO
+                    open_entry.end_time = current_time
+                    open_entry.save()
+                    ensure_hours_calculated(open_entry, "Emp Switch Base")
+                    
+                    # Crear nueva entrada sin CO
+                    TimeEntry.objects.create(
+                        employee=employee,
+                        project=old_project,
+                        change_order=None,
+                        budget_line=open_entry.budget_line,
+                        date=today,
+                        start_time=current_time,
+                        end_time=None,
+                        notes=f"Switched from CO: {old_co.title if old_co else 'N/A'}",
+                        cost_code=open_entry.cost_code,
+                    )
+                    messages.success(
+                        request,
+                        _("✓ Entry closed (%(hours)s hrs). Now on base work (no Change Order). Previously: %(co)s")
+                        % {"hours": open_entry.hours_worked, "co": old_co.title if old_co else "N/A"},
+                    )
                 
             elif switch_type == "co":
                 # Cerrar entrada actual y crear nueva con diferente CO
@@ -7605,28 +7631,42 @@ def dashboard_employee(request):
                             project=open_entry.project,
                             status__in=['draft', 'pending', 'approved', 'sent', 'billed']
                         )
-                        # Cerrar entrada actual
-                        open_entry.end_time = current_time
-                        open_entry.save()
-                        ensure_hours_calculated(open_entry, "Emp Switch CO")
                         
-                        # Crear nueva entrada con el nuevo CO
-                        TimeEntry.objects.create(
-                            employee=employee,
-                            project=old_project,
-                            change_order=new_co,
-                            budget_line=None,  # CO work doesn't use budget lines
-                            date=today,
-                            start_time=current_time,
-                            end_time=None,
-                            notes=f"Switched from: {old_co.title if old_co else 'Base work'}",
-                            cost_code=open_entry.cost_code,
-                        )
-                        messages.success(
-                            request,
-                            _("✓ Entry closed (%(hours)s hrs). Now on %(co)s (%(type)s)")
-                            % {"hours": open_entry.hours_worked, "co": new_co.title, "type": new_co.get_pricing_type_display()},
-                        )
+                        # Si es switch instantáneo (< 1 min), solo actualizar la entrada actual
+                        if is_instant_switch():
+                            logger.info(f"[Emp Switch CO] Instant switch - updating current entry {open_entry.id}")
+                            open_entry.change_order = new_co
+                            open_entry.budget_line = None  # CO work doesn't use budget lines
+                            open_entry.notes = f"Quick switch to CO: {new_co.title} (was: {old_co.title if old_co else 'Base'})"
+                            open_entry.save()
+                            messages.success(
+                                request,
+                                _("✓ Switched to %(co)s (instant). Previously: %(old)s")
+                                % {"co": new_co.title, "old": old_co.title if old_co else "Base work"},
+                            )
+                        else:
+                            # Cerrar entrada actual
+                            open_entry.end_time = current_time
+                            open_entry.save()
+                            ensure_hours_calculated(open_entry, "Emp Switch CO")
+                            
+                            # Crear nueva entrada con el nuevo CO
+                            TimeEntry.objects.create(
+                                employee=employee,
+                                project=old_project,
+                                change_order=new_co,
+                                budget_line=None,  # CO work doesn't use budget lines
+                                date=today,
+                                start_time=current_time,
+                                end_time=None,
+                                notes=f"Switched from: {old_co.title if old_co else 'Base work'}",
+                                cost_code=open_entry.cost_code,
+                            )
+                            messages.success(
+                                request,
+                                _("✓ Entry closed (%(hours)s hrs). Now on %(co)s (%(type)s)")
+                                % {"hours": open_entry.hours_worked, "co": new_co.title, "type": new_co.get_pricing_type_display()},
+                            )
                     except ChangeOrder.DoesNotExist:
                         messages.error(request, _("Change Order not found or not available."))
                         
@@ -7646,28 +7686,42 @@ def dashboard_employee(request):
                         else:
                             new_project = Project.objects.get(id=target_id)
                             
-                            # Cerrar entrada actual
-                            open_entry.end_time = current_time
-                            open_entry.save()
-                            ensure_hours_calculated(open_entry, "Emp Switch Project")
-                            
-                            # Crear nueva entrada en el nuevo proyecto
-                            TimeEntry.objects.create(
-                                employee=employee,
-                                project=new_project,
-                                change_order=None,
-                                budget_line=None,
-                                date=today,
-                                start_time=current_time,
-                                end_time=None,
-                                notes=f"Switched from project: {old_project.name}",
-                                cost_code=None,
-                            )
-                            messages.success(
-                                request,
-                                _("✓ Entry closed (%(hours)s hrs on %(old)s). Now on %(proj)s")
-                                % {"hours": open_entry.hours_worked, "old": old_project.name, "proj": new_project.name},
-                            )
+                            # Si es switch instantáneo (< 1 min), solo actualizar la entrada actual
+                            if is_instant_switch():
+                                logger.info(f"[Emp Switch Project] Instant switch - updating current entry {open_entry.id}")
+                                open_entry.project = new_project
+                                open_entry.change_order = None
+                                open_entry.budget_line = None
+                                open_entry.notes = f"Quick switch to project: {new_project.name} (was: {old_project.name})"
+                                open_entry.save()
+                                messages.success(
+                                    request,
+                                    _("✓ Switched to %(proj)s (instant). Previously: %(old)s")
+                                    % {"proj": new_project.name, "old": old_project.name},
+                                )
+                            else:
+                                # Cerrar entrada actual
+                                open_entry.end_time = current_time
+                                open_entry.save()
+                                ensure_hours_calculated(open_entry, "Emp Switch Project")
+                                
+                                # Crear nueva entrada en el nuevo proyecto
+                                TimeEntry.objects.create(
+                                    employee=employee,
+                                    project=new_project,
+                                    change_order=None,
+                                    budget_line=None,
+                                    date=today,
+                                    start_time=current_time,
+                                    end_time=None,
+                                    notes=f"Switched from project: {old_project.name}",
+                                    cost_code=None,
+                                )
+                                messages.success(
+                                    request,
+                                    _("✓ Entry closed (%(hours)s hrs on %(old)s). Now on %(proj)s")
+                                    % {"hours": open_entry.hours_worked, "old": old_project.name, "proj": new_project.name},
+                                )
                     except Project.DoesNotExist:
                         messages.error(request, _("Project not found."))
             return redirect("dashboard_employee")
@@ -7900,6 +7954,20 @@ def dashboard_pm(request):
             old_project = open_entry.project
             old_co = open_entry.change_order
             
+            # Helper: calcular minutos entre dos tiempos
+            def minutes_between(start, end):
+                if not start or not end:
+                    return 0
+                s = start.hour * 60 + start.minute
+                e = end.hour * 60 + end.minute
+                if e < s:
+                    e += 24 * 60
+                return e - s
+            
+            # Helper: verificar si es un switch instantáneo (< 1 minuto)
+            def is_instant_switch():
+                return minutes_between(open_entry.start_time, current_time) < 1
+            
             # Helper function para recalcular hours_worked si es necesario
             def ensure_hours_calculated(entry, context_name):
                 if entry.hours_worked is None or entry.hours_worked == 0:
@@ -7923,26 +7991,38 @@ def dashboard_pm(request):
                         logger.info(f"[{context_name}] Forced recalc: {hours}h")
             
             if switch_type == "base":
-                open_entry.end_time = current_time
-                open_entry.save()
-                ensure_hours_calculated(open_entry, "PM Switch Base")
-                
-                TimeEntry.objects.create(
-                    employee=employee,
-                    project=old_project,
-                    change_order=None,
-                    budget_line=open_entry.budget_line,
-                    date=today,
-                    start_time=current_time,
-                    end_time=None,
-                    notes=f"Switched from CO: {old_co.title if old_co else 'N/A'}",
-                    cost_code=open_entry.cost_code,
-                )
-                messages.success(
-                    request,
-                    _("✓ Entry closed (%(hours)s hrs). Now on base work. Previously: %(co)s")
-                    % {"hours": open_entry.hours_worked, "co": old_co.title if old_co else "N/A"},
-                )
+                # Si es switch instantáneo (< 1 min), solo actualizar la entrada actual
+                if is_instant_switch():
+                    logger.info(f"[PM Switch Base] Instant switch - updating current entry {open_entry.id}")
+                    open_entry.change_order = None
+                    open_entry.notes = f"Quick switch to base work (was: {old_co.title if old_co else 'N/A'})"
+                    open_entry.save()
+                    messages.success(
+                        request,
+                        _("✓ Switched to base work (instant). Previously: %(co)s")
+                        % {"co": old_co.title if old_co else "N/A"},
+                    )
+                else:
+                    open_entry.end_time = current_time
+                    open_entry.save()
+                    ensure_hours_calculated(open_entry, "PM Switch Base")
+                    
+                    TimeEntry.objects.create(
+                        employee=employee,
+                        project=old_project,
+                        change_order=None,
+                        budget_line=open_entry.budget_line,
+                        date=today,
+                        start_time=current_time,
+                        end_time=None,
+                        notes=f"Switched from CO: {old_co.title if old_co else 'N/A'}",
+                        cost_code=open_entry.cost_code,
+                    )
+                    messages.success(
+                        request,
+                        _("✓ Entry closed (%(hours)s hrs). Now on base work. Previously: %(co)s")
+                        % {"hours": open_entry.hours_worked, "co": old_co.title if old_co else "N/A"},
+                    )
                 
             elif switch_type == "co":
                 target_id = request.POST.get("target_id") or request.POST.get("co_id")
@@ -7953,26 +8033,40 @@ def dashboard_pm(request):
                             project=open_entry.project,
                             status__in=['draft', 'pending', 'approved', 'sent', 'billed']
                         )
-                        open_entry.end_time = current_time
-                        open_entry.save()
-                        ensure_hours_calculated(open_entry, "PM Switch CO")
                         
-                        TimeEntry.objects.create(
-                            employee=employee,
-                            project=old_project,
-                            change_order=new_co,
-                            budget_line=None,
-                            date=today,
-                            start_time=current_time,
-                            end_time=None,
-                            notes=f"Switched from: {old_co.title if old_co else 'Base work'}",
-                            cost_code=open_entry.cost_code,
-                        )
-                        messages.success(
-                            request,
-                            _("✓ Entry closed (%(hours)s hrs). Now on %(co)s (%(type)s)")
-                            % {"hours": open_entry.hours_worked, "co": new_co.title, "type": new_co.get_pricing_type_display()},
-                        )
+                        # Si es switch instantáneo (< 1 min), solo actualizar la entrada actual
+                        if is_instant_switch():
+                            logger.info(f"[PM Switch CO] Instant switch - updating current entry {open_entry.id}")
+                            open_entry.change_order = new_co
+                            open_entry.budget_line = None
+                            open_entry.notes = f"Quick switch to CO: {new_co.title} (was: {old_co.title if old_co else 'Base'})"
+                            open_entry.save()
+                            messages.success(
+                                request,
+                                _("✓ Switched to %(co)s (instant). Previously: %(old)s")
+                                % {"co": new_co.title, "old": old_co.title if old_co else "Base work"},
+                            )
+                        else:
+                            open_entry.end_time = current_time
+                            open_entry.save()
+                            ensure_hours_calculated(open_entry, "PM Switch CO")
+                            
+                            TimeEntry.objects.create(
+                                employee=employee,
+                                project=old_project,
+                                change_order=new_co,
+                                budget_line=None,
+                                date=today,
+                                start_time=current_time,
+                                end_time=None,
+                                notes=f"Switched from: {old_co.title if old_co else 'Base work'}",
+                                cost_code=open_entry.cost_code,
+                            )
+                            messages.success(
+                                request,
+                                _("✓ Entry closed (%(hours)s hrs). Now on %(co)s (%(type)s)")
+                                % {"hours": open_entry.hours_worked, "co": new_co.title, "type": new_co.get_pricing_type_display()},
+                            )
                     except ChangeOrder.DoesNotExist:
                         messages.error(request, _("Change Order not found or not available."))
                         
@@ -7982,27 +8076,41 @@ def dashboard_pm(request):
                     try:
                         new_project = Project.objects.get(id=target_id)
                         
-                        # Cerrar entrada actual
-                        open_entry.end_time = current_time
-                        open_entry.save()
-                        ensure_hours_calculated(open_entry, "PM Switch Project")
-                        
-                        TimeEntry.objects.create(
-                            employee=employee,
-                            project=new_project,
-                            change_order=None,
-                            budget_line=None,
-                            date=today,
-                            start_time=current_time,
-                            end_time=None,
-                            notes=f"Switched from project: {old_project.name}",
-                            cost_code=None,
-                        )
-                        messages.success(
-                            request,
-                            _("✓ Entry closed (%(hours)s hrs on %(old)s). Now on %(proj)s")
-                            % {"hours": open_entry.hours_worked, "old": old_project.name, "proj": new_project.name},
-                        )
+                        # Si es switch instantáneo (< 1 min), solo actualizar la entrada actual
+                        if is_instant_switch():
+                            logger.info(f"[PM Switch Project] Instant switch - updating current entry {open_entry.id}")
+                            open_entry.project = new_project
+                            open_entry.change_order = None
+                            open_entry.budget_line = None
+                            open_entry.notes = f"Quick switch to project: {new_project.name} (was: {old_project.name})"
+                            open_entry.save()
+                            messages.success(
+                                request,
+                                _("✓ Switched to %(proj)s (instant). Previously: %(old)s")
+                                % {"proj": new_project.name, "old": old_project.name},
+                            )
+                        else:
+                            # Cerrar entrada actual
+                            open_entry.end_time = current_time
+                            open_entry.save()
+                            ensure_hours_calculated(open_entry, "PM Switch Project")
+                            
+                            TimeEntry.objects.create(
+                                employee=employee,
+                                project=new_project,
+                                change_order=None,
+                                budget_line=None,
+                                date=today,
+                                start_time=current_time,
+                                end_time=None,
+                                notes=f"Switched from project: {old_project.name}",
+                                cost_code=None,
+                            )
+                            messages.success(
+                                request,
+                                _("✓ Entry closed (%(hours)s hrs on %(old)s). Now on %(proj)s")
+                                % {"hours": open_entry.hours_worked, "old": old_project.name, "proj": new_project.name},
+                            )
                     except Project.DoesNotExist:
                         messages.error(request, _("Project not found."))
             return redirect("dashboard_pm")
