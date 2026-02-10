@@ -539,6 +539,259 @@
     border-radius: 10px;
     text-align: center;
     margin-top: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.entry-count-badge:hover {
+    background: var(--payroll-primary);
+    color: white;
+}
+
+/* Entry Edit Modal Styles */
+.entry-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.entry-modal-overlay.active {
+    display: flex;
+}
+
+.entry-modal {
+    background: white;
+    border-radius: 16px;
+    max-width: 900px;
+    width: 95%;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.entry-modal-header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.entry-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.entry-modal-header .subtitle {
+    font-size: 13px;
+    opacity: 0.85;
+    margin-top: 4px;
+}
+
+.entry-modal-close {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.2s;
+}
+
+.entry-modal-close:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.entry-modal-body {
+    padding: 24px;
+    max-height: calc(90vh - 180px);
+    overflow-y: auto;
+}
+
+.entries-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+}
+
+.entries-table th {
+    text-align: left;
+    padding: 10px 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--payroll-gray-600);
+    border-bottom: 2px solid var(--payroll-gray-200);
+    font-weight: 600;
+}
+
+.entries-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--payroll-gray-200);
+    vertical-align: middle;
+}
+
+.entries-table tr:hover {
+    background: var(--payroll-gray-50);
+}
+
+.entries-table .entry-time-input {
+    width: 90px;
+    padding: 8px 10px;
+    border: 1px solid var(--payroll-gray-300);
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.entries-table .entry-select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--payroll-gray-300);
+    border-radius: 6px;
+    font-size: 13px;
+    background: white;
+}
+
+.entries-table .entry-notes {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--payroll-gray-300);
+    border-radius: 6px;
+    font-size: 13px;
+    resize: none;
+}
+
+.entries-table .entry-hours {
+    font-weight: 600;
+    color: var(--payroll-primary);
+    background: rgba(99, 102, 241, 0.1);
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.entries-table .delete-entry-btn {
+    background: #fee2e2;
+    border: none;
+    color: #dc2626;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.entries-table .delete-entry-btn:hover {
+    background: #dc2626;
+    color: white;
+}
+
+.add-entry-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ecfdf5;
+    border: 2px dashed #10b981;
+    color: #059669;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 16px;
+}
+
+.add-entry-btn:hover {
+    background: #d1fae5;
+    border-style: solid;
+}
+
+.entry-modal-footer {
+    background: var(--payroll-gray-50);
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--payroll-gray-200);
+}
+
+.modal-total-hours {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--payroll-gray-900);
+}
+
+.modal-total-hours span {
+    color: var(--payroll-primary);
+}
+
+.modal-save-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.modal-save-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.modal-save-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.entry-new-row {
+    background: #f0fdf4 !important;
+}
+
+.modal-loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--payroll-gray-600);
+}
+
+.modal-loading i {
+    font-size: 32px;
+    animation: spin 1s linear infinite;
+    display: block;
+    margin-bottom: 12px;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 /* Employee hours breakdown */
@@ -701,8 +954,24 @@
                                     </div>
                                     {% endif %}
                                     {% if day_entry.entry_count > 1 %}
-                                    <div class="entry-count-badge" title="{{ day_entry.entry_count }} {% trans 'time entries' %}">
-                                        {{ day_entry.entry_count }} entries
+                                    <div class="entry-count-badge" 
+                                         title="{% trans 'Click to edit entries' %}"
+                                         onclick="openEntryModal({{ data.employee.id }}, '{{ data.employee.first_name }} {{ data.employee.last_name }}', '{{ day_entry.date|date:'Y-m-d' }}', '{{ day_entry.date|date:'D, M d' }}')">
+                                        <i class="bi bi-pencil-square"></i> {{ day_entry.entry_count }} entries
+                                    </div>
+                                    {% elif day_entry.entry_count == 1 %}
+                                    <div class="entry-count-badge" 
+                                         title="{% trans 'Click to edit entry' %}"
+                                         onclick="openEntryModal({{ data.employee.id }}, '{{ data.employee.first_name }} {{ data.employee.last_name }}', '{{ day_entry.date|date:'Y-m-d' }}', '{{ day_entry.date|date:'D, M d' }}')"
+                                         style="background: rgba(99, 102, 241, 0.1); color: var(--payroll-primary);">
+                                        <i class="bi bi-pencil"></i> {% trans "edit" %}
+                                    </div>
+                                    {% else %}
+                                    <div class="entry-count-badge" 
+                                         title="{% trans 'Click to add entry' %}"
+                                         onclick="openEntryModal({{ data.employee.id }}, '{{ data.employee.first_name }} {{ data.employee.last_name }}', '{{ day_entry.date|date:'Y-m-d' }}', '{{ day_entry.date|date:'D, M d' }}')"
+                                         style="background: #ecfdf5; color: #10b981;">
+                                        <i class="bi bi-plus"></i> {% trans "add" %}
                                     </div>
                                     {% endif %}
                                 </div>
@@ -811,6 +1080,35 @@
     </form>
 </div>
 
+<!-- Entry Edit Modal -->
+<div class="entry-modal-overlay" id="entryModalOverlay" onclick="if(event.target === this) closeEntryModal()">
+    <div class="entry-modal">
+        <div class="entry-modal-header">
+            <div>
+                <h3><i class="bi bi-clock-history"></i> {% trans "Edit Time Entries" %}</h3>
+                <div class="subtitle" id="modalSubtitle">Employee - Date</div>
+            </div>
+            <button class="entry-modal-close" onclick="closeEntryModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="entry-modal-body" id="modalBody">
+            <div class="modal-loading">
+                <i class="bi bi-arrow-repeat"></i>
+                {% trans "Loading entries..." %}
+            </div>
+        </div>
+        <div class="entry-modal-footer">
+            <div class="modal-total-hours">
+                {% trans "Total:" %} <span id="modalTotalHours">0.0</span> {% trans "hrs" %}
+            </div>
+            <button class="modal-save-btn" onclick="saveEntries()" id="modalSaveBtn">
+                <i class="bi bi-check-lg"></i> {% trans "Save Changes" %}
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
 // Auto-calculate hours when time changes
 document.querySelectorAll('.time-input').forEach(input => {
@@ -882,6 +1180,299 @@ document.querySelectorAll('.paid-input').forEach(input => {
             savingsDiv.textContent = '';
         }
     });
+});
+
+// ============================================================================
+// Entry Edit Modal Functions
+// ============================================================================
+
+let modalData = {
+    employeeId: null,
+    employeeName: '',
+    date: '',
+    dateDisplay: '',
+    entries: [],
+    projects: [],
+    changeOrders: [],
+    deleteIds: []
+};
+
+function openEntryModal(employeeId, employeeName, date, dateDisplay) {
+    modalData.employeeId = employeeId;
+    modalData.employeeName = employeeName;
+    modalData.date = date;
+    modalData.dateDisplay = dateDisplay;
+    modalData.deleteIds = [];
+    
+    document.getElementById('modalSubtitle').textContent = `${employeeName} — ${dateDisplay}`;
+    document.getElementById('entryModalOverlay').classList.add('active');
+    document.getElementById('modalBody').innerHTML = `
+        <div class="modal-loading">
+            <i class="bi bi-arrow-repeat"></i>
+            {% trans "Loading entries..." %}
+        </div>
+    `;
+    
+    // Fetch entries from API
+    fetch(`/api/v1/time-entries/by-employee-day/?employee=${employeeId}&date=${date}`)
+        .then(response => response.json())
+        .then(data => {
+            modalData.entries = data.entries || [];
+            modalData.projects = data.projects || [];
+            modalData.changeOrders = data.change_orders || [];
+            renderEntriesTable();
+        })
+        .catch(error => {
+            console.error('Error loading entries:', error);
+            document.getElementById('modalBody').innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #dc2626;">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 32px;"></i>
+                    <p>{% trans "Error loading entries. Please try again." %}</p>
+                </div>
+            `;
+        });
+}
+
+function closeEntryModal() {
+    document.getElementById('entryModalOverlay').classList.remove('active');
+}
+
+function renderEntriesTable() {
+    let html = `
+        <button class="add-entry-btn" onclick="addNewEntry()">
+            <i class="bi bi-plus-circle"></i> {% trans "Add New Entry" %}
+        </button>
+        <table class="entries-table">
+            <thead>
+                <tr>
+                    <th style="width: 100px;">{% trans "Start" %}</th>
+                    <th style="width: 100px;">{% trans "End" %}</th>
+                    <th style="width: 70px;">{% trans "Hours" %}</th>
+                    <th>{% trans "Project" %}</th>
+                    <th>{% trans "Change Order" %}</th>
+                    <th style="width: 150px;">{% trans "Notes" %}</th>
+                    <th style="width: 40px;"></th>
+                </tr>
+            </thead>
+            <tbody id="entriesTableBody">
+    `;
+    
+    modalData.entries.forEach((entry, index) => {
+        html += renderEntryRow(entry, index);
+    });
+    
+    html += `
+            </tbody>
+        </table>
+    `;
+    
+    if (modalData.entries.length === 0) {
+        html += `
+            <div style="text-align: center; padding: 30px; color: var(--payroll-gray-600);">
+                <i class="bi bi-inbox" style="font-size: 40px; opacity: 0.5; display: block; margin-bottom: 10px;"></i>
+                {% trans "No entries for this day. Click 'Add New Entry' to create one." %}
+            </div>
+        `;
+    }
+    
+    document.getElementById('modalBody').innerHTML = html;
+    updateTotalHours();
+}
+
+function renderEntryRow(entry, index) {
+    const isNew = !entry.id;
+    const projectOptions = modalData.projects.map(p => 
+        `<option value="${p.id}" ${entry.project_id == p.id ? 'selected' : ''}>${p.project_number || ''} - ${p.name}</option>`
+    ).join('');
+    
+    // Filter COs by selected project
+    const coOptions = getFilteredCOOptions(entry.project_id, entry.change_order_id);
+    
+    return `
+        <tr class="${isNew ? 'entry-new-row' : ''}" data-index="${index}">
+            <td>
+                <input type="time" class="entry-time-input entry-start" 
+                       value="${entry.start_time || ''}" 
+                       onchange="updateEntryField(${index}, 'start_time', this.value); recalculateRowHours(${index})">
+            </td>
+            <td>
+                <input type="time" class="entry-time-input entry-end" 
+                       value="${entry.end_time || ''}" 
+                       onchange="updateEntryField(${index}, 'end_time', this.value); recalculateRowHours(${index})">
+            </td>
+            <td>
+                <div class="entry-hours" id="entryHours_${index}">
+                    ${entry.hours_worked || '0'}
+                </div>
+            </td>
+            <td>
+                <select class="entry-select entry-project" 
+                        onchange="updateEntryField(${index}, 'project_id', this.value); updateCODropdown(${index}, this.value)">
+                    <option value="">-- {% trans "Select" %} --</option>
+                    ${projectOptions}
+                </select>
+            </td>
+            <td>
+                <select class="entry-select entry-co" id="entryCoSelect_${index}"
+                        onchange="updateEntryField(${index}, 'change_order_id', this.value)">
+                    <option value="">-- {% trans "None" %} --</option>
+                    ${coOptions}
+                </select>
+            </td>
+            <td>
+                <textarea class="entry-notes" rows="1" 
+                          onchange="updateEntryField(${index}, 'notes', this.value)"
+                          placeholder="{% trans 'Notes...' %}">${entry.notes || ''}</textarea>
+            </td>
+            <td>
+                <button class="delete-entry-btn" onclick="deleteEntry(${index})" title="{% trans 'Delete entry' %}">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `;
+}
+
+function getFilteredCOOptions(projectId, selectedCoId) {
+    if (!projectId) return '';
+    
+    return modalData.changeOrders
+        .filter(co => co.project_id == projectId)
+        .map(co => `<option value="${co.id}" ${selectedCoId == co.id ? 'selected' : ''}>CO ${co.co_number} - ${co.title || ''}</option>`)
+        .join('');
+}
+
+function updateCODropdown(index, projectId) {
+    const coSelect = document.getElementById(`entryCoSelect_${index}`);
+    if (coSelect) {
+        const coOptions = getFilteredCOOptions(projectId, null);
+        coSelect.innerHTML = `<option value="">-- {% trans "None" %} --</option>${coOptions}`;
+        modalData.entries[index].change_order_id = null;
+    }
+}
+
+function updateEntryField(index, field, value) {
+    if (modalData.entries[index]) {
+        modalData.entries[index][field] = value || null;
+    }
+}
+
+function recalculateRowHours(index) {
+    const entry = modalData.entries[index];
+    if (entry && entry.start_time && entry.end_time) {
+        const start = entry.start_time.split(':').map(Number);
+        const end = entry.end_time.split(':').map(Number);
+        
+        let startMins = start[0] * 60 + start[1];
+        let endMins = end[0] * 60 + end[1];
+        
+        // Handle overnight shifts
+        if (endMins < startMins) {
+            endMins += 24 * 60;
+        }
+        
+        const hours = (endMins - startMins) / 60;
+        entry.hours_worked = hours.toFixed(2);
+        
+        const hoursEl = document.getElementById(`entryHours_${index}`);
+        if (hoursEl) {
+            hoursEl.textContent = hours.toFixed(2);
+        }
+    }
+    updateTotalHours();
+}
+
+function updateTotalHours() {
+    let total = 0;
+    modalData.entries.forEach(entry => {
+        total += parseFloat(entry.hours_worked) || 0;
+    });
+    document.getElementById('modalTotalHours').textContent = total.toFixed(2);
+}
+
+function addNewEntry() {
+    const newEntry = {
+        id: null,
+        start_time: '08:00',
+        end_time: '17:00',
+        hours_worked: '9.00',
+        project_id: null,
+        change_order_id: null,
+        notes: ''
+    };
+    modalData.entries.push(newEntry);
+    renderEntriesTable();
+    
+    // Scroll to new entry
+    const tbody = document.getElementById('entriesTableBody');
+    if (tbody && tbody.lastElementChild) {
+        tbody.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+function deleteEntry(index) {
+    const entry = modalData.entries[index];
+    if (entry.id) {
+        // Mark for deletion on server
+        modalData.deleteIds.push(entry.id);
+    }
+    modalData.entries.splice(index, 1);
+    renderEntriesTable();
+}
+
+function saveEntries() {
+    const btn = document.getElementById('modalSaveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation: spin 1s linear infinite;"></i> {% trans "Saving..." %}';
+    
+    // Prepare data
+    const payload = {
+        employee: modalData.employeeId,
+        date: modalData.date,
+        entries: modalData.entries.map(e => ({
+            id: e.id,
+            start_time: e.start_time,
+            end_time: e.end_time,
+            project_id: e.project_id,
+            change_order_id: e.change_order_id,
+            notes: e.notes
+        })),
+        delete_ids: modalData.deleteIds
+    };
+    
+    fetch('/api/v1/time-entries/by-employee-day/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeEntryModal();
+            // Reload page to show updated hours
+            location.reload();
+        } else {
+            alert('{% trans "Error saving entries:" %} ' + (data.error || '{% trans "Unknown error" %}'));
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> {% trans "Save Changes" %}';
+        }
+    })
+    .catch(error => {
+        console.error('Error saving:', error);
+        alert('{% trans "Error saving entries. Please try again." %}');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> {% trans "Save Changes" %}';
+    });
+}
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeEntryModal();
+    }
 });
 </script>
 {% endblock %}

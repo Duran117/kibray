@@ -3889,6 +3889,178 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
             normalized.append(row)
         return Response(normalized)
 
+    @action(detail=False, methods=["get", "post"], url_path="by-employee-day")
+    def by_employee_day(self, request):
+        """
+        GET: Retrieve all time entries for an employee on a specific date.
+        POST: Bulk update/create/delete time entries for an employee on a specific date.
+        
+        Query params (GET): employee=<id>&date=<YYYY-MM-DD>
+        POST body: { "entries": [...], "delete_ids": [...] }
+        """
+        from core.models import Employee, Project, ChangeOrder
+        from datetime import datetime, timedelta
+        from decimal import Decimal
+        
+        employee_id = request.query_params.get("employee") or request.data.get("employee")
+        date_str = request.query_params.get("date") or request.data.get("date")
+        
+        if not employee_id or not date_str:
+            return Response(
+                {"error": "Both 'employee' and 'date' parameters are required."},
+                status=400
+            )
+        
+        try:
+            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=400)
+        
+        try:
+            employee = Employee.objects.get(pk=employee_id)
+        except Employee.DoesNotExist:
+            return Response({"error": "Employee not found."}, status=404)
+        
+        if request.method == "GET":
+            # Get all entries for this employee on this date
+            entries = TimeEntry.objects.filter(
+                employee=employee,
+                date=target_date
+            ).select_related("project", "change_order").order_by("start_time")
+            
+            # Get available projects (active ones)
+            projects = Project.objects.filter(
+                status__in=["ACTIVE", "IN_PROGRESS", "PLANNING"]
+            ).order_by("name").values("id", "name", "project_number")
+            
+            # Get change orders grouped by project
+            change_orders = ChangeOrder.objects.filter(
+                status__in=["APPROVED", "PENDING", "IN_PROGRESS"]
+            ).select_related("project").order_by("project__name", "co_number").values(
+                "id", "co_number", "title", "project_id", "project__name"
+            )
+            
+            entries_data = []
+            total_hours = Decimal("0")
+            for entry in entries:
+                entries_data.append({
+                    "id": entry.id,
+                    "start_time": entry.start_time.strftime("%H:%M") if entry.start_time else None,
+                    "end_time": entry.end_time.strftime("%H:%M") if entry.end_time else None,
+                    "hours_worked": str(entry.hours_worked) if entry.hours_worked else "0",
+                    "project_id": entry.project_id,
+                    "project_name": entry.project.name if entry.project else None,
+                    "change_order_id": entry.change_order_id,
+                    "change_order_number": entry.change_order.co_number if entry.change_order else None,
+                    "notes": entry.notes or "",
+                })
+                if entry.hours_worked:
+                    total_hours += entry.hours_worked
+            
+            return Response({
+                "employee_id": employee.id,
+                "employee_name": f"{employee.first_name} {employee.last_name}",
+                "date": date_str,
+                "entries": entries_data,
+                "total_hours": str(total_hours),
+                "projects": list(projects),
+                "change_orders": list(change_orders),
+            })
+        
+        elif request.method == "POST":
+            # Bulk update/create/delete entries
+            entries_data = request.data.get("entries", [])
+            delete_ids = request.data.get("delete_ids", [])
+            
+            # Delete specified entries
+            if delete_ids:
+                TimeEntry.objects.filter(
+                    id__in=delete_ids,
+                    employee=employee,
+                    date=target_date
+                ).delete()
+            
+            # Update or create entries
+            updated_entries = []
+            for entry_data in entries_data:
+                entry_id = entry_data.get("id")
+                start_time_str = entry_data.get("start_time")
+                end_time_str = entry_data.get("end_time")
+                project_id = entry_data.get("project_id")
+                change_order_id = entry_data.get("change_order_id")
+                notes = entry_data.get("notes", "")
+                
+                # Parse times
+                start_time = None
+                end_time = None
+                if start_time_str:
+                    try:
+                        start_time = datetime.strptime(start_time_str, "%H:%M").time()
+                    except ValueError:
+                        pass
+                if end_time_str:
+                    try:
+                        end_time = datetime.strptime(end_time_str, "%H:%M").time()
+                    except ValueError:
+                        pass
+                
+                # Get project and change order
+                project = None
+                change_order = None
+                if project_id:
+                    try:
+                        project = Project.objects.get(pk=project_id)
+                    except Project.DoesNotExist:
+                        pass
+                if change_order_id:
+                    try:
+                        change_order = ChangeOrder.objects.get(pk=change_order_id)
+                    except ChangeOrder.DoesNotExist:
+                        pass
+                
+                if entry_id:
+                    # Update existing entry
+                    try:
+                        entry = TimeEntry.objects.get(pk=entry_id, employee=employee)
+                        entry.start_time = start_time
+                        entry.end_time = end_time
+                        entry.project = project
+                        entry.change_order = change_order
+                        entry.notes = notes
+                        entry.save()
+                        updated_entries.append(entry)
+                    except TimeEntry.DoesNotExist:
+                        pass
+                else:
+                    # Create new entry
+                    entry = TimeEntry.objects.create(
+                        employee=employee,
+                        date=target_date,
+                        start_time=start_time,
+                        end_time=end_time,
+                        project=project,
+                        change_order=change_order,
+                        notes=notes,
+                    )
+                    updated_entries.append(entry)
+            
+            # Recalculate total hours
+            all_entries = TimeEntry.objects.filter(
+                employee=employee,
+                date=target_date
+            ).select_related("project", "change_order")
+            
+            total_hours = sum(
+                e.hours_worked for e in all_entries if e.hours_worked
+            )
+            
+            return Response({
+                "success": True,
+                "message": f"Updated {len(updated_entries)} entries, deleted {len(delete_ids)} entries.",
+                "total_hours": str(total_hours),
+                "entries_count": all_entries.count(),
+            })
+
 
 # ============================================================================
 # Module 14: Materials & Inventory API

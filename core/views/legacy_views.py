@@ -1941,6 +1941,7 @@ def payroll_weekly_review(request):
             co_hours += day_co_hours
             
             day_entries.append({
+                'date': day,  # Add date for modal functionality
                 'start': first_start.strftime("%H:%M") if first_start else "",
                 'end': last_end.strftime("%H:%M") if last_end else "",
                 'hours': day_total_hours if day_total_hours > 0 else None,
