@@ -1282,7 +1282,7 @@ function renderEntriesTable() {
 function renderEntryRow(entry, index) {
     const isNew = !entry.id;
     const projectOptions = modalData.projects.map(p => 
-        `<option value="${p.id}" ${entry.project_id == p.id ? 'selected' : ''}>${p.project_number || ''} - ${p.name}</option>`
+        `<option value="${p.id}" ${entry.project_id == p.id ? 'selected' : ''}>${p.project_code || ''} - ${p.name}</option>`
     ).join('');
     
     // Filter COs by selected project
@@ -1338,7 +1338,7 @@ function getFilteredCOOptions(projectId, selectedCoId) {
     
     return modalData.changeOrders
         .filter(co => co.project_id == projectId)
-        .map(co => `<option value="${co.id}" ${selectedCoId == co.id ? 'selected' : ''}>CO ${co.co_number} - ${co.title || ''}</option>`)
+        .map(co => `<option value="${co.id}" ${selectedCoId == co.id ? 'selected' : ''}>CO ${co.co_number} - ${co.co_title || ''}</option>`)
         .join('');
 }
 

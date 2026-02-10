@@ -3928,16 +3928,16 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
                 date=target_date
             ).select_related("project", "change_order").order_by("start_time")
             
-            # Get available projects (active ones)
+            # Get available projects (non-archived ones)
             projects = Project.objects.filter(
-                status__in=["ACTIVE", "IN_PROGRESS", "PLANNING"]
-            ).order_by("name").values("id", "name", "project_number")
+                is_archived=False
+            ).order_by("name").values("id", "name", "project_code")
             
-            # Get change orders grouped by project
+            # Get change orders grouped by project (non-draft statuses)
             change_orders = ChangeOrder.objects.filter(
-                status__in=["APPROVED", "PENDING", "IN_PROGRESS"]
+                status__in=["approved", "pending", "sent", "billed", "paid"]
             ).select_related("project").order_by("project__name", "co_number").values(
-                "id", "co_number", "title", "project_id", "project__name"
+                "id", "co_number", "co_title", "project_id", "project__name"
             )
             
             entries_data = []
