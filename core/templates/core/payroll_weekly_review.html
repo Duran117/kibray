@@ -1338,7 +1338,7 @@ function getFilteredCOOptions(projectId, selectedCoId) {
     
     return modalData.changeOrders
         .filter(co => co.project_id == projectId)
-        .map(co => `<option value="${co.id}" ${selectedCoId == co.id ? 'selected' : ''}>CO ${co.co_number} - ${co.co_title || ''}</option>`)
+        .map(co => `<option value="${co.id}" ${selectedCoId == co.id ? 'selected' : ''}>CO #${co.id} - ${co.co_title || ''}</option>`)
         .join('');
 }
 

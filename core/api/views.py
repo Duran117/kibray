@@ -3936,8 +3936,8 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
             # Get change orders grouped by project (non-draft statuses)
             change_orders = ChangeOrder.objects.filter(
                 status__in=["approved", "pending", "sent", "billed", "paid"]
-            ).select_related("project").order_by("project__name", "co_number").values(
-                "id", "co_number", "co_title", "project_id", "project__name"
+            ).select_related("project").order_by("project__name", "id").values(
+                "id", "co_title", "project_id", "project__name"
             )
             
             entries_data = []
@@ -3951,7 +3951,7 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
                     "project_id": entry.project_id,
                     "project_name": entry.project.name if entry.project else None,
                     "change_order_id": entry.change_order_id,
-                    "change_order_number": entry.change_order.co_number if entry.change_order else None,
+                    "change_order_title": entry.change_order.co_title if entry.change_order else None,
                     "notes": entry.notes or "",
                 })
                 if entry.hours_worked:
