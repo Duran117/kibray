@@ -188,11 +188,13 @@ CACHES = {
             "CONNECTION_POOL_KWARGS": {
                 "max_connections": 10,  # Reduced from 50
                 "retry_on_timeout": True,
+                "socket_connect_timeout": 5,  # 5 second connection timeout
+                "socket_timeout": 5,  # 5 second socket timeout
             },
             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
             "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
             "COMPRESS_MIN_LENGTH": 100,
-            "IGNORE_EXCEPTIONS": False,
+            "IGNORE_EXCEPTIONS": True,  # Don't crash if Redis is unavailable
         },
         "KEY_PREFIX": "kibray_prod",
         "TIMEOUT": 300,
