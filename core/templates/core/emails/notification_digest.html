@@ -1,19 +1,43 @@
-<div style="font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; max-width:640px; margin:0 auto;">
-  <h2 style="color:#4f46e5;">Resumen de Notificaciones ({{ count }})</h2>
-  <p>Hola <strong>{{ user.get_full_name|default:user.username }}</strong>, tienes <strong>{{ count }}</strong> notificaciones nuevas desde {{ since|date:'Y-m-d H:i' }}.</p>
-  <ul style="padding-left:1rem;">
-    {% for n in items %}
-      <li style="margin-bottom:.4rem;">
-        <span style="color:#64748b; font-size:.85rem;">{{ n.created_at|date:'Y-m-d H:i' }}</span>
-        <br><strong>{{ n.title|default:n.message }}</strong>
-        {% if n.message and n.title and n.message != n.title %}<div style="font-size:.85rem; color:#475569;">{{ n.message }}</div>{% endif %}
-      </li>
-    {% endfor %}
-  </ul>
-  {% if remaining > 0 %}
-  <p style="font-size:.85rem; color:#64748b;">... y {{ remaining }} más.</p>
-  {% endif %}
-  <p><a href="{{ site_url }}" style="display:inline-block;padding:.6rem 1rem;background:#4f46e5;color:#fff;border-radius:8px;text-decoration:none;">Ir al Panel</a></p>
-  <hr style="margin:2rem 0; border:none; border-top:1px solid #e2e8f0;">
-  <p style="font-size:.7rem; color:#94a3b8;">© {{ now|date:'Y' }} {{ app_name }} · Este correo es automático.</p>
-</div>
+{% extends "emails/base_email.html" %}
+
+{% block title %}Notification Digest - Kibray Painting{% endblock %}
+
+{% block content %}
+    <p class="greeting" style="font-size: 24px; font-weight: 600; color: #1a1a2e; margin: 0 0 25px 0;">
+        Notification Summary
+    </p>
+    
+    <p class="message-text" style="color: #555555; margin: 0 0 25px 0; font-size: 16px; line-height: 1.7;">
+        Hello <strong>{{ user.get_full_name|default:user.username }}</strong>, you have <strong>{{ count }}</strong> new notifications since {{ since|date:'M d, Y H:i' }}.
+    </p>
+    
+    <div class="info-box" style="background-color: #f8f9fa; border-left: 4px solid #1a1a2e; padding: 25px; margin: 30px 0; border-radius: 0 8px 8px 0;">
+        <p class="info-box-title" style="font-size: 13px; font-weight: 600; color: #888888; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 15px 0;">
+            Recent Notifications
+        </p>
+        {% for n in items %}
+        <div style="padding: 12px 0; border-bottom: 1px solid #eee;">
+            <span style="color: #888888; font-size: 12px;">{{ n.created_at|date:'M d, H:i' }}</span>
+            <br>
+            <strong style="color: #1a1a2e;">{{ n.title|default:n.message }}</strong>
+            {% if n.message and n.title and n.message != n.title %}
+            <div style="font-size: 14px; color: #555555; margin-top: 5px;">{{ n.message }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        {% if remaining > 0 %}
+        <p style="font-size: 14px; color: #888888; margin-top: 15px; margin-bottom: 0;">
+            ... and {{ remaining }} more notifications.
+        </p>
+        {% endif %}
+    </div>
+    
+    {% if site_url %}
+    <div class="cta-container" style="text-align: center; margin: 35px 0;">
+        <a href="{{ site_url }}" class="cta-button" style="display: inline-block; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #ffffff !important; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 15px; font-weight: 600; letter-spacing: 0.5px;">
+            Go to Dashboard
+        </a>
+    </div>
+    {% endif %}
+{% endblock %}

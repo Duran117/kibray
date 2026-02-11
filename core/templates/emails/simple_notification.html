@@ -1,0 +1,43 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}{{ subject }} - Kibray Painting{% endblock %}
+
+{% block content %}
+    {% if greeting %}
+    <p class="greeting" style="font-size: 24px; font-weight: 600; color: #1a1a2e; margin: 0 0 25px 0;">
+        {{ greeting }}
+    </p>
+    {% endif %}
+    
+    <p class="message-text" style="color: #555555; margin: 0 0 25px 0; font-size: 16px; line-height: 1.7;">
+        {{ message|linebreaks }}
+    </p>
+    
+    {% if button_url and button_text %}
+    <div class="cta-container" style="text-align: center; margin: 35px 0;">
+        <a href="{{ button_url }}" class="cta-button" style="display: inline-block; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #ffffff !important; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 15px; font-weight: 600; letter-spacing: 0.5px;">
+            {{ button_text }}
+        </a>
+    </div>
+    {% endif %}
+    
+    {% if details %}
+    <div class="info-box" style="background-color: #f8f9fa; border-left: 4px solid #1a1a2e; padding: 25px; margin: 30px 0; border-radius: 0 8px 8px 0;">
+        <p class="info-box-title" style="font-size: 13px; font-weight: 600; color: #888888; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 15px 0;">
+            Details
+        </p>
+        {% for key, value in details.items %}
+        <div class="info-row" style="margin: 12px 0;">
+            <span class="info-label" style="font-size: 13px; color: #888888; display: inline-block; width: 120px;">{{ key }}:</span>
+            <span class="info-value" style="font-size: 15px; color: #1a1a2e; font-weight: 600;">{{ value }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if closing %}
+    <p class="message-text" style="color: #555555; margin: 25px 0 0 0; font-size: 16px; line-height: 1.7;">
+        {{ closing }}
+    </p>
+    {% endif %}
+{% endblock %}

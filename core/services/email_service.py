@@ -280,32 +280,47 @@ class KibrayEmailService:
         to_emails: list,
         subject: str,
         message: str,
+        greeting: Optional[str] = None,
+        button_url: Optional[str] = None,
+        button_text: Optional[str] = None,
+        details: Optional[dict] = None,
+        closing: Optional[str] = None,
         fail_silently: bool = True
     ) -> bool:
         """
-        Send a simple notification email (plain text, no template).
+        Send a notification email with Kibray branding.
         
-        Fallback for cases where a custom template isn't needed.
+        Args:
+            to_emails: List of recipient emails
+            subject: Email subject
+            message: Main message body
+            greeting: Optional greeting (e.g., "Hello John!")
+            button_url: Optional CTA button URL
+            button_text: Optional CTA button text
+            details: Optional dict of key-value pairs to show in info box
+            closing: Optional closing message
+            fail_silently: If True, suppress exceptions
+        
+        Returns:
+            bool: True if email was sent successfully
         """
-        try:
-            from django.core.mail import send_mail
-            
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=cls._get_default_from_email(),
-                recipient_list=to_emails,
-                fail_silently=fail_silently
-            )
-            
-            logger.info(f"Simple notification sent to {to_emails}: {subject}")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Failed to send notification to {to_emails}: {e}")
-            if not fail_silently:
-                raise
-            return False
+        context = {
+            'subject': subject,
+            'message': message,
+            'greeting': greeting,
+            'button_url': button_url,
+            'button_text': button_text,
+            'details': details,
+            'closing': closing,
+        }
+        
+        return cls._send_email(
+            subject=subject,
+            template_name='emails/simple_notification.html',
+            context=context,
+            to_emails=to_emails,
+            fail_silently=fail_silently
+        )
 
     @classmethod
     def send_html_email(
