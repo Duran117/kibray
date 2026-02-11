@@ -183,32 +183,23 @@ CHANNEL_LAYERS = {
     },
 }
 
-# Cache - Redis with compression (Memory Optimized)
+# Cache - Use local memory cache (Redis was causing timeouts and crashes)
+# When Redis is stable again, can switch back to django_redis
 CACHES = {
     "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": REDIS_URL.replace("/0", "/1"),  # Use database 1 for cache
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "CONNECTION_POOL_KWARGS": {
-                "max_connections": 10,  # Reduced from 50
-                "retry_on_timeout": True,
-                "socket_connect_timeout": 5,  # 5 second connection timeout
-                "socket_timeout": 5,  # 5 second socket timeout
-            },
-            "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
-            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
-            "COMPRESS_MIN_LENGTH": 100,
-            "IGNORE_EXCEPTIONS": True,  # Don't crash if Redis is unavailable
-        },
-        "KEY_PREFIX": "kibray_prod",
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "kibray-cache",
         "TIMEOUT": 300,
+        "OPTIONS": {
+            "MAX_ENTRIES": 1000,
+        },
     }
 }
 
 # ============================================
 # CELERY CONFIGURATION FOR BACKGROUND TASKS
 # ============================================
+# Note: Celery requires Redis. If Redis is unavailable, tasks will run synchronously.
 CELERY_BROKER_URL = REDIS_URL.replace("/0", "/2")  # Use database 2 for Celery broker
 CELERY_RESULT_BACKEND = REDIS_URL.replace("/0", "/3")  # Use database 3 for results
 CELERY_ACCEPT_CONTENT = ["json"]
@@ -220,10 +211,12 @@ CELERY_TASK_TIME_LIMIT = 300  # 5 minutes max per task
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1  # Conservative for memory
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BROKER_CONNECTION_RETRY = True  # Retry connecting to broker
-CELERY_BROKER_CONNECTION_MAX_RETRIES = 10  # Max retries before giving up
-CELERY_BROKER_CONNECTION_TIMEOUT = 10  # Connection timeout in seconds
-CELERY_REDIS_SOCKET_TIMEOUT = 10  # Socket timeout
-CELERY_REDIS_SOCKET_CONNECT_TIMEOUT = 10  # Connect timeout
+CELERY_BROKER_CONNECTION_MAX_RETRIES = 3  # Reduced retries
+CELERY_BROKER_CONNECTION_TIMEOUT = 5  # Reduced timeout
+CELERY_REDIS_SOCKET_TIMEOUT = 5  # Socket timeout
+CELERY_REDIS_SOCKET_CONNECT_TIMEOUT = 5  # Connect timeout
+# Run tasks synchronously if broker unavailable (fallback mode)
+CELERY_TASK_ALWAYS_EAGER = os.getenv("CELERY_TASK_ALWAYS_EAGER", "False") == "True"
 print("✅ Celery configured with Redis broker")
 
 # Logging - Structured logging for production

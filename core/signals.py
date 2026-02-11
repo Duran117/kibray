@@ -268,12 +268,16 @@ def handle_user_logged_in(sender, request, user, **kwargs):
             request.session.save()
             new_key = request.session.session_key
         cache_key = _active_session_cache_key(user.id)
-        old_key = cache.get(cache_key)
-        if old_key and old_key != new_key:
-            _revoke_session(old_key)
-        cache.set(cache_key, new_key, timeout=None)
-    except Exception:
-        # Non-fatal: if cache or session backend unavailable, skip
+        try:
+            old_key = cache.get(cache_key)
+            if old_key and old_key != new_key:
+                _revoke_session(old_key)
+            cache.set(cache_key, new_key, timeout=None)
+        except (ConnectionError, TimeoutError, OSError, Exception):
+            # Redis unavailable - skip session tracking, login still works
+            pass
+    except (SystemExit, BaseException):
+        # Critical error - don't block login
         pass
 
 
@@ -281,7 +285,8 @@ def handle_user_logged_out(sender, request, user, **kwargs):
     try:
         cache_key = _active_session_cache_key(user.id)
         cache.delete(cache_key)
-    except Exception:
+    except (ConnectionError, TimeoutError, OSError, SystemExit, BaseException):
+        # Redis unavailable - skip, logout still works
         pass
 
 
