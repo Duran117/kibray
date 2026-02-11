@@ -157,6 +157,11 @@ REDIS_URL = os.getenv("REDIS_URL")
 if not REDIS_URL:
     raise ValueError("REDIS_URL environment variable must be set in production!")
 
+# Ensure REDIS_URL has a database number for proper separation
+# If URL doesn't end with /N, append /0 as default
+if not REDIS_URL.rstrip('/').split('/')[-1].isdigit():
+    REDIS_URL = REDIS_URL.rstrip('/') + '/0'
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
@@ -214,6 +219,11 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 300  # 5 minutes max per task
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1  # Conservative for memory
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BROKER_CONNECTION_RETRY = True  # Retry connecting to broker
+CELERY_BROKER_CONNECTION_MAX_RETRIES = 10  # Max retries before giving up
+CELERY_BROKER_CONNECTION_TIMEOUT = 10  # Connection timeout in seconds
+CELERY_REDIS_SOCKET_TIMEOUT = 10  # Socket timeout
+CELERY_REDIS_SOCKET_CONNECT_TIMEOUT = 10  # Connect timeout
 print("✅ Celery configured with Redis broker")
 
 # Logging - Structured logging for production
