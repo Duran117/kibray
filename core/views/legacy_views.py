@@ -3949,22 +3949,23 @@ def project_chat_premium(request, project_id, channel_id=None):
     """
     Premium chat view with WebSocket support.
     """
+    from core.models import ClientProjectAccess
+    
     project = get_object_or_404(Project, id=project_id)
     
     # ===== SECURITY: Verify user has access to this project =====
     if not request.user.is_staff:
-        # Check if user is the client contact for this project
-        is_client_contact = False
-        if project.client:
-            is_client_contact = (
-                project.client.email == request.user.email or 
-                project.client.user == request.user
-            )
+        # Check if user has ClientProjectAccess to this project
+        has_client_access = ClientProjectAccess.objects.filter(
+            user=request.user,
+            project=project,
+            is_active=True
+        ).exists()
         
-        # Check if user is assigned to the project
+        # Check if user is assigned to the project (for employees)
         is_assigned = project.assigned_to.filter(id=request.user.id).exists() if hasattr(project, 'assigned_to') else False
         
-        if not is_client_contact and not is_assigned:
+        if not has_client_access and not is_assigned:
             messages.error(request, _("You don't have access to this project."))
             return redirect("dashboard_client")
     # ===== END SECURITY CHECK =====
