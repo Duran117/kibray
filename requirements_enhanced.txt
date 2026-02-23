@@ -90,7 +90,7 @@ httpx==0.25.2
 
 # Integrations
 python-quickbooks==0.9.4  # QuickBooks
-google-api-python-client==2.108.0  # Google Calendar
+google-api-python-client==2.187.0  # Google Calendar
 google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.0
 
