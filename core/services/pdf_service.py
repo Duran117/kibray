@@ -1817,6 +1817,171 @@ def generate_changeorder_pdf_reportlab(changeorder: "ChangeOrder") -> bytes:
     elements.append(Paragraph(description.replace('\n', '<br/>'), desc_style))
     elements.append(Spacer(1, 20))
     
+    # === COST BREAKDOWN ===
+    # Get expenses and time entries associated with this CO
+    from decimal import Decimal as Dec
+    from django.db.models import Sum
+    
+    material_expenses = changeorder.expenses.filter(category__in=["MATERIALES", "ALMACÉN"]).order_by("date")
+    other_expenses = changeorder.expenses.exclude(category__in=["MATERIALES", "ALMACÉN", "MANO_OBRA"]).order_by("date")
+    time_entries = changeorder.time_entries.select_related("employee").order_by("date")
+    
+    total_materials = material_expenses.aggregate(total=Sum("amount"))["total"] or Dec("0.00")
+    total_other = other_expenses.aggregate(total=Sum("amount"))["total"] or Dec("0.00")
+    total_labor_hours = sum((entry.hours_worked or Dec("0")) for entry in time_entries)
+    labor_cost = sum(entry.labor_cost for entry in time_entries)
+    
+    # Get billing rate for display
+    billing_rate = changeorder.get_effective_billing_rate() if hasattr(changeorder, "get_effective_billing_rate") else Dec("50.00")
+    labor_billable = total_labor_hours * billing_rate
+    
+    # Only show cost breakdown section if there are expenses or time entries
+    has_cost_data = material_expenses.exists() or other_expenses.exists() or time_entries.exists()
+    
+    if has_cost_data:
+        elements.append(Paragraph("<b>COST BREAKDOWN</b>", header_style))
+        
+        # --- Materials Section ---
+        if material_expenses.exists():
+            elements.append(Paragraph("<b>Materials</b>", ParagraphStyle('SubHeader', parent=normal_style, fontSize=10, textColor=colors.HexColor('#059669'))))
+            
+            material_data = [
+                [Paragraph("<b>Date</b>", small_style), 
+                 Paragraph("<b>Description</b>", small_style), 
+                 Paragraph("<b>Amount</b>", small_style)]
+            ]
+            for exp in material_expenses:
+                material_data.append([
+                    Paragraph(exp.date.strftime('%m/%d/%Y') if exp.date else '-', small_style),
+                    Paragraph(str(exp.description or exp.category)[:50], small_style),
+                    Paragraph(f"${exp.amount:,.2f}", small_style)
+                ])
+            # Add subtotal
+            material_data.append([
+                Paragraph("", small_style),
+                Paragraph("<b>Materials Subtotal</b>", normal_style),
+                Paragraph(f"<b>${total_materials:,.2f}</b>", normal_style)
+            ])
+            
+            mat_table = Table(material_data, colWidths=[1*inch, 4.5*inch, 1.5*inch])
+            mat_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('LINEBELOW', (0, 0), (-1, 0), 1, colors.HexColor('#e2e8f0')),
+                ('LINEBELOW', (0, -2), (-1, -2), 1, colors.HexColor('#e2e8f0')),
+                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#f0fdf4')),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ]))
+            elements.append(mat_table)
+            elements.append(Spacer(1, 12))
+        
+        # --- Labor Section ---
+        if time_entries.exists():
+            elements.append(Paragraph("<b>Labor</b>", ParagraphStyle('SubHeader', parent=normal_style, fontSize=10, textColor=colors.HexColor('#3b82f6'))))
+            
+            labor_data = [
+                [Paragraph("<b>Date</b>", small_style), 
+                 Paragraph("<b>Employee</b>", small_style), 
+                 Paragraph("<b>Hours</b>", small_style),
+                 Paragraph("<b>Rate</b>", small_style),
+                 Paragraph("<b>Amount</b>", small_style)]
+            ]
+            for entry in time_entries:
+                emp_name = f"{entry.employee.first_name} {entry.employee.last_name}" if entry.employee else '-'
+                hours = entry.hours_worked or Dec("0")
+                rate = entry.billable_rate_snapshot or billing_rate
+                amount = hours * rate
+                labor_data.append([
+                    Paragraph(entry.date.strftime('%m/%d/%Y') if entry.date else '-', small_style),
+                    Paragraph(emp_name[:20], small_style),
+                    Paragraph(f"{hours:.2f}", small_style),
+                    Paragraph(f"${rate:,.2f}/hr", small_style),
+                    Paragraph(f"${amount:,.2f}", small_style)
+                ])
+            # Add subtotal
+            labor_data.append([
+                Paragraph("", small_style),
+                Paragraph("<b>Labor Subtotal</b>", normal_style),
+                Paragraph(f"<b>{total_labor_hours:.2f} hrs</b>", normal_style),
+                Paragraph("", small_style),
+                Paragraph(f"<b>${labor_billable:,.2f}</b>", normal_style)
+            ])
+            
+            labor_table = Table(labor_data, colWidths=[0.9*inch, 2.1*inch, 0.9*inch, 1.2*inch, 1.2*inch])
+            labor_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('LINEBELOW', (0, 0), (-1, 0), 1, colors.HexColor('#e2e8f0')),
+                ('LINEBELOW', (0, -2), (-1, -2), 1, colors.HexColor('#e2e8f0')),
+                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#eff6ff')),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ]))
+            elements.append(labor_table)
+            elements.append(Spacer(1, 12))
+        
+        # --- Other Expenses Section ---
+        if other_expenses.exists():
+            elements.append(Paragraph("<b>Other Expenses</b>", ParagraphStyle('SubHeader', parent=normal_style, fontSize=10, textColor=colors.HexColor('#f59e0b'))))
+            
+            other_data = [
+                [Paragraph("<b>Date</b>", small_style), 
+                 Paragraph("<b>Category</b>", small_style),
+                 Paragraph("<b>Description</b>", small_style), 
+                 Paragraph("<b>Amount</b>", small_style)]
+            ]
+            for exp in other_expenses:
+                other_data.append([
+                    Paragraph(exp.date.strftime('%m/%d/%Y') if exp.date else '-', small_style),
+                    Paragraph(str(exp.category)[:15], small_style),
+                    Paragraph(str(exp.description or '-')[:40], small_style),
+                    Paragraph(f"${exp.amount:,.2f}", small_style)
+                ])
+            # Add subtotal
+            other_data.append([
+                Paragraph("", small_style),
+                Paragraph("", small_style),
+                Paragraph("<b>Other Subtotal</b>", normal_style),
+                Paragraph(f"<b>${total_other:,.2f}</b>", normal_style)
+            ])
+            
+            other_table = Table(other_data, colWidths=[1*inch, 1.2*inch, 3.3*inch, 1.5*inch])
+            other_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('LINEBELOW', (0, 0), (-1, 0), 1, colors.HexColor('#e2e8f0')),
+                ('LINEBELOW', (0, -2), (-1, -2), 1, colors.HexColor('#e2e8f0')),
+                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#fffbeb')),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ]))
+            elements.append(other_table)
+            elements.append(Spacer(1, 12))
+        
+        # --- Grand Total ---
+        grand_total = total_materials + labor_billable + total_other
+        
+        # For FIXED pricing, show the fixed amount instead
+        if changeorder.pricing_type == "FIXED":
+            display_total = changeorder.amount
+        else:
+            display_total = grand_total
+        
+        total_data = [
+            [Paragraph("<b>TOTAL</b>", ParagraphStyle('TotalLabel', parent=normal_style, fontSize=12, textColor=colors.HexColor('#1e3a5f'))),
+             Paragraph(f"<b>${display_total:,.2f}</b>", ParagraphStyle('TotalValue', parent=normal_style, fontSize=14, textColor=colors.HexColor('#059669')))]
+        ]
+        total_table = Table(total_data, colWidths=[5.5*inch, 1.5*inch])
+        total_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, 0), 'RIGHT'),
+            ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f0fdf4')),
+            ('BOX', (0, 0), (-1, -1), 2, colors.HexColor('#059669')),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        elements.append(total_table)
+        elements.append(Spacer(1, 20))
+    
     # === TERMS & CONDITIONS ===
     elements.append(Paragraph("<b>TERMS & CONDITIONS</b>", header_style))
     terms = [
