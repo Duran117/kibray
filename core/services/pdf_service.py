@@ -1785,6 +1785,29 @@ def generate_changeorder_pdf_reportlab(changeorder: "ChangeOrder") -> bytes:
     elements.append(status_table)
     elements.append(Spacer(1, 16))
     
+    # === CALCULATE TOTALS FIRST (for T&M display) ===
+    from decimal import Decimal as Dec
+    from django.db.models import Sum
+    
+    material_expenses = changeorder.expenses.filter(category__in=["MATERIALES", "ALMACÉN"]).order_by("date")
+    other_expenses = changeorder.expenses.exclude(category__in=["MATERIALES", "ALMACÉN", "MANO_OBRA"]).order_by("date")
+    time_entries = changeorder.time_entries.select_related("employee").order_by("date")
+    
+    total_materials = material_expenses.aggregate(total=Sum("amount"))["total"] or Dec("0.00")
+    total_other = other_expenses.aggregate(total=Sum("amount"))["total"] or Dec("0.00")
+    total_labor_hours = sum((entry.hours_worked or Dec("0")) for entry in time_entries)
+    labor_cost = sum(entry.labor_cost for entry in time_entries)
+    
+    # Get billing rate for display
+    billing_rate = changeorder.get_effective_billing_rate() if hasattr(changeorder, "get_effective_billing_rate") else Dec("50.00")
+    labor_billable = total_labor_hours * billing_rate
+    
+    # Calculate display amount - for T&M show calculated total, for FIXED show the amount
+    if changeorder.pricing_type == "FIXED":
+        display_amount = changeorder.amount
+    else:
+        display_amount = total_materials + labor_billable + total_other
+    
     # === PROJECT & CO INFO ===
     project = changeorder.project
     pricing_type = "Fixed Price" if changeorder.pricing_type == "FIXED" else "Time & Materials"
@@ -1796,7 +1819,7 @@ def generate_changeorder_pdf_reportlab(changeorder: "ChangeOrder") -> bytes:
         [Paragraph(f"<b>Project Code:</b> {project.project_code if project else '-'}", normal_style),
          Paragraph(f"<b>Pricing Type:</b> {pricing_type}", normal_style)],
         [Paragraph(f"<b>Client:</b> {project.client if project else '-'}", normal_style),
-         Paragraph(f"<b>Amount:</b> <font color='#059669'><b>${changeorder.amount:,.2f}</b></font>", normal_style)],
+         Paragraph(f"<b>Amount:</b> <font color='#059669'><b>${display_amount:,.2f}</b></font>", normal_style)],
     ]
     
     info_table = Table(info_data, colWidths=[3.5*inch, 3.5*inch])
@@ -1818,22 +1841,7 @@ def generate_changeorder_pdf_reportlab(changeorder: "ChangeOrder") -> bytes:
     elements.append(Spacer(1, 20))
     
     # === COST BREAKDOWN ===
-    # Get expenses and time entries associated with this CO
-    from decimal import Decimal as Dec
-    from django.db.models import Sum
-    
-    material_expenses = changeorder.expenses.filter(category__in=["MATERIALES", "ALMACÉN"]).order_by("date")
-    other_expenses = changeorder.expenses.exclude(category__in=["MATERIALES", "ALMACÉN", "MANO_OBRA"]).order_by("date")
-    time_entries = changeorder.time_entries.select_related("employee").order_by("date")
-    
-    total_materials = material_expenses.aggregate(total=Sum("amount"))["total"] or Dec("0.00")
-    total_other = other_expenses.aggregate(total=Sum("amount"))["total"] or Dec("0.00")
-    total_labor_hours = sum((entry.hours_worked or Dec("0")) for entry in time_entries)
-    labor_cost = sum(entry.labor_cost for entry in time_entries)
-    
-    # Get billing rate for display
-    billing_rate = changeorder.get_effective_billing_rate() if hasattr(changeorder, "get_effective_billing_rate") else Dec("50.00")
-    labor_billable = total_labor_hours * billing_rate
+    # (totals already calculated above for header display)
     
     # Only show cost breakdown section if there are expenses or time entries
     has_cost_data = material_expenses.exists() or other_expenses.exists() or time_entries.exists()
