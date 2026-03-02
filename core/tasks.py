@@ -1184,3 +1184,61 @@ def cleanup_old_assignments(days: int = 30):
         logger.error(f"Error en cleanup_old_assignments: {e}")
         return {"status": "error", "error": str(e)}
 
+
+@shared_task(name="core.tasks.process_sop_image")
+def process_sop_image(sop_id: int, image_data: str):
+    """
+    Process and save SOP reference photo in background.
+    This allows the SOP creation to return immediately while
+    the image is being processed and uploaded.
+    
+    Args:
+        sop_id: ID of the ActivityTemplate (SOP) to update
+        image_data: Base64 encoded image data string
+    """
+    import base64
+    import uuid
+    from django.core.files.base import ContentFile
+    from django.core.files.storage import default_storage
+    
+    from core.models import ActivityTemplate
+    
+    try:
+        sop = ActivityTemplate.objects.get(id=sop_id)
+        
+        if not image_data or ";base64," not in image_data:
+            logger.warning(f"process_sop_image: Invalid image data for SOP {sop_id}")
+            return {"status": "skipped", "reason": "invalid_image_data"}
+        
+        # Decode and save image
+        format_part, imgstr = image_data.split(";base64,")
+        ext = format_part.split("/")[-1]
+        if ext not in ["png", "jpg", "jpeg", "gif", "webp"]:
+            ext = "png"  # Default to PNG for canvas exports
+        
+        filename = f"sop_images/{uuid.uuid4()}.{ext}"
+        file_data = ContentFile(base64.b64decode(imgstr), name=filename)
+        file_path = default_storage.save(filename, file_data)
+        
+        # Update SOP with the image URL
+        image_url = default_storage.url(file_path)
+        current_photos = sop.reference_photos or []
+        current_photos.append(image_url)
+        sop.reference_photos = current_photos
+        sop.save(update_fields=["reference_photos"])
+        
+        logger.info(f"process_sop_image: Successfully saved image for SOP {sop_id}")
+        return {
+            "status": "success",
+            "sop_id": sop_id,
+            "image_url": image_url,
+        }
+        
+    except ActivityTemplate.DoesNotExist:
+        logger.error(f"process_sop_image: SOP {sop_id} not found")
+        return {"status": "error", "error": "SOP not found"}
+    except Exception as e:
+        logger.error(f"process_sop_image: Error processing image for SOP {sop_id}: {e}")
+        return {"status": "error", "error": str(e)}
+
+

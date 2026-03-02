@@ -410,7 +410,10 @@ def get_suggestions(request):
 @permission_classes([IsAuthenticated])
 def save_sop_express_creator(request):
     """
-    Save a new SOP from the Express Creator
+    Save a new SOP from the Express Creator.
+    
+    Uses background processing (Celery) for image upload to provide
+    instant response while the image is being processed.
     """
     try:
         data = request.data
@@ -422,33 +425,33 @@ def save_sop_express_creator(request):
         if not title:
             return Response({"status": "error", "message": "Title is required"}, status=400)
 
-        # Handle Image Upload
-        reference_photos = []
-        if image_data and ";base64," in image_data:
-            try:
-                format, imgstr = image_data.split(";base64,")
-                ext = format.split("/")[-1]
-                filename = f"sop_images/{uuid.uuid4()}.{ext}"
-                file_data = ContentFile(base64.b64decode(imgstr), name=filename)
-                file_path = default_storage.save(filename, file_data)
-                # Assuming default storage url works, otherwise might need MEDIA_URL
-                reference_photos.append(default_storage.url(file_path))
-            except Exception as img_err:
-                logger.error(f"Error saving image: {img_err}")
-                # Continue without image if it fails
-
+        # Create SOP immediately (without image - image processed in background)
         sop = ActivityTemplate.objects.create(
             name=title,
             description=goal,
             steps=steps,
-            reference_photos=reference_photos,
-            # Default values
+            reference_photos=[],  # Will be updated by background task
             category="OTHER",
             difficulty_level="beginner",
             is_active=True,
         )
 
-        return Response({"status": "success", "id": sop.id})
+        # Queue image processing in background (Celery task)
+        # This allows instant response while image uploads asynchronously
+        if image_data and ";base64," in image_data:
+            try:
+                from core.tasks import process_sop_image
+                process_sop_image.delay(sop.id, image_data)
+                logger.info(f"Queued image processing for SOP {sop.id}")
+            except Exception as task_err:
+                logger.error(f"Error queuing image task: {task_err}")
+                # Continue - SOP is saved, image will be missing
+
+        return Response({
+            "status": "success", 
+            "id": sop.id,
+            "message": "SOP created. Image processing in background." if image_data else "SOP created."
+        })
 
     except Exception as e:
         logger.error(f"Error saving SOP: {str(e)}")
@@ -458,3 +461,4 @@ def save_sop_express_creator(request):
 # Backwards-compatible alias to avoid breaking any older imports.
 # NOTE: Keep only one real definition of `save_sop` in this module.
 save_sop_express = save_sop_express_creator
+
