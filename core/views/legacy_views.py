@@ -4559,13 +4559,27 @@ def changeorder_create_view(request):
         form = ChangeOrderForm(request.POST, request.FILES)
         if form.is_valid():
             co = form.save()
-            # Handle photo uploads
+            
+            # Handle photo uploads - optimized for faster response
             photos = request.FILES.getlist("photos")
-            for idx, photo_file in enumerate(photos):
-                description = request.POST.get(f"photo_description_{idx}", "")
-                ChangeOrderPhoto.objects.create(
-                    change_order=co, image=photo_file, description=description, order=idx
-                )
+            if photos:
+                # Process photos synchronously but in a single transaction
+                from django.db import transaction
+                with transaction.atomic():
+                    for idx, photo_file in enumerate(photos):
+                        description = request.POST.get(f"photo_description_{idx}", "")
+                        ChangeOrderPhoto.objects.create(
+                            change_order=co, image=photo_file, description=description, order=idx
+                        )
+            
+            # Queue background task for post-creation processing (notifications, etc.)
+            try:
+                from core.tasks import process_changeorder_creation
+                process_changeorder_creation.delay(co.id)
+            except Exception:
+                pass  # Don't block if task queueing fails
+            
+            messages.success(request, f"Change Order #{co.id} created successfully.")
             return redirect("changeorder_board")
     else:
         form = ChangeOrderForm()
@@ -4590,16 +4604,23 @@ def changeorder_edit_view(request, co_id):
         form = ChangeOrderForm(request.POST, request.FILES, instance=changeorder)
         if form.is_valid():
             co = form.save()
-            # Handle new photo uploads
+            
+            # Handle new photo uploads - optimized with transaction
             photos = request.FILES.getlist("photos")
-            for idx, photo_file in enumerate(photos):
-                description = request.POST.get(f"photo_description_{idx}", "")
-                ChangeOrderPhoto.objects.create(
-                    change_order=co,
-                    image=photo_file,
-                    description=description,
-                    order=co.photos.count() + idx,
-                )
+            if photos:
+                from django.db import transaction
+                with transaction.atomic():
+                    current_count = co.photos.count()
+                    for idx, photo_file in enumerate(photos):
+                        description = request.POST.get(f"photo_description_{idx}", "")
+                        ChangeOrderPhoto.objects.create(
+                            change_order=co,
+                            image=photo_file,
+                            description=description,
+                            order=current_count + idx,
+                        )
+            
+            messages.success(request, f"Change Order #{co.id} updated successfully.")
             return redirect("changeorder_board")
     else:
         form = ChangeOrderForm(instance=changeorder)

@@ -1242,3 +1242,117 @@ def process_sop_image(sop_id: int, image_data: str):
         return {"status": "error", "error": str(e)}
 
 
+@shared_task(name="core.tasks.process_changeorder_photos")
+def process_changeorder_photos(changeorder_id: int, photo_data_list: list):
+    """
+    Process Change Order photos in background to prevent UI blocking.
+    
+    Args:
+        changeorder_id: ID of the ChangeOrder
+        photo_data_list: List of dicts with 'file_path', 'description', 'order'
+                        file_path is the temporary storage path
+    """
+    import uuid
+    from django.core.files.storage import default_storage
+    from core.models import ChangeOrder, ChangeOrderPhoto
+    
+    try:
+        changeorder = ChangeOrder.objects.get(id=changeorder_id)
+        
+        processed_count = 0
+        for photo_info in photo_data_list:
+            try:
+                temp_path = photo_info.get('file_path')
+                description = photo_info.get('description', '')
+                order = photo_info.get('order', 0)
+                
+                if temp_path and default_storage.exists(temp_path):
+                    # Read from temp location
+                    with default_storage.open(temp_path, 'rb') as f:
+                        file_content = f.read()
+                    
+                    # Create the photo with the content
+                    from django.core.files.base import ContentFile
+                    filename = f"changeorder_photos/{changeorder_id}/{uuid.uuid4()}.jpg"
+                    
+                    photo = ChangeOrderPhoto(
+                        change_order=changeorder,
+                        description=description,
+                        order=order,
+                    )
+                    photo.image.save(filename.split('/')[-1], ContentFile(file_content), save=True)
+                    
+                    # Clean up temp file
+                    try:
+                        default_storage.delete(temp_path)
+                    except Exception:
+                        pass
+                    
+                    processed_count += 1
+                    
+            except Exception as e:
+                logger.warning(f"process_changeorder_photos: Error processing photo for CO {changeorder_id}: {e}")
+                continue
+        
+        logger.info(f"process_changeorder_photos: Processed {processed_count} photos for CO {changeorder_id}")
+        return {
+            "status": "success",
+            "changeorder_id": changeorder_id,
+            "photos_processed": processed_count,
+        }
+        
+    except ChangeOrder.DoesNotExist:
+        logger.error(f"process_changeorder_photos: CO {changeorder_id} not found")
+        return {"status": "error", "error": "ChangeOrder not found"}
+    except Exception as e:
+        logger.error(f"process_changeorder_photos: Error for CO {changeorder_id}: {e}")
+        return {"status": "error", "error": str(e)}
+
+
+@shared_task(name="core.tasks.process_changeorder_creation")
+def process_changeorder_creation(changeorder_id: int):
+    """
+    Post-creation tasks for Change Order (notifications, indexing, etc.)
+    Run in background to keep UI responsive.
+    """
+    from core.models import ChangeOrder
+    from django.contrib.auth import get_user_model
+    
+    User = get_user_model()
+    
+    try:
+        changeorder = ChangeOrder.objects.select_related('project').get(id=changeorder_id)
+        
+        # Send notification to project managers
+        try:
+            from core.models import Notification
+            
+            # Get PMs assigned to this project
+            pm_users = User.objects.filter(
+                profile__role__in=['admin', 'pm'],
+                is_active=True
+            )
+            
+            for pm in pm_users:
+                Notification.objects.create(
+                    user=pm,
+                    message=f"New Change Order #{changeorder_id} created for {changeorder.project.name if changeorder.project else 'Unknown Project'}",
+                    notification_type="changeorder",
+                    link=f"/changeorder/{changeorder_id}/",
+                    project=changeorder.project,
+                )
+            
+            logger.info(f"process_changeorder_creation: Notifications sent for CO {changeorder_id}")
+        except Exception as e:
+            logger.warning(f"process_changeorder_creation: Failed to send notifications for CO {changeorder_id}: {e}")
+        
+        return {"status": "success", "changeorder_id": changeorder_id}
+        
+    except ChangeOrder.DoesNotExist:
+        logger.error(f"process_changeorder_creation: CO {changeorder_id} not found")
+        return {"status": "error", "error": "ChangeOrder not found"}
+    except Exception as e:
+        logger.error(f"process_changeorder_creation: Error for CO {changeorder_id}: {e}")
+        return {"status": "error", "error": str(e)}
+
+
