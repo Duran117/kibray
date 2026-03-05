@@ -1002,7 +1002,8 @@
                             <td>
                                 <input type="number" 
                                        name="paid_{{ data.employee.id }}" 
-                                       value="{% if data.record.balance_due > 0 %}{{ data.record.balance_due|floatformat:2 }}{% endif %}"
+                                       value=""
+                                       placeholder="{% if data.record.balance_due > 0 %}{{ data.record.balance_due|floatformat:2 }}{% else %}0{% endif %}"
                                        step="0.01"
                                        min="0"
                                        class="amount-input paid-input"
@@ -1020,16 +1021,23 @@
                             <td>
                                 <input type="text" 
                                        name="check_{{ data.employee.id }}" 
-                                       value="{{ data.last_payment.check_number|default:'' }}"
-                                       placeholder="Check #"
+                                       value=""
+                                       placeholder="{{ data.last_payment.check_number|default:'Check #' }}"
                                        class="check-input">
                             </td>
                             
                             <td>
                                 <input type="date" 
                                        name="pay_date_{{ data.employee.id }}" 
-                                       value="{{ data.last_payment.payment_date|date:'Y-m-d'|default:'' }}"
-                                       class="date-input">
+                                       value=""
+                                       class="date-input"
+                                       placeholder="{{ data.last_payment.payment_date|date:'Y-m-d'|default:'' }}">
+                                {% if data.last_payment.payment_date %}
+                                <div style="font-size: 9px; color: #6b7280; margin-top: 2px;">
+                                    Last: {{ data.last_payment.payment_date|date:'M d' }}
+                                </div>
+                                {% endif %}
+                            </td>
                             </td>
                             
                             <td>
