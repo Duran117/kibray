@@ -1,629 +1,441 @@
 {% extends "core/base_modern.html" %}
-{% load static i18n humanize currency_extras %}
+{% load i18n humanize currency_extras %}
 
-{% block title %}{{ project.name }} - {% trans "Project Overview" %}{% endblock %}
+{% block title %}{{ project.name }} — {% trans "Project Overview" %}{% endblock %}
 
 {% block extra_css %}
 <style>
-    .project-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 15px;
-        padding: 30px;
-        color: white;
-        margin-bottom: 25px;
-    }
-    .project-header h1 { margin: 0 0 10px 0; font-weight: 700; }
-    .project-header .project-address { opacity: 0.9; font-size: 1.1rem; }
-    .stat-card {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
-        height: 100%;
-        transition: transform 0.2s;
-    }
-    .stat-card:hover { transform: translateY(-3px); }
-    .stat-card .stat-icon {
-        width: 50px; height: 50px;
-        border-radius: 12px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.5rem; margin-bottom: 15px;
-    }
-    .stat-card .stat-value { font-size: 1.8rem; font-weight: 700; color: #2c3e50; }
-    .stat-card .stat-label { color: #7f8c8d; font-size: 0.9rem; }
-    .section-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
-        margin-bottom: 25px;
-    }
-    .section-card .card-header {
-        background: transparent;
-        border-bottom: 1px solid #eee;
-        padding: 20px;
-        font-weight: 600;
-        color: #2c3e50;
-    }
-    .section-card .card-body { padding: 20px; }
-    .progress-section { margin-bottom: 20px; }
-    .progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
-    .progress { height: 12px; border-radius: 6px; background: #e9ecef; }
-    .progress-bar { border-radius: 6px; }
-    .list-item {
-        border: 1px solid #eee;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 10px;
-        transition: all 0.2s;
-    }
-    .list-item:hover { border-color: #667eea; background: #f8f9ff; }
-    .status-badge {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-    .status-pending { background: #fff3cd; color: #856404; }
-    .status-approved { background: #d4edda; color: #155724; }
-    .status-completed { background: #d4edda; color: #155724; }
-    .status-in-progress { background: #cce5ff; color: #004085; }
-    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
-    .photo-item {
-        aspect-ratio: 1;
-        border-radius: 8px;
-        overflow: hidden;
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
-    .photo-item:hover { transform: scale(1.05); }
-    .photo-item img { width: 100%; height: 100%; object-fit: cover; }
-    .schedule-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
-    .schedule-item:last-child { border-bottom: none; }
-    .schedule-date { min-width: 80px; font-weight: 600; color: #667eea; font-size: 0.9rem; }
-    .btn-action {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white; border: none;
-        padding: 8px 16px; border-radius: 8px;
-        font-weight: 600; transition: all 0.2s;
-    }
-    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); color: white; }
-    .empty-state { text-align: center; padding: 30px; color: #7f8c8d; }
-    .empty-state i { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.5; }
-    .financial-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-    .financial-row:last-child { border-bottom: none; font-weight: 700; }
-    
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-        .project-header {
-            padding: 20px;
-            border-radius: 12px;
-        }
-        .project-header h1 {
-            font-size: 1.5rem;
-        }
-        .stat-card {
-            padding: 15px;
-        }
-        .stat-card .stat-value {
-            font-size: 1.4rem;
-        }
-        .stat-card .stat-icon {
-            width: 40px;
-            height: 40px;
-            font-size: 1.2rem;
-        }
-        .section-card .card-header,
-        .section-card .card-body {
-            padding: 15px;
-        }
-        .photo-grid {
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 8px;
-        }
-        .schedule-item {
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .schedule-date {
-            min-width: 100%;
-        }
-    }
-    
-    @media (max-width: 576px) {
-        .stat-card .stat-value {
-            font-size: 1.2rem;
-        }
-        .stat-card .stat-label {
-            font-size: 0.8rem;
-        }
-    }
+    .progress-ring { transform: rotate(-90deg); }
+    .progress-ring__circle { transition: stroke-dashoffset 0.6s ease-out; }
+    .photo-thumb { transition: transform 0.2s ease; }
+    .photo-thumb:hover { transform: scale(1.05); }
+    .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 40px -8px rgba(0,0,0,0.12); }
+    .scrollbar-none::-webkit-scrollbar { display: none; }
+    .scrollbar-none { scrollbar-width: none; }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'dashboard_client' %}?project_id={{ project.id }}">{% trans "My Projects" %}</a></li>
-            <li class="breadcrumb-item active">{{ project.name }}</li>
-        </ol>
-    </nav>
-    
-    <!-- Project Header -->
-    <div class="project-header">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h1>{{ project.name }}</h1>
-                {% if project.address %}
-                    <p class="project-address mb-0">
-                        <i class="fas fa-map-marker-alt me-2"></i>{{ project.address }}
-                    </p>
-                {% endif %}
-            </div>
-            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                {% if project.status %}
-                    <span class="badge bg-light text-dark fs-6">
-                        <i class="fas fa-circle text-success me-1"></i>{{ project.get_status_display }}
-                    </span>
-                {% endif %}
-            </div>
-        </div>
+{% block page_header %}
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+        <a href="{% url 'dashboard_client' %}?project_id={{ project.id }}"
+           class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-indigo-600 mb-2 transition-colors">
+            <i class="bi bi-arrow-left"></i> {% trans "My Projects" %}
+        </a>
+        <h1 class="text-2xl sm:text-3xl font-semibold text-slate-900">{{ project.name }}</h1>
+        {% if project.address %}
+        <p class="text-slate-500 flex items-center gap-1.5 mt-1">
+            <i class="bi bi-geo-alt text-slate-400"></i> {{ project.address }}
+        </p>
+        {% endif %}
     </div>
-    
-    <!-- Stats Row -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-6 col-lg-3">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: #e8f5e9; color: #27ae60;">
-                    <i class="fas fa-percentage"></i>
-                </div>
-                <div class="stat-value">{{ progress_pct }}%</div>
-                <div class="stat-label">{% trans "Progress" %}</div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: #e3f2fd; color: #3498db;">
-                    <i class="fas fa-tasks"></i>
-                </div>
-                <div class="stat-value">{{ pending_tasks.count }}</div>
-                <div class="stat-label">{% trans "Pending Tasks" %}</div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: #fff3e0; color: #f39c12;">
-                    <i class="fas fa-images"></i>
-                </div>
-                <div class="stat-value">{{ recent_photos.count }}</div>
-                <div class="stat-label">{% trans "Photos" %}</div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: #fce4ec; color: #e74c3c;">
-                    <i class="fas fa-calendar-alt"></i>
-                </div>
-                <div class="stat-value">{{ upcoming_schedules|length }}</div>
-                <div class="stat-label">{% trans "Upcoming Events" %}</div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="row">
-        <!-- Main Content -->
-        <div class="col-lg-8">
-            <!-- Progress Section -->
-            <div class="section-card">
-                <div class="card-header">
-                    <i class="fas fa-chart-line me-2"></i>{% trans "Project Progress" %}
-                </div>
-                <div class="card-body">
-                    <div class="progress-section">
-                        <div class="progress-label">
-                            <span>{% trans "Overall Completion" %}</span>
-                            <span class="fw-bold">{{ progress_pct }}%</span>
-                        </div>
-                        <div class="progress">
-                            <div class="progress-bar bg-success" role="progressbar" 
-                                 style="width: {{ progress_pct }}%"></div>
-                        </div>
-                    </div>
-                    {% if gantt_progress.completed_items or gantt_progress.total_items %}
-                        <div class="mt-3">
-                            <small class="text-muted">
-                                {{ gantt_progress.completed_items|default:0 }} {% trans "of" %} 
-                                {{ gantt_progress.total_items|default:0 }} {% trans "items completed" %}
-                            </small>
-                        </div>
-                    {% endif %}
-                    {% if project.start_date or project.end_date %}
-                        <div class="row mt-4">
-                            {% if project.start_date %}
-                                <div class="col-6">
-                                    <small class="text-muted">{% trans "Start Date" %}</small>
-                                    <p class="mb-0 fw-bold">{{ project.start_date|date:"M d, Y" }}</p>
-                                </div>
-                            {% endif %}
-                            {% if project.end_date %}
-                                <div class="col-6">
-                                    <small class="text-muted">{% trans "Expected End" %}</small>
-                                    <p class="mb-0 fw-bold">{{ project.end_date|date:"M d, Y" }}</p>
-                                </div>
-                            {% endif %}
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <!-- Pending Requests Section -->
-            {% if pending_requests %}
-            <div class="section-card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-inbox me-2"></i>{% trans "My Requests" %}</span>
-                    <span class="badge bg-warning text-dark">{{ pending_requests.count }} {% trans "pending" %}</span>
-                </div>
-                <div class="card-body">
-                    {% for req in pending_requests %}
-                        <div class="list-item">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h6 class="mb-1">{{ req.title }}</h6>
-                                    <small class="text-muted">{{ req.created_at|date:"M d, Y" }}</small>
-                                </div>
-                                <span class="status-badge status-pending">{% trans "Pending" %}</span>
-                            </div>
-                            {% if req.description %}
-                                <p class="mb-0 mt-2 text-muted small">{{ req.description|truncatewords:20 }}</p>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-            
-            <!-- Tasks Section -->
-            <div class="section-card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-tasks me-2"></i>{% trans "Tasks & Touch-ups" %}</span>
-                    {% if pending_tasks %}
-                        <span class="badge bg-primary">{{ pending_tasks.count }} {% trans "active" %}</span>
-                    {% endif %}
-                </div>
-                <div class="card-body">
-                    {% if pending_tasks %}
-                        {% for task in pending_tasks|slice:":5" %}
-                            <div class="list-item">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1">{{ task.title }}</h6>
-                                        <small class="text-muted">
-                                            {% if task.assigned_to %}
-                                                <i class="fas fa-user me-1"></i>{{ task.assigned_to.get_full_name|default:task.assigned_to.username }}
-                                            {% endif %}
-                                        </small>
-                                    </div>
-                                    <span class="status-badge {% if task.status == 'In Progress' or task.status == 'En Progreso' %}status-in-progress{% else %}status-pending{% endif %}">
-                                        {{ task.get_status_display|default:task.status }}
-                                    </span>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="empty-state">
-                            <i class="fas fa-check-circle"></i>
-                            <p>{% trans "No pending tasks" %}</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <!-- Recent Photos -->
-            <div class="section-card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-camera me-2"></i>{% trans "Recent Photos" %}</span>
-                </div>
-                <div class="card-body">
-                    {% if recent_photos %}
-                        <div class="photo-grid">
-                            {% for photo in recent_photos|slice:":8" %}
-                                <div class="photo-item" data-bs-toggle="modal" data-bs-target="#photoModal" 
-                                     data-photo-url="{{ photo.image.url }}" data-photo-desc="{{ photo.description|default:'' }}">
-                                    <img src="{{ photo.image.url }}" alt="{{ photo.description|default:'Photo' }}">
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="empty-state">
-                            <i class="fas fa-images"></i>
-                            <p>{% trans "No photos yet" %}</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <!-- Project Documents (Public Files) -->
-            <div class="section-card" id="documents">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-folder-open me-2"></i>{% trans "Project Documents" %}</span>
-                    {% if public_files %}
-                    <span class="badge bg-primary">{{ public_files|length }}</span>
-                    {% endif %}
-                </div>
-                <div class="card-body">
-                    {% if public_files %}
-                        {% regroup public_files by category as files_by_category %}
-                        {% for category_group in files_by_category %}
-                            <div class="mb-3">
-                                <h6 class="text-muted mb-2">
-                                    <i class="bi {{ category_group.grouper.icon|default:'bi-folder' }} me-1"></i>
-                                    {{ category_group.grouper.name }}
-                                </h6>
-                                {% for file in category_group.list|slice:":5" %}
-                                    <div class="list-item d-flex align-items-center justify-content-between py-2">
-                                        <div class="d-flex align-items-center">
-                                            {% if file.file_type == 'pdf' %}
-                                                <i class="fas fa-file-pdf text-danger me-2"></i>
-                                            {% elif file.file_type == 'image' %}
-                                                <i class="fas fa-file-image text-primary me-2"></i>
-                                            {% elif file.file_type == 'spreadsheet' %}
-                                                <i class="fas fa-file-excel text-success me-2"></i>
-                                            {% elif file.file_type == 'word' %}
-                                                <i class="fas fa-file-word text-info me-2"></i>
-                                            {% else %}
-                                                <i class="fas fa-file me-2"></i>
-                                            {% endif %}
-                                            <div>
-                                                <div class="fw-bold small">{{ file.name|truncatechars:40 }}</div>
-                                                <small class="text-muted">{{ file.uploaded_at|date:"M d, Y" }} • {{ file.file_size|filesizeformat }}</small>
-                                            </div>
-                                        </div>
-                                        <a href="{{ file.file.url }}" class="btn btn-sm btn-outline-primary" download title="{% trans 'Download' %}">
-                                            <i class="fas fa-download"></i>
-                                        </a>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="empty-state">
-                            <i class="fas fa-folder-open"></i>
-                            <p>{% trans "No documents available yet" %}</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Quick Actions -->
-            <div class="section-card">
-                <div class="card-header">
-                    <i class="fas fa-bolt me-2"></i>{% trans "Quick Actions" %}
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'client_project_calendar' project.pk %}" class="btn btn-action">
-                            <i class="fas fa-calendar me-2"></i>{% trans "View Calendar" %}
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Upcoming Schedule -->
-            <div class="section-card">
-                <div class="card-header">
-                    <i class="fas fa-calendar-alt me-2"></i>{% trans "Upcoming Schedule" %}
-                </div>
-                <div class="card-body">
-                    {% if upcoming_schedules %}
-                        {% for schedule in upcoming_schedules %}
-                            <div class="schedule-item">
-                                <div class="schedule-date">
-                                    {{ schedule.start_datetime|date:"M d" }}
-                                </div>
-                                <div>
-                                    <div class="fw-bold">{{ schedule.title }}</div>
-                                    {% if schedule.status %}
-                                    <small class="text-muted">
-                                        {% if schedule.status == 'done' %}✓ {% trans "Completed" %}
-                                        {% elif schedule.status == 'in_progress' %}↻ {% trans "In Progress" %}
-                                        {% else %}○ {% trans "Upcoming" %}{% endif %}
-                                    </small>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="empty-state">
-                            <i class="fas fa-calendar-check"></i>
-                            <p>{% trans "No upcoming events" %}</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <!-- Financial Summary (Mini) -->
-            <div class="section-card" id="financials">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-chart-pie me-2"></i>{% trans "Financial Summary" %}</span>
-                    <a href="{% url 'client_financials' project.id %}" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-external-link-alt me-1"></i>{% trans "View Details" %}
-                    </a>
-                </div>
-                <div class="card-body">
-                    <!-- Quick Stats -->
-                    <div class="row g-3 mb-3">
-                        <div class="col-6">
-                            <div class="text-center p-3 rounded" style="background: linear-gradient(135deg, #667eea15, #764ba215);">
-                                <div class="fs-5 fw-bold text-primary">{{ total_contract_value|default:0|currency }}</div>
-                                <small class="text-muted">{% trans "Contract Value" %}</small>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="text-center p-3 rounded" style="background: linear-gradient(135deg, #28a74515, #20c99715);">
-                                <div class="fs-5 fw-bold text-success">{{ total_paid|default:0|currency }}</div>
-                                <small class="text-muted">{% trans "Total Paid" %}</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Payment Progress -->
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <small class="text-muted">{% trans "Payment Progress" %}</small>
-                            <small class="fw-bold">
-                                {% widthratio total_paid total_contract_value 100 as paid_pct %}
-                                {{ paid_pct|default:0 }}%
-                            </small>
-                        </div>
-                        <div class="progress" style="height: 8px; border-radius: 4px;">
-                            {% if total_contract_value > 0 %}
-                            <div class="progress-bar bg-success" role="progressbar" 
-                                 style="width: {% widthratio total_paid total_contract_value 100 %}%;"></div>
-                            {% else %}
-                            <div class="progress-bar bg-secondary" style="width: 100%"></div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <!-- Quick Info -->
-                    <div class="d-flex justify-content-between small text-muted">
-                        <span>
-                            <i class="fas fa-file-alt me-1"></i>{% trans "Base" %}: {{ base_contract_total|default:0|currency }}
-                        </span>
-                        {% if approved_cos %}
-                        <span>
-                            <i class="fas fa-plus-circle me-1 text-success"></i>{% trans "COs" %}: +{{ approved_cos_total|default:0|currency }}
-                        </span>
-                        {% endif %}
-                    </div>
-                    
-                    {% if balance > 0 %}
-                    <div class="mt-3 p-2 bg-warning bg-opacity-10 rounded text-center">
-                        <small class="text-warning fw-bold">
-                            <i class="fas fa-exclamation-circle me-1"></i>
-                            {% trans "Balance Due" %}: {{ balance|currency }}
-                        </small>
-                    </div>
-                    {% endif %}
-                    
-                    {% if pending_cos %}
-                    <div class="mt-2 p-2 bg-info bg-opacity-10 rounded text-center">
-                        <small class="text-info">
-                            <i class="fas fa-clock me-1"></i>
-                            {{ pending_cos|length }} {% trans "Change Order(s) pending approval" %}
-                        </small>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <!-- Color Samples -->
-            {% if color_samples %}
-            <div class="section-card">
-                <div class="card-header">
-                    <i class="fas fa-palette me-2"></i>{% trans "Color Samples" %}
-                </div>
-                <div class="card-body">
-                    <div class="row g-2">
-                        {% for sample in color_samples %}
-                            <div class="col-6">
-                                <div class="p-2 border rounded">
-                                    {% if sample.color_code %}
-                                        <div style="width: 100%; height: 40px; background: {{ sample.color_code }}; border-radius: 4px;"></div>
-                                    {% endif %}
-                                    <small class="d-block mt-1">{{ sample.name|truncatewords:3 }}</small>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-            
-            <!-- Project Minutes -->
-            {% if project_minutes %}
-            <div class="section-card">
-                <div class="card-header">
-                    <i class="fas fa-clipboard-list me-2"></i>{% trans "Recent Updates" %}
-                </div>
-                <div class="card-body">
-                    {% for minute in project_minutes|slice:":5" %}
-                        <div class="mb-3 pb-3 border-bottom">
-                            <small class="text-muted">{{ minute.event_date|date:"M d, Y" }}</small>
-                            <p class="mb-0">{{ minute.content|truncatewords:15 }}</p>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-            
-            <!-- Project Info -->
-            <div class="section-card">
-                <div class="card-header">
-                    <i class="fas fa-info-circle me-2"></i>{% trans "Project Details" %}
-                </div>
-                <div class="card-body">
-                    {% if project.description %}
-                        <p class="text-muted small">{{ project.description|truncatewords:30 }}</p>
-                    {% endif %}
-                    <ul class="list-unstyled mb-0 small">
-                        {% if project.project_manager %}
-                            <li class="mb-2">
-                                <span class="text-muted">{% trans "Project Manager" %}:</span><br>
-                                <span class="fw-bold">{{ project.project_manager.get_full_name|default:project.project_manager.username }}</span>
-                            </li>
-                        {% endif %}
-                        {% if project.company %}
-                            <li class="mb-2">
-                                <span class="text-muted">{% trans "Company" %}:</span><br>
-                                <span class="fw-bold">{{ project.company.name }}</span>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Photo Modal -->
-<div class="modal fade" id="photoModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-body p-0 position-relative">
-                <button type="button" class="btn-close position-absolute top-0 end-0 m-3 bg-white rounded-circle p-2" 
-                        data-bs-dismiss="modal"></button>
-                <img src="" id="modalPhoto" class="img-fluid w-100" alt="Photo">
-                <div id="modalPhotoDesc" class="p-3 bg-light"></div>
+    <div class="flex items-center gap-4">
+        <div class="relative w-20 h-20 flex-shrink-0">
+            <svg class="w-full h-full progress-ring" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="34" fill="none" stroke="#f1f5f9" stroke-width="6"/>
+                <circle cx="40" cy="40" r="34" fill="none"
+                        stroke="url(#progGrad)" stroke-width="6" stroke-linecap="round"
+                        stroke-dasharray="213.63"
+                        style="stroke-dashoffset: calc(213.63 - (213.63 * {{ progress_pct }} / 100))"
+                        class="progress-ring__circle"/>
+                <defs>
+                    <linearGradient id="progGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#6366f1"/>
+                        <stop offset="100%" stop-color="#8b5cf6"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <span class="text-lg font-bold text-slate-900">{{ progress_pct }}%</span>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const photoModal = document.getElementById('photoModal');
-    if (photoModal) {
-        photoModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const photoUrl = button.getAttribute('data-photo-url');
-            const photoDesc = button.getAttribute('data-photo-desc');
-            document.getElementById('modalPhoto').src = photoUrl;
-            const descEl = document.getElementById('modalPhotoDesc');
-            if (photoDesc) {
-                descEl.textContent = photoDesc;
-                descEl.style.display = 'block';
-            } else {
-                descEl.style.display = 'none';
-            }
-        });
-    }
-});
-</script>
+{% block content %}
+<!-- Quick Nav -->
+<div class="flex flex-nowrap gap-2 overflow-x-auto pb-3 mb-6 -mx-1 px-1 scrollbar-none">
+    <a href="{% url 'client_financials' project.id %}" class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition whitespace-nowrap flex-shrink-0">
+        <i class="bi bi-currency-dollar text-emerald-500"></i> {% trans "Financials" %}
+    </a>
+    <a href="{% url 'client_project_calendar' project.id %}" class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition whitespace-nowrap flex-shrink-0">
+        <i class="bi bi-calendar3 text-blue-500"></i> {% trans "Schedule" %}
+    </a>
+    <a href="{% url 'site_photo_list' project.id %}" class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition whitespace-nowrap flex-shrink-0">
+        <i class="bi bi-images text-pink-500"></i> {% trans "Photos" %}
+    </a>
+    <a href="{% url 'floor_plan_list' project.id %}" class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition whitespace-nowrap flex-shrink-0">
+        <i class="bi bi-map text-cyan-500"></i> {% trans "Floor Plans" %}
+    </a>
+    <a href="{% url 'color_sample_list' project.id %}" class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition whitespace-nowrap flex-shrink-0">
+        <i class="bi bi-palette text-purple-500"></i> {% trans "Colors" %}
+    </a>
+    <a href="{% url 'client_documents' project.id %}" class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition whitespace-nowrap flex-shrink-0">
+        <i class="bi bi-folder text-amber-500"></i> {% trans "Documents" %}
+    </a>
+    <a href="{% url 'client_requests_list' project.id %}" class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition whitespace-nowrap flex-shrink-0">
+        <i class="bi bi-chat-square-text text-teal-500"></i> {% trans "Requests" %}
+    </a>
+    <a href="{% url 'project_chat_premium' project.id %}" class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg text-sm font-medium text-slate-700 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition whitespace-nowrap flex-shrink-0">
+        <i class="bi bi-chat-dots text-indigo-500"></i> {% trans "Chat" %}
+    </a>
+</div>
+
+<!-- Stats Row -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-xl border border-slate-200 p-5 card-hover">
+        <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center mb-3">
+            <i class="bi bi-graph-up text-emerald-600"></i>
+        </div>
+        <p class="text-2xl font-bold text-slate-900">{{ progress_pct }}%</p>
+        <p class="text-sm text-slate-500">{% trans "Progress" %}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-5 card-hover">
+        <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center mb-3">
+            <i class="bi bi-list-task text-blue-600"></i>
+        </div>
+        <p class="text-2xl font-bold text-slate-900">{{ pending_tasks.count }}</p>
+        <p class="text-sm text-slate-500">{% trans "Pending Tasks" %}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-5 card-hover">
+        <div class="w-10 h-10 rounded-lg bg-pink-50 flex items-center justify-center mb-3">
+            <i class="bi bi-images text-pink-600"></i>
+        </div>
+        <p class="text-2xl font-bold text-slate-900">{{ recent_photos|length }}</p>
+        <p class="text-sm text-slate-500">{% trans "Photos" %}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-5 card-hover">
+        <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center mb-3">
+            <i class="bi bi-calendar-event text-amber-600"></i>
+        </div>
+        <p class="text-2xl font-bold text-slate-900">{{ upcoming_schedules|length }}</p>
+        <p class="text-sm text-slate-500">{% trans "Upcoming Events" %}</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- COLUMN 1: Main Content -->
+    <div class="lg:col-span-2 space-y-6">
+
+        <!-- Progress Section -->
+        {% if gantt_progress.total_items %}
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-bar-chart text-indigo-500"></i> {% trans "Project Progress" %}
+                </h3>
+                <span class="text-sm text-slate-500">{{ gantt_progress.completed_items|default:0 }} {% trans "of" %} {{ gantt_progress.total_items }} {% trans "items" %}</span>
+            </div>
+            <div class="p-6">
+                <div class="flex justify-between text-sm mb-2">
+                    <span class="text-slate-600">{% trans "Overall Completion" %}</span>
+                    <span class="font-semibold text-slate-900">{{ progress_pct }}%</span>
+                </div>
+                <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500" style="width: {{ progress_pct }}%"></div>
+                </div>
+                {% if project.start_date or project.end_date %}
+                <div class="flex gap-6 mt-4 text-sm">
+                    {% if project.start_date %}
+                    <div><span class="text-slate-400">{% trans "Start Date" %}</span><p class="font-medium text-slate-900">{{ project.start_date|date:"M d, Y" }}</p></div>
+                    {% endif %}
+                    {% if project.end_date %}
+                    <div><span class="text-slate-400">{% trans "Expected End" %}</span><p class="font-medium text-slate-900">{{ project.end_date|date:"M d, Y" }}</p></div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Pending Requests -->
+        {% if pending_requests %}
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-inbox text-teal-500"></i> {% trans "My Requests" %}
+                </h3>
+                <span class="px-2.5 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">{{ pending_requests.count }} {% trans "pending" %}</span>
+            </div>
+            <div class="divide-y divide-slate-100">
+                {% for req in pending_requests|slice:":5" %}
+                <div class="px-6 py-4 hover:bg-slate-50 transition">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-medium text-slate-900">{{ req.title }}</p>
+                            <p class="text-xs text-slate-400 mt-1">{{ req.created_at|date:"M d, Y" }}</p>
+                        </div>
+                        <span class="px-2.5 py-0.5 bg-amber-50 text-amber-700 rounded-full text-xs font-medium">{% trans "Pending" %}</span>
+                    </div>
+                    {% if req.description %}
+                    <p class="text-sm text-slate-500 mt-2 line-clamp-2">{{ req.description|truncatewords:20 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Tasks & Touch-ups -->
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-list-check text-blue-500"></i> {% trans "Tasks & Touch-ups" %}
+                </h3>
+                {% if pending_tasks %}
+                <span class="px-2.5 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">{{ pending_tasks.count }} {% trans "active" %}</span>
+                {% endif %}
+            </div>
+            <div class="divide-y divide-slate-100">
+                {% for task in pending_tasks|slice:":5" %}
+                <div class="px-6 py-4 hover:bg-slate-50 transition">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-medium text-slate-900">{{ task.title }}</p>
+                            {% if task.assigned_to %}
+                            <p class="text-xs text-slate-400 mt-1"><i class="bi bi-person"></i> {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}</p>
+                            {% endif %}
+                        </div>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium {% if task.status == 'In Progress' or task.status == 'En Progreso' %}bg-blue-50 text-blue-700{% else %}bg-slate-100 text-slate-600{% endif %}">{{ task.get_status_display|default:task.status }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="px-6 py-10 text-center">
+                    <i class="bi bi-check-circle text-3xl text-slate-300 mb-2"></i>
+                    <p class="text-sm text-slate-500">{% trans "No pending tasks" %}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent Photos -->
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-camera text-pink-500"></i> {% trans "Recent Photos" %}
+                </h3>
+                <a href="{% url 'site_photo_list' project.id %}" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">{% trans "View all" %} &rarr;</a>
+            </div>
+            <div class="p-6">
+                {% if recent_photos %}
+                <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {% for photo in recent_photos|slice:":8" %}
+                    <a href="{{ photo.image.url }}" target="_blank" class="block aspect-square rounded-lg overflow-hidden photo-thumb">
+                        <img src="{{ photo.image.url }}" alt="{{ photo.description|default:'Photo' }}" class="w-full h-full object-cover" loading="lazy">
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-6">
+                    <i class="bi bi-images text-3xl text-slate-300 mb-2"></i>
+                    <p class="text-sm text-slate-500">{% trans "No photos yet" %}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Documents -->
+        {% if public_files %}
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-folder text-amber-500"></i> {% trans "Project Documents" %}
+                </h3>
+                <a href="{% url 'client_documents' project.id %}" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">{% trans "View all" %} &rarr;</a>
+            </div>
+            <div class="divide-y divide-slate-100">
+                {% for file in public_files|slice:":5" %}
+                <div class="px-6 py-3 flex items-center justify-between hover:bg-slate-50 transition">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <i class="bi {% if file.file_type == 'pdf' %}bi-file-earmark-pdf text-red-500{% elif file.file_type == 'image' %}bi-file-earmark-image text-blue-500{% else %}bi-file-earmark text-slate-400{% endif %} text-lg"></i>
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-slate-900 truncate">{{ file.name|truncatechars:40 }}</p>
+                            <p class="text-xs text-slate-400">{{ file.uploaded_at|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                    <a href="{{ file.file.url }}" download class="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-100 hover:bg-indigo-100 flex items-center justify-center transition">
+                        <i class="bi bi-download text-slate-600 text-sm"></i>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- COLUMN 2: Sidebar -->
+    <div class="space-y-6">
+
+        <!-- Financial Summary -->
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-pie-chart text-emerald-500"></i> {% trans "Financial Summary" %}
+                </h3>
+                <a href="{% url 'client_financials' project.id %}" class="text-xs text-indigo-600 hover:text-indigo-700 font-medium">{% trans "Details" %} &rarr;</a>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 rounded-lg bg-slate-50 text-center">
+                        <p class="text-lg font-bold text-slate-900">{{ total_contract_value|currency }}</p>
+                        <p class="text-xs text-slate-500">{% trans "Contract" %}</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-emerald-50 text-center">
+                        <p class="text-lg font-bold text-emerald-700">{{ total_paid|currency }}</p>
+                        <p class="text-xs text-slate-500">{% trans "Paid" %}</p>
+                    </div>
+                </div>
+                {% if total_contract_value %}
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-slate-500">{% trans "Payment Progress" %}</span>
+                        <span class="font-medium">{% widthratio total_paid total_contract_value 100 %}%</span>
+                    </div>
+                    <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-emerald-500 rounded-full" style="width: {% widthratio total_paid total_contract_value 100 %}%"></div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="flex justify-between text-xs text-slate-500">
+                    <span>{% trans "Base" %}: {{ base_contract_total|currency }}</span>
+                    {% if approved_cos %}<span class="text-emerald-600">+ COs: {{ approved_cos_total|currency }}</span>{% endif %}
+                </div>
+                {% if balance > 0 %}
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-center">
+                    <p class="text-sm font-semibold text-amber-800"><i class="bi bi-exclamation-circle"></i> {% trans "Balance Due" %}: {{ balance|currency }}</p>
+                </div>
+                {% endif %}
+                {% if pending_cos %}
+                <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-center">
+                    <p class="text-xs text-blue-700"><i class="bi bi-clock"></i> {{ pending_cos|length }} {% trans "Change Order(s) pending approval" %}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Upcoming Schedule -->
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-calendar3 text-blue-500"></i> {% trans "Upcoming Schedule" %}
+                </h3>
+            </div>
+            <div class="divide-y divide-slate-100">
+                {% for schedule in upcoming_schedules %}
+                <div class="px-6 py-3 flex items-center gap-4">
+                    <div class="flex-shrink-0 text-center">
+                        <p class="text-xs text-indigo-600 font-semibold uppercase">{{ schedule.start_datetime|date:"M" }}</p>
+                        <p class="text-lg font-bold text-slate-900">{{ schedule.start_datetime|date:"d" }}</p>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-slate-900 truncate">{{ schedule.title }}</p>
+                        {% if schedule.status %}
+                        <p class="text-xs text-slate-400">
+                            {% if schedule.status == 'done' %}&#10003; {% trans "Completed" %}{% elif schedule.status == 'in_progress' %}&#8635; {% trans "In Progress" %}{% else %}&#9675; {% trans "Upcoming" %}{% endif %}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="px-6 py-8 text-center">
+                    <i class="bi bi-calendar-check text-2xl text-slate-300 mb-2"></i>
+                    <p class="text-sm text-slate-500">{% trans "No upcoming events" %}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Color Samples -->
+        {% if color_samples %}
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-palette text-purple-500"></i> {% trans "Color Samples" %}
+                </h3>
+            </div>
+            <div class="p-6 grid grid-cols-2 gap-3">
+                {% for sample in color_samples|slice:":6" %}
+                <a href="{% url 'color_sample_detail' sample_id=sample.id %}" class="block p-3 rounded-lg border border-slate-200 hover:border-purple-300 transition">
+                    {% if sample.sample_image %}
+                    <img src="{{ sample.sample_image.url }}" alt="{{ sample.name }}" class="w-full h-16 object-cover rounded mb-2">
+                    {% elif sample.color_code %}
+                    <div class="w-full h-16 rounded mb-2" style="background: {{ sample.color_code }};"></div>
+                    {% endif %}
+                    <p class="text-xs font-medium text-slate-700 truncate">{{ sample.name|default:sample.code }}</p>
+                    <p class="text-xs text-slate-400">{{ sample.get_status_display|default:sample.status }}</p>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Recent Updates (Minutes) -->
+        {% if project_minutes %}
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-file-text text-orange-500"></i> {% trans "Recent Updates" %}
+                </h3>
+            </div>
+            <div class="divide-y divide-slate-100">
+                {% for minute in project_minutes|slice:":5" %}
+                <div class="px-6 py-3">
+                    <p class="text-xs text-slate-400 mb-1">{{ minute.event_date|date:"M d, Y" }}</p>
+                    <p class="text-sm text-slate-700 line-clamp-2">{{ minute.content|truncatewords:15 }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Project Details -->
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-info-circle text-slate-400"></i> {% trans "Project Details" %}
+                </h3>
+            </div>
+            <div class="p-6 space-y-3 text-sm">
+                {% if project.description %}
+                <p class="text-slate-600">{{ project.description|truncatewords:30 }}</p>
+                {% endif %}
+                {% if project_manager %}
+                <div class="flex items-center gap-3 py-2">
+                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                        <i class="bi bi-person text-indigo-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">{% trans "Project Manager" %}</p>
+                        <p class="font-medium text-slate-900">{{ project_manager.get_full_name|default:project_manager.username }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                {% if project.billing_organization %}
+                <div class="flex items-center gap-3 py-2">
+                    <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+                        <i class="bi bi-building text-slate-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">{% trans "Organization" %}</p>
+                        <p class="font-medium text-slate-900">{{ project.billing_organization.name }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                {% if project.start_date %}
+                <div class="flex items-center gap-3 py-2">
+                    <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+                        <i class="bi bi-calendar text-slate-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">{% trans "Started" %}</p>
+                        <p class="font-medium text-slate-900">{{ project.start_date|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

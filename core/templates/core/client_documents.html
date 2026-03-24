@@ -5,31 +5,6 @@
 
 {% block extra_css %}
 <style>
-    .docs-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px;
-        padding: 32px;
-        color: white;
-        margin-bottom: 24px;
-    }
-    .docs-header h1 {
-        margin: 0 0 8px 0;
-        font-size: 1.75rem;
-        font-weight: 700;
-    }
-    .docs-header .breadcrumb {
-        margin: 0;
-        padding: 0;
-        background: transparent;
-    }
-    .docs-header .breadcrumb a {
-        color: rgba(255,255,255,0.8);
-        text-decoration: none;
-    }
-    .docs-header .breadcrumb a:hover {
-        color: white;
-    }
-    
     .stats-row {
         display: flex;
         gap: 16px;
@@ -231,20 +206,18 @@
 </style>
 {% endblock %}
 
+{% block page_header %}
+<div>
+    <a href="{% url 'client_project_view' project.id %}"
+       class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-indigo-600 mb-2 transition-colors">
+        <i class="bi bi-arrow-left"></i> {{ project.name|truncatechars:30 }}
+    </a>
+    <h1 class="text-2xl font-semibold text-slate-900"><i class="bi bi-folder2-open mr-2 text-indigo-500"></i>{% trans "Project Documents" %}</h1>
+    <p class="text-slate-500 text-sm mt-1">{% trans "Files shared with you for this project" %}</p>
+</div>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="docs-header">
-        <nav class="breadcrumb mb-2" style="font-size: 0.875rem;">
-            <a href="{% url 'dashboard_client' %}">{% trans "My Projects" %}</a>
-            <span class="mx-2">›</span>
-            <a href="{% url 'client_project_view' project.id %}">{{ project.name|truncatechars:30 }}</a>
-            <span class="mx-2">›</span>
-            <span style="color: white;">{% trans "Documents" %}</span>
-        </nav>
-        <h1><i class="bi bi-folder2-open me-2"></i>{% trans "Project Documents" %}</h1>
-        <p style="margin: 0; opacity: 0.9;">{% trans "Files shared with you for this project" %}</p>
-    </div>
     
     <!-- Stats -->
     <div class="stats-row">
@@ -367,10 +340,9 @@
     {% endif %}
     
     <!-- Back Button -->
-    <div class="mt-4">
-        <a href="{% url 'client_project_view' project.id %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-2"></i>{% trans "Back to Project" %}
+    <div class="mt-6">
+        <a href="{% url 'client_project_view' project.id %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+            <i class="bi bi-arrow-left"></i>{% trans "Back to Project" %}
         </a>
     </div>
-</div>
 {% endblock %}

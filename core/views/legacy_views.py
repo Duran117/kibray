@@ -1126,19 +1126,15 @@ def dashboard_client(request):
 
     if overdue_invoices:
         total_due = sum(inv.total_amount - inv.amount_paid for inv in overdue_invoices)
+        try:
+            invoices_url = reverse("client_invoices")
+        except Exception:
+            invoices_url = "#"
         morning_briefing.append(
             {
                 "text": f"You have ${total_due:,.2f} in pending invoices",
                 "severity": "warning",
-                "action_url": reverse("client_invoices")
-                if "client_invoices"
-                in [
-                    pattern.name
-                    for pattern in __import__("django.urls", fromlist=["get_resolver"])
-                    .get_resolver()
-                    .url_patterns
-                ]
-                else "#",
+                "action_url": invoices_url,
                 "action_label": "Pay now",
                 "category": "payments",
             }
@@ -2515,6 +2511,19 @@ def client_project_view(request, project_id):
                 elapsed_days = (timezone.localdate() - project.start_date).days
                 progress_pct = min(100, (elapsed_days / total_days * 100)) if total_days > 0 else 0
 
+    # === PROJECT MANAGER (from PM assignments) ===
+    from core.models import ProjectManagerAssignment
+    pm_assignment = ProjectManagerAssignment.objects.filter(
+        project=project
+    ).select_related("pm").first()
+    project_manager = pm_assignment.pm if pm_assignment else None
+
+    # === PUBLIC FILES ===
+    from core.models import ProjectFile
+    public_files = ProjectFile.objects.filter(
+        project=project, is_public=True
+    ).select_related("category").order_by("-uploaded_at")[:10]
+
     context = {
         "project": project,
         "pending_requests": pending_requests,
@@ -2532,7 +2541,9 @@ def client_project_view(request, project_id):
         "progress_pct": int(progress_pct),
         "gantt_progress": gantt_progress,
         "color_samples": color_samples,
-        # Financial summary for mini panel
+        "project_manager": project_manager,
+        "public_files": public_files,
+        # Financial summary
         "latest_estimate": latest_estimate,
         "base_contract_total": base_contract_total,
         "approved_cos": approved_cos,
@@ -2770,11 +2781,30 @@ def client_financials_view(request, project_id):
     
     # Total for all COs
     all_cos_total = approved_cos_total + pending_cos_total
-    
+
+    # Percentages for template
+    invoiced_pct = float(total_invoiced / total_contract_value * 100) if total_contract_value else 0
+    paid_pct = float(total_paid / total_contract_value * 100) if total_contract_value else 0
+
+    # Recent payments (for template section)
+    recent_payments = payments[:10]
+
+    # Estimate lines data for progressive billing table
+    estimate_lines_data = []
+    for lbd in lines_billing_data:
+        line = lbd['line']
+        estimate_lines_data.append({
+            'code': getattr(line, 'code', '') or getattr(line.budget_line, 'code', '') if hasattr(line, 'budget_line') and line.budget_line else '',
+            'description': line.description or '',
+            'direct_cost': line.total_price or Decimal("0"),
+            'already_pct': lbd['pct_billed'],
+        })
+
     context = {
         "project": project,
         "latest_estimate": latest_estimate,
         "estimate_lines": estimate_lines,
+        "estimate_lines_data": estimate_lines_data,
         "lines_billing_data": lines_billing_data,
         "base_contract_total": base_contract_total,
         "change_orders": all_change_orders,  # Alias for template compatibility
@@ -2791,7 +2821,10 @@ def client_financials_view(request, project_id):
         "total_invoiced": total_invoiced,
         "total_paid": total_paid,
         "balance": balance,
+        "invoiced_pct": invoiced_pct,
+        "paid_pct": paid_pct,
         "payments": payments,
+        "recent_payments": recent_payments,
         "contract_breakdown_chart": contract_breakdown_chart,
         "payment_status_chart": payment_status_chart,
     }
