@@ -328,22 +328,22 @@ project = Project.objects.first()  # ← PELIGROSO: asigna al primer proyecto ra
 
 ## 🎯 PLAN DE ACCIÓN PRIORIZADO
 
-### Fase 1: 🔴 Fixes Críticos (Inmediato)
-| # | Acción | Archivos | Esfuerzo |
-|---|--------|----------|----------|
-| 1 | Fix status case mismatch en `views_financial.py` | `core/views_financial.py` | 15 min |
-| 2 | Fix `expense_set` → `expenses` | `core/views_financial.py` | 5 min |
-| 3 | Fix `PayrollEntry` → `PayrollRecord` en `earned_value.py` | `core/services/earned_value.py` | 15 min |
-| 4 | Fix doble creación de Income en `Invoice.save()` | `core/models/__init__.py` | 20 min |
-| 5 | Fix `Project.objects.first()` en `PayrollRecord` | `core/models/__init__.py` | 10 min |
+### Fase 1: 🔴 Fixes Críticos (Inmediato) — ✅ COMPLETADO `2ed1e2ce`
+| # | Acción | Archivos | Estado |
+|---|--------|----------|--------|
+| 1 | ✅ Fix status case mismatch en `views_financial.py` | `core/views_financial.py` | DONE |
+| 2 | ✅ Fix `expense_set` → `expenses` | `core/views_financial.py` | DONE |
+| 3 | ✅ Fix `PayrollEntry` → `PayrollRecord` en `earned_value.py` | `core/services/earned_value.py` | DONE |
+| 4 | ✅ Fix doble creación de Income en `Invoice.save()` | `core/models/__init__.py` | DONE |
+| 5 | ✅ Fix `Project.objects.first()` con smart lookup | `core/models/__init__.py` | DONE |
 
-### Fase 2: 🟠 Limpieza de Código Muerto
-| # | Acción | Archivos | Esfuerzo |
-|---|--------|----------|----------|
-| 6 | Eliminar `ExpenseOCRData` + admin | `models/__init__.py`, `admin.py` | 20 min |
-| 7 | Eliminar `InvoiceAutomation` + admin | `models/__init__.py`, `admin.py` | 20 min |
-| 8 | Eliminar `InventoryBarcode` + admin | `models/__init__.py`, `admin.py` | 20 min |
-| 9 | Generar migración de eliminación | `makemigrations` | 5 min |
+### Fase 2: 🟠 Limpieza de Código Muerto — ✅ COMPLETADO `2ed1e2ce`
+| # | Acción | Archivos | Estado |
+|---|--------|----------|--------|
+| 6 | ✅ Eliminar `ExpenseOCRData` + admin | `models/__init__.py`, `admin.py` | DONE |
+| 7 | ✅ Eliminar `InvoiceAutomation` + admin | `models/__init__.py`, `admin.py` | DONE |
+| 8 | ✅ Eliminar `InventoryBarcode` + admin | `models/__init__.py`, `admin.py` | DONE |
+| 9 | ✅ Migración `0174` generada | `core/migrations/0174_*.py` | DONE |
 
 ### Fase 3: 🟡 Estandarización
 | # | Acción | Archivos | Esfuerzo |
