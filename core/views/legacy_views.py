@@ -1785,7 +1785,7 @@ def payroll_weekly_review(request):
                 if rate:
                     try:
                         record.adjusted_rate = Decimal(rate)
-                    except:
+                    except (ValueError, InvalidOperation, ArithmeticError):
                         pass
                 
                 record.total_hours = total_hours
@@ -4340,10 +4340,7 @@ def changeorder_cost_breakdown_view(request, changeorder_id):
 
 def changeorder_customer_signature_view(request, changeorder_id, token=None):
     """Vista pública para capturar firma de cliente en Change Orders.
-    Mejoras:
-    - Validación de token firmado (HMAC) con expiración.
-    - Acceso opcional sin token (compatibilidad con flujo interno).
-    - Manejo explícito de errores de token (expirado / manipulado).
+    Requires either a valid signed token OR an authenticated user with access.
     """
     changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
 
@@ -4353,7 +4350,7 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
         from core.services.financial_service import ChangeOrderService
         tm_breakdown = ChangeOrderService.get_billable_amount(changeorder)
 
-    # --- Token validation (only if provided in URL) ---
+    # --- Access control: token OR authenticated user ---
     if token is not None:
         try:
             payload = signing.loads(token, max_age=60 * 60 * 24 * 7)  # 7 days
@@ -4363,6 +4360,10 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
             return HttpResponseForbidden("The signature link has expired. Please request a new one.")
         except signing.BadSignature:
             return HttpResponseForbidden("Invalid or tampered token.")
+    elif not request.user.is_authenticated:
+        # No token and not logged in — block access
+        from django.contrib.auth.views import redirect_to_login
+        return redirect_to_login(request.get_full_path())
 
     # If already signed, show corresponding screen
     if changeorder.signature_image:
@@ -4720,13 +4721,11 @@ def get_approved_colors(request, project_id):
 
 def color_sample_client_signature_view(request, sample_id, token=None):
     """Public view to capture client signature on color samples.
-
-    Token validation (HMAC) with 7-day expiration.
-    Captures base64 signature, client name, and generates PDF.
+    Requires either a valid signed token OR an authenticated user.
     """
     color_sample = get_object_or_404(ColorSample, id=sample_id)
 
-    # --- Token validation (only if provided in URL) ---
+    # --- Access control: token OR authenticated user ---
     if token is not None:
         try:
             payload = signing.loads(token, max_age=60 * 60 * 24 * 7)  # 7 days
@@ -4736,6 +4735,9 @@ def color_sample_client_signature_view(request, sample_id, token=None):
             return HttpResponseForbidden("The signature link has expired. Please request a new one.")
         except signing.BadSignature:
             return HttpResponseForbidden("Invalid or tampered token.")
+    elif not request.user.is_authenticated:
+        from django.contrib.auth.views import redirect_to_login
+        return redirect_to_login(request.get_full_path())
 
     # If already signed, show corresponding screen
     if color_sample.client_signature:

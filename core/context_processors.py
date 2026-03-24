@@ -65,56 +65,41 @@ def notification_badges(request):
         )
 
         user = request.user
-        
-        # Notificaciones no leídas (con filtro de seguridad para clientes)
+        profile = getattr(user, "profile", None)
+        role = getattr(profile, "role", None)
+
+        # Unread notifications (with security filter for clients)
         notification_qs = Notification.objects.filter(user=user, is_read=False)
-        
-        # For clients, only count notifications for their assigned projects
-        if hasattr(user, 'profile') and user.profile and user.profile.role == 'client':
+        if role == "client":
             client_project_ids = list(
                 user.project_accesses.filter(is_active=True).values_list('project_id', flat=True)
             )
             notification_qs = notification_qs.filter(
                 Q(project_id__in=client_project_ids) | Q(project__isnull=True)
             )
-        
         badges["unread_notifications_count"] = notification_qs.count()
 
-        # Unassigned time entries (no project assigned)
-        badges["unassigned_time_count"] = TimeEntry.objects.filter(project__isnull=True).count()
-
-        # Pending material requests
-        badges["pending_materials_count"] = MaterialRequest.objects.filter(status="pending").count()
-
-        # Open issues
-        badges["open_issues_count"] = Issue.objects.filter(
-            status__in=["open", "in_progress"]
-        ).count()
-
-        # Pending change order approvals (if user is admin/staff)
+        # Staff/admin-only badges
         if user.is_staff:
-            badges["pending_approvals_count"] = ChangeOrder.objects.filter(
-                approval_status="pending"
-            ).count()
-            # Nuevas tareas creadas por clientes en estado Pendiente
+            badges["unassigned_time_count"] = TimeEntry.objects.filter(project__isnull=True).count()
+            badges["pending_materials_count"] = MaterialRequest.objects.filter(status="pending").count()
+            badges["open_issues_count"] = Issue.objects.filter(status__in=["open", "in_progress"]).count()
+            # ChangeOrder uses `status` field, not `approval_status`
+            badges["pending_approvals_count"] = ChangeOrder.objects.filter(status="pending").count()
             badges["new_client_tasks_count"] = Task.objects.filter(
                 status="Pending", created_by__profile__role="client"
             ).count()
-            # Muestras de color en revisión para aprobación
             badges["color_samples_review_count"] = ColorSample.objects.filter(
                 status__in=["proposed", "review"]
             ).count()
-        else:
-            # Para usuarios cliente: tareas completadas recientemente (últimos 3 días)
-            if hasattr(user, "profile") and user.profile.role == "client":
-                from django.utils import timezone
-
-                recent_cutoff = timezone.now() - timezone.timedelta(days=3)
-                badges["completed_tasks_client_count"] = Task.objects.filter(
-                    project__client=request.user.username,
-                    status="Completed",
-                    completed_at__gte=recent_cutoff,
-                ).count()
+        elif role == "client":
+            from django.utils import timezone
+            recent_cutoff = timezone.now() - timezone.timedelta(days=3)
+            badges["completed_tasks_client_count"] = Task.objects.filter(
+                project__client=user.username,
+                status="Completed",
+                completed_at__gte=recent_cutoff,
+            ).count()
     except Exception:
         # If models don't exist or error occurs, silently ignore
         pass

@@ -12,18 +12,21 @@ from .base import *  # noqa: F403
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-# HOTFIX: Disable template caching temporarily to force recompile
-# This ensures the fixed template syntax is loaded immediately
+# Template caching for production performance
 TEMPLATES[0]["APP_DIRS"] = False  # noqa: F405
 TEMPLATES[0]["OPTIONS"]["loaders"] = [  # noqa: F405
-    "django.template.loaders.filesystem.Loader",
-    "django.template.loaders.app_directories.Loader",
+    (
+        "django.template.loaders.cached.CachedLoader",
+        [
+            "django.template.loaders.filesystem.Loader",
+            "django.template.loaders.app_directories.Loader",
+        ],
+    ),
 ]
 
 # Add startup logging
 print("=" * 60)
 print("🚀 STARTING KIBRAY IN PRODUCTION MODE")
-print("⚠️  TEMPLATE CACHING DISABLED (temporary hotfix)")
 print("=" * 60)
 
 # SECRET_KEY must be set in environment variables
@@ -32,7 +35,7 @@ if not SECRET_KEY:
     print("❌ ERROR: DJANGO_SECRET_KEY not set!")
     raise ValueError("DJANGO_SECRET_KEY environment variable must be set in production!")
 else:
-    print(f"✅ SECRET_KEY loaded: {SECRET_KEY[:10]}...")
+    print("✅ SECRET_KEY loaded (set)")
 
 # Allowed hosts from environment
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
