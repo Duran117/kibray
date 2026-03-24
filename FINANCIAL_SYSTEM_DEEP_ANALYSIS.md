@@ -345,21 +345,26 @@ project = Project.objects.first()  # ← PELIGROSO: asigna al primer proyecto ra
 | 8 | ✅ Eliminar `InventoryBarcode` + admin | `models/__init__.py`, `admin.py` | DONE |
 | 9 | ✅ Migración `0174` generada | `core/migrations/0174_*.py` | DONE |
 
-### Fase 3: 🟡 Estandarización
-| # | Acción | Archivos | Esfuerzo |
-|---|--------|----------|----------|
-| 10 | Estandarizar choices a UPPER_ENGLISH en Income/Expense | `models/__init__.py` + migration | 45 min |
-| 11 | Renombrar `project_name` → `source_label` en Income/Expense | `models/__init__.py` + migration | 30 min |
-| 12 | Agregar campo `source` a Income (`manual`/`invoice`/`payment`) | `models/__init__.py` + migration | 20 min |
+### Fase 3: 🟡 Estandarización — ✅ COMPLETADO `a754c223`
+| # | Acción | Archivos | Estado |
+|---|--------|----------|--------|
+| 10 | ⏸️ DEFERRED — Estandarizar choices a UPPER_ENGLISH | Riesgo: data migration en producción | DEFERRED |
+| 11 | ⏸️ DEFERRED — Renombrar `project_name` → `source_label` | Riesgo: ~30+ refs en models/forms/templates | DEFERRED |
+| 12 | ✅ Agregar campo `source` a Income + migration 0175 | `models/__init__.py` | DONE |
+| 12b | ✅ InvoicePayment auto-set `source="INVOICE_PAYMENT"` | `models/__init__.py` | DONE |
+| 12c | ✅ ChangeOrder: Removed `__init__` kwargs alias mapping | `models/__init__.py` | DONE |
+| 12d | ✅ ChangeOrder: Removed property setters, kept read-only | `models/__init__.py` | DONE |
+| 12e | ✅ tasks.py: `material_markup_pct` → `material_markup_percent` | `core/tasks.py` | DONE |
+| 12f | ✅ PayrollPeriod N+1 → aggregate queries | `models/__init__.py` | DONE |
 
 ### Fase 4: 🔵 Mejoras Futuras (Post-estabilización)
-| # | Acción | Descripción |
-|---|--------|-------------|
-| 13 | Eliminar `is_paid` deprecated de Invoice | Migrar reportes primero |
-| 14 | Limpiar test aliases de ChangeOrder | Actualizar tests |
-| 15 | Evaluar Proposal vs Contract | Consolidar si redundante |
-| 16 | Agregar `auto_generated` flag a Income | Para reconciliación |
-| 17 | Optimizar N+1 queries en PayrollPeriod | `total_payroll()`, `total_paid()` |
+| # | Acción | Descripción | Estado |
+|---|--------|-------------|--------|
+| 13 | Eliminar `is_paid` deprecated de Invoice | Migrar reportes primero | PENDIENTE |
+| 14 | ~~Limpiar test aliases de ChangeOrder~~ | ✅ Hecho en Fase 3 (12c/12d) | DONE |
+| 15 | Evaluar Proposal vs Contract | Consolidar si redundante | PENDIENTE |
+| 16 | ~~Agregar `auto_generated` flag a Income~~ | ✅ Reemplazado por `source` field (12) | DONE |
+| 17 | ~~Optimizar N+1 queries en PayrollPeriod~~ | ✅ Hecho en Fase 3 (12f) | DONE |
 
 ---
 
@@ -406,13 +411,20 @@ no de ARQUITECTURA (que es sólida).
 - Change Orders con pricing dual (Fixed/T&M)
 - Presupuesto con CostCodes, BudgetLines y EVM
 
-**Los problemas son de EJECUCIÓN, no de DISEÑO:**
-1. **3 bugs críticos** que rompen el dashboard financiero (case mismatch, wrong related_name, dead model ref)
-2. **3 modelos fantasma** que nunca se implementaron (OCR, Automation, Barcode)
-3. **Inconsistencias de naming** (español vs inglés, mayúsculas vs minúsculas)
-4. **1 duplicación lógica** (doble Income creation)
+**Los problemas eran de EJECUCIÓN, no de DISEÑO:**
+1. ✅ **3 bugs críticos** — Corregidos (case mismatch, wrong related_name, dead model ref)
+2. ✅ **3 modelos fantasma** — Eliminados (OCR, Automation, Barcode) + migration 0174
+3. ✅ **Income sin trazabilidad** — Agregado campo `source` + migration 0175
+4. ✅ **Duplicación lógica** — Eliminada doble Income creation en Invoice.save()
+5. ✅ **ChangeOrder código muerto** — __init__ override + property setters eliminados
+6. ✅ **N+1 queries** — PayrollPeriod optimizado con aggregate queries
+7. ⏸️ **Inconsistencias de naming** — DEFERRED (Spanish choices, project_name field) por riesgo en producción
 
-**Recomendación:** Ejecutar Fases 1-2 inmediatamente (~2 horas de trabajo). Fases 3-4 planificar para sprint siguiente.
+**Commits:**
+- `2ed1e2ce` — Phase 1+2: 5 critical fixes + 3 dead models removed
+- `a754c223` — Phase 3: Income.source, ChangeOrder cleanup, N+1 optimization
+
+**Pendiente (Fase 4):** Eliminar `is_paid` deprecated de Invoice, evaluar consolidación Proposal/Contract.
 
 ---
 
