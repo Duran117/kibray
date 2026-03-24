@@ -26,16 +26,13 @@ from .models import (
     EmployeeSkillLevel,
     EVSnapshot,
     Expense,
-    ExpenseOCRData,
     FloorPlan,
     GPSCheckIn,
     Income,
-    InventoryBarcode,
     InventoryItem,
     InventoryLocation,
     InventoryMovement,
     Invoice,
-    InvoiceAutomation,
     InvoiceLine,
     InvoicePayment,
     MaterialCatalog,
@@ -976,133 +973,6 @@ class GPSCheckInAdmin(admin.ModelAdmin):
         (
             "Auto Break Detection",
             {"fields": ("auto_break_detected", "auto_break_minutes"), "classes": ("collapse",)},
-        ),
-    )
-
-
-@admin.register(ExpenseOCRData)
-class ExpenseOCRDataAdmin(admin.ModelAdmin):
-    list_display = (
-        "expense",
-        "vendor_name",
-        "transaction_date",
-        "total_amount",
-        "ocr_confidence",
-        "verified",
-        "verified_by",
-    )
-    list_filter = ("verified", "ocr_confidence", "ai_suggestion_confidence")
-    search_fields = ("vendor_name", "raw_text", "verification_notes")
-    readonly_fields = ("ocr_confidence", "ai_suggestion_confidence", "raw_text")
-    fieldsets = (
-        ("Expense Link", {"fields": ("expense",)}),
-        (
-            "OCR Extracted Data",
-            {
-                "fields": (
-                    "vendor_name",
-                    "transaction_date",
-                    "total_amount",
-                    "tax_amount",
-                    "line_items",
-                    "raw_text",
-                    "ocr_confidence",
-                )
-            },
-        ),
-        (
-            "AI Suggestions",
-            {"fields": ("suggested_category", "suggested_cost_code", "ai_suggestion_confidence")},
-        ),
-        ("Verification", {"fields": ("verified", "verified_by", "verification_notes")}),
-    )
-
-
-@admin.register(InvoiceAutomation)
-class InvoiceAutomationAdmin(admin.ModelAdmin):
-    list_display = (
-        "invoice",
-        "is_recurring",
-        "recurrence_frequency",
-        "next_recurrence_date",
-        "auto_send_on_creation",
-        "auto_remind_before_due",
-        "last_reminder_sent",
-    )
-    list_filter = (
-        "is_recurring",
-        "recurrence_frequency",
-        "auto_send_on_creation",
-        "auto_remind_before_due",
-        "auto_remind_after_due",
-        "apply_late_fees",
-    )
-    search_fields = ("invoice__invoice_number", "stripe_payment_intent_id", "payment_link")
-    readonly_fields = ("stripe_payment_intent_id", "payment_link", "last_reminder_sent")
-    fieldsets = (
-        ("Invoice Link", {"fields": ("invoice",)}),
-        (
-            "Recurrence",
-            {
-                "fields": (
-                    "is_recurring",
-                    "recurrence_frequency",
-                    "next_recurrence_date",
-                    "recurrence_end_date",
-                )
-            },
-        ),
-        (
-            "Automation Settings",
-            {
-                "fields": (
-                    "auto_send_on_creation",
-                    "auto_remind_before_due",
-                    "auto_remind_after_due",
-                    "reminder_frequency_days",
-                )
-            },
-        ),
-        (
-            "Late Fees",
-            {"fields": ("apply_late_fees", "late_fee_percentage", "late_fee_grace_days")},
-        ),
-        (
-            "Payment Integration",
-            {
-                "fields": ("stripe_payment_intent_id", "payment_link", "last_reminder_sent"),
-                "classes": ("collapse",),
-            },
-        ),
-    )
-
-
-@admin.register(InventoryBarcode)
-class InventoryBarcodeAdmin(admin.ModelAdmin):
-    list_display = (
-        "item",
-        "barcode_type",
-        "barcode_value",
-        "enable_auto_reorder",
-        "reorder_point",
-        "reorder_quantity",
-        "preferred_vendor",
-    )
-    list_filter = ("barcode_type", "enable_auto_reorder", "item__category")
-    search_fields = ("barcode_value", "item__name", "preferred_vendor")
-    readonly_fields = ("barcode_image",)
-    fieldsets = (
-        ("Barcode Info", {"fields": ("item", "barcode_type", "barcode_value", "barcode_image")}),
-        (
-            "Auto Reorder",
-            {
-                "fields": (
-                    "enable_auto_reorder",
-                    "reorder_point",
-                    "reorder_quantity",
-                    "preferred_vendor",
-                )
-            },
         ),
     )
 

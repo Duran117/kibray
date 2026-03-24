@@ -51,7 +51,7 @@ def financial_dashboard(request):
     # ========== KPIs ==========
 
     # YTD Revenue (paid invoices only)
-    ytd_revenue = Invoice.objects.filter(date_issued__year=current_year, status="paid").aggregate(
+    ytd_revenue = Invoice.objects.filter(date_issued__year=current_year, status="PAID").aggregate(
         total=Coalesce(Sum("total_amount"), Decimal("0.00"))
     )["total"]
 
@@ -68,7 +68,7 @@ def financial_dashboard(request):
 
     # Outstanding AR (Accounts Receivable)
     outstanding_ar = Invoice.objects.filter(
-        status__in=["sent", "viewed", "approved", "partial"]
+        status__in=["SENT", "VIEWED", "APPROVED", "PARTIAL"]
     ).aggregate(total=Coalesce(Sum("total_amount"), Decimal("0.00")))["total"]
 
     # Cash Flow this month
@@ -88,7 +88,7 @@ def financial_dashboard(request):
     # Revenue trend (last 12 months)
     twelve_months_ago = today - timedelta(days=365)
     revenue_by_month = (
-        Invoice.objects.filter(date_issued__gte=twelve_months_ago, status="paid")
+        Invoice.objects.filter(date_issued__gte=twelve_months_ago, status="PAID")
         .annotate(month=TruncMonth("date_issued"))
         .values("month")
         .annotate(total=Sum("total_amount"))
@@ -105,7 +105,7 @@ def financial_dashboard(request):
         Project.objects.filter(end_date__isnull=True)
         .annotate(
             calc_revenue=Coalesce(
-                Sum("invoices__total_amount", filter=Q(invoices__status="paid")), Decimal("0.00")
+                Sum("invoices__total_amount", filter=Q(invoices__status="PAID")), Decimal("0.00")
             ),
             calc_expenses=Coalesce(Sum("expenses__amount"), Decimal("0.00")),
             calc_profit=F("calc_revenue") - F("calc_expenses"),
@@ -138,7 +138,7 @@ def financial_dashboard(request):
     # Overdue invoices (>30 days)
     overdue_threshold = today - timedelta(days=30)
     overdue_invoices = Invoice.objects.filter(
-        status__in=["sent", "viewed", "approved"], date_issued__lt=overdue_threshold
+        status__in=["SENT", "VIEWED", "APPROVED"], date_issued__lt=overdue_threshold
     )
 
     if overdue_invoices.exists():
@@ -156,7 +156,7 @@ def financial_dashboard(request):
     over_budget_projects = []
     for project in Project.objects.filter(end_date__isnull=True):
         if project.budget_total > 0:
-            total_expenses = project.expense_set.aggregate(Sum("amount"))["amount__sum"] or 0
+            total_expenses = project.expenses.aggregate(Sum("amount"))["amount__sum"] or 0
             if total_expenses > project.budget_total:
                 variance = total_expenses - project.budget_total
                 over_budget_projects.append(

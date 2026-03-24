@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.utils import timezone
 
-from core.models import Expense, TimeEntry
+from core.models import Expense, PayrollRecord, TimeEntry
 
 
 def line_planned_percent(line, as_of: date) -> Decimal:
@@ -49,28 +49,29 @@ def compute_project_ev(project, as_of=None):
     for e in exp_qs:
         ac += Decimal(e.amount or 0)
 
-    # AC: PayrollEntry (si existe el modelo)
-    try:
-        from core.models import PayrollEntry
-
-        pe_qs = PayrollEntry.objects.filter(payroll__project=project, payroll__week_end__lte=as_of)
-        for pe in pe_qs:
-            hrs = Decimal(pe.hours_worked or 0)
-            rate = Decimal(pe.hourly_rate or 0)
-            ac += hrs * rate
-    except Exception:
-        pass
+    # AC: Payroll (PayrollRecord — costos de nómina por proyecto)
+    payroll_qs = PayrollRecord.objects.filter(
+        week_end__lte=as_of,
+    )
+    for pr in payroll_qs:
+        # Use project_hours JSON breakdown if available, otherwise add full net_pay
+        project_hours = pr.project_hours or {}
+        project_id_str = str(project.id)
+        if project_id_str in project_hours:
+            hours = Decimal(str(project_hours[project_id_str].get("hours", 0)))
+            rate = Decimal(str(pr.effective_rate()))
+            ac += hours * rate
+        elif not project_hours:
+            # No breakdown available — attribute full pay if period overlaps project
+            ac += Decimal(str(pr.net_pay or 0))
 
     # AC: TimeEntry (solo si tiene rate para no duplicar con nómina)
-    try:
-        te_qs = TimeEntry.objects.filter(project=project, date__lte=as_of)
-        for t in te_qs:
-            hrs = Decimal(getattr(t, "hours_worked", 0) or 0)
-            rate = Decimal(getattr(t, "hourly_rate", 0) or 0)
-            if rate:
-                ac += hrs * rate
-    except Exception:
-        pass
+    te_qs = TimeEntry.objects.filter(project=project, date__lte=as_of)
+    for t in te_qs:
+        hrs = Decimal(getattr(t, "hours_worked", 0) or 0)
+        rate = Decimal(getattr(t, "hourly_rate", 0) or 0)
+        if rate:
+            ac += hrs * rate
 
     spi = (ev / pv) if pv else None
     cpi = (ev / ac) if ac else None

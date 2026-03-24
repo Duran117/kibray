@@ -2618,16 +2618,49 @@ class PayrollRecord(models.Model):
         self.save()
 
     def create_expense_record(self):
-        """Q16.13: Create linked expense for labor cost"""
+        """Create linked expense for labor cost.
+        
+        Determines the project from the employee's TimeEntry records
+        for the payroll week, or from project_hours breakdown.
+        """
         from core.models import Expense, Project
 
         if self.expense:
             return self.expense
 
-        fallback_project = Project.objects.first()
+        # Determine project from project_hours breakdown or employee time entries
+        target_project = None
+        if self.project_hours:
+            # Use the project with the most hours
+            max_hours_pid = max(
+                self.project_hours,
+                key=lambda pid: self.project_hours[pid].get("hours", 0),
+                default=None,
+            )
+            if max_hours_pid:
+                target_project = Project.objects.filter(id=max_hours_pid).first()
+
+        if not target_project:
+            # Fallback: look at TimeEntry records for this employee and period
+            from core.models import TimeEntry
+
+            te = TimeEntry.objects.filter(
+                employee=self.employee,
+                date__gte=self.week_start,
+                date__lte=self.week_end,
+            ).select_related("project").first()
+            if te and te.project:
+                target_project = te.project
+
+        if not target_project:
+            raise ValueError(
+                f"Cannot create expense record: no project found for "
+                f"{self.employee} week {self.week_start}–{self.week_end}. "
+                f"Assign time entries or project_hours first."
+            )
+
         expense = Expense.objects.create(
-            project=fallback_project,
-            project_name=f"Payroll {self.week_start} - {self.employee}",
+            project=target_project,
             amount=self.total_pay,
             date=self.week_end,
             category="MANO_OBRA",
@@ -3043,10 +3076,6 @@ class Invoice(models.Model):
 
     def save(self, *args, **kwargs):
         creating = self._state.adding
-        old_is_paid = None
-        if not creating and self.pk:
-            old = Invoice.objects.get(pk=self.pk)
-            old_is_paid = old.is_paid
 
         if not self.invoice_number:
             # Si existe una Estimate aprobada más reciente, usar su código como prefijo
@@ -3067,18 +3096,8 @@ class Invoice(models.Model):
         self._sync_payment_flags()
         super().save(*args, **kwargs)
 
-        # Crear Income sólo en transición a pagada completa
-        if self.is_paid and (creating or (old_is_paid is False)) and not self.income:
-            income = Income.objects.create(
-                project=self.project,
-                project_name=f"Factura {self.invoice_number}",
-                amount=self.total_amount,
-                date=self.date_issued,
-                payment_method="OTRO",
-                description=f"Ingreso por factura {self.invoice_number}",
-            )
-            self.income = income
-            super().save(update_fields=["income"])
+        # NOTE: Income creation is handled exclusively by InvoicePayment.save()
+        # to avoid duplicate Income records. Each payment creates its own Income.
 
     def clean(self):
         if not self.pk or not self.project_id:
@@ -8096,173 +8115,6 @@ class GPSCheckIn(models.Model):
 
     def __str__(self):
         return f"{self.employee} - {self.project.name} - {self.check_in_time.date()}"
-
-
-# ===========================
-# OCR EXPENSE RECEIPTS
-# ===========================
-
-
-class ExpenseOCRData(models.Model):
-    """
-    OCR-extracted data from expense receipts using pytesseract + OpenCV.
-    """
-
-    expense = models.OneToOneField("Expense", on_delete=models.CASCADE, related_name="ocr_data")
-
-    # Extracted fields
-    vendor_name = models.CharField(max_length=200, blank=True)
-    transaction_date = models.DateField(null=True, blank=True)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-
-    # Line items
-    line_items = models.JSONField(
-        default=list, blank=True, help_text="Extracted line items from receipt"
-    )
-
-    # OCR metadata
-    ocr_confidence = models.DecimalField(
-        max_digits=5, decimal_places=2, help_text="OCR confidence % (0-100)"
-    )
-    raw_text = models.TextField(blank=True, help_text="Full raw OCR text")
-
-    # Auto-categorization
-    suggested_category = models.CharField(max_length=100, blank=True)
-    suggested_cost_code = models.ForeignKey(
-        "CostCode", on_delete=models.SET_NULL, null=True, blank=True
-    )
-    ai_suggestion_confidence = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
-
-    # Review
-    verified = models.BooleanField(default=False)
-    verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    verification_notes = models.TextField(blank=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = "Expense OCR Data"
-        verbose_name_plural = "Expense OCR Data"
-
-    def __str__(self):
-        return f"OCR for {self.expense} - {self.vendor_name}"
-
-
-# ===========================
-# INVOICE AUTOMATION
-# ===========================
-
-
-class InvoiceAutomation(models.Model):
-    """
-    Automation settings for recurring invoices and email reminders.
-    """
-
-    invoice = models.OneToOneField("Invoice", on_delete=models.CASCADE, related_name="automation")
-
-    # Recurring settings
-    is_recurring = models.BooleanField(default=False)
-    recurrence_frequency = models.CharField(
-        max_length=20,
-        choices=[
-            ("weekly", "Weekly"),
-            ("biweekly", "Bi-weekly"),
-            ("monthly", "Monthly"),
-            ("quarterly", "Quarterly"),
-        ],
-        blank=True,
-    )
-    next_recurrence_date = models.DateField(null=True, blank=True)
-    recurrence_end_date = models.DateField(
-        null=True, blank=True, help_text="When to stop auto-generating"
-    )
-
-    # Email automation
-    auto_send_on_creation = models.BooleanField(default=False)
-    auto_remind_before_due = models.IntegerField(
-        default=3, help_text="Days before due date to send reminder"
-    )
-    auto_remind_after_due = models.BooleanField(
-        default=True, help_text="Send reminders for overdue invoices"
-    )
-    reminder_frequency_days = models.IntegerField(
-        default=7, help_text="How often to remind after due"
-    )
-
-    # Late fees
-    apply_late_fees = models.BooleanField(default=False)
-    late_fee_percentage = models.DecimalField(
-        max_digits=5, decimal_places=2, default=Decimal("1.5"), help_text="% per month"
-    )
-    late_fee_grace_days = models.IntegerField(
-        default=5, help_text="Days after due before applying fee"
-    )
-
-    # Payment gateway
-    stripe_payment_intent_id = models.CharField(max_length=200, blank=True)
-    payment_link = models.URLField(blank=True, help_text="Direct payment link for client")
-
-    last_reminder_sent = models.DateField(null=True, blank=True)
-
-    class Meta:
-        verbose_name = "Invoice Automation"
-        verbose_name_plural = "Invoice Automations"
-
-    def __str__(self):
-        return f"Automation for {self.invoice}"
-
-
-# ===========================
-# BARCODE INVENTORY
-# ===========================
-
-
-class InventoryBarcode(models.Model):
-    """
-    Barcode tracking for inventory items using python-barcode + pyzbar.
-    """
-
-    item = models.ForeignKey("InventoryItem", on_delete=models.CASCADE, related_name="barcodes")
-
-    barcode_type = models.CharField(
-        max_length=20,
-        choices=[
-            ("CODE128", "Code 128"),
-            ("CODE39", "Code 39"),
-            ("EAN13", "EAN-13"),
-            ("UPC", "UPC"),
-            ("QR", "QR Code"),
-        ],
-        default="CODE128",
-    )
-    barcode_value = models.CharField(max_length=100, unique=True)
-    barcode_image = models.ImageField(upload_to="inventory/barcodes/", blank=True)
-
-    # Auto-reorder
-    enable_auto_reorder = models.BooleanField(default=False)
-    reorder_point = models.DecimalField(
-        max_digits=10, decimal_places=2, help_text="Trigger reorder when stock below this"
-    )
-    reorder_quantity = models.DecimalField(
-        max_digits=10, decimal_places=2, help_text="How much to reorder"
-    )
-    preferred_vendor = models.CharField(max_length=200, blank=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = "Inventory Barcode"
-        verbose_name_plural = "Inventory Barcodes"
-
-    def __str__(self):
-        return f"{self.item.name} - {self.barcode_value}"
-
-    if TYPE_CHECKING:
-        get_unit_display: Callable[[], str]
-        get_category_display: Callable[[], str]
 
 
 # ===========================
