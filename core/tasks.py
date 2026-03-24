@@ -1007,7 +1007,7 @@ def process_signature_post_tasks(document_type: str, document_id: int, signer_na
             amount_str = None
             rate_info = None
             if document.pricing_type == "T_AND_M":
-                rate_info = f"Labor Rate: ${document.get_effective_billing_rate():.2f} | Material Markup: {document.material_markup_pct}%"
+                rate_info = f"Labor Rate: ${document.get_effective_billing_rate():.2f} | Material Markup: {document.material_markup_percent}%"
             else:
                 amount_str = f"{document.amount:.2f}" if document.amount else None
             

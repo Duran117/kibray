@@ -341,6 +341,13 @@ class ColorApproval(models.Model):
 # Modelo de Ingreso
 # ---------------------
 class Income(models.Model):
+    SOURCE_CHOICES = [
+        ("MANUAL", _("Manual")),
+        ("INVOICE_PAYMENT", _("Pago de factura")),
+        ("PAYROLL", _("Nómina")),
+        ("OTHER", _("Otro")),
+    ]
+
     project = models.ForeignKey(Project, related_name="incomes", on_delete=models.CASCADE)
     project_name = models.CharField(max_length=255, verbose_name=_("Nombre del proyecto o factura"))
     amount = models.DecimalField(
@@ -366,6 +373,13 @@ class Income(models.Model):
         upload_to="incomes/", blank=True, null=True, verbose_name=_("Factura o comprobante")
     )
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notas (opcional)"))
+    source = models.CharField(
+        max_length=20,
+        choices=SOURCE_CHOICES,
+        default="MANUAL",
+        verbose_name=_("Origen"),
+        help_text=_("Cómo se generó este ingreso: manual, pago de factura, etc."),
+    )
 
     def __str__(self):
         return f"{self.project_name} - ${self.amount}"
@@ -2168,19 +2182,6 @@ class ChangeOrder(models.Model):
     contractor_signed_by = models.CharField(max_length=255, blank=True, help_text="Nombre del firmante contratista")
     contractor_signed_at = models.DateTimeField(blank=True, null=True, help_text="Fecha/hora de firma del contratista")
 
-    def __init__(self, *args, **kwargs):
-        """Map test aliases to actual field names."""
-        # Map billing_hourly_rate -> labor_rate_override (only if not zero or if labor_rate_override not set)
-        if "billing_hourly_rate" in kwargs:
-            bhr = kwargs.pop("billing_hourly_rate")
-            # Only set labor_rate_override if billing_hourly_rate is non-zero OR labor_rate_override not provided
-            if bhr or "labor_rate_override" not in kwargs:
-                kwargs["labor_rate_override"] = bhr
-        # Map material_markup_pct -> material_markup_percent
-        if "material_markup_pct" in kwargs:
-            kwargs["material_markup_percent"] = kwargs.pop("material_markup_pct")
-        super().__init__(*args, **kwargs)
-
     def __str__(self):
         return f"CO {self.id} | {self.project.name} | ${self.amount:.2f}"
 
@@ -2216,32 +2217,23 @@ class ChangeOrder(models.Model):
         """Return labor billing rate (alias of get_effective_billing_rate)."""
         return self.get_effective_billing_rate()
 
-    # Compatibility aliases for tests
+    # Read-only compatibility aliases (used by forms.py, tasks.py, templates)
     @property
     def billing_hourly_rate(self) -> Decimal:
-        """Alias for labor_rate_override (test compatibility)."""
+        """Read-only alias for labor_rate_override."""
         return self.labor_rate_override
-
-    @billing_hourly_rate.setter
-    def billing_hourly_rate(self, value):
-        self.labor_rate_override = value
 
     @property
     def material_markup_pct(self) -> Decimal:
-        """Alias for material_markup_percent (test compatibility)."""
+        """Read-only alias for material_markup_percent."""
         return self.material_markup_percent
-
-    @material_markup_pct.setter
-    def material_markup_pct(self, value):
-        self.material_markup_percent = value
 
     @property
     def title(self) -> str:
-        """Synthetic title used by API/tests. Falls back to co_title, description truncated, or formatted ID."""
+        """Synthetic title. Falls back to co_title, description truncated, or formatted ID."""
         if self.co_title:
             return self.co_title
         if self.description:
-            # Truncate description to 50 chars for title
             return self.description[:50] + ('...' if len(self.description) > 50 else '')
         return f"CO #{self.id}"
 
@@ -2345,14 +2337,22 @@ class PayrollPeriod(models.Model):
         return f"Nómina {self.week_start} - {self.week_end}"
 
     def total_payroll(self):
-        """Calcula el total de la nómina para todos los empleados"""
-        return sum(record.total_pay for record in self.records.all())
+        """Total payroll for all employees (single DB query)."""
+        from django.db.models import Sum
+
+        result = self.records.aggregate(total=Sum("total_pay"))
+        return result["total"] or Decimal("0")
 
     def total_paid(self):
-        """Calcula cuánto se ha pagado de esta nómina"""
-        return sum(
-            payment.amount for record in self.records.all() for payment in record.payments.all()
-        )
+        """Total paid across all records (single DB query)."""
+        from django.db.models import Sum
+
+        from core.models import PayrollPayment
+
+        result = PayrollPayment.objects.filter(
+            payroll_record__period=self
+        ).aggregate(total=Sum("amount"))
+        return result["total"] or Decimal("0")
 
     def balance_due(self):
         """Calcula cuánto falta por pagar"""
@@ -3192,6 +3192,7 @@ class InvoicePayment(models.Model):
                     date=self.payment_date,
                     payment_method=self.payment_method,
                     category="PAYMENT",
+                    source="INVOICE_PAYMENT",
                     description=f"Pago de ${self.amount} para factura {self.invoice.invoice_number}. Ref: {self.reference}",
                 )
                 self.income = income
