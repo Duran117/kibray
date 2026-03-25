@@ -357,12 +357,12 @@ project = Project.objects.first()  # ← PELIGROSO: asigna al primer proyecto ra
 | 12e | ✅ tasks.py: `material_markup_pct` → `material_markup_percent` | `core/tasks.py` | DONE |
 | 12f | ✅ PayrollPeriod N+1 → aggregate queries | `models/__init__.py` | DONE |
 
-### Fase 4: 🔵 Mejoras Futuras (Post-estabilización)
+### Fase 4: 🔵 Mejoras Futuras (Post-estabilización) — ✅ COMPLETADO `10d44722`
 | # | Acción | Descripción | Estado |
 |---|--------|-------------|--------|
-| 13 | Eliminar `is_paid` deprecated de Invoice | Migrar reportes primero | PENDIENTE |
+| 13 | ✅ Eliminar `is_paid` deprecated de Invoice | Removido campo + migration 0176 | DONE |
 | 14 | ~~Limpiar test aliases de ChangeOrder~~ | ✅ Hecho en Fase 3 (12c/12d) | DONE |
-| 15 | Evaluar Proposal vs Contract | Consolidar si redundante | PENDIENTE |
+| 15 | ✅ Evaluar Proposal vs Contract | Son modelos distintos (correcto) — no consolidar | EVALUATED |
 | 16 | ~~Agregar `auto_generated` flag a Income~~ | ✅ Reemplazado por `source` field (12) | DONE |
 | 17 | ~~Optimizar N+1 queries en PayrollPeriod~~ | ✅ Hecho en Fase 3 (12f) | DONE |
 
@@ -423,8 +423,9 @@ no de ARQUITECTURA (que es sólida).
 **Commits:**
 - `2ed1e2ce` — Phase 1+2: 5 critical fixes + 3 dead models removed
 - `a754c223` — Phase 3: Income.source, ChangeOrder cleanup, N+1 optimization
+- `10d44722` — Phase 4: Remove deprecated Invoice.is_paid + migration 0176
 
-**Pendiente (Fase 4):** Eliminar `is_paid` deprecated de Invoice, evaluar consolidación Proposal/Contract.
+**✅ Auditoría financiera completa. Todas las fases ejecutadas.**
 
 ---
 
