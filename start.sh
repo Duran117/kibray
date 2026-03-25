@@ -9,9 +9,8 @@ python manage.py migrate --noinput
 
 echo "✅ Migrations complete"
 
-# Collect static (in case build step missed any)
-echo "📁 Collecting static files..."
-python manage.py collectstatic --noinput 2>/dev/null || true
+# NOTE: collectstatic is already run during Docker build (Dockerfile).
+# Skipping here to speed up container startup and pass healthcheck faster.
 
 # Create initial superuser if needed
 echo "👤 Creating initial superuser..."
