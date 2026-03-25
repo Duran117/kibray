@@ -27,8 +27,8 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
 # Copy project source
 COPY . .
 
-# Make start script executable
-RUN chmod +x start.sh
+# Make start scripts executable
+RUN chmod +x start.sh start_worker.sh
 
 # Collect static assets at build time
 # Use a dummy secret key and skip DB-dependent settings for collectstatic
