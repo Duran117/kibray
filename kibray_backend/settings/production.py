@@ -13,16 +13,9 @@ from .base import *  # noqa: F403
 DEBUG = False
 
 # Template caching for production performance
-TEMPLATES[0]["APP_DIRS"] = False  # noqa: F405
-TEMPLATES[0]["OPTIONS"]["loaders"] = [  # noqa: F405
-    (
-        "django.template.loaders.cached.CachedLoader",
-        [
-            "django.template.loaders.filesystem.Loader",
-            "django.template.loaders.app_directories.Loader",
-        ],
-    ),
-]
+# In Django 5.x, template caching is automatic when DEBUG=False.
+# The old django.template.loaders.cached.CachedLoader was removed in Django 5.x.
+# Just keep APP_DIRS=True (inherited from base.py) — Django handles caching internally.
 
 # Add startup logging
 print("=" * 60)
@@ -39,7 +32,8 @@ else:
 
 # Allowed hosts from environment
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
-if not ALLOWED_HOSTS or ALLOWED_HOSTS == [""]:
+ALLOWED_HOSTS = [h.strip() for h in ALLOWED_HOSTS if h.strip()]
+if not ALLOWED_HOSTS:
     # Fallback: Accept Railway domains and common cloud platforms
     # Django uses leading dot for subdomain matching (NOT glob asterisks)
     ALLOWED_HOSTS = [
@@ -49,6 +43,14 @@ if not ALLOWED_HOSTS or ALLOWED_HOSTS == [""]:
         "127.0.0.1",
     ]
     print("⚠️ WARNING: Using default ALLOWED_HOSTS")
+
+# Always allow Railway internal healthcheck host — it uses 'healthcheck.railway.app'
+# as HTTP_HOST which might not match user-defined ALLOWED_HOSTS from env var.
+_railway_hosts = [".railway.app", ".up.railway.app", "localhost", "127.0.0.1"]
+for _rh in _railway_hosts:
+    if _rh not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_rh)
+
 print(f"✅ ALLOWED_HOSTS: {ALLOWED_HOSTS}")
 
 # Database - PostgreSQL via DATABASE_URL
