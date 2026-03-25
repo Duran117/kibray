@@ -34,6 +34,8 @@ class DailyFocusSessionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Filter to current user's sessions"""
+        if getattr(self, "swagger_fake_view", False):
+            return DailyFocusSession.objects.none()
         return (
             DailyFocusSession.objects.filter(user=self.request.user)
             .prefetch_related("focus_tasks")
@@ -148,6 +150,8 @@ class FocusTaskViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Filter to current user's tasks"""
+        if getattr(self, "swagger_fake_view", False):
+            return FocusTask.objects.none()
         return (
             FocusTask.objects.filter(session__user=self.request.user)
             .select_related("session")

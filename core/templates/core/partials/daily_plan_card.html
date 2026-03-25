@@ -47,9 +47,9 @@
                         <span class="text-muted">{% trans "Progress" %}</span>
                         <span class="fw-bold">
                             {% if plan.actual_hours_worked %}
-                                {{ plan.actual_hours_worked|floatform:1 }} / {{ plan.estimated_hours_total|floatform:1 }}h
+                                {{ plan.actual_hours_worked|floatformat:1 }} / {{ plan.estimated_hours_total|floatformat:1 }}h
                             {% else %}
-                                0 / {{ plan.estimated_hours_total|floatform:1 }}h
+                                0 / {{ plan.estimated_hours_total|floatformat:1 }}h
                             {% endif %}
                         </span>
                     </div>

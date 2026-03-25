@@ -13,8 +13,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-
-    fields = ["id", "role", "language"]
+        fields = ["id", "role", "language"]
 
 
 class UserMinimalSerializer(serializers.ModelSerializer):

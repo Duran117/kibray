@@ -13,6 +13,10 @@ echo "✅ Migrations complete"
 echo "📁 Collecting static files..."
 python manage.py collectstatic --noinput 2>/dev/null || true
 
+# Create initial superuser if needed
+echo "👤 Creating initial superuser..."
+python manage.py create_initial_superuser --noinput 2>/dev/null || true
+
 # Start Gunicorn using config file (gunicorn.conf.py)
 echo "🚀 Starting Gunicorn on port ${PORT:-8000}..."
 exec gunicorn kibray_backend.wsgi:application --config gunicorn.conf.py

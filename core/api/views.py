@@ -137,6 +137,8 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Notification.objects.none()
         return Notification.objects.filter(user=self.request.user).order_by("-created_at")
 
     @action(detail=False, methods=["post"])
@@ -274,6 +276,8 @@ class PermissionMatrixViewSet(viewsets.ModelViewSet):
     search_fields = ["user__username", "user__first_name", "user__last_name"]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return PermissionMatrix.objects.none()
         user = self.request.user
         # Admins see all, others only see their own
         if user.is_staff or user.is_superuser:
@@ -353,6 +357,8 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ["username", "entity_repr", "ip_address"]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return AuditLog.objects.none()
         user = self.request.user
         # Admins see all, others only see their own
         if user.is_staff or user.is_superuser:
@@ -1578,6 +1584,8 @@ class FloorPlanViewSet(viewsets.ModelViewSet):
     pagination_class = None  # Disabled for floor plans (usually small dataset)
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return FloorPlan.objects.none()
         qs = (
             FloorPlan.objects.prefetch_related(
                 "pins__color_sample", "pins__linked_task", "pins__created_by"
@@ -1935,6 +1943,8 @@ class PlanPinViewSet(viewsets.ModelViewSet):
     pagination_class = None  # Usually small dataset per plan
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return PlanPin.objects.none()
         qs = PlanPin.objects.select_related(
             "plan__project", "color_sample", "linked_task", "created_by", "migrated_to"
         ).order_by("-created_at")
@@ -2070,6 +2080,8 @@ class ColorSampleViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return ColorSample.objects.none()
         qs = ColorSample.objects.select_related(
             "project", "approved_by", "rejected_by", "status_changed_by", "created_by"
         ).order_by("-created_at")
@@ -6723,6 +6735,8 @@ class PushSubscriptionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         # Users can only see their own subscriptions
+        if getattr(self, "swagger_fake_view", False):
+            return PushSubscription.objects.none()
         return PushSubscription.objects.filter(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
