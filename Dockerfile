@@ -1,13 +1,16 @@
 FROM python:3.11-slim
 
-# System dependencies (including cairo for xhtml2pdf PDF generation)
+# System dependencies (including cairo dev headers for pycairo compilation)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    pkg-config \
     libpq-dev \
-    libcairo2 \
-    libpango-1.0-0 \
+    libcairo2-dev \
+    libpango1.0-dev \
     libpangocairo-1.0-0 \
-    libgdk-pixbuf-2.0-0 \
+    libgdk-pixbuf-2.0-dev \
+    libffi-dev \
+    shared-mime-info \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
