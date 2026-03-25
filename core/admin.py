@@ -224,7 +224,7 @@ class InvoiceAdmin(admin.ModelAdmin):
     )
     inlines = [InvoiceLineInline, InvoicePaymentInline]
     search_fields = ("invoice_number", "project__name", "project__client")
-    list_filter = ("status", "is_paid", "project")
+    list_filter = ("status", "project")
     readonly_fields = ("invoice_number", "payment_progress", "balance_due")
 
 

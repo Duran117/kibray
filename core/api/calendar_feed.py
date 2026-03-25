@@ -215,7 +215,10 @@ def generate_master_calendar_feed(request, user_token):
     from core.models import Invoice
 
     invoices = Invoice.objects.filter(
-        due_date__gte=date_range_start.date(), due_date__lte=date_range_end.date(), is_paid=False
+        due_date__gte=date_range_start.date(),
+        due_date__lte=date_range_end.date(),
+    ).exclude(
+        status__in=["PAID", "CANCELLED"]
     ).select_related("project")
 
     for invoice in invoices:

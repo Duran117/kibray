@@ -14,7 +14,6 @@ def test_invoice_payment_unification(django_user_model):
     # Crear factura inicial sin pago
     invoice = Invoice.objects.create(project=project, total_amount=Decimal("500.00"), status="SENT")
     assert invoice.amount_paid == Decimal("0")
-    assert invoice.is_paid is False
     assert invoice.fully_paid is False
     assert invoice.status in ["SENT", "DRAFT"]
 
@@ -22,7 +21,6 @@ def test_invoice_payment_unification(django_user_model):
     invoice.amount_paid = Decimal("200.00")
     invoice.save()
     invoice.refresh_from_db()
-    assert invoice.is_paid is False
     assert invoice.fully_paid is False
     assert invoice.status == "PARTIAL"
     assert invoice.balance_due == Decimal("300.00")
@@ -32,7 +30,6 @@ def test_invoice_payment_unification(django_user_model):
     invoice.save()
     invoice.refresh_from_db()
     assert invoice.fully_paid is True
-    assert invoice.is_paid is True  # Legacy sincronizado
     assert invoice.status == "PAID"
     assert invoice.balance_due == Decimal("0")
     assert invoice.payment_progress == pytest.approx(100.0)

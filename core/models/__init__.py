@@ -3012,12 +3012,6 @@ class Invoice(models.Model):
         help_text="Monto de retención contractual (compatibilidad)",
     )
 
-    # Legacy field (DEPRECATED): mantener temporalmente para reportes antiguos.
-    # Será removido en futura migración; usar amount_paid >= total_amount para determinar pago completo.
-    is_paid = models.BooleanField(
-        default=False,
-        help_text="DEPRECATED: usar amount_paid y total_amount; se eliminará tras migración de reportes.",
-    )
     pdf = models.FileField(upload_to="invoices/", blank=True, null=True)
     notes = models.TextField(blank=True)
     change_orders = models.ManyToManyField("ChangeOrder", blank=True, related_name="invoices")
@@ -3042,24 +3036,22 @@ class Invoice(models.Model):
 
     @property
     def fully_paid(self) -> bool:
-        """Estado de pago derivado (usar en vez de is_paid)."""
+        """Derived payment status: True when amount_paid >= total_amount."""
         return self.total_amount > 0 and self.amount_paid >= self.total_amount
 
     def _sync_payment_flags(self):
-        """Sincroniza flags legacy y fechas según estado de pago derivado."""
+        """Sync status and paid_date based on derived payment state."""
         from django.utils import timezone
 
-        self.is_paid = self.fully_paid  # Mantener compatibilidad
-        if self.is_paid and not self.paid_date:
-            self.paid_date = timezone.now()
-        # Ajustar status si corresponde (sin guardar todavía)
-        if self.is_paid:
+        if self.fully_paid:
+            if not self.paid_date:
+                self.paid_date = timezone.now()
             self.status = "PAID"
         elif self.amount_paid > 0 and self.status not in ["PAID", "CANCELLED"]:
             self.status = "PARTIAL"
 
     def update_status(self):
-        """Auto‑update de status basado en pagos y fechas. Usa lógica derivada, ignora is_paid manual."""
+        """Auto-update status based on payments and dates."""
         from django.utils import timezone
 
         self._sync_payment_flags()
@@ -3071,7 +3063,7 @@ class Invoice(models.Model):
             and self.status not in ["DRAFT", "CANCELLED", "PAID"]
         ):
             self.status = "OVERDUE"
-        super().save(update_fields=["status", "paid_date", "is_paid"])
+        super().save(update_fields=["status", "paid_date"])
         return self.status
 
     def save(self, *args, **kwargs):
