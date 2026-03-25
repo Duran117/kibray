@@ -103,7 +103,6 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     BASE_DIR / "core" / "static",
     BASE_DIR / "static",
-    BASE_DIR / "staticfiles",
 ]
 STATIC_ROOT = BASE_DIR / "static_collected"
 

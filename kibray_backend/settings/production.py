@@ -41,11 +41,10 @@ else:
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 if not ALLOWED_HOSTS or ALLOWED_HOSTS == [""]:
     # Fallback: Accept Railway domains and common cloud platforms
+    # Django uses leading dot for subdomain matching (NOT glob asterisks)
     ALLOWED_HOSTS = [
-        "*.railway.app",
-        "railway.app",
-        "*.up.railway.app",
-        "kibray.up.railway.app",
+        ".railway.app",
+        ".up.railway.app",
         "localhost",
         "127.0.0.1",
     ]
@@ -70,8 +69,12 @@ DATABASES = {
 
 print(f"✅ Database configured: {DATABASES['default']['ENGINE']}")
 
-# Static files - WhiteNoise with compression (no manifest for flexibility)
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+# Static files - WhiteNoise with compression (Django 5.x STORAGES syntax)
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 # Media files - AWS S3 or local storage with Railway volume
 USE_S3 = os.getenv("USE_S3", "False") == "True"  # Default to False for Railway
@@ -85,7 +88,10 @@ if USE_S3:
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
     AWS_DEFAULT_ACL = "public-read"
     AWS_QUERYSTRING_AUTH = False
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    # Django 5.x: use STORAGES dict instead of DEFAULT_FILE_STORAGE
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    }
     MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
     print("✅ Using AWS S3 for media storage")
 else:

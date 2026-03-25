@@ -21,8 +21,12 @@ DATABASES = {
     }
 }
 
-# Static files - Simple storage for development
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+# Static files - Simple storage for development (Django 5.x syntax)
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 # Media files - Local filesystem
 MEDIA_URL = "/media/"

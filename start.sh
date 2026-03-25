@@ -9,14 +9,10 @@ python manage.py migrate --noinput
 
 echo "✅ Migrations complete"
 
-# Start Gunicorn
+# Collect static (in case build step missed any)
+echo "📁 Collecting static files..."
+python manage.py collectstatic --noinput 2>/dev/null || true
+
+# Start Gunicorn using config file (gunicorn.conf.py)
 echo "🚀 Starting Gunicorn on port ${PORT:-8000}..."
-exec gunicorn kibray_backend.wsgi:application \
-    --bind 0.0.0.0:${PORT:-8000} \
-    --workers 3 \
-    --threads 2 \
-    --timeout 120 \
-    --access-logfile - \
-    --error-logfile - \
-    --log-level info \
-    --worker-class sync
+exec gunicorn kibray_backend.wsgi:application --config gunicorn.conf.py

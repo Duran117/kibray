@@ -2,100 +2,71 @@
 # KIBRAY - Production Requirements (Railway Deployment)
 # ==============================================================================
 # Python 3.11+ compatible
-# Last updated: December 2025
+# Last updated: March 2026 (synced with local venv)
 # ==============================================================================
 
 # Core Django Framework
-Django==4.2.16
-djangorestframework==3.14.0
-djangorestframework-simplejwt==5.3.1
-django-cors-headers==4.3.1
-django-filter==23.5
-django-storages==1.14.4
+Django==5.2.8
+djangorestframework==3.16.0
+djangorestframework-simplejwt==5.5.1
+django-cors-headers==4.9.0
+django-filter==25.2
+django-storages==1.14.6
 
 # ASGI & WebSocket Support
-asgiref==3.8.1
-channels==4.0.0
-channels-redis==4.2.0
-daphne==4.1.2
+asgiref==3.9.1
+channels==4.3.1
+channels-redis==4.3.0
+daphne==4.2.1
 
 # Database
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.10
 dj-database-url==2.2.0
 
 # Cache & Task Queue
-redis==5.0.8
+redis==6.2.0
 django-redis==5.4.0
 hiredis==3.0.0
-celery==5.4.0
-kombu==5.4.2
-billiard==4.2.1
-amqp==5.2.0
-vine==5.1.0
+celery==5.5.3
 
 # Web Server
-gunicorn==22.0.0
-whitenoise==6.7.0
+gunicorn==23.0.0
+whitenoise==6.6.0
 
 # File Handling & Storage
-Pillow==10.4.0
-boto3==1.35.36
-botocore==1.35.36
-s3transfer==0.10.3
-jmespath==1.0.1
+Pillow==11.3.0
+boto3==1.39.9
 
 # Authentication & Security
-PyJWT==2.9.0
-firebase-admin==6.5.0
+PyJWT==2.10.1
 
-# AI & Machine Learning
-openai==1.55.0
+# AI & Machine Learning (optional — installed if OPENAI_API_KEY is set)
+# openai==1.55.0
 
 # API Documentation
-drf-spectacular==0.27.2
-uritemplate==4.1.1
-inflection==0.5.1
-jsonschema==4.23.0
+drf-spectacular==0.29.0
 
 # Utilities
-python-dateutil==2.9.0
+python-dateutil==2.9.0.post0
 python-decouple==3.8
-requests==2.32.3
-urllib3==1.26.20
-six==1.16.0
-packaging==24.1
-tzdata==2024.2
-sqlparse==0.5.1
-icalendar==6.0.1
+requests==2.32.4
+icalendar==6.1.0
 python-json-logger==2.0.7
 django-crispy-forms==2.5
 crispy-bootstrap5==2025.6
 
-# PDF Generation (xhtml2pdf removed due to system cairo dependency on Railway)
-reportlab==4.2.5
-html5lib==1.1
-pypdf==5.1.0
-
-# Click (for Celery CLI)
-click==8.1.7
-click-didyoumean==0.3.1
-click-plugins==1.1.1
-click-repl==0.3.0
-prompt-toolkit==3.0.47
-wcwidth==0.2.13
+# PDF Generation
+reportlab==4.4.4
+xhtml2pdf==0.2.17
+pypdf==6.2.0
 
 # Monitoring & Error Tracking
-sentry-sdk==2.17.0
-
-# Color output (optional)
-colorama==0.4.6
+sentry-sdk==2.18.0
 
 # ==============================================================================
 # REMOVED FROM PRODUCTION:
 # - pytest, pytest-django, pytest-cov, pytest-mock (dev/test only)
-# - locust (load testing only)
 # - ruff, black, flake8 (linting only)
-# - radon (code metrics only)
-# - Faker (test data generation only)
+# - firebase-admin (not currently used — add back when FCM is configured)
 # ==============================================================================
 

@@ -1,0 +1,57 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Database
+db.sqlite3
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Test / Dev tools
+tests/
+pytest.ini
+conftest.py
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Documentation (not needed in production image)
+docs_archive/
+*.md
+!README.md
+
+# Scripts not needed in production
+*.py.bak
+audit_*.py
+check_railway_env.py
+complete_*.py
+convert_*.py
+create_admin.py
+auto_translate_po.py
+add_daily_planning_translations.py
+
+# Collected static (regenerated during build)
+static_collected/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+!.env.example
