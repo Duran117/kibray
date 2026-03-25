@@ -8,7 +8,12 @@ echo "📦 Running database migrations..."
 python manage.py migrate --noinput
 echo "✅ Migrations complete"
 
-# Start Celery worker
+# Start a tiny HTTP healthcheck server in the background
+# Railway needs an HTTP endpoint to verify the service is alive
+echo "🏥 Starting worker healthcheck server on port ${PORT:-8000}..."
+python worker_healthcheck.py &
+
+# Start Celery worker (foreground)
 echo "🚀 Starting Celery worker..."
 exec celery -A kibray_backend worker \
     --loglevel=info \
