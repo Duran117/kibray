@@ -73,6 +73,9 @@ print(f"✅ Database configured: {DATABASES['default']['ENGINE']}")
 
 # Static files - WhiteNoise with compression (Django 5.x STORAGES syntax)
 STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
