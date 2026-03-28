@@ -10871,7 +10871,7 @@ def daily_plan_edit(request, plan_id):
 
                 # Resolve relations
                 template = ActivityTemplate.objects.get(pk=template_id) if template_id else None
-                schedule = ScheduleItemV2.objects.get(pk=schedule_id) if schedule_id else None
+                schedule = ScheduleItem.objects.get(pk=schedule_id) if schedule_id else None
 
                 # Default title from template if not provided
                 if not title and template:
@@ -10885,7 +10885,7 @@ def daily_plan_edit(request, plan_id):
                     title=title,
                     description=description,
                     activity_template=template,
-                    schedule_item_v2=schedule,
+                    schedule_item=schedule,
                     estimated_hours=hours if hours else None,
                     order=plan.activities.count() + 1,
                 )
@@ -10899,6 +10899,7 @@ def daily_plan_edit(request, plan_id):
 
             except Exception as e:
                 messages.error(request, f"Error adding activity: {str(e)}")
+                return redirect("daily_plan_edit", plan_id=plan.id)
 
         elif action == "submit":
             if plan.activities.exists():
@@ -11011,6 +11012,17 @@ def daily_plan_edit(request, plan_id):
     productivity = plan.calculate_productivity_score()
     activities = plan.activities.prefetch_related("assigned_employees").order_by("order")
 
+    # Data for Add Activity modal dropdowns
+    from core.models import ActivityTemplate, ScheduleItem
+
+    available_templates = ActivityTemplate.objects.filter(
+        is_active=True, is_latest_version=True
+    ).order_by("category", "name")
+    schedule_items = ScheduleItem.objects.filter(
+        project=plan.project
+    ).order_by("order")
+    employees = Employee.objects.filter(is_active=True).order_by("first_name", "last_name")
+
     context = {
         "plan": plan,
         "form": form,
@@ -11020,6 +11032,9 @@ def daily_plan_edit(request, plan_id):
         "can_convert": plan.status == "PUBLISHED",
         "can_start": plan.status == "PUBLISHED",
         "can_complete": plan.status == "IN_PROGRESS",
+        "available_templates": available_templates,
+        "schedule_items": schedule_items,
+        "employees": employees,
     }
     return render(request, "core/daily_plan_edit.html", context)
 
