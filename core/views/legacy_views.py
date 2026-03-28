@@ -10589,15 +10589,16 @@ def daily_plan_delete(request, plan_id):
 @login_required
 def daily_planning_dashboard(request):
     """
-    Main dashboard for daily planning - shows all plans and overdue alerts
-    Modern Wizard-style interface
+    Visual Planning Workspace – Calendar + Timeline + Team Assignments
+    Redesigned Dec 2025: node-based timeline with branches, team panel,
+    voice/text input, material prep, weather integration.
     """
     if not _is_staffish(request.user):
         return HttpResponseForbidden("Access denied")
 
     today = timezone.now().date()
 
-    # Handle create plan form submission
+    # ── Handle create plan form submission (kept from legacy) ──────────
     if request.method == "POST" and request.POST.get("create_plan"):
         project_id = request.POST.get("project")
         plan_date_str = request.POST.get("plan_date")
@@ -10606,7 +10607,6 @@ def daily_planning_dashboard(request):
             project = get_object_or_404(Project, pk=project_id)
             plan_date = datetime.strptime(plan_date_str, "%Y-%m-%d").date()
 
-            # Check if plan already exists
             existing = DailyPlan.objects.filter(project=project, plan_date=plan_date).first()
             if existing:
                 messages.warning(
@@ -10614,14 +10614,12 @@ def daily_planning_dashboard(request):
                 )
                 return redirect("daily_plan_detail", plan_id=existing.id)
 
-            # Set completion deadline (5pm day before)
             completion_deadline = timezone.make_aware(
                 datetime.combine(
                     plan_date - timedelta(days=1), datetime.min.time().replace(hour=17)
                 )
             )
 
-            # Create plan
             plan = DailyPlan.objects.create(
                 project=project,
                 plan_date=plan_date,
@@ -10633,39 +10631,93 @@ def daily_planning_dashboard(request):
             messages.success(request, _("Daily plan created for %(date)s") % {"date": plan_date})
             return redirect("daily_plan_detail", plan_id=plan.id)
 
-    # Get recent plans
-    recent_plans = (
-        DailyPlan.objects.select_related("project", "created_by")
-        .prefetch_related("activities")
-        .order_by("-plan_date")[:20]
+    # ── Gather data for the workspace (±30 days window) ────────────────
+    window_start = today - timedelta(days=30)
+    window_end = today + timedelta(days=30)
+
+    plans_qs = (
+        DailyPlan.objects.filter(plan_date__range=[window_start, window_end])
+        .select_related("project", "created_by")
+        .prefetch_related(
+            "activities",
+            "activities__assigned_employees",
+        )
+        .order_by("plan_date", "project__name")
     )
 
-    # Check for overdue plans (draft plans past 5pm deadline)
-    overdue_plans = DailyPlan.objects.filter(
-        status="DRAFT", completion_deadline__lt=timezone.now()
-    ).select_related("project", "created_by")
+    # Build JSON-friendly plans list
+    plans_json_list = []
+    plan_dates_set = set()
 
-    # Get today's plans
-    todays_plans = (
-        DailyPlan.objects.filter(plan_date=today)
-        .select_related("project")
-        .prefetch_related("activities", "created_by")
+    for plan in plans_qs:
+        plan_dates_set.add(plan.plan_date.isoformat())
+
+        activities_list = []
+        for act in plan.activities.all():
+            activities_list.append({
+                "id": act.id,
+                "title": act.title,
+                "description": act.description or "",
+                "order": act.order,
+                "parent_id": act.parent_id,
+                "start_time": act.start_time.strftime("%H:%M") if act.start_time else None,
+                "end_time": act.end_time.strftime("%H:%M") if act.end_time else None,
+                "estimated_hours": float(act.estimated_hours) if act.estimated_hours else None,
+                "actual_hours": float(act.actual_hours) if act.actual_hours else None,
+                "status": act.status,
+                "progress_percentage": act.progress_percentage,
+                "materials_needed": act.materials_needed or [],
+                "materials_checked": act.materials_checked,
+                "material_shortage": act.material_shortage,
+                "assigned_employee_ids": list(
+                    act.assigned_employees.values_list("id", flat=True)
+                ),
+                "is_group_activity": act.is_group_activity,
+            })
+
+        # Weather data (already JSON)
+        weather = plan.weather_data if plan.weather_data else None
+
+        # Project color – fall back to a deterministic colour based on project id
+        project_colors = [
+            "#6366f1", "#8b5cf6", "#ec4899", "#f97316", "#14b8a6",
+            "#3b82f6", "#22c55e", "#eab308", "#f43f5e", "#06b6d4",
+        ]
+        proj_color = project_colors[plan.project_id % len(project_colors)]
+
+        plans_json_list.append({
+            "id": plan.id,
+            "plan_date": plan.plan_date.isoformat(),
+            "project_id": plan.project_id,
+            "project_name": plan.project.name,
+            "project_color": proj_color,
+            "status": plan.status,
+            "created_by": plan.created_by.get_full_name() or plan.created_by.username,
+            "weather_data": weather,
+            "admin_approved": plan.admin_approved,
+            "activities": activities_list,
+        })
+
+    # Employees for avatar display
+    employees = list(
+        Employee.objects.filter(is_active=True).values("id", "first_name", "last_name")
     )
 
-    # Get active projects for creating new plans
+    # Active projects for create modal
     active_projects = Project.objects.filter(
         Q(end_date__gte=today) | Q(end_date__isnull=True)
     ).order_by("name")
 
     context = {
-        "recent_plans": recent_plans,
-        "overdue_plans": overdue_plans,
-        "todays_plans": todays_plans,
-        "projects": active_projects,
         "today": today,
+        "projects": active_projects,
+        "plans_json": json.dumps(plans_json_list, default=str),
+        "plan_dates_json": json.dumps(sorted(plan_dates_set)),
+        "employees_json": json.dumps(employees, default=str),
+        "plans_by_date": plans_json_list,
     }
 
-    return render(request, "core/daily_planning_dashboard_modern.html", context)
+    return render(request, "core/daily_plan_workspace.html", context)
 
 
 @login_required

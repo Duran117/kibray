@@ -1,0 +1,1018 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Planning Workspace" %}{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --ws-bg: #f0f4f8;
+        --ws-card: #ffffff;
+        --ws-accent: #4f46e5;
+        --ws-accent-light: #818cf8;
+        --ws-success: #10b981;
+        --ws-warning: #f59e0b;
+        --ws-danger: #ef4444;
+        --ws-muted: #94a3b8;
+        --ws-border: #e2e8f0;
+        --ws-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+
+    /* ── Workspace layout ─────────────────────────── */
+    .workspace { background: var(--ws-bg); min-height: 100vh; }
+
+    .ws-header {
+        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%);
+        padding: 1.25rem 1.5rem;
+        color: #fff;
+        position: sticky; top: 0; z-index: 40;
+    }
+
+    /* ── Calendar strip ───────────────────────────── */
+    .calendar-strip {
+        display: flex; gap: 4px; overflow-x: auto;
+        padding: 12px 0; scrollbar-width: thin;
+    }
+    .calendar-strip::-webkit-scrollbar { height: 4px; }
+    .calendar-strip::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 2px; }
+
+    .cal-day {
+        min-width: 56px; padding: 8px 6px;
+        border-radius: 12px; text-align: center;
+        cursor: pointer; transition: all 0.2s;
+        background: rgba(255,255,255,0.08);
+        border: 2px solid transparent;
+        flex-shrink: 0;
+    }
+    .cal-day:hover { background: rgba(255,255,255,0.15); }
+    .cal-day.today { border-color: var(--ws-warning); }
+    .cal-day.selected { background: rgba(255,255,255,0.2); border-color: #fff; }
+    .cal-day.has-plans { position: relative; }
+    .cal-day.has-plans::after {
+        content: ''; position: absolute; bottom: 4px; left: 50%;
+        transform: translateX(-50%); width: 6px; height: 6px;
+        border-radius: 50%; background: var(--ws-success);
+    }
+    .cal-day .day-name { font-size: 0.65rem; text-transform: uppercase; opacity: 0.7; letter-spacing: 0.05em; }
+    .cal-day .day-num { font-size: 1.1rem; font-weight: 700; line-height: 1.3; }
+    .cal-day .day-month { font-size: 0.6rem; opacity: 0.5; }
+
+    /* ── Project pills ────────────────────────────── */
+    .project-pill {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 6px 14px; border-radius: 20px;
+        font-size: 0.8rem; font-weight: 600;
+        cursor: pointer; transition: all 0.2s;
+        border: 2px solid transparent;
+        white-space: nowrap;
+    }
+    .project-pill:hover { transform: translateY(-1px); }
+    .project-pill.active { border-color: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+
+    /* ── Visual timeline ──────────────────────────── */
+    .timeline-container { position: relative; padding: 24px 0 24px 40px; }
+
+    .timeline-line {
+        position: absolute; left: 28px; top: 0; bottom: 0;
+        width: 3px; background: linear-gradient(to bottom, var(--ws-accent), var(--ws-accent-light), var(--ws-border));
+        border-radius: 2px;
+    }
+
+    .timeline-node {
+        position: relative; margin-bottom: 16px;
+        padding-left: 32px; animation: fadeSlideIn 0.3s ease;
+    }
+    @keyframes fadeSlideIn {
+        from { opacity: 0; transform: translateX(-12px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    .timeline-node::before {
+        content: '';
+        position: absolute; left: -6px; top: 18px;
+        width: 14px; height: 14px;
+        border-radius: 50%; background: var(--ws-accent);
+        border: 3px solid var(--ws-card);
+        box-shadow: 0 0 0 2px var(--ws-accent);
+        z-index: 2;
+    }
+    .timeline-node.completed::before { background: var(--ws-success); box-shadow: 0 0 0 2px var(--ws-success); }
+    .timeline-node.in-progress::before { background: var(--ws-warning); box-shadow: 0 0 0 2px var(--ws-warning); }
+    .timeline-node.blocked::before { background: var(--ws-danger); box-shadow: 0 0 0 2px var(--ws-danger); }
+
+    .node-card {
+        background: var(--ws-card); border-radius: 16px;
+        padding: 16px 20px; box-shadow: var(--ws-shadow);
+        border: 1px solid var(--ws-border);
+        transition: all 0.2s;
+    }
+    .node-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.1); transform: translateY(-2px); }
+
+    /* ── Branch lines for sub-activities ───────── */
+    .sub-branch { margin-left: 24px; padding-left: 20px; border-left: 2px dashed var(--ws-border); }
+
+    /* ── Assignment avatars ────────────────────── */
+    .avatar-stack { display: flex; }
+    .avatar {
+        width: 30px; height: 30px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.65rem; font-weight: 700; color: #fff;
+        margin-left: -6px; border: 2px solid #fff;
+    }
+    .avatar:first-child { margin-left: 0; }
+
+    /* ── Material chips ───────────────────────── */
+    .mat-chip {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 3px 10px; border-radius: 8px;
+        font-size: 0.7rem; font-weight: 500;
+        background: #f1f5f9; color: #475569;
+    }
+    .mat-chip.shortage { background: #fef2f2; color: #dc2626; }
+
+    /* ── Voice button ─────────────────────────── */
+    .voice-btn {
+        width: 52px; height: 52px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--ws-accent), #7c3aed);
+        color: #fff; border: none; font-size: 1.2rem;
+        box-shadow: 0 4px 16px rgba(79,70,229,0.4);
+        transition: all 0.2s; cursor: pointer;
+    }
+    .voice-btn:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(79,70,229,0.5); }
+    .voice-btn.recording {
+        animation: pulse-ring 1.2s infinite;
+        background: linear-gradient(135deg, #dc2626, #ef4444);
+        box-shadow: 0 4px 16px rgba(220,38,38,0.5);
+    }
+    @keyframes pulse-ring {
+        0% { box-shadow: 0 0 0 0 rgba(220,38,38,0.4); }
+        70% { box-shadow: 0 0 0 14px rgba(220,38,38,0); }
+        100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
+    }
+
+    /* ── Quick input bar ──────────────────────── */
+    .quick-input-bar {
+        position: fixed; bottom: 0; left: 0; right: 0;
+        background: rgba(255,255,255,0.95); backdrop-filter: blur(12px);
+        border-top: 1px solid var(--ws-border);
+        padding: 12px 20px; z-index: 50;
+        box-shadow: 0 -4px 24px rgba(0,0,0,0.06);
+    }
+
+    /* ── Stats badge ──────────────────────────── */
+    .stat-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 6px 12px; border-radius: 10px;
+        font-size: 0.75rem; font-weight: 600;
+        background: rgba(255,255,255,0.12);
+    }
+
+    /* ── Team panel ────────────────────────────── */
+    .team-member-row {
+        display: flex; align-items: center; gap: 12px;
+        padding: 10px 14px; border-radius: 12px;
+        transition: all 0.2s; cursor: pointer;
+    }
+    .team-member-row:hover { background: #f8fafc; }
+    .team-member-row .member-avatar {
+        width: 36px; height: 36px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.8rem; font-weight: 700; color: #fff;
+        flex-shrink: 0;
+    }
+    .team-member-row .task-count {
+        margin-left: auto;
+        padding: 2px 8px; border-radius: 12px;
+        font-size: 0.7rem; font-weight: 700;
+        background: #ede9fe; color: #7c3aed;
+    }
+
+    /* ── Weather widget ───────────────────────── */
+    .weather-widget {
+        background: rgba(255,255,255,0.1);
+        border-radius: 12px; padding: 8px 14px;
+        display: flex; align-items: center; gap: 8px;
+        font-size: 0.8rem;
+    }
+
+    /* ── Status tag ────────────────────────────── */
+    .status-tag {
+        display: inline-flex; padding: 3px 10px; border-radius: 8px;
+        font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .status-tag.draft { background: #f1f5f9; color: #64748b; }
+    .status-tag.in-progress { background: #dbeafe; color: #2563eb; }
+    .status-tag.completed { background: #d1fae5; color: #059669; }
+    .status-tag.blocked { background: #fee2e2; color: #dc2626; }
+
+    /* ── Empty state ──────────────────────────── */
+    .empty-state {
+        text-align: center; padding: 60px 24px;
+    }
+    .empty-state-icon {
+        width: 80px; height: 80px; border-radius: 50%;
+        background: linear-gradient(135deg, #ede9fe, #dbeafe);
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 2rem; color: var(--ws-accent);
+        margin-bottom: 16px;
+    }
+
+    /* ── Progress bar mini ────────────────────── */
+    .progress-mini {
+        height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden;
+    }
+    .progress-mini-fill {
+        height: 100%; border-radius: 2px;
+        transition: width 0.4s ease;
+    }
+
+    /* ── Responsive ────────────────────────────── */
+    @media (max-width: 768px) {
+        .ws-header { padding: 1rem; }
+        .timeline-container { padding-left: 28px; }
+        .timeline-line { left: 16px; }
+        .timeline-node { padding-left: 24px; }
+        .timeline-node::before { left: -6px; }
+        .quick-input-bar { padding: 10px 12px; }
+    }
+</style>
+
+<div class="workspace" id="workspace">
+    <!-- ═══════════ HEADER ═══════════ -->
+    <div class="ws-header">
+        <div class="max-w-7xl mx-auto">
+            <!-- Top row -->
+            <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <div class="flex items-center gap-3">
+                    <div class="hidden sm:flex items-center justify-center w-10 h-10 rounded-xl bg-white/10">
+                        <i class="bi bi-calendar3-week text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-bold leading-tight">{% trans "Planning Workspace" %}</h1>
+                        <p class="text-indigo-200 text-xs sm:text-sm" id="selectedDateLabel">{{ today|date:"l, F d, Y" }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <!-- Weather -->
+                    <div class="weather-widget" id="weatherWidget" style="display:none;">
+                        <i class="bi bi-cloud-sun"></i>
+                        <span id="weatherText">--</span>
+                    </div>
+                    <!-- Stats -->
+                    <div class="stat-badge">
+                        <i class="bi bi-diagram-3"></i>
+                        <span id="totalPlansCount">{{ plans_by_date|length }}</span> {% trans "plans" %}
+                    </div>
+                    <div class="stat-badge">
+                        <i class="bi bi-check2-circle"></i>
+                        <span id="completedCount">0</span> {% trans "done" %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar strip -->
+            <div class="calendar-strip" id="calendarStrip">
+                <!-- Generated by JS -->
+            </div>
+
+            <!-- Project filter pills -->
+            <div class="flex gap-2 mt-2 overflow-x-auto pb-1" id="projectPills">
+                <button class="project-pill active" style="background: rgba(255,255,255,0.15);"
+                        onclick="filterProject(null)" data-project="all">
+                    <i class="bi bi-grid-3x3-gap"></i> {% trans "All" %}
+                </button>
+                {% for project in projects %}
+                <button class="project-pill" style="background: {{ project.color|default:'#6366f1' }}22; color: {{ project.color|default:'#6366f1' }};"
+                        onclick="filterProject({{ project.id }})" data-project="{{ project.id }}">
+                    <span style="width:8px;height:8px;border-radius:50%;background:{{ project.color|default:'#6366f1' }};"></span>
+                    {{ project.name|truncatechars:20 }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ MAIN CONTENT ═══════════ -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+            <!-- LEFT: Timeline (3 cols) -->
+            <div class="lg:col-span-3">
+                <!-- Day header + actions -->
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-lg font-bold text-gray-900" id="dayTitle">{% trans "Today" %}</h2>
+                        <span class="text-sm text-gray-500" id="planCountLabel"></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openCreateModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg">
+                            <i class="bi bi-plus-lg"></i> {% trans "New Plan" %}
+                        </button>
+                        <a href="{% url 'daily_plan_list' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all border border-gray-200">
+                            <i class="bi bi-list-ul"></i> {% trans "List" %}
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Plans for selected date -->
+                <div id="plansContainer">
+                    <!-- Rendered by JS -->
+                </div>
+
+                <!-- Empty state -->
+                <div id="emptyState" class="hidden">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="bi bi-calendar-plus"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">{% trans "No plans for this day" %}</h3>
+                        <p class="text-gray-500 text-sm mb-4">{% trans "Create a plan to start organizing your team's work" %}</p>
+                        <button onclick="openCreateModal()" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-all">
+                            <i class="bi bi-plus-lg"></i> {% trans "Create Plan" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Team Panel (1 col) -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden sticky top-20">
+                    <div class="px-5 py-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-100">
+                        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                            <i class="bi bi-people-fill text-indigo-500"></i>
+                            {% trans "Team Assignments" %}
+                        </h3>
+                    </div>
+                    <div class="p-3 max-h-[60vh] overflow-y-auto" id="teamPanel">
+                        <!-- Generated by JS -->
+                        <div class="text-center py-8 text-gray-400 text-sm">
+                            <i class="bi bi-people text-3xl mb-2 block"></i>
+                            {% trans "Select a date to see assignments" %}
+                        </div>
+                    </div>
+
+                    <!-- Quick material summary -->
+                    <div class="px-5 py-4 border-t border-gray-100 bg-gray-50">
+                        <h4 class="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2 flex items-center gap-1">
+                            <i class="bi bi-box-seam text-amber-500"></i>
+                            {% trans "Materials" %}
+                        </h4>
+                        <div id="materialsSummary" class="text-sm text-gray-500">
+                            {% trans "No materials needed" %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════ QUICK INPUT BAR (Fixed Bottom) ═══════════ -->
+<div class="quick-input-bar">
+    <div class="max-w-7xl mx-auto flex items-center gap-3">
+        <button class="voice-btn" id="voiceBtn" onclick="toggleVoiceInput()" title="{% trans 'Voice Input' %}">
+            <i class="bi bi-mic-fill" id="voiceIcon"></i>
+        </button>
+        <div class="flex-1 relative">
+            <input type="text" id="quickInput"
+                   class="w-full px-4 py-3 pr-12 bg-gray-100 border-2 border-transparent rounded-xl text-sm focus:border-indigo-500 focus:bg-white focus:outline-none transition-all"
+                   placeholder="{% trans 'Type a command... e.g. &quot;Add paint exterior, assign to Juan, 4 hours&quot;' %}">
+            <button onclick="processQuickInput()" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-all">
+                <i class="bi bi-send-fill text-xs"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════ CREATE PLAN MODAL ═══════════ -->
+<div id="createModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeCreateModal()">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden" onclick="event.stopPropagation()">
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-bold">{% trans "New Daily Plan" %}</h3>
+                    <p class="text-indigo-200 text-sm mt-1">{% trans "Set up the plan for your team" %}</p>
+                </div>
+                <button onclick="closeCreateModal()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/20 transition-all">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+        <form id="createPlanForm" method="POST" action="{% url 'daily_planning_dashboard' %}">
+            {% csrf_token %}
+            <input type="hidden" name="create_plan" value="1">
+            <div class="p-6 space-y-5">
+                <div>
+                    <label class="text-sm font-semibold text-gray-700 mb-2 block">{% trans "Project" %}</label>
+                    <select name="project" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
+                        <option value="">-- {% trans "Select Project" %} --</option>
+                        {% for project in projects %}
+                        <option value="{{ project.id }}">{{ project.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold text-gray-700 mb-2 block">{% trans "Date" %}</label>
+                    <input type="date" name="plan_date" value="{{ today|date:'Y-m-d' }}" required
+                           class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+                <button type="button" onclick="closeCreateModal()" class="px-5 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-200 rounded-xl transition-all">
+                    {% trans "Cancel" %}
+                </button>
+                <button type="submit" class="px-6 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-all shadow-md">
+                    <i class="bi bi-plus-lg mr-1"></i> {% trans "Create" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═══════════ ACTIVITY DETAIL MODAL ═══════════ -->
+<div id="activityModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeActivityModal()">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full max-h-[85vh] overflow-y-auto">
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-lg font-bold text-gray-900" id="actModalTitle">{% trans "Activity" %}</h3>
+            <button onclick="closeActivityModal()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-all">
+                <i class="bi bi-x-lg text-gray-500"></i>
+            </button>
+        </div>
+        <div class="p-6" id="actModalBody">
+            <!-- Filled by JS -->
+        </div>
+    </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════
+const PLANS_DATA = {{ plans_json|safe }};
+const EMPLOYEES_DATA = {{ employees_json|safe }};
+const TODAY_STR = '{{ today|date:"Y-m-d" }}';
+const PLANS_BY_DATE_KEYS = {{ plan_dates_json|safe }};
+
+const AVATAR_COLORS = [
+    '#6366f1','#8b5cf6','#ec4899','#f43f5e','#f97316',
+    '#eab308','#22c55e','#14b8a6','#06b6d4','#3b82f6',
+];
+
+let selectedDate = TODAY_STR;
+let selectedProject = null;
+let isRecording = false;
+let mediaRecorder = null;
+
+// ═══════════════════════════════════════════════════════
+// CALENDAR STRIP
+// ═══════════════════════════════════════════════════════
+function buildCalendarStrip() {
+    const strip = document.getElementById('calendarStrip');
+    strip.innerHTML = '';
+
+    const center = new Date(selectedDate + 'T12:00:00');
+    const dayNames = ['{% trans "Sun" %}','{% trans "Mon" %}','{% trans "Tue" %}','{% trans "Wed" %}','{% trans "Thu" %}','{% trans "Fri" %}','{% trans "Sat" %}'];
+    const monthNames = ['{% trans "Jan" %}','{% trans "Feb" %}','{% trans "Mar" %}','{% trans "Apr" %}','{% trans "May" %}','{% trans "Jun" %}','{% trans "Jul" %}','{% trans "Aug" %}','{% trans "Sep" %}','{% trans "Oct" %}','{% trans "Nov" %}','{% trans "Dec" %}'];
+
+    for (let i = -14; i <= 14; i++) {
+        const d = new Date(center);
+        d.setDate(d.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+
+        const el = document.createElement('div');
+        el.className = 'cal-day';
+        if (dateStr === TODAY_STR) el.classList.add('today');
+        if (dateStr === selectedDate) el.classList.add('selected');
+        if (PLANS_BY_DATE_KEYS.includes(dateStr)) el.classList.add('has-plans');
+
+        el.innerHTML = `
+            <div class="day-name">${dayNames[d.getDay()]}</div>
+            <div class="day-num">${d.getDate()}</div>
+            <div class="day-month">${monthNames[d.getMonth()]}</div>
+        `;
+        el.onclick = () => selectDate(dateStr);
+        strip.appendChild(el);
+    }
+
+    // Scroll to selected
+    setTimeout(() => {
+        const sel = strip.querySelector('.selected');
+        if (sel) sel.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }, 100);
+}
+
+function selectDate(dateStr) {
+    selectedDate = dateStr;
+    buildCalendarStrip();
+    renderPlans();
+    updateDateLabel();
+}
+
+function updateDateLabel() {
+    const d = new Date(selectedDate + 'T12:00:00');
+    const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('selectedDateLabel').textContent = d.toLocaleDateString('{{ LANGUAGE_CODE|default:"en" }}', opts);
+
+    if (selectedDate === TODAY_STR) {
+        document.getElementById('dayTitle').textContent = '{% trans "Today" %}';
+    } else {
+        const tomorrow = new Date(TODAY_STR + 'T12:00:00');
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        if (selectedDate === tomorrow.toISOString().split('T')[0]) {
+            document.getElementById('dayTitle').textContent = '{% trans "Tomorrow" %}';
+        } else {
+            document.getElementById('dayTitle').textContent = d.toLocaleDateString('{{ LANGUAGE_CODE|default:"en" }}', { weekday: 'long', day: 'numeric', month: 'short' });
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER PLANS
+// ═══════════════════════════════════════════════════════
+function getPlansForDate(dateStr) {
+    let plans = PLANS_DATA.filter(p => p.plan_date === dateStr);
+    if (selectedProject) {
+        plans = plans.filter(p => p.project_id === selectedProject);
+    }
+    return plans;
+}
+
+function renderPlans() {
+    const container = document.getElementById('plansContainer');
+    const emptyState = document.getElementById('emptyState');
+    const plans = getPlansForDate(selectedDate);
+
+    document.getElementById('planCountLabel').textContent = plans.length > 0
+        ? `${plans.length} {% trans "plan" %}${plans.length !== 1 ? 's' : ''}`
+        : '';
+
+    // Stats
+    let totalCompleted = 0;
+    plans.forEach(p => {
+        p.activities.forEach(a => { if (a.status === 'COMPLETED') totalCompleted++; });
+    });
+    document.getElementById('completedCount').textContent = totalCompleted;
+
+    if (plans.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        renderTeamPanel([]);
+        return;
+    }
+
+    emptyState.classList.add('hidden');
+    let html = '';
+
+    plans.forEach((plan, planIdx) => {
+        const statusClass = plan.status.toLowerCase().replace('_', '-');
+        const statusLabel = {
+            'DRAFT': '{% trans "Draft" %}',
+            'PUBLISHED': '{% trans "Published" %}',
+            'IN_PROGRESS': '{% trans "In Progress" %}',
+            'COMPLETED': '{% trans "Completed" %}',
+            'SKIPPED': '{% trans "Skipped" %}',
+        }[plan.status] || plan.status;
+
+        // Progress
+        const total = plan.activities.length;
+        const done = plan.activities.filter(a => a.status === 'COMPLETED').length;
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        const pctColor = pct === 100 ? '#10b981' : pct > 50 ? '#f59e0b' : '#6366f1';
+
+        html += `
+        <div class="bg-white rounded-2xl shadow-md border border-gray-100 mb-6 overflow-hidden" data-plan-id="${plan.id}">
+            <!-- Plan header -->
+            <div class="px-5 py-4 flex items-center justify-between flex-wrap gap-2" style="border-left: 4px solid ${plan.project_color || '#6366f1'};">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                         style="background: ${plan.project_color || '#6366f1'};">
+                        ${plan.project_name.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="min-w-0">
+                        <h3 class="text-base font-bold text-gray-900 truncate">${plan.project_name}</h3>
+                        <div class="flex items-center gap-2 text-xs text-gray-500">
+                            <span class="status-tag ${statusClass}">${statusLabel}</span>
+                            <span>${total} {% trans "activities" %}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- Progress ring -->
+                    <div class="text-center">
+                        <div class="text-sm font-bold" style="color: ${pctColor};">${pct}%</div>
+                        <div class="progress-mini" style="width: 60px;">
+                            <div class="progress-mini-fill" style="width: ${pct}%; background: ${pctColor};"></div>
+                        </div>
+                    </div>
+                    <div class="flex gap-1">
+                        <a href="/planning/${plan.id}/" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 transition-all" title="{% trans 'Detail' %}">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="/planning/${plan.id}/edit/" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 transition-all" title="{% trans 'Edit' %}">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="/planning/${plan.id}/timeline/" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-indigo-50 text-indigo-500 transition-all" title="{% trans 'Gantt' %}">
+                            <i class="bi bi-bar-chart-steps"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activities timeline -->
+            <div class="px-5 pb-4">
+                <div class="timeline-container">
+                    <div class="timeline-line"></div>
+                    ${renderActivities(plan.activities.filter(a => !a.parent_id), plan.activities, plan.id)}
+                </div>
+            </div>
+
+            <!-- Weather (if available) -->
+            ${plan.weather_data ? `
+            <div class="px-5 py-3 bg-blue-50 border-t border-blue-100 flex items-center gap-2 text-sm text-blue-700">
+                <i class="bi bi-cloud-sun-fill"></i>
+                <span>${plan.weather_data.description || ''} ${plan.weather_data.temp ? plan.weather_data.temp + '°F' : ''}</span>
+            </div>` : ''}
+        </div>`;
+    });
+
+    container.innerHTML = html;
+    renderTeamPanel(plans);
+    renderMaterialsSummary(plans);
+    updateWeatherWidget(plans);
+}
+
+function renderActivities(activities, allActivities, planId) {
+    if (!activities || activities.length === 0) return '';
+    let html = '';
+
+    // Sort by order, then start_time
+    activities.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    activities.forEach(act => {
+        const statusClass = act.status === 'COMPLETED' ? 'completed'
+            : act.status === 'IN_PROGRESS' ? 'in-progress'
+            : act.status === 'BLOCKED' ? 'blocked' : '';
+
+        // Assigned employees
+        const assignedHtml = renderAvatars(act.assigned_employee_ids || []);
+
+        // Time display
+        const timeStr = act.start_time
+            ? `<span class="text-xs text-gray-400"><i class="bi bi-clock"></i> ${act.start_time}${act.end_time ? ' - ' + act.end_time : ''}</span>`
+            : '';
+
+        // Estimated hours
+        const hoursStr = act.estimated_hours
+            ? `<span class="text-xs text-gray-400"><i class="bi bi-hourglass-split"></i> ${act.estimated_hours}h</span>`
+            : '';
+
+        // Materials
+        const matsHtml = (act.materials_needed || []).map(m =>
+            `<span class="mat-chip ${act.material_shortage ? 'shortage' : ''}"><i class="bi bi-box-seam"></i> ${m}</span>`
+        ).join('');
+
+        // Sub-activities
+        const children = allActivities.filter(a => a.parent_id === act.id);
+        const childrenHtml = children.length > 0
+            ? `<div class="sub-branch mt-2">${renderActivities(children, allActivities, planId)}</div>`
+            : '';
+
+        html += `
+        <div class="timeline-node ${statusClass}" onclick="showActivityDetail(${act.id}, ${planId})" style="cursor:pointer;">
+            <div class="node-card">
+                <div class="flex items-start justify-between gap-2 mb-1">
+                    <h4 class="text-sm font-semibold text-gray-900 flex-1">${act.title}</h4>
+                    ${assignedHtml}
+                </div>
+                ${act.description ? `<p class="text-xs text-gray-500 mb-2 line-clamp-2">${act.description}</p>` : ''}
+                <div class="flex items-center flex-wrap gap-2">
+                    ${timeStr}
+                    ${hoursStr}
+                    <span class="status-tag ${statusClass}" style="font-size:0.6rem;">${act.status}</span>
+                    ${act.progress_percentage > 0 && act.progress_percentage < 100 ?
+                        `<div class="progress-mini" style="width:40px;"><div class="progress-mini-fill" style="width:${act.progress_percentage}%;background:#6366f1;"></div></div>` : ''}
+                </div>
+                ${matsHtml ? `<div class="flex flex-wrap gap-1 mt-2">${matsHtml}</div>` : ''}
+                ${childrenHtml}
+            </div>
+        </div>`;
+    });
+
+    return html;
+}
+
+function renderAvatars(employeeIds) {
+    if (!employeeIds || employeeIds.length === 0) return '';
+    let html = '<div class="avatar-stack">';
+    employeeIds.slice(0, 4).forEach((id, i) => {
+        const emp = EMPLOYEES_DATA.find(e => e.id === id);
+        const initials = emp ? (emp.first_name.charAt(0) + emp.last_name.charAt(0)).toUpperCase() : '?';
+        const color = AVATAR_COLORS[id % AVATAR_COLORS.length];
+        html += `<div class="avatar" style="background:${color};" title="${emp ? emp.first_name + ' ' + emp.last_name : 'ID:'+id}">${initials}</div>`;
+    });
+    if (employeeIds.length > 4) {
+        html += `<div class="avatar" style="background:#94a3b8;">+${employeeIds.length - 4}</div>`;
+    }
+    html += '</div>';
+    return html;
+}
+
+// ═══════════════════════════════════════════════════════
+// TEAM PANEL
+// ═══════════════════════════════════════════════════════
+function renderTeamPanel(plans) {
+    const panel = document.getElementById('teamPanel');
+    if (!plans || plans.length === 0) {
+        panel.innerHTML = `<div class="text-center py-8 text-gray-400 text-sm">
+            <i class="bi bi-people text-3xl mb-2 block"></i>
+            {% trans "No assignments for this day" %}
+        </div>`;
+        return;
+    }
+
+    // Collect employee assignment counts
+    const empMap = {};
+    plans.forEach(p => {
+        p.activities.forEach(a => {
+            (a.assigned_employee_ids || []).forEach(empId => {
+                if (!empMap[empId]) empMap[empId] = { count: 0, projects: new Set() };
+                empMap[empId].count++;
+                empMap[empId].projects.add(p.project_name);
+            });
+        });
+    });
+
+    let html = '';
+    Object.keys(empMap).sort((a, b) => empMap[b].count - empMap[a].count).forEach(empId => {
+        const emp = EMPLOYEES_DATA.find(e => e.id === parseInt(empId));
+        const initials = emp ? (emp.first_name.charAt(0) + emp.last_name.charAt(0)).toUpperCase() : '?';
+        const name = emp ? `${emp.first_name} ${emp.last_name}` : `ID: ${empId}`;
+        const color = AVATAR_COLORS[parseInt(empId) % AVATAR_COLORS.length];
+        const projs = [...empMap[empId].projects].join(', ');
+
+        html += `
+        <div class="team-member-row">
+            <div class="member-avatar" style="background:${color};">${initials}</div>
+            <div class="min-w-0">
+                <div class="text-sm font-semibold text-gray-800 truncate">${name}</div>
+                <div class="text-xs text-gray-400 truncate">${projs}</div>
+            </div>
+            <span class="task-count">${empMap[empId].count}</span>
+        </div>`;
+    });
+
+    panel.innerHTML = html || `<div class="text-center py-8 text-gray-400 text-sm">{% trans "No assignments" %}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// MATERIALS SUMMARY
+// ═══════════════════════════════════════════════════════
+function renderMaterialsSummary(plans) {
+    const el = document.getElementById('materialsSummary');
+    let shortages = 0;
+    let totalMats = 0;
+    plans.forEach(p => {
+        p.activities.forEach(a => {
+            totalMats += (a.materials_needed || []).length;
+            if (a.material_shortage) shortages++;
+        });
+    });
+
+    if (totalMats === 0) {
+        el.innerHTML = `<span class="text-gray-400">{% trans "No materials needed" %}</span>`;
+    } else if (shortages > 0) {
+        el.innerHTML = `<div class="flex items-center gap-2 text-red-600"><i class="bi bi-exclamation-triangle-fill"></i> ${shortages} {% trans "shortage(s)" %}</div>
+                         <div class="text-xs text-gray-400 mt-1">${totalMats} {% trans "total items" %}</div>`;
+    } else {
+        el.innerHTML = `<div class="flex items-center gap-2 text-green-600"><i class="bi bi-check-circle-fill"></i> {% trans "All materials ready" %}</div>
+                         <div class="text-xs text-gray-400 mt-1">${totalMats} {% trans "items" %}</div>`;
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// WEATHER
+// ═══════════════════════════════════════════════════════
+function updateWeatherWidget(plans) {
+    const widget = document.getElementById('weatherWidget');
+    const text = document.getElementById('weatherText');
+    const planWithWeather = plans.find(p => p.weather_data);
+    if (planWithWeather && planWithWeather.weather_data) {
+        const w = planWithWeather.weather_data;
+        text.textContent = `${w.description || ''} ${w.temp ? w.temp + '°' : ''}`;
+        widget.style.display = 'flex';
+    } else {
+        widget.style.display = 'none';
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// PROJECT FILTER
+// ═══════════════════════════════════════════════════════
+function filterProject(projectId) {
+    selectedProject = projectId;
+    document.querySelectorAll('.project-pill').forEach(pill => {
+        pill.classList.remove('active');
+        if (pill.dataset.project === 'all' && !projectId) pill.classList.add('active');
+        if (pill.dataset.project === String(projectId)) pill.classList.add('active');
+    });
+    renderPlans();
+}
+
+// ═══════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════
+function openCreateModal() {
+    document.getElementById('createModal').classList.remove('hidden');
+}
+function closeCreateModal() {
+    document.getElementById('createModal').classList.add('hidden');
+}
+
+function showActivityDetail(actId, planId) {
+    const plan = PLANS_DATA.find(p => p.id === planId);
+    if (!plan) return;
+    const act = plan.activities.find(a => a.id === actId);
+    if (!act) return;
+
+    document.getElementById('actModalTitle').textContent = act.title;
+    const empNames = (act.assigned_employee_ids || []).map(id => {
+        const emp = EMPLOYEES_DATA.find(e => e.id === id);
+        return emp ? `${emp.first_name} ${emp.last_name}` : `ID:${id}`;
+    });
+
+    document.getElementById('actModalBody').innerHTML = `
+        <div class="space-y-4">
+            ${act.description ? `<div><label class="text-xs font-semibold text-gray-500 uppercase">{% trans "Description" %}</label><p class="text-sm text-gray-700 mt-1">${act.description}</p></div>` : ''}
+            <div class="grid grid-cols-2 gap-4">
+                <div><label class="text-xs font-semibold text-gray-500 uppercase">{% trans "Status" %}</label><p class="mt-1"><span class="status-tag ${act.status.toLowerCase().replace('_','-')}">${act.status}</span></p></div>
+                <div><label class="text-xs font-semibold text-gray-500 uppercase">{% trans "Progress" %}</label><p class="text-sm font-bold text-gray-900 mt-1">${act.progress_percentage}%</p></div>
+                ${act.start_time ? `<div><label class="text-xs font-semibold text-gray-500 uppercase">{% trans "Time" %}</label><p class="text-sm text-gray-700 mt-1">${act.start_time}${act.end_time ? ' - ' + act.end_time : ''}</p></div>` : ''}
+                ${act.estimated_hours ? `<div><label class="text-xs font-semibold text-gray-500 uppercase">{% trans "Est. Hours" %}</label><p class="text-sm text-gray-700 mt-1">${act.estimated_hours}h</p></div>` : ''}
+            </div>
+            ${empNames.length > 0 ? `<div><label class="text-xs font-semibold text-gray-500 uppercase">{% trans "Assigned To" %}</label><div class="flex flex-wrap gap-2 mt-1">${empNames.map(n => `<span class="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-semibold">${n}</span>`).join('')}</div></div>` : ''}
+            ${(act.materials_needed || []).length > 0 ? `<div><label class="text-xs font-semibold text-gray-500 uppercase">{% trans "Materials" %}</label><div class="flex flex-wrap gap-2 mt-1">${act.materials_needed.map(m => `<span class="mat-chip">${m}</span>`).join('')}</div></div>` : ''}
+            <div class="flex gap-2 pt-4 border-t border-gray-100">
+                <a href="/planning/${planId}/edit/" class="flex-1 text-center px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-all">
+                    <i class="bi bi-pencil mr-1"></i> {% trans "Edit Plan" %}
+                </a>
+                <a href="/planning/${planId}/timeline/" class="flex-1 text-center px-4 py-2 bg-purple-100 text-purple-700 rounded-xl text-sm font-semibold hover:bg-purple-200 transition-all">
+                    <i class="bi bi-bar-chart-steps mr-1"></i> {% trans "Gantt View" %}
+                </a>
+            </div>
+        </div>
+    `;
+    document.getElementById('activityModal').classList.remove('hidden');
+}
+
+function closeActivityModal() {
+    document.getElementById('activityModal').classList.add('hidden');
+}
+
+// ═══════════════════════════════════════════════════════
+// VOICE INPUT
+// ═══════════════════════════════════════════════════════
+function toggleVoiceInput() {
+    const btn = document.getElementById('voiceBtn');
+    const icon = document.getElementById('voiceIcon');
+
+    if (isRecording) {
+        // Stop recording
+        isRecording = false;
+        btn.classList.remove('recording');
+        icon.className = 'bi bi-mic-fill';
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+    } else {
+        // Start recording
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert('{% trans "Voice input is not supported in this browser" %}');
+            return;
+        }
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+            isRecording = true;
+            btn.classList.add('recording');
+            icon.className = 'bi bi-stop-fill';
+
+            mediaRecorder = new MediaRecorder(stream);
+            const chunks = [];
+            mediaRecorder.ondataavailable = e => chunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                stream.getTracks().forEach(t => t.stop());
+                // For now, prompt user for transcription
+                const text = prompt('{% trans "Voice transcription (type what you said):" %}');
+                if (text) {
+                    document.getElementById('quickInput').value = text;
+                    processQuickInput();
+                }
+            };
+            mediaRecorder.start();
+        }).catch(() => {
+            alert('{% trans "Microphone access denied" %}');
+        });
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// QUICK INPUT (NLP)
+// ═══════════════════════════════════════════════════════
+async function processQuickInput() {
+    const input = document.getElementById('quickInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    // Find the first plan for selected date (or show error)
+    const plans = getPlansForDate(selectedDate);
+    if (plans.length === 0) {
+        alert('{% trans "Create a plan first before adding activities" %}');
+        return;
+    }
+
+    const planId = plans[0].id;
+    input.disabled = true;
+
+    try {
+        const resp = await fetch(`/api/v1/daily-plans/${planId}/ai_text_input/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({ text }),
+        });
+
+        const data = await resp.json();
+        if (data.parsed_command && data.parsed_command.is_valid) {
+            if (confirm(`{% trans "Create activity:" %} ${data.parsed_command.suggested_action}?`)) {
+                const createResp = await fetch(`/api/v1/daily-plans/${planId}/ai_auto_create/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                    body: JSON.stringify({ command: data.parsed_command, confirm: true }),
+                });
+                const result = await createResp.json();
+                if (result.success) {
+                    // Reload to get fresh data
+                    window.location.reload();
+                } else {
+                    alert(result.message || '{% trans "Error creating activity" %}');
+                }
+            }
+        } else {
+            alert(data.parsed_command?.validation_errors?.join('\n') || '{% trans "Could not understand the command" %}');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('{% trans "Error processing command" %}');
+    }
+
+    input.disabled = false;
+    input.value = '';
+}
+
+// Enter key handler
+document.getElementById('quickInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') processQuickInput();
+});
+
+// ═══════════════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+    // Escape closes modals
+    if (e.key === 'Escape') {
+        closeCreateModal();
+        closeActivityModal();
+    }
+    // N = new plan (if not typing)
+    if (e.key === 'n' && !['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) {
+        e.preventDefault();
+        openCreateModal();
+    }
+    // Left/Right arrows navigate dates (if not typing)
+    if (!['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) {
+        if (e.key === 'ArrowLeft') {
+            const d = new Date(selectedDate + 'T12:00:00');
+            d.setDate(d.getDate() - 1);
+            selectDate(d.toISOString().split('T')[0]);
+        }
+        if (e.key === 'ArrowRight') {
+            const d = new Date(selectedDate + 'T12:00:00');
+            d.setDate(d.getDate() + 1);
+            selectDate(d.toISOString().split('T')[0]);
+        }
+    }
+});
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+buildCalendarStrip();
+renderPlans();
+updateDateLabel();
+</script>
+{% endblock %}
