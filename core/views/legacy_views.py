@@ -11080,6 +11080,21 @@ def daily_plan_edit(request, plan_id):
     schedule_items = ScheduleItem.objects.filter(
         project=plan.project
     ).order_by("order")
+
+    # Ensure every active User has a corresponding Employee record for assignment
+    active_users = User.objects.filter(is_active=True)
+    for u in active_users:
+        Employee.objects.get_or_create(
+            user=u,
+            defaults={
+                "first_name": u.first_name or u.username,
+                "last_name": u.last_name or "",
+                "social_security_number": f"PENDING-{u.id}",
+                "hourly_rate": 0,
+                "is_active": True,
+            },
+        )
+
     employees = Employee.objects.filter(is_active=True).order_by("first_name", "last_name")
 
     context = {
