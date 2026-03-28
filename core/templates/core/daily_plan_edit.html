@@ -418,10 +418,16 @@
                                 </div>
                                 
                                 {% if plan.status == 'DRAFT' %}
-                                <div class="ms-2">
+                                <div class="ms-2 d-flex flex-column gap-1">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editActivityModal-{{ activity.id }}"
+                                            title="{% trans 'Edit' %}">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
                                     <form method="post" action="{% url 'daily_plan_delete_activity' activity.id %}" onsubmit="return confirm('{% trans 'Delete this activity?' %}');">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="{% trans 'Delete' %}">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
@@ -440,6 +446,113 @@
                 </div>
             </div>
         </div>
+
+        <!-- Edit Activity Modals (one per activity) -->
+        {% for activity in activities %}
+        <div class="modal fade" id="editActivityModal-{{ activity.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="edit_activity">
+                        <input type="hidden" name="activity_id" value="{{ activity.id }}">
+                        
+                        <div class="modal-header py-2">
+                            <h5 class="modal-title h6"><i class="bi bi-pencil"></i> {% trans "Edit Activity" %}</h5>
+                            <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
+                        </div>
+                        
+                        <div class="modal-body p-2">
+                            <div class="mb-2">
+                                <label class="form-label small mb-1">{% trans "Activity Template (SOP)" %} <small class="text-muted">{% trans "(optional)" %}</small></label>
+                                <select name="activity_template" class="form-select form-select-sm">
+                                    <option value="">-- {% trans "No template" %} --</option>
+                                    {% for template in available_templates %}
+                                    <option value="{{ template.id }}" {% if activity.activity_template_id == template.id %}selected{% endif %}>
+                                        {{ template.get_category_display }} - {{ template.name|truncatechars:30 }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <label class="form-label small mb-1">{% trans "Link to Schedule Item" %} <small class="text-muted">{% trans "(optional)" %}</small></label>
+                                <select name="schedule_item" class="form-select form-select-sm">
+                                    <option value="">-- {% trans "Not linked" %} --</option>
+                                    {% for item in schedule_items %}
+                                    <option value="{{ item.id }}" {% if activity.schedule_item_id == item.id %}selected{% endif %}>{{ item.title|truncatechars:30 }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <label class="form-label small mb-1">{% trans "Activity Title" %} *</label>
+                                <input type="text" name="title" class="form-control form-control-sm" value="{{ activity.title }}" required>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <label class="form-label small mb-1">{% trans "Description" %}</label>
+                                <textarea name="description" class="form-control form-control-sm" rows="2">{{ activity.description }}</textarea>
+                            </div>
+                            
+                            <div class="row g-2 mb-2">
+                                <div class="col-6">
+                                    <label class="form-label small mb-1">{% trans "Estimated Hours" %}</label>
+                                    <input type="number" name="estimated_hours" class="form-control form-control-sm" step="0.5" min="0" value="{{ activity.estimated_hours|default:'' }}">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small mb-1">{% trans "Progress" %} %</label>
+                                    <input type="number" name="progress_percentage" class="form-control form-control-sm" min="0" max="100" value="{{ activity.progress_percentage }}">
+                                </div>
+                            </div>
+                            
+                            <div class="row g-2 mb-2">
+                                <div class="col-6">
+                                    <label class="form-label small mb-1">{% trans "Start Time" %}</label>
+                                    <input type="time" name="start_time" class="form-control form-control-sm" value="{{ activity.start_time|date:'H:i'|default:'' }}">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small mb-1">{% trans "End Time" %}</label>
+                                    <input type="time" name="end_time" class="form-control form-control-sm" value="{{ activity.end_time|date:'H:i'|default:'' }}">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <label class="form-label small mb-1">{% trans "Status" %}</label>
+                                <select name="status" class="form-select form-select-sm">
+                                    <option value="PENDING" {% if activity.status == 'PENDING' %}selected{% endif %}>{% trans "Not Started" %}</option>
+                                    <option value="IN_PROGRESS" {% if activity.status == 'IN_PROGRESS' %}selected{% endif %}>{% trans "In Progress" %}</option>
+                                    <option value="COMPLETED" {% if activity.status == 'COMPLETED' %}selected{% endif %}>{% trans "Completed" %}</option>
+                                    <option value="BLOCKED" {% if activity.status == 'BLOCKED' %}selected{% endif %}>{% trans "Blocked" %}</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <label class="form-label small mb-1">{% trans "Assign Employees" %}</label>
+                                <input type="text" class="form-control form-control-sm mb-1 edit-emp-search" data-target="empList-{{ activity.id }}" placeholder="🔍 {% trans 'Search...' %}">
+                                <div id="empList-{{ activity.id }}" style="max-height: 150px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 0.375rem; padding: 0.25rem;">
+                                    {% for emp in employees %}
+                                    <label class="d-flex align-items-center px-2 py-1 emp-item rounded" style="cursor: pointer;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background=''">
+                                        <input type="checkbox" name="assigned_employees" value="{{ emp.id }}" class="form-check-input me-2 mt-0" 
+                                               {% if emp in activity.assigned_employees.all %}checked{% endif %}>
+                                        <span class="small">{{ emp.first_name }} {{ emp.last_name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer py-2">
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-check-circle"></i> {% trans "Save Changes" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
 
         <!-- Actions sidebar - Full width on mobile, 4 cols on desktop -->
         <div class="col-12 col-lg-4">
@@ -635,6 +748,20 @@ document.addEventListener('keydown', function(e) {
         checkboxes.forEach(cb => { cb.checked = !allChecked; });
         employeeList.dispatchEvent(new Event('change'));
     }
+});
+
+// Employee search filter for Edit Activity modals
+document.querySelectorAll('.edit-emp-search').forEach(function(input) {
+    input.addEventListener('input', function() {
+        const targetId = this.dataset.target;
+        const list = document.getElementById(targetId);
+        if (!list) return;
+        const query = this.value.toLowerCase();
+        list.querySelectorAll('.emp-item').forEach(function(item) {
+            const name = item.querySelector('span').textContent.toLowerCase();
+            item.style.display = name.includes(query) ? '' : 'none';
+        });
+    });
 });
 </script>
 

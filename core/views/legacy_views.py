@@ -10901,6 +10901,65 @@ def daily_plan_edit(request, plan_id):
                 messages.error(request, f"Error adding activity: {str(e)}")
                 return redirect("daily_plan_edit", plan_id=plan.id)
 
+        elif action == "edit_activity":
+            try:
+                from core.models import ActivityTemplate, PlannedActivity, ScheduleItem
+
+                activity_id = request.POST.get("activity_id")
+                activity = PlannedActivity.objects.get(pk=activity_id, daily_plan=plan)
+
+                # Update fields
+                title = request.POST.get("title", "").strip()
+                if title:
+                    activity.title = title
+                activity.description = request.POST.get("description", "")
+
+                hours = request.POST.get("estimated_hours")
+                activity.estimated_hours = hours if hours else None
+
+                # Status
+                new_status = request.POST.get("status", "")
+                if new_status in dict(PlannedActivity.STATUS_CHOICES):
+                    activity.status = new_status
+
+                # Progress
+                progress = request.POST.get("progress_percentage", "")
+                if progress:
+                    activity.progress_percentage = min(100, max(0, int(progress)))
+
+                # Template & schedule (optional)
+                template_id = request.POST.get("activity_template")
+                activity.activity_template = (
+                    ActivityTemplate.objects.get(pk=template_id) if template_id else None
+                )
+
+                schedule_id = request.POST.get("schedule_item")
+                activity.schedule_item = (
+                    ScheduleItem.objects.get(pk=schedule_id) if schedule_id else None
+                )
+
+                # Start/end times
+                start_time = request.POST.get("start_time", "")
+                end_time = request.POST.get("end_time", "")
+                activity.start_time = start_time if start_time else None
+                activity.end_time = end_time if end_time else None
+
+                activity.save()
+
+                # Assign employees (M2M)
+                employee_ids = request.POST.getlist("assigned_employees")
+                activity.assigned_employees.set(employee_ids)
+
+                messages.success(request, _("Activity updated successfully"))
+                return redirect("daily_plan_edit", plan_id=plan.id)
+
+            except PlannedActivity.DoesNotExist:
+                messages.error(request, _("Activity not found"))
+                return redirect("daily_plan_edit", plan_id=plan.id)
+            except Exception as e:
+                messages.error(request, f"Error updating activity: {str(e)}")
+                return redirect("daily_plan_edit", plan_id=plan.id)
+
         elif action == "submit":
             if plan.activities.exists():
                 plan.status = "PUBLISHED"
