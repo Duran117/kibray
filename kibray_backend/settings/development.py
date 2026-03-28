@@ -23,6 +23,9 @@ DATABASES = {
 
 # Static files - Simple storage for development (Django 5.x syntax)
 STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },

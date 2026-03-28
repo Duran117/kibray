@@ -4,11 +4,13 @@
 {% block content %}
 <div class="container-fluid mt-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">{% trans "Daily Plans" %}</h2>
+    <div class="d-flex align-items-center gap-3">
+      <a href="{% url 'daily_planning_dashboard' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+      <h2 class="mb-0">{% trans "Daily Plans" %}</h2>
+    </div>
     <form method="get" class="d-flex gap-2">
       <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
         <option value="">{% trans "All Statuses" %}</option>
-        {% for st,label in plan.STATUS_CHOICES %}{% endfor %}
         <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>{% trans "Draft" %}</option>
         <option value="PUBLISHED" {% if filter_status == 'PUBLISHED' %}selected{% endif %}>{% trans "Published" %}</option>
         <option value="IN_PROGRESS" {% if filter_status == 'IN_PROGRESS' %}selected{% endif %}>{% trans "In Progress" %}</option>

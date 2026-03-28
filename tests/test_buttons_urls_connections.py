@@ -29,17 +29,17 @@ class TestCriticalButtonsAndURLs:
         assert response.status_code == 200
         assert b"Admin Dashboard" in response.content or b"Panel" in response.content
 
-    def test_admin_panel_main_url_exists(self):
-        """Test admin panel main URL can be resolved"""
+    def test_dashboard_admin_url_exists(self):
+        """Test admin dashboard URL can be resolved"""
         try:
-            url = reverse("admin_panel_main")
+            url = reverse("dashboard_admin")
             assert url is not None
         except NoReverseMatch:
-            pytest.fail("URL 'admin_panel_main' does not exist")
+            pytest.fail("URL 'dashboard_admin' does not exist")
 
-    def test_admin_panel_main_loads(self):
-        """Test admin panel main page loads"""
-        url = reverse("admin_panel_main")
+    def test_dashboard_admin_loads(self):
+        """Test admin dashboard page loads"""
+        url = reverse("dashboard_admin")
         response = self.client.get(url)
         assert response.status_code == 200
 
