@@ -576,19 +576,18 @@
 <!-- Edit Activity Modals (one per activity, outside container to avoid overflow clipping) -->
 {% for activity in activities %}
 <div class="modal fade" id="editActivityModal-{{ activity.id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-dialog">
         <div class="modal-content">
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="edit_activity">
-                <input type="hidden" name="activity_id" value="{{ activity.id }}">
-                
-                <div class="modal-header py-2">
-                    <h5 class="modal-title h6"><i class="bi bi-pencil"></i> {% trans "Edit Activity" %}</h5>
-                    <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
-                </div>
-                
-                <div class="modal-body p-3">
+            <div class="modal-header py-2">
+                <h5 class="modal-title h6"><i class="bi bi-pencil"></i> {% trans "Edit Activity" %}</h5>
+                <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
+            </div>
+            
+            <form method="post" id="editForm-{{ activity.id }}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit_activity">
+            <input type="hidden" name="activity_id" value="{{ activity.id }}">
+            <div class="modal-body p-3" style="max-height: 60vh; overflow-y: auto;">
                     <div class="mb-2">
                         <label class="form-label small mb-1">{% trans "Activity Template (SOP)" %} <small class="text-muted">{% trans "(optional)" %}</small></label>
                         <select name="activity_template" class="form-select form-select-sm">
@@ -676,14 +675,14 @@
                         </div>
                     </div>
                 </div>
+            </form>
                 
                 <div class="modal-footer py-2">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                    <button type="submit" class="btn btn-primary btn-sm">
+                    <button type="submit" form="editForm-{{ activity.id }}" class="btn btn-primary btn-sm">
                         <i class="bi bi-check-circle"></i> {% trans "Save Changes" %}
                     </button>
                 </div>
-            </form>
         </div>
     </div>
 </div>
@@ -691,18 +690,17 @@
 
 <!-- Add Activity Modal -->
 <div class="modal fade" id="addActivityModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-dialog">
         <div class="modal-content">
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="add_activity">
-                
-                <div class="modal-header py-2">
-                    <h5 class="modal-title h6">{% trans "Add Activity" %}</h5>
-                    <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
-                </div>
-                
-                <div class="modal-body p-2">
+            <div class="modal-header py-2">
+                <h5 class="modal-title h6">{% trans "Add Activity" %}</h5>
+                <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
+            </div>
+            
+            <form method="post" id="addActivityForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_activity">
+            <div class="modal-body p-2" style="max-height: 60vh; overflow-y: auto;">
                     <div class="mb-2">
                         <label class="form-label small mb-1">{% trans "Activity Template (SOP)" %} <small class="text-muted">{% trans "(optional)" %}</small></label>
                         <select name="activity_template" id="templateSelect" class="form-select form-select-sm">
@@ -754,14 +752,14 @@
                         </div>
                     </div>
                 </div>
+            </form>
                 
                 <div class="modal-footer py-2">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                    <button type="submit" class="btn btn-primary btn-sm">
+                    <button type="submit" form="addActivityForm" class="btn btn-primary btn-sm">
                         <i class="bi bi-plus-circle"></i> {% trans "Add Activity" %}
                     </button>
                 </div>
-            </form>
         </div>
     </div>
 </div>
