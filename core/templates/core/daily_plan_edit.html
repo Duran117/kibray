@@ -30,26 +30,69 @@
     /* Allow dropdowns inside modals to render properly */
     .modal-content {
         max-width: 100%;
-        overflow: visible;
-    }
-    .modal-body {
-        overflow: visible;
-    }
-    .modal-body .dropdown-menu {
-        position: relative !important;
-        transform: none !important;
     }
     
-    /* Employee dropdown styling */
-    .emp-dropdown .dropdown-menu {
-        border: 1px solid #dee2e6;
+    /* ===== Employee Picker Overlay ===== */
+    .emp-picker-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 99999;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
     }
-    .emp-dropdown .dropdown-item:hover,
-    .emp-dropdown .dropdown-item:focus {
-        background-color: #e9ecef;
+    .emp-picker-overlay.active {
+        display: flex;
     }
-    .emp-dropdown .dropdown-item.emp-option {
-        padding: 0.35rem 0.5rem;
+    .emp-picker-panel {
+        background: #fff;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 400px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    .emp-picker-header {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .emp-picker-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.5rem;
+    }
+    .emp-picker-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .emp-picker-item:hover {
+        background: #f0f4ff;
+    }
+    .emp-picker-item.selected {
+        background: #e8f5e9;
+    }
+    .emp-picker-item input[type="checkbox"] {
+        min-width: 20px;
+        min-height: 20px;
+        margin-right: 0.75rem;
+    }
+    .emp-picker-footer {
+        padding: 0.75rem 1rem;
+        border-top: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
     
     /* Force all text to wrap */
@@ -612,23 +655,24 @@
                     
                     <div class="mb-2">
                         <label class="form-label small mb-1">{% trans "Assign Employees" %}</label>
-                        <div class="dropdown emp-dropdown">
-                            <button class="btn btn-outline-secondary btn-sm w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                                <span class="emp-summary text-truncate">{% trans "Select employees..." %}</span>
-                                <i class="bi bi-chevron-down ms-2"></i>
-                            </button>
-                            <div class="dropdown-menu w-100 p-2 shadow" style="max-height: 250px; overflow-y: auto;">
-                                <input type="text" class="form-control form-control-sm mb-2 emp-filter" placeholder="🔍 {% trans 'Search...' %}">
-                                {% for emp in employees %}
-                                <label class="dropdown-item d-flex align-items-center px-2 py-1 rounded emp-option" style="cursor: pointer; white-space: normal;">
-                                    <input type="checkbox" name="assigned_employees" value="{{ emp.id }}" class="form-check-input me-2 mt-0 emp-check" style="min-width: 18px;"
-                                           {% for assigned in activity.assigned_employees.all %}{% if assigned.id == emp.id %}checked{% endif %}{% endfor %}>
-                                    <span class="small">{{ emp.first_name }} {{ emp.last_name }}</span>
-                                </label>
-                                {% empty %}
-                                <p class="text-muted small text-center py-2 mb-0">{% trans "No employees available" %}</p>
-                                {% endfor %}
-                            </div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm w-100 text-start d-flex justify-content-between align-items-center open-emp-picker"
+                                data-form-id="editForm-{{ activity.id }}">
+                            <span class="emp-btn-label text-truncate">
+                                {% with assigned=activity.assigned_employees.all %}
+                                {% if assigned %}
+                                    {% for a in assigned %}{{ a.first_name }} {{ a.last_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                                {% else %}
+                                    {% trans "Select employees..." %}
+                                {% endif %}
+                                {% endwith %}
+                            </span>
+                            <i class="bi bi-people ms-2"></i>
+                        </button>
+                        <!-- Hidden inputs for selected employees (managed by picker JS) -->
+                        <div class="emp-hidden-inputs" data-form-id="editForm-{{ activity.id }}">
+                            {% for assigned in activity.assigned_employees.all %}
+                            <input type="hidden" name="assigned_employees" value="{{ assigned.id }}">
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -701,22 +745,12 @@
                     
                     <div class="mb-3">
                         <label class="form-label small mb-1">{% trans "Assign Employees" %}</label>
-                        <div class="dropdown emp-dropdown">
-                            <button class="btn btn-outline-secondary btn-sm w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                                <span class="emp-summary text-truncate">{% trans "Select employees..." %}</span>
-                                <i class="bi bi-chevron-down ms-2"></i>
-                            </button>
-                            <div class="dropdown-menu w-100 p-2 shadow" style="max-height: 250px; overflow-y: auto;">
-                                <input type="text" class="form-control form-control-sm mb-2 emp-filter" placeholder="🔍 {% trans 'Search...' %}">
-                                {% for emp in employees %}
-                                <label class="dropdown-item d-flex align-items-center px-2 py-1 rounded emp-option" style="cursor: pointer; white-space: normal;">
-                                    <input type="checkbox" name="assigned_employees" value="{{ emp.id }}" class="form-check-input me-2 mt-0 emp-check" style="min-width: 18px;">
-                                    <span class="small">{{ emp.first_name }} {{ emp.last_name }}</span>
-                                </label>
-                                {% empty %}
-                                <p class="text-muted small text-center py-2 mb-0">{% trans "No employees found" %}</p>
-                                {% endfor %}
-                            </div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm w-100 text-start d-flex justify-content-between align-items-center open-emp-picker"
+                                data-form-id="addActivityForm">
+                            <span class="emp-btn-label text-truncate">{% trans "Select employees..." %}</span>
+                            <i class="bi bi-people ms-2"></i>
+                        </button>
+                        <div class="emp-hidden-inputs" data-form-id="addActivityForm">
                         </div>
                     </div>
                 </div>
@@ -728,6 +762,38 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Employee Picker Overlay (shared, one for all forms) ===== -->
+<div class="emp-picker-overlay" id="empPickerOverlay">
+    <div class="emp-picker-panel">
+        <div class="emp-picker-header">
+            <h6 class="mb-0"><i class="bi bi-people-fill me-2"></i>{% trans "Select Employees" %}</h6>
+            <button type="button" class="btn-close" id="empPickerClose"></button>
+        </div>
+        <div style="padding: 0.5rem 1rem 0;">
+            <input type="text" class="form-control form-control-sm" id="empPickerSearch" placeholder="🔍 {% trans 'Search employees...' %}">
+        </div>
+        <div class="emp-picker-body" id="empPickerList">
+            {% for emp in employees %}
+            <label class="emp-picker-item" data-emp-id="{{ emp.id }}" data-name="{{ emp.first_name }} {{ emp.last_name }}">
+                <input type="checkbox" class="form-check-input" value="{{ emp.id }}">
+                <div>
+                    <span class="fw-medium">{{ emp.first_name }} {{ emp.last_name }}</span>
+                    {% if emp.position %}<br><small class="text-muted">{{ emp.position }}</small>{% endif %}
+                </div>
+            </label>
+            {% empty %}
+            <p class="text-muted text-center py-4">{% trans "No employees available" %}</p>
+            {% endfor %}
+        </div>
+        <div class="emp-picker-footer">
+            <span class="small text-muted" id="empPickerCount">{% trans "0 selected" %}</span>
+            <button type="button" class="btn btn-primary btn-sm px-4" id="empPickerDone">
+                <i class="bi bi-check-lg me-1"></i>{% trans "Done" %}
+            </button>
         </div>
     </div>
 </div>
@@ -745,56 +811,140 @@ if (document.getElementById('templateSelect')) {
     });
 }
 
-// ===== Employee Dropdown Logic (shared for Add & Edit modals) =====
-function updateDropdownSummary(dropdown) {
-    const checks = dropdown.querySelectorAll('.emp-check:checked');
-    const summary = dropdown.querySelector('.emp-summary');
-    if (!summary) return;
-    if (checks.length === 0) {
-        summary.textContent = '{% trans "Select employees..." %}';
-        summary.style.color = '';
-    } else {
-        const names = Array.from(checks).map(cb => cb.closest('label').querySelector('span').textContent.trim());
-        summary.textContent = names.join(', ');
-        summary.style.color = '#198754';
+// ===== Employee Picker Overlay Logic =====
+(function() {
+    const overlay = document.getElementById('empPickerOverlay');
+    const searchInput = document.getElementById('empPickerSearch');
+    const listEl = document.getElementById('empPickerList');
+    const countEl = document.getElementById('empPickerCount');
+    const doneBtn = document.getElementById('empPickerDone');
+    const closeBtn = document.getElementById('empPickerClose');
+    
+    let currentFormId = null; // Which form opened the picker
+    
+    function updateCount() {
+        const checked = listEl.querySelectorAll('input[type="checkbox"]:checked').length;
+        countEl.textContent = checked + ' {% trans "selected" %}';
     }
-}
-
-// Search filter inside each dropdown
-document.querySelectorAll('.emp-filter').forEach(function(input) {
-    input.addEventListener('input', function() {
+    
+    function openPicker(formId) {
+        currentFormId = formId;
+        
+        // Read current selections from hidden inputs
+        const hiddenContainer = document.querySelector('.emp-hidden-inputs[data-form-id="' + formId + '"]');
+        const selectedIds = new Set();
+        if (hiddenContainer) {
+            hiddenContainer.querySelectorAll('input[name="assigned_employees"]').forEach(function(inp) {
+                selectedIds.add(inp.value);
+            });
+        }
+        
+        // Set checkboxes
+        listEl.querySelectorAll('.emp-picker-item').forEach(function(item) {
+            const cb = item.querySelector('input[type="checkbox"]');
+            const isSelected = selectedIds.has(cb.value);
+            cb.checked = isSelected;
+            item.classList.toggle('selected', isSelected);
+        });
+        
+        // Reset search
+        searchInput.value = '';
+        listEl.querySelectorAll('.emp-picker-item').forEach(function(item) {
+            item.style.display = '';
+        });
+        
+        updateCount();
+        overlay.classList.add('active');
+        searchInput.focus();
+    }
+    
+    function closePicker() {
+        if (!currentFormId) return;
+        
+        // Sync selections back to hidden inputs
+        const hiddenContainer = document.querySelector('.emp-hidden-inputs[data-form-id="' + currentFormId + '"]');
+        if (hiddenContainer) {
+            // Clear old hidden inputs
+            hiddenContainer.innerHTML = '';
+            
+            // Add new ones for checked items
+            const names = [];
+            listEl.querySelectorAll('input[type="checkbox"]:checked').forEach(function(cb) {
+                const inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = 'assigned_employees';
+                inp.value = cb.value;
+                hiddenContainer.appendChild(inp);
+                
+                const label = cb.closest('.emp-picker-item');
+                names.push(label.dataset.name);
+            });
+            
+            // Update button label
+            const btn = document.querySelector('.open-emp-picker[data-form-id="' + currentFormId + '"]');
+            if (btn) {
+                const labelSpan = btn.querySelector('.emp-btn-label');
+                if (names.length > 0) {
+                    labelSpan.textContent = names.join(', ');
+                    labelSpan.style.color = '#198754';
+                    labelSpan.style.fontWeight = '600';
+                } else {
+                    labelSpan.textContent = '{% trans "Select employees..." %}';
+                    labelSpan.style.color = '';
+                    labelSpan.style.fontWeight = '';
+                }
+            }
+        }
+        
+        overlay.classList.remove('active');
+        currentFormId = null;
+    }
+    
+    // Open picker when any "Select employees" button is clicked
+    document.querySelectorAll('.open-emp-picker').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            openPicker(this.dataset.formId);
+        });
+    });
+    
+    // Close/Done buttons
+    doneBtn.addEventListener('click', closePicker);
+    closeBtn.addEventListener('click', closePicker);
+    
+    // Close on overlay background click
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closePicker();
+    });
+    
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && overlay.classList.contains('active')) {
+            closePicker();
+        }
+    });
+    
+    // Toggle checkbox on item click
+    listEl.addEventListener('click', function(e) {
+        const item = e.target.closest('.emp-picker-item');
+        if (!item) return;
+        const cb = item.querySelector('input[type="checkbox"]');
+        if (e.target !== cb) {
+            cb.checked = !cb.checked;
+        }
+        item.classList.toggle('selected', cb.checked);
+        updateCount();
+    });
+    
+    // Search filter
+    searchInput.addEventListener('input', function() {
         const query = this.value.toLowerCase();
-        const menu = this.closest('.dropdown-menu');
-        menu.querySelectorAll('.emp-option').forEach(function(item) {
-            const name = item.querySelector('span').textContent.toLowerCase();
+        listEl.querySelectorAll('.emp-picker-item').forEach(function(item) {
+            const name = item.dataset.name.toLowerCase();
             item.style.display = name.includes(query) ? '' : 'none';
         });
     });
-    // Prevent dropdown from closing when clicking the search input
-    input.addEventListener('click', function(e) { e.stopPropagation(); });
-});
-
-// Update summary when checkboxes change
-document.querySelectorAll('.emp-dropdown').forEach(function(dropdown) {
-    dropdown.addEventListener('change', function() {
-        updateDropdownSummary(dropdown);
-    });
-    // Initialize summary on page load (for edit modals with pre-checked items)
-    updateDropdownSummary(dropdown);
-});
-
-// Prevent dropdown from closing when clicking checkboxes
-document.querySelectorAll('.emp-option').forEach(function(label) {
-    label.addEventListener('click', function(e) {
-        // Only toggle checkbox if clicking on the label (not directly on checkbox)
-        if (e.target.tagName !== 'INPUT') {
-            const cb = this.querySelector('input[type="checkbox"]');
-            cb.checked = !cb.checked;
-            cb.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        e.stopPropagation();
-    });
-});
+})();
 </script>
 
 {% endblock %}
