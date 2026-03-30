@@ -5925,6 +5925,7 @@ class Notification(models.Model):
         ("estimate_approved", "Estimate Approved"),
         ("change_order", "Change Order"),
         ("daily_log", "Daily Log"),
+        ("daily_plan", "Daily Plan"),
         ("invoice", "Invoice"),
         ("contract", "Contract"),
         ("alert", "Alert"),
@@ -7625,6 +7626,37 @@ class PlannedActivity(models.Model):
             self.materials_checked = False
             self.material_shortage = False
             self.save(update_fields=["materials_checked", "material_shortage"])
+
+
+class ActivityComment(models.Model):
+    """
+    Comments on planned activities — enables PM ↔ Employee conversation.
+    Employees can ask questions, suggest alternatives, report issues.
+    PMs can add context, instructions, photos, etc.
+    """
+
+    activity = models.ForeignKey(
+        PlannedActivity, on_delete=models.CASCADE, related_name="comments"
+    )
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="activity_comments"
+    )
+    content = models.TextField(help_text="Comment text")
+    photo = models.ImageField(
+        upload_to="activity_comments/%Y/%m/",
+        null=True,
+        blank=True,
+        help_text="Optional photo attachment (reference, site condition, etc.)",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        verbose_name = "Activity Comment"
+        verbose_name_plural = "Activity Comments"
+
+    def __str__(self):
+        return f"{self.author.get_full_name() or self.author.username}: {self.content[:50]}"
 
 
 class ActivityCompletion(models.Model):

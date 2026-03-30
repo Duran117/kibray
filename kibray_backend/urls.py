@@ -875,6 +875,11 @@ urlpatterns = [
         name="activity_complete",
     ),
     path(
+        "planning/activity/<int:activity_id>/comment/",
+        views.activity_add_comment,
+        name="activity_add_comment",
+    ),
+    path(
         "planning/employee/morning/",
         views.employee_morning_dashboard,
         name="employee_morning_dashboard",

@@ -132,6 +132,7 @@ from core.models import (  # noqa: E402
     MaterialCatalog,
     MaterialRequest,
     MaterialRequestItem,
+    Notification,
     PayrollPayment,
     PayrollPeriod,
     PayrollRecord,
@@ -10534,12 +10535,23 @@ def daily_plan_list(request):
 @login_required
 def daily_plan_detail(request, plan_id):
     """Detail view for a daily plan with productivity and weather (Module 12.7)."""
-    if not _is_staffish(request.user):
-        return HttpResponseForbidden("Access denied")
     plan = get_object_or_404(DailyPlan.objects.select_related("project", "created_by"), pk=plan_id)
+
+    # Allow staff OR any employee assigned to activities in this plan
+    if not _is_staffish(request.user):
+        is_assigned = plan.activities.filter(
+            assigned_employees__user=request.user
+        ).exists()
+        if not is_assigned:
+            return HttpResponseForbidden("Access denied")
+
     activities = (
         plan.activities.select_related("activity_template", "schedule_item")
-        .prefetch_related("assigned_employees", "sub_activities__assigned_employees")
+        .prefetch_related(
+            "assigned_employees",
+            "sub_activities__assigned_employees",
+            "comments__author",
+        )
         .filter(parent__isnull=True)  # Only top-level activities
         .order_by("order")
     )
@@ -10964,7 +10976,25 @@ def daily_plan_edit(request, plan_id):
             if plan.activities.exists():
                 plan.status = "PUBLISHED"
                 plan.save(update_fields=["status"])
-                messages.success(request, _("Plan submitted successfully"))
+
+                # Notify each assigned employee
+                notified_users = set()
+                for activity in plan.activities.prefetch_related("assigned_employees__user"):
+                    for emp in activity.assigned_employees.all():
+                        if emp.user and emp.user_id not in notified_users:
+                            notified_users.add(emp.user_id)
+                            Notification.objects.create(
+                                user=emp.user,
+                                project=plan.project,
+                                notification_type="daily_plan",
+                                title=_("New Daily Plan: %(project)s") % {"project": plan.project.name},
+                                message=_("A plan for %(date)s has been published. Check your assigned activities.") % {"date": plan.plan_date.strftime("%b %d")},
+                                related_object_type="DailyPlan",
+                                related_object_id=plan.id,
+                                link_url=f"/planning/{plan.id}/",
+                            )
+
+                messages.success(request, _("Plan submitted successfully. %(count)s employees notified.") % {"count": len(notified_users)})
             else:
                 messages.error(request, _("Cannot submit empty plan"))
             return redirect("daily_plan_edit", plan_id=plan.id)
@@ -11129,6 +11159,52 @@ def daily_plan_delete_activity(request, activity_id):
         messages.success(request, "Activity deleted")
 
     return redirect("daily_plan_edit", plan_id=plan_id)
+
+
+@login_required
+def activity_add_comment(request, activity_id):
+    """Add a comment to a planned activity. Any logged-in user can comment."""
+    from django.utils.translation import gettext as _
+
+    from core.models import ActivityComment
+
+    activity = get_object_or_404(
+        PlannedActivity.objects.select_related("daily_plan__project"), pk=activity_id
+    )
+
+    if request.method == "POST":
+        content = request.POST.get("content", "").strip()
+        if not content:
+            messages.error(request, _("Comment cannot be empty"))
+            return redirect("daily_plan_detail", plan_id=activity.daily_plan_id)
+
+        photo = request.FILES.get("photo")
+
+        ActivityComment.objects.create(
+            activity=activity,
+            author=request.user,
+            content=content,
+            photo=photo,
+        )
+
+        # Notify the plan creator if commenter is not the creator
+        plan = activity.daily_plan
+        if request.user != plan.created_by and plan.created_by:
+            Notification.objects.create(
+                user=plan.created_by,
+                project=plan.project,
+                notification_type="daily_plan",
+                title=_("New comment on: %(activity)s") % {"activity": activity.title[:50]},
+                message=f"{request.user.get_full_name() or request.user.username}: {content[:100]}",
+                related_object_type="DailyPlan",
+                related_object_id=plan.id,
+                link_url=f"/planning/{plan.id}/",
+            )
+
+        messages.success(request, _("Comment added"))
+        return redirect("daily_plan_detail", plan_id=activity.daily_plan_id)
+
+    return redirect("daily_plan_detail", plan_id=activity.daily_plan_id)
 
 
 @login_required
