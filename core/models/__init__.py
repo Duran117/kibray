@@ -5928,6 +5928,7 @@ class Notification(models.Model):
         ("daily_plan", "Daily Plan"),
         ("invoice", "Invoice"),
         ("contract", "Contract"),
+        ("touchup", "Touch-Up"),
         ("alert", "Alert"),
         ("reminder", "Reminder"),
         ("system", "System"),
@@ -9334,6 +9335,203 @@ class TouchUpCompletionPhoto(models.Model):
 
     def __str__(self):
         return f"Completion photo for touchup #{self.touchup_id}"
+
+
+# ========================================================================================
+# TOUCH-UP V2 — Dedicated touch-up management system
+# ========================================================================================
+
+
+class TouchUp(models.Model):
+    """
+    Dedicated model for tracking paint touch-ups, corrections and finishing details.
+    Independent from the generic Task model and from the legacy TouchUpPin/FloorPlan system.
+    Designed for visual, photo-heavy workflows.
+    """
+
+    if TYPE_CHECKING:
+        id: int
+        photos: "RelatedManager[TouchUpPhoto]"
+        updates: "RelatedManager[TouchUpUpdate]"
+
+    STATUS_CHOICES = [
+        ("open", _("Open")),
+        ("in_progress", _("In Progress")),
+        ("review", _("Waiting Review")),
+        ("closed", _("Closed")),
+    ]
+
+    PRIORITY_CHOICES = [
+        ("low", _("Low")),
+        ("medium", _("Medium")),
+        ("high", _("High")),
+        ("urgent", _("Urgent")),
+    ]
+
+    # Core
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="touchups_v2"
+    )
+    title = models.CharField(max_length=200, help_text=_("Short title for the touch-up"))
+    description = models.TextField(
+        blank=True, help_text=_("Detailed description of what needs correction")
+    )
+    goal = models.TextField(
+        blank=True,
+        help_text=_("Goal or objective: e.g. 'remove this stain', 'repaint this corner'"),
+    )
+    notes = models.TextField(
+        blank=True,
+        help_text=_("Precautions or warnings: e.g. 'be careful with the glass'"),
+    )
+
+    # Color
+    color_name = models.CharField(
+        max_length=120, blank=True, help_text=_("Color name (e.g. SW 7008 Alabaster)")
+    )
+    color_code = models.CharField(
+        max_length=60, blank=True, help_text=_("Color code (e.g. SW 7008)")
+    )
+    color_brand = models.CharField(
+        max_length=120, blank=True, help_text=_("Paint brand (e.g. Sherwin-Williams)")
+    )
+    color_hex = models.CharField(
+        max_length=7, blank=True, help_text=_("Hex color for visual swatch (#RRGGBB)")
+    )
+    sheen = models.CharField(
+        max_length=50, blank=True, help_text=_("Sheen: Matte, Satin, Semi-gloss, Gloss")
+    )
+    color_sample = models.ForeignKey(
+        "ColorSample",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="touchups_v2",
+        help_text=_("Link to approved color sample if available"),
+    )
+
+    # Status & Priority
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="open")
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default="medium")
+
+    # People
+    assigned_to = models.ForeignKey(
+        Employee,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_touchups_v2",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_touchups_v2",
+    )
+    closed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="closed_touchups_v2",
+    )
+
+    # Dates
+    created_at = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateField(null=True, blank=True, help_text=_("Optional deadline"))
+    closed_at = models.DateTimeField(null=True, blank=True)
+
+    # Closure
+    closing_notes = models.TextField(blank=True, help_text=_("Notes provided when closing"))
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = _("Touch-Up")
+        verbose_name_plural = _("Touch-Ups")
+        indexes = [
+            models.Index(fields=["project", "status"]),
+            models.Index(fields=["assigned_to", "status"]),
+            models.Index(fields=["priority", "status"]),
+        ]
+
+    def __str__(self):
+        return f"{self.title} ({self.get_status_display()})"
+
+    @property
+    def is_overdue(self):
+        if self.due_date and self.status not in ("closed",):
+            return date.today() > self.due_date
+        return False
+
+    def close(self, user, notes=""):
+        """Close the touch-up with evidence."""
+        self.status = "closed"
+        self.closed_by = user
+        self.closed_at = timezone.now()
+        self.closing_notes = notes
+        self.save(update_fields=["status", "closed_by", "closed_at", "closing_notes"])
+
+
+class TouchUpPhoto(models.Model):
+    """Photos associated with a touch-up. Supports before, progress and after photos."""
+
+    if TYPE_CHECKING:
+        id: int
+
+    PHASE_CHOICES = [
+        ("before", _("Before")),
+        ("progress", _("Progress")),
+        ("after", _("After")),
+    ]
+
+    touchup = models.ForeignKey(
+        TouchUp, on_delete=models.CASCADE, related_name="photos"
+    )
+    image = models.ImageField(upload_to="touchups_v2/photos/%Y/%m/")
+    annotations = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=_("Canvas annotation data (JSON) for marks drawn on the image"),
+    )
+    caption = models.CharField(max_length=255, blank=True)
+    phase = models.CharField(max_length=10, choices=PHASE_CHOICES, default="before")
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["uploaded_at"]
+
+    def __str__(self):
+        return f"{self.get_phase_display()} photo for {self.touchup.title}"
+
+
+class TouchUpUpdate(models.Model):
+    """Follow-up entries: comments, status changes, progress notes."""
+
+    if TYPE_CHECKING:
+        id: int
+
+    touchup = models.ForeignKey(
+        TouchUp, on_delete=models.CASCADE, related_name="updates"
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True
+    )
+    comment = models.TextField(help_text=_("Follow-up comment"))
+    photo = models.ImageField(
+        upload_to="touchups_v2/updates/%Y/%m/", null=True, blank=True
+    )
+    old_status = models.CharField(max_length=20, blank=True)
+    new_status = models.CharField(max_length=20, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"Update by {self.author} on {self.touchup.title}"
 
 
 # ---------------------

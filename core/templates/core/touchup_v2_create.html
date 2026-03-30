@@ -1,0 +1,176 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "New Touch-Up" %} — {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 900px;">
+
+  <!-- Header -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'touchup_list' project.id %}">{% trans "Touch-Ups" %}</a></li>
+      <li class="breadcrumb-item active">{% trans "New" %}</li>
+    </ol>
+  </nav>
+
+  <h2 class="mb-4"><i class="bi bi-plus-circle"></i> {% trans "New Touch-Up" %}</h2>
+
+  <form method="post" enctype="multipart/form-data" id="createForm">
+    {% csrf_token %}
+
+    <!-- Basic Info -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white fw-semibold"><i class="bi bi-info-circle"></i> {% trans "Basic Information" %}</div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label for="title" class="form-label">{% trans "Title" %} <span class="text-danger">*</span></label>
+          <input type="text" id="title" name="title" class="form-control" required
+                 placeholder='{% trans "e.g. Fix stain on dining room wall" %}'>
+        </div>
+        <div class="mb-3">
+          <label for="description" class="form-label">{% trans "Description" %}</label>
+          <textarea id="description" name="description" rows="3" class="form-control"
+                    placeholder='{% trans "Detailed description of what needs to be corrected..." %}'></textarea>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="goal" class="form-label">{% trans "Goal / Objective" %}</label>
+            <textarea id="goal" name="goal" rows="2" class="form-control"
+                      placeholder='{% trans "e.g. Remove stain, repaint corner, fix line..." %}'></textarea>
+          </div>
+          <div class="col-md-6">
+            <label for="notes" class="form-label">{% trans "Notes / Precautions" %}</label>
+            <textarea id="notes" name="notes" rows="2" class="form-control"
+                      placeholder='{% trans "e.g. Be careful with the glass, do not touch stain..." %}'></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Color Info -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white fw-semibold"><i class="bi bi-palette"></i> {% trans "Color Information" %}</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="color_sample" class="form-label">{% trans "Approved Color Sample" %}</label>
+            <select id="color_sample" name="color_sample" class="form-select">
+              <option value="">— {% trans "Select or enter manually below" %} —</option>
+              {% for cs in color_samples %}
+                <option value="{{ cs.id }}">{{ cs.name }}{% if cs.code %} ({{ cs.code }}){% endif %}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="color_name" class="form-label">{% trans "Color Name" %}</label>
+            <input type="text" id="color_name" name="color_name" class="form-control"
+                   placeholder="e.g. SW 7008 Alabaster">
+          </div>
+          <div class="col-md-4">
+            <label for="color_code" class="form-label">{% trans "Color Code" %}</label>
+            <input type="text" id="color_code" name="color_code" class="form-control"
+                   placeholder="e.g. SW 7008">
+          </div>
+          <div class="col-md-4">
+            <label for="color_brand" class="form-label">{% trans "Brand" %}</label>
+            <input type="text" id="color_brand" name="color_brand" class="form-control"
+                   placeholder="e.g. Sherwin-Williams">
+          </div>
+          <div class="col-md-4">
+            <label for="sheen" class="form-label">{% trans "Sheen" %}</label>
+            <select id="sheen" name="sheen" class="form-select">
+              <option value="">—</option>
+              <option value="Matte">Matte</option>
+              <option value="Eggshell">Eggshell</option>
+              <option value="Satin">Satin</option>
+              <option value="Semi-Gloss">Semi-Gloss</option>
+              <option value="Gloss">Gloss</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="color_hex" class="form-label">{% trans "Color Preview" %}</label>
+            <div class="input-group">
+              <input type="color" id="color_hex_picker" class="form-control form-control-color" value="#ffffff"
+                     onchange="document.getElementById('color_hex').value=this.value; document.getElementById('colorPreview').style.background=this.value;">
+              <input type="text" id="color_hex" name="color_hex" class="form-control" placeholder="#RRGGBB"
+                     onchange="document.getElementById('color_hex_picker').value=this.value; document.getElementById('colorPreview').style.background=this.value;">
+            </div>
+            <div id="colorPreview" class="mt-2 rounded border" style="height: 24px; background: #ffffff;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assignment & Priority -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white fw-semibold"><i class="bi bi-people"></i> {% trans "Assignment & Priority" %}</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="assigned_to" class="form-label">{% trans "Assign To" %}</label>
+            <select id="assigned_to" name="assigned_to" class="form-select">
+              <option value="">— {% trans "Unassigned" %} —</option>
+              {% for emp in employees %}
+                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="priority" class="form-label">{% trans "Priority" %}</label>
+            <select id="priority" name="priority" class="form-select">
+              {% for code, label in priority_choices %}
+                <option value="{{ code }}" {% if code == 'medium' %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="due_date" class="form-label">{% trans "Due Date" %}</label>
+            <input type="date" id="due_date" name="due_date" class="form-control">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Photos -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white fw-semibold"><i class="bi bi-camera"></i> {% trans "Initial Photos" %}</div>
+      <div class="card-body">
+        <p class="text-muted small mb-2">{% trans "Upload photos showing the area that needs correction. You can add more later." %}</p>
+        <input type="file" name="photos" accept="image/*" multiple class="form-control"
+               onchange="previewPhotos(this)">
+        <div id="photoPreview" class="d-flex flex-wrap gap-2 mt-3"></div>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="d-flex justify-content-between">
+      <a href="{% url 'touchup_list' project.id %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> {% trans "Cancel" %}
+      </a>
+      <button type="submit" class="btn btn-primary btn-lg">
+        <i class="bi bi-check-circle"></i> {% trans "Create Touch-Up" %}
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+function previewPhotos(input) {
+  const container = document.getElementById('photoPreview');
+  container.innerHTML = '';
+  for (const file of input.files) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.className = 'rounded border';
+      img.style.cssText = 'width:100px; height:100px; object-fit:cover;';
+      container.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  }
+}
+</script>
+{% endblock %}

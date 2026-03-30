@@ -1,0 +1,592 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{{ touchup.title }} — {% trans "Touch-Up" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="max-width: 1200px;">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'touchup_list' project.id %}">{% trans "Touch-Ups" %}</a></li>
+      <li class="breadcrumb-item active">{{ touchup.title|truncatewords:5 }}</li>
+    </ol>
+  </nav>
+
+  <!-- Header Row -->
+  <div class="d-flex flex-wrap justify-content-between align-items-start mb-4 gap-2">
+    <div class="flex-grow-1">
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h2 class="mb-0">{{ touchup.title }}</h2>
+        <span class="badge fs-6
+          {% if touchup.status == 'open' %}bg-danger
+          {% elif touchup.status == 'in_progress' %}bg-info
+          {% elif touchup.status == 'review' %}bg-warning text-dark
+          {% else %}bg-success{% endif %}">
+          {{ touchup.get_status_display }}
+        </span>
+        <span class="badge fs-6
+          {% if touchup.priority == 'urgent' %}bg-danger
+          {% elif touchup.priority == 'high' %}bg-warning text-dark
+          {% elif touchup.priority == 'medium' %}bg-secondary
+          {% else %}bg-light text-dark border{% endif %}">
+          {{ touchup.get_priority_display }}
+        </span>
+      </div>
+      <div class="text-muted small">
+        {% trans "Created" %} {{ touchup.created_at|date:"M d, Y H:i" }}
+        {% if touchup.created_by %} {% trans "by" %} <strong>{{ touchup.created_by.get_full_name|default:touchup.created_by.username }}</strong>{% endif %}
+        {% if touchup.due_date %}
+          &nbsp;·&nbsp; {% trans "Due" %}: <span class="{% if touchup.is_overdue %}text-danger fw-bold{% endif %}">{{ touchup.due_date|date:"M d, Y" }}</span>
+        {% endif %}
+      </div>
+    </div>
+    {% if can_edit %}
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editModal">
+        <i class="bi bi-pencil"></i> {% trans "Edit" %}
+      </button>
+      {% if touchup.status != 'closed' %}
+      <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#closeModal">
+        <i class="bi bi-check-circle"></i> {% trans "Close" %}
+      </button>
+      {% else %}
+      <form method="post" action="{% url 'touchup_v2_reopen' project.id touchup.id %}" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-warning btn-sm" onclick="return confirm('{% trans "Reopen this touch-up?" %}')">
+          <i class="bi bi-arrow-counterclockwise"></i> {% trans "Reopen" %}
+        </button>
+      </form>
+      {% endif %}
+      <form method="post" action="{% url 'touchup_v2_delete' project.id touchup.id %}" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('{% trans "Delete this touch-up permanently?" %}')">
+          <i class="bi bi-trash"></i>
+        </button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="row g-4">
+
+    <!-- LEFT COLUMN: Photos -->
+    <div class="col-lg-7">
+
+      <!-- Before Photos -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <span class="fw-semibold"><i class="bi bi-camera text-danger"></i> {% trans "Before Photos" %} ({{ before_photos.count }})</span>
+          {% if can_edit and touchup.status != 'closed' %}
+          <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addPhotoModal" onclick="document.getElementById('photoPhase').value='before'">
+            <i class="bi bi-plus"></i> {% trans "Add" %}
+          </button>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          {% if before_photos %}
+          <div class="row g-2">
+            {% for photo in before_photos %}
+            <div class="col-6 col-md-4">
+              <div class="position-relative">
+                <img src="{{ photo.image.url }}" alt="" class="img-fluid rounded cursor-pointer border"
+                     style="width: 100%; height: 140px; object-fit: cover; cursor: pointer;"
+                     onclick="openAnnotator('{{ photo.image.url }}', {{ photo.id }}, {{ touchup.id }})">
+                {% if photo.annotations %}
+                <span class="position-absolute bottom-0 end-0 m-1 badge bg-primary"><i class="bi bi-pen"></i></span>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-muted small mb-0">{% trans "No before photos uploaded yet." %}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Progress Photos -->
+      {% if progress_photos %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <span class="fw-semibold"><i class="bi bi-camera text-info"></i> {% trans "Progress Photos" %} ({{ progress_photos.count }})</span>
+          {% if can_edit and touchup.status != 'closed' %}
+          <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addPhotoModal" onclick="document.getElementById('photoPhase').value='progress'">
+            <i class="bi bi-plus"></i> {% trans "Add" %}
+          </button>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          <div class="row g-2">
+            {% for photo in progress_photos %}
+            <div class="col-6 col-md-4">
+              <img src="{{ photo.image.url }}" alt="" class="img-fluid rounded border"
+                   style="width: 100%; height: 140px; object-fit: cover; cursor: pointer;"
+                   onclick="openAnnotator('{{ photo.image.url }}', {{ photo.id }}, {{ touchup.id }})">
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- After Photos -->
+      {% if after_photos %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <span class="fw-semibold"><i class="bi bi-camera text-success"></i> {% trans "After Photos" %} ({{ after_photos.count }})</span>
+        </div>
+        <div class="card-body">
+          <div class="row g-2">
+            {% for photo in after_photos %}
+            <div class="col-6 col-md-4">
+              <img src="{{ photo.image.url }}" alt="" class="img-fluid rounded border"
+                   style="width: 100%; height: 140px; object-fit: cover; cursor: pointer;"
+                   onclick="openAnnotator('{{ photo.image.url }}', {{ photo.id }}, {{ touchup.id }})">
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Image Annotator (Full-width canvas) -->
+      <div id="annotatorPanel" class="card border-0 shadow-sm mb-4" style="display: none;">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <span class="fw-semibold"><i class="bi bi-pen"></i> {% trans "Mark & Annotate" %}</span>
+          <div class="d-flex gap-2">
+            <input type="color" id="annotColor" value="#ff0000" class="form-control form-control-color" style="width: 32px; height: 32px; padding: 2px;">
+            <select id="annotSize" class="form-select form-select-sm" style="width: 80px;">
+              <option value="2">Thin</option>
+              <option value="4" selected>Medium</option>
+              <option value="8">Thick</option>
+            </select>
+            <button class="btn btn-outline-secondary btn-sm" onclick="clearAnnotations()"><i class="bi bi-eraser"></i> {% trans "Clear" %}</button>
+            <button class="btn btn-primary btn-sm" onclick="saveAnnotations()"><i class="bi bi-save"></i> {% trans "Save" %}</button>
+            <button class="btn btn-outline-danger btn-sm" onclick="closeAnnotator()"><i class="bi bi-x-lg"></i></button>
+          </div>
+        </div>
+        <div class="card-body p-0 position-relative" style="background: #eee;">
+          <canvas id="annotCanvas" style="width: 100%; cursor: crosshair;"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Info + Updates -->
+    <div class="col-lg-5">
+
+      <!-- Info Card -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold"><i class="bi bi-info-circle"></i> {% trans "Details" %}</div>
+        <div class="card-body">
+          {% if touchup.description %}
+          <div class="mb-3">
+            <label class="form-label small text-muted mb-0">{% trans "Description" %}</label>
+            <p class="mb-0">{{ touchup.description }}</p>
+          </div>
+          {% endif %}
+          {% if touchup.goal %}
+          <div class="mb-3">
+            <label class="form-label small text-muted mb-0"><i class="bi bi-bullseye"></i> {% trans "Goal" %}</label>
+            <p class="mb-0">{{ touchup.goal }}</p>
+          </div>
+          {% endif %}
+          {% if touchup.notes %}
+          <div class="mb-3">
+            <label class="form-label small text-muted mb-0"><i class="bi bi-exclamation-triangle"></i> {% trans "Notes / Precautions" %}</label>
+            <p class="mb-0 text-warning-emphasis">{{ touchup.notes }}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Color Card -->
+      {% if touchup.color_name or touchup.color_code or touchup.color_hex %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold"><i class="bi bi-palette"></i> {% trans "Color" %}</div>
+        <div class="card-body">
+          {% if touchup.color_hex %}
+          <div class="rounded mb-3 border" style="height: 60px; background: {{ touchup.color_hex }};"></div>
+          {% endif %}
+          <div class="row g-2 small">
+            {% if touchup.color_name %}<div class="col-6"><span class="text-muted">{% trans "Name" %}:</span> <strong>{{ touchup.color_name }}</strong></div>{% endif %}
+            {% if touchup.color_code %}<div class="col-6"><span class="text-muted">{% trans "Code" %}:</span> <strong>{{ touchup.color_code }}</strong></div>{% endif %}
+            {% if touchup.color_brand %}<div class="col-6"><span class="text-muted">{% trans "Brand" %}:</span> {{ touchup.color_brand }}</div>{% endif %}
+            {% if touchup.sheen %}<div class="col-6"><span class="text-muted">{% trans "Sheen" %}:</span> {{ touchup.sheen }}</div>{% endif %}
+            {% if touchup.color_hex %}<div class="col-6"><span class="text-muted">{% trans "Hex" %}:</span> <code>{{ touchup.color_hex }}</code></div>{% endif %}
+          </div>
+          {% if touchup.color_sample %}
+          <div class="mt-2 pt-2 border-top small">
+            <span class="text-muted">{% trans "Linked Color Sample" %}:</span>
+            <a href="{% url 'color_sample_detail' touchup.color_sample.id %}">{{ touchup.color_sample.name }}</a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Assignment Card -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold"><i class="bi bi-people"></i> {% trans "People" %}</div>
+        <div class="card-body small">
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">{% trans "Assigned To" %}</span>
+            <strong>{% if touchup.assigned_to %}{{ touchup.assigned_to.first_name }} {{ touchup.assigned_to.last_name }}{% else %}<span class="text-muted">{% trans "Unassigned" %}</span>{% endif %}</strong>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">{% trans "Created By" %}</span>
+            <span>{{ touchup.created_by.get_full_name|default:touchup.created_by.username }}</span>
+          </div>
+          {% if touchup.closed_by %}
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">{% trans "Closed By" %}</span>
+            <span>{{ touchup.closed_by.get_full_name|default:touchup.closed_by.username }}</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">{% trans "Closed At" %}</span>
+            <span>{{ touchup.closed_at|date:"M d, Y H:i" }}</span>
+          </div>
+          {% endif %}
+          {% if touchup.closing_notes %}
+          <div class="mt-2 pt-2 border-top">
+            <span class="text-muted">{% trans "Closing Notes" %}:</span>
+            <p class="mb-0 mt-1">{{ touchup.closing_notes }}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Follow-Up / Updates -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold"><i class="bi bi-chat-left-text"></i> {% trans "Follow-Up" %} ({{ touchup.updates.count }})</div>
+        <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+          {% for update in touchup.updates.all %}
+          <div class="d-flex gap-2 mb-3 {% if not forloop.last %}pb-3 border-bottom{% endif %}">
+            <div class="flex-shrink-0">
+              <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                <small class="fw-bold text-primary">{{ update.author.first_name|first|default:"?" }}</small>
+              </div>
+            </div>
+            <div class="flex-grow-1 min-width-0">
+              <div class="d-flex justify-content-between small">
+                <strong>{{ update.author.get_full_name|default:update.author.username }}</strong>
+                <span class="text-muted">{{ update.created_at|timesince }} {% trans "ago" %}</span>
+              </div>
+              <p class="mb-1 small">{{ update.comment }}</p>
+              {% if update.old_status and update.new_status %}
+              <small class="text-muted">
+                <i class="bi bi-arrow-right"></i> {{ update.old_status }} → {{ update.new_status }}
+              </small>
+              {% endif %}
+              {% if update.photo %}
+              <div class="mt-1">
+                <a href="{{ update.photo.url }}" target="_blank">
+                  <img src="{{ update.photo.url }}" alt="" class="rounded border" style="max-height: 80px;">
+                </a>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-muted small mb-0">{% trans "No follow-ups yet." %}</p>
+          {% endfor %}
+        </div>
+        {% if touchup.status != 'closed' %}
+        <div class="card-footer bg-white">
+          <form method="post" action="{% url 'touchup_v2_add_update' project.id touchup.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="input-group">
+              <input type="text" name="comment" class="form-control form-control-sm" placeholder="{% trans 'Write a follow-up...' %}" required>
+              <label class="btn btn-outline-secondary btn-sm" title="{% trans 'Attach photo' %}">
+                <i class="bi bi-camera"></i>
+                <input type="file" name="photo" accept="image/*" class="d-none">
+              </label>
+              <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-send"></i></button>
+            </div>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+{% if can_edit %}
+<div class="modal fade" id="editModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <form method="post" action="{% url 'touchup_v2_update' project.id touchup.id %}" class="modal-content">
+      {% csrf_token %}
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-pencil"></i> {% trans "Edit Touch-Up" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+        <div class="mb-3">
+          <label class="form-label">{% trans "Title" %}</label>
+          <input type="text" name="title" class="form-control" value="{{ touchup.title }}" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">{% trans "Description" %}</label>
+          <textarea name="description" rows="3" class="form-control">{{ touchup.description }}</textarea>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label">{% trans "Goal" %}</label>
+            <textarea name="goal" rows="2" class="form-control">{{ touchup.goal }}</textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">{% trans "Notes / Precautions" %}</label>
+            <textarea name="notes" rows="2" class="form-control">{{ touchup.notes }}</textarea>
+          </div>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="form-label">{% trans "Status" %}</label>
+            <select name="status" class="form-select">
+              {% for code, label in status_choices %}
+                <option value="{{ code }}" {% if touchup.status == code %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">{% trans "Priority" %}</label>
+            <select name="priority" class="form-select">
+              <option value="low" {% if touchup.priority == 'low' %}selected{% endif %}>{% trans "Low" %}</option>
+              <option value="medium" {% if touchup.priority == 'medium' %}selected{% endif %}>{% trans "Medium" %}</option>
+              <option value="high" {% if touchup.priority == 'high' %}selected{% endif %}>{% trans "High" %}</option>
+              <option value="urgent" {% if touchup.priority == 'urgent' %}selected{% endif %}>{% trans "Urgent" %}</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">{% trans "Assign To" %}</label>
+            <select name="assigned_to" class="form-select">
+              <option value="">— {% trans "Unassigned" %} —</option>
+              {% for emp in employees %}
+                <option value="{{ emp.id }}" {% if touchup.assigned_to_id == emp.id %}selected{% endif %}>{{ emp.first_name }} {{ emp.last_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="form-label">{% trans "Due Date" %}</label>
+            <input type="date" name="due_date" class="form-control" value="{{ touchup.due_date|date:'Y-m-d' }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">{% trans "Color Name" %}</label>
+            <input type="text" name="color_name" class="form-control" value="{{ touchup.color_name }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">{% trans "Color Code" %}</label>
+            <input type="text" name="color_code" class="form-control" value="{{ touchup.color_code }}">
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">{% trans "Brand" %}</label>
+            <input type="text" name="color_brand" class="form-control" value="{{ touchup.color_brand }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">{% trans "Sheen" %}</label>
+            <input type="text" name="sheen" class="form-control" value="{{ touchup.sheen }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">{% trans "Color Hex" %}</label>
+            <input type="text" name="color_hex" class="form-control" value="{{ touchup.color_hex }}" placeholder="#RRGGBB">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> {% trans "Save Changes" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- CLOSE MODAL -->
+<div class="modal fade" id="closeModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="post" action="{% url 'touchup_v2_close' project.id touchup.id %}" enctype="multipart/form-data" class="modal-content">
+      {% csrf_token %}
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-check-circle text-success"></i> {% trans "Close Touch-Up" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small">{% trans "Upload 'after' photos showing the completed work, then add closing notes." %}</p>
+        <div class="mb-3">
+          <label class="form-label">{% trans "After Photos" %} <span class="text-danger">*</span></label>
+          <input type="file" name="photos" accept="image/*" multiple class="form-control" {% if not after_photos %}required{% endif %}>
+          {% if after_photos %}
+          <small class="text-muted">{{ after_photos.count }} {% trans "after photo(s) already uploaded" %}</small>
+          {% endif %}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">{% trans "Closing Notes" %}</label>
+          <textarea name="closing_notes" rows="3" class="form-control" placeholder="{% trans 'Notes about the completed work...' %}"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+        <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> {% trans "Close Touch-Up" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ADD PHOTO MODAL -->
+<div class="modal fade" id="addPhotoModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="post" action="{% url 'touchup_v2_add_photo' project.id touchup.id %}" enctype="multipart/form-data" class="modal-content">
+      {% csrf_token %}
+      <input type="hidden" id="photoPhase" name="phase" value="before">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-camera"></i> {% trans "Add Photos" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">{% trans "Phase" %}</label>
+          <select name="phase" class="form-select" onchange="document.getElementById('photoPhase').value=this.value">
+            <option value="before">{% trans "Before" %}</option>
+            <option value="progress">{% trans "Progress" %}</option>
+            <option value="after">{% trans "After" %}</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">{% trans "Photos" %}</label>
+          <input type="file" name="photos" accept="image/*" multiple class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">{% trans "Caption" %}</label>
+          <input type="text" name="caption" class="form-control" placeholder="{% trans 'Optional description...' %}">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> {% trans "Upload" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<!-- Annotation JS -->
+<script>
+let annotCanvas, annotCtx, annotImage, annotPhotoId, annotTouchUpId;
+let isDrawing = false;
+let annotations = [];
+
+function openAnnotator(imageUrl, photoId, touchupId) {
+  annotPhotoId = photoId;
+  annotTouchUpId = touchupId;
+  const panel = document.getElementById('annotatorPanel');
+  panel.style.display = '';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  annotCanvas = document.getElementById('annotCanvas');
+  annotCtx = annotCanvas.getContext('2d');
+  annotImage = new Image();
+  annotImage.crossOrigin = 'anonymous';
+  annotImage.onload = function() {
+    annotCanvas.width = annotImage.naturalWidth;
+    annotCanvas.height = annotImage.naturalHeight;
+    annotCanvas.style.height = 'auto';
+    redrawCanvas();
+  };
+  annotImage.src = imageUrl;
+  annotations = [];
+
+  // Drawing events
+  annotCanvas.onpointerdown = startDraw;
+  annotCanvas.onpointermove = draw;
+  annotCanvas.onpointerup = stopDraw;
+  annotCanvas.onpointerleave = stopDraw;
+}
+
+function closeAnnotator() {
+  document.getElementById('annotatorPanel').style.display = 'none';
+}
+
+function getCanvasPos(e) {
+  const rect = annotCanvas.getBoundingClientRect();
+  const scaleX = annotCanvas.width / rect.width;
+  const scaleY = annotCanvas.height / rect.height;
+  return {
+    x: (e.clientX - rect.left) * scaleX,
+    y: (e.clientY - rect.top) * scaleY,
+  };
+}
+
+function startDraw(e) {
+  isDrawing = true;
+  const pos = getCanvasPos(e);
+  const color = document.getElementById('annotColor').value;
+  const size = parseInt(document.getElementById('annotSize').value);
+  annotations.push({ color, size, points: [pos] });
+}
+
+function draw(e) {
+  if (!isDrawing) return;
+  const pos = getCanvasPos(e);
+  const current = annotations[annotations.length - 1];
+  current.points.push(pos);
+  redrawCanvas();
+}
+
+function stopDraw() {
+  isDrawing = false;
+}
+
+function redrawCanvas() {
+  annotCtx.clearRect(0, 0, annotCanvas.width, annotCanvas.height);
+  annotCtx.drawImage(annotImage, 0, 0);
+  for (const stroke of annotations) {
+    if (stroke.points.length < 2) continue;
+    annotCtx.beginPath();
+    annotCtx.strokeStyle = stroke.color;
+    annotCtx.lineWidth = stroke.size;
+    annotCtx.lineCap = 'round';
+    annotCtx.lineJoin = 'round';
+    annotCtx.moveTo(stroke.points[0].x, stroke.points[0].y);
+    for (let i = 1; i < stroke.points.length; i++) {
+      annotCtx.lineTo(stroke.points[i].x, stroke.points[i].y);
+    }
+    annotCtx.stroke();
+  }
+}
+
+function clearAnnotations() {
+  annotations = [];
+  redrawCanvas();
+}
+
+function saveAnnotations() {
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
+    || document.querySelector('meta[name=csrf-token]')?.content;
+
+  fetch(`/projects/{{ project.id }}/touchups-v2/${annotTouchUpId}/photo/${annotPhotoId}/annotate/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken,
+    },
+    body: JSON.stringify({ annotations: { strokes: annotations } }),
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      alert('{% trans "Annotations saved!" %}');
+    } else {
+      alert('Error: ' + (data.error || 'Unknown'));
+    }
+  })
+  .catch(err => alert('Error: ' + err));
+}
+</script>
+{% endblock %}

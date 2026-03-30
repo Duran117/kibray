@@ -297,7 +297,7 @@ urlpatterns = [
     path("plans/<int:plan_id>/delete/", views.floor_plan_delete, name="floor_plan_delete"),
     path("plans/<int:plan_id>/add-pin/", views.floor_plan_add_pin, name="floor_plan_add_pin"),
     path("pins/<int:pin_id>/detail.json", views.pin_detail_ajax, name="pin_detail_ajax"),
-    # Touch-up board
+    # Touch-up board (legacy Task-based)
     path("projects/<int:project_id>/touchups/", views.touchup_board, name="touchup_board"),
     path(
         "projects/<int:project_id>/touchups-react/",
@@ -309,6 +309,17 @@ urlpatterns = [
         views.touchup_quick_update,
         name="touchup_quick_update",
     ),
+    # Touch-Up V2 — dedicated touch-up system
+    path("projects/<int:project_id>/touchups-v2/", views.touchup_list, name="touchup_list"),
+    path("projects/<int:project_id>/touchups-v2/create/", views.touchup_v2_create, name="touchup_v2_create"),
+    path("projects/<int:project_id>/touchups-v2/<int:touchup_id>/", views.touchup_v2_detail, name="touchup_v2_detail"),
+    path("projects/<int:project_id>/touchups-v2/<int:touchup_id>/update/", views.touchup_v2_update, name="touchup_v2_update"),
+    path("projects/<int:project_id>/touchups-v2/<int:touchup_id>/add-update/", views.touchup_v2_add_update, name="touchup_v2_add_update"),
+    path("projects/<int:project_id>/touchups-v2/<int:touchup_id>/add-photo/", views.touchup_v2_add_photo, name="touchup_v2_add_photo"),
+    path("projects/<int:project_id>/touchups-v2/<int:touchup_id>/close/", views.touchup_v2_close, name="touchup_v2_close"),
+    path("projects/<int:project_id>/touchups-v2/<int:touchup_id>/reopen/", views.touchup_v2_reopen, name="touchup_v2_reopen"),
+    path("projects/<int:project_id>/touchups-v2/<int:touchup_id>/delete/", views.touchup_v2_delete, name="touchup_v2_delete"),
+    path("projects/<int:project_id>/touchups-v2/<int:touchup_id>/photo/<int:photo_id>/annotate/", views.touchup_v2_save_annotation, name="touchup_v2_save_annotation"),
     # Color Approvals React
     path("color-approvals/", views.color_approvals_react, name="color_approvals_react"),
     path(

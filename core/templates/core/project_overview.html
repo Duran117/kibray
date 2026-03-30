@@ -423,7 +423,7 @@
     
     <!-- Operaciones -->
     <div class="section-title">{% trans "Operaciones" %}</div>
-    <a href="{% url 'touchup_plans_list' project.id %}" class="nav-item">
+    <a href="{% url 'touchup_list' project.id %}" class="nav-item">
       <i class="bi bi-brush"></i>
       <span class="nav-text">{% trans "Touch-ups" %}</span>
     </a>
@@ -589,7 +589,7 @@
       
       <!-- Operaciones -->
       <div class="section-title">{% trans "Operaciones" %}</div>
-      <a href="{% url 'touchup_board' project.id %}" class="nav-item">
+      <a href="{% url 'touchup_list' project.id %}" class="nav-item">
         <i class="bi bi-brush"></i>
         <span class="nav-text">{% trans "Touch-ups" %}</span>
       </a>
