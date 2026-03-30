@@ -138,9 +138,12 @@
       <div class="card-header bg-white fw-semibold"><i class="bi bi-camera"></i> {% trans "Initial Photos" %}</div>
       <div class="card-body">
         <p class="text-muted small mb-2">{% trans "Upload photos showing the area that needs correction. You can add more later." %}</p>
-        <input type="file" name="photos" accept="image/*" multiple class="form-control"
-               onchange="previewPhotos(this)">
+        <div id="photoFilesContainer"></div>
+        <button type="button" class="btn btn-outline-primary" onclick="addMorePhotos()">
+          <i class="bi bi-plus-circle"></i> {% trans "Select Photos" %}
+        </button>
         <div id="photoPreview" class="d-flex flex-wrap gap-2 mt-3"></div>
+        <div id="photoCount" class="text-muted small mt-1" style="display:none;"></div>
       </div>
     </div>
 
@@ -157,19 +160,70 @@
 </div>
 
 <script>
-function previewPhotos(input) {
+let photoIndex = 0;
+
+function addMorePhotos() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.name = 'photos';
+  input.accept = 'image/*';
+  input.multiple = true;
+  input.style.display = 'none';
+  input.dataset.index = photoIndex++;
+  input.addEventListener('change', function() {
+    if (this.files.length === 0) {
+      this.remove();
+      return;
+    }
+    renderPreviews();
+  });
+  document.getElementById('photoFilesContainer').appendChild(input);
+  input.click();
+}
+
+function removePhotoInput(index) {
+  const container = document.getElementById('photoFilesContainer');
+  const input = container.querySelector(`input[data-index="${index}"]`);
+  if (input) input.remove();
+  renderPreviews();
+}
+
+function renderPreviews() {
   const container = document.getElementById('photoPreview');
+  const countEl = document.getElementById('photoCount');
   container.innerHTML = '';
-  for (const file of input.files) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = document.createElement('img');
-      img.src = e.target.result;
-      img.className = 'rounded border';
-      img.style.cssText = 'width:100px; height:100px; object-fit:cover;';
-      container.appendChild(img);
-    };
-    reader.readAsDataURL(file);
+  let total = 0;
+  const inputs = document.querySelectorAll('#photoFilesContainer input[type="file"]');
+  inputs.forEach(input => {
+    for (const file of input.files) {
+      total++;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'position-relative';
+      const reader = new FileReader();
+      const idx = input.dataset.index;
+      reader.onload = (e) => {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.className = 'rounded border';
+        img.style.cssText = 'width:100px; height:100px; object-fit:cover;';
+        wrapper.appendChild(img);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle p-0';
+        btn.style.cssText = 'width:22px; height:22px; line-height:1; font-size:12px;';
+        btn.innerHTML = '&times;';
+        btn.onclick = () => removePhotoInput(idx);
+        wrapper.appendChild(btn);
+      };
+      reader.readAsDataURL(file);
+      container.appendChild(wrapper);
+    }
+  });
+  if (total > 0) {
+    countEl.style.display = '';
+    countEl.textContent = total + ' {% trans "photo(s) selected" %}';
+  } else {
+    countEl.style.display = 'none';
   }
 }
 </script>

@@ -421,7 +421,12 @@
         <p class="text-muted small">{% trans "Upload 'after' photos showing the completed work, then add closing notes." %}</p>
         <div class="mb-3">
           <label class="form-label">{% trans "After Photos" %} <span class="text-danger">*</span></label>
-          <input type="file" name="photos" accept="image/*" multiple class="form-control" {% if not after_photos %}required{% endif %}>
+          <div id="closePhotoFilesContainer"></div>
+          <button type="button" class="btn btn-outline-primary btn-sm" onclick="closeModalAddMore()">
+            <i class="bi bi-plus-circle"></i> {% trans "Select Photos" %}
+          </button>
+          <div id="closePhotoPreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+          <div id="closePhotoCount" class="text-muted small mt-1" style="display:none;"></div>
           {% if after_photos %}
           <small class="text-muted">{{ after_photos.count }} {% trans "after photo(s) already uploaded" %}</small>
           {% endif %}
@@ -460,7 +465,12 @@
         </div>
         <div class="mb-3">
           <label class="form-label">{% trans "Photos" %}</label>
-          <input type="file" name="photos" accept="image/*" multiple class="form-control" required>
+          <div id="addPhotoFilesContainer"></div>
+          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addPhotoModalAddMore()">
+            <i class="bi bi-plus-circle"></i> {% trans "Select Photos" %}
+          </button>
+          <div id="addPhotoPreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+          <div id="addPhotoCount" class="text-muted small mt-1" style="display:none;"></div>
         </div>
         <div class="mb-3">
           <label class="form-label">{% trans "Caption" %}</label>
@@ -475,6 +485,110 @@
   </div>
 </div>
 {% endif %}
+
+<!-- Cumulative Photo Upload JS -->
+<script>
+/* ---- Add Photo Modal ---- */
+let addPhotoIdx = 0;
+function addPhotoModalAddMore() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.name = 'photos'; input.accept = 'image/*'; input.multiple = true;
+  input.style.display = 'none'; input.dataset.index = addPhotoIdx++;
+  input.addEventListener('change', function() {
+    if (this.files.length === 0) { this.remove(); return; }
+    renderModalPreviews('addPhoto');
+  });
+  document.getElementById('addPhotoFilesContainer').appendChild(input);
+  input.click();
+}
+function removeAddPhotoInput(idx) {
+  const el = document.querySelector(`#addPhotoFilesContainer input[data-index="${idx}"]`);
+  if (el) el.remove();
+  renderModalPreviews('addPhoto');
+}
+
+/* ---- Close Modal ---- */
+let closePhotoIdx = 0;
+function closeModalAddMore() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.name = 'photos'; input.accept = 'image/*'; input.multiple = true;
+  input.style.display = 'none'; input.dataset.index = closePhotoIdx++;
+  input.addEventListener('change', function() {
+    if (this.files.length === 0) { this.remove(); return; }
+    renderModalPreviews('closePhoto');
+  });
+  document.getElementById('closePhotoFilesContainer').appendChild(input);
+  input.click();
+}
+function removeClosePhotoInput(idx) {
+  const el = document.querySelector(`#closePhotoFilesContainer input[data-index="${idx}"]`);
+  if (el) el.remove();
+  renderModalPreviews('closePhoto');
+}
+
+/* ---- Shared preview renderer ---- */
+function renderModalPreviews(prefix) {
+  const container = document.getElementById(prefix + 'Preview');
+  const countEl = document.getElementById(prefix + 'Count');
+  container.innerHTML = '';
+  let total = 0;
+  const inputs = document.querySelectorAll('#' + prefix + 'FilesContainer input[type="file"]');
+  inputs.forEach(input => {
+    for (const file of input.files) {
+      total++;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'position-relative';
+      const idx = input.dataset.index;
+      const removeFn = prefix === 'addPhoto' ? 'removeAddPhotoInput' : 'removeClosePhotoInput';
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.className = 'rounded border';
+        img.style.cssText = 'width:80px; height:80px; object-fit:cover;';
+        wrapper.appendChild(img);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle p-0';
+        btn.style.cssText = 'width:20px; height:20px; line-height:1; font-size:11px;';
+        btn.innerHTML = '&times;';
+        btn.onclick = () => { const fn = prefix === 'addPhoto' ? removeAddPhotoInput : removeClosePhotoInput; fn(idx); };
+        wrapper.appendChild(btn);
+      };
+      reader.readAsDataURL(file);
+      container.appendChild(wrapper);
+    }
+  });
+  if (total > 0) {
+    countEl.style.display = '';
+    countEl.textContent = total + ' foto(s)';
+  } else {
+    countEl.style.display = 'none';
+  }
+}
+
+/* Reset modals on close */
+document.addEventListener('DOMContentLoaded', function() {
+  const addModal = document.getElementById('addPhotoModal');
+  if (addModal) {
+    addModal.addEventListener('hidden.bs.modal', function() {
+      document.getElementById('addPhotoFilesContainer').innerHTML = '';
+      document.getElementById('addPhotoPreview').innerHTML = '';
+      document.getElementById('addPhotoCount').style.display = 'none';
+      addPhotoIdx = 0;
+    });
+  }
+  const closeModalEl = document.getElementById('closeModal');
+  if (closeModalEl) {
+    closeModalEl.addEventListener('hidden.bs.modal', function() {
+      document.getElementById('closePhotoFilesContainer').innerHTML = '';
+      document.getElementById('closePhotoPreview').innerHTML = '';
+      document.getElementById('closePhotoCount').style.display = 'none';
+      closePhotoIdx = 0;
+    });
+  }
+});
+</script>
 
 <!-- Annotation JS -->
 <script>
