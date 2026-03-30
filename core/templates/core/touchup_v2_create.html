@@ -4,164 +4,311 @@
 {% block title %}{% trans "New Touch-Up" %} — {{ project.name }}{% endblock %}
 
 {% block content %}
-<div class="container py-4" style="max-width: 900px;">
+<div class="container py-4" style="max-width: 720px;">
 
   <!-- Header -->
-  <nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb small">
+  <nav aria-label="breadcrumb" class="mb-2">
+    <ol class="breadcrumb small mb-0">
       <li class="breadcrumb-item"><a href="{% url 'project_overview' project.id %}">{{ project.name }}</a></li>
       <li class="breadcrumb-item"><a href="{% url 'touchup_list' project.id %}">{% trans "Touch-Ups" %}</a></li>
       <li class="breadcrumb-item active">{% trans "New" %}</li>
     </ol>
   </nav>
 
-  <h2 class="mb-4"><i class="bi bi-plus-circle"></i> {% trans "New Touch-Up" %}</h2>
+  <!-- Step Indicator -->
+  <div class="d-flex align-items-center justify-content-center gap-2 my-4" id="stepIndicator">
+    <div class="wizard-dot active" data-step="1">
+      <span class="wizard-dot-icon"><i class="bi bi-camera-fill"></i></span>
+      <small class="d-none d-sm-block">{% trans "Photos" %}</small>
+    </div>
+    <div class="wizard-line"></div>
+    <div class="wizard-dot" data-step="2">
+      <span class="wizard-dot-icon"><i class="bi bi-pencil-fill"></i></span>
+      <small class="d-none d-sm-block">{% trans "Info" %}</small>
+    </div>
+    <div class="wizard-line"></div>
+    <div class="wizard-dot" data-step="3">
+      <span class="wizard-dot-icon"><i class="bi bi-sliders"></i></span>
+      <small class="d-none d-sm-block">{% trans "Details" %}</small>
+    </div>
+  </div>
 
-  <form method="post" enctype="multipart/form-data" id="createForm">
+  <form method="post" enctype="multipart/form-data" id="wizardForm">
     {% csrf_token %}
 
-    <!-- Basic Info -->
-    <div class="card border-0 shadow-sm mb-4">
-      <div class="card-header bg-white fw-semibold"><i class="bi bi-info-circle"></i> {% trans "Basic Information" %}</div>
-      <div class="card-body">
-        <div class="mb-3">
-          <label for="title" class="form-label">{% trans "Title" %} <span class="text-danger">*</span></label>
-          <input type="text" id="title" name="title" class="form-control" required
-                 placeholder='{% trans "e.g. Fix stain on dining room wall" %}'>
-        </div>
-        <div class="mb-3">
-          <label for="description" class="form-label">{% trans "Description" %}</label>
-          <textarea id="description" name="description" rows="3" class="form-control"
-                    placeholder='{% trans "Detailed description of what needs to be corrected..." %}'></textarea>
-        </div>
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label for="goal" class="form-label">{% trans "Goal / Objective" %}</label>
-            <textarea id="goal" name="goal" rows="2" class="form-control"
-                      placeholder='{% trans "e.g. Remove stain, repaint corner, fix line..." %}'></textarea>
+    <!-- ========== STEP 1: PHOTOS ========== -->
+    <div class="wizard-step" id="step1">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+          <div class="mb-3">
+            <i class="bi bi-camera" style="font-size: 3rem; color: var(--bs-primary); opacity: 0.7;"></i>
           </div>
-          <div class="col-md-6">
-            <label for="notes" class="form-label">{% trans "Notes / Precautions" %}</label>
-            <textarea id="notes" name="notes" rows="2" class="form-control"
-                      placeholder='{% trans "e.g. Be careful with the glass, do not touch stain..." %}'></textarea>
-          </div>
+          <h4 class="mb-1">{% trans "Take or select photos" %}</h4>
+          <p class="text-muted small mb-4">{% trans "Capture the area that needs correction. You can add more photos later." %}</p>
+
+          <div id="photoFilesContainer"></div>
+
+          <!-- Photo grid preview -->
+          <div id="photoPreview" class="d-flex flex-wrap gap-2 justify-content-center mb-3"></div>
+          <div id="photoCount" class="text-muted small mb-3" style="display:none;"></div>
+
+          <button type="button" class="btn btn-outline-primary btn-lg" onclick="addMorePhotos()">
+            <i class="bi bi-plus-circle"></i> {% trans "Select Photos" %}
+          </button>
         </div>
       </div>
-    </div>
 
-    <!-- Color Info -->
-    <div class="card border-0 shadow-sm mb-4">
-      <div class="card-header bg-white fw-semibold"><i class="bi bi-palette"></i> {% trans "Color Information" %}</div>
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label for="color_sample" class="form-label">{% trans "Approved Color Sample" %}</label>
-            <select id="color_sample" name="color_sample" class="form-select">
-              <option value="">— {% trans "Select or enter manually below" %} —</option>
-              {% for cs in color_samples %}
-                <option value="{{ cs.id }}">{{ cs.name }}{% if cs.code %} ({{ cs.code }}){% endif %}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label for="color_name" class="form-label">{% trans "Color Name" %}</label>
-            <input type="text" id="color_name" name="color_name" class="form-control"
-                   placeholder="e.g. SW 7008 Alabaster">
-          </div>
-          <div class="col-md-4">
-            <label for="color_code" class="form-label">{% trans "Color Code" %}</label>
-            <input type="text" id="color_code" name="color_code" class="form-control"
-                   placeholder="e.g. SW 7008">
-          </div>
-          <div class="col-md-4">
-            <label for="color_brand" class="form-label">{% trans "Brand" %}</label>
-            <input type="text" id="color_brand" name="color_brand" class="form-control"
-                   placeholder="e.g. Sherwin-Williams">
-          </div>
-          <div class="col-md-4">
-            <label for="sheen" class="form-label">{% trans "Sheen" %}</label>
-            <select id="sheen" name="sheen" class="form-select">
-              <option value="">—</option>
-              <option value="Matte">Matte</option>
-              <option value="Eggshell">Eggshell</option>
-              <option value="Satin">Satin</option>
-              <option value="Semi-Gloss">Semi-Gloss</option>
-              <option value="Gloss">Gloss</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label for="color_hex" class="form-label">{% trans "Color Preview" %}</label>
-            <div class="input-group">
-              <input type="color" id="color_hex_picker" class="form-control form-control-color" value="#ffffff"
-                     onchange="document.getElementById('color_hex').value=this.value; document.getElementById('colorPreview').style.background=this.value;">
-              <input type="text" id="color_hex" name="color_hex" class="form-control" placeholder="#RRGGBB"
-                     onchange="document.getElementById('color_hex_picker').value=this.value; document.getElementById('colorPreview').style.background=this.value;">
-            </div>
-            <div id="colorPreview" class="mt-2 rounded border" style="height: 24px; background: #ffffff;"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Assignment & Priority -->
-    <div class="card border-0 shadow-sm mb-4">
-      <div class="card-header bg-white fw-semibold"><i class="bi bi-people"></i> {% trans "Assignment & Priority" %}</div>
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label for="assigned_to" class="form-label">{% trans "Assign To" %}</label>
-            <select id="assigned_to" name="assigned_to" class="form-select">
-              <option value="">— {% trans "Unassigned" %} —</option>
-              {% for emp in employees %}
-                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label for="priority" class="form-label">{% trans "Priority" %}</label>
-            <select id="priority" name="priority" class="form-select">
-              {% for code, label in priority_choices %}
-                <option value="{{ code }}" {% if code == 'medium' %}selected{% endif %}>{{ label }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label for="due_date" class="form-label">{% trans "Due Date" %}</label>
-            <input type="date" id="due_date" name="due_date" class="form-control">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Photos -->
-    <div class="card border-0 shadow-sm mb-4">
-      <div class="card-header bg-white fw-semibold"><i class="bi bi-camera"></i> {% trans "Initial Photos" %}</div>
-      <div class="card-body">
-        <p class="text-muted small mb-2">{% trans "Upload photos showing the area that needs correction. You can add more later." %}</p>
-        <div id="photoFilesContainer"></div>
-        <button type="button" class="btn btn-outline-primary" onclick="addMorePhotos()">
-          <i class="bi bi-plus-circle"></i> {% trans "Select Photos" %}
+      <div class="d-flex justify-content-between mt-3">
+        <a href="{% url 'touchup_list' project.id %}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left"></i> {% trans "Cancel" %}
+        </a>
+        <button type="button" class="btn btn-primary btn-lg" onclick="goToStep(2)">
+          {% trans "Next" %} <i class="bi bi-arrow-right"></i>
         </button>
-        <div id="photoPreview" class="d-flex flex-wrap gap-2 mt-3"></div>
-        <div id="photoCount" class="text-muted small mt-1" style="display:none;"></div>
       </div>
     </div>
 
-    <!-- Submit -->
-    <div class="d-flex justify-content-between">
-      <a href="{% url 'touchup_list' project.id %}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> {% trans "Cancel" %}
-      </a>
-      <button type="submit" class="btn btn-primary btn-lg">
-        <i class="bi bi-check-circle"></i> {% trans "Create Touch-Up" %}
-      </button>
+    <!-- ========== STEP 2: BASIC INFO ========== -->
+    <div class="wizard-step d-none" id="step2">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="mb-3"><i class="bi bi-pencil text-primary"></i> {% trans "What needs to be fixed?" %}</h5>
+
+          <div class="mb-3">
+            <label for="title" class="form-label">{% trans "Title" %} <span class="text-danger">*</span></label>
+            <input type="text" id="title" name="title" class="form-control form-control-lg" required
+                   placeholder='{% trans "e.g. Fix stain on dining room wall" %}'>
+          </div>
+
+          <div class="mb-3">
+            <label for="description" class="form-label">{% trans "Description" %}</label>
+            <textarea id="description" name="description" rows="2" class="form-control"
+                      placeholder='{% trans "Detailed description of what needs to be corrected..." %}'></textarea>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="goal" class="form-label">{% trans "Goal / Objective" %}</label>
+              <input type="text" id="goal" name="goal" class="form-control"
+                     placeholder='{% trans "e.g. Repaint corner, fix line..." %}'>
+            </div>
+            <div class="col-md-6">
+              <label for="notes" class="form-label">{% trans "Notes" %}</label>
+              <input type="text" id="notes" name="notes" class="form-control"
+                     placeholder='{% trans "e.g. Be careful with the glass..." %}'>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between mt-3">
+        <button type="button" class="btn btn-outline-secondary" onclick="goToStep(1)">
+          <i class="bi bi-arrow-left"></i> {% trans "Back" %}
+        </button>
+        <button type="button" class="btn btn-primary btn-lg" onclick="goToStep(3)">
+          {% trans "Next" %} <i class="bi bi-arrow-right"></i>
+        </button>
+      </div>
     </div>
+
+    <!-- ========== STEP 3: COLOR + ASSIGNMENT ========== -->
+    <div class="wizard-step d-none" id="step3">
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+          <h5 class="mb-3"><i class="bi bi-palette text-primary"></i> {% trans "Color & Assignment" %}</h5>
+
+          <!-- Quick color from approved samples -->
+          {% if color_samples %}
+          <div class="mb-3">
+            <label for="color_sample" class="form-label">{% trans "Approved Color Sample" %}</label>
+            <select id="color_sample" name="color_sample" class="form-select" onchange="fillColorFromSample(this)">
+              <option value="">— {% trans "Select or enter manually" %} —</option>
+              {% for cs in color_samples %}
+                <option value="{{ cs.id }}"
+                        data-name="{{ cs.name }}"
+                        data-code="{{ cs.code }}"
+                        data-brand="{{ cs.brand|default:'' }}"
+                        data-hex="{{ cs.hex_color|default:'' }}">
+                  {{ cs.name }}{% if cs.code %} ({{ cs.code }}){% endif %}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+
+          <!-- Collapsible manual color entry -->
+          <div class="mb-3">
+            <a class="text-decoration-none small" data-bs-toggle="collapse" href="#manualColor" role="button">
+              <i class="bi bi-chevron-down"></i> {% trans "Enter color manually" %}
+            </a>
+            <div class="collapse {% if not color_samples %}show{% endif %}" id="manualColor">
+              <div class="row g-2 mt-1">
+                <div class="col-6">
+                  <input type="text" id="color_name" name="color_name" class="form-control form-control-sm" placeholder="{% trans 'Color name' %}">
+                </div>
+                <div class="col-6">
+                  <input type="text" id="color_code" name="color_code" class="form-control form-control-sm" placeholder="{% trans 'Code' %} (SW 7008)">
+                </div>
+                <div class="col-6">
+                  <input type="text" id="color_brand" name="color_brand" class="form-control form-control-sm" placeholder="{% trans 'Brand' %}">
+                </div>
+                <div class="col-6">
+                  <select id="sheen" name="sheen" class="form-select form-select-sm">
+                    <option value="">{% trans "Sheen" %}...</option>
+                    <option value="Matte">Matte</option>
+                    <option value="Eggshell">Eggshell</option>
+                    <option value="Satin">Satin</option>
+                    <option value="Semi-Gloss">Semi-Gloss</option>
+                    <option value="Gloss">Gloss</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <div class="input-group input-group-sm">
+                    <input type="color" id="color_hex_picker" class="form-control form-control-color" value="#ffffff"
+                           onchange="document.getElementById('color_hex').value=this.value; document.getElementById('colorSwatch').style.background=this.value;">
+                    <input type="text" id="color_hex" name="color_hex" class="form-control" placeholder="#RRGGBB"
+                           onchange="document.getElementById('color_hex_picker').value=this.value; document.getElementById('colorSwatch').style.background=this.value;">
+                    <span id="colorSwatch" class="input-group-text" style="width:40px; background:#fff;"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-3">
+
+          <!-- Assignment row -->
+          <div class="row g-2">
+            <div class="col-md-4">
+              <label for="assigned_to" class="form-label small mb-1">{% trans "Assign To" %}</label>
+              <select id="assigned_to" name="assigned_to" class="form-select form-select-sm">
+                <option value="">{% trans "Unassigned" %}</option>
+                {% for emp in employees %}
+                  <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="priority" class="form-label small mb-1">{% trans "Priority" %}</label>
+              <select id="priority" name="priority" class="form-select form-select-sm">
+                {% for code, label in priority_choices %}
+                  <option value="{{ code }}" {% if code == 'medium' %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="due_date" class="form-label small mb-1">{% trans "Due Date" %}</label>
+              <input type="date" id="due_date" name="due_date" class="form-control form-control-sm">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary preview -->
+      <div class="card border-0 bg-light mb-3" id="summaryCard">
+        <div class="card-body py-3">
+          <div class="d-flex align-items-center gap-3">
+            <div id="summaryThumb" class="rounded border bg-white d-flex align-items-center justify-content-center" style="width:64px; height:64px; min-width:64px; overflow:hidden;">
+              <i class="bi bi-image text-muted" style="font-size:1.5rem;"></i>
+            </div>
+            <div class="flex-fill">
+              <strong id="summaryTitle" class="text-dark">—</strong>
+              <div class="small text-muted" id="summaryMeta"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between mt-3">
+        <button type="button" class="btn btn-outline-secondary" onclick="goToStep(2)">
+          <i class="bi bi-arrow-left"></i> {% trans "Back" %}
+        </button>
+        <div class="d-flex gap-2">
+          <button type="submit" name="action" value="create" class="btn btn-primary btn-lg">
+            <i class="bi bi-check-circle"></i> {% trans "Create" %}
+          </button>
+          <button type="submit" name="action" value="create_another" class="btn btn-outline-primary btn-lg" title="{% trans 'Create & add another' %}">
+            <i class="bi bi-plus-circle"></i> {% trans "+ Another" %}
+          </button>
+        </div>
+      </div>
+    </div>
+
   </form>
 </div>
 
+<!-- Styles -->
+<style>
+.wizard-dot { display:flex; flex-direction:column; align-items:center; gap:4px; opacity:0.4; transition:opacity .2s; }
+.wizard-dot.active { opacity:1; }
+.wizard-dot.done { opacity:0.8; }
+.wizard-dot-icon { width:40px; height:40px; border-radius:50%; background:var(--bs-primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1rem; }
+.wizard-dot:not(.active) .wizard-dot-icon { background:#dee2e6; color:#6c757d; }
+.wizard-dot.done .wizard-dot-icon { background:#198754; color:#fff; }
+.wizard-line { flex:1; height:2px; background:#dee2e6; max-width:80px; }
+.wizard-step { animation: wizardFade .25s ease; }
+@keyframes wizardFade { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+</style>
+
+<!-- Scripts -->
 <script>
+let currentStep = 1;
 let photoIndex = 0;
 
+/* ---- Navigation ---- */
+function goToStep(n) {
+  if (n === 3) {
+    const titleEl = document.getElementById('title');
+    if (!titleEl.value.trim()) {
+      titleEl.focus();
+      titleEl.classList.add('is-invalid');
+      return;
+    }
+    titleEl.classList.remove('is-invalid');
+    updateSummary();
+  }
+
+  document.querySelectorAll('.wizard-step').forEach(s => s.classList.add('d-none'));
+  document.getElementById('step' + n).classList.remove('d-none');
+
+  document.querySelectorAll('.wizard-dot').forEach(dot => {
+    const s = parseInt(dot.dataset.step);
+    dot.classList.remove('active', 'done');
+    if (s === n) dot.classList.add('active');
+    else if (s < n) dot.classList.add('done');
+  });
+
+  currentStep = n;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  if (n === 2) {
+    setTimeout(() => document.getElementById('title').focus(), 300);
+  }
+}
+
+/* ---- Summary ---- */
+function updateSummary() {
+  document.getElementById('summaryTitle').textContent = document.getElementById('title').value || '—';
+
+  const parts = [];
+  const pc = countPhotos();
+  if (pc > 0) parts.push(pc + ' foto(s)');
+  const desc = document.getElementById('description').value.trim();
+  if (desc) parts.push(desc.substring(0, 60) + (desc.length > 60 ? '...' : ''));
+  document.getElementById('summaryMeta').textContent = parts.join(' · ') || '';
+
+  const firstInput = document.querySelector('#photoFilesContainer input[type="file"]');
+  if (firstInput && firstInput.files.length > 0) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      document.getElementById('summaryThumb').innerHTML =
+        '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;">';
+    };
+    reader.readAsDataURL(firstInput.files[0]);
+  }
+}
+
+/* ---- Photos (cumulative) ---- */
 function addMorePhotos() {
   const input = document.createElement('input');
   input.type = 'file';
@@ -171,10 +318,7 @@ function addMorePhotos() {
   input.style.display = 'none';
   input.dataset.index = photoIndex++;
   input.addEventListener('change', function() {
-    if (this.files.length === 0) {
-      this.remove();
-      return;
-    }
+    if (this.files.length === 0) { this.remove(); return; }
     renderPreviews();
   });
   document.getElementById('photoFilesContainer').appendChild(input);
@@ -182,10 +326,15 @@ function addMorePhotos() {
 }
 
 function removePhotoInput(index) {
-  const container = document.getElementById('photoFilesContainer');
-  const input = container.querySelector(`input[data-index="${index}"]`);
-  if (input) input.remove();
+  const el = document.querySelector('#photoFilesContainer input[data-index="' + index + '"]');
+  if (el) el.remove();
   renderPreviews();
+}
+
+function countPhotos() {
+  let n = 0;
+  document.querySelectorAll('#photoFilesContainer input[type="file"]').forEach(i => { n += i.files.length; });
+  return n;
 }
 
 function renderPreviews() {
@@ -193,24 +342,23 @@ function renderPreviews() {
   const countEl = document.getElementById('photoCount');
   container.innerHTML = '';
   let total = 0;
-  const inputs = document.querySelectorAll('#photoFilesContainer input[type="file"]');
-  inputs.forEach(input => {
+  document.querySelectorAll('#photoFilesContainer input[type="file"]').forEach(input => {
+    const idx = input.dataset.index;
     for (const file of input.files) {
       total++;
       const wrapper = document.createElement('div');
       wrapper.className = 'position-relative';
       const reader = new FileReader();
-      const idx = input.dataset.index;
       reader.onload = (e) => {
         const img = document.createElement('img');
         img.src = e.target.result;
         img.className = 'rounded border';
-        img.style.cssText = 'width:100px; height:100px; object-fit:cover;';
+        img.style.cssText = 'width:90px; height:90px; object-fit:cover;';
         wrapper.appendChild(img);
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle p-0';
-        btn.style.cssText = 'width:22px; height:22px; line-height:1; font-size:12px;';
+        btn.style.cssText = 'width:20px; height:20px; line-height:1; font-size:11px;';
         btn.innerHTML = '&times;';
         btn.onclick = () => removePhotoInput(idx);
         wrapper.appendChild(btn);
@@ -226,5 +374,28 @@ function renderPreviews() {
     countEl.style.display = 'none';
   }
 }
+
+/* ---- Auto-fill color from approved sample ---- */
+function fillColorFromSample(sel) {
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt.value) return;
+  document.getElementById('color_name').value = opt.dataset.name || '';
+  document.getElementById('color_code').value = opt.dataset.code || '';
+  document.getElementById('color_brand').value = opt.dataset.brand || '';
+  const hex = opt.dataset.hex || '';
+  if (hex) {
+    document.getElementById('color_hex').value = hex;
+    document.getElementById('color_hex_picker').value = hex;
+    document.getElementById('colorSwatch').style.background = hex;
+  }
+}
+
+/* ---- Keyboard: Enter goes next ---- */
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.type !== 'submit') {
+    e.preventDefault();
+    if (currentStep < 3) goToStep(currentStep + 1);
+  }
+});
 </script>
 {% endblock %}

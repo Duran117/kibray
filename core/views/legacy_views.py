@@ -16378,8 +16378,12 @@ def touchup_v2_create(request, project_id):
                 link_url=f"/projects/{project.id}/touchups-v2/{touchup.id}/",
             )
 
-        messages.success(request, _("Touch-up created successfully."))
-        return redirect("touchup_v2_detail", project_id=project.id, touchup_id=touchup.id)
+        messages.success(request, _("Touch-up \"%(title)s\" created successfully.") % {"title": touchup.title[:40]})
+
+        # "Create & add another" → go back to create form; otherwise → list
+        if request.POST.get("action") == "create_another":
+            return redirect("touchup_v2_create", project_id=project.id)
+        return redirect("touchup_list", project_id=project.id)
 
     # GET — render create form
     employees = Employee.objects.filter(is_active=True).order_by("first_name", "last_name")
