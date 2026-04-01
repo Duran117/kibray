@@ -421,6 +421,22 @@
 .back-link:hover {
     color: var(--savings-primary);
 }
+
+/* Delete button */
+.btn-delete-record {
+    background: none;
+    border: none;
+    color: var(--savings-gray-300);
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.15s;
+}
+.btn-delete-record:hover {
+    color: var(--savings-danger);
+    background: rgba(239, 68, 68, 0.1);
+}
 </style>
 {% endblock %}
 
@@ -515,6 +531,7 @@
                             <th>{% trans "Balance" %}</th>
                             <th>{% trans "Notes" %}</th>
                             <th>{% trans "Recorded By" %}</th>
+                            <th style="width:40px;"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -547,6 +564,12 @@
                             </td>
                             <td>{{ txn.notes|default:"-"|truncatewords:10 }}</td>
                             <td>{{ txn.recorded_by.username|default:"-" }}</td>
+                            <td>
+                                <button type="button" class="btn-delete-record" title="{% trans 'Delete this record' %}"
+                                        onclick="confirmDeleteRecord({{ txn.id }}, '{{ txn.type_display }}', '{{ txn.amount|floatformat:2 }}', '{{ txn.date|date:"M d, Y" }}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -674,6 +697,35 @@
     </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="bi bi-trash" style="color:var(--savings-danger);"></i> {% trans "Delete Record" %}</h3>
+            <button class="modal-close" onclick="closeModal('deleteModal')">&times;</button>
+        </div>
+        <form method="post" id="deleteForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_record">
+            <input type="hidden" name="record_id" id="delete_record_id" value="">
+            <div class="modal-body">
+                <p style="font-size:15px; color: var(--savings-gray-700);">
+                    {% trans "Are you sure you want to delete this record?" %}
+                </p>
+                <div id="delete_record_detail" style="background: var(--savings-gray-100); border-radius:8px; padding:14px; margin-top:12px;">
+                </div>
+                <p style="font-size:13px; color: var(--savings-danger); margin-top:12px; font-weight:600;">
+                    <i class="bi bi-exclamation-triangle"></i> {% trans "This action cannot be undone. The employee's balance will be recalculated." %}
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('deleteModal')">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> {% trans "Delete" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 /* Employee balances from server */
 const employeeBalances = {
@@ -764,6 +816,14 @@ function checkOverdraft() {
 function toggleOverdraftConfirm() {
     const checked = document.getElementById('confirm_overdraft_check').checked;
     document.getElementById('confirm_overdraft_hidden').value = checked ? 'yes' : 'no';
+}
+
+// Delete record confirmation
+function confirmDeleteRecord(id, type, amount, date) {
+    document.getElementById('delete_record_id').value = id;
+    document.getElementById('delete_record_detail').innerHTML =
+        '<strong>' + type + '</strong> of <strong>$' + amount + '</strong> on <strong>' + date + '</strong>';
+    openModal('deleteModal');
 }
 
 // Close modal on outside click

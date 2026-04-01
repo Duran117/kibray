@@ -2277,6 +2277,27 @@ def employee_savings_ledger(request, employee_id=None):
                     messages.error(request, f"Error: {str(e)}")
                 
                 return redirect("employee_savings_ledger")
+
+        elif action == "delete_record":
+            record_id = request.POST.get("record_id")
+            if record_id:
+                try:
+                    record = EmployeeSavings.objects.get(id=record_id)
+                    emp_name = f"{record.employee.first_name} {record.employee.last_name}"
+                    txn_type = record.get_transaction_type_display()
+                    amount = record.amount
+                    record.delete()
+                    messages.success(
+                        request,
+                        _("Deleted %(type)s of $%(amount)s for %(employee)s.")
+                        % {"type": txn_type, "amount": amount, "employee": emp_name}
+                    )
+                except EmployeeSavings.DoesNotExist:
+                    messages.error(request, _("Record not found."))
+                except Exception as e:
+                    messages.error(request, f"Error: {str(e)}")
+
+                return redirect("employee_savings_ledger")
     
     # Get all active employees for dropdown (with balances for withdrawal modal)
     all_employees = Employee.objects.filter(is_active=True).order_by('last_name', 'first_name')
