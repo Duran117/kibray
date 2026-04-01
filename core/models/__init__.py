@@ -2837,6 +2837,8 @@ class EmployeeSavings(models.Model):
                 'type_display': txn.get_transaction_type_display(),
                 'amount': txn.amount,
                 'balance': running_balance,
+                'abs_balance': abs(running_balance),
+                'balance_negative': running_balance < 0,
                 'notes': txn.notes,
                 'recorded_by': txn.recorded_by,
                 'recorded_at': txn.recorded_at,

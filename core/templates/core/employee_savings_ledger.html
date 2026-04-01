@@ -466,6 +466,15 @@
                 <div class="stat-label">{% trans "Employees with Savings" %}</div>
             </div>
         </div>
+        {% if negative_balance_count > 0 %}
+        <div class="stat-card" style="border-left: 3px solid var(--savings-danger);">
+            <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: var(--savings-danger);"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div>
+                <div class="stat-value" style="color: var(--savings-danger);">{{ negative_balance_count }}</div>
+                <div class="stat-label">{% trans "Owe Money" %} <span style="font-size:11px; color:var(--savings-danger);">(-${{ total_negative|floatformat:2 }})</span></div>
+            </div>
+        </div>
+        {% endif %}
         <div class="stat-card">
             <div class="stat-icon purple"><i class="bi bi-list-check"></i></div>
             <div>
@@ -479,7 +488,7 @@
     <div class="employee-cards">
         {% for data in employees_data %}
         <div class="employee-card">
-            <div class="employee-card-header">
+            <div class="employee-card-header" {% if data.balance < 0 %}style="background: linear-gradient(135deg, #ef4444, #dc2626);"{% endif %}>
                 <div class="employee-info">
                     <div class="employee-avatar">
                         {{ data.employee.first_name|slice:":1" }}{{ data.employee.last_name|slice:":1" }}
@@ -490,8 +499,8 @@
                     </div>
                 </div>
                 <div class="balance-display">
-                    <div class="balance-label">{% trans "Current Balance" %}</div>
-                    <div class="balance-amount">${{ data.balance|floatformat:2 }}</div>
+                    <div class="balance-label">{% if data.balance < 0 %}⚠️ {% trans "Owes" %}{% else %}{% trans "Current Balance" %}{% endif %}</div>
+                    <div class="balance-amount">{% if data.balance < 0 %}-{% endif %}${{ data.abs_balance|floatformat:2 }}</div>
                 </div>
             </div>
             
@@ -531,7 +540,11 @@
                                 <span class="amount-negative">-${{ txn.amount|floatformat:2 }}</span>
                                 {% endif %}
                             </td>
-                            <td><span class="running-balance">${{ txn.balance|floatformat:2 }}</span></td>
+                            <td>
+                                <span class="running-balance" {% if txn.balance_negative %}style="color: var(--savings-danger);"{% endif %}>
+                                    {% if txn.balance_negative %}-${{ txn.abs_balance|floatformat:2 }}{% else %}${{ txn.balance|floatformat:2 }}{% endif %}
+                                </span>
+                            </td>
                             <td>{{ txn.notes|default:"-"|truncatewords:10 }}</td>
                             <td>{{ txn.recorded_by.username|default:"-" }}</td>
                         </tr>
@@ -566,23 +579,43 @@
             <h3><i class="bi bi-cash-stack"></i> {% trans "Record Withdrawal" %}</h3>
             <button class="modal-close" onclick="closeModal('withdrawalModal')">&times;</button>
         </div>
-        <form method="post">
+        <form method="post" id="withdrawalForm">
             {% csrf_token %}
             <input type="hidden" name="action" value="withdrawal">
+            <input type="hidden" name="confirm_overdraft" id="confirm_overdraft_hidden" value="no">
             <div class="modal-body">
                 <div class="form-group">
                     <label for="withdrawal_employee">{% trans "Employee" %}</label>
-                    <select name="employee_id" id="withdrawal_employee" required>
+                    <select name="employee_id" id="withdrawal_employee" required onchange="updateWithdrawalBalance()">
                         <option value="">{% trans "Select employee..." %}</option>
                         {% for emp in all_employees %}
                         <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
                         {% endfor %}
                     </select>
+                    <div id="withdrawal_balance_info" style="margin-top:8px; display:none;">
+                        <span style="font-size:13px; padding:4px 10px; border-radius:6px; font-weight:600;" id="withdrawal_balance_badge"></span>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="withdrawal_amount">{% trans "Amount" %}</label>
-                    <input type="number" name="amount" id="withdrawal_amount" step="0.01" min="0.01" required placeholder="0.00">
+                    <input type="number" name="amount" id="withdrawal_amount" step="0.01" min="0.01" required placeholder="0.00" oninput="checkOverdraft()">
                 </div>
+
+                <!-- Overdraft warning -->
+                <div id="overdraft_warning" style="display:none; background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:12px; margin-bottom:16px;">
+                    <div style="display:flex; align-items:flex-start; gap:8px;">
+                        <i class="bi bi-exclamation-triangle-fill" style="color:#ef4444; font-size:18px; margin-top:2px;"></i>
+                        <div>
+                            <strong style="color:#991b1b; font-size:14px;">{% trans "Overdraft Warning" %}</strong>
+                            <p style="color:#991b1b; font-size:13px; margin:4px 0 8px;" id="overdraft_message"></p>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#991b1b; font-weight:600;">
+                                <input type="checkbox" id="confirm_overdraft_check" onchange="toggleOverdraftConfirm()" style="width:18px; height:18px; accent-color:#ef4444;">
+                                {% trans "Yes, I confirm this overdraft withdrawal" %}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="withdrawal_date">{% trans "Date" %}</label>
                     <input type="date" name="date" id="withdrawal_date" required value="{{ today|date:'Y-m-d' }}">
@@ -594,7 +627,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('withdrawalModal')">{% trans "Cancel" %}</button>
-                <button type="submit" class="btn btn-danger">{% trans "Record Withdrawal" %}</button>
+                <button type="submit" class="btn btn-danger" id="withdrawal_submit_btn">{% trans "Record Withdrawal" %}</button>
             </div>
         </form>
     </div>
@@ -642,9 +675,17 @@
 </div>
 
 <script>
+/* Employee balances from server */
+const employeeBalances = {
+    {% for emp_id, bal in employee_balances.items %}
+    {{ emp_id }}: {{ bal }},
+    {% endfor %}
+};
+
+let currentEmployeeBalance = null;
+
 function openModal(modalId) {
     document.getElementById(modalId).classList.add('active');
-    // Set default date to today
     const dateInputs = document.querySelectorAll('#' + modalId + ' input[type="date"]');
     dateInputs.forEach(input => {
         if (!input.value) {
@@ -655,6 +696,74 @@ function openModal(modalId) {
 
 function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('active');
+    // Reset overdraft state when closing withdrawal modal
+    if (modalId === 'withdrawalModal') {
+        document.getElementById('overdraft_warning').style.display = 'none';
+        document.getElementById('confirm_overdraft_check').checked = false;
+        document.getElementById('confirm_overdraft_hidden').value = 'no';
+    }
+}
+
+function updateWithdrawalBalance() {
+    const select = document.getElementById('withdrawal_employee');
+    const empId = select.value;
+    const infoDiv = document.getElementById('withdrawal_balance_info');
+    const badge = document.getElementById('withdrawal_balance_badge');
+
+    if (!empId) {
+        infoDiv.style.display = 'none';
+        currentEmployeeBalance = null;
+        checkOverdraft();
+        return;
+    }
+
+    const balance = employeeBalances[empId] || 0;
+    currentEmployeeBalance = balance;
+    infoDiv.style.display = 'block';
+
+    if (balance < 0) {
+        badge.style.background = 'rgba(239, 68, 68, 0.1)';
+        badge.style.color = '#ef4444';
+        badge.innerHTML = '<i class="bi bi-exclamation-triangle"></i> {% trans "Balance" %}: -$' + Math.abs(balance).toFixed(2) + ' ({% trans "owes" %})';
+    } else if (balance == 0) {
+        badge.style.background = 'rgba(107, 114, 128, 0.1)';
+        badge.style.color = '#6b7280';
+        badge.innerHTML = '{% trans "Balance" %}: $0.00';
+    } else {
+        badge.style.background = 'rgba(16, 185, 129, 0.1)';
+        badge.style.color = '#10b981';
+        badge.innerHTML = '<i class="bi bi-piggy-bank"></i> {% trans "Balance" %}: $' + balance.toFixed(2);
+    }
+
+    checkOverdraft();
+}
+
+function checkOverdraft() {
+    const amount = parseFloat(document.getElementById('withdrawal_amount').value) || 0;
+    const warning = document.getElementById('overdraft_warning');
+    const msg = document.getElementById('overdraft_message');
+    const checkbox = document.getElementById('confirm_overdraft_check');
+    const hidden = document.getElementById('confirm_overdraft_hidden');
+
+    if (currentEmployeeBalance !== null && amount > currentEmployeeBalance) {
+        const deficit = (amount - currentEmployeeBalance).toFixed(2);
+        const availStr = currentEmployeeBalance < 0
+            ? '-$' + Math.abs(currentEmployeeBalance).toFixed(2)
+            : '$' + currentEmployeeBalance.toFixed(2);
+        msg.textContent = '{% trans "Employee only has" %} ' + availStr + ' {% trans "available. After this withdrawal the balance will be" %} -$' + deficit + '.';
+        warning.style.display = 'block';
+        checkbox.checked = false;
+        hidden.value = 'no';
+    } else {
+        warning.style.display = 'none';
+        hidden.value = 'yes';
+        checkbox.checked = false;
+    }
+}
+
+function toggleOverdraftConfirm() {
+    const checked = document.getElementById('confirm_overdraft_check').checked;
+    document.getElementById('confirm_overdraft_hidden').value = checked ? 'yes' : 'no';
 }
 
 // Close modal on outside click

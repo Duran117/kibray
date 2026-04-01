@@ -2153,9 +2153,11 @@ def employee_savings_ledger(request, employee_id=None):
     # Si se especifica employee_id, mostrar solo ese empleado
     if employee_id:
         employee = get_object_or_404(Employee, id=employee_id)
+        bal = EmployeeSavings.get_employee_balance(employee)
         employees_data = [{
             'employee': employee,
-            'balance': EmployeeSavings.get_employee_balance(employee),
+            'balance': bal,
+            'abs_balance': abs(bal),
             'ledger': EmployeeSavings.get_employee_ledger(employee),
         }]
     else:
@@ -2171,6 +2173,7 @@ def employee_savings_ledger(request, employee_id=None):
                 employees_data.append({
                     'employee': emp,
                     'balance': balance,
+                    'abs_balance': abs(balance),
                     'ledger': EmployeeSavings.get_employee_ledger(emp),
                 })
     
@@ -2194,26 +2197,53 @@ def employee_savings_ledger(request, employee_id=None):
                     withdrawal_amount = Decimal(amount)
                     current_balance = EmployeeSavings.get_employee_balance(emp)
                     
-                    if withdrawal_amount > current_balance:
-                        messages.error(
+                    # Allow overdraft — balance can go negative
+                    # Only block if user didn't confirm the overdraft
+                    if withdrawal_amount > current_balance and request.POST.get("confirm_overdraft") != "yes":
+                        messages.warning(
                             request,
-                            _("Cannot withdraw $%(amount)s. Employee only has $%(balance)s saved.")
-                            % {"amount": withdrawal_amount, "balance": current_balance}
+                            _("%(employee)s only has $%(balance)s saved. "
+                              "Use the confirmation checkbox to allow a withdrawal of $%(amount)s (balance will be -$%(deficit)s).")
+                            % {
+                                "employee": f"{emp.first_name} {emp.last_name}",
+                                "balance": current_balance,
+                                "amount": withdrawal_amount,
+                                "deficit": withdrawal_amount - current_balance,
+                            }
                         )
                     else:
+                        is_overdraft = withdrawal_amount > current_balance
+                        note_prefix = "[OVERDRAFT] " if is_overdraft else ""
                         EmployeeSavings.objects.create(
                             employee=emp,
                             amount=withdrawal_amount,
                             transaction_type='withdrawal',
                             date=withdrawal_date,
-                            notes=notes or "Cash withdrawal",
+                            notes=note_prefix + (notes or "Cash withdrawal"),
                             recorded_by=request.user,
                         )
-                        messages.success(
-                            request,
-                            _("Withdrawal of $%(amount)s recorded for %(employee)s.")
-                            % {"amount": withdrawal_amount, "employee": f"{emp.first_name} {emp.last_name}"}
-                        )
+                        new_balance = current_balance - withdrawal_amount
+                        if is_overdraft:
+                            messages.warning(
+                                request,
+                                _("Withdrawal of $%(amount)s recorded for %(employee)s. "
+                                  "⚠️ Balance is now -$%(deficit)s (employee owes money).")
+                                % {
+                                    "amount": withdrawal_amount,
+                                    "employee": f"{emp.first_name} {emp.last_name}",
+                                    "deficit": abs(new_balance),
+                                }
+                            )
+                        else:
+                            messages.success(
+                                request,
+                                _("Withdrawal of $%(amount)s recorded for %(employee)s. Balance: $%(balance)s")
+                                % {
+                                    "amount": withdrawal_amount,
+                                    "employee": f"{emp.first_name} {emp.last_name}",
+                                    "balance": new_balance,
+                                }
+                            )
                 except Employee.DoesNotExist:
                     messages.error(request, "Employee not found.")
                 except Exception as e:
@@ -2248,8 +2278,15 @@ def employee_savings_ledger(request, employee_id=None):
                 
                 return redirect("employee_savings_ledger")
     
-    # Get all active employees for dropdown
+    # Get all active employees for dropdown (with balances for withdrawal modal)
     all_employees = Employee.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    employee_balances = {}
+    for emp in all_employees:
+        employee_balances[emp.id] = float(EmployeeSavings.get_employee_balance(emp))
+
+    # Count negative balances
+    negative_balance_count = len([d for d in employees_data if d['balance'] < 0])
+    total_negative = abs(sum(d['balance'] for d in employees_data if d['balance'] < 0))
     
     # Determine selected employee for context
     selected_employee = None
@@ -2260,7 +2297,10 @@ def employee_savings_ledger(request, employee_id=None):
         "employees_data": employees_data,
         "total_balance": total_balance,
         "total_employees_with_savings": total_employees_with_savings,
+        "negative_balance_count": negative_balance_count,
+        "total_negative": total_negative,
         "all_employees": all_employees,
+        "employee_balances": employee_balances,
         "selected_employee": selected_employee,
     }
     
