@@ -31,7 +31,7 @@
         <option value="">{% trans "All" %}</option>
         <option value="unassigned" {% if filter_assigned == 'unassigned' %}selected{% endif %}>{% trans "Unassigned" %}</option>
         {% for emp in employees %}
-          <option value="{{ emp.id }}" {% if filter_assigned == emp.id|stringformat:'s' %}selected{% endif %}>{{ emp.username }}</option>
+          <option value="{{ emp.id }}" {% if filter_assigned == emp.id|stringformat:'s' %}selected{% endif %}>{{ emp.first_name }} {{ emp.last_name }}</option>
         {% endfor %}
       </select>
     </div>
@@ -96,7 +96,7 @@
             <select class="form-select form-select-sm assign-select" data-task-id="{{ t.id }}" style="width:150px;">
               <option value="">{% trans "Unassigned" %}</option>
               {% for emp in employees %}
-                <option value="{{ emp.id }}" {% if t.assigned_to.id == emp.id %}selected{% endif %}>{{ emp.username }}</option>
+                <option value="{{ emp.id }}" {% if t.assigned_to.id == emp.id %}selected{% endif %}>{{ emp.first_name }} {{ emp.last_name }}</option>
               {% endfor %}
             </select>
           </td>

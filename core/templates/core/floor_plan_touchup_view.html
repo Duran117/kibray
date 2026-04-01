@@ -286,7 +286,7 @@
             <select id="touchupAssigned" name="assigned_to">
               <option value="">-- Unassigned --</option>
               {% for emp in employees %}
-              <option value="{{ emp.id }}">{{ emp.user.get_full_name|default:emp.user.username }}</option>
+              <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
               {% endfor %}
             </select>
           </div>
@@ -345,7 +345,7 @@
           <select id="taskAssigned" name="assigned_to">
             <option value="">-- Unassigned --</option>
             {% for emp in employees %}
-            <option value="{{ emp.id }}">{{ emp.user.get_full_name|default:emp.user.username }}</option>
+            <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
             {% endfor %}
           </select>
         </div>

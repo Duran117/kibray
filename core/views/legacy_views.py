@@ -3408,10 +3408,7 @@ def floor_plan_touchup_view(request, plan_id):
     pin_form = PlanPinForm()
 
     # Get employees for task assignment
-    from core.models import UserProfile
-    employees = UserProfile.objects.filter(
-        role__in=["project_manager", "admin", "designer", "field_worker"]
-    ).select_related("user").order_by("user__first_name", "user__last_name")
+    employees = Employee.objects.filter(is_active=True).order_by("first_name", "last_name")
 
     # Get existing tasks for linking (unlinked tasks without a pin)
     from core.models import Task
@@ -3739,9 +3736,7 @@ def touchup_board(request, project_id):
     page_obj = paginator.get_page(page_number)
 
     # Get available employees for filter dropdown
-    employees = User.objects.filter(profile__role__in=["employee", "superintendent"]).order_by(
-        "username"
-    )
+    employees = Employee.objects.filter(is_active=True).order_by("first_name", "last_name")
 
     # ACTIVITY 1: Priority choices for filter dropdown
     from core.models import Task
@@ -11172,9 +11167,16 @@ def daily_plan_edit(request, plan_id):
         project=plan.project
     ).order_by("order")
 
-    # Ensure every active User has a corresponding Employee record for assignment
-    active_users = User.objects.filter(is_active=True)
-    for u in active_users:
+    # Ensure staff/employee Users have Employee records for assignment
+    # IMPORTANT: Exclude clients - they should NOT have Employee records
+    from core.models import Profile
+    staff_roles = ["admin", "employee", "painter", "project_manager", "pm",
+                   "superintendent", "designer", "superuser", "owner"]
+    staff_user_ids = Profile.objects.filter(
+        role__in=staff_roles
+    ).values_list("user_id", flat=True)
+    staff_users = User.objects.filter(is_active=True, id__in=staff_user_ids)
+    for u in staff_users:
         Employee.objects.get_or_create(
             user=u,
             defaults={

@@ -94,6 +94,18 @@ class ScheduleForm(forms.ModelForm):
         model = Schedule
         fields = "__all__"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filtrar assigned_to: solo usuarios con Employee activo (excluye clientes)
+        if "assigned_to" in self.fields:
+            from core.models import Employee
+            employee_user_ids = Employee.objects.filter(
+                is_active=True, user__isnull=False
+            ).values_list("user_id", flat=True)
+            self.fields["assigned_to"].queryset = User.objects.filter(
+                id__in=employee_user_ids
+            ).order_by("first_name", "last_name")
+
 
 class ExpenseForm(forms.ModelForm):
     """Formulario para crear/editar gastos."""
@@ -1822,16 +1834,14 @@ class TouchUpPinForm(forms.ModelForm):
                 project=project
             ).order_by("name")
 
-        # Filter assigned_to by project employees
-        if project:
-            # Get users with employee profiles in this project
-            employee_profiles = Profile.objects.filter(
-                role__in=["employee", "painter", "project_manager"]
-            )
-            employee_ids = [p.user_id for p in employee_profiles if p.user]
-            self.fields["assigned_to"].queryset = User.objects.filter(id__in=employee_ids).order_by(
-                "first_name", "last_name"
-            )
+        # Filter assigned_to: solo usuarios con Employee activo (excluye clientes)
+        from core.models import Employee
+        employee_user_ids = Employee.objects.filter(
+            is_active=True, user__isnull=False
+        ).values_list("user_id", flat=True)
+        self.fields["assigned_to"].queryset = User.objects.filter(
+            id__in=employee_user_ids
+        ).order_by("first_name", "last_name")
 
         # Make some fields optional
         self.fields["description"].required = False
