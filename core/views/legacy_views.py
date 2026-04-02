@@ -11164,27 +11164,8 @@ def daily_plan_edit(request, plan_id):
         project=plan.project
     ).order_by("order")
 
-    # Ensure staff/employee Users have Employee records for assignment
-    # IMPORTANT: Exclude clients - they should NOT have Employee records
-    from core.models import Profile
-    staff_roles = ["admin", "employee", "painter", "project_manager", "pm",
-                   "superintendent", "designer", "superuser", "owner"]
-    staff_user_ids = Profile.objects.filter(
-        role__in=staff_roles
-    ).values_list("user_id", flat=True)
-    staff_users = User.objects.filter(is_active=True, id__in=staff_user_ids)
-    for u in staff_users:
-        Employee.objects.get_or_create(
-            user=u,
-            defaults={
-                "first_name": u.first_name or u.username,
-                "last_name": u.last_name or "",
-                "social_security_number": f"PENDING-{u.id}",
-                "hourly_rate": 0,
-                "is_active": True,
-            },
-        )
-
+    # Only show explicitly created Employee records (no auto-creation)
+    # Employees must be created via Django Admin or management commands
     employees = Employee.objects.filter(is_active=True).order_by("first_name", "last_name")
 
     context = {
