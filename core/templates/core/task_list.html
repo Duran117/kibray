@@ -51,7 +51,7 @@
               <option value="">{% trans 'All' %}</option>
               {% for employee in employees %}
               <option value="{{ employee.id }}" {% if request.GET.assigned_to|stringformat:"s" == employee.id|stringformat:"s" %}selected{% endif %}>
-                {{ employee.get_full_name }}
+                {{ employee.first_name }} {{ employee.last_name }}
               </option>
               {% endfor %}
             </select>

@@ -9032,11 +9032,8 @@ def task_list_view(request, project_id: int):
 
     tasks = tasks.order_by("-id")
 
-    # Get employees for filter dropdown
-    from django.contrib.auth import get_user_model
-
-    user_model = get_user_model()
-    employees = user_model.objects.filter(is_active=True).order_by("first_name", "last_name")
+    # Get employees for filter dropdown (only actual employees, not clients)
+    employees = Employee.objects.filter(is_active=True).order_by("first_name", "last_name")
 
     can_create = request.user.is_staff
     form = None
@@ -12364,14 +12361,10 @@ def schedule_gantt_react_view(request, project_id):
     if not can_manage:
         return HttpResponseForbidden("No tienes permisos para ver este cronograma.")
 
-    # Get team members for task assignment
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-    team_members = User.objects.filter(
+    # Get team members for task assignment (only actual employees, not clients)
+    team_members = Employee.objects.filter(
         is_active=True
-    ).exclude(
-        username__in=['admin', 'system']
-    ).order_by('first_name', 'last_name')[:50]
+    ).order_by('first_name', 'last_name')
 
     context = {
         "project": project,

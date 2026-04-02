@@ -55,7 +55,7 @@
         // Team members for task assignment
         const teamMembers = [
             {% for member in team_members %}
-            { id: {{ member.id }}, name: "{{ member.get_full_name|default:member.username }}" }{% if not forloop.last %},{% endif %}
+            { id: {{ member.id }}, name: "{{ member.first_name }} {{ member.last_name }}" }{% if not forloop.last %},{% endif %}
             {% endfor %}
         ];
 

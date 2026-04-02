@@ -215,7 +215,7 @@
             <div class="employee-section">
                 <div class="employee-avatar-large">{{ record.employee.first_name|slice:":1" }}{{ record.employee.last_name|slice:":1" }}</div>
                 <div class="employee-details">
-                    <h2>{{ record.employee.get_full_name }}</h2>
+                    <h2>{{ record.employee.first_name }} {{ record.employee.last_name }}</h2>
                     <p>{{ record.employee.role|default:"Employee" }}</p>
                 </div>
             </div>

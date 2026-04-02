@@ -319,7 +319,7 @@
                                 <div class="employee-info">
                                     <div class="employee-avatar">{{ payment.payroll_record.employee.first_name|slice:":1" }}{{ payment.payroll_record.employee.last_name|slice:":1" }}</div>
                                     <div>
-                                        <div class="employee-name">{{ payment.payroll_record.employee.get_full_name }}</div>
+                                        <div class="employee-name">{{ payment.payroll_record.employee.first_name }} {{ payment.payroll_record.employee.last_name }}</div>
                                         <div class="employee-role">{{ payment.payroll_record.employee.role|default:"Employee" }}</div>
                                     </div>
                                 </div>
