@@ -9,6 +9,10 @@ python manage.py migrate --noinput
 
 echo "✅ Migrations complete"
 
+# Clean expired sessions (saves DB space and prevents resource waste)
+echo "🧹 Cleaning expired sessions..."
+python manage.py clearsessions 2>/dev/null || true
+
 # NOTE: collectstatic is already run during Docker build (Dockerfile).
 # Skipping here to speed up container startup and pass healthcheck faster.
 

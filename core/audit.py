@@ -86,10 +86,14 @@ def log_audit_action(
 
 @receiver(user_logged_in)
 def log_user_login(sender, request, user, **kwargs):
-    """Track successful logins"""
+    """Track successful logins and enforce single session"""
     ip = get_client_ip(request)
     user_agent = request.META.get("HTTP_USER_AGENT", "")
     session_id = request.session.session_key if hasattr(request, "session") else ""
+
+    # SINGLE SESSION ENFORCEMENT: invalidate previous session on new login
+    from kibray_backend.middleware import SingleSessionLoginSignal
+    SingleSessionLoginSignal.on_login(request, user)
 
     # Log login attempt
     LoginAttempt.log_attempt(

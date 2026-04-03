@@ -1995,6 +1995,11 @@ class Profile(models.Model):
         help_text="Preferred UI language",
     )
     rejections_count = models.IntegerField(default=0)
+    # Single-session enforcement: stores the active session key
+    active_session_key = models.CharField(
+        max_length=40, blank=True, null=True, default=None,
+        help_text="Current active session key. Used to enforce one session per user.",
+    )
 
     def __str__(self):
         return f"{self.user.username} - {self.role}"

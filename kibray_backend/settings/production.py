@@ -166,6 +166,12 @@ SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
+# Session Settings — enforce single session & auto-expire
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_COOKIE_AGE = 28800  # 8 hours (was default 2 weeks — way too long)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keep session until timeout
+SESSION_SAVE_EVERY_REQUEST = True  # Reset timeout on activity
+
 # Channel Layers - Redis with connection pooling
 REDIS_URL = os.getenv("REDIS_URL")
 if not REDIS_URL:
