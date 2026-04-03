@@ -1110,10 +1110,10 @@ def dashboard_client(request):
     if latest_photos:
         morning_briefing.append(
             {
-                "text": f"There are {len(latest_photos)} new photos from your project",
+                "text": _("There are %(count)s new photos from your project") % {"count": len(latest_photos)},
                 "severity": "info",
                 "action_url": "#",
-                "action_label": "View photos",
+                "action_label": _("View photos"),
                 "category": "updates",
             }
         )
@@ -1127,16 +1127,13 @@ def dashboard_client(request):
 
     if overdue_invoices:
         total_due = sum(inv.total_amount - inv.amount_paid for inv in overdue_invoices)
-        try:
-            invoices_url = reverse("client_invoices")
-        except Exception:
-            invoices_url = "#"
+        invoices_url = reverse("dashboard_client")
         morning_briefing.append(
             {
-                "text": f"You have ${total_due:,.2f} in pending invoices",
+                "text": _("You have %(amount)s in pending invoices") % {"amount": f"${total_due:,.2f}"},
                 "severity": "warning",
                 "action_url": invoices_url,
-                "action_label": "Pay now",
+                "action_label": _("View Invoices"),
                 "category": "payments",
             }
         )
@@ -1151,10 +1148,10 @@ def dashboard_client(request):
         next_date = upcoming_schedules[0].start_datetime
         morning_briefing.append(
             {
-                "text": f"Next activity scheduled for {next_date.strftime('%m/%d/%Y')}",
+                "text": _("Next activity scheduled for %(date)s") % {"date": next_date.strftime('%m/%d/%Y')},
                 "severity": "info",
                 "action_url": "#",
-                "action_label": "View schedule",
+                "action_label": _("View schedule"),
                 "category": "schedule",
             }
         )

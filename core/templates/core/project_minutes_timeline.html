@@ -4,26 +4,50 @@
 {% block extra_css %}
 <style>
 /* ==============================================
-   MINUTAS - Clean Modern Design
+   MINUTAS TIMELINE - Horizontal Node Design
+   Premium Client Experience
    ============================================== */
 
-.minutes-wrapper {
+/* ── Wrapper ────────────────────────────────── */
+.tl-wrapper {
   min-height: 100vh;
-  background: #f8fafc;
+  background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
 }
 
-/* Header */
-.minutes-header {
+/* ── Header ─────────────────────────────────── */
+.tl-header {
   background: white;
   border-bottom: 1px solid #e2e8f0;
-  padding: 1.5rem 2rem;
+  padding: 1.25rem 2rem;
   position: sticky;
   top: 0;
   z-index: 100;
+  backdrop-filter: blur(12px);
 }
 
-.minutes-header h2 {
+.tl-header-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tl-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.2s;
+  margin-bottom: 0.25rem;
+}
+.tl-back:hover { color: #6366f1; }
+
+.tl-header h2 {
   font-weight: 700;
+  font-size: 1.35rem;
   color: #1e293b;
   margin: 0;
   display: flex;
@@ -31,113 +55,352 @@
   gap: 0.5rem;
 }
 
-.minutes-header .project-name {
-  color: #64748b;
-  font-size: 0.9rem;
-  margin-top: 0.25rem;
+.tl-header .tl-project-name {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  margin-top: 0.15rem;
 }
 
-/* Back Button */
-.btn-back {
+.btn-create {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  color: #64748b;
+  padding: 0.65rem 1.25rem;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.85rem;
   text-decoration: none;
-  font-size: 0.9rem;
-  transition: color 0.2s;
-  margin-bottom: 0.75rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+}
+.btn-create:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+  color: white;
 }
 
-.btn-back:hover {
-  color: #1e293b;
-}
-
-/* Filters */
-.minutes-filters {
+/* ── Filters ────────────────────────────────── */
+.tl-filters {
   background: white;
-  padding: 1rem 2rem;
+  padding: 0.75rem 2rem;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
   align-items: center;
   flex-wrap: wrap;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
-.filter-label {
-  color: #64748b;
-  font-size: 0.85rem;
+.tl-filter-label {
+  color: #94a3b8;
+  font-size: 0.8rem;
   font-weight: 500;
+  white-space: nowrap;
 }
 
-.filter-chip {
-  padding: 0.5rem 1rem;
+.tl-chip {
+  padding: 0.4rem 0.85rem;
   border-radius: 9999px;
   border: 1px solid #e2e8f0;
   background: white;
   color: #475569;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
+  white-space: nowrap;
 }
-
-.filter-chip:hover {
+.tl-chip:hover {
   border-color: #6366f1;
   color: #6366f1;
 }
-
-.filter-chip.active {
+.tl-chip.active {
   background: #6366f1;
   border-color: #6366f1;
   color: white;
 }
 
-/* Content Area */
-.minutes-content {
-  padding: 2rem;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-/* Minute Card */
-.minute-card {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
-  margin-bottom: 1rem;
-  overflow: hidden;
-  transition: all 0.2s ease;
-}
-
-.minute-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-color: #c7d2fe;
-}
-
-.minute-card-header {
-  padding: 1rem 1.25rem;
+/* ── Stats Row ──────────────────────────────── */
+.tl-stats {
+  max-width: 1400px;
+  margin: 1.5rem auto 0;
+  padding: 0 2rem;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #f1f5f9;
-  gap: 1rem;
-}
-
-.minute-meta {
-  display: flex;
-  align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
 }
 
-.event-badge {
+.tl-stat-card {
+  background: white;
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  border: 1px solid #e2e8f0;
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.tl-stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.tl-stat-icon.purple { background: #ede9fe; color: #7c3aed; }
+.tl-stat-icon.blue   { background: #dbeafe; color: #2563eb; }
+.tl-stat-icon.green  { background: #dcfce7; color: #16a34a; }
+.tl-stat-icon.amber  { background: #fef3c7; color: #d97706; }
+
+.tl-stat-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.tl-stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+  margin-top: 0.15rem;
+}
+
+/* ── Timeline Container ─────────────────────── */
+.tl-container {
+  max-width: 1400px;
+  margin: 1.5rem auto 0;
+  padding: 0 2rem 3rem;
+  position: relative;
+}
+
+.tl-scroll-wrapper {
+  position: relative;
+}
+
+/* Scroll Buttons */
+.tl-scroll-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: all 0.2s;
+  font-size: 1.1rem;
+}
+.tl-scroll-btn:hover {
+  background: #6366f1;
+  color: white;
+  border-color: #6366f1;
+}
+.tl-scroll-btn.left  { left: -8px; }
+.tl-scroll-btn.right { right: -8px; }
+.tl-scroll-btn.hidden { opacity: 0; pointer-events: none; }
+
+/* Track */
+.tl-track-outer {
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 2rem 0 1rem;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.tl-track-outer::-webkit-scrollbar { display: none; }
+
+.tl-track {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  min-width: max-content;
+  padding: 0 2rem;
+}
+
+/* The Horizontal Line */
+.tl-track::before {
+  content: '';
+  position: absolute;
+  top: 78px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #c7d2fe, #6366f1, #c7d2fe);
+  border-radius: 3px;
+  z-index: 1;
+}
+
+/* ── Node ───────────────────────────────────── */
+.tl-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  min-width: 160px;
+  max-width: 180px;
+  padding: 0 0.5rem;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+.tl-node:hover { transform: translateY(-3px); }
+
+/* Date label (top) */
+.tl-date {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* Dot on the line */
+.tl-dot-wrap {
+  position: relative;
+  z-index: 5;
+  margin-bottom: 0.75rem;
+}
+
+.tl-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 0 0 3px currentColor, 0 2px 8px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
+
+.tl-node:hover .tl-dot,
+.tl-node.active .tl-dot {
+  transform: scale(1.3);
+  box-shadow: 0 0 0 4px currentColor, 0 0 20px currentColor;
+}
+
+/* Dot colors by type */
+.tl-dot.decision  { color: #3b82f6; background: #3b82f6; }
+.tl-dot.call      { color: #6366f1; background: #6366f1; }
+.tl-dot.email     { color: #f59e0b; background: #f59e0b; }
+.tl-dot.meeting   { color: #10b981; background: #10b981; }
+.tl-dot.approval  { color: #22c55e; background: #22c55e; }
+.tl-dot.change    { color: #eab308; background: #eab308; }
+.tl-dot.issue     { color: #ef4444; background: #ef4444; }
+.tl-dot.milestone { color: #a855f7; background: #a855f7; }
+.tl-dot.note      { color: #64748b; background: #64748b; }
+
+/* Mini card below dot */
+.tl-mini {
+  background: white;
+  border-radius: 12px;
+  padding: 0.75rem;
+  width: 155px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  text-align: center;
+  transition: all 0.25s ease;
+}
+
+.tl-node:hover .tl-mini,
+.tl-node.active .tl-mini {
+  border-color: #c7d2fe;
+  box-shadow: 0 4px 16px rgba(99,102,241,0.15);
+}
+
+.tl-mini-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 0.4rem;
+}
+
+.tl-mini-badge.decision  { background: #dbeafe; color: #1e40af; }
+.tl-mini-badge.call      { background: #e0e7ff; color: #3730a3; }
+.tl-mini-badge.email     { background: #fef3c7; color: #92400e; }
+.tl-mini-badge.meeting   { background: #d1fae5; color: #065f46; }
+.tl-mini-badge.approval  { background: #dcfce7; color: #166534; }
+.tl-mini-badge.change    { background: #fef9c3; color: #854d0e; }
+.tl-mini-badge.issue     { background: #fee2e2; color: #991b1b; }
+.tl-mini-badge.milestone { background: #f3e8ff; color: #6b21a8; }
+.tl-mini-badge.note      { background: #f1f5f9; color: #475569; }
+
+.tl-mini-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tl-mini-time {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  margin-top: 0.3rem;
+}
+
+/* ── Detail Panel ───────────────────────────── */
+.tl-detail {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  margin-top: 1.5rem;
+  overflow: hidden;
+  display: none;
+  animation: detailSlideIn 0.3s ease forwards;
+}
+
+.tl-detail.show { display: block; }
+
+@keyframes detailSlideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.tl-detail-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.tl-detail-type-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.35rem 0.75rem;
+  padding: 0.35rem 0.8rem;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
@@ -145,360 +408,567 @@
   letter-spacing: 0.3px;
 }
 
-.event-badge.decision { background: #dbeafe; color: #1e40af; }
-.event-badge.call { background: #e0e7ff; color: #3730a3; }
-.event-badge.email { background: #fef3c7; color: #92400e; }
-.event-badge.meeting { background: #d1fae5; color: #065f46; }
-.event-badge.approval { background: #dcfce7; color: #166534; }
-.event-badge.change { background: #fef9c3; color: #854d0e; }
-.event-badge.issue { background: #fee2e2; color: #991b1b; }
-.event-badge.milestone { background: #f3e8ff; color: #6b21a8; }
-.event-badge.note { background: #f1f5f9; color: #475569; }
+.tl-detail-type-badge.decision  { background: #dbeafe; color: #1e40af; }
+.tl-detail-type-badge.call      { background: #e0e7ff; color: #3730a3; }
+.tl-detail-type-badge.email     { background: #fef3c7; color: #92400e; }
+.tl-detail-type-badge.meeting   { background: #d1fae5; color: #065f46; }
+.tl-detail-type-badge.approval  { background: #dcfce7; color: #166534; }
+.tl-detail-type-badge.change    { background: #fef9c3; color: #854d0e; }
+.tl-detail-type-badge.issue     { background: #fee2e2; color: #991b1b; }
+.tl-detail-type-badge.milestone { background: #f3e8ff; color: #6b21a8; }
+.tl-detail-type-badge.note      { background: #f1f5f9; color: #475569; }
 
-.minute-date {
-  font-size: 0.85rem;
-  color: #64748b;
-  font-weight: 500;
-  white-space: nowrap;
+.tl-detail-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0.5rem 0 0;
 }
 
-.private-badge {
-  background: #fef3c7;
-  color: #92400e;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.7rem;
+.tl-detail-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.tl-detail-close:hover {
+  background: #fee2e2;
+  color: #ef4444;
+  border-color: #fca5a5;
+}
+
+.tl-detail-body {
+  padding: 1.5rem;
+}
+
+.tl-detail-meta {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.tl-detail-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.tl-detail-meta-item i {
+  color: #94a3b8;
+}
+
+.tl-detail-description {
+  font-size: 0.95rem;
+  color: #334155;
+  line-height: 1.7;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid #f1f5f9;
+}
+
+.tl-detail-participants {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: #ede9fe;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: #5b21b6;
+}
+
+.tl-detail-participants strong {
   font-weight: 600;
+}
+
+.tl-detail-attachment {
+  margin-top: 1rem;
+}
+
+.tl-detail-attachment a {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-}
-
-.minute-card-body {
-  padding: 1.25rem;
-}
-
-.minute-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #1e293b;
-  margin: 0 0 0.5rem 0;
-  line-height: 1.4;
-}
-
-.minute-title a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.minute-title a:hover {
-  color: #6366f1;
-}
-
-.minute-description {
-  font-size: 0.9rem;
-  color: #64748b;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.minute-participants {
-  margin-top: 1rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #f1f5f9;
-  font-size: 0.85rem;
-  color: #64748b;
-}
-
-.minute-participants strong {
-  color: #475569;
-}
-
-.minute-card-footer {
-  padding: 0.75rem 1.25rem;
-  background: #f8fafc;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-top: 1px solid #f1f5f9;
-}
-
-.minute-author {
-  font-size: 0.8rem;
-  color: #94a3b8;
-  display: flex;
-  align-items: center;
   gap: 0.5rem;
-}
-
-.minute-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.minute-comments {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.8rem;
-  color: #6366f1;
-  font-weight: 500;
-}
-
-.btn-view {
-  padding: 0.4rem 0.75rem;
+  padding: 0.6rem 1rem;
   background: #f1f5f9;
   color: #475569;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 500;
+  border-radius: 10px;
+  font-size: 0.85rem;
   text-decoration: none;
   transition: all 0.2s;
+  font-weight: 500;
 }
-
-.btn-view:hover {
+.tl-detail-attachment a:hover {
   background: #6366f1;
   color: white;
 }
 
-.minute-attachment {
-  margin-top: 1rem;
+.tl-detail-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #f1f5f9;
+  background: #f8fafc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.btn-attachment {
-  display: inline-flex;
+.tl-detail-author {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  display: flex;
   align-items: center;
+  gap: 0.4rem;
+}
+
+.tl-detail-actions {
+  display: flex;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: #f1f5f9;
-  color: #475569;
+}
+
+.tl-detail-actions a {
+  padding: 0.45rem 0.85rem;
   border-radius: 8px;
   font-size: 0.8rem;
+  font-weight: 500;
   text-decoration: none;
   transition: all 0.2s;
 }
 
-.btn-attachment:hover {
-  background: #e2e8f0;
-  color: #1e293b;
+.btn-detail-view {
+  background: #6366f1;
+  color: white !important;
+}
+.btn-detail-view:hover {
+  background: #4f46e5;
+  color: white !important;
 }
 
-/* Create Button */
-.btn-create-minute {
+.btn-detail-edit {
+  background: #f1f5f9;
+  color: #475569 !important;
+}
+.btn-detail-edit:hover {
+  background: #e2e8f0;
+  color: #1e293b !important;
+}
+
+/* Private badge */
+.tl-private {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
+  gap: 0.25rem;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.65rem;
   font-weight: 600;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-  font-size: 0.9rem;
+  margin-top: 0.3rem;
 }
 
-.btn-create-minute:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
-  color: white;
-}
-
-/* Empty State */
-.minutes-empty {
+/* ── Empty State ────────────────────────────── */
+.tl-empty {
   text-align: center;
-  padding: 4rem 2rem;
-  background: white;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  padding: 5rem 2rem;
+  max-width: 500px;
+  margin: 3rem auto;
 }
 
-.minutes-empty-icon {
-  font-size: 4rem;
-  color: #cbd5e1;
-  margin-bottom: 1rem;
+.tl-empty-icon {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ede9fe, #dbeafe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  font-size: 2.5rem;
+  color: #6366f1;
 }
 
-.minutes-empty h3 {
-  color: #475569;
+.tl-empty h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1e293b;
   margin-bottom: 0.5rem;
-  font-weight: 600;
 }
 
-.minutes-empty p {
+.tl-empty p {
   color: #94a3b8;
+  font-size: 0.95rem;
+  line-height: 1.6;
   margin-bottom: 1.5rem;
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
-/* Responsive */
+/* ── Mobile Responsive ──────────────────────── */
 @media (max-width: 768px) {
-  .minutes-header {
-    padding: 1rem;
-  }
-  
-  .minutes-filters {
-    padding: 0.75rem 1rem;
-  }
-  
-  .minutes-content {
-    padding: 1rem;
-  }
-  
-  .minute-card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-  
-  .filter-chip {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.8rem;
-  }
+  .tl-header { padding: 1rem; }
+  .tl-header-inner { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
+  .tl-filters { padding: 0.5rem 1rem; }
+  .tl-stats { padding: 0 1rem; gap: 0.5rem; }
+  .tl-stat-card { min-width: calc(50% - 0.5rem); }
+  .tl-container { padding: 0 1rem 2rem; }
+  .tl-scroll-btn { display: none; }
+  .tl-node { min-width: 140px; max-width: 150px; }
+  .tl-mini { width: 135px; padding: 0.6rem; }
+  .tl-detail-header { flex-direction: column; }
+  .tl-detail-meta { flex-direction: column; gap: 0.5rem; }
+  .tl-detail-footer { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="minutes-wrapper">
-  <!-- Header -->
-  <div class="minutes-header">
-    <div class="d-flex justify-content-between align-items-start">
+<div class="tl-wrapper">
+
+  <!-- ═══ Header ═══ -->
+  <div class="tl-header">
+    <div class="tl-header-inner">
       <div>
-        <a href="{% url 'project_overview' project.id %}" class="btn-back">
+        {% if user.is_staff or user.is_superuser %}
+        <a href="{% url 'project_overview' project.id %}" class="tl-back">
           <i class="bi bi-arrow-left"></i> {% trans "Back to Project" %}
         </a>
-        <h2>
-          <i class="bi bi-journal-text"></i> {% trans "Minutas" %}
-        </h2>
-        <p class="project-name mb-0">{{ project.name }}</p>
+        {% else %}
+        <a href="{% url 'client_project_view' project.id %}" class="tl-back">
+          <i class="bi bi-arrow-left"></i> {% trans "Back to Project" %}
+        </a>
+        {% endif %}
+        <h2><i class="bi bi-clock-history"></i> {% trans "Project Timeline" %}</h2>
+        <p class="tl-project-name mb-0">{{ project.name }}</p>
       </div>
       {% if user.is_staff or user.is_superuser %}
-      <a href="{% url 'project_minute_create' project.id %}" class="btn-create-minute">
-        <i class="bi bi-plus-lg"></i> {% trans "Nueva Minuta" %}
+      <a href="{% url 'project_minute_create' project.id %}" class="btn-create">
+        <i class="bi bi-plus-lg"></i> {% trans "New Entry" %}
       </a>
       {% endif %}
     </div>
   </div>
 
-  <!-- Filters -->
-  <div class="minutes-filters">
-    <span class="filter-label">{% trans "Filter" %}:</span>
-    <a href="{% url 'project_minutes_list' project.id %}" 
-       class="filter-chip {% if not request.GET.type %}active{% endif %}">
-      {% trans "Todos" %}
+  <!-- ═══ Filters ═══ -->
+  <div class="tl-filters">
+    <span class="tl-filter-label"><i class="bi bi-funnel me-1"></i>{% trans "Filter" %}:</span>
+    <a href="{% url 'project_minutes_list' project.id %}"
+       class="tl-chip {% if not request.GET.type %}active{% endif %}">
+      {% trans "All" %}
     </a>
     {% for value, label in event_types %}
-    <a href="{% url 'project_minutes_list' project.id %}?type={{ value }}" 
-       class="filter-chip {% if request.GET.type == value %}active{% endif %}">
-      {% if value == 'decision' %}{% trans "Decisión" %}
-      {% elif value == 'call' %}{% trans "Llamada" %}
-      {% elif value == 'email' %}{% trans "Email" %}
-      {% elif value == 'meeting' %}{% trans "Meeting" %}
-      {% elif value == 'approval' %}{% trans "Approval" %}
-      {% elif value == 'change' %}{% trans "Change/Modification" %}
-      {% elif value == 'issue' %}{% trans "Issue" %}
-      {% elif value == 'milestone' %}{% trans "Milestone" %}
-      {% elif value == 'note' %}{% trans "Note" %}
+    <a href="{% url 'project_minutes_list' project.id %}?type={{ value }}"
+       class="tl-chip {% if request.GET.type == value %}active{% endif %}">
+      {% if value == 'decision' %}<i class="bi bi-lightbulb"></i> {% trans "Decision" %}
+      {% elif value == 'call' %}<i class="bi bi-telephone"></i> {% trans "Call" %}
+      {% elif value == 'email' %}<i class="bi bi-envelope"></i> {% trans "Email" %}
+      {% elif value == 'meeting' %}<i class="bi bi-people"></i> {% trans "Meeting" %}
+      {% elif value == 'approval' %}<i class="bi bi-check-circle"></i> {% trans "Approval" %}
+      {% elif value == 'change' %}<i class="bi bi-pencil-square"></i> {% trans "Change" %}
+      {% elif value == 'issue' %}<i class="bi bi-exclamation-triangle"></i> {% trans "Issue" %}
+      {% elif value == 'milestone' %}<i class="bi bi-flag"></i> {% trans "Milestone" %}
+      {% elif value == 'note' %}<i class="bi bi-chat-left-text"></i> {% trans "Note" %}
       {% else %}{{ label }}{% endif %}
     </a>
     {% endfor %}
   </div>
 
-  <!-- Content -->
-  <div class="minutes-content">
-    {% if minutes %}
-      {% for minute in minutes %}
-      <div class="minute-card">
-        <div class="minute-card-header">
-          <div class="minute-meta">
-            <span class="event-badge {{ minute.event_type }}">
-              <i class="bi bi-{% if minute.event_type == 'decision' %}lightbulb{% elif minute.event_type == 'call' %}telephone{% elif minute.event_type == 'meeting' %}people{% elif minute.event_type == 'approval' %}check-circle{% elif minute.event_type == 'change' %}pencil{% elif minute.event_type == 'issue' %}exclamation-triangle{% elif minute.event_type == 'milestone' %}flag{% elif minute.event_type == 'email' %}envelope{% else %}chat-left-text{% endif %}"></i>
-              {% if minute.event_type == 'decision' %}{% trans "Decisión" %}
-              {% elif minute.event_type == 'call' %}{% trans "Llamada" %}
-              {% elif minute.event_type == 'email' %}{% trans "Email" %}
-              {% elif minute.event_type == 'meeting' %}{% trans "Reunión" %}
-              {% elif minute.event_type == 'approval' %}{% trans "Aprobación" %}
-              {% elif minute.event_type == 'change' %}{% trans "Cambio" %}
-              {% elif minute.event_type == 'issue' %}{% trans "Issue" %}
-              {% elif minute.event_type == 'milestone' %}{% trans "Milestone" %}
-              {% elif minute.event_type == 'note' %}{% trans "Nota" %}
-              {% else %}{{ minute.get_event_type_display }}{% endif %}
-            </span>
-            <span class="minute-date">
-              <i class="bi bi-calendar3 me-1"></i>
-              {{ minute.event_date|date:"d M, Y" }} - {{ minute.event_date|date:"g:i A" }}
-            </span>
+  {% if minutes %}
+  <!-- ═══ Stats ═══ -->
+  <div class="tl-stats">
+    <div class="tl-stat-card">
+      <div class="tl-stat-icon purple"><i class="bi bi-journal-text"></i></div>
+      <div>
+        <div class="tl-stat-label">{% trans "Total" %}</div>
+        <div class="tl-stat-value">{{ minutes|length }}</div>
+      </div>
+    </div>
+    <div class="tl-stat-card">
+      <div class="tl-stat-icon blue"><i class="bi bi-lightbulb"></i></div>
+      <div>
+        <div class="tl-stat-label">{% trans "Decisions" %}</div>
+        <div class="tl-stat-value" id="stat-decisions">0</div>
+      </div>
+    </div>
+    <div class="tl-stat-card">
+      <div class="tl-stat-icon green"><i class="bi bi-flag"></i></div>
+      <div>
+        <div class="tl-stat-label">{% trans "Milestones" %}</div>
+        <div class="tl-stat-value" id="stat-milestones">0</div>
+      </div>
+    </div>
+    <div class="tl-stat-card">
+      <div class="tl-stat-icon amber"><i class="bi bi-exclamation-triangle"></i></div>
+      <div>
+        <div class="tl-stat-label">{% trans "Issues" %}</div>
+        <div class="tl-stat-value" id="stat-issues">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Horizontal Timeline ═══ -->
+  <div class="tl-container">
+    <div class="tl-scroll-wrapper">
+      <button class="tl-scroll-btn left hidden" id="scrollLeft" aria-label="Scroll left">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      <button class="tl-scroll-btn right" id="scrollRight" aria-label="Scroll right">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+
+      <div class="tl-track-outer" id="tlTrack">
+        <div class="tl-track">
+          {% for minute in minutes %}
+          <div class="tl-node" data-index="{{ forloop.counter0 }}" data-type="{{ minute.event_type }}">
+            <!-- Date above -->
+            <div class="tl-date">{{ minute.event_date|date:"d M Y" }}</div>
+
+            <!-- Dot on line -->
+            <div class="tl-dot-wrap">
+              <div class="tl-dot {{ minute.event_type }}"></div>
+            </div>
+
+            <!-- Mini Card below -->
+            <div class="tl-mini">
+              <span class="tl-mini-badge {{ minute.event_type }}">
+                <i class="bi bi-{% if minute.event_type == 'decision' %}lightbulb{% elif minute.event_type == 'call' %}telephone{% elif minute.event_type == 'meeting' %}people{% elif minute.event_type == 'approval' %}check-circle{% elif minute.event_type == 'change' %}pencil-square{% elif minute.event_type == 'issue' %}exclamation-triangle{% elif minute.event_type == 'milestone' %}flag{% elif minute.event_type == 'email' %}envelope{% else %}chat-left-text{% endif %}"></i>
+                {% if minute.event_type == 'decision' %}{% trans "Decision" %}
+                {% elif minute.event_type == 'call' %}{% trans "Call" %}
+                {% elif minute.event_type == 'email' %}{% trans "Email" %}
+                {% elif minute.event_type == 'meeting' %}{% trans "Meeting" %}
+                {% elif minute.event_type == 'approval' %}{% trans "Approval" %}
+                {% elif minute.event_type == 'change' %}{% trans "Change" %}
+                {% elif minute.event_type == 'issue' %}{% trans "Issue" %}
+                {% elif minute.event_type == 'milestone' %}{% trans "Milestone" %}
+                {% elif minute.event_type == 'note' %}{% trans "Note" %}
+                {% else %}{{ minute.get_event_type_display }}{% endif %}
+              </span>
+              <div class="tl-mini-title">{{ minute.title }}</div>
+              <div class="tl-mini-time">{{ minute.event_date|date:"g:i A" }}</div>
+              {% if not minute.visible_to_client %}
+              <span class="tl-private"><i class="bi bi-eye-slash"></i> {% trans "Private" %}</span>
+              {% endif %}
+            </div>
           </div>
-          {% if not minute.visible_to_client %}
-          <span class="private-badge">
-            <i class="bi bi-eye-slash"></i> {% trans "Privado" %}
-          </span>
-          {% endif %}
-        </div>
-        
-        <div class="minute-card-body">
-          <h3 class="minute-title">
-            <a href="{% url 'project_minute_detail' minute.id %}">{{ minute.title }}</a>
-          </h3>
-          {% if minute.description %}
-          <p class="minute-description">{{ minute.description|truncatewords:50|linebreaksbr }}</p>
-          {% endif %}
-          
-          {% if minute.participants %}
-          <div class="minute-participants">
-            <strong><i class="bi bi-people me-1"></i> {% trans "Participantes" %}:</strong> {{ minute.participants }}
-          </div>
-          {% endif %}
-          
-          {% if minute.attachment %}
-          <div class="minute-attachment">
-            <a href="{{ minute.attachment.url }}" target="_blank" class="btn-attachment">
-              <i class="bi bi-paperclip"></i> {% trans "Ver adjunto" %}
-            </a>
-          </div>
-          {% endif %}
-        </div>
-        
-        <div class="minute-card-footer">
-          <span class="minute-author">
-            <i class="bi bi-person"></i>
-            {{ minute.created_by.get_full_name|default:minute.created_by.username }}
-          </span>
-          <div class="minute-actions">
-            {% if minute.comments.count > 0 %}
-            <span class="minute-comments">
-              <i class="bi bi-chat"></i> {{ minute.comments.count }}
-            </span>
-            {% endif %}
-            <a href="{% url 'project_minute_detail' minute.id %}" class="btn-view">
-              {% trans "Ver detalles" %} <i class="bi bi-chevron-right"></i>
-            </a>
-          </div>
+          {% endfor %}
         </div>
       </div>
-      {% endfor %}
-    {% else %}
-      <!-- Empty State -->
-      <div class="minutes-empty">
-        <div class="minutes-empty-icon">
-          <i class="bi bi-journal-text"></i>
+    </div>
+
+    <!-- ═══ Detail Panel (filled via JS) ═══ -->
+    <div class="tl-detail" id="tlDetail">
+      <div class="tl-detail-header">
+        <div>
+          <span class="tl-detail-type-badge" id="detailBadge"></span>
+          <h3 class="tl-detail-title" id="detailTitle"></h3>
         </div>
-        <h3>{% trans "No hay minutas registradas" %}</h3>
-        <p>{% trans "Las minutas ayudan a mantener un registro histórico de decisiones y comunicaciones del proyecto." %}</p>
-        {% if user.is_staff or user.is_superuser %}
-        <a href="{% url 'project_minute_create' project.id %}" class="btn-create-minute">
-          <i class="bi bi-plus-lg"></i> {% trans "Crear Primera Minuta" %}
-        </a>
-        {% endif %}
+        <button class="tl-detail-close" id="detailClose" aria-label="Close">
+          <i class="bi bi-x-lg"></i>
+        </button>
       </div>
+      <div class="tl-detail-body">
+        <div class="tl-detail-meta" id="detailMeta"></div>
+        <div class="tl-detail-description" id="detailDesc"></div>
+        <div class="tl-detail-participants" id="detailParticipants" style="display:none;"></div>
+        <div class="tl-detail-attachment" id="detailAttachment" style="display:none;"></div>
+      </div>
+      <div class="tl-detail-footer">
+        <span class="tl-detail-author" id="detailAuthor"></span>
+        <div class="tl-detail-actions" id="detailActions"></div>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- ═══ Empty State ═══ -->
+  <div class="tl-empty">
+    <div class="tl-empty-icon"><i class="bi bi-clock-history"></i></div>
+    <h3>{% trans "No timeline entries yet" %}</h3>
+    <p>{% trans "Timeline entries help maintain a historical record of decisions, meetings, and key communications throughout the project." %}</p>
+    {% if user.is_staff or user.is_superuser %}
+    <a href="{% url 'project_minute_create' project.id %}" class="btn-create">
+      <i class="bi bi-plus-lg"></i> {% trans "Create First Entry" %}
+    </a>
     {% endif %}
   </div>
+  {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  /* ── Data from Django ────────────────────── */
+  const minuteData = [
+    {% for minute in minutes %}
+    {
+      idx: {{ forloop.counter0 }},
+      id: {{ minute.id }},
+      type: "{{ minute.event_type }}",
+      typeLabel: "{% if minute.event_type == 'decision' %}{% trans "Decision" %}{% elif minute.event_type == 'call' %}{% trans "Call" %}{% elif minute.event_type == 'email' %}{% trans "Email" %}{% elif minute.event_type == 'meeting' %}{% trans "Meeting" %}{% elif minute.event_type == 'approval' %}{% trans "Approval" %}{% elif minute.event_type == 'change' %}{% trans "Change" %}{% elif minute.event_type == 'issue' %}{% trans "Issue" %}{% elif minute.event_type == 'milestone' %}{% trans "Milestone" %}{% elif minute.event_type == 'note' %}{% trans "Note" %}{% else %}{{ minute.get_event_type_display }}{% endif %}",
+      title: "{{ minute.title|escapejs }}",
+      description: "{{ minute.description|escapejs|default:'' }}",
+      date: "{{ minute.event_date|date:'d M Y' }}",
+      time: "{{ minute.event_date|date:'g:i A' }}",
+      author: "{{ minute.created_by.get_full_name|default:minute.created_by.username|escapejs }}",
+      participants: "{{ minute.participants|escapejs|default:'' }}",
+      attachment: "{% if minute.attachment %}{{ minute.attachment.url }}{% endif %}",
+      comments: {{ minute.comments.count }},
+      detailUrl: "{% url 'project_minute_detail' minute.id %}",
+      {% if user.is_staff or user.is_superuser %}
+      editUrl: "{% url 'project_minute_edit' minute.id %}",
+      {% endif %}
+      isPrivate: {% if minute.visible_to_client %}false{% else %}true{% endif %}
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+
+  /* ── Stats ───────────────────────────────── */
+  const statDecisions = document.getElementById('stat-decisions');
+  const statMilestones = document.getElementById('stat-milestones');
+  const statIssues = document.getElementById('stat-issues');
+  if (statDecisions) statDecisions.textContent = minuteData.filter(m => m.type === 'decision').length;
+  if (statMilestones) statMilestones.textContent = minuteData.filter(m => m.type === 'milestone').length;
+  if (statIssues) statIssues.textContent = minuteData.filter(m => m.type === 'issue').length;
+
+  /* ── Icon map ────────────────────────────── */
+  const iconMap = {
+    decision: 'lightbulb', call: 'telephone', email: 'envelope',
+    meeting: 'people', approval: 'check-circle', change: 'pencil-square',
+    issue: 'exclamation-triangle', milestone: 'flag', note: 'chat-left-text'
+  };
+
+  /* ── Scroll Controls ─────────────────────── */
+  const track = document.getElementById('tlTrack');
+  const btnL = document.getElementById('scrollLeft');
+  const btnR = document.getElementById('scrollRight');
+
+  if (track && btnL && btnR) {
+    const updateButtons = () => {
+      btnL.classList.toggle('hidden', track.scrollLeft <= 10);
+      btnR.classList.toggle('hidden', track.scrollLeft + track.clientWidth >= track.scrollWidth - 10);
+    };
+
+    btnL.addEventListener('click', () => { track.scrollBy({ left: -320, behavior: 'smooth' }); });
+    btnR.addEventListener('click', () => { track.scrollBy({ left: 320, behavior: 'smooth' }); });
+    track.addEventListener('scroll', updateButtons);
+    window.addEventListener('resize', updateButtons);
+    setTimeout(updateButtons, 100);
+  }
+
+  /* ── Keyboard Navigation ─────────────────── */
+  let currentIdx = -1;
+  const nodes = document.querySelectorAll('.tl-node');
+
+  document.addEventListener('keydown', function(e) {
+    if (nodes.length === 0) return;
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      currentIdx = Math.min(currentIdx + 1, nodes.length - 1);
+      openDetail(currentIdx);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      currentIdx = Math.max(currentIdx - 1, 0);
+      openDetail(currentIdx);
+    } else if (e.key === 'Escape') {
+      closeDetail();
+    }
+  });
+
+  /* ── Node Click ──────────────────────────── */
+  nodes.forEach((node, i) => {
+    node.addEventListener('click', () => openDetail(i));
+  });
+
+  /* ── Detail Panel ────────────────────────── */
+  const detail = document.getElementById('tlDetail');
+  const detailClose = document.getElementById('detailClose');
+  if (detailClose) detailClose.addEventListener('click', closeDetail);
+
+  function openDetail(idx) {
+    if (!minuteData[idx]) return;
+    currentIdx = idx;
+    const m = minuteData[idx];
+
+    // Active state
+    nodes.forEach(n => n.classList.remove('active'));
+    nodes[idx].classList.add('active');
+
+    // Scroll node into view
+    const nodeEl = nodes[idx];
+    if (track) {
+      const nodeCenter = nodeEl.offsetLeft + nodeEl.offsetWidth / 2;
+      const trackCenter = track.clientWidth / 2;
+      track.scrollTo({ left: nodeCenter - trackCenter, behavior: 'smooth' });
+    }
+
+    // Badge
+    const badge = document.getElementById('detailBadge');
+    badge.className = 'tl-detail-type-badge ' + m.type;
+    badge.innerHTML = '<i class="bi bi-' + (iconMap[m.type] || 'chat-left-text') + '"></i> ' + m.typeLabel;
+
+    // Title
+    document.getElementById('detailTitle').textContent = m.title;
+
+    // Meta
+    const metaHtml =
+      '<span class="tl-detail-meta-item"><i class="bi bi-calendar3"></i> ' + m.date + '</span>' +
+      '<span class="tl-detail-meta-item"><i class="bi bi-clock"></i> ' + m.time + '</span>' +
+      (m.comments > 0 ? '<span class="tl-detail-meta-item"><i class="bi bi-chat"></i> ' + m.comments + ' {% trans "comments" %}</span>' : '') +
+      (m.isPrivate ? '<span class="tl-detail-meta-item"><i class="bi bi-eye-slash text-warning"></i> {% trans "Private" %}</span>' : '');
+    document.getElementById('detailMeta').innerHTML = metaHtml;
+
+    // Description
+    const descEl = document.getElementById('detailDesc');
+    descEl.innerHTML = m.description ? m.description.replace(/\n/g, '<br>') : '<em style="color:#94a3b8;">{% trans "No description provided" %}</em>';
+
+    // Participants
+    const partEl = document.getElementById('detailParticipants');
+    if (m.participants) {
+      partEl.innerHTML = '<strong><i class="bi bi-people me-1"></i> {% trans "Participants" %}:</strong> ' + m.participants;
+      partEl.style.display = 'block';
+    } else {
+      partEl.style.display = 'none';
+    }
+
+    // Attachment
+    const attEl = document.getElementById('detailAttachment');
+    if (m.attachment) {
+      attEl.innerHTML = '<a href="' + m.attachment + '" target="_blank"><i class="bi bi-paperclip"></i> {% trans "View Attachment" %}</a>';
+      attEl.style.display = 'block';
+    } else {
+      attEl.style.display = 'none';
+    }
+
+    // Author
+    document.getElementById('detailAuthor').innerHTML = '<i class="bi bi-person"></i> ' + m.author;
+
+    // Actions
+    let actionsHtml = '<a href="' + m.detailUrl + '" class="btn-detail-view"><i class="bi bi-eye me-1"></i>{% trans "View Full" %}</a>';
+    if (m.editUrl) {
+      actionsHtml += '<a href="' + m.editUrl + '" class="btn-detail-edit"><i class="bi bi-pencil me-1"></i>{% trans "Edit" %}</a>';
+    }
+    document.getElementById('detailActions').innerHTML = actionsHtml;
+
+    // Show panel
+    detail.classList.add('show');
+    detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function closeDetail() {
+    detail.classList.remove('show');
+    nodes.forEach(n => n.classList.remove('active'));
+    currentIdx = -1;
+  }
+
+});
+</script>
 {% endblock %}
