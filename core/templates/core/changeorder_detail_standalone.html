@@ -1,370 +1,644 @@
+{% load i18n humanize currency_extras %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CO-{{ changeorder.id|stringformat:"04d" }} - Kibray</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <title>CO-{{ changeorder.id|stringformat:"04d" }} — {{ changeorder.title }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --success: #059669;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --danger: #dc2626;
+            --info: #0284c7;
+            --info-light: #e0f2fe;
+            --purple: #7c3aed;
+            --purple-light: #ede9fe;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1;
+            --slate-400: #94a3b8;
+            --slate-500: #64748b;
+            --slate-600: #475569;
+            --slate-700: #334155;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            background: #f8fafc;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8edf5 50%, #f5f3ff 100%);
+            min-height: 100vh;
+            color: var(--slate-800);
         }
 
         .co-page {
-            max-width: 900px;
+            max-width: 1100px;
             margin: 2rem auto;
-            padding: 2rem 2.5rem;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            padding: 0 1rem;
         }
 
-        .co-header {
+        /* ── Back Navigation ── */
+        .co-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--slate-500);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            transition: color 0.2s;
+        }
+        .co-back:hover { color: var(--primary); }
+
+        /* ── Header Card ── */
+        .co-hero {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .co-hero-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem 2.5rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .co-hero-gradient::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+
+        .co-hero-top {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 1.2rem;
-            margin-bottom: 1.8rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+            position: relative;
+            z-index: 1;
         }
 
-        .co-header h1 {
-            margin: 0;
-            font-size: 2rem;
-            font-weight: 700;
-            color: #1e293b;
-        }
-
-        .co-subtitle {
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-bottom: 0.4rem;
-            font-weight: 600;
-        }
-
-        .co-project-name {
-            margin: 0.5rem 0 0;
+        .co-hero-id {
+            font-size: 0.85rem;
+            opacity: 0.8;
             font-weight: 500;
-            color: #475569;
-            font-size: 1rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
 
-        .co-header-right {
-            text-align: right;
-            font-size: 0.9rem;
-        }
-
-        .co-header-right p {
-            margin: 0.3rem 0;
-            color: #64748b;
-        }
-
-        .co-amount {
-            margin-top: 0.6rem;
-            font-size: 1.5rem;
+        .co-hero-title {
+            font-size: 1.8rem;
             font-weight: 700;
-            color: #059669;
+            margin: 0.3rem 0 0.2rem;
+            line-height: 1.2;
         }
 
-        .co-status {
+        .co-hero-project {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .co-hero-right {
+            text-align: right;
+        }
+
+        .co-status-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            padding: 0.35rem 0.9rem;
-            border-radius: 999px;
-            font-size: 0.8rem;
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
             font-weight: 600;
             text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .co-status-badge.pending { background: rgba(245,158,11,0.2); color: #fef3c7; }
+        .co-status-badge.approved { background: rgba(16,185,129,0.2); color: #d1fae5; }
+        .co-status-badge.sent { background: rgba(59,130,246,0.2); color: #dbeafe; }
+        .co-status-badge.billed { background: rgba(139,92,246,0.2); color: #ede9fe; }
+        .co-status-badge.paid { background: rgba(5,150,105,0.3); color: #d1fae5; }
+        .co-status-badge.draft { background: rgba(148,163,184,0.2); color: #e2e8f0; }
+
+        .co-hero-date {
+            font-size: 0.85rem;
+            opacity: 0.75;
+            margin-top: 0.5rem;
+        }
+
+        .co-hero-meta {
+            display: flex;
+            gap: 2rem;
+            padding: 1.25rem 2.5rem;
+            background: var(--slate-50);
+            border-top: 1px solid var(--slate-200);
+            flex-wrap: wrap;
+        }
+
+        .co-meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+        .co-meta-label {
+            font-size: 0.75rem;
+            color: var(--slate-400);
+            text-transform: uppercase;
+            font-weight: 600;
             letter-spacing: 0.5px;
         }
-
-        .co-status.pending {
-            background: #fef3c7;
-            color: #92400e;
+        .co-meta-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--slate-700);
         }
 
-        .co-status.approved {
-            background: #dbeafe;
-            color: #1e40af;
+        /* ── Cost Dashboard ── */
+        .cost-dashboard {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
         }
 
-        .co-status.sent {
-            background: #e9d5ff;
-            color: #6b21a8;
+        .cost-dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--slate-200);
         }
-
-        .co-status.billed,
-        .co-status.paid {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .co-section {
-            margin-bottom: 2rem;
-        }
-
-        .co-section h2 {
+        .cost-dashboard-header h2 {
             font-size: 1.1rem;
             font-weight: 700;
-            margin-bottom: 0.8rem;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 0.5rem;
-            color: #334155;
+            color: var(--slate-800);
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
-
-        .co-section h2 i {
-            color: #667eea;
-            font-size: 1.2rem;
+        .cost-dashboard-header .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: #fee2e2;
+            color: var(--danger);
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.25rem 0.6rem;
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .live-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--danger);
+            border-radius: 50%;
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.5); }
         }
 
-        .co-two-cols {
+        .cost-cards {
             display: grid;
-            grid-template-columns: 180px 1fr;
-            row-gap: 0.6rem;
-            column-gap: 1.5rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+        }
+
+        .cost-card {
+            padding: 1.5rem 2rem;
+            border-right: 1px solid var(--slate-100);
+            position: relative;
+        }
+        .cost-card:last-child { border-right: none; }
+
+        .cost-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+        }
+        .cost-card-icon.labor { background: var(--info-light); color: var(--info); }
+        .cost-card-icon.material { background: var(--purple-light); color: var(--purple); }
+        .cost-card-icon.total { background: var(--success-light); color: var(--success); }
+
+        .cost-card-label {
+            font-size: 0.75rem;
+            color: var(--slate-400);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .cost-card-amount {
+            font-size: 1.6rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+        .cost-card-amount.labor { color: var(--info); }
+        .cost-card-amount.material { color: var(--purple); }
+        .cost-card-amount.total { color: var(--success); }
+
+        .cost-card-detail {
+            font-size: 0.8rem;
+            color: var(--slate-400);
+            margin-top: 0.3rem;
+        }
+
+        /* ── Progress Bar ── */
+        .cost-bar-section {
+            padding: 1rem 2rem 1.5rem;
+            border-top: 1px solid var(--slate-100);
+        }
+
+        .cost-bar-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .cost-bar-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            color: var(--slate-500);
+            font-weight: 500;
+        }
+
+        .cost-bar-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .cost-bar-dot.labor { background: var(--info); }
+        .cost-bar-dot.material { background: var(--purple); }
+
+        .cost-bar {
+            height: 12px;
+            background: var(--slate-100);
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .cost-bar-fill {
+            height: 100%;
+            transition: width 1s ease;
+        }
+        .cost-bar-fill.labor {
+            background: linear-gradient(90deg, #0284c7, #38bdf8);
+            border-radius: 6px 0 0 6px;
+        }
+        .cost-bar-fill.material {
+            background: linear-gradient(90deg, #7c3aed, #a78bfa);
+            border-radius: 0 6px 6px 0;
+        }
+
+        /* ── Content Sections ── */
+        .co-section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .co-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--slate-200);
+        }
+
+        .co-section-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--slate-800);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .co-section-header h2 i { color: var(--primary); font-size: 1.1rem; }
+
+        .co-section-count {
+            background: var(--slate-100);
+            color: var(--slate-600);
+            padding: 0.2rem 0.7rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .co-section-body {
+            padding: 1.5rem 2rem;
+        }
+
+        /* ── Description Block ── */
+        .co-description {
+            background: var(--slate-50);
+            padding: 1.25rem 1.5rem;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+            color: var(--slate-600);
+            line-height: 1.7;
             font-size: 0.95rem;
         }
 
-        .co-label {
-            font-weight: 600;
-            color: #64748b;
-        }
-
-        .co-value {
-            color: #1e293b;
-        }
-
-        .co-description {
-            background: #f8fafc;
-            padding: 1rem 1.2rem;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-            color: #475569;
-            line-height: 1.6;
-        }
-
         .co-notes {
-            background: #fffbeb;
-            padding: 1rem 1.2rem;
-            border-radius: 8px;
-            border-left: 4px solid #f59e0b;
+            background: var(--warning-light);
+            padding: 1.25rem 1.5rem;
+            border-radius: 10px;
+            border-left: 4px solid var(--warning);
             color: #78350f;
-            line-height: 1.6;
+            line-height: 1.7;
+            font-size: 0.95rem;
             font-style: italic;
         }
 
+        /* ── Data Tables ── */
         .co-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.9rem;
-            margin-top: 0.5rem;
-        }
-
-        .co-table th,
-        .co-table td {
-            padding: 0.7rem 0.8rem;
-            border-bottom: 1px solid #e2e8f0;
-            text-align: left;
         }
 
         .co-table th {
-            background: #f8fafc;
+            background: var(--slate-50);
+            padding: 0.75rem 1rem;
+            text-align: left;
             font-weight: 600;
-            color: #475569;
-            font-size: 0.85rem;
+            color: var(--slate-500);
+            font-size: 0.78rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--slate-200);
         }
 
-        .co-table tbody tr:hover {
-            background: #f8fafc;
+        .co-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--slate-100);
+            color: var(--slate-700);
         }
 
-        .co-table-amount {
+        .co-table tbody tr:hover { background: var(--slate-50); }
+        .co-table tbody tr:last-child td { border-bottom: none; }
+
+        .co-table-total {
+            background: var(--slate-50);
+            font-weight: 700;
+        }
+        .co-table-total td { border-top: 2px solid var(--slate-200); }
+
+        .amount-cell {
             font-weight: 600;
-            color: #dc2626;
+            font-variant-numeric: tabular-nums;
+            text-align: right;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 2rem;
-            color: #94a3b8;
-            font-style: italic;
-        }
-
-        .co-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.6rem;
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        .btn {
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            border: none;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
+        .category-badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.3rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: var(--slate-100);
+            color: var(--slate-600);
         }
 
-        .btn-secondary {
-            background: #e5e7eb;
-            color: #374151;
+        /* ── Empty States ── */
+        .empty-state {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: var(--slate-400);
         }
+        .empty-state i { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+        .empty-state p { font-size: 0.9rem; }
 
-        .btn-secondary:hover {
-            background: #d1d5db;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: #ffffff;
-        }
-
-        .btn-primary:hover {
-            background: #5568d3;
-        }
-
-        .btn-success {
-            background: #059669;
-            color: #ffffff;
-        }
-
-        .btn-success:hover {
-            background: #047857;
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: #667eea;
-            border: 1px solid #667eea;
-            padding: 0.4rem 0.8rem;
-            font-size: 0.85rem;
-        }
-
-        .btn-outline:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        /* Photo Gallery */
+        /* ── Photo Gallery ── */
         .photo-gallery {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
         }
 
         .photo-item {
             position: relative;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             transition: transform 0.2s, box-shadow 0.2s;
             background: white;
+            cursor: pointer;
         }
-
         .photo-item:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
         }
 
         .photo-item img {
             width: 100%;
-            height: 250px;
+            height: 200px;
             object-fit: cover;
-            cursor: pointer;
         }
 
         .photo-caption {
-            padding: 1rem;
-            font-size: 0.9rem;
-            color: #475569;
-            margin: 0;
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+            color: var(--slate-600);
         }
 
         .photo-badge {
             position: absolute;
-            top: 0.75rem;
-            right: 0.75rem;
-            background: rgba(102, 126, 234, 0.95);
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(102,126,234,0.9);
             color: white;
-            padding: 0.4rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 600;
         }
 
-        /* Fullscreen Photo Modal */
+        /* ── Color Swatch ── */
+        .color-swatch-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .color-swatch {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            border: 2px solid var(--slate-200);
+            flex-shrink: 0;
+        }
+
+        /* ── Signatures ── */
+        .sig-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .sig-card {
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--slate-200);
+            background: var(--slate-50);
+        }
+        .sig-card.contractor {
+            background: var(--info-light);
+            border-color: #bae6fd;
+        }
+
+        .sig-label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--slate-400);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .sig-card.contractor .sig-label { color: #0369a1; }
+
+        .sig-img {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--slate-200);
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+        .sig-img img { max-width: 180px; max-height: 70px; }
+
+        .sig-name { font-weight: 600; color: var(--slate-800); font-size: 0.95rem; }
+        .sig-date { font-size: 0.82rem; color: var(--slate-400); margin-top: 0.15rem; }
+
+        .sig-pending {
+            color: var(--slate-400);
+            font-style: italic;
+            font-size: 0.9rem;
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* ── Action Buttons ── */
+        .co-actions {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 3rem;
+        }
+        .co-actions-left, .co-actions-right {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            border: none;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-ghost {
+            background: white;
+            color: var(--slate-600);
+            border: 1px solid var(--slate-200);
+        }
+        .btn-ghost:hover { background: var(--slate-50); border-color: var(--slate-300); }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #047857; }
+
+        .btn-danger-outline {
+            background: white;
+            color: var(--danger);
+            border: 1px solid #fecaca;
+        }
+        .btn-danger-outline:hover { background: #fef2f2; }
+
+        /* ── Photo Modal ── */
         .photo-modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
+            inset: 0;
+            background: rgba(0,0,0,0.92);
             z-index: 10000;
             align-items: center;
             justify-content: center;
             padding: 2rem;
         }
-
-        .photo-modal.active {
-            display: flex;
-        }
+        .photo-modal.active { display: flex; }
 
         .photo-modal-content {
             position: relative;
             max-width: 90vw;
             max-height: 90vh;
         }
-
-        .photo-modal-content img {
-            max-width: 100%;
-            max-height: 85vh;
-            object-fit: contain;
-            border-radius: 8px;
-        }
-
         .photo-modal-content canvas {
             max-width: 100%;
             max-height: 85vh;
-            object-fit: contain;
             border-radius: 8px;
         }
-
         .photo-modal-caption {
             text-align: center;
             color: white;
             margin-top: 1rem;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
-
         .photo-modal-close {
             position: absolute;
             top: -40px;
@@ -374,480 +648,629 @@
             color: white;
             font-size: 2.5rem;
             cursor: pointer;
-            line-height: 1;
-            padding: 0.5rem;
         }
 
-        .photo-modal-close:hover {
-            color: #cbd5e1;
+        /* ── Two-column layout for info ── */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            row-gap: 0.6rem;
+            column-gap: 1.5rem;
+            font-size: 0.92rem;
+        }
+        .info-label { font-weight: 600; color: var(--slate-400); }
+        .info-value { color: var(--slate-700); }
+
+        /* ── Fixed price banner ── */
+        .fixed-price-banner {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-left: 4px solid var(--success);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .fixed-price-label {
+            font-size: 0.85rem;
+            color: #065f46;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .fixed-price-amount {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #047857;
         }
 
+        /* ── Responsive ── */
         @media (max-width: 768px) {
-            .co-page {
-                margin: 1rem;
-                padding: 1.5rem;
-            }
-
-            .co-header {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .co-header-right {
-                text-align: left;
-            }
-
-            .co-two-cols {
-                grid-template-columns: 1fr;
-            }
-
-            .co-actions {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .photo-gallery {
-                grid-template-columns: 1fr;
-            }
+            .co-page { margin: 1rem auto; }
+            .co-hero-gradient { padding: 1.5rem; }
+            .co-hero-title { font-size: 1.3rem; }
+            .co-hero-top { flex-direction: column; }
+            .co-hero-right { text-align: left; }
+            .co-hero-meta { padding: 1rem 1.5rem; gap: 1rem; }
+            .cost-cards { grid-template-columns: 1fr; }
+            .cost-card { border-right: none; border-bottom: 1px solid var(--slate-100); }
+            .cost-card:last-child { border-bottom: none; }
+            .co-section-header, .co-section-body { padding-left: 1.25rem; padding-right: 1.25rem; }
+            .cost-dashboard-header, .cost-bar-section { padding-left: 1.25rem; padding-right: 1.25rem; }
+            .cost-card { padding: 1.25rem; }
+            .co-table { font-size: 0.82rem; }
+            .co-table th, .co-table td { padding: 0.6rem 0.75rem; }
+            .sig-grid { grid-template-columns: 1fr; }
+            .co-actions { flex-direction: column; }
+            .co-actions-left, .co-actions-right { width: 100%; }
+            .btn { width: 100%; justify-content: center; }
+            .photo-gallery { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+            .info-grid { grid-template-columns: 1fr; }
         }
+
+        /* ── Animate numbers ── */
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in { animation: countUp 0.5s ease-out forwards; }
     </style>
 </head>
 <body>
     <div class="co-page">
-        <!-- HEADER -->
-        <header class="co-header">
-            <div>
-                <div class="co-subtitle">Change Order</div>
-                <h1>CO-{{ changeorder.id|stringformat:"04d" }}</h1>
-                {% if changeorder.co_title %}
-                <p style="font-size: 1.1rem; font-weight: 600; color: #1e293b; margin: 0.3rem 0;">{{ changeorder.co_title }}</p>
-                {% endif %}
-                <p class="co-project-name">{{ changeorder.project.name }}</p>
+
+        <!-- ═══════════ BACK NAV ═══════════ -->
+        {% if is_admin %}
+        <a href="{% url 'changeorder_board' %}" class="co-back">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Board" %}
+        </a>
+        {% else %}
+        <a href="{% url 'dashboard_client' %}" class="co-back">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Dashboard" %}
+        </a>
+        {% endif %}
+
+        <!-- ═══════════ HERO HEADER ═══════════ -->
+        <div class="co-hero">
+            <div class="co-hero-gradient">
+                <div class="co-hero-top">
+                    <div>
+                        <div class="co-hero-id">{% trans "Change Order" %} CO-{{ changeorder.id|stringformat:"04d" }}</div>
+                        <h1 class="co-hero-title">{{ changeorder.title }}</h1>
+                        <div class="co-hero-project">
+                            <i class="bi bi-building"></i> {{ changeorder.project.name }}
+                        </div>
+                    </div>
+                    <div class="co-hero-right">
+                        <span class="co-status-badge {{ changeorder.status }}">
+                            {% if changeorder.status == 'draft' %}
+                                <i class="bi bi-pencil"></i> {% trans "Draft" %}
+                            {% elif changeorder.status == 'pending' %}
+                                <i class="bi bi-clock"></i> {% trans "Pending" %}
+                            {% elif changeorder.status == 'approved' %}
+                                <i class="bi bi-check-circle"></i> {% trans "Approved" %}
+                            {% elif changeorder.status == 'sent' %}
+                                <i class="bi bi-send"></i> {% trans "Sent" %}
+                            {% elif changeorder.status == 'billed' %}
+                                <i class="bi bi-receipt"></i> {% trans "Billed" %}
+                            {% elif changeorder.status == 'paid' %}
+                                <i class="bi bi-cash-coin"></i> {% trans "Paid" %}
+                            {% endif %}
+                        </span>
+                        <div class="co-hero-date">
+                            <i class="bi bi-calendar3"></i> {{ changeorder.date_created|date:"M d, Y" }}
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="co-header-right">
-                <p>
-                    <span class="co-status {{ changeorder.status }}">
-                        {% if changeorder.status == 'pending' %}
-                            <i class="bi bi-clock"></i> Pending
-                        {% elif changeorder.status == 'approved' %}
-                            <i class="bi bi-check-circle"></i> Approved
-                        {% elif changeorder.status == 'sent' %}
-                            <i class="bi bi-send"></i> Sent
-                        {% elif changeorder.status == 'billed' %}
-                            <i class="bi bi-receipt"></i> Billed
-                        {% elif changeorder.status == 'paid' %}
-                            <i class="bi bi-cash"></i> Paid
+            <div class="co-hero-meta">
+                <div class="co-meta-item">
+                    <span class="co-meta-label">{% trans "Client" %}</span>
+                    <span class="co-meta-value">{{ changeorder.project.client|default:"—" }}</span>
+                </div>
+                <div class="co-meta-item">
+                    <span class="co-meta-label">{% trans "Type" %}</span>
+                    <span class="co-meta-value">
+                        {% if changeorder.pricing_type == 'T_AND_M' %}
+                            <i class="bi bi-clock-history" style="color:var(--info)"></i> {% trans "Time & Materials" %}
+                        {% else %}
+                            <i class="bi bi-tag" style="color:var(--success)"></i> {% trans "Fixed Price" %}
                         {% endif %}
                     </span>
+                </div>
+                {% if changeorder.pricing_type == 'T_AND_M' %}
+                <div class="co-meta-item">
+                    <span class="co-meta-label">{% trans "Billing Rate" %}</span>
+                    <span class="co-meta-value">{{ cost_data.billing_rate|currency }}/hr</span>
+                </div>
+                {% if cost_data.markup_pct %}
+                <div class="co-meta-item">
+                    <span class="co-meta-label">{% trans "Material Markup" %}</span>
+                    <span class="co-meta-value">{{ cost_data.markup_pct|floatformat:0 }}%</span>
+                </div>
+                {% endif %}
+                {% endif %}
+                <div class="co-meta-item">
+                    <span class="co-meta-label">{% trans "Status" %}</span>
+                    <span class="co-meta-value">{{ changeorder.get_status_display }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════ COST DASHBOARD (T&M) ═══════════ -->
+        {% if changeorder.pricing_type == 'T_AND_M' %}
+        <div class="cost-dashboard">
+            <div class="cost-dashboard-header">
+                <h2><i class="bi bi-speedometer2" style="color:var(--primary)"></i> {% trans "Real-Time Cost Monitor" %}</h2>
+                <span class="live-badge">{% trans "LIVE" %}</span>
+            </div>
+
+            <div class="cost-cards">
+                <!-- Labor -->
+                <div class="cost-card">
+                    <div class="cost-card-icon labor"><i class="bi bi-people-fill"></i></div>
+                    <div class="cost-card-label">{% trans "Labor" %}</div>
+                    <div class="cost-card-amount labor animate-in">{{ cost_data.total_labor_cost|currency }}</div>
+                    <div class="cost-card-detail">
+                        {{ cost_data.total_labor_hours|floatformat:1 }} {% trans "hrs" %} × {{ cost_data.billing_rate|currency }}/hr
+                    </div>
+                </div>
+
+                <!-- Materials -->
+                <div class="cost-card">
+                    <div class="cost-card-icon material"><i class="bi bi-box-seam-fill"></i></div>
+                    <div class="cost-card-label">{% trans "Materials" %}</div>
+                    <div class="cost-card-amount material animate-in">{{ cost_data.total_material_with_markup|currency }}</div>
+                    <div class="cost-card-detail">
+                        {% trans "Base" %}: {{ cost_data.total_material_cost|currency }}
+                        {% if cost_data.markup_pct %} + {{ cost_data.markup_pct|floatformat:0 }}% {% trans "markup" %}{% endif %}
+                    </div>
+                </div>
+
+                <!-- Grand Total -->
+                <div class="cost-card">
+                    <div class="cost-card-icon total"><i class="bi bi-wallet2"></i></div>
+                    <div class="cost-card-label">{% trans "Total Cost" %}</div>
+                    <div class="cost-card-amount total animate-in">{{ cost_data.grand_total|currency }}</div>
+                    <div class="cost-card-detail">
+                        {{ cost_data.time_entry_count }} {% trans "entries" %} · {{ cost_data.expense_count }} {% trans "expenses" %}
+                    </div>
+                </div>
+            </div>
+
+            {% if cost_data.grand_total > 0 %}
+            <div class="cost-bar-section">
+                <div class="cost-bar-labels">
+                    <span class="cost-bar-label">
+                        <span class="cost-bar-dot labor"></span>
+                        {% trans "Labor" %} {{ cost_data.labor_pct }}%
+                    </span>
+                    <span class="cost-bar-label">
+                        <span class="cost-bar-dot material"></span>
+                        {% trans "Materials" %} {{ cost_data.material_pct }}%
+                    </span>
+                </div>
+                <div class="cost-bar">
+                    <div class="cost-bar-fill labor" style="width: {{ cost_data.labor_pct }}%"></div>
+                    <div class="cost-bar-fill material" style="width: {{ cost_data.material_pct }}%"></div>
+                </div>
+            </div>
+            {% else %}
+            <div style="padding: 1.5rem 2rem; text-align: center; background: var(--warning-light); color: #92400e;">
+                <i class="bi bi-exclamation-triangle" style="font-size:1.3rem; margin-bottom:0.3rem; display:block;"></i>
+                <strong>{% trans "No costs recorded yet" %}</strong>
+                <p style="font-size:0.85rem; margin:0.3rem 0 0; opacity:0.8;">
+                    {% trans "The total will update automatically as time entries and materials are added." %}
                 </p>
-                <p class="co-amount">${{ changeorder.amount|floatformat:2 }}</p>
-                <p><strong>Date:</strong> {{ changeorder.date_created|date:"m/d/Y" }}</p>
-                <p><strong>Client:</strong> {{ changeorder.project.client|default:"No client" }}</p>
             </div>
-        </header>
+            {% endif %}
+        </div>
 
-        <!-- T&M PREVIEW (for Time & Materials COs) -->
-        {% if tm_preview %}
-        <section class="co-section" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 4px solid #10b981;">
-            <h2 style="color: #065f46;"><i class="bi bi-calculator"></i> T&M Preview - Billable Amount</h2>
-            
-            <div style="background: white; border-radius: 8px; padding: 1.5rem; margin-top: 1rem;">
-                <div class="co-two-cols" style="gap: 1.5rem;">
-                    <!-- Labor -->
-                    <div class="co-label" style="color: #0369a1; font-weight: 600;">
-                        <i class="bi bi-clock-history"></i> Labor
-                    </div>
-                    <div class="co-value">
-                        <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 0.3rem;">
-                            {{ tm_preview.labor_hours|floatformat:2 }} horas × ${{ changeorder.billing_hourly_rate|floatformat:2 }}/hr
-                        </div>
-                        <div style="font-size: 1.3rem; font-weight: 700; color: #0284c7;">
-                            ${{ tm_preview.labor_total|floatformat:2 }}
-                        </div>
-                    </div>
-
-                    <!-- Materials -->
-                    <div class="co-label" style="color: #7c3aed; font-weight: 600;">
-                        <i class="bi bi-box-seam"></i> Materials
-                    </div>
-                    <div class="co-value">
-                        <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 0.3rem;">
-                            Cost: ${{ tm_preview.raw_material_cost|floatformat:2 }} + {{ changeorder.material_markup_pct|floatformat:0 }}% markup
-                        </div>
-                        <div style="font-size: 1.3rem; font-weight: 700; color: #8b5cf6;">
-                            ${{ tm_preview.material_total|floatformat:2 }}
-                        </div>
-                    </div>
-
-                    <!-- Grand Total -->
-                    <div class="co-label" style="color: #059669; font-weight: 700; font-size: 1.1rem;">
-                        <i class="bi bi-currency-dollar"></i> Total to Bill
-                    </div>
-                    <div class="co-value">
-                        <div style="font-size: 1.8rem; font-weight: 800; color: #047857;">
-                            ${{ tm_preview.grand_total|floatformat:2 }}
-                        </div>
-                        <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.3rem; font-style: italic;">
-                            <i class="bi bi-info-circle"></i> Amount calculated dynamically (Time & Materials)
-                        </div>
-                    </div>
+        {% else %}
+        <!-- ═══════════ FIXED PRICE BANNER ═══════════ -->
+        <div class="co-section">
+            <div class="fixed-price-banner">
+                <div>
+                    <div class="fixed-price-label"><i class="bi bi-tag-fill"></i> {% trans "Fixed Price Amount" %}</div>
                 </div>
-
-                {% if tm_preview.labor_hours == 0 and tm_preview.raw_material_cost == 0 %}
-                <div style="text-align: center; padding: 1.5rem; background: #fef3c7; border-radius: 8px; margin-top: 1rem; color: #92400e;">
-                    <i class="bi bi-exclamation-triangle" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
-                    <p style="margin: 0; font-weight: 600;">No hours or expenses recorded for this Change Order.</p>
-                    <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">The billable amount is $0.00 until time entries or materials are added.</p>
-                </div>
-                {% endif %}
+                <div class="fixed-price-amount">{{ changeorder.amount|currency }}</div>
             </div>
-        </section>
+        </div>
         {% endif %}
 
-        <!-- INFO PRINCIPAL -->
-        <section class="co-section">
-            <h2><i class="bi bi-info-circle"></i> Change Order Information</h2>
-            <div class="co-two-cols">
-                <div class="co-label">Project</div>
-                <div class="co-value">{{ changeorder.project.name }}</div>
-
-                <div class="co-label">Client</div>
-                <div class="co-value">{{ changeorder.project.client|default:"No client" }}</div>
-
-                <div class="co-label">Created</div>
-                <div class="co-value">{{ changeorder.date_created|date:"m/d/Y" }}</div>
-
-                <div class="co-label">Status</div>
-                <div class="co-value">{{ changeorder.get_status_display }}</div>
+        <!-- ═══════════ DESCRIPTION ═══════════ -->
+        <div class="co-section">
+            <div class="co-section-header">
+                <h2><i class="bi bi-file-text"></i> {% trans "Description" %}</h2>
             </div>
-        </section>
-
-        <!-- DESCRIPTION -->
-        <section class="co-section">
-            <h2><i class="bi bi-file-text"></i> Change Description</h2>
-            <div class="co-description">
-                {{ changeorder.description }}
+            <div class="co-section-body">
+                <div class="co-description">{{ changeorder.description|linebreaks }}</div>
             </div>
-        </section>
+        </div>
 
-        <!-- NOTES -->
+        <!-- ═══════════ NOTES ═══════════ -->
         {% if changeorder.notes %}
-        <section class="co-section">
-            <h2><i class="bi bi-sticky"></i> Additional Notes</h2>
-            <div class="co-notes">
-                {{ changeorder.notes|linebreaks }}
+        <div class="co-section">
+            <div class="co-section-header">
+                <h2><i class="bi bi-sticky"></i> {% trans "Additional Notes" %}</h2>
             </div>
-        </section>
+            <div class="co-section-body">
+                <div class="co-notes">{{ changeorder.notes|linebreaks }}</div>
+            </div>
+        </div>
         {% endif %}
 
-        <!-- COLOR INFORMATION -->
-        {% if changeorder.color or changeorder.reference_code %}
-        <section class="co-section">
-            <h2><i class="bi bi-palette"></i> Color Information</h2>
-            <div class="co-two-cols">
-                {% if changeorder.color %}
-                <div class="co-label">Color</div>
-                <div class="co-value">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div style="width: 50px; height: 50px; border-radius: 8px; border: 2px solid #e2e8f0; background: {{ changeorder.color }};"></div>
-                        <span style="font-family: monospace; font-weight: 600;">{{ changeorder.color }}</span>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if changeorder.reference_code %}
-                <div class="co-label">Reference Code</div>
-                <div class="co-value">{{ changeorder.reference_code }}</div>
-                {% endif %}
+        <!-- ═══════════ TIME ENTRIES (T&M) ═══════════ -->
+        {% if changeorder.pricing_type == 'T_AND_M' %}
+        <div class="co-section">
+            <div class="co-section-header">
+                <h2><i class="bi bi-clock-history"></i> {% trans "Time Entries" %}</h2>
+                <span class="co-section-count">{{ cost_data.time_entry_count }}</span>
             </div>
-        </section>
-        {% endif %}
-
-        <!-- PHOTOS -->
-        {% if changeorder.photos.all %}
-        <section class="co-section">
-            <h2><i class="bi bi-images"></i> Project Photos ({{ changeorder.photos.count }})</h2>
-            <div class="photo-gallery">
-                {% for photo in changeorder.photos.all %}
-                <div class="photo-item">
-                    <img src="{{ photo.image.url }}" alt="{{ photo.description }}" onclick="viewPhotoFullscreen('{{ photo.image.url }}', '{{ photo.description|escapejs }}', '{{ photo.annotations|escapejs }}')">
-                    {% if photo.description %}
-                    <p class="photo-caption">{{ photo.description }}</p>
-                    {% endif %}
-                    {% if photo.annotations %}
-                    <div class="photo-badge">
-                        <i class="bi bi-pencil"></i> With annotations
-                    </div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-        </section>
-        {% endif %}
-
-        <!-- EXPENSES -->
-        <section class="co-section">
-            <h2><i class="bi bi-receipt-cutoff"></i> Associated Expenses</h2>
-            {% if changeorder.expenses.all %}
+            {% if time_entries %}
+            <div style="overflow-x:auto;">
                 <table class="co-table">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Description</th>
-                            <th>Amount</th>
-                            <th>Documents</th>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Team Member" %}</th>
+                            <th>{% trans "Hours" %}</th>
+                            <th>{% trans "Notes" %}</th>
+                            <th style="text-align:right;">{% trans "Cost" %}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for expense in changeorder.expenses.all %}
+                        {% for te in time_entries %}
                         <tr>
-                            <td>{{ expense.date|date:"m/d/Y" }}</td>
-                            <td>{{ expense.description }}</td>
-                            <td class="co-table-amount">-${{ expense.amount|floatformat:2 }}</td>
+                            <td style="white-space:nowrap;">
+                                <i class="bi bi-calendar3" style="color:var(--slate-400);font-size:0.8rem;"></i>
+                                {{ te.date|date:"M d, Y" }}
+                            </td>
                             <td>
-                                {% if expense.receipt %}
-                                <a href="{{ expense.receipt.url }}" target="_blank" class="btn btn-outline">
-                                    <i class="bi bi-paperclip"></i> Receipt
+                                <strong>{{ te.employee.first_name }} {{ te.employee.last_name|truncatechars:1 }}.</strong>
+                            </td>
+                            <td>
+                                <span style="background:var(--info-light);color:var(--info);padding:0.2rem 0.6rem;border-radius:50px;font-size:0.82rem;font-weight:600;">
+                                    {{ te.hours_worked|floatformat:1 }}h
+                                </span>
+                            </td>
+                            <td style="color:var(--slate-500);font-size:0.85rem;">{{ te.notes|default:"—"|truncatewords:10 }}</td>
+                            <td class="amount-cell">{{ te.hours_worked|default:0|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="co-table-total">
+                            <td colspan="2" style="text-align:right;font-weight:700;">{% trans "Total" %}</td>
+                            <td>
+                                <span style="font-weight:700;">{{ cost_data.total_labor_hours|floatformat:1 }}h</span>
+                            </td>
+                            <td></td>
+                            <td class="amount-cell" style="color:var(--info);font-size:1rem;">
+                                {{ cost_data.total_labor_cost|currency }}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% else %}
+            <div class="co-section-body">
+                <div class="empty-state">
+                    <i class="bi bi-clock"></i>
+                    <p>{% trans "No time entries recorded yet." %}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- ═══════════ EXPENSES / MATERIALS ═══════════ -->
+        <div class="co-section">
+            <div class="co-section-header">
+                <h2><i class="bi bi-receipt-cutoff"></i> {% trans "Expenses & Materials" %}</h2>
+                <span class="co-section-count">{{ cost_data.expense_count }}</span>
+            </div>
+            {% if expenses %}
+            <div style="overflow-x:auto;">
+                <table class="co-table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Category" %}</th>
+                            <th>{% trans "Description" %}</th>
+                            <th style="text-align:right;">{% trans "Amount" %}</th>
+                            <th>{% trans "Docs" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for exp in expenses %}
+                        <tr>
+                            <td style="white-space:nowrap;">
+                                <i class="bi bi-calendar3" style="color:var(--slate-400);font-size:0.8rem;"></i>
+                                {{ exp.date|date:"M d, Y" }}
+                            </td>
+                            <td>
+                                <span class="category-badge">
+                                    {% if exp.category == 'MATERIALES' %}<i class="bi bi-box-seam"></i>
+                                    {% elif exp.category == 'COMIDA' %}<i class="bi bi-cup-hot"></i>
+                                    {% elif exp.category == 'MANO_OBRA' %}<i class="bi bi-person-gear"></i>
+                                    {% else %}<i class="bi bi-tag"></i>{% endif %}
+                                    {{ exp.get_category_display }}
+                                </span>
+                            </td>
+                            <td style="color:var(--slate-600);font-size:0.88rem;">{{ exp.description|default:"—"|truncatewords:10 }}</td>
+                            <td class="amount-cell" style="color:var(--danger);">{{ exp.amount|currency }}</td>
+                            <td>
+                                {% if exp.receipt %}
+                                <a href="{{ exp.receipt.url }}" target="_blank" style="color:var(--primary);font-size:0.85rem;" title="{% trans 'Receipt' %}">
+                                    <i class="bi bi-paperclip"></i>
                                 </a>
                                 {% endif %}
-                                {% if expense.invoice %}
-                                <a href="{{ expense.invoice.url }}" target="_blank" class="btn btn-outline">
-                                    <i class="bi bi-file-earmark-pdf"></i> Invoice
+                                {% if exp.invoice %}
+                                <a href="{{ exp.invoice.url }}" target="_blank" style="color:var(--danger);font-size:0.85rem;" title="{% trans 'Invoice' %}">
+                                    <i class="bi bi-file-earmark-pdf"></i>
                                 </a>
                                 {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
+                    <tfoot>
+                        <tr class="co-table-total">
+                            <td colspan="3" style="text-align:right;font-weight:700;">{% trans "Total" %}</td>
+                            <td class="amount-cell" style="color:var(--purple);font-size:1rem;">
+                                {{ cost_data.total_material_with_markup|currency }}
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
                 </table>
+            </div>
             {% else %}
+            <div class="co-section-body">
                 <div class="empty-state">
                     <i class="bi bi-inbox"></i>
-                    No expenses associated with this Change Order.
+                    <p>{% trans "No expenses recorded for this Change Order." %}</p>
                 </div>
+            </div>
             {% endif %}
-        </section>
+        </div>
 
-        <!-- BUTTONS -->
-        <!-- SIGNATURES SECTION -->
-        <section class="co-section">
-            <h2><i class="bi bi-pen"></i> Signatures</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
-                <!-- Client Signature -->
-                <div style="padding: 1.25rem; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
-                    <div style="font-weight: 600; color: #64748b; margin-bottom: 0.75rem; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">
-                        <i class="bi bi-person"></i> Client Signature
+        <!-- ═══════════ COLOR INFORMATION ═══════════ -->
+        {% if changeorder.color or changeorder.reference_code %}
+        <div class="co-section">
+            <div class="co-section-header">
+                <h2><i class="bi bi-palette"></i> {% trans "Color Information" %}</h2>
+            </div>
+            <div class="co-section-body">
+                <div class="info-grid">
+                    {% if changeorder.color %}
+                    <div class="info-label">{% trans "Color" %}</div>
+                    <div class="info-value">
+                        <div class="color-swatch-row">
+                            <div class="color-swatch" style="background: {{ changeorder.color }};"></div>
+                            <span style="font-family:monospace;font-weight:600;">{{ changeorder.color }}</span>
+                        </div>
                     </div>
-                    {% if changeorder.signature_image %}
-                    <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 0.75rem;">
-                        <img src="{{ changeorder.signature_image.url }}" alt="Client Signature" style="max-width: 200px; max-height: 80px;">
-                    </div>
-                    <div style="color: #1e293b; font-weight: 500;">{{ changeorder.signed_by }}</div>
-                    <div style="color: #64748b; font-size: 0.875rem;">{{ changeorder.signed_at|date:"M d, Y - g:i A" }}</div>
-                    {% else %}
-                    <div style="color: #94a3b8; font-style: italic; padding: 1rem 0;">
-                        <i class="bi bi-clock"></i> Awaiting client signature
-                    </div>
-                    <a href="{% url 'changeorder_customer_signature' changeorder.id %}" 
-                       class="btn btn-outline" style="border-color: #667eea; color: #667eea; margin-top: 0.5rem;">
-                        <i class="bi bi-link-45deg"></i> Get Signature Link
-                    </a>
                     {% endif %}
-                </div>
-                
-                <!-- Contractor Signature -->
-                <div style="padding: 1.25rem; background: #f0f9ff; border-radius: 12px; border: 1px solid #bae6fd;">
-                    <div style="font-weight: 600; color: #0369a1; margin-bottom: 0.75rem; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">
-                        <i class="bi bi-building"></i> Contractor Signature
-                    </div>
-                    {% if changeorder.contractor_signature %}
-                    <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #bae6fd; margin-bottom: 0.75rem;">
-                        <img src="{{ changeorder.contractor_signature.url }}" alt="Contractor Signature" style="max-width: 200px; max-height: 80px;">
-                    </div>
-                    <div style="color: #1e293b; font-weight: 500;">{{ changeorder.contractor_signed_by }}</div>
-                    <div style="color: #64748b; font-size: 0.875rem;">{{ changeorder.contractor_signed_at|date:"M d, Y - g:i A" }}</div>
-                    {% else %}
-                    <div style="color: #94a3b8; font-style: italic; padding: 1rem 0;">
-                        <i class="bi bi-clock"></i> Awaiting contractor signature
-                    </div>
-                    {% if request.user.is_staff %}
-                    <a href="{% url 'changeorder_contractor_signature' changeorder.id %}" 
-                       class="btn" style="background: #0369a1; color: white; margin-top: 0.5rem;">
-                        <i class="bi bi-pen"></i> Sign as Contractor
-                    </a>
-                    {% endif %}
+                    {% if changeorder.reference_code %}
+                    <div class="info-label">{% trans "Reference Code" %}</div>
+                    <div class="info-value">{{ changeorder.reference_code }}</div>
                     {% endif %}
                 </div>
             </div>
-        </section>
+        </div>
+        {% endif %}
 
-        <footer class="co-actions">
-            <a href="{% url 'changeorder_board' %}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Board
-            </a>
-            <a href="{% url 'changeorder_pdf_view' changeorder_id=changeorder.id %}" class="btn btn-outline" style="border-color: #dc2626; color: #dc2626;" target="_blank">
-                <i class="bi bi-file-pdf"></i> View PDF
-            </a>
-            <a href="{% url 'changeorder_pdf_download' changeorder_id=changeorder.id %}" class="btn btn-outline" style="border-color: #dc2626; color: #dc2626;">
-                <i class="bi bi-download"></i> Download PDF
-            </a>
-            <a href="{% url 'changeorder_cost_breakdown' changeorder.id %}" class="btn btn-outline" style="border-color: #8b5cf6; color: #8b5cf6;">
-                <i class="bi bi-calculator"></i> View Cost Breakdown
-            </a>
-            {% if changeorder.status in 'billed,paid' %}
-            <a href="{% url 'changeorder_billing_history' changeorder.id %}" class="btn btn-outline" style="border-color: #059669; color: #059669;">
-                <i class="bi bi-receipt-cutoff"></i> View Billing History
-            </a>
-            {% endif %}
-            <a href="{% url 'changeorder_edit' changeorder.id %}" class="btn btn-primary">
-                <i class="bi bi-pencil"></i> Edit
-            </a>
-            {% if changeorder.status == 'approved' %}
-            <button class="btn btn-success" onclick="sendToClient({{ changeorder.id }})">
-                <i class="bi bi-send"></i> Send to Client
-            </button>
-            {% endif %}
-        </footer>
+        <!-- ═══════════ PHOTOS ═══════════ -->
+        {% if changeorder.photos.all %}
+        <div class="co-section">
+            <div class="co-section-header">
+                <h2><i class="bi bi-images"></i> {% trans "Photos" %}</h2>
+                <span class="co-section-count">{{ changeorder.photos.count }}</span>
+            </div>
+            <div class="co-section-body">
+                <div class="photo-gallery">
+                    {% for photo in changeorder.photos.all %}
+                    <div class="photo-item" onclick="viewPhoto('{{ photo.image.url }}', '{{ photo.description|escapejs }}', '{{ photo.annotations|escapejs }}')">
+                        <img src="{{ photo.image.url }}" alt="{{ photo.description }}" loading="lazy">
+                        {% if photo.annotations %}
+                        <span class="photo-badge"><i class="bi bi-pencil"></i> {% trans "Annotated" %}</span>
+                        {% endif %}
+                        {% if photo.description %}
+                        <div class="photo-caption">{{ photo.description }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ═══════════ SIGNATURES ═══════════ -->
+        <div class="co-section">
+            <div class="co-section-header">
+                <h2><i class="bi bi-pen"></i> {% trans "Signatures" %}</h2>
+            </div>
+            <div class="co-section-body">
+                <div class="sig-grid">
+                    <!-- Client Signature -->
+                    <div class="sig-card">
+                        <div class="sig-label"><i class="bi bi-person"></i> {% trans "Client Signature" %}</div>
+                        {% if changeorder.signature_image %}
+                        <div class="sig-img">
+                            <img src="{{ changeorder.signature_image.url }}" alt="{% trans 'Client Signature' %}">
+                        </div>
+                        <div class="sig-name">{{ changeorder.signed_by }}</div>
+                        <div class="sig-date">{{ changeorder.signed_at|date:"M d, Y — g:i A" }}</div>
+                        {% else %}
+                        <div class="sig-pending">
+                            <i class="bi bi-hourglass-split"></i> {% trans "Awaiting client signature" %}
+                        </div>
+                        {% if not is_admin %}
+                        <a href="{% url 'changeorder_customer_signature' changeorder.id %}" class="btn btn-primary" style="margin-top:0.5rem;">
+                            <i class="bi bi-pen"></i> {% trans "Sign Now" %}
+                        </a>
+                        {% else %}
+                        <a href="{% url 'changeorder_customer_signature' changeorder.id %}" class="btn btn-ghost" style="margin-top:0.5rem;">
+                            <i class="bi bi-link-45deg"></i> {% trans "Get Signature Link" %}
+                        </a>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Contractor Signature -->
+                    <div class="sig-card contractor">
+                        <div class="sig-label"><i class="bi bi-building"></i> {% trans "Contractor Signature" %}</div>
+                        {% if changeorder.contractor_signature %}
+                        <div class="sig-img">
+                            <img src="{{ changeorder.contractor_signature.url }}" alt="{% trans 'Contractor Signature' %}">
+                        </div>
+                        <div class="sig-name">{{ changeorder.contractor_signed_by }}</div>
+                        <div class="sig-date">{{ changeorder.contractor_signed_at|date:"M d, Y — g:i A" }}</div>
+                        {% else %}
+                        <div class="sig-pending">
+                            <i class="bi bi-hourglass-split"></i> {% trans "Awaiting contractor signature" %}
+                        </div>
+                        {% if is_admin %}
+                        <a href="{% url 'changeorder_contractor_signature' changeorder.id %}" class="btn btn-primary" style="margin-top:0.5rem;background:#0369a1;">
+                            <i class="bi bi-pen"></i> {% trans "Sign as Contractor" %}
+                        </a>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════ ACTIONS ═══════════ -->
+        <div class="co-actions">
+            <div class="co-actions-left">
+                {% if is_admin %}
+                <a href="{% url 'changeorder_board' %}" class="btn btn-ghost">
+                    <i class="bi bi-arrow-left"></i> {% trans "Board" %}
+                </a>
+                {% else %}
+                <a href="{% url 'dashboard_client' %}" class="btn btn-ghost">
+                    <i class="bi bi-arrow-left"></i> {% trans "Dashboard" %}
+                </a>
+                {% endif %}
+                <a href="{% url 'changeorder_pdf_view' changeorder_id=changeorder.id %}" class="btn btn-danger-outline" target="_blank">
+                    <i class="bi bi-file-pdf"></i> {% trans "View PDF" %}
+                </a>
+                <a href="{% url 'changeorder_pdf_download' changeorder_id=changeorder.id %}" class="btn btn-danger-outline">
+                    <i class="bi bi-download"></i> {% trans "Download PDF" %}
+                </a>
+            </div>
+            <div class="co-actions-right">
+                {% if is_admin %}
+                <a href="{% url 'changeorder_cost_breakdown' changeorder.id %}" class="btn btn-ghost" style="border-color:#c4b5fd;color:var(--purple);">
+                    <i class="bi bi-calculator"></i> {% trans "Cost Breakdown" %}
+                </a>
+                {% if changeorder.status in 'billed,paid' %}
+                <a href="{% url 'changeorder_billing_history' changeorder.id %}" class="btn btn-ghost" style="border-color:#a7f3d0;color:var(--success);">
+                    <i class="bi bi-receipt-cutoff"></i> {% trans "Billing History" %}
+                </a>
+                {% endif %}
+                <a href="{% url 'changeorder_edit' changeorder.id %}" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> {% trans "Edit" %}
+                </a>
+                {% if changeorder.status == 'approved' %}
+                <button class="btn btn-success" onclick="sendToClient({{ changeorder.id }})">
+                    <i class="bi bi-send"></i> {% trans "Send to Client" %}
+                </button>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
     </div>
 
-    <!-- Photo Fullscreen Modal -->
-    <div id="photoModal" class="photo-modal" onclick="closePhotoModal()">
+    <!-- ═══════════ PHOTO MODAL ═══════════ -->
+    <div id="photoModal" class="photo-modal" onclick="closePhoto()">
         <div class="photo-modal-content" onclick="event.stopPropagation()">
-            <button class="photo-modal-close" onclick="closePhotoModal()">&times;</button>
+            <button class="photo-modal-close" onclick="closePhoto()">&times;</button>
             <canvas id="photoCanvas"></canvas>
             <p class="photo-modal-caption" id="photoCaption"></p>
         </div>
     </div>
 
     <script>
+    /* ── Send to Client ── */
     function sendToClient(coId) {
-        if (!confirm('Send this Change Order to the client for signature?')) {
-            return;
-        }
-        
+        if (!confirm('{% trans "Send this Change Order to the client for signature?" %}')) return;
         fetch(`/api/changeorders/${coId}/send-to-client/`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            }
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') }
         })
-        .then(response => response.json())
+        .then(r => r.json())
         .then(data => {
-            if (data.success) {
-                alert('✅ Change Order sent to client successfully');
-                location.reload();
-            } else {
-                alert('❌ Error: ' + (data.error || 'Could not send'));
-            }
+            if (data.success) { alert('✅ {% trans "Change Order sent successfully" %}'); location.reload(); }
+            else { alert('❌ ' + (data.error || '{% trans "Could not send" %}')); }
         })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('❌ Error sending to client');
-        });
+        .catch(() => alert('❌ {% trans "Error sending to client" %}'));
     }
 
     function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
+        let v = null;
+        if (document.cookie) {
+            document.cookie.split(';').forEach(c => {
+                c = c.trim();
+                if (c.startsWith(name + '=')) v = decodeURIComponent(c.substring(name.length + 1));
+            });
         }
-        return cookieValue;
+        return v;
     }
 
-    function viewPhotoFullscreen(imageUrl, description, annotations) {
+    /* ── Photo Viewer with Annotations ── */
+    function viewPhoto(url, desc, annotations) {
         const modal = document.getElementById('photoModal');
         const canvas = document.getElementById('photoCanvas');
         const caption = document.getElementById('photoCaption');
         const ctx = canvas.getContext('2d');
-
-        caption.textContent = description || '';
+        caption.textContent = desc || '';
         modal.classList.add('active');
-
         const img = new Image();
         img.onload = function() {
             canvas.width = img.width;
             canvas.height = img.height;
             ctx.drawImage(img, 0, 0);
-
-            // Draw annotations if present
             if (annotations) {
                 try {
-                    const annotationData = JSON.parse(annotations);
-                    annotationData.forEach(ann => {
-                        ctx.strokeStyle = ann.color;
-                        ctx.lineWidth = ann.width;
-                        ctx.fillStyle = ann.color;
-                        
-                        switch(ann.type) {
+                    JSON.parse(annotations).forEach(a => {
+                        ctx.strokeStyle = a.color;
+                        ctx.lineWidth = a.width;
+                        ctx.fillStyle = a.color;
+                        switch(a.type) {
                             case 'line':
-                                ctx.beginPath();
-                                ctx.moveTo(ann.x1, ann.y1);
-                                ctx.lineTo(ann.x2, ann.y2);
-                                ctx.stroke();
-                                break;
+                                ctx.beginPath(); ctx.moveTo(a.x1,a.y1); ctx.lineTo(a.x2,a.y2); ctx.stroke(); break;
                             case 'arrow':
-                                drawArrow(ctx, ann.x1, ann.y1, ann.x2, ann.y2, ann.color, ann.width);
-                                break;
+                                drawArrow(ctx,a.x1,a.y1,a.x2,a.y2,a.color,a.width); break;
                             case 'circle':
-                                const radius = Math.sqrt(Math.pow(ann.x2 - ann.x1, 2) + Math.pow(ann.y2 - ann.y1, 2));
-                                ctx.beginPath();
-                                ctx.arc(ann.x1, ann.y1, radius, 0, 2 * Math.PI);
-                                ctx.stroke();
-                                break;
+                                ctx.beginPath(); ctx.arc(a.x1,a.y1,Math.hypot(a.x2-a.x1,a.y2-a.y1),0,Math.PI*2); ctx.stroke(); break;
                             case 'rect':
-                                ctx.strokeRect(ann.x1, ann.y1, ann.x2 - ann.x1, ann.y2 - ann.y1);
-                                break;
+                                ctx.strokeRect(a.x1,a.y1,a.x2-a.x1,a.y2-a.y1); break;
                         }
                     });
-                } catch(e) {
-                    console.error('Error drawing annotations:', e);
-                }
+                } catch(e) { console.error('Annotation error:', e); }
             }
         };
-        img.src = imageUrl;
+        img.src = url;
     }
 
-    function drawArrow(ctx, x1, y1, x2, y2, color, width) {
-        const headlen = 15;
-        const angle = Math.atan2(y2 - y1, x2 - x1);
-        
+    function drawArrow(ctx,x1,y1,x2,y2,color,w) {
+        const a = Math.atan2(y2-y1,x2-x1), h = 15;
+        ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
         ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(x2, y2);
-        ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.sin(angle - Math.PI / 6));
-        ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.sin(angle + Math.PI / 6));
-        ctx.closePath();
-        ctx.fillStyle = color;
-        ctx.fill();
+        ctx.moveTo(x2,y2);
+        ctx.lineTo(x2-h*Math.cos(a-Math.PI/6),y2-h*Math.sin(a-Math.PI/6));
+        ctx.lineTo(x2-h*Math.cos(a+Math.PI/6),y2-h*Math.sin(a+Math.PI/6));
+        ctx.closePath(); ctx.fill();
     }
 
-    function closePhotoModal() {
-        document.getElementById('photoModal').classList.remove('active');
-    }
-
-    // Close modal on Escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closePhotoModal();
-        }
-    });
+    function closePhoto() { document.getElementById('photoModal').classList.remove('active'); }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closePhoto(); });
     </script>
 </body>
 </html>

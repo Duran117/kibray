@@ -4245,10 +4245,52 @@ def changeorder_detail_view(request, changeorder_id):
 
         tm_preview = ChangeOrderService.get_billable_amount(changeorder)
 
+    # Enrich time entries and expenses for real-time cost display
+    time_entries = list(
+        changeorder.time_entries.select_related("employee")
+        .order_by("-date", "-start_time")
+    )
+    expenses = list(
+        changeorder.expenses.all().order_by("-date")
+    )
+    is_admin = request.user.is_staff or request.user.is_superuser
+
+    # Compute cost breakdown for both FIXED and T&M
+    billing_rate = changeorder.get_effective_billing_rate()
+    total_labor_hours = sum(
+        (te.hours_worked or 0) for te in time_entries
+    )
+    total_labor_cost = float(total_labor_hours) * float(billing_rate)
+    total_material_cost = sum(float(e.amount or 0) for e in expenses)
+    markup_pct = float(changeorder.material_markup_percent or 0)
+    total_material_with_markup = total_material_cost * (1 + markup_pct / 100)
+    grand_total = total_labor_cost + total_material_with_markup
+
+    cost_data = {
+        "billing_rate": billing_rate,
+        "total_labor_hours": total_labor_hours,
+        "total_labor_cost": round(total_labor_cost, 2),
+        "total_material_cost": round(total_material_cost, 2),
+        "markup_pct": markup_pct,
+        "total_material_with_markup": round(total_material_with_markup, 2),
+        "grand_total": round(grand_total, 2),
+        "labor_pct": round((total_labor_cost / grand_total * 100) if grand_total > 0 else 0, 1),
+        "material_pct": round((total_material_with_markup / grand_total * 100) if grand_total > 0 else 0, 1),
+        "time_entry_count": len(time_entries),
+        "expense_count": len(expenses),
+    }
+
     return render(
         request,
         "core/changeorder_detail_standalone.html",
-        {"changeorder": changeorder, "tm_preview": tm_preview},
+        {
+            "changeorder": changeorder,
+            "tm_preview": tm_preview,
+            "time_entries": time_entries,
+            "expenses": expenses,
+            "cost_data": cost_data,
+            "is_admin": is_admin,
+        },
     )
 
 
