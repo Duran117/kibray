@@ -107,10 +107,14 @@ class ProjectChatConsumer(RateLimitMixin, AsyncWebsocketConsumer):
             return True
         
         # Check if user is the client contact for this project
+        # project.client is a CharField (plain text), not a FK
         if project.client:
-            if project.client.email == self.user.email:
-                return True
-            if project.client.user_id == self.user.id:
+            client_text = project.client.strip().lower()
+            if client_text and client_text in (
+                self.user.email.lower(),
+                self.user.get_full_name().lower(),
+                self.user.username.lower(),
+            ):
                 return True
         
         # Check if user is assigned to the project

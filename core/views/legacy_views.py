@@ -180,14 +180,15 @@ def _check_user_project_access(user, project):
         return True, None
     
     # Check if user is the client contact for this project
+    # project.client is a CharField (plain text), not a FK.
+    # Match by comparing stored name/email text with the user's info.
     if project.client:
-        # Check by email
-        if project.client.email and project.client.email == user.email:
-            return True, None
-        # Check by linked user
-        if hasattr(project.client, 'user') and project.client.user == user:
-            return True, None
-        if project.client.user_id == user.id:
+        client_text = project.client.strip().lower()
+        if client_text and (
+            client_text == user.email.lower()
+            or client_text == user.get_full_name().lower()
+            or client_text == user.username.lower()
+        ):
             return True, None
     
     # Check if user is assigned to the project (for workers/PMs)
@@ -2633,8 +2634,13 @@ def client_documents_view(request, project_id):
     ).exists()
     
     is_project_client = False
-    if project.client and hasattr(project.client, 'user'):
-        is_project_client = project.client.user == request.user
+    if project.client:
+        client_text = project.client.strip().lower()
+        is_project_client = client_text in (
+            request.user.email.lower(),
+            request.user.get_full_name().lower(),
+            request.user.username.lower(),
+        )
     
     if profile and profile.role == "client":
         if not (has_explicit_access or is_project_client):
@@ -12716,11 +12722,14 @@ def file_download(request, file_id):
         has_access = ClientProjectAccess.objects.filter(
             user=request.user, project=file_obj.project
         ).exists()
-        is_project_client = (
-            file_obj.project.client and 
-            hasattr(file_obj.project.client, 'user') and 
-            file_obj.project.client.user == request.user
-        )
+        is_project_client = False
+        if file_obj.project.client:
+            _ct = file_obj.project.client.strip().lower()
+            is_project_client = _ct in (
+                request.user.email.lower(),
+                request.user.get_full_name().lower(),
+                request.user.username.lower(),
+            )
         if not (has_access or is_project_client):
             return HttpResponseForbidden("No tienes acceso a este proyecto")
 
@@ -12858,11 +12867,14 @@ def file_details_api(request, file_id):
         has_access = ClientProjectAccess.objects.filter(
             user=request.user, project=file_obj.project
         ).exists()
-        is_project_client = (
-            file_obj.project.client and 
-            hasattr(file_obj.project.client, 'user') and 
-            file_obj.project.client.user == request.user
-        )
+        is_project_client = False
+        if file_obj.project.client:
+            _ct = file_obj.project.client.strip().lower()
+            is_project_client = _ct in (
+                request.user.email.lower(),
+                request.user.get_full_name().lower(),
+                request.user.username.lower(),
+            )
         if not (has_access or is_project_client):
             return JsonResponse({"error": "No tienes acceso a este proyecto"}, status=403)
     
@@ -13031,11 +13043,14 @@ def file_toggle_favorite(request, file_id):
         has_access = ClientProjectAccess.objects.filter(
             user=request.user, project=file_obj.project
         ).exists()
-        is_project_client = (
-            file_obj.project.client and 
-            hasattr(file_obj.project.client, 'user') and 
-            file_obj.project.client.user == request.user
-        )
+        is_project_client = False
+        if file_obj.project.client:
+            _ct = file_obj.project.client.strip().lower()
+            is_project_client = _ct in (
+                request.user.email.lower(),
+                request.user.get_full_name().lower(),
+                request.user.username.lower(),
+            )
         if not (has_access or is_project_client):
             return JsonResponse({"error": "No tienes acceso"}, status=403)
     

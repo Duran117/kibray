@@ -43,8 +43,12 @@ def client_project_calendar_view(request, project_id):
             # Check modern ClientProjectAccess
             if ClientProjectAccess.objects.filter(user=request.user, project=project).exists():
                 has_access = True
-            # Also check legacy client field
-            elif project.client and project.client.user == request.user:
+            # Also check legacy client CharField (plain text match)
+            elif project.client and project.client.strip().lower() in (
+                request.user.email.lower(),
+                request.user.get_full_name().lower(),
+                request.user.username.lower(),
+            ):
                 has_access = True
 
     if not has_access:
@@ -115,8 +119,12 @@ def client_calendar_api_data(request, project_id):
             # Check modern ClientProjectAccess
             if ClientProjectAccess.objects.filter(user=request.user, project=project).exists():
                 has_access = True
-            # Also check legacy client field
-            elif project.client and project.client.user == request.user:
+            # Also check legacy client CharField (plain text match)
+            elif project.client and project.client.strip().lower() in (
+                request.user.email.lower(),
+                request.user.get_full_name().lower(),
+                request.user.username.lower(),
+            ):
                 has_access = True
 
     if not has_access:
@@ -212,8 +220,12 @@ def client_calendar_milestone_detail(request, item_id):
             # Check modern ClientProjectAccess
             if ClientProjectAccess.objects.filter(user=request.user, project=project).exists():
                 has_access = True
-            # Also check legacy client field
-            elif project.client and project.client.user == request.user:
+            # Also check legacy client CharField (plain text match)
+            elif project.client and project.client.strip().lower() in (
+                request.user.email.lower(),
+                request.user.get_full_name().lower(),
+                request.user.username.lower(),
+            ):
                 has_access = True
 
     if not has_access:
