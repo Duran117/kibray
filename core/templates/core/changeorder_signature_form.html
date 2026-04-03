@@ -360,7 +360,7 @@
                         <i class="fas fa-dollar-sign"></i>
                         <div class="info-content">
                             <div class="info-label">{% trans "Amount" %}</div>
-                            <div class="info-value amount">${{ changeorder.amount|floatformat:2 }}</div>
+                            <div class="info-value amount">{{ changeorder.amount|currency }}</div>
                         </div>
                     </div>
                     {% else %}
@@ -370,7 +370,7 @@
                         <div class="info-content">
                             <div class="info-label">{% trans "Labor Rate" %}</div>
                             <div class="info-value">
-                                {% if changeorder.labor_rate_override %}${{ changeorder.labor_rate_override|floatformat:2 }}/hr{% else %}{% trans "Project Default" %}{% endif %}
+                                {% if changeorder.labor_rate_override %}{{ changeorder.labor_rate_override|currency }}/hr{% else %}{% trans "Project Default" %}{% endif %}
                             </div>
                         </div>
                     </div>
@@ -379,21 +379,21 @@
                         <i class="fas fa-user-clock"></i>
                         <div class="info-content">
                             <div class="info-label">{% trans "Labor" %} ({{ tm_breakdown.labor_hours|floatformat:1 }}h)</div>
-                            <div class="info-value">${{ tm_breakdown.labor_total|floatformat:2 }}</div>
+                            <div class="info-value">{{ tm_breakdown.labor_total|currency }}</div>
                         </div>
                     </div>
                     <div class="info-item">
                         <i class="fas fa-boxes"></i>
                         <div class="info-content">
                             <div class="info-label">{% trans "Materials" %} {% if tm_breakdown.material_markup_pct %}(+{{ tm_breakdown.material_markup_pct }}%){% endif %}</div>
-                            <div class="info-value">${{ tm_breakdown.material_total|floatformat:2 }}</div>
+                            <div class="info-value">{{ tm_breakdown.material_total|currency }}</div>
                         </div>
                     </div>
                     <div class="info-item" style="background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; padding: 12px;">
                         <i class="fas fa-calculator" style="color: white;"></i>
                         <div class="info-content">
                             <div class="info-label" style="color: rgba(255,255,255,0.8);">{% trans "Current Total" %}</div>
-                            <div class="info-value amount" style="color: white; font-size: 1.5rem;">${{ tm_breakdown.grand_total|floatformat:2 }}</div>
+                            <div class="info-value amount" style="color: white; font-size: 1.5rem;">{{ tm_breakdown.grand_total|currency }}</div>
                         </div>
                     </div>
                     {% endif %}

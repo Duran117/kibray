@@ -144,7 +144,7 @@
                         <i class="bi bi-file-earmark-text me-1"></i>{% trans "View CO" %} #{{ r.change_order.id }}
                     </a>
                 </div>
-                {% elif not r.change_order %}
+                {% elif request.user.is_staff and not r.change_order %}
                 <div class="request-actions">
                     <a href="{% url 'client_request_convert' r.id %}" class="btn-convert">
                         <i class="bi bi-arrow-right-circle"></i>{% trans "Convert to CO" %}
@@ -200,12 +200,14 @@
                             </td>
                             <td>{{ r.created_at|date:"M d, Y H:i" }}</td>
                             <td>
-                                {% if not r.change_order %}
+                                {% if r.change_order %}
+                                <span class="badge bg-secondary">{% trans "Converted" %}</span>
+                                {% elif request.user.is_staff %}
                                 <a class="btn btn-sm btn-success" href="{% url 'client_request_convert' r.id %}">
                                     <i class="bi bi-arrow-right-circle me-1"></i>{% trans "Convert" %}
                                 </a>
                                 {% else %}
-                                <span class="badge bg-secondary">{% trans "Converted" %}</span>
+                                <span class="text-muted">—</span>
                                 {% endif %}
                             </td>
                         </tr>
