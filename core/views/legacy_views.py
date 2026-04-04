@@ -4706,6 +4706,8 @@ def changeorder_contractor_signature_view(request, changeorder_id):
 
 @login_required
 def changeorder_create_view(request):
+    if not _is_staffish(request.user):
+        return redirect("dashboard")
     if request.method == "POST":
         form = ChangeOrderForm(request.POST, request.FILES)
         if form.is_valid():
@@ -4750,6 +4752,8 @@ def changeorder_create_view(request):
 @login_required
 def changeorder_edit_view(request, co_id):
     """Editar un Change Order existente"""
+    if not _is_staffish(request.user):
+        return redirect("dashboard")
     changeorder = get_object_or_404(ChangeOrder, id=co_id)
     if request.method == "POST":
         form = ChangeOrderForm(request.POST, request.FILES, instance=changeorder)
@@ -4796,6 +4800,8 @@ def changeorder_edit_view(request, co_id):
 @login_required
 def changeorder_delete_view(request, co_id):
     """Eliminar un Change Order"""
+    if not _is_staffish(request.user):
+        return redirect("dashboard")
     changeorder = get_object_or_404(ChangeOrder, id=co_id)
     if request.method == "POST":
         changeorder.delete()
