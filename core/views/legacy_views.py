@@ -6002,6 +6002,8 @@ def project_profit_dashboard(request, project_id):
 @login_required
 def costcode_list_view(request):
     """Cost Code management view with full CRUD operations."""
+    if not _is_staffish(request.user):
+        return redirect("dashboard")
     codes = CostCode.objects.all().order_by("category", "code")
     
     # Default categories for construction
@@ -7079,6 +7081,8 @@ def navigation_app_view(request):
 # --- PROJECT EV ---
 @login_required
 def project_ev_view(request, project_id):
+    if not _is_staffish(request.user):
+        return redirect("dashboard")
     project = get_object_or_404(Project, pk=project_id)
 
     # ?as_of=YYYY-MM-DD
@@ -7206,6 +7210,8 @@ def project_ev_view(request, project_id):
 
 @login_required
 def project_ev_series(request, project_id):
+    if not _is_staffish(request.user):
+        return JsonResponse({"error": "forbidden"}, status=403)
     project = get_object_or_404(Project, pk=project_id)
     days = int(request.GET.get("days", 30))
     end_str = request.GET.get("end")
@@ -7233,6 +7239,8 @@ def project_ev_series(request, project_id):
 
 @login_required
 def project_ev_csv(request, project_id):
+    if not _is_staffish(request.user):
+        return redirect("dashboard")
     project = get_object_or_404(Project, pk=project_id)
     days = int(request.GET.get("days", 45))
     end_str = request.GET.get("end")
@@ -15612,6 +15620,8 @@ def project_financials_hub(request, project_id):
     Para PM (no admin): muestra Working Budget (-30%) 
     Para Admin/Superuser: muestra Budget real completo
     """
+    if not _is_staffish(request.user):
+        return redirect("dashboard")
     project = get_object_or_404(Project, pk=project_id)
     
     # Determinar si es PM (no admin)
@@ -15704,6 +15714,8 @@ def project_budget_detail(request, project_id):
     Vista de detalle del budget con capacidad de agregar/editar/eliminar líneas.
     Solo staff/admin puede editar.
     """
+    if not _is_staffish(request.user):
+        return redirect("dashboard")
     project = get_object_or_404(Project, pk=project_id)
     
     # Verificar permisos de edición
@@ -15797,6 +15809,8 @@ def project_cost_codes(request, project_id):
     Gestión de Cost Codes - códigos para categorizar costos.
     Solo admin puede crear/editar.
     """
+    if not _is_staffish(request.user):
+        return redirect("dashboard")
     project = get_object_or_404(Project, pk=project_id)
     
     can_edit = request.user.is_staff or request.user.is_superuser
