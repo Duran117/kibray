@@ -1814,10 +1814,9 @@ def payroll_weekly_review(request):
                         continue
                     
                     # Verificar si el empleado ya está completamente pagado
-                    current_balance = record.balance_due
+                    current_balance = record.balance_due()
                     if current_balance <= 0:
                         # Ya está pagado completamente, no crear más pagos
-                        logger.info(f"[Payroll] Skipping {emp.first_name} - already fully paid (balance_due={current_balance})")
                         continue
                     
                     # Usar el total_pay ACTUAL del record para calcular savings
