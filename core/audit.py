@@ -8,7 +8,7 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
-from core.models import AuditLog, Invoice, LoginAttempt, Project, Task
+from core.models import AuditLog, Invoice, LoginAttempt, Profile, Project, Task
 
 User = get_user_model()
 
@@ -118,8 +118,14 @@ def log_user_login(sender, request, user, **kwargs):
 
 @receiver(user_logged_out)
 def log_user_logout(sender, request, user, **kwargs):
-    """Track logouts"""
+    """Track logouts and clear active session key"""
     if user:
+        # Clear the active session key so no stale key remains
+        try:
+            Profile.objects.filter(user=user).update(active_session_key="")
+        except Exception:
+            pass
+
         log_audit_action(
             user=user,
             action="logout",

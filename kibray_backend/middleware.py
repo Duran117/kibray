@@ -1,4 +1,5 @@
 from django.contrib.sessions.models import Session
+from django.shortcuts import redirect
 from django.utils import timezone, translation
 
 
@@ -54,7 +55,11 @@ class SingleSessionMiddleware:
 
         # Only enforce for authenticated users with session-based auth
         if request.user.is_authenticated and request.session.session_key:
-            self._enforce_single_session(request)
+            stale = self._enforce_single_session(request)
+            if stale:
+                # Session was flushed — redirect to login immediately
+                from django.conf import settings
+                return redirect(getattr(settings, "LOGIN_URL", "/login/"))
 
         return self.get_response(request)
 
@@ -67,13 +72,15 @@ class SingleSessionMiddleware:
         - If no stored key → store it (first visit after login).
         - If stored key matches → fine, continue.
         - If stored key differs → THIS session is stale, flush it.
+        
+        Returns True if the session was stale and flushed, False otherwise.
         """
         from core.models import Profile
 
         try:
             profile = Profile.objects.filter(user=request.user).first()
             if not profile:
-                return
+                return False
 
             current_session_key = request.session.session_key
             stored_key = profile.active_session_key
@@ -84,6 +91,7 @@ class SingleSessionMiddleware:
                 Profile.objects.filter(pk=profile.pk).update(
                     active_session_key=current_session_key
                 )
+                return False
             elif stored_key != current_session_key:
                 # A DIFFERENT session is the active one.
                 # Verify the active session actually exists before flushing this one.
@@ -95,14 +103,17 @@ class SingleSessionMiddleware:
                 if active_session_exists:
                     # The other session is truly active → flush THIS (old) session
                     request.session.flush()
+                    return True
                 else:
                     # The stored session expired/was deleted → THIS is now the active one
                     Profile.objects.filter(pk=profile.pk).update(
                         active_session_key=current_session_key
                     )
+                    return False
         except Exception:
             # Never let session enforcement crash the app
             pass
+        return False
 
 
 class SingleSessionLoginSignal:

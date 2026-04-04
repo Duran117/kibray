@@ -9,9 +9,6 @@ Responsabilidades:
 
 import contextlib
 
-from django.contrib.auth.signals import user_logged_in, user_logged_out
-from django.contrib.sessions.models import Session
-from django.core.cache import cache
 from django.db import models
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
@@ -245,50 +242,9 @@ def handle_task_image_versioning(sender, instance, created, **kwargs):
 # ======================================================
 # SECURITY: Single active session per user
 # ======================================================
-
-
-def _active_session_cache_key(user_id: int) -> str:
-    return f"active_session:{user_id}"
-
-
-def _revoke_session(session_key: str) -> None:
-    if not session_key:
-        return
-    # If session backend is not DB-backed, ignore
-    with contextlib.suppress(Exception):
-        Session.objects.filter(session_key=session_key).delete()
-
-
-def handle_user_logged_in(sender, request, user, **kwargs):
-    """Ensure user has only one active session: revoke any previous key."""
-    try:
-        new_key = getattr(request.session, "session_key", None)
-        if not new_key:
-            # Ensure the session is saved to get a key
-            request.session.save()
-            new_key = request.session.session_key
-        cache_key = _active_session_cache_key(user.id)
-        try:
-            old_key = cache.get(cache_key)
-            if old_key and old_key != new_key:
-                _revoke_session(old_key)
-            cache.set(cache_key, new_key, timeout=None)
-        except (ConnectionError, TimeoutError, OSError, Exception):
-            # Redis unavailable - skip session tracking, login still works
-            pass
-    except (SystemExit, BaseException):
-        # Critical error - don't block login
-        pass
-
-
-def handle_user_logged_out(sender, request, user, **kwargs):
-    try:
-        cache_key = _active_session_cache_key(user.id)
-        cache.delete(cache_key)
-    except (ConnectionError, TimeoutError, OSError, SystemExit, BaseException):
-        # Redis unavailable - skip, logout still works
-        pass
-
-
-user_logged_in.connect(handle_user_logged_in)
-user_logged_out.connect(handle_user_logged_out)
+# NOTE: Session enforcement is handled EXCLUSIVELY by:
+#   - kibray_backend/middleware.py  (SingleSessionMiddleware)
+#   - core/audit.py                (SingleSessionLoginSignal.on_login via user_logged_in signal)
+# These use Profile.active_session_key (DB) as the single source of truth.
+# Do NOT add a second session tracking system here (e.g. Redis cache)
+# as it conflicts with the middleware and causes session invalidation loops.

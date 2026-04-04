@@ -8,6 +8,7 @@ class CoreConfig(AppConfig):
     def ready(self):
         """Import signals and apply runtime compatibility shims."""
         import core.signals  # noqa
+        import core.audit  # noqa – registers user_logged_in/out signal handlers
 
         # Runtime shim: tolerate `is_archived` kwarg on Project even if field is missing
         try:
