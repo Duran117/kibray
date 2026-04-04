@@ -7,6 +7,7 @@ from functools import wraps
 import io
 from io import BytesIO
 import json
+import logging
 import re
 
 from django.conf import settings
@@ -40,6 +41,8 @@ try:
     from xhtml2pdf import pisa  # Optional HTML->PDF engine (requires system cairo libs)
 except Exception:  # Build may omit system deps (Railway minimal image)
     pisa = None
+
+logger = logging.getLogger(__name__)
 
 
 # Fallback lightweight PDF generator (text only) using ReportLab
@@ -2343,7 +2346,7 @@ def manual_timeentry_create(request):
     
     employees = Employee.objects.filter(is_active=True).order_by('last_name', 'first_name')
     projects = Project.objects.filter(is_archived=False).order_by('name')
-    change_orders = ChangeOrder.objects.filter(status='approved').order_by('-created_at')[:100]
+    change_orders = ChangeOrder.objects.filter(status='approved').order_by('-date_created')[:100]
     
     if request.method == "POST":
         employee_id = request.POST.get("employee_id")
@@ -4241,6 +4244,9 @@ def agregar_comentario(request, project_id):
 # --- CHANGE ORDER ---
 @login_required
 def changeorder_detail_view(request, changeorder_id):
+    if not _is_staffish(request.user):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
     changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
 
     # Compute T&M preview if applicable
@@ -4306,6 +4312,9 @@ def changeorder_billing_history_view(request, changeorder_id):
     Shows all InvoiceLines with breakdown of labor vs materials.
     Admin/PM only.
     """
+    if not _is_staffish(request.user):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
     changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
 
     # Get all invoice lines related to this CO through TimeEntry or Expense
@@ -4376,6 +4385,9 @@ def changeorder_cost_breakdown_view(request, changeorder_id):
     Vista estilo factura para mostrar el desglose de costos de un Change Order.
     Separa Materiales vs Mano de Obra para fácil envío al cliente.
     """
+    if not _is_staffish(request.user):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
     from decimal import Decimal
 
     from django.db.models import Sum
@@ -4550,8 +4562,7 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
                 )
             except Exception as task_error:
                 # If Celery is not available, log but don't block
-                import logging
-                logging.getLogger(__name__).warning(f"Background task failed, will process inline: {task_error}")
+                logger.warning(f"Background task failed, will process inline: {task_error}")
                 # Fallback: process synchronously but with timeout protection
                 try:
                     from core.services.email_service import KibrayEmailService
@@ -4614,7 +4625,7 @@ def changeorder_contractor_signature_view(request, changeorder_id):
     # Check if contractor already signed
     if changeorder.contractor_signature:
         messages.info(request, "Este Change Order ya fue firmado por el contratista.")
-        return redirect("changeorder_detail", co_id=changeorder.id)
+        return redirect("changeorder_detail", changeorder_id=changeorder.id)
 
     if request.method == "POST":
         import base64
@@ -4671,11 +4682,10 @@ def changeorder_contractor_signature_view(request, changeorder_id):
                         from core.services.document_storage_service import auto_save_signed_document
                         auto_save_signed_document(changeorder, "changeorder")
                 except Exception as e:
-                    import logging
-                    logging.getLogger(__name__).warning(f"Error regenerating PDF: {e}")
+                    logger.warning(f"Error regenerating PDF: {e}")
 
-            messages.success(request, f"Change Order #{changeorder.co_number} firmado exitosamente como contratista.")
-            return redirect("changeorder_detail", co_id=changeorder.id)
+            messages.success(request, f"Change Order #{changeorder.id} firmado exitosamente como contratista.")
+            return redirect("changeorder_detail", changeorder_id=changeorder.id)
             
         except Exception as e:
             messages.error(request, f"Error procesando la firma: {e}")
@@ -4933,6 +4943,9 @@ def color_sample_client_signature_view(request, sample_id, token=None):
 
 @login_required
 def changeorder_board_view(request):
+    if not _is_staffish(request.user):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
     qs = ChangeOrder.objects.select_related("project").order_by("-date_created")
     status = request.GET.get("status")
     project_id = request.GET.get("project")
@@ -5426,6 +5439,9 @@ def invoice_list(request):
     """
     Invoice list view with filtering by status and project.
     """
+    if not _is_staffish(request.user):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
     invoices = (
         Invoice.objects.select_related("project")
         .prefetch_related("lines", "payments")
@@ -5489,6 +5505,9 @@ def invoice_detail(request, pk):
     Modern Invoice Detail View with full financial integration.
     Shows invoice details, payment history, related COs, and actions.
     """
+    if not _is_staffish(request.user):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
     invoice = get_object_or_404(
         Invoice.objects.select_related("project")
         .prefetch_related("lines", "payments", "change_orders"),
@@ -5548,6 +5567,9 @@ def invoice_detail(request, pk):
 
 @login_required
 def invoice_pdf(request, pk):
+    if not _is_staffish(request.user):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
     invoice = get_object_or_404(Invoice, pk=pk)
     template = get_template("core/invoice_pdf.html")
     context = {
@@ -5568,6 +5590,8 @@ def invoice_pdf(request, pk):
 
 @login_required
 def changeorders_ajax(request):
+    if not _is_staffish(request.user):
+        return JsonResponse({"error": "Access denied"}, status=403)
     project_id = request.GET.get("project_id")
     status_filter = request.GET.get("status", "all")
     
@@ -5600,6 +5624,8 @@ def changeorders_ajax(request):
 
 @login_required
 def changeorder_lines_ajax(request):
+    if not _is_staffish(request.user):
+        return JsonResponse({"error": "Access denied"}, status=403)
     ids = request.GET.getlist("ids[]")
     qs = ChangeOrder.objects.filter(id__in=ids)
     lines = [{"description": co.description, "amount": float(co.amount)} for co in qs]
@@ -5612,6 +5638,9 @@ def invoice_payment_dashboard(request):
     Dashboard showing SENT invoices awaiting payment.
     Allows quick payment recording with check/transfer details.
     """
+    if not _is_staffish(request.user):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
     # Show invoices that are SENT, VIEWED, APPROVED, PARTIAL, or OVERDUE (not DRAFT, PAID, CANCELLED)
     pending_invoices = (
         Invoice.objects.filter(status__in=["SENT", "VIEWED", "APPROVED", "PARTIAL", "OVERDUE"])
@@ -5644,6 +5673,9 @@ def record_invoice_payment(request, invoice_id):
     Quick payment recording form.
     Creates InvoicePayment, updates Invoice.amount_paid, triggers status update.
     """
+    if not _is_staffish(request.user):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
     invoice = get_object_or_404(Invoice, pk=invoice_id)
 
     if request.method == "POST":
@@ -5690,6 +5722,9 @@ def record_invoice_payment(request, invoice_id):
 @transaction.atomic
 def invoice_mark_sent(request, invoice_id):
     """Mark invoice as SENT and record sent_date and sent_by."""
+    if not _is_staffish(request.user):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
     invoice = get_object_or_404(Invoice, pk=invoice_id)
 
     if invoice.status == "DRAFT":
@@ -5703,8 +5738,7 @@ def invoice_mark_sent(request, invoice_id):
             from core.services.document_storage_service import auto_save_invoice_pdf
             auto_save_invoice_pdf(invoice, user=request.user, overwrite=True)
         except Exception as e:
-            import logging
-            logging.getLogger(__name__).warning(f"Failed to auto-save Invoice PDF: {e}")
+            logger.warning(f"Failed to auto-save Invoice PDF: {e}")
         
         messages.success(
             request,
@@ -5724,6 +5758,9 @@ def invoice_mark_sent(request, invoice_id):
 @transaction.atomic
 def invoice_mark_approved(request, invoice_id):
     """Mark invoice as APPROVED by client."""
+    if not _is_staffish(request.user):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
     invoice = get_object_or_404(Invoice, pk=invoice_id)
 
     if invoice.status in ["DRAFT", "SENT", "VIEWED"]:
@@ -5751,6 +5788,9 @@ def invoice_delete(request, invoice_id):
     """
     Delete an invoice. Only allowed for DRAFT or CANCELLED invoices.
     """
+    if not _is_staffish(request.user):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
     invoice = get_object_or_404(Invoice, pk=invoice_id)
     
     # Only allow deletion of DRAFT or CANCELLED invoices
@@ -5795,6 +5835,9 @@ def invoice_cancel(request, invoice_id):
     """
     Cancel an invoice. Changes status to CANCELLED.
     """
+    if not _is_staffish(request.user):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
     invoice = get_object_or_404(Invoice, pk=invoice_id)
     
     if invoice.status == "PAID":
@@ -6045,8 +6088,6 @@ def budget_lines_view(request, project_id):
 @login_required
 @staff_member_required
 def estimate_create_view(request, project_id):
-    import logging
-    logger = logging.getLogger(__name__)
     
     project = get_object_or_404(Project, pk=project_id)
     version = (project.estimates.aggregate(m=Max("version"))["m"] or 0) + 1
@@ -6111,8 +6152,6 @@ def estimate_create_view(request, project_id):
 @login_required
 def estimate_edit_view(request, estimate_id):
     """Edit an existing estimate."""
-    import logging
-    logger = logging.getLogger(__name__)
     
     estimate = get_object_or_404(Estimate, pk=estimate_id)
     project = estimate.project
@@ -6181,8 +6220,6 @@ def estimate_edit_view(request, estimate_id):
 
 @login_required
 def estimate_detail_view(request, estimate_id):
-    import logging
-    logger = logging.getLogger(__name__)
     
     est = get_object_or_404(Estimate, pk=estimate_id)
     
@@ -6746,8 +6783,6 @@ def daily_log_create(request, project_id):
             form.fields["schedule_item"].label_from_instance = lambda obj: f"{obj.phase.name} → {obj.name}" if obj.phase else obj.name
 
     if request.method == "POST":
-        import logging
-        logger = logging.getLogger(__name__)
         
         form = DailyLogForm(request.POST, project=project)
         
@@ -12754,8 +12789,6 @@ def file_download(request, file_id):
             return response
         except FileNotFoundError:
             # File doesn't exist on disk - try to regenerate if it's a signed document
-            import logging
-            logger = logging.getLogger(__name__)
             logger.warning(f"File not found on disk: {file_obj.name}, attempting regeneration...")
             
             # Try to regenerate CO or ColorSample PDFs
@@ -12811,8 +12844,7 @@ def file_download(request, file_id):
             
             return HttpResponseNotFound("El archivo no está disponible. Por favor contacte al administrador.")
         except Exception as e:
-            import logging
-            logging.getLogger(__name__).error(f"File download error: {e}")
+            logger.error(f"File download error: {e}")
             return HttpResponseNotFound(f"Error al descargar: {str(e)}")
 
     return HttpResponseNotFound("Archivo no encontrado")
@@ -12930,8 +12962,6 @@ def file_details_api(request, file_id):
 def file_regenerate_pdf(request, file_id):
     """Regenerate PDF for Contract/Estimate documents - STAFF ONLY"""
     from core.models import ProjectFile, Estimate
-    import logging
-    logger = logging.getLogger(__name__)
     
     if not request.user.is_staff:
         return JsonResponse({"error": gettext("Solo staff puede regenerar PDFs")}, status=403)
@@ -13958,11 +13988,9 @@ def touchup_reject(request, touchup_id):
 @login_required
 def pin_info_ajax(request, pin_id):
     """Get info pin details via AJAX"""
-    import logging
 
     from core.models import PlanPin
 
-    logger = logging.getLogger(__name__)
 
     try:
         pin = get_object_or_404(PlanPin, id=pin_id)
@@ -14385,7 +14413,6 @@ def client_delete(request, user_id):
         action = request.POST.get("action", "deactivate")
 
         # SECURITY: Logging de auditoría para operaciones críticas
-        import logging
 
         audit_logger = logging.getLogger("django")
         audit_logger.warning(
@@ -14805,7 +14832,6 @@ def organization_delete(request, org_id):
         action = request.POST.get("action", "deactivate")
 
         # Logging de auditoría
-        import logging
         audit_logger = logging.getLogger("django")
         audit_logger.warning(
             f"ORGANIZATION_DELETE_ATTEMPT | Actor: {request.user.username} (ID:{request.user.id}) | "
@@ -14901,7 +14927,6 @@ def project_delete(request, project_id):
 
     if request.method == "POST":
         # SECURITY: Logging de auditoría
-        import logging
 
         audit_logger = logging.getLogger("django")
         audit_logger.warning(
@@ -15216,13 +15241,11 @@ def proposal_public_view(request, token):
                 # Use target_profit_pct from estimate if set, otherwise default 30%
                 profit_margin = estimate.target_profit_pct / Decimal("100") if estimate.target_profit_pct else None
                 budget_lines = create_budget_from_estimate(estimate, profit_margin=profit_margin)
-                import logging
-                logging.getLogger(__name__).info(
+                logger.info(
                     f"Auto-created {len(budget_lines)} budget lines for approved Estimate {estimate.code}"
                 )
             except Exception as e:
-                import logging
-                logging.getLogger(__name__).warning(f"Failed to auto-create budget from estimate: {e}")
+                logger.warning(f"Failed to auto-create budget from estimate: {e}")
             
             # --- Auto-create Contract from approved Estimate ---
             contract_url = None
@@ -15233,16 +15256,14 @@ def proposal_public_view(request, token):
                     user=None,
                     auto_generate_pdf=True
                 )
-                import logging
-                logging.getLogger(__name__).info(
+                logger.info(
                     f"Auto-created contract {contract.contract_number} from approved Estimate {estimate.code}"
                 )
                 # Build contract signing URL
                 from django.urls import reverse
                 contract_url = reverse('contract_client_view', kwargs={'token': contract.client_view_token})
             except Exception as e:
-                import logging
-                logging.getLogger(__name__).warning(f"Failed to auto-create contract from estimate: {e}")
+                logger.warning(f"Failed to auto-create contract from estimate: {e}")
             
             # --- Auto-save Estimate/Contract PDF to Project Files (legacy, keep for backward compatibility) ---
             try:
@@ -15250,8 +15271,7 @@ def proposal_public_view(request, token):
                 # Save as contract since it's been approved
                 auto_save_estimate_pdf(estimate, user=None, as_contract=True, overwrite=True)
             except Exception as e:
-                import logging
-                logging.getLogger(__name__).warning(f"Failed to auto-save Estimate PDF: {e}")
+                logger.warning(f"Failed to auto-save Estimate PDF: {e}")
             
             # Redirect to contract signing page if contract was created
             if contract_url:
@@ -15607,8 +15627,16 @@ def project_financials_hub(request, project_id):
     # Working budget para PM = total - 30%
     working_budget = total_budget * Decimal('0.70') if total_budget else Decimal('0')
     
-    # TODO: Calcular spent desde expenses/invoices reales
-    total_spent = Decimal('0')
+    # Calculate actual spent from expenses linked to project
+    from django.db.models import Sum as DJSum
+    total_spent = project.expenses.aggregate(total=DJSum('amount'))['total'] or Decimal('0')
+    
+    # Also include labor cost from time entries
+    time_labor_cost = Decimal('0')
+    for te in TimeEntry.objects.filter(project=project).select_related('employee'):
+        rate = te.employee.hourly_rate if te.employee and te.employee.hourly_rate else Decimal('0')
+        time_labor_cost += (te.hours_worked or Decimal('0')) * rate
+    total_spent += time_labor_cost
     
     # Remaining
     if is_pm and not request.user.is_superuser:
@@ -15623,6 +15651,13 @@ def project_financials_hub(request, project_id):
     margin_percentage = 30 if is_pm else (int((remaining / total_budget * 100)) if total_budget else 0)
     
     # Preparar datos de líneas para display
+    # Pre-compute expense totals per cost_code for per-line breakdown
+    from core.models import Expense
+    expense_by_costcode = {}
+    for exp in Expense.objects.filter(project=project).values('cost_code_id').annotate(total=DJSum('amount')):
+        if exp['cost_code_id']:
+            expense_by_costcode[exp['cost_code_id']] = exp['total'] or Decimal('0')
+    
     lines_data = []
     for line in budget_lines:
         line_budget = line.revised_amount or line.baseline_amount
@@ -15632,10 +15667,10 @@ def project_financials_hub(request, project_id):
         else:
             line_display_budget = line_budget
         
-        line_spent = Decimal('0')  # TODO: calcular desde expenses
+        line_spent = expense_by_costcode.get(line.cost_code_id, Decimal('0'))
         line_remaining = line_display_budget - line_spent
         line_spent_pct = (line_spent / line_display_budget * 100) if line_display_budget else 0
-        line_remaining_pct = 100 - line_spent_pct
+        line_remaining_pct = 100 - float(line_spent_pct)
         
         lines_data.append({
             'cost_code': line.cost_code,

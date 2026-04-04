@@ -103,7 +103,7 @@
                 <div class="section-header"><i class="bi bi-file-diff"></i> {% trans "Change Orders" %}</div>
                 <div class="row g-3 mb-4">
                     {% for co in change_orders %}
-                    <div class="col-md-6"><div class="summary-card"><span class="fw-bold">CO-{{ co.co_number }}</span> <span class="text-success float-end">+${{ co.total_price|floatformat:2 }}</span></div></div>
+                    <div class="col-md-6"><div class="summary-card"><span class="fw-bold">CO #{{ co.id }} — {{ co.title|truncatewords:5 }}</span> <span class="text-success float-end">+${{ co.amount|floatformat:2 }}</span></div></div>
                     {% endfor %}
                 </div>
                 {% endif %}

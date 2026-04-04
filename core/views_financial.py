@@ -225,6 +225,9 @@ def invoice_aging_report(request):
     Invoice aging report showing unpaid invoices by age buckets.
     Buckets: Current (0-30), 31-60, 61-90, 90+ days
     """
+    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role in ('admin', 'project_manager'))):
+        messages.error(request, "No tienes permiso para acceder a esta función.")
+        return redirect("dashboard")
     today = timezone.now().date()
 
     aging_buckets = {
@@ -406,6 +409,9 @@ def export_financial_data(request):
     Export financial data to CSV for importing into QuickBooks or Excel.
     Formats: Income, Expenses, Invoices
     """
+    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role in ('admin', 'project_manager'))):
+        messages.error(request, "No tienes permiso para acceder a esta función.")
+        return redirect("dashboard")
     export_type = request.GET.get("type", "expenses")  # expenses, income, invoices
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
