@@ -39,7 +39,7 @@ class SingleSessionMiddleware:
     """
 
     # Paths to skip (health checks, static files, API with JWT)
-    SKIP_PATHS = ("/api/v1/health/", "/static/", "/favicon.ico")
+    SKIP_PATHS = ("/api/v1/health/", "/static/", "/favicon.ico", "/login/")
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -61,6 +61,12 @@ class SingleSessionMiddleware:
     def _enforce_single_session(self, request):
         """
         Ensure only one session per user. The LATEST login wins.
+        
+        Logic: on_login() stores the NEW session key in the profile.
+        Here we check: does the stored key match THIS request's key?
+        - If no stored key → store it (first visit after login).
+        - If stored key matches → fine, continue.
+        - If stored key differs → THIS session is stale, flush it.
         """
         from core.models import Profile
 
@@ -70,17 +76,30 @@ class SingleSessionMiddleware:
                 return
 
             current_session_key = request.session.session_key
+            stored_key = profile.active_session_key
 
-            if not profile.active_session_key:
-                # First login — just store the session key
+            # Treat 'None' (string), empty string, and NULL the same
+            if not stored_key or stored_key == 'None':
+                # No active session recorded — register THIS session
                 Profile.objects.filter(pk=profile.pk).update(
                     active_session_key=current_session_key
                 )
-            elif profile.active_session_key != current_session_key:
-                # Different session detected — this means user logged in from another device.
-                # The OTHER device has the "active" session. THIS session is the old one.
-                # Flush THIS session (force logout on this device).
-                request.session.flush()
+            elif stored_key != current_session_key:
+                # A DIFFERENT session is the active one.
+                # Verify the active session actually exists before flushing this one.
+                from django.contrib.sessions.models import Session
+                active_session_exists = Session.objects.filter(
+                    session_key=stored_key
+                ).exists()
+                
+                if active_session_exists:
+                    # The other session is truly active → flush THIS (old) session
+                    request.session.flush()
+                else:
+                    # The stored session expired/was deleted → THIS is now the active one
+                    Profile.objects.filter(pk=profile.pk).update(
+                        active_session_key=current_session_key
+                    )
         except Exception:
             # Never let session enforcement crash the app
             pass
