@@ -1296,9 +1296,8 @@ class ColorSampleReviewForm(forms.ModelForm):
 class FloorPlanForm(forms.ModelForm):
     class Meta:
         model = FloorPlan
-        fields = ["project", "name", "level", "level_identifier", "image"]
+        fields = ["name", "level", "level_identifier", "image"]
         widgets = {
-            "project": forms.Select(attrs={"class": "form-control"}),
             "name": forms.TextInput(
                 attrs={
                     "class": "form-control",

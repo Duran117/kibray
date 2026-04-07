@@ -3296,7 +3296,7 @@ def floor_plan_create(request, project_id):
             messages.success(request, "Plano subido.")
             return redirect("floor_plan_list", project_id=project_id)
     else:
-        form = FloorPlanForm(initial={"project": project})
+        form = FloorPlanForm()
     return render(
         request,
         "core/floor_plan_form.html",

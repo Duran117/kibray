@@ -207,6 +207,19 @@
     <form method="post" enctype="multipart/form-data" id="floorPlanForm">
       {% csrf_token %}
 
+      {% if form.errors %}
+      <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+        <p style="color: #dc2626; font-weight: 600; margin: 0 0 0.5rem 0;">{% trans "Please fix the following errors:" %}</p>
+        <ul style="color: #dc2626; margin: 0; padding-left: 1.5rem;">
+          {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+              <li>{{ field }}: {{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
       <div class="fp-form-group">
         <label class="fp-form-label" for="id_name">{% trans "Plan Name" %}</label>
         <input type="text" name="name" id="id_name" class="fp-form-input" 
@@ -220,14 +233,17 @@
       <div class="fp-form-row">
         <div class="fp-form-group">
           <label class="fp-form-label" for="id_level">{% trans "Level" %}</label>
-          <input type="text" name="level" id="id_level" class="fp-form-input"
-                 value="{{ form.instance.level|default:'' }}"
-                 placeholder="{% trans 'e.g., Floor 1, Basement' %}">
+          <input type="number" name="level" id="id_level" class="fp-form-input"
+                 value="{{ form.instance.level|default:'0' }}"
+                 min="-5" max="50"
+                 placeholder="0">
+          <p class="fp-form-help">{% trans "0 = Ground Floor, 1 = Level 1, -1 = Basement" %}</p>
         </div>
         <div class="fp-form-group">
-          <label class="fp-form-label" for="id_version">{% trans "Version" %}</label>
-          <input type="number" name="version" id="id_version" class="fp-form-input"
-                 value="{{ form.instance.version|default:'1' }}" min="1">
+          <label class="fp-form-label" for="id_level_identifier">{% trans "Level Identifier" %} <span style="color: var(--fp-secondary);">({% trans "optional" %})</span></label>
+          <input type="text" name="level_identifier" id="id_level_identifier" class="fp-form-input"
+                 value="{{ form.instance.level_identifier|default:'' }}"
+                 placeholder="{% trans 'e.g., Ground Floor, Basement' %}">
         </div>
       </div>
 
@@ -255,12 +271,6 @@
         {% if form.image.errors %}
         <p class="fp-error">{{ form.image.errors.0 }}</p>
         {% endif %}
-      </div>
-
-      <div class="fp-form-group">
-        <label class="fp-form-label" for="id_description">{% trans "Description" %} <span style="color: var(--fp-secondary);">({% trans "optional" %})</span></label>
-        <textarea name="description" id="id_description" class="fp-form-input" rows="3"
-                  placeholder="{% trans 'Add notes about this floor plan...' %}">{{ form.instance.description|default:'' }}</textarea>
       </div>
 
       <div class="fp-form-actions">
