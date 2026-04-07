@@ -78,13 +78,14 @@ const KibrayGanttApp: React.FC<KibrayGanttAppConfig> = ({
         dependencies: transformed.dependencies,
         loading: false,
       }));
-    } else if (projectId && apiRef.current) {
+    } else if (apiRef.current && (projectId || mode === 'master')) {
       loadData();
     }
   }, [initialData, projectId]);
 
   const loadData = async () => {
-    if (!apiRef.current || !projectId) return;
+    if (!apiRef.current) return;
+    if (!projectId && mode !== 'master') return;
 
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));

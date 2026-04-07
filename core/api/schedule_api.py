@@ -55,6 +55,112 @@ def _reject_readonly(request):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
+def get_master_gantt_v2(request):
+    """Master Schedule in V2 format for the React Gantt component.
+
+    Maps:  Project → Phase (category),  ScheduleItemV2 → Item,
+           ScheduleTaskV2 → Task,  ScheduleDependencyV2 → Dependency.
+    Returns the same shape as get_project_gantt_v2 so that
+    ``transformV2Response()`` on the frontend works unchanged.
+    """
+    denied = _reject_readonly(request)
+    if denied:
+        # Master schedule is admin-only (read included)
+        return denied
+
+    # Active projects ordered by start date
+    active_projects = (
+        Project.objects.filter(is_archived=False)
+        .order_by("start_date", "id")
+    )
+
+    # Color palette (cycle if more projects than colours)
+    palette = [
+        "#6366f1", "#3b82f6", "#10b981", "#f59e0b",
+        "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4",
+    ]
+
+    phases_data = []
+    all_item_ids = set()
+
+    for idx, project in enumerate(active_projects):
+        # Items in this project
+        items_qs = (
+            ScheduleItemV2.objects
+            .filter(project=project)
+            .select_related("phase", "assigned_to")
+            .prefetch_related("tasks")
+            .order_by("order", "id")
+        )
+
+        items_serialized = ScheduleItemV2Serializer(items_qs, many=True).data
+        for it in items_serialized:
+            all_item_ids.add(it["id"])
+
+        # Aggregate progress: weighted if phases exist, else simple avg
+        phases_in_project = SchedulePhaseV2.objects.filter(project=project)
+        total_weight = sum(float(p.weight_percent) for p in phases_in_project)
+        if total_weight > 0:
+            project_progress = sum(
+                float(p.weight_percent) * p.calculated_progress / 100
+                for p in phases_in_project
+            )
+        elif phases_in_project.exists():
+            project_progress = (
+                sum(p.calculated_progress for p in phases_in_project)
+                / phases_in_project.count()
+            )
+        else:
+            project_progress = 0
+
+        phases_data.append({
+            "id": project.id,
+            "project": project.id,
+            "name": project.name,
+            "color": palette[idx % len(palette)],
+            "order": idx,
+            "weight_percent": 0,
+            "start_date": project.start_date.isoformat() if project.start_date else None,
+            "end_date": project.end_date.isoformat() if project.end_date else None,
+            "calculated_progress": round(project_progress, 2),
+            "remaining_weight_percent": 100,
+            "allow_sunday": False,
+            "created_at": None,
+            "updated_at": None,
+            "items": items_serialized,
+        })
+
+    # Dependencies across all visible items
+    deps_qs = (
+        ScheduleDependencyV2.objects
+        .filter(source_item_id__in=all_item_ids, target_item_id__in=all_item_ids)
+        .select_related("source_item", "target_item")
+    )
+    deps_data = ScheduleDependencyV2Serializer(deps_qs, many=True).data
+
+    items_count = sum(len(p["items"]) for p in phases_data)
+    tasks_count = sum(
+        len(i.get("tasks", []))
+        for p in phases_data
+        for i in p["items"]
+    )
+
+    return Response({
+        "project": None,
+        "phases": phases_data,
+        "dependencies": deps_data,
+        "metadata": {
+            "items_count": items_count,
+            "tasks_count": tasks_count,
+            "dependencies_count": len(deps_data),
+            "project_progress": 0,
+            "total_stage_weight": 0,
+        },
+    })
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def get_master_schedule_data(request):
     """Unified data source for Master Schedule (Gantt + Calendar).
 

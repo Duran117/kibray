@@ -329,6 +329,8 @@ urlpatterns = [
     ),
     # Master Schedule API
     path("schedule/master/", schedule_api.get_master_schedule_data, name="api-schedule-master"),
+    # Master Gantt V2 (React Gantt feed — all projects)
+    path("gantt/v2/master/", schedule_api.get_master_gantt_v2, name="api-gantt-v2-master"),
     # Gantt v2 per project (React Modern Gantt feed)
     path(
         "gantt/v2/projects/<int:project_id>/",

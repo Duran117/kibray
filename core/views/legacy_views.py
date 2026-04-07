@@ -1257,18 +1257,27 @@ def executive_bi_dashboard(request):
 
 @login_required
 def master_schedule_center(request):
-    """Master Schedule Center: unified view for strategic project timeline and tactical event calendar.
+    """Master Schedule — React Gantt (all projects as categories).
 
-    Requires admin/staff access. Data is loaded asynchronously via API.
+    Requires admin/staff access. Data loaded via /api/v1/gantt/v2/master/.
     """
     if not (request.user.is_superuser or request.user.is_staff):
         messages.error(request, "Acceso solo para Admin/Staff.")
         return redirect("dashboard")
 
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    team_members = (
+        User.objects.filter(is_active=True, is_staff=True)
+        .order_by("first_name", "last_name")
+        .values("id", "first_name", "last_name")
+    )
+
     context = {
-        "title": "Master Schedule Center",
+        "title": "Master Schedule",
+        "team_members": list(team_members),
     }
-    return render(request, "core/master_schedule.html", context)
+    return render(request, "core/master_schedule_gantt.html", context)
 
 
 @login_required

@@ -1,0 +1,68 @@
+{% extends "core/base_modern.html" %}
+{% load static i18n %}
+
+{% block disable_notification_center %}{% endblock %}
+
+{% block title %}{% trans "Master Schedule" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    #gantt-app-root { width: 100%; height: 100%; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-screen-2xl mx-auto px-4 sm:px-6 py-4">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+            <a href="{% url 'dashboard' %}"
+               class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:border-slate-300 transition">
+                <i class="bi bi-arrow-left text-sm"></i>
+            </a>
+            <div>
+                <h1 class="text-lg font-semibold text-slate-900">{% trans "Master Schedule" %}</h1>
+                <p class="text-sm text-slate-500">{% trans "All projects timeline" %}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gantt -->
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden" style="height: calc(100vh - 160px);">
+        <div id="gantt-app-root"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<meta name="csrf-token" content="{{ csrf_token }}">
+<script src="{% static 'gantt/gantt-app.iife.js' %}?v=20260406b"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var teamMembers = [
+        {% for m in team_members %}
+        { id: {{ m.id }}, name: "{{ m.first_name|escapejs }} {{ m.last_name|escapejs }}" }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    function mount() {
+        if (window.KibrayGantt && typeof window.KibrayGantt.mount === 'function') {
+            window.KibrayGantt.mount('gantt-app-root', {
+                mode: 'master',
+                canEdit: true,
+                csrfToken: "{{ csrf_token }}",
+                apiBaseUrl: '/api/v1',
+                initialView: 'gantt',
+                teamMembers: teamMembers,
+            });
+            return true;
+        }
+        return false;
+    }
+    if (!mount()) {
+        var t = setInterval(function () { if (mount()) clearInterval(t); }, 50);
+        setTimeout(function () { clearInterval(t); }, 5000);
+    }
+});
+</script>
+{% endblock %}

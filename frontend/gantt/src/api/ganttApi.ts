@@ -64,7 +64,7 @@ export class GanttApi {
         url = `${this.baseUrl}/gantt/v2/projects/${options.projectId}/`;
         break;
       case 'master':
-        url = `${this.baseUrl}/schedule/master/`;
+        url = `${this.baseUrl}/gantt/v2/master/`;
         break;
       case 'pm':
         url = `${this.baseUrl}/pm-calendar/api/data/`;
