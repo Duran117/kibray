@@ -3271,6 +3271,7 @@ def floor_plan_list(request, project_id):
             "plans_by_level": dict(plans_by_level),
             "sorted_levels": sorted_levels,
             "can_edit_pins": can_edit_pins,
+            "can_edit": can_edit_pins,
         },
     )
 

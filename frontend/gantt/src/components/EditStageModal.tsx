@@ -41,6 +41,7 @@ export const EditStageModal: React.FC<EditStageModalProps> = ({
   const [color, setColor] = useState(STAGE_COLORS[0]);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [weightPercent, setWeightPercent] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -54,6 +55,7 @@ export const EditStageModal: React.FC<EditStageModalProps> = ({
       setColor(stage.color || STAGE_COLORS[0]);
       setStartDate(stage.start_date || '');
       setEndDate(stage.end_date || '');
+      setWeightPercent(stage.weight_percent ?? 0);
     }
   }, [stage]);
 
@@ -99,6 +101,7 @@ export const EditStageModal: React.FC<EditStageModalProps> = ({
         color,
         start_date: startDate || null,
         end_date: endDate || null,
+        weight_percent: weightPercent,
       });
       onClose();
     } catch (err) {
@@ -215,6 +218,60 @@ export const EditStageModal: React.FC<EditStageModalProps> = ({
                 <span className="font-medium">{itemCount}</span> item{itemCount !== 1 ? 's' : ''} in this stage
               </div>
             )}
+
+            {/* Weight Percent */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Project Weight (%)
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                Define what percentage of the total project this stage represents.
+              </p>
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value={weightPercent}
+                  onChange={(e) => setWeightPercent(Number(e.target.value))}
+                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                />
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={weightPercent}
+                    onChange={(e) => {
+                      const val = Math.min(100, Math.max(0, Number(e.target.value)));
+                      setWeightPercent(val);
+                    }}
+                    className="w-16 px-2 py-1 border border-gray-300 rounded-lg text-center text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <span className="text-sm text-gray-500">%</span>
+                </div>
+              </div>
+              {/* Visual bar */}
+              <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-200"
+                  style={{
+                    width: `${weightPercent}%`,
+                    backgroundColor: color,
+                  }}
+                />
+              </div>
+              {stage && stage.calculated_progress !== undefined && stage.calculated_progress > 0 && (
+                <div className="mt-1 text-xs text-gray-500 flex items-center justify-between">
+                  <span>Stage progress: {stage.calculated_progress.toFixed(1)}%</span>
+                  <span className="font-medium" style={{ color }}>
+                    Contributes {((weightPercent * (stage.calculated_progress ?? 0)) / 100).toFixed(1)}% to project
+                  </span>
+                </div>
+              )}
+            </div>
 
             {/* Actions */}
             <div className="flex items-center justify-between pt-4 border-t border-gray-200">

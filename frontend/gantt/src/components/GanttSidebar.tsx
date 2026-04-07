@@ -160,6 +160,20 @@ export const GanttSidebar: React.FC<GanttSidebarProps> = ({
               <span className="font-semibold text-sm text-gray-800 truncate flex-1">
                 {category.name}
               </span>
+
+              {/* Weight & Progress badges (only for real categories with weight) */}
+              {category.id !== -1 && (category.weight_percent ?? 0) > 0 && (
+                <span
+                  className="text-xs font-medium px-1.5 py-0.5 rounded"
+                  style={{
+                    backgroundColor: `${category.color}20`,
+                    color: category.color,
+                  }}
+                  title={`Stage weight: ${category.weight_percent}% | Progress: ${(category.calculated_progress ?? 0).toFixed(0)}%`}
+                >
+                  {category.weight_percent}%
+                </span>
+              )}
               
               {/* Edit button (show on hover, only for real categories) */}
               {category.id !== -1 && canEdit && onCategoryEdit && (

@@ -38,6 +38,9 @@ export const GanttStageBar: React.FC<GanttStageBarProps> = ({
   // Don't render if bar is invisible
   if (width <= 0) return null;
 
+  const progress = category.calculated_progress ?? 0;
+  const hasWeight = (category.weight_percent ?? 0) > 0;
+
   return (
     <div
       className="absolute rounded-full pointer-events-none"
@@ -47,9 +50,21 @@ export const GanttStageBar: React.FC<GanttStageBarProps> = ({
         width,
         height: barHeight,
         backgroundColor: category.color || '#1F2937',
-        opacity: 0.9,
+        opacity: 0.25,
       }}
-    />
+    >
+      {/* Progress fill */}
+      {hasWeight && progress > 0 && (
+        <div
+          className="absolute inset-y-0 left-0 rounded-full"
+          style={{
+            width: `${Math.min(100, progress)}%`,
+            backgroundColor: category.color || '#1F2937',
+            opacity: 1,
+          }}
+        />
+      )}
+    </div>
   );
 };
 

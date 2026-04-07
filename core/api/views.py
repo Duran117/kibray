@@ -2226,6 +2226,12 @@ class SchedulePhaseViewSet(viewsets.ModelViewSet):
     serializer_class = SchedulePhaseV2Serializer
     permission_classes = [IsAuthenticated]
 
+    def get_serializer_class(self):
+        if self.action in ("create", "update", "partial_update"):
+            from core.api.serializer_classes.schedule_v2_serializers import SchedulePhaseV2WriteSerializer
+            return SchedulePhaseV2WriteSerializer
+        return SchedulePhaseV2Serializer
+
     def get_queryset(self):
         project_id = self.request.query_params.get("project")
         qs = SchedulePhaseV2.objects.select_related("project")
