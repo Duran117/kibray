@@ -27,7 +27,8 @@ class EarnedValueTests(TestCase):
         )
 
     def test_project_ev_get_ok(self):
-        self.client.login(username="user", password="x")
+        """Staff user can see the earned value page."""
+        self.client.login(username="staff", password="x")
         url = reverse("project_ev", args=[self.project.id])
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
@@ -102,8 +103,16 @@ class EarnedValueTests(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.assertIn(f"/projects/{self.project.id}/earned-value/", resp["Location"])
 
-    def test_series_endpoint_json(self):
+    def test_project_ev_get_redirects_non_staff(self):
+        """Non-staff user gets redirected away from EV page."""
         self.client.login(username="user", password="x")
+        url = reverse("project_ev", args=[self.project.id])
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 302)
+
+    def test_series_endpoint_json(self):
+        """Staff user can fetch the EV series JSON."""
+        self.client.login(username="staff", password="x")
         url = reverse("project_ev_series", args=[self.project.id])
         resp = self.client.get(url, {"days": 3, "end": date.today().isoformat()})
         self.assertEqual(resp.status_code, 200)

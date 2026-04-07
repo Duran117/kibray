@@ -26,7 +26,7 @@ def project(db):
 @pytest.fixture
 def employee(db, django_user_model):
     """Create a test employee."""
-    user = django_user_model.objects.create_user(
+    user = django_user_model.objects.create_user(is_staff=True, 
         username="testemployee",
         email="test@example.com",
         password="testpass123"
@@ -48,8 +48,8 @@ def tm_change_order(db, project):
         description="T&M Change Order",
         amount=Decimal("0.00"),
         pricing_type='T_AND_M',
-        billing_hourly_rate=Decimal("75.00"),
-        material_markup_pct=Decimal("20.00"),
+        labor_rate_override=Decimal("75.00"),
+        material_markup_percent=Decimal("20.00"),
         status='billed'
     )
 
@@ -70,7 +70,7 @@ class TestBillingHistoryView:
 
     def test_billing_history_view_accessible(self, client, django_user_model, tm_change_order):
         """Test that billing history view is accessible."""
-        user = django_user_model.objects.create_user(
+        user = django_user_model.objects.create_user(is_staff=True, 
             username="testuser",
             password="testpass123"
         )
@@ -88,7 +88,7 @@ class TestBillingHistoryView:
         employee, cost_code
     ):
         """Test that billing history correctly displays labor invoice lines."""
-        user = django_user_model.objects.create_user(
+        user = django_user_model.objects.create_user(is_staff=True, 
             username="testuser",
             password="testpass123"
         )
@@ -132,7 +132,7 @@ class TestBillingHistoryView:
         self, client, django_user_model, tm_change_order, invoice
     ):
         """Test that billing history correctly displays material invoice lines."""
-        user = django_user_model.objects.create_user(
+        user = django_user_model.objects.create_user(is_staff=True, 
             username="testuser",
             password="testpass123"
         )
@@ -174,7 +174,7 @@ class TestBillingHistoryView:
         employee, cost_code
     ):
         """Test that billing history calculates totals correctly."""
-        user = django_user_model.objects.create_user(
+        user = django_user_model.objects.create_user(is_staff=True, 
             username="testuser",
             password="testpass123"
         )
@@ -225,7 +225,7 @@ class TestBillingHistoryView:
         self, client, django_user_model, tm_change_order
     ):
         """Test billing history shows empty state when no invoices exist."""
-        user = django_user_model.objects.create_user(
+        user = django_user_model.objects.create_user(is_staff=True, 
             username="testuser",
             password="testpass123"
         )

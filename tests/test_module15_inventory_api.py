@@ -156,7 +156,7 @@ class TestInventoryMovements:
         )
         m_issue.apply()
         # There should be at least one notification created for staff
-        assert Notification.objects.filter(title__icontains="Stock bajo").exists()
+        assert Notification.objects.filter(title__icontains="Low stock").exists()
 
     def test_idempotent_apply(self, django_user_model):
         from core.models import InventoryMovement, ProjectInventory

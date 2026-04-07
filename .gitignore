@@ -80,4 +80,6 @@ coverage.xml
 *lighthouse-report.html
 PWA_LIGHTHOUSE_REPORT.html
 dump.rdb
-test_*.py
+/test_*.py
+!/tests/test_*.py
+!/core/tests/test_*.py

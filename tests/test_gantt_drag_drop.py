@@ -15,7 +15,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from core.models import Project, ScheduleItem, ScheduleCategory, CostCode
+from core.models import Project, ScheduleItemV2, SchedulePhaseV2
 
 User = get_user_model()
 
@@ -40,38 +40,28 @@ class TestGanttDragDropPersistence:
         )
 
     @pytest.fixture
-    def category(self, project):
-        """Test schedule category."""
-        return ScheduleCategory.objects.create(
+    def phase(self, project):
+        """Test schedule phase (V2)."""
+        return SchedulePhaseV2.objects.create(
             project=project,
             name="General",
             order=0,
         )
 
     @pytest.fixture
-    def cost_code(self):
-        """Test cost code."""
-        return CostCode.objects.create(
-            code="01.01",
-            name="Prep Work",
-            category="labor",
-        )
-
-    @pytest.fixture
-    def schedule_item(self, project, category, cost_code):
-        """Test schedule item."""
+    def schedule_item(self, project, phase):
+        """Test schedule item (V2)."""
         today = date.today()
-        return ScheduleItem.objects.create(
+        return ScheduleItemV2.objects.create(
             project=project,
-            category=category,
-            title="Test Task",
+            phase=phase,
+            name="Test Task",
             description="Test task for drag & drop",
-            planned_start=today,
-            planned_end=today + timedelta(days=5),
-            status="IN_PROGRESS",
-            percent_complete=30,
+            start_date=today,
+            end_date=today + timedelta(days=5),
+            status="in_progress",
+            progress=30,
             order=1,
-            cost_code=cost_code,
         )
 
     def test_patch_updates_dates_only(self, api_client, schedule_item):
@@ -81,22 +71,22 @@ class TestGanttDragDropPersistence:
         new_end = date.today() + timedelta(days=7)
 
         payload = {
-            "planned_start": new_start.isoformat(),
-            "planned_end": new_end.isoformat(),
+            "start_date": new_start.isoformat(),
+            "end_date": new_end.isoformat(),
         }
 
         response = api_client.patch(url, payload, format='json')
 
         assert response.status_code == 200
-        assert response.data['planned_start'] == new_start.isoformat()
-        assert response.data['planned_end'] == new_end.isoformat()
+        assert response.data['start_date'] == new_start.isoformat()
+        assert response.data['end_date'] == new_end.isoformat()
 
         # Verify persistence
         schedule_item.refresh_from_db()
-        assert schedule_item.planned_start == new_start
-        assert schedule_item.planned_end == new_end
-        assert schedule_item.title == "Test Task"  # Unchanged
-        assert schedule_item.percent_complete == 30  # Unchanged
+        assert schedule_item.start_date == new_start
+        assert schedule_item.end_date == new_end
+        assert schedule_item.name == "Test Task"  # Unchanged
+        assert schedule_item.progress == 30  # Unchanged
 
     def test_patch_updates_progress_only(self, api_client, schedule_item):
         """Test that PATCH with only progress works (progress bar drag simulation)."""
@@ -104,19 +94,19 @@ class TestGanttDragDropPersistence:
         new_progress = 75
 
         payload = {
-            "percent_complete": new_progress,
+            "progress": new_progress,
         }
 
         response = api_client.patch(url, payload, format='json')
 
         assert response.status_code == 200
-        assert response.data['percent_complete'] == new_progress
+        assert response.data['progress'] == new_progress
 
         # Verify persistence
         schedule_item.refresh_from_db()
-        assert schedule_item.percent_complete == new_progress
-        assert schedule_item.planned_start == date.today()  # Unchanged
-        assert schedule_item.title == "Test Task"  # Unchanged
+        assert schedule_item.progress == new_progress
+        assert schedule_item.start_date == date.today()  # Unchanged
+        assert schedule_item.name == "Test Task"  # Unchanged
 
     def test_patch_updates_both_dates_and_progress(self, api_client, schedule_item):
         """Test that PATCH with dates and progress works simultaneously."""
@@ -126,23 +116,23 @@ class TestGanttDragDropPersistence:
         new_progress = 50
 
         payload = {
-            "planned_start": new_start.isoformat(),
-            "planned_end": new_end.isoformat(),
-            "percent_complete": new_progress,
+            "start_date": new_start.isoformat(),
+            "end_date": new_end.isoformat(),
+            "progress": new_progress,
         }
 
         response = api_client.patch(url, payload, format='json')
 
         assert response.status_code == 200
-        assert response.data['planned_start'] == new_start.isoformat()
-        assert response.data['planned_end'] == new_end.isoformat()
-        assert response.data['percent_complete'] == new_progress
+        assert response.data['start_date'] == new_start.isoformat()
+        assert response.data['end_date'] == new_end.isoformat()
+        assert response.data['progress'] == new_progress
 
         # Verify persistence
         schedule_item.refresh_from_db()
-        assert schedule_item.planned_start == new_start
-        assert schedule_item.planned_end == new_end
-        assert schedule_item.percent_complete == new_progress
+        assert schedule_item.start_date == new_start
+        assert schedule_item.end_date == new_end
+        assert schedule_item.progress == new_progress
 
     def test_patch_does_not_require_all_fields(self, api_client, schedule_item):
         """Test that PATCH doesn't require project, name, category etc."""
@@ -150,7 +140,7 @@ class TestGanttDragDropPersistence:
 
         # Only update end date
         payload = {
-            "planned_end": (date.today() + timedelta(days=10)).isoformat(),
+            "end_date": (date.today() + timedelta(days=10)).isoformat(),
         }
 
         response = api_client.patch(url, payload, format='json')
@@ -161,12 +151,12 @@ class TestGanttDragDropPersistence:
     def test_patch_preserves_other_fields(self, api_client, schedule_item):
         """Test that PATCH only updates specified fields."""
         url = f"/api/v1/schedule/items/{schedule_item.id}/"
-        original_title = schedule_item.title
+        original_title = schedule_item.name
         original_description = schedule_item.description
         original_status = schedule_item.status
 
         payload = {
-            "planned_start": (date.today() + timedelta(days=3)).isoformat(),
+            "start_date": (date.today() + timedelta(days=3)).isoformat(),
         }
 
         response = api_client.patch(url, payload, format='json')
@@ -175,7 +165,7 @@ class TestGanttDragDropPersistence:
 
         # Verify other fields unchanged
         schedule_item.refresh_from_db()
-        assert schedule_item.title == original_title
+        assert schedule_item.name == original_title
         assert schedule_item.description == original_description
         assert schedule_item.status == original_status
 
@@ -184,8 +174,8 @@ class TestGanttDragDropPersistence:
         url = f"/api/v1/schedule/items/{schedule_item.id}/"
 
         payload = {
-            "planned_start": (date.today() + timedelta(days=10)).isoformat(),
-            "planned_end": date.today().isoformat(),  # End before start
+            "start_date": (date.today() + timedelta(days=10)).isoformat(),
+            "end_date": date.today().isoformat(),  # End before start
         }
 
         response = api_client.patch(url, payload, format='json')
@@ -200,7 +190,7 @@ class TestGanttDragDropPersistence:
         url = f"/api/v1/schedule/items/{schedule_item.id}/"
 
         payload = {
-            "planned_start": date.today().isoformat(),
+            "start_date": date.today().isoformat(),
         }
 
         response = client.patch(url, payload, format='json')
@@ -212,7 +202,7 @@ class TestGanttDragDropPersistence:
         url = "/api/v1/schedule/items/99999/"
 
         payload = {
-            "planned_start": date.today().isoformat(),
+            "start_date": date.today().isoformat(),
         }
 
         response = api_client.patch(url, payload, format='json')

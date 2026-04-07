@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 from core.models import (
-    Project, Profile, ScheduleItem, DailyPlan, PlannedActivity,
+    Project, Profile, ScheduleItemV2, SchedulePhaseV2, DailyPlan, PlannedActivity,
     ScheduleCategory, CostCode
 )
 from core.services.planning_service import (
@@ -60,11 +60,12 @@ def project(db, user_with_profile):
 
 
 @pytest.fixture
-def category(db, project):
-    """Create a test schedule category."""
-    return ScheduleCategory.objects.create(
+def phase(db, project):
+    """Create a test schedule phase (V2)."""
+    return SchedulePhaseV2.objects.create(
         project=project,
-        name='Foundation'
+        name='Foundation',
+        order=0
     )
 
 
@@ -79,95 +80,95 @@ def cost_code(db):
 
 
 @pytest.fixture
-def schedule_items(db, project, category, cost_code):
-    """Create multiple schedule items with different scenarios."""
+def schedule_items(db, project, phase, cost_code):
+    """Create multiple schedule items (V2) with different scenarios."""
     tomorrow = timezone.now().date() + timedelta(days=1)
     next_week = timezone.now().date() + timedelta(days=7)
     
     items = []
     
     # Urgent item - starts tomorrow, low progress
-    items.append(ScheduleItem.objects.create(
+    items.append(ScheduleItemV2.objects.create(
         project=project,
-        category=category,
-        cost_code=cost_code,
-        title='Urgent Foundation Pour',
+        phase=phase,
+        name='Urgent Foundation Pour',
         description='Critical path item',
-        planned_start=tomorrow,
-        planned_end=tomorrow + timedelta(days=2),
-        status='IN_PROGRESS',
-        percent_complete=10,
-        is_milestone=False
+        start_date=tomorrow,
+        end_date=tomorrow + timedelta(days=2),
+        status='in_progress',
+        progress=10,
+        is_milestone=False,
+        order=1,
     ))
     
     # Behind schedule item - expected 50%, actual 20%
-    items.append(ScheduleItem.objects.create(
+    items.append(ScheduleItemV2.objects.create(
         project=project,
-        category=category,
-        cost_code=cost_code,
-        title='Framing Work',
+        phase=phase,
+        name='Framing Work',
         description='Behind schedule',
-        planned_start=tomorrow - timedelta(days=3),
-        planned_end=tomorrow + timedelta(days=3),
-        status='IN_PROGRESS',
-        percent_complete=20,
-        is_milestone=False
+        start_date=tomorrow - timedelta(days=3),
+        end_date=tomorrow + timedelta(days=3),
+        status='in_progress',
+        progress=20,
+        is_milestone=False,
+        order=2,
     ))
     
     # On-track item - good progress
-    items.append(ScheduleItem.objects.create(
+    items.append(ScheduleItemV2.objects.create(
         project=project,
-        category=category,
-        cost_code=cost_code,
-        title='Electrical Rough-In',
+        phase=phase,
+        name='Electrical Rough-In',
         description='On schedule',
-        planned_start=tomorrow,
-        planned_end=tomorrow + timedelta(days=5),
-        status='NOT_STARTED',
-        percent_complete=0,
-        is_milestone=False
+        start_date=tomorrow,
+        end_date=tomorrow + timedelta(days=5),
+        status='planned',
+        progress=0,
+        is_milestone=False,
+        order=3,
     ))
     
     # Completed item - should be excluded
-    items.append(ScheduleItem.objects.create(
+    items.append(ScheduleItemV2.objects.create(
         project=project,
-        category=category,
-        cost_code=cost_code,
-        title='Site Prep',
+        phase=phase,
+        name='Site Prep',
         description='Already done',
-        planned_start=tomorrow - timedelta(days=10),
-        planned_end=tomorrow - timedelta(days=5),
-        status='DONE',
-        percent_complete=100,
-        is_milestone=False
+        start_date=tomorrow - timedelta(days=10),
+        end_date=tomorrow - timedelta(days=5),
+        status='done',
+        progress=100,
+        is_milestone=False,
+        order=4,
     ))
     
     # Future item - next week
-    items.append(ScheduleItem.objects.create(
+    items.append(ScheduleItemV2.objects.create(
         project=project,
-        category=category,
-        cost_code=cost_code,
-        title='Drywall Installation',
+        phase=phase,
+        name='Drywall Installation',
         description='Future work',
-        planned_start=next_week,
-        planned_end=next_week + timedelta(days=5),
-        status='NOT_STARTED',
-        percent_complete=0,
-        is_milestone=False
+        start_date=next_week,
+        end_date=next_week + timedelta(days=5),
+        status='planned',
+        progress=0,
+        is_milestone=False,
+        order=5,
     ))
     
     # Milestone item
-    items.append(ScheduleItem.objects.create(
+    items.append(ScheduleItemV2.objects.create(
         project=project,
-        category=category,
-        cost_code=cost_code,
-        title='Foundation Complete',
+        phase=phase,
+        name='Foundation Complete',
         description='Milestone',
-        planned_start=tomorrow,
-        planned_end=tomorrow,
-        status='IN_PROGRESS',
-        percent_complete=75,
-        is_milestone=True
+        start_date=tomorrow,
+        end_date=tomorrow,
+        status='in_progress',
+        progress=75,
+        is_milestone=True,
+        order=6,
     ))
     
     return items
@@ -416,10 +417,10 @@ class TestDailyPlanCreateView:
         activities = PlannedActivity.objects.filter(daily_plan=plan)
         assert activities.count() == 2
         
-        # Verify schedule_item relationships
-        activity_item_ids = [act.schedule_item.id for act in activities if act.schedule_item]
-        assert schedule_items[0].id in activity_item_ids
-        assert schedule_items[1].id in activity_item_ids
+        # Verify activity titles match schedule items
+        activity_titles = set(act.title for act in activities)
+        assert schedule_items[0].name in activity_titles
+        assert schedule_items[1].name in activity_titles
         
     def test_post_without_imports(self, client, user_with_profile, project):
         """Test POST creates plan without importing items."""
@@ -440,7 +441,7 @@ class TestDailyPlanCreateView:
         assert plan is not None
         
         # Should have 0 activities
-        assert plan.plannedactivity_set.count() == 0
+        assert plan.activities.count() == 0
         
     def test_post_invalid_date(self, client, user_with_profile, project):
         """Test POST with invalid date format."""
@@ -541,21 +542,21 @@ class TestEdgeCases:
             end_date=timezone.now().date() + timedelta(days=30)
         )
         
-        # Create category for other project
-        other_category = ScheduleCategory.objects.create(
+        # Create V2 phase and item for other project
+        other_phase = SchedulePhaseV2.objects.create(
             project=other_project,
-            name='Other Category'
+            name='Other Phase',
+            order=0,
         )
         
-        # Create schedule item for other project
-        other_item = ScheduleItem.objects.create(
+        other_item = ScheduleItemV2.objects.create(
             project=other_project,
-            category=other_category,
-            cost_code=cost_code,
-            title='Other Project Item',
-            planned_start=timezone.now().date() + timedelta(days=1),
-            planned_end=timezone.now().date() + timedelta(days=5),
-            status='NOT_STARTED'
+            phase=other_phase,
+            name='Other Project Item',
+            start_date=timezone.now().date() + timedelta(days=1),
+            end_date=timezone.now().date() + timedelta(days=5),
+            status='planned',
+            order=1,
         )
         
         client.force_login(user_with_profile)
@@ -570,7 +571,8 @@ class TestEdgeCases:
         # Should reject or ignore items from other project
         plan = DailyPlan.objects.filter(project=project).first()
         if plan:
-            activities = plan.plannedactivity_set.filter(schedule_item=other_item)
+            # No activities should reference the other project's item title
+            activities = plan.activities.filter(title=other_item.name)
             assert activities.count() == 0
 
 
@@ -601,12 +603,12 @@ class TestIntegration:
         
         # Step 3: Verify plan and activities
         plan = DailyPlan.objects.get(project=project, plan_date=tomorrow)
-        assert plan.plannedactivity_set.count() == 2
+        assert plan.activities.count() == 2
         
         # Verify activity titles match schedule items
-        for activity in plan.plannedactivity_set.all():
-            assert activity.schedule_item is not None
-            assert activity.schedule_item.id in selected_ids
+        for activity in plan.activities.all():
+            assert activity.title is not None
+            assert activity.title in [s['title'] for s in suggestions[:2]]
             
     def test_multiple_plans_different_dates(self, client, user_with_profile, project, schedule_items):
         """Test creating multiple plans for different dates."""

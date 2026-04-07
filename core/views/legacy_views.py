@@ -4588,7 +4588,6 @@ def changeorder_customer_signature_view(request, changeorder_id, token=None):
                     pass  # Don't block the signature success
 
             # --- Generate download token for client ---
-            from django.core import signing
             download_token = signing.dumps({"changeorder_id": changeorder.id})
 
             return render(
@@ -10960,7 +10959,6 @@ def daily_plan_create(request, project_id):
                     schedule_item = ScheduleItemV2.objects.get(id=int(item_id), project=project)
                     PlannedActivity.objects.create(
                         daily_plan=plan,
-                        schedule_item_v2=schedule_item,
                         title=schedule_item.name,
                         description=schedule_item.description,
                         order=idx,

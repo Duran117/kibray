@@ -20,8 +20,8 @@ from core.models import (
     Estimate,
     EstimateLine,
     CostCode,
-    ScheduleItem,
-    ScheduleCategory,
+    ScheduleItemV2,
+    SchedulePhaseV2,
     BudgetLine,
     Task,
     Invoice,
@@ -127,17 +127,17 @@ class TestProjectActivationService:
         schedule_items = service.create_schedule_from_estimate(start_date=start_date)
         
         assert len(schedule_items) == 3
-        assert all(isinstance(item, ScheduleItem) for item in schedule_items)
+        assert all(isinstance(item, ScheduleItemV2) for item in schedule_items)
         
         # Check first item
         first_item = schedule_items[0]
         assert first_item.project == project
-        assert first_item.planned_start == start_date
-        assert first_item.status == "NOT_STARTED"
-        assert first_item.percent_complete == 0
+        assert first_item.start_date == start_date
+        assert first_item.status == "planned"
+        assert first_item.progress == 0
         
-        # Check category was created
-        assert ScheduleCategory.objects.filter(project=project, name="General").exists()
+        # Check phase was created
+        assert SchedulePhaseV2.objects.filter(project=project, name="General").exists()
 
     def test_create_schedule_with_specific_items(self, project, estimate):
         """Test creating schedule from specific estimate lines."""
@@ -163,8 +163,8 @@ class TestProjectActivationService:
         
         # Each item should start after previous ends
         for i in range(len(schedule_items) - 1):
-            current_end = schedule_items[i].planned_end
-            next_start = schedule_items[i + 1].planned_start
+            current_end = schedule_items[i].end_date
+            next_start = schedule_items[i + 1].start_date
             assert next_start > current_end
 
     def test_create_budget_from_estimate(self, project, estimate):
@@ -213,10 +213,10 @@ class TestProjectActivationService:
         first_schedule = schedule_items[0]
         
         assert first_task.project == project
-        assert first_task.title == first_schedule.title
+        assert first_task.title == first_schedule.name
         assert first_task.status == "Pending"
         assert first_task.priority == "medium"
-        assert first_task.due_date == first_schedule.planned_end
+        assert first_task.due_date == first_schedule.end_date
 
     def test_create_deposit_invoice_valid_percent(self, project, estimate):
         """Test deposit invoice is created with valid percentage."""
@@ -438,7 +438,7 @@ class TestProjectActivationView:
             print("Messages:", [str(m) for m in messages_list])
         
         # Check entities created
-        schedule_count = ScheduleItem.objects.filter(project=project).count()
+        schedule_count = ScheduleItemV2.objects.filter(project=project).count()
         budget_count = BudgetLine.objects.filter(project=project).count()
         
         print(f"Schedule items: {schedule_count}, Budget lines: {budget_count}")
@@ -464,7 +464,7 @@ class TestProjectActivationView:
         # Should redirect
         assert response.status_code == 302
         # Check that schedule was created
-        assert ScheduleItem.objects.filter(project=project).count() > 0
+        assert ScheduleItemV2.objects.filter(project=project).count() > 0
 
 
 @pytest.mark.django_db

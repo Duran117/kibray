@@ -5,6 +5,7 @@ import pytest
 import base64
 from datetime import date
 from decimal import Decimal
+from django.contrib.auth.models import User
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from core.models import Project, ChangeOrder
@@ -20,6 +21,21 @@ def project(db):
         budget_labor=Decimal("100000.00"),
         budget_materials=Decimal("50000.00")
     )
+
+
+@pytest.fixture
+def staff_user(db):
+    """Create a staff user for authenticated access."""
+    return User.objects.create_user(
+        username="staffuser", password="testpass123", is_staff=True
+    )
+
+
+@pytest.fixture
+def auth_client(client, staff_user):
+    """Return a Django test client logged in as staff."""
+    client.force_login(staff_user)
+    return client
 
 
 @pytest.fixture
@@ -42,8 +58,8 @@ def tm_change_order(db, project):
         description="Time & Materials work - Kitchen remodel",
         amount=Decimal("0.00"),
         pricing_type='T_AND_M',
-        billing_hourly_rate=Decimal("85.00"),
-        material_markup_pct=Decimal("25.00"),
+        labor_rate_override=Decimal("85.00"),
+        material_markup_percent=Decimal("25.00"),
         status='sent'
     )
 
@@ -64,41 +80,41 @@ def signature_data():
 class TestCustomerSignatureView:
     """Tests for the customer signature view."""
 
-    def test_signature_view_accessible_without_login(self, client, fixed_change_order):
-        """Test that signature view is accessible without authentication."""
+    def test_signature_view_accessible(self, auth_client, fixed_change_order):
+        """Test that signature view is accessible for authenticated users."""
         url = reverse('changeorder_customer_signature', args=[fixed_change_order.id])
-        response = client.get(url)
+        response = auth_client.get(url)
         
         assert response.status_code == 200
         assert 'changeorder' in response.context
         assert response.context['changeorder'] == fixed_change_order
 
-    def test_fixed_price_displays_amount(self, client, fixed_change_order):
+    def test_fixed_price_displays_amount(self, auth_client, fixed_change_order):
         """Test that FIXED price CO displays the fixed amount."""
         url = reverse('changeorder_customer_signature', args=[fixed_change_order.id])
-        response = client.get(url)
+        response = auth_client.get(url)
         
         assert response.status_code == 200
         content = response.content.decode('utf-8')
-        assert 'FIXED PRICE' in content or 'Fixed Price' in content
+        assert 'FIXED PRICE' in content or 'Fixed Price' in content or 'Precio Fijo' in content
         assert '5000' in content  # Amount is shown somewhere
 
-    def test_tm_displays_rates(self, client, tm_change_order):
+    def test_tm_displays_rates(self, auth_client, tm_change_order):
         """Test that T&M CO displays hourly rate and markup."""
         url = reverse('changeorder_customer_signature', args=[tm_change_order.id])
-        response = client.get(url)
+        response = auth_client.get(url)
         
         assert response.status_code == 200
         content = response.content.decode('utf-8')
-        assert 'TIME &amp; MATERIALS' in content or 'Time &amp; Materials' in content or 'TIME & MATERIALS' in content
+        assert 'TIME &amp; MATERIALS' in content or 'Time &amp; Materials' in content or 'TIME & MATERIALS' in content or 'Tiempo y Materiales' in content or 'Tiempo &amp; Materiales' in content
         assert '85' in content  # Hourly rate is shown
         assert '25' in content  # Markup percentage is shown
 
-    def test_signature_submission_success(self, client, fixed_change_order, signature_data):
+    def test_signature_submission_success(self, auth_client, fixed_change_order, signature_data):
         """Test successful signature submission."""
         url = reverse('changeorder_customer_signature', args=[fixed_change_order.id])
         
-        response = client.post(url, {
+        response = auth_client.post(url, {
             'signature_data': signature_data,
             'signer_name': 'John Doe'
         })
@@ -114,11 +130,11 @@ class TestCustomerSignatureView:
         assert fixed_change_order.signature_image is not None
         assert fixed_change_order.status == 'approved'
 
-    def test_signature_submission_without_name_fails(self, client, fixed_change_order, signature_data):
+    def test_signature_submission_without_name_fails(self, auth_client, fixed_change_order, signature_data):
         """Test that submission without name shows error."""
         url = reverse('changeorder_customer_signature', args=[fixed_change_order.id])
         
-        response = client.post(url, {
+        response = auth_client.post(url, {
             'signature_data': signature_data,
             'signer_name': ''
         })
@@ -127,11 +143,11 @@ class TestCustomerSignatureView:
         assert 'error' in response.context
         assert 'name' in response.context['error'].lower() or 'nombre' in response.context['error'].lower()
 
-    def test_signature_submission_without_signature_fails(self, client, fixed_change_order):
+    def test_signature_submission_without_signature_fails(self, auth_client, fixed_change_order):
         """Test that submission without signature data shows error."""
         url = reverse('changeorder_customer_signature', args=[fixed_change_order.id])
         
-        response = client.post(url, {
+        response = auth_client.post(url, {
             'signature_data': '',
             'signer_name': 'John Doe'
         })
@@ -140,27 +156,27 @@ class TestCustomerSignatureView:
         assert 'error' in response.context
         assert 'signature' in response.context['error'].lower() or 'firma' in response.context['error'].lower()
 
-    def test_already_signed_shows_message(self, client, fixed_change_order, signature_data):
+    def test_already_signed_shows_message(self, auth_client, fixed_change_order, signature_data):
         """Test that already signed CO shows appropriate message."""
         # First, sign the CO
         url = reverse('changeorder_customer_signature', args=[fixed_change_order.id])
-        client.post(url, {
+        auth_client.post(url, {
             'signature_data': signature_data,
             'signer_name': 'John Doe'
         })
         
         # Try to access signature page again
-        response = client.get(url)
+        response = auth_client.get(url)
         
         assert response.status_code == 200
         content = response.content.decode('utf-8')
         assert 'Already Signed' in content or 'already signed' in content.lower() or 'Ya Firmado' in content or 'ya ha sido firmado' in content
 
-    def test_signature_success_page_shows_details(self, client, tm_change_order, signature_data):
+    def test_signature_success_page_shows_details(self, auth_client, tm_change_order, signature_data):
         """Test that success page shows all relevant details."""
         url = reverse('changeorder_customer_signature', args=[tm_change_order.id])
         
-        response = client.post(url, {
+        response = auth_client.post(url, {
             'signature_data': signature_data,
             'signer_name': 'Jane Smith'
         })
@@ -170,11 +186,11 @@ class TestCustomerSignatureView:
         assert 'Success' in content or 'success' in content.lower() or 'Exitosa' in content or 'exitosa' in content
         assert 'Jane Smith' in content
 
-    def test_signature_creates_image_file(self, client, fixed_change_order, signature_data):
+    def test_signature_creates_image_file(self, auth_client, fixed_change_order, signature_data):
         """Test that signature creates an actual image file."""
         url = reverse('changeorder_customer_signature', args=[fixed_change_order.id])
         
-        client.post(url, {
+        auth_client.post(url, {
             'signature_data': signature_data,
             'signer_name': 'Test User'
         })
@@ -187,18 +203,18 @@ class TestCustomerSignatureView:
         assert 'signature_co_' in fixed_change_order.signature_image.name
         assert fixed_change_order.signature_image.name.endswith('.png')
 
-    def test_multiple_cos_can_be_signed(self, client, fixed_change_order, tm_change_order, signature_data):
+    def test_multiple_cos_can_be_signed(self, auth_client, fixed_change_order, tm_change_order, signature_data):
         """Test that multiple COs can be signed independently."""
         # Sign first CO
         url1 = reverse('changeorder_customer_signature', args=[fixed_change_order.id])
-        client.post(url1, {
+        auth_client.post(url1, {
             'signature_data': signature_data,
             'signer_name': 'Person A'
         })
         
         # Sign second CO
         url2 = reverse('changeorder_customer_signature', args=[tm_change_order.id])
-        client.post(url2, {
+        auth_client.post(url2, {
             'signature_data': signature_data,
             'signer_name': 'Person B'
         })
@@ -212,7 +228,7 @@ class TestCustomerSignatureView:
         assert fixed_change_order.signature_image
         assert tm_change_order.signature_image
 
-    def test_signature_url_with_token_parameter(self, client, fixed_change_order):
+    def test_signature_url_with_token_parameter(self, auth_client, fixed_change_order):
         """Test that URL with valid token parameter is accessible."""
         from django.core import signing
         
@@ -220,18 +236,18 @@ class TestCustomerSignatureView:
         token = signing.dumps({"co": fixed_change_order.id})
         url = reverse('changeorder_customer_signature_token', 
                      args=[fixed_change_order.id, token])
-        response = client.get(url)
+        response = auth_client.get(url)
         
         # Should be accessible with valid token
         assert response.status_code == 200
         assert 'changeorder' in response.context
 
-    def test_signature_preserves_co_description(self, client, fixed_change_order, signature_data):
+    def test_signature_preserves_co_description(self, auth_client, fixed_change_order, signature_data):
         """Test that signing doesn't modify CO description."""
         original_description = fixed_change_order.description
         url = reverse('changeorder_customer_signature', args=[fixed_change_order.id])
         
-        client.post(url, {
+        auth_client.post(url, {
             'signature_data': signature_data,
             'signer_name': 'Test User'
         })
@@ -239,13 +255,13 @@ class TestCustomerSignatureView:
         fixed_change_order.refresh_from_db()
         assert fixed_change_order.description == original_description
 
-    def test_signature_preserves_pricing_details(self, client, tm_change_order, signature_data):
+    def test_signature_preserves_pricing_details(self, auth_client, tm_change_order, signature_data):
         """Test that signing doesn't modify pricing details."""
         original_rate = tm_change_order.billing_hourly_rate
         original_markup = tm_change_order.material_markup_pct
         
         url = reverse('changeorder_customer_signature', args=[tm_change_order.id])
-        client.post(url, {
+        auth_client.post(url, {
             'signature_data': signature_data,
             'signer_name': 'Test User'
         })

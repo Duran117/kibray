@@ -443,7 +443,8 @@ def test_convert_damage_to_change_order(api_client, admin_user, damage_report):
 
     # Verify Change Order was created
     co = ChangeOrder.objects.get(id=res.data["change_order"]["id"])
-    assert co.title == "CO: Water Damage Repair"
+    # Title is stored in reference_code, description has the CO description
+    assert co.reference_code == "CO: Water Damage Repair"
     assert co.amount == damage_report.estimated_cost
     assert co.status == "draft"
 
@@ -459,9 +460,9 @@ def test_convert_without_title_uses_default(api_client, admin_user, damage_repor
     res = api_client.post(f"/api/v1/damage-reports/{damage_report.id}/convert-to-co/", {}, format="json")
 
     assert res.status_code == 201
-    co_title = res.data["change_order"]["title"]
-    assert "Repair:" in co_title
-    assert damage_report.title in co_title
+    co_ref = res.data["change_order"]["reference_code"]
+    assert "Repair:" in co_ref
+    assert damage_report.title in co_ref
 
 
 @pytest.mark.django_db

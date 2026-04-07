@@ -78,7 +78,7 @@ class TestChangeOrderValidation:
             description='T&M CO',
             pricing_type='T_AND_M',
             amount=Decimal('1000.00'),
-            billing_hourly_rate=Decimal('65.00'),
+            labor_rate_override=Decimal('65.00'),
             status='draft'
         )
         with pytest.raises(ValidationError) as exc_info:
@@ -94,7 +94,7 @@ class TestChangeOrderValidation:
             description='T&M CO',
             pricing_type='T_AND_M',
             amount=Decimal('0.00'),
-            billing_hourly_rate=Decimal('65.00'),
+            labor_rate_override=Decimal('65.00'),
             status='draft'
         )
         co.clean()  # Should not raise
@@ -126,8 +126,8 @@ class TestChangeOrderService:
             description='T&M CO Empty',
             pricing_type='T_AND_M',
             amount=Decimal('0.00'),
-            billing_hourly_rate=Decimal('65.00'),
-            material_markup_pct=Decimal('20.00'),
+            labor_rate_override=Decimal('65.00'),
+            material_markup_percent=Decimal('20.00'),
             status='approved'
         )
         result = ChangeOrderService.get_billable_amount(co)
@@ -145,7 +145,7 @@ class TestChangeOrderService:
             description='T&M CO Labor',
             pricing_type='T_AND_M',
             amount=Decimal('0.00'),
-            billing_hourly_rate=Decimal('70.00'),
+            labor_rate_override=Decimal('70.00'),
             status='approved'
         )
         # Create 10 hours of work
@@ -182,8 +182,8 @@ class TestChangeOrderService:
             description='T&M CO Materials',
             pricing_type='T_AND_M',
             amount=Decimal('0.00'),
-            billing_hourly_rate=Decimal('60.00'),
-            material_markup_pct=Decimal('25.00'),
+            labor_rate_override=Decimal('60.00'),
+            material_markup_percent=Decimal('25.00'),
             status='approved'
         )
         # Add expenses
@@ -217,8 +217,8 @@ class TestChangeOrderService:
             description='T&M CO Full',
             pricing_type='T_AND_M',
             amount=Decimal('0.00'),
-            billing_hourly_rate=Decimal('80.00'),
-            material_markup_pct=Decimal('30.00'),
+            labor_rate_override=Decimal('80.00'),
+            material_markup_percent=Decimal('30.00'),
             status='approved'
         )
         # 8 hours labor
@@ -255,7 +255,7 @@ class TestChangeOrderService:
             description='T&M CO Partial',
             pricing_type='T_AND_M',
             amount=Decimal('0.00'),
-            billing_hourly_rate=Decimal('50.00'),
+            labor_rate_override=Decimal('50.00'),
             status='approved'
         )
         # Create invoice and line
@@ -301,35 +301,38 @@ class TestChangeOrderService:
         assert len(result['time_entries']) == 1
     
     def test_effective_billing_rate_fallback(self, project):
-        """get_effective_billing_rate uses fallback hierarchy."""
-        # Test 1: billing_hourly_rate set
+        """get_effective_billing_rate uses fallback hierarchy:
+        labor_rate_override > project.default_co_labor_rate > Decimal('50.00')
+        """
+        # Test 1: labor_rate_override set → uses it
         co1 = ChangeOrder.objects.create(
             project=project,
             description='Test 1',
             pricing_type='T_AND_M',
             amount=Decimal('0.00'),
-            billing_hourly_rate=Decimal('85.00'),
-            labor_rate_override=Decimal('70.00')
+            labor_rate_override=Decimal('85.00'),
         )
         assert co1.get_effective_billing_rate() == Decimal('85.00')
-        
-        # Test 2: billing_hourly_rate=0, use labor_rate_override
+
+        # Test 2: labor_rate_override=0 → falls back to project default
         co2 = ChangeOrder.objects.create(
             project=project,
             description='Test 2',
             pricing_type='T_AND_M',
             amount=Decimal('0.00'),
-            billing_hourly_rate=Decimal('0.00'),
-            labor_rate_override=Decimal('75.00')
+            labor_rate_override=Decimal('0.00'),
         )
-        assert co2.get_effective_billing_rate() == Decimal('75.00')
-        
-        # Test 3: no overrides, use project default
+        assert co2.get_effective_billing_rate() == project.default_co_labor_rate
+
+        # Test 3: no override, project default=0 → global fallback $50
         co3 = ChangeOrder.objects.create(
             project=project,
             description='Test 3',
             pricing_type='T_AND_M',
             amount=Decimal('0.00'),
-            billing_hourly_rate=Decimal('0.00')
+            labor_rate_override=Decimal('0.00'),
         )
-        assert co3.get_effective_billing_rate() == project.default_co_labor_rate
+        # Set project default to 0 so it's falsy → triggers global fallback
+        project.default_co_labor_rate = Decimal('0.00')
+        project.save()
+        assert co3.get_effective_billing_rate() == Decimal('50.00')

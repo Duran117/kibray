@@ -39,7 +39,7 @@ class TestPayrollAPI:
         api_client.force_authenticate(user=user)
         week_start, week_end = week_bounds
         # Ensure at least one project exists for expense linkage
-        Project.objects.create(name="Payroll Project", client="ACME", start_date=week_start)
+        proj = Project.objects.create(name="Payroll Project", client="ACME", start_date=week_start)
         # Create period
         p_res = api_client.post(
             "/api/v1/payroll/periods/",
@@ -69,6 +69,10 @@ class TestPayrollAPI:
         )
         assert r_res.status_code == 201
         rec_id = r_res.data["id"]
+        # Link project_hours so create_expense can find the project
+        rec_obj = PayrollRecord.objects.get(id=rec_id)
+        rec_obj.project_hours = {str(proj.id): {"hours": 42}}
+        rec_obj.save(update_fields=["project_hours"])
         # Manual adjust: set the final pay directly to simulate computed values
         adj = api_client.post(
             f"/api/v1/payroll/records/{rec_id}/manual_adjust/",

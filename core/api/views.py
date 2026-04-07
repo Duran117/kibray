@@ -2239,9 +2239,15 @@ class ScheduleItemViewSet(viewsets.ModelViewSet):
     serializer_class = ScheduleItemV2Serializer
     permission_classes = [IsAuthenticated]
 
+    def get_serializer_class(self):
+        if self.action in ("create", "update", "partial_update"):
+            from core.api.serializer_classes.schedule_v2_serializers import ScheduleItemV2WriteSerializer
+            return ScheduleItemV2WriteSerializer
+        return ScheduleItemV2Serializer
+
     def get_queryset(self):
         project_id = self.request.query_params.get("project")
-        qs = ScheduleItemV2.objects.select_related("project", "phase", "cost_code")
+        qs = ScheduleItemV2.objects.select_related("project", "phase", "assigned_to")
         if project_id:
             qs = qs.filter(project_id=project_id)
         return qs.order_by("order")
