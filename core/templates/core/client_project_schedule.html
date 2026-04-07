@@ -1,0 +1,62 @@
+{% extends "core/base_modern.html" %}
+{% load static i18n %}
+
+{% block disable_notification_center %}{% endblock %}
+
+{% block title %}{{ project.name }} — {% trans "Schedule" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    #gantt-app-root { width: 100%; height: 100%; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-screen-2xl mx-auto px-4 sm:px-6 py-4">
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-4">
+        <a href="{% url 'client_project_view' project.id %}"
+           class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:border-slate-300 transition">
+            <i class="bi bi-arrow-left text-sm"></i>
+        </a>
+        <div>
+            <h1 class="text-lg font-semibold text-slate-900">{% trans "Schedule" %}</h1>
+            <p class="text-sm text-slate-500">{{ project.name }}</p>
+        </div>
+    </div>
+
+    <!-- Gantt -->
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden" style="height: calc(100vh - 160px);">
+        <div id="gantt-app-root"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<meta name="csrf-token" content="{{ csrf_token }}">
+<script src="{% static 'gantt/gantt-app.iife.js' %}?v=20260406"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    function mount() {
+        if (window.KibrayGantt && typeof window.KibrayGantt.mount === 'function') {
+            window.KibrayGantt.mount('gantt-app-root', {
+                mode: 'project',
+                projectId: {{ project.id }},
+                projectName: "{{ project.name|escapejs }}",
+                canEdit: false,
+                csrfToken: "{{ csrf_token }}",
+                apiBaseUrl: '/api/v1',
+                initialView: 'gantt',
+                teamMembers: [],
+            });
+            return true;
+        }
+        return false;
+    }
+    if (!mount()) {
+        var t = setInterval(function () { if (mount()) clearInterval(t); }, 50);
+        setTimeout(function () { clearInterval(t); }, 5000);
+    }
+});
+</script>
+{% endblock %}

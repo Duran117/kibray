@@ -32,6 +32,27 @@ from core.models import (
 )
 
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _is_staff_or_pm(user):
+    """Return True if the user is staff or has a PM/admin role."""
+    if user.is_staff or user.is_superuser:
+        return True
+    profile = getattr(user, "profile", None)
+    return profile and getattr(profile, "role", None) in (
+        "project_manager", "admin", "superuser",
+    )
+
+
+def _reject_readonly(request):
+    """Return a 403 Response if the user may not write, else None."""
+    if not _is_staff_or_pm(request.user):
+        return Response({"error": "Permission denied"}, status=403)
+    return None
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_master_schedule_data(request):
@@ -458,6 +479,9 @@ def get_project_gantt_v2(request, project_id=None):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_schedule_phase_v2(request):
+    denied = _reject_readonly(request)
+    if denied:
+        return denied
     serializer = SchedulePhaseV2WriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     phase = serializer.save()
@@ -467,6 +491,9 @@ def create_schedule_phase_v2(request):
 @api_view(["PATCH", "DELETE"])
 @permission_classes([IsAuthenticated])
 def update_schedule_phase_v2(request, phase_id: int):
+    denied = _reject_readonly(request)
+    if denied:
+        return denied
     phase = SchedulePhaseV2.objects.filter(id=phase_id).first()
     if not phase:
         return Response({"error": "phase not found"}, status=404)
@@ -484,6 +511,9 @@ def update_schedule_phase_v2(request, phase_id: int):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_schedule_item_v2(request):
+    denied = _reject_readonly(request)
+    if denied:
+        return denied
     serializer = ScheduleItemV2WriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     item = serializer.save()
@@ -493,6 +523,9 @@ def create_schedule_item_v2(request):
 @api_view(["PATCH", "DELETE"])
 @permission_classes([IsAuthenticated])
 def update_schedule_item_v2(request, item_id: int):
+    denied = _reject_readonly(request)
+    if denied:
+        return denied
     item = ScheduleItemV2.objects.filter(id=item_id).first()
     if not item:
         return Response({"error": "item not found"}, status=404)
@@ -510,6 +543,9 @@ def update_schedule_item_v2(request, item_id: int):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_schedule_task_v2(request):
+    denied = _reject_readonly(request)
+    if denied:
+        return denied
     serializer = ScheduleTaskV2WriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     task = serializer.save()
@@ -519,6 +555,9 @@ def create_schedule_task_v2(request):
 @api_view(["PATCH", "DELETE"])
 @permission_classes([IsAuthenticated])
 def update_schedule_task_v2(request, task_id: int):
+    denied = _reject_readonly(request)
+    if denied:
+        return denied
     task = ScheduleTaskV2.objects.filter(id=task_id).first()
     if not task:
         return Response({"error": "task not found"}, status=404)
@@ -536,6 +575,9 @@ def update_schedule_task_v2(request, task_id: int):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_schedule_dependency_v2(request):
+    denied = _reject_readonly(request)
+    if denied:
+        return denied
     serializer = ScheduleDependencyV2WriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     dep = serializer.save()
@@ -545,6 +587,9 @@ def create_schedule_dependency_v2(request):
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def delete_schedule_dependency_v2(request, dependency_id: int):
+    denied = _reject_readonly(request)
+    if denied:
+        return denied
     dep = ScheduleDependencyV2.objects.filter(id=dependency_id).first()
     if not dep:
         return Response({"error": "dependency not found"}, status=404)
