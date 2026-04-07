@@ -287,7 +287,7 @@
 {% endif %}
 
 <!-- Operational Alerts -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
     <div class="bg-white rounded-lg shadow-sm border-l-4 {% if unassigned_time_count > 0 %}border-red-500{% else %}border-green-500{% endif %} p-4">
         <div class="flex items-center gap-3 mb-3">
             <i class="bi bi-clock-history text-2xl {% if unassigned_time_count > 0 %}text-red-500{% else %}text-green-500{% endif %}"></i>
@@ -330,6 +330,20 @@
             <p class="text-sm text-slate-600">{% trans "Open RFIs" %}</p>
         </div>
         <h3 class="text-3xl font-bold text-slate-900">{{ open_rfis }}</h3>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if pending_touchups_count > 0 %}border-purple-500{% else %}border-green-500{% endif %} p-4">
+        <div class="flex items-center gap-3 mb-3">
+            <i class="bi bi-brush text-2xl {% if pending_touchups_count > 0 %}text-purple-500{% else %}text-green-500{% endif %}"></i>
+            <p class="text-sm text-slate-600">{% trans "Touch-ups" %}</p>
+        </div>
+        <h3 class="text-3xl font-bold text-slate-900 mb-2">{{ pending_touchups_count }}</h3>
+        {% if pending_touchups_count > 0 %}
+        <a href="{% url 'pm_select_project' 'touchups' %}" 
+           class="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium">
+            {% trans "Review" %} <i class="bi bi-arrow-right"></i>
+        </a>
+        {% endif %}
     </div>
 </div>
 
@@ -498,6 +512,55 @@
         {% endif %}
     {% include "core/components/card.html" with close_card=True only %}
 </div>
+
+<!-- Pending Touch-ups (Cross-project) -->
+{% if pending_touchups %}
+<div class="bg-white rounded-lg shadow-sm border border-purple-200 p-4 mb-6">
+    <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+            <i class="bi bi-brush text-purple-600 text-xl"></i>
+            <h6 class="text-slate-900 font-semibold">{% trans "Pending Touch-ups" %}</h6>
+            <span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded-full">{{ pending_touchups_count }}</span>
+        </div>
+        <a href="{% url 'pm_select_project' 'touchups' %}" class="text-sm text-purple-600 hover:text-purple-800 font-medium">
+            {% trans "View All" %} <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+    <div class="space-y-2">
+        {% for task in pending_touchups %}
+        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-purple-50 transition group">
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="font-medium text-slate-900 truncate">{{ task.title }}</span>
+                    <span class="px-2 py-0.5 rounded text-xs font-medium flex-shrink-0 {% if task.status == 'In Progress' %}bg-blue-100 text-blue-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                        {{ task.get_status_display }}
+                    </span>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-slate-500">
+                    <span><i class="bi bi-building mr-1"></i>{{ task.project.name }}</span>
+                    {% if task.assigned_to %}
+                    <span><i class="bi bi-person mr-1"></i>{{ task.assigned_to }}</span>
+                    {% else %}
+                    <span class="text-red-500"><i class="bi bi-person-x mr-1"></i>{% trans "Unassigned" %}</span>
+                    {% endif %}
+                    <span><i class="bi bi-calendar mr-1"></i>{{ task.created_at|date:"M d" }}</span>
+                </div>
+            </div>
+            <div class="flex gap-2 flex-shrink-0 opacity-60 group-hover:opacity-100 transition">
+                <a href="{% url 'task_detail' task.id %}" 
+                   class="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs rounded-lg hover:bg-slate-100 transition">
+                    {% trans "View" %}
+                </a>
+                <a href="{% url 'touchup_board' task.project.id %}" 
+                   class="px-3 py-1.5 bg-purple-600 text-white text-xs rounded-lg hover:bg-purple-700 transition">
+                    {% trans "Board" %}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
 <!-- Active Projects -->
 {% include "core/components/card.html" with title=_("Active Projects") icon="folder" %}

@@ -364,7 +364,7 @@
 </div>
 
 <!-- Critical Alerts -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
     <!-- Unassigned Time -->
     <div class="bg-white rounded-lg shadow-sm border-l-4 {% if unassigned_time_count > 0 %}border-red-500{% else %}border-green-500{% endif %} p-4">
         <div class="flex justify-between items-start mb-3">
@@ -432,7 +432,70 @@
         </a>
         {% endif %}
     </div>
+
+    <!-- Touch-ups -->
+    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if pending_touchups_count > 0 %}border-purple-500{% else %}border-green-500{% endif %} p-4">
+        <div class="flex justify-between items-start mb-3">
+            <div>
+                <p class="text-sm text-slate-600 mb-1">{% trans "Touch-ups" %}</p>
+                <h3 class="text-2xl font-bold text-slate-900">{{ pending_touchups_count }}</h3>
+                <p class="text-xs text-slate-500 mt-1">{% trans "Pending" %}</p>
+            </div>
+            <i class="bi bi-brush text-3xl {% if pending_touchups_count > 0 %}text-purple-500{% else %}text-green-500{% endif %}"></i>
+        </div>
+        {% if pending_touchups_count > 0 %}
+        <a href="{% url 'task_command_center' %}" class="block w-full text-center px-3 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 text-sm font-medium rounded-lg transition">
+            {% trans "Review" %}
+        </a>
+        {% endif %}
+    </div>
 </div>
+
+<!-- Pending Touch-ups Detail (Cross-project) -->
+{% if pending_touchups %}
+<div class="bg-white rounded-xl shadow-sm border border-purple-200 p-4 md:p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+            <i class="bi bi-brush text-purple-600 text-xl"></i>
+            <h3 class="text-lg font-semibold text-slate-900">{% trans "Pending Touch-ups" %}</h3>
+            <span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded-full">{{ pending_touchups_count }}</span>
+        </div>
+    </div>
+    <div class="space-y-2">
+        {% for task in pending_touchups %}
+        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-purple-50 transition group">
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="font-medium text-slate-900 truncate">{{ task.title }}</span>
+                    <span class="px-2 py-0.5 rounded text-xs font-medium flex-shrink-0 {% if task.status == 'In Progress' %}bg-blue-100 text-blue-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                        {{ task.get_status_display }}
+                    </span>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-slate-500">
+                    <span><i class="bi bi-building mr-1"></i>{{ task.project.name }}</span>
+                    {% if task.assigned_to %}
+                    <span><i class="bi bi-person mr-1"></i>{{ task.assigned_to }}</span>
+                    {% else %}
+                    <span class="text-red-500"><i class="bi bi-person-x mr-1"></i>{% trans "Unassigned" %}</span>
+                    {% endif %}
+                    <span><i class="bi bi-calendar mr-1"></i>{{ task.created_at|date:"M d" }}</span>
+                </div>
+            </div>
+            <div class="flex gap-2 flex-shrink-0 opacity-60 group-hover:opacity-100 transition">
+                <a href="{% url 'task_detail' task.id %}" 
+                   class="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs rounded-lg hover:bg-slate-100 transition">
+                    {% trans "View" %}
+                </a>
+                <a href="{% url 'touchup_board' task.project.id %}" 
+                   class="px-3 py-1.5 bg-purple-600 text-white text-xs rounded-lg hover:bg-purple-700 transition">
+                    {% trans "Board" %}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
 <!-- Strategic Focus + Upcoming Events -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">

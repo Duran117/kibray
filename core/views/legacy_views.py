@@ -803,6 +803,20 @@ def dashboard_admin(request):
                     "category": "problems",
                 }
             )
+        # Touch-ups count (fetched later, but we need the count here)
+        _touchup_count = Task.objects.filter(
+            is_touchup=True, status__in=["Pending", "In Progress"]
+        ).count()
+        if _touchup_count > 0:
+            morning_briefing.append(
+                {
+                    "text": _("%d touch-ups pending across projects") % _touchup_count,
+                    "severity": "warning" if _touchup_count >= 5 else "info",
+                    "action_url": reverse("task_command_center"),
+                    "action_label": _("Review"),
+                    "category": "problems",
+                }
+            )
     except Exception:
         morning_briefing = []
 
@@ -844,6 +858,18 @@ def dashboard_admin(request):
         # Puede volver a base si actualmente está en un CO
         switch_options["can_switch_to_base"] = open_entry.change_order is not None
 
+    # === TOUCH-UPS PENDIENTES (cross-project para Admin) ===
+    pending_touchups = (
+        Task.objects.filter(
+            is_touchup=True, status__in=["Pending", "In Progress"]
+        )
+        .select_related("project", "assigned_to")
+        .order_by("-created_at")[:15]
+    )
+    pending_touchups_count = Task.objects.filter(
+        is_touchup=True, status__in=["Pending", "In Progress"]
+    ).count()
+
     context = {
         # Financiero
         "total_income": total_income,
@@ -858,6 +884,9 @@ def dashboard_admin(request):
         "pending_invoice_amount": pending_invoice_amount,
         "pending_cos": pending_cos,
         "pending_materials": pending_materials,
+        # Touch-ups
+        "pending_touchups": pending_touchups,
+        "pending_touchups_count": pending_touchups_count,
         # Proyectos con alertas
         "projects_with_alerts": projects_with_alerts,
         # Aprobaciones
@@ -3786,8 +3815,10 @@ def touchup_quick_update(request, task_id):
 
     task = get_object_or_404(Task, id=task_id, is_touchup=True)
 
-    # Check permission
-    if not (request.user.is_staff or task.project.client == request.user.username):
+    # Check permission: staff, assigned employee, or project client
+    employee = Employee.objects.filter(user=request.user).first()
+    is_assigned = employee and task.assigned_to == employee
+    if not (request.user.is_staff or is_assigned or task.project.client == request.user.username):
         return JsonResponse({"error": gettext("Sin permiso")}, status=403)
 
     action = request.POST.get("action")
@@ -8431,6 +8462,19 @@ def dashboard_pm(request):
 
     # Morning Briefing (operational summary for PM)
     morning_briefing = []
+
+    # === TOUCH-UPS PENDIENTES (cross-project) ===
+    pending_touchups = (
+        Task.objects.filter(
+            is_touchup=True, status__in=["Pending", "In Progress"]
+        )
+        .select_related("project", "assigned_to")
+        .order_by("-created_at")[:15]
+    )
+    pending_touchups_count = Task.objects.filter(
+        is_touchup=True, status__in=["Pending", "In Progress"]
+    ).count()
+
     try:
         if unassigned_time_count > 0:
             morning_briefing.append(
@@ -8470,6 +8514,16 @@ def dashboard_pm(request):
                     "action_url": reverse("changeorder_board"),
                     "action_label": _("RFIs"),
                     "category": "approvals",
+                }
+            )
+        if pending_touchups_count > 0:
+            morning_briefing.append(
+                {
+                    "text": _("%d touch-ups pending across projects") % pending_touchups_count,
+                    "severity": "warning" if pending_touchups_count >= 5 else "info",
+                    "action_url": reverse("pm_select_project", args=["touchups"]),
+                    "action_label": _("Review"),
+                    "category": "problems",
                 }
             )
     except Exception:
@@ -8520,6 +8574,9 @@ def dashboard_pm(request):
         "active_issues": active_issues,
         "active_rfis": active_rfis,
         "project_summary": project_summary,
+        # Touch-ups
+        "pending_touchups": pending_touchups,
+        "pending_touchups_count": pending_touchups_count,
         # Context
         "today": today,
         "now": now,
