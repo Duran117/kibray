@@ -1,0 +1,170 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Cost Variance Report" %} — {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center gap-2">
+            <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="h4 mb-0">{% trans "Cost Variance Report" %}</h1>
+                <p class="text-muted small mb-0">{{ project.name }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small mb-1">{% trans "Estimated Cost" %}</div>
+                    <div class="h5 mb-0">${{ total_estimated_cost|floatformat:2 }}</div>
+                    <div class="text-muted small">{{ total_estimated_hours|floatformat:1 }} {% trans "hrs" %}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small mb-1">{% trans "Actual Cost" %}</div>
+                    <div class="h5 mb-0">${{ total_actual_cost|floatformat:2 }}</div>
+                    <div class="text-muted small">{{ total_actual_hours|floatformat:1 }} {% trans "hrs" %}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small mb-1">{% trans "Variance" %}</div>
+                    <div class="h5 mb-0 {% if total_variance_cost >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        {% if total_variance_cost >= 0 %}+{% endif %}${{ total_variance_cost|floatformat:2 }}
+                    </div>
+                    <div class="small {% if total_variance_hours >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        {% if total_variance_hours >= 0 %}+{% endif %}{{ total_variance_hours|floatformat:1 }} {% trans "hrs" %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small mb-1">{% trans "Unassigned" %}</div>
+                    <div class="h5 mb-0 {% if unassigned_count > 0 %}text-warning{% else %}text-success{% endif %}">
+                        {{ unassigned_count }} {% trans "entries" %}
+                    </div>
+                    <div class="text-muted small">{{ unassigned_hours|floatformat:1 }} {% trans "hrs" %}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget Lines Table -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0"><i class="bi bi-table me-2"></i>{% trans "Budget Lines" %}</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{% trans "Cost Code" %}</th>
+                        <th>{% trans "Budget Line" %}</th>
+                        <th class="text-end">{% trans "Est. Hours" %}</th>
+                        <th class="text-end">{% trans "Act. Hours" %}</th>
+                        <th class="text-end">{% trans "Est. Cost" %}</th>
+                        <th class="text-end">{% trans "Act. Cost" %}</th>
+                        <th class="text-end">{% trans "Variance" %}</th>
+                        <th class="text-center">{% trans "Status" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in report_data %}
+                    <tr>
+                        <td class="text-muted small">{{ row.cost_code|default:"—" }}</td>
+                        <td class="fw-medium">{{ row.budget_line.name }}</td>
+                        <td class="text-end">{{ row.estimated_hours|floatformat:1 }}</td>
+                        <td class="text-end">{{ row.actual_hours|floatformat:1 }}</td>
+                        <td class="text-end">${{ row.estimated_cost|floatformat:2 }}</td>
+                        <td class="text-end">${{ row.actual_cost|floatformat:2 }}</td>
+                        <td class="text-end {% if row.variance_cost >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            {% if row.variance_cost >= 0 %}+{% endif %}${{ row.variance_cost|floatformat:2 }}
+                        </td>
+                        <td class="text-center">
+                            {% if row.status == "under" %}
+                                <span class="badge bg-info">{% trans "Under" %}</span>
+                            {% elif row.status == "on_track" %}
+                                <span class="badge bg-success">{% trans "On Track" %}</span>
+                            {% else %}
+                                <span class="badge bg-danger">{% trans "Over Budget" %}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">{% trans "No budget lines found." %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Change Orders Table -->
+    {% if co_data %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0"><i class="bi bi-clipboard-plus me-2"></i>{% trans "Change Orders" %} ({{ co_data|length }})</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{% trans "Change Order" %}</th>
+                        <th class="text-end">{% trans "Hours" %}</th>
+                        <th class="text-end">{% trans "Labor Cost" %}</th>
+                        <th class="text-end">{% trans "Billed Amount" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for co in co_data %}
+                    <tr>
+                        <td class="fw-medium">CO #{{ co.change_order.id }} — {{ co.change_order.title|default:"" }}</td>
+                        <td class="text-end">{{ co.hours|floatformat:1 }}</td>
+                        <td class="text-end">${{ co.cost|floatformat:2 }}</td>
+                        <td class="text-end">${{ co.billed_amount|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    <tr class="fw-bold">
+                        <td>{% trans "Total" %}</td>
+                        <td class="text-end">{{ total_co_hours|floatformat:1 }}</td>
+                        <td class="text-end">${{ total_co_cost|floatformat:2 }}</td>
+                        <td class="text-end">—</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Unassigned Warning -->
+    {% if unassigned_count > 0 %}
+    <div class="alert alert-warning d-flex align-items-center gap-2">
+        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+        <div>
+            <strong>{{ unassigned_count }} {% trans "unassigned time entries" %}</strong>
+            ({{ unassigned_hours|floatformat:1 }} {% trans "hours" %})
+            — {% trans "These entries are not assigned to any budget line or change order." %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
