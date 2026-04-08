@@ -783,17 +783,6 @@ urlpatterns = [
         views.inventory_wizard,
         name="inventory_wizard",
     ),
-    path("projects/<int:project_id>/inventory/", views.inventory_view, name="inventory_view"),
-    path(
-        "projects/<int:project_id>/inventory/move/",
-        views.inventory_move_view,
-        name="inventory_move",
-    ),
-    path(
-        "projects/<int:project_id>/inventory/history/",
-        views.inventory_history_view,
-        name="inventory_history",
-    ),
     # Materials
     path(
         "materials/request/<int:request_id>/receive-ticket/",
