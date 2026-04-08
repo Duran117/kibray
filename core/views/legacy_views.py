@@ -917,9 +917,7 @@ def dashboard_admin(request):
         "english_mode": english_mode,
     }
 
-    # Keep `?legacy=` reserved for the legacy_shell (sidebar suppression) behavior.
-    # The admin dashboard no longer supports a separate legacy template.
-    template = "core/dashboard_admin_clean.html"
+    template = "core/dashboard_admin.html"
 
     context.setdefault("badges", {"unread_notifications_count": 0})
 
@@ -3787,10 +3785,9 @@ def touchup_board(request, project_id):
 
     priority_choices = Task.PRIORITY_CHOICES
 
-    # Usamos plantilla limpia para evitar errores de bloques duplicados
     return render(
         request,
-        "core/touchup_board_clean.html",
+        "core/touchup_board.html",
         {
             "project": project,
             "page_obj": page_obj,
@@ -4786,7 +4783,7 @@ def changeorder_create_view(request):
                 project_id=project_id, status="approved"
             ).order_by("code")
 
-    return render(request, "core/changeorder_form_clean.html", {"form": form, "approved_colors": approved_colors})
+    return render(request, "core/changeorder_form.html", {"form": form, "approved_colors": approved_colors})
 
 
 @login_required
@@ -4827,7 +4824,7 @@ def changeorder_edit_view(request, co_id):
 
     return render(
         request,
-        "core/changeorder_form_clean.html",
+        "core/changeorder_form.html",
         {
             "form": form,
             "changeorder": changeorder,
@@ -8593,7 +8590,7 @@ def dashboard_pm(request):
         "badges": {"unread_notifications_count": 0},  # Placeholder
     }
 
-    return render(request, "core/dashboard_pm_clean.html", context)
+    return render(request, "core/dashboard_pm.html", context)
 
 
 # --- PM: seleccionar proyecto por acción ---
@@ -12015,7 +12012,7 @@ def dashboard_designer(request):
         "active_filter": active_filter,
     }
 
-    return render(request, "core/dashboard_designer_clean.html", context)
+    return render(request, "core/dashboard_designer.html", context)
 
 
 @login_required
@@ -14959,7 +14956,7 @@ def project_create(request):
     else:
         form = ProjectCreateForm()
 
-    return render(request, "core/project_form_modern.html", {"form": form, "is_create": True})
+    return render(request, "core/project_form.html", {"form": form, "is_create": True})
 
 
 @login_required
@@ -14980,7 +14977,7 @@ def project_edit(request, project_id):
         form = ProjectEditForm(instance=project)
 
     return render(
-        request, "core/project_form_modern.html", {"form": form, "project": project, "is_create": False}
+        request, "core/project_form.html", {"form": form, "project": project, "is_create": False}
     )
 
 
