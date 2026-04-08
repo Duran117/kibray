@@ -128,7 +128,21 @@
 
   <form method="post" enctype="multipart/form-data" id="dailyLogForm">
     {% csrf_token %}
-    
+
+    {% if form.errors %}
+    <div class="alert alert-danger mb-3">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      <strong>{% trans "Please correct the errors below:" %}</strong>
+      {% if form.non_field_errors %}
+      <ul class="mb-0 mt-2">
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+    {% endif %}
+
     <div class="row">
       <!-- Left Column: Main Info -->
       <div class="col-lg-8">
@@ -144,15 +158,17 @@
               <div class="col-md-4">
                 <label class="form-label">{% trans "Date" %} <span class="text-danger">*</span></label>
                 {{ form.date }}
+                {% for error in form.date.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
               </div>
               <div class="col-md-4">
                 <label class="form-label">{% trans "Weather" %}</label>
                 {{ form.weather }}
+                {% for error in form.weather.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
               </div>
               <div class="col-md-4">
                 <label class="form-label">{% trans "People Working" %}</label>
                 {{ form.crew_count }}
-              </div>
+                {% for error in form.crew_count.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
             </div>
           </div>
         </div>
@@ -251,6 +267,7 @@
             </div>
             <div class="mb-3">
               {{ form.completed_tasks }}
+              {% for error in form.completed_tasks.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
             </div>
 
             {% if pending_tasks %}
@@ -319,6 +336,7 @@
           </div>
           <div class="form-card-body">
             {{ form.accomplishments }}
+            {% for error in form.accomplishments.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
           </div>
         </div>
 
@@ -330,6 +348,7 @@
           </div>
           <div class="form-card-body">
             {{ form.progress_notes }}
+            {% for error in form.progress_notes.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
           </div>
         </div>
 
@@ -343,10 +362,12 @@
             <div class="mb-3">
               <label class="form-label">{% trans "Safety Incidents" %}</label>
               {{ form.safety_incidents }}
+              {% for error in form.safety_incidents.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
             </div>
             <div>
               <label class="form-label">{% trans "Delays or Issues" %}</label>
               {{ form.delays }}
+              {% for error in form.delays.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
             </div>
           </div>
         </div>
@@ -359,6 +380,7 @@
           </div>
           <div class="form-card-body">
             {{ form.next_day_plan }}
+            {% for error in form.next_day_plan.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
           </div>
         </div>
 
