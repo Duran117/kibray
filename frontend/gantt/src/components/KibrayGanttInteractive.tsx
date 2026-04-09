@@ -16,7 +16,7 @@ import {
 } from '../types/gantt';
 import { useZoom, ZOOM_CONFIG } from '../hooks/useZoom';
 import { useDragAndDrop, DragType } from '../hooks/useDragAndDrop';
-import { getDaysBetween, addDays, formatDate } from '../utils/dateUtils';
+import { getDaysBetween, addDays, formatDate, parseDate } from '../utils/dateUtils';
 
 // Components
 import { GanttToolbar } from './GanttToolbar';
@@ -110,14 +110,14 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
       let maxItemEnd: Date | null = null;
 
       categoryItems.forEach(item => {
-        const itemStart = new Date(item.start_date);
-        const itemEnd = new Date(item.end_date);
+        const itemStart = parseDate(item.start_date);
+        const itemEnd = parseDate(item.end_date);
         if (!minItemStart || itemStart < minItemStart) minItemStart = itemStart;
         if (!maxItemEnd || itemEnd > maxItemEnd) maxItemEnd = itemEnd;
       });
 
-      let start = category.start_date ? new Date(category.start_date) : minItemStart;
-      let end = category.end_date ? new Date(category.end_date) : maxItemEnd;
+      let start = category.start_date ? parseDate(category.start_date) : minItemStart;
+      let end = category.end_date ? parseDate(category.end_date) : maxItemEnd;
 
       // If stage has no dates and no items, use default range (today + 2 weeks)
       if (!start && !end) {
@@ -187,7 +187,7 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
 
     const candidateDates: Date[] = [];
     items.forEach(item => {
-      candidateDates.push(new Date(item.start_date), new Date(item.end_date));
+      candidateDates.push(parseDate(item.start_date), parseDate(item.end_date));
     });
     categoryDateRanges.forEach(range => {
       candidateDates.push(range.start, range.end);

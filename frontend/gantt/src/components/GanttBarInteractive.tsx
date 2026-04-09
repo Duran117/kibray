@@ -8,7 +8,7 @@ import { GanttItem, ZoomLevel, DateRange } from '../types/gantt';
 import { getBarColor, getContrastTextColor } from '../utils/colorUtils';
 import { calculateBarPosition, calculateBarWidth } from '../utils/positionUtils';
 import { ZOOM_CONFIG } from '../hooks/useZoom';
-import { formatDate } from '../utils/dateUtils';
+import { formatDate, parseDate } from '../utils/dateUtils';
 import { DragType } from '../hooks/useDragAndDrop';
 
 interface GanttBarProps {
@@ -48,8 +48,8 @@ export const GanttBar: React.FC<GanttBarProps> = ({
   const textColor = getContrastTextColor(barColor);
   
   // Use preview dates if dragging, otherwise use item dates
-  const startDate = previewDates?.start || new Date(item.start_date);
-  const endDate = previewDates?.end || new Date(item.end_date);
+  const startDate = previewDates?.start || parseDate(item.start_date);
+  const endDate = previewDates?.end || parseDate(item.end_date);
   
   // Calculate position and dimensions
   const left = calculateBarPosition(startDate, dateRange.start, config.dayWidth);
@@ -201,7 +201,7 @@ export const GanttBar: React.FC<GanttBarProps> = ({
       )}
 
       {/* Overdue indicator */}
-      {item.status !== 'completed' && new Date(item.end_date) < new Date() && (
+      {item.status !== 'completed' && parseDate(item.end_date) < new Date() && (
         <div className="absolute -top-1 -left-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center shadow pointer-events-none">
           <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8v4l3 3" />

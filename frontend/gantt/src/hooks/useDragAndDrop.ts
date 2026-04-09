@@ -6,7 +6,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { GanttItem, ZoomLevel } from '../types/gantt';
 import { ZOOM_CONFIG } from './useZoom';
-import { addDays } from '../utils/dateUtils';
+import { addDays, parseDate } from '../utils/dateUtils';
 
 export type DragType = 'move' | 'resize-left' | 'resize-right' | null;
 
@@ -73,8 +73,8 @@ export function useDragAndDrop(options: UseDragAndDropOptions): UseDragAndDropRe
       dragType: type,
       item,
       startX: e.clientX,
-      startDate: new Date(item.start_date),
-      endDate: new Date(item.end_date),
+      startDate: parseDate(item.start_date),
+      endDate: parseDate(item.end_date),
       currentX: e.clientX,
     };
 

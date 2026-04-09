@@ -7,6 +7,7 @@ import React from 'react';
 import { GanttDependency, GanttItem, ZoomLevel, DateRange } from '../types/gantt';
 import { calculateBarPosition, calculateBarWidth } from '../utils/positionUtils';
 import { ZOOM_CONFIG } from '../hooks/useZoom';
+import { parseDate } from '../utils/dateUtils';
 
 interface GanttDependencyLinesProps {
   dependencies: GanttDependency[];
@@ -59,9 +60,9 @@ export const GanttDependencyLines: React.FC<GanttDependencyLinesProps> = ({
         return null;
       }
 
-      const fromStartDate = new Date(fromItem.start_date);
-      const fromEndDate = new Date(fromItem.end_date);
-      const toStartDate = new Date(toItem.start_date);
+      const fromStartDate = parseDate(fromItem.start_date);
+      const fromEndDate = parseDate(fromItem.end_date);
+      const toStartDate = parseDate(toItem.start_date);
       
       const fromLeft = calculateBarPosition(fromStartDate, dateRange.start, config.dayWidth);
       const fromWidth = calculateBarWidth(fromStartDate, fromEndDate, config.dayWidth);
@@ -86,7 +87,7 @@ export const GanttDependencyLines: React.FC<GanttDependencyLinesProps> = ({
           toY = headerHeight + toRowIndex * rowHeight + 8 + barHeight / 2;
           break;
         case 'FF': // Finish to Finish
-          const toEndDate = new Date(toItem.end_date);
+          const toEndDate = parseDate(toItem.end_date);
           const toWidth = calculateBarWidth(toStartDate, toEndDate, config.dayWidth);
           fromX = fromLeft + fromWidth;
           fromY = headerHeight + fromRowIndex * rowHeight + 8 + barHeight / 2;
@@ -94,7 +95,7 @@ export const GanttDependencyLines: React.FC<GanttDependencyLinesProps> = ({
           toY = headerHeight + toRowIndex * rowHeight + 8 + barHeight / 2;
           break;
         case 'SF': // Start to Finish
-          const toEnd = new Date(toItem.end_date);
+          const toEnd = parseDate(toItem.end_date);
           const toW = calculateBarWidth(toStartDate, toEnd, config.dayWidth);
           fromX = fromLeft;
           fromY = headerHeight + fromRowIndex * rowHeight + 8 + barHeight / 2;
