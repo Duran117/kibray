@@ -1356,3 +1356,32 @@ def process_changeorder_creation(changeorder_id: int):
         return {"status": "error", "error": str(e)}
 
 
+@shared_task(name="core.tasks.process_contract_generation")
+def process_contract_generation(contract_id: int, user_id: int = None, regenerate: bool = False):
+    """
+    Generate contract PDF in background and save it to the contract/project files.
+    If `regenerate` is True then force regeneration/overwrite.
+    """
+    try:
+        from django.contrib.auth import get_user_model
+        from core.services.contract_service import ContractService
+        from core.models import Contract
+
+        contract = Contract.objects.select_related('project').get(id=contract_id)
+        user = None
+        if user_id:
+            User = get_user_model()
+            user = User.objects.filter(id=user_id).first()
+
+        # Call the ContractService to (re)generate and save the PDF
+        ContractService.generate_contract_pdf(contract, user)
+        logger.info(f"process_contract_generation: Generated PDF for contract {contract_id}")
+        return {"status": "success", "contract_id": contract_id}
+    except Contract.DoesNotExist:
+        logger.error(f"process_contract_generation: Contract {contract_id} not found")
+        return {"status": "error", "error": "Contract not found"}
+    except Exception as e:
+        logger.error(f"process_contract_generation: Error for contract {contract_id}: {e}")
+        return {"status": "error", "error": str(e)}
+
+

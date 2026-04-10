@@ -6355,13 +6355,27 @@ def estimate_detail_view(request, estimate_id):
             # Auto-create Contract with new professional format
             try:
                 from core.services.contract_service import ContractService
+                # Create contract but defer PDF generation to background task to keep UI responsive
                 contract = ContractService.create_contract_from_estimate(
                     estimate=est,
                     user=request.user,
-                    auto_generate_pdf=True
+                    auto_generate_pdf=False,
                 )
-                messages.info(request, _("Contract created and PDF saved to project documents."))
-                logger.info(f"Created contract {contract.contract_number} for estimate {est.code}")
+                # Queue background job to generate and save the professional PDF
+                try:
+                    from core.tasks import process_contract_generation
+
+                    process_contract_generation.delay(contract.id, request.user.id)
+                    messages.info(request, _("Contract created. PDF generation queued in background."))
+                except Exception:
+                    # If task queue isn't available, fallback to synchronous generation (best-effort)
+                    try:
+                        ContractService.generate_contract_pdf(contract, request.user)
+                        messages.info(request, _("Contract created and PDF generated."))
+                    except Exception as e:
+                        logger.warning(f"Contract PDF generation failed (fallback): {e}")
+                        messages.info(request, _("Contract created but PDF generation failed; you can regenerate later."))
+                logger.info(f"Created contract {getattr(contract, 'contract_number', 'N/A')} for estimate {est.code}")
             except ValueError as ve:
                 # Contract already exists - just regenerate PDF
                 if hasattr(est, 'contract') and est.contract:
@@ -6395,15 +6409,26 @@ def estimate_detail_view(request, estimate_id):
                     contract = ContractService.create_contract_from_estimate(
                         estimate=est,
                         user=request.user,
-                        auto_generate_pdf=False
+                        auto_generate_pdf=False,
                     )
-                
-                # Regenerate PDF with new professional format
-                result = ContractService.generate_contract_pdf(contract, request.user)
-                if result:
-                    messages.success(request, _("Contract PDF regenerated successfully with professional format!"))
-                else:
-                    messages.error(request, _("Failed to regenerate contract PDF."))
+
+                # Queue background regeneration of the PDF to avoid blocking the request
+                try:
+                    from core.tasks import process_contract_generation
+
+                    process_contract_generation.delay(contract.id, request.user.id, True)
+                    messages.success(request, _("Contract PDF regeneration queued in background."))
+                except Exception:
+                    # Fallback to synchronous regeneration if task queue isn't available
+                    try:
+                        result = ContractService.generate_contract_pdf(contract, request.user)
+                        if result:
+                            messages.success(request, _("Contract PDF regenerated successfully with professional format!"))
+                        else:
+                            messages.error(request, _("Failed to regenerate contract PDF."))
+                    except Exception as e:
+                        logger.error(f"Failed to regenerate PDF (fallback): {e}")
+                        messages.error(request, _(f"Error: {str(e)}"))
             else:
                 # For non-approved estimates, use regular estimate PDF
                 from core.services.document_storage_service import auto_save_estimate_pdf
