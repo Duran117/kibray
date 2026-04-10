@@ -1177,6 +1177,9 @@
                 <a href="{% url 'changeorder_edit' changeorder.id %}" class="btn btn-primary">
                     <i class="bi bi-pencil"></i> {% trans "Edit" %}
                 </a>
+                <a href="{% url 'changeorder_split' changeorder.id %}" class="btn btn-ghost" style="border-color:#c4b5fd;color:var(--purple);">
+                    <i class="bi bi-scissors"></i> {% trans "Split CO" %}
+                </a>
                 {% if changeorder.status == 'approved' %}
                 <button class="btn btn-success" onclick="sendToClient({{ changeorder.id }})">
                     <i class="bi bi-send"></i> {% trans "Send to Client" %}

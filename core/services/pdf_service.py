@@ -1764,8 +1764,17 @@ def generate_changeorder_pdf_reportlab(changeorder: "ChangeOrder") -> bytes:
     
     # === TITLE ===
     elements.append(Paragraph("<b>CHANGE ORDER</b>", title_style))
-    elements.append(Paragraph(f"Document #CO-{changeorder.id:05d}", 
+    # Show reference code (e.g. CO-KPI01-01) if available, else fallback to numeric ID
+    co_ref_display = changeorder.reference_code or f"CO-{changeorder.id:05d}"
+    elements.append(Paragraph(f"Document #{co_ref_display}",
                               ParagraphStyle('Subtitle', parent=normal_style, alignment=TA_CENTER)))
+    # Show CO title prominently if set
+    if changeorder.co_title:
+        co_title_style = ParagraphStyle(
+            'COTitle', parent=styles['Heading2'], fontSize=14,
+            textColor=colors.HexColor('#334155'), alignment=TA_CENTER, spaceAfter=4,
+        )
+        elements.append(Paragraph(f"<b>{changeorder.co_title}</b>", co_title_style))
     elements.append(Spacer(1, 16))
     
     # === STATUS BADGE ===

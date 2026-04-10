@@ -4912,6 +4912,151 @@ def changeorder_delete_view(request, co_id):
 
 
 @login_required
+def changeorder_split_view(request, co_id):
+    """
+    Split a Change Order: move selected time entries, expenses and photos
+    from the original CO into a brand-new CO.
+
+    Naming convention:
+      - Original: CO-KPI01  → stays as-is (reference_code unchanged).
+      - New split: CO-KPI01-01, CO-KPI01-02, etc.
+
+    The new CO inherits project, pricing_type, billing rates, markup from
+    the original.  Selected items are **moved** (FK re-pointed), not copied.
+    """
+    if not _is_staffish(request.user):
+        return redirect("dashboard")
+
+    original = get_object_or_404(ChangeOrder, id=co_id)
+
+    # ── Gather movable items ──
+    time_entries = list(
+        original.time_entries.select_related("employee").order_by("-date", "-start_time")
+    )
+    expenses = list(original.expenses.all().order_by("-date"))
+    photos = list(original.photos.all().order_by("order", "uploaded_at"))
+
+    # ── Compute next reference code (CO-KPI01-01, -02, …) ──
+    base_ref = original.reference_code or f"CO-{original.id:04d}"
+    # Find existing splits: anything that starts with base_ref + "-"
+    existing_splits = (
+        ChangeOrder.objects.filter(
+            project=original.project,
+            reference_code__startswith=base_ref + "-",
+        )
+        .values_list("reference_code", flat=True)
+    )
+    max_suffix = 0
+    for ref in existing_splits:
+        # Extract the last segment after the base_ref
+        tail = ref[len(base_ref) + 1:]  # e.g. "01", "02"
+        with contextlib.suppress(ValueError):
+            max_suffix = max(max_suffix, int(tail))
+    next_suffix = max_suffix + 1
+    next_reference_code = f"{base_ref}-{next_suffix:02d}"
+
+    # ── POST: perform the split ──
+    if request.method == "POST":
+        new_ref = request.POST.get("new_reference_code", "").strip()
+        new_title = request.POST.get("new_co_title", "").strip()
+        new_pricing = request.POST.get("new_pricing_type", original.pricing_type)
+        new_amount_raw = request.POST.get("new_amount", "0")
+        new_description = request.POST.get("new_description", "").strip()
+
+        # ── Validation ──
+        errors = []
+        if not new_ref:
+            errors.append(_("Reference code is required."))
+        if not new_title:
+            errors.append(_("Title is required."))
+
+        # Check at least one item selected
+        te_ids = request.POST.getlist("time_entry_ids")
+        exp_ids = request.POST.getlist("expense_ids")
+        photo_ids = request.POST.getlist("photo_ids")
+        if not te_ids and not exp_ids and not photo_ids:
+            errors.append(_("You must select at least one item to move."))
+
+        # Check reference code uniqueness
+        if new_ref and ChangeOrder.objects.filter(reference_code=new_ref).exists():
+            errors.append(_("A Change Order with reference code '%(ref)s' already exists.") % {"ref": new_ref})
+
+        if errors:
+            for err in errors:
+                messages.error(request, err)
+            return render(
+                request,
+                "core/changeorder_split.html",
+                {
+                    "changeorder": original,
+                    "time_entries": time_entries,
+                    "expenses": expenses,
+                    "photos": photos,
+                    "next_reference_code": next_reference_code,
+                },
+            )
+
+        # ── Parse amount ──
+        try:
+            from decimal import Decimal as D, InvalidOperation
+            new_amount = D(new_amount_raw)
+        except (InvalidOperation, ValueError):
+            new_amount = Decimal("0")
+
+        # ── Create the new CO in one atomic block ──
+        from django.db import transaction
+
+        with transaction.atomic():
+            new_co = ChangeOrder.objects.create(
+                project=original.project,
+                co_title=new_title,
+                description=new_description or original.description,
+                amount=new_amount,
+                pricing_type=new_pricing,
+                labor_rate_override=original.labor_rate_override,
+                material_markup_percent=original.material_markup_percent,
+                status="draft",
+                reference_code=new_ref,
+                notes=_("Split from %(ref)s") % {"ref": base_ref},
+                color=original.color,
+            )
+
+            # Move selected time entries
+            if te_ids:
+                original.time_entries.filter(id__in=te_ids).update(change_order=new_co)
+
+            # Move selected expenses
+            if exp_ids:
+                original.expenses.filter(id__in=exp_ids).update(change_order=new_co)
+
+            # Move selected photos (re-assign FK)
+            if photo_ids:
+                original.photos.filter(id__in=photo_ids).update(change_order=new_co)
+
+        messages.success(
+            request,
+            _("Change Order split successfully. New CO: %(ref)s — %(title)s") % {
+                "ref": new_ref,
+                "title": new_title,
+            },
+        )
+        return redirect("changeorder_detail", changeorder_id=new_co.id)
+
+    # ── GET: show the split form ──
+    return render(
+        request,
+        "core/changeorder_split.html",
+        {
+            "changeorder": original,
+            "time_entries": time_entries,
+            "expenses": expenses,
+            "photos": photos,
+            "next_reference_code": next_reference_code,
+        },
+    )
+
+
+@login_required
 def photo_editor_standalone_view(request):
     """Standalone photo editor that opens in new tab/window"""
     return render(request, "core/photo_editor_standalone.html")

@@ -1,0 +1,393 @@
+{% load i18n humanize currency_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Split Change Order" %} — CO-{{ changeorder.reference_code|default:changeorder.id }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --primary: #667eea; --primary-dark: #5568d3;
+            --success: #059669; --warning: #f59e0b; --danger: #dc2626;
+            --info: #0284c7; --purple: #7c3aed;
+            --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1; --slate-400: #94a3b8; --slate-500: #64748b;
+            --slate-600: #475569; --slate-700: #334155; --slate-800: #1e293b;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8edf5 50%, #f5f3ff 100%);
+            min-height: 100vh; color: var(--slate-800);
+        }
+        .split-page { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+        .back-link {
+            display: inline-flex; align-items: center; gap: .5rem; color: var(--slate-500);
+            text-decoration: none; font-size: .9rem; font-weight: 500; margin-bottom: 1.5rem;
+        }
+        .back-link:hover { color: var(--primary); }
+
+        /* Hero */
+        .split-hero {
+            background: white; border-radius: 16px; overflow: hidden; margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.04);
+        }
+        .split-hero-grad {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem 2.5rem; color: white;
+        }
+        .split-hero-grad h1 { font-size: 1.6rem; font-weight: 700; }
+        .split-hero-grad p { opacity: .85; margin-top: .3rem; font-size: .95rem; }
+        .split-hero-body { padding: 1.25rem 2.5rem; background: var(--slate-50); border-top: 1px solid var(--slate-200); }
+
+        /* New CO config card */
+        .config-card {
+            background: white; border-radius: 12px; padding: 1.5rem 2rem; margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,.06);
+        }
+        .config-card h3 { font-size: 1rem; font-weight: 700; color: var(--slate-800); margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+        .form-group { display: flex; flex-direction: column; gap: .35rem; }
+        .form-group label { font-size: .8rem; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: .3px; }
+        .form-group input, .form-group textarea, .form-group select {
+            padding: .6rem .8rem; border: 1px solid var(--slate-200); border-radius: 8px; font-size: .9rem;
+            transition: border-color .2s;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(102,126,234,.12);
+        }
+
+        /* Section cards */
+        .section-card {
+            background: white; border-radius: 12px; margin-bottom: 1.5rem; overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,.06);
+        }
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--slate-200); background: var(--slate-50);
+        }
+        .section-header h3 {
+            font-size: .95rem; font-weight: 700; color: var(--slate-700);
+            display: flex; align-items: center; gap: .5rem;
+        }
+        .section-header .count-badge {
+            background: var(--primary); color: white; font-size: .75rem; font-weight: 600;
+            padding: .2rem .6rem; border-radius: 50px;
+        }
+        .select-all-toggle {
+            font-size: .8rem; color: var(--primary); cursor: pointer; font-weight: 600;
+            border: none; background: none; text-decoration: underline;
+        }
+
+        /* Item rows */
+        .item-row {
+            display: flex; align-items: center; gap: 1rem; padding: .75rem 1.5rem;
+            border-bottom: 1px solid var(--slate-100); transition: background .15s;
+        }
+        .item-row:last-child { border-bottom: none; }
+        .item-row:hover { background: #f8f9ff; }
+        .item-row input[type="checkbox"] {
+            width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0;
+        }
+        .item-info { flex: 1; min-width: 0; }
+        .item-info .item-title { font-weight: 600; font-size: .9rem; color: var(--slate-800); }
+        .item-info .item-meta { font-size: .8rem; color: var(--slate-500); margin-top: .1rem; }
+        .item-amount { font-weight: 700; font-size: .9rem; color: var(--slate-700); white-space: nowrap; }
+
+        .empty-section { padding: 2rem; text-align: center; color: var(--slate-400); font-size: .9rem; }
+
+        /* Summary bar */
+        .summary-bar {
+            position: sticky; bottom: 0; background: white; border-top: 2px solid var(--primary);
+            padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 -4px 20px rgba(0,0,0,.08); border-radius: 16px 16px 0 0; z-index: 10;
+        }
+        .summary-stats { display: flex; gap: 2rem; font-size: .9rem; color: var(--slate-600); }
+        .summary-stats strong { color: var(--slate-900); }
+        .btn-split {
+            padding: .7rem 2rem; background: var(--primary); color: white; border: none;
+            border-radius: 10px; font-size: .95rem; font-weight: 600; cursor: pointer;
+            display: inline-flex; align-items: center; gap: .5rem; transition: all .2s;
+        }
+        .btn-split:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102,126,234,.3); }
+        .btn-split:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-cancel {
+            padding: .7rem 1.5rem; background: transparent; color: var(--slate-600); border: 1px solid var(--slate-300);
+            border-radius: 10px; font-size: .9rem; font-weight: 500; cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; gap: .4rem; transition: all .2s;
+        }
+        .btn-cancel:hover { border-color: var(--slate-400); background: var(--slate-50); }
+
+        /* Validation error */
+        .validation-msg {
+            display: none; padding: .75rem 1rem; border-radius: 8px; font-size: .85rem; font-weight: 500; margin-bottom: 1rem;
+        }
+        .validation-msg.error { display: block; background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+        .validation-msg.success { display: block; background: #f0fdf4; color: var(--success); border: 1px solid #bbf7d0; }
+
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .summary-bar { flex-direction: column; gap: 1rem; }
+            .summary-stats { flex-direction: column; gap: .5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="split-page">
+        <a href="{% url 'changeorder_detail' changeorder.id %}" class="back-link">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Change Order" %}
+        </a>
+
+        <!-- Hero -->
+        <div class="split-hero">
+            <div class="split-hero-grad">
+                <h1><i class="bi bi-scissors"></i> {% trans "Split Change Order" %}</h1>
+                <p>{% trans "Select items to move from" %} <strong>{{ changeorder.reference_code|default:"CO-"|add:changeorder.id|stringformat:"04d" }}</strong> {% trans "into a new Change Order" %}</p>
+            </div>
+            <div class="split-hero-body">
+                <span style="font-size:.85rem;color:var(--slate-500);">
+                    <i class="bi bi-building"></i> {{ changeorder.project.name }}
+                    &nbsp;·&nbsp;
+                    <i class="bi bi-tag"></i> {{ changeorder.co_title|default:changeorder.description|truncatewords:8 }}
+                    &nbsp;·&nbsp;
+                    {% if changeorder.pricing_type == 'T_AND_M' %}
+                        <i class="bi bi-clock-history"></i> {% trans "Time & Materials" %}
+                    {% else %}
+                        <i class="bi bi-tag"></i> {% trans "Fixed Price" %}
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Validation messages -->
+        <div id="validationMsg" class="validation-msg"></div>
+
+        <form method="post" id="splitForm" novalidate>
+            {% csrf_token %}
+
+            <!-- New CO Configuration -->
+            <div class="config-card">
+                <h3><i class="bi bi-gear" style="color:var(--primary)"></i> {% trans "New Change Order Configuration" %}</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{% trans "New Reference Code" %}</label>
+                        <input type="text" name="new_reference_code" id="newRefCode" value="{{ next_reference_code }}" required
+                               placeholder="CO-KPI01-01" maxlength="50">
+                    </div>
+                    <div class="form-group">
+                        <label>{% trans "New CO Title" %}</label>
+                        <input type="text" name="new_co_title" id="newTitle" value="" required
+                               placeholder="{% trans 'e.g. Owner portion - Kitchen' %}" maxlength="100">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{% trans "Pricing Type" %}</label>
+                        <select name="new_pricing_type" id="newPricingType">
+                            <option value="T_AND_M" {% if changeorder.pricing_type == 'T_AND_M' %}selected{% endif %}>{% trans "Time & Materials" %}</option>
+                            <option value="FIXED" {% if changeorder.pricing_type == 'FIXED' %}selected{% endif %}>{% trans "Fixed Price" %}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>{% trans "Fixed Amount (if applicable)" %}</label>
+                        <input type="number" name="new_amount" id="newAmount" value="0" step="0.01" min="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>{% trans "Description / Notes" %}</label>
+                    <textarea name="new_description" rows="3" placeholder="{% trans 'Describe what this split covers...' %}">{{ changeorder.description }}</textarea>
+                </div>
+            </div>
+
+            <!-- Time Entries Section -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3>
+                        <i class="bi bi-clock-history" style="color:var(--info)"></i> {% trans "Time Entries" %}
+                        <span class="count-badge">{{ time_entries|length }}</span>
+                    </h3>
+                    {% if time_entries %}
+                    <button type="button" class="select-all-toggle" data-group="time_entry">{% trans "Select All" %}</button>
+                    {% endif %}
+                </div>
+                {% if time_entries %}
+                    {% for te in time_entries %}
+                    <div class="item-row">
+                        <input type="checkbox" name="time_entry_ids" value="{{ te.id }}" class="item-check" data-group="time_entry"
+                               data-hours="{{ te.hours_worked|default:0 }}" data-amount="{{ te.labor_cost|default:0 }}">
+                        <div class="item-info">
+                            <div class="item-title">{{ te.employee.first_name }} {{ te.employee.last_name }}</div>
+                            <div class="item-meta">
+                                {{ te.date|date:"M d, Y" }}
+                                · {{ te.start_time|time:"g:i A" }}{% if te.end_time %} – {{ te.end_time|time:"g:i A" }}{% endif %}
+                                · {{ te.hours_worked|floatformat:2 }} {% trans "hrs" %}
+                                {% if te.notes %}· {{ te.notes|truncatewords:8 }}{% endif %}
+                            </div>
+                        </div>
+                        <div class="item-amount">${{ te.labor_cost|floatformat:2|default:"0.00" }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-section"><i class="bi bi-clock"></i> {% trans "No time entries in this Change Order" %}</div>
+                {% endif %}
+            </div>
+
+            <!-- Expenses Section -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3>
+                        <i class="bi bi-receipt" style="color:var(--success)"></i> {% trans "Expenses / Materials" %}
+                        <span class="count-badge">{{ expenses|length }}</span>
+                    </h3>
+                    {% if expenses %}
+                    <button type="button" class="select-all-toggle" data-group="expense">{% trans "Select All" %}</button>
+                    {% endif %}
+                </div>
+                {% if expenses %}
+                    {% for exp in expenses %}
+                    <div class="item-row">
+                        <input type="checkbox" name="expense_ids" value="{{ exp.id }}" class="item-check" data-group="expense"
+                               data-amount="{{ exp.amount|default:0 }}">
+                        <div class="item-info">
+                            <div class="item-title">{{ exp.description|default:exp.get_category_display|default:exp.category }}</div>
+                            <div class="item-meta">
+                                {{ exp.date|date:"M d, Y" }}
+                                · {{ exp.get_category_display|default:exp.category }}
+                            </div>
+                        </div>
+                        <div class="item-amount">${{ exp.amount|floatformat:2 }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-section"><i class="bi bi-receipt"></i> {% trans "No expenses in this Change Order" %}</div>
+                {% endif %}
+            </div>
+
+            <!-- Photos Section -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3>
+                        <i class="bi bi-image" style="color:var(--purple)"></i> {% trans "Photos" %}
+                        <span class="count-badge">{{ photos|length }}</span>
+                    </h3>
+                    {% if photos %}
+                    <button type="button" class="select-all-toggle" data-group="photo">{% trans "Select All" %}</button>
+                    {% endif %}
+                </div>
+                {% if photos %}
+                    {% for photo in photos %}
+                    <div class="item-row">
+                        <input type="checkbox" name="photo_ids" value="{{ photo.id }}" class="item-check" data-group="photo">
+                        <div class="item-info" style="display:flex; align-items:center; gap:.75rem;">
+                            {% if photo.image %}
+                            <img src="{{ photo.image.url }}" style="width:48px;height:48px;border-radius:6px;object-fit:cover;" alt="">
+                            {% endif %}
+                            <div>
+                                <div class="item-title">{{ photo.description|default:"Photo" }} #{{ photo.order|add:1 }}</div>
+                                <div class="item-meta">{{ photo.uploaded_at|date:"M d, Y" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-section"><i class="bi bi-image"></i> {% trans "No photos in this Change Order" %}</div>
+                {% endif %}
+            </div>
+
+            <!-- Sticky Summary Bar -->
+            <div class="summary-bar">
+                <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;">
+                    <div class="summary-stats">
+                        <span><strong id="selectedCount">0</strong> {% trans "items selected" %}</span>
+                        <span>{% trans "Labor" %}: <strong id="selectedHours">0.00</strong> {% trans "hrs" %}</span>
+                        <span>{% trans "Total" %}: <strong id="selectedAmount">$0.00</strong></span>
+                    </div>
+                </div>
+                <div style="display:flex;gap:.75rem;align-items:center;">
+                    <a href="{% url 'changeorder_detail' changeorder.id %}" class="btn-cancel">
+                        <i class="bi bi-x-lg"></i> {% trans "Cancel" %}
+                    </a>
+                    <button type="submit" class="btn-split" id="splitBtn" disabled>
+                        <i class="bi bi-scissors"></i> {% trans "Split into New CO" %}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+    (function() {
+        const form = document.getElementById('splitForm');
+        const splitBtn = document.getElementById('splitBtn');
+        const msgEl = document.getElementById('validationMsg');
+        const selectedCountEl = document.getElementById('selectedCount');
+        const selectedHoursEl = document.getElementById('selectedHours');
+        const selectedAmountEl = document.getElementById('selectedAmount');
+        const allChecks = document.querySelectorAll('.item-check');
+
+        /* ── Select All toggles ── */
+        document.querySelectorAll('.select-all-toggle').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const group = this.dataset.group;
+                const checks = document.querySelectorAll(`.item-check[data-group="${group}"]`);
+                const allChecked = Array.from(checks).every(c => c.checked);
+                checks.forEach(c => { c.checked = !allChecked; });
+                this.textContent = allChecked ? '{% trans "Select All" %}' : '{% trans "Deselect All" %}';
+                updateSummary();
+            });
+        });
+
+        /* ── Update summary on any checkbox change ── */
+        allChecks.forEach(cb => cb.addEventListener('change', updateSummary));
+
+        function updateSummary() {
+            let count = 0, hours = 0, amount = 0;
+            allChecks.forEach(cb => {
+                if (cb.checked) {
+                    count++;
+                    hours += parseFloat(cb.dataset.hours || 0);
+                    amount += parseFloat(cb.dataset.amount || 0);
+                }
+            });
+            selectedCountEl.textContent = count;
+            selectedHoursEl.textContent = hours.toFixed(2);
+            selectedAmountEl.textContent = '$' + amount.toFixed(2);
+            splitBtn.disabled = count === 0;
+
+            // Clear validation message when items are selected
+            if (count > 0) { msgEl.className = 'validation-msg'; msgEl.style.display = 'none'; }
+        }
+
+        /* ── Client-side validation before submit ── */
+        form.addEventListener('submit', function(e) {
+            const errors = [];
+            const refCode = document.getElementById('newRefCode').value.trim();
+            const title = document.getElementById('newTitle').value.trim();
+            const checked = document.querySelectorAll('.item-check:checked');
+
+            if (!refCode) errors.push('{% trans "Reference code is required." %}');
+            if (!title) errors.push('{% trans "Title is required." %}');
+            if (checked.length === 0) errors.push('{% trans "You must select at least one item to move." %}');
+
+            if (errors.length > 0) {
+                e.preventDefault();
+                msgEl.className = 'validation-msg error';
+                msgEl.innerHTML = '<i class="bi bi-exclamation-triangle"></i> ' + errors.join('<br>');
+                msgEl.style.display = 'block';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+
+            // Disable button to prevent double-submit
+            splitBtn.disabled = true;
+            splitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> {% trans "Splitting..." %}';
+        });
+
+        /* ── Initial state ── */
+        updateSummary();
+    })();
+    </script>
+</body>
+</html>

@@ -426,6 +426,9 @@ urlpatterns = [
     path(
         "changeorder/<int:co_id>/delete/", views.changeorder_delete_view, name="changeorder_delete"
     ),
+    path(
+        "changeorder/<int:co_id>/split/", views.changeorder_split_view, name="changeorder_split"
+    ),
     path("changeorders/board/", views.changeorder_board_view, name="changeorder_board"),
     path(
         "changeorders/unassigned-time/",
