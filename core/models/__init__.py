@@ -948,8 +948,16 @@ class ScheduleItemV2(models.Model):
         ("done", _("Completed")),
     ]
 
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="gantt_items")
-    phase = models.ForeignKey(SchedulePhaseV2, on_delete=models.CASCADE, related_name="items")
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="gantt_items",
+        null=True, blank=True,
+        help_text=_("Null for personal/office events"),
+    )
+    phase = models.ForeignKey(
+        SchedulePhaseV2, on_delete=models.CASCADE, related_name="items",
+        null=True, blank=True,
+        help_text=_("Null for personal/office events"),
+    )
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     start_date = models.DateField()
@@ -967,6 +975,10 @@ class ScheduleItemV2(models.Model):
     order = models.IntegerField(default=0)
     is_milestone = models.BooleanField(
         default=False, help_text=_("Si es hito, start=end y se muestra como diamante")
+    )
+    is_personal = models.BooleanField(
+        default=False,
+        help_text=_("Personal/office event — hidden from client calendars"),
     )
     allow_sunday_override = models.BooleanField(
         default=False,

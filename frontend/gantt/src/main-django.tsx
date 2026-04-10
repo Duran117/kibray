@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { KibrayGantt, CalendarView, ViewSwitcher, ViewMode } from './components';
+import { KibrayGantt, ViewMode } from './components';
 import { GanttMode, GanttItem, GanttCategory, GanttDependency } from './types/gantt';
 import { transformV2Response, toV2TaskPayload } from './api/adapters';
 import { GanttApi } from './api/ganttApi';
@@ -128,7 +128,8 @@ const KibrayGanttApp: React.FC<KibrayGanttAppConfig> = ({
       // Pass frontend format with project_id - ganttApi.createItem handles transformation
       const createdItem = await apiRef.current.createItem({
         ...item,
-        project_id: projectId,
+        // In project mode, enforce the project. In master mode, let the item keep its own project_id.
+        ...(projectId ? { project_id: projectId } : {}),
       });
       setState(prev => ({
         ...prev,
@@ -177,12 +178,6 @@ const KibrayGanttApp: React.FC<KibrayGanttAppConfig> = ({
     }
   };
 
-  // Handle item click from calendar
-  const handleCalendarItemClick = (item: GanttItem) => {
-    setState(prev => ({ ...prev, viewMode: 'gantt' }));
-    // TODO: scroll to item in gantt view
-  };
-
   if (state.loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -207,39 +202,22 @@ const KibrayGanttApp: React.FC<KibrayGanttAppConfig> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* View Switcher in top-right */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px 16px', borderBottom: '1px solid #e5e7eb' }}>
-        <ViewSwitcher
-          currentView={state.viewMode}
-          onViewChange={(view) => setState(prev => ({ ...prev, viewMode: view }))}
-        />
-      </div>
-
-      {/* Main content */}
+      {/* Main content — KibrayGantt handles its own Gantt/Calendar toggle */}
       <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-        {state.viewMode === 'gantt' ? (
-          <KibrayGantt
-            mode={mode}
-            items={state.items}
-            categories={state.categories}
-            dependencies={state.dependencies}
-            projectId={projectId}
-            projectName={projectName}
-            canEdit={canEdit}
-            onItemCreate={handleItemCreate}
-            onItemUpdate={handleItemUpdate}
-            onItemDelete={handleItemDelete}
-            onTaskCreate={handleTaskCreate}
-            teamMembers={teamMembers}
-          />
-        ) : (
-          <CalendarView
-            items={state.items}
-            categories={state.categories}
-            onItemClick={handleCalendarItemClick}
-            canEdit={canEdit}
-          />
-        )}
+        <KibrayGantt
+          mode={mode}
+          items={state.items}
+          categories={state.categories}
+          dependencies={state.dependencies}
+          projectId={projectId}
+          projectName={projectName}
+          canEdit={canEdit}
+          onItemCreate={handleItemCreate}
+          onItemUpdate={handleItemUpdate}
+          onItemDelete={handleItemDelete}
+          onTaskCreate={handleTaskCreate}
+          teamMembers={teamMembers}
+        />
       </div>
     </div>
   );

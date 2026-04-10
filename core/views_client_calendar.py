@@ -88,7 +88,9 @@ def client_calendar_api_data(request, project_id):
         "done": "Completed",
     }
 
-    items = ScheduleItemV2.objects.filter(project=project).select_related("phase")
+    items = ScheduleItemV2.objects.filter(
+        project=project, is_personal=False,
+    ).select_related("phase")
     events = []
 
     for item in items:

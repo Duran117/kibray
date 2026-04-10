@@ -90,6 +90,7 @@ class ScheduleItemV2Serializer(serializers.ModelSerializer):
             "phase_remaining_weight_percent",
             "order",
             "is_milestone",
+            "is_personal",
             "allow_sunday_override",
             "allow_sunday_effective",
             "created_at",
@@ -203,6 +204,11 @@ class ProjectMinimalSerializer(serializers.ModelSerializer):
 
 
 class ScheduleItemV2WriteSerializer(serializers.ModelSerializer):
+    project = serializers.PrimaryKeyRelatedField(
+        queryset=Project.objects.all(),
+        required=False,
+        allow_null=True,
+    )
     phase = serializers.PrimaryKeyRelatedField(
         queryset=SchedulePhaseV2.objects.all(),
         required=False,
@@ -225,6 +231,7 @@ class ScheduleItemV2WriteSerializer(serializers.ModelSerializer):
             "weight_percent",
             "order",
             "is_milestone",
+            "is_personal",
             "allow_sunday_override",
         ]
 
@@ -241,8 +248,18 @@ class ScheduleItemV2WriteSerializer(serializers.ModelSerializer):
         if progress is not None and (progress < 0 or progress > 100):
             raise serializers.ValidationError({"progress": "progress debe estar entre 0 y 100"})
 
+        is_personal = attrs.get("is_personal", getattr(self.instance, "is_personal", False))
+
+        # Personal events don't require project/phase
+        if is_personal:
+            return attrs
+
         project = attrs.get("project") or getattr(self.instance, "project", None)
         phase = attrs.get("phase") or getattr(self.instance, "phase", None)
+
+        if not project and not self.instance:
+            raise serializers.ValidationError({"project": "project is required for non-personal events"})
+
         if project and phase and phase.project_id != project.id:
             raise serializers.ValidationError({"phase": "phase debe pertenecer al mismo proyecto"})
 
@@ -257,10 +274,14 @@ class ScheduleItemV2WriteSerializer(serializers.ModelSerializer):
                 })
 
         return attrs
-
-        return attrs
     
     def create(self, validated_data):
+        # Personal events: no project/phase needed
+        if validated_data.get("is_personal"):
+            validated_data.setdefault("project", None)
+            validated_data.setdefault("phase", None)
+            return super().create(validated_data)
+
         # If no phase provided, get or create a default "General" phase for the project
         if not validated_data.get("phase"):
             project = validated_data.get("project")

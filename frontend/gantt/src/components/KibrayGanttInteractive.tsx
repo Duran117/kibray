@@ -440,15 +440,19 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
     end_date: string;
     status: ItemStatus;
     category_id: number | null;
+    project_id?: number;
     weight_percent: number;
     is_milestone: boolean;
     is_personal: boolean;
   }) => {
+    // Resolve project_id: explicit from modal (master mode) or from prop
+    const resolvedProjectId = newItem.project_id || projectId || 0;
+
     // Create temporary item for optimistic UI
     const tempItem: GanttItem = {
       id: Date.now(), // Temp ID
       ...newItem,
-      project_id: projectId || 0,
+      project_id: resolvedProjectId,
       percent_complete: 0,
       weight_percent: newItem.weight_percent,
       order: items.length,
@@ -467,7 +471,7 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
 
     if (onItemCreate) {
       try {
-        const createdItem = await onItemCreate(newItem);
+        const createdItem = await onItemCreate({ ...newItem, project_id: resolvedProjectId });
         // Replace temp item with real one
         setItems(prev => prev.map(i => 
           i.id === tempItem.id ? createdItem : i
@@ -553,6 +557,7 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
           initialDate={createModalDate}
           categories={localCategories}
           projectId={projectId}
+          mode={mode}
           onClose={() => setIsCreateModalOpen(false)}
           onCreate={handleCreateItem}
           onStageCreated={(category) => {
@@ -752,6 +757,7 @@ export const KibrayGantt: React.FC<KibrayGanttProps> = ({
         initialDate={createModalDate}
         categories={localCategories}
         projectId={projectId}
+        mode={mode}
         onClose={() => setIsCreateModalOpen(false)}
         onCreate={handleCreateItem}
         onStageCreated={(category) => {

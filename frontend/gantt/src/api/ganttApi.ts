@@ -108,7 +108,7 @@ export class GanttApi {
       remaining_weight_percent: apiItem.remaining_weight_percent || 100,
       phase_remaining_weight_percent: apiItem.phase_remaining_weight_percent,
       is_milestone: apiItem.is_milestone || false,
-      is_personal: false,
+      is_personal: apiItem.is_personal || false,
       assigned_to: apiItem.assigned_to,
       assigned_to_name: apiItem.assigned_to_name,
       tasks: apiItem.tasks || [],

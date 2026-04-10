@@ -86,7 +86,7 @@ function transformItemV2(item: any, phaseId: number): GanttItem {
     calculated_progress: item.calculated_progress || 0,
     remaining_weight_percent: item.remaining_weight_percent || 100,
     is_milestone: item.is_milestone || false,
-    is_personal: false,
+    is_personal: item.is_personal || false,
     assigned_to: item.assigned_to,
     assigned_to_name: item.assigned_to_name,
     tasks: (item.tasks || []).map(transformTaskV2),
@@ -186,6 +186,7 @@ export function toV2ItemPayload(item: Partial<GanttItem>): any {
     weight_percent: item.weight_percent,
     order: item.order,
     is_milestone: item.is_milestone,
+    is_personal: item.is_personal,
   };
 }
 

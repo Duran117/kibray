@@ -25,6 +25,35 @@
                 <p class="text-sm text-slate-500">{% trans "All projects timeline" %}</p>
             </div>
         </div>
+        <!-- Sync with Apple Calendar / Google Calendar -->
+        <div class="relative" x-data="{ open: false }">
+            <button onclick="toggleCalSync()" id="cal-sync-btn"
+                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+                <i class="bi bi-phone"></i>
+                <span class="hidden sm:inline">{% trans "Sync to iPhone" %}</span>
+            </button>
+            <div id="cal-sync-panel" class="hidden absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-200 p-4 z-50">
+                <h3 class="text-sm font-semibold text-slate-900 mb-2">📱 {% trans "Subscribe on iPhone / iPad" %}</h3>
+                <p class="text-xs text-slate-500 mb-3">{% trans "This URL auto-syncs your Kibray schedule to Apple Calendar, Google Calendar, or Outlook." %}</p>
+                <div class="flex items-center gap-2 mb-3">
+                    <input id="ical-url" type="text" readonly
+                        value="{{ ical_feed_url }}"
+                        class="flex-1 px-2 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg font-mono truncate">
+                    <button onclick="copyIcalUrl()" class="px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                        {% trans "Copy" %}
+                    </button>
+                </div>
+                <div class="space-y-2">
+                    <a href="webcal://{{ ical_feed_host }}{{ ical_feed_path }}" class="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-800">
+                        <i class="bi bi-apple"></i> {% trans "Open in Apple Calendar" %}
+                    </a>
+                    <a href="https://calendar.google.com/calendar/r?cid=webcal://{{ ical_feed_host }}{{ ical_feed_path }}" target="_blank" class="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-800">
+                        <i class="bi bi-google"></i> {% trans "Add to Google Calendar" %}
+                    </a>
+                </div>
+                <p class="text-xs text-slate-400 mt-3">{% trans "Calendar refreshes automatically every few hours." %}</p>
+            </div>
+        </div>
     </div>
 
     <!-- Gantt -->
@@ -36,8 +65,28 @@
 
 {% block extra_js %}
 <meta name="csrf-token" content="{{ csrf_token }}">
-<script src="{% static 'gantt/gantt-app.iife.js' %}?v=20260406b"></script>
+<script src="{% static 'gantt/gantt-app.iife.js' %}?v=20260409"></script>
 <script>
+function toggleCalSync() {
+    var panel = document.getElementById('cal-sync-panel');
+    panel.classList.toggle('hidden');
+}
+function copyIcalUrl() {
+    var input = document.getElementById('ical-url');
+    navigator.clipboard.writeText(input.value).then(function() {
+        var btn = event.target;
+        btn.textContent = '✓ Copied!';
+        setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+    });
+}
+// Close panel on outside click
+document.addEventListener('click', function(e) {
+    var panel = document.getElementById('cal-sync-panel');
+    var btn = document.getElementById('cal-sync-btn');
+    if (panel && !panel.contains(e.target) && !btn.contains(e.target)) {
+        panel.classList.add('hidden');
+    }
+});
 document.addEventListener('DOMContentLoaded', function () {
     var teamMembers = [
         {% for m in team_members %}

@@ -241,6 +241,77 @@ def generate_master_calendar_feed(request, user_token):
 
         cal.add_component(event)
 
+    # 4. Add Gantt Schedule Items (ScheduleItemV2) — project tasks + personal events
+    from core.models import ScheduleItemV2
+
+    gantt_items = (
+        ScheduleItemV2.objects
+        .filter(
+            start_date__gte=date_range_start.date(),
+            start_date__lte=date_range_end.date(),
+        )
+        .select_related("project", "phase", "assigned_to")
+        .order_by("start_date")
+    )
+
+    STATUS_EMOJI = {
+        "planned": "📋",
+        "in_progress": "🔧",
+        "blocked": "🚫",
+        "done": "✅",
+    }
+
+    for item in gantt_items:
+        event = Event()
+        event.add("uid", f"gantt-item-{item.id}@kibray.com")
+
+        prefix = "🔒" if item.is_personal else STATUS_EMOJI.get(item.status, "📋")
+        project_label = f" [{item.project.name}]" if item.project else ""
+        event.add("summary", f"{prefix} {item.name}{project_label}")
+
+        desc = f"{item.description or ''}\n"
+        if item.project:
+            desc += f"Project: {item.project.name}\n"
+        if item.phase:
+            desc += f"Stage: {item.phase.name}\n"
+        desc += f"Status: {item.get_status_display()}\n"
+        desc += f"Progress: {item.calculated_progress}%\n"
+        if item.assigned_to:
+            desc += f"Assigned: {item.assigned_to.get_full_name()}\n"
+        if item.is_personal:
+            desc += "🔒 Personal / Office event\n"
+        event.add("description", desc.strip())
+
+        # All-day events (DateField, not DateTime)
+        if item.is_milestone:
+            event.add("dtstart", item.start_date)
+            event.add("dtend", item.start_date + timedelta(days=1))
+        else:
+            event.add("dtstart", item.start_date)
+            event.add("dtend", item.end_date + timedelta(days=1))
+
+        event.add("dtstamp", timezone.now())
+
+        categories = []
+        if item.is_personal:
+            categories.append("Personal")
+        elif item.project:
+            categories.append(item.project.name)
+        if item.is_milestone:
+            categories.append("Milestone")
+        event.add("categories", categories or ["Schedule"])
+
+        if item.is_personal:
+            event.add("color", "yellow")
+        elif item.status == "done":
+            event.add("color", "green")
+        elif item.status == "in_progress":
+            event.add("color", "blue")
+        elif item.status == "blocked":
+            event.add("color", "red")
+
+        cal.add_component(event)
+
     # Generate response
     response = HttpResponse(cal.to_ical(), content_type="text/calendar; charset=utf-8")
     response["Content-Disposition"] = f'attachment; filename="kibray_master_{user.username}.ics"'

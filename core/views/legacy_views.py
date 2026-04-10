@@ -1293,6 +1293,8 @@ def master_schedule_center(request):
         return redirect("dashboard")
 
     from django.contrib.auth import get_user_model
+    from django.urls import reverse
+
     User = get_user_model()
     team_members = (
         User.objects.filter(is_active=True, is_staff=True)
@@ -1300,9 +1302,21 @@ def master_schedule_center(request):
         .values("id", "first_name", "last_name")
     )
 
+    # iCal feed URL for iPhone / Google Calendar sync
+    ical_path = reverse("master-calendar-feed", args=[request.user.pk])
+    ical_feed_url = request.build_absolute_uri(ical_path)
+    # Extract host and path for webcal:// links
+    from urllib.parse import urlparse
+    parsed = urlparse(ical_feed_url)
+    ical_feed_host = parsed.netloc
+    ical_feed_path = parsed.path
+
     context = {
         "title": "Master Schedule",
         "team_members": list(team_members),
+        "ical_feed_url": ical_feed_url,
+        "ical_feed_host": ical_feed_host,
+        "ical_feed_path": ical_feed_path,
     }
     return render(request, "core/master_schedule_gantt.html", context)
 

@@ -138,6 +138,33 @@ def get_master_gantt_v2(request):
     )
     deps_data = ScheduleDependencyV2Serializer(deps_qs, many=True).data
 
+    # Personal / Office events (no project)
+    personal_items_qs = (
+        ScheduleItemV2.objects
+        .filter(is_personal=True, project__isnull=True)
+        .select_related("assigned_to")
+        .prefetch_related("tasks")
+        .order_by("start_date", "id")
+    )
+    if personal_items_qs.exists():
+        personal_serialized = ScheduleItemV2Serializer(personal_items_qs, many=True).data
+        phases_data.insert(0, {
+            "id": -1,  # Virtual phase id
+            "project": None,
+            "name": "🔒 Personal / Office",
+            "color": "#f59e0b",
+            "order": -1,
+            "weight_percent": 0,
+            "start_date": None,
+            "end_date": None,
+            "calculated_progress": 0,
+            "remaining_weight_percent": 100,
+            "allow_sunday": False,
+            "created_at": None,
+            "updated_at": None,
+            "items": personal_serialized,
+        })
+
     items_count = sum(len(p["items"]) for p in phases_data)
     tasks_count = sum(
         len(i.get("tasks", []))

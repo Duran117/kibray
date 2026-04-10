@@ -5,7 +5,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { getGanttApi } from '../api/ganttApi';
-import { GanttCategory, ItemStatus } from '../types/gantt';
+import { GanttCategory, GanttMode, ItemStatus } from '../types/gantt';
 import { addDays, formatDate } from '../utils/dateUtils';
 
 interface CreateItemModalProps {
@@ -13,6 +13,7 @@ interface CreateItemModalProps {
   initialDate: Date;
   categories: GanttCategory[];
   projectId?: number;
+  mode?: GanttMode;
   onClose: () => void;
   onCreate: (item: {
     title: string;
@@ -21,6 +22,7 @@ interface CreateItemModalProps {
     end_date: string;
     status: ItemStatus;
     category_id: number | null;
+    project_id?: number;
     weight_percent: number;
     is_milestone: boolean;
     is_personal: boolean;
@@ -33,6 +35,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   initialDate,
   categories,
   projectId,
+  mode = 'project',
   onClose,
   onCreate,
   onStageCreated,
@@ -42,6 +45,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
 
   // Item is always a group/bar, milestone is a flag within item
   const [isMilestone, setIsMilestone] = useState(false);
+  const [isPersonal, setIsPersonal] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -59,8 +63,18 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   const [stageEndDate, setStageEndDate] = useState('');
   const [creatingStage, setCreatingStage] = useState(false);
 
-  const selectedCategory = localCategories.find(cat => cat.id === categoryId) || null;
+  // Master-mode: categories prop are projects; stages are loaded per-project
+  const isMasterMode = mode === 'master';
+  const [selectedMasterProjectId, setSelectedMasterProjectId] = useState<number | null>(null);
+  const [projectStages, setProjectStages] = useState<GanttCategory[]>([]);
+  const [loadingStages, setLoadingStages] = useState(false);
+
+  // In master mode use projectStages; in project mode use localCategories
+  const stageList = isMasterMode ? projectStages : localCategories;
+  const selectedCategory = stageList.find(cat => cat.id === categoryId) || null;
   const remainingWeight = Math.max(0, selectedCategory?.remaining_weight_percent ?? 100);
+  // Effective project id for stage creation
+  const effectiveProjectId = isMasterMode ? selectedMasterProjectId : projectId;
 
   useEffect(() => {
     setLocalCategories(categories);
@@ -79,11 +93,12 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
     const end = formatDate(addDays(initialDate, 7));
 
     setIsMilestone(false);
+    setIsPersonal(false);
     setTitle('');
     setDescription('');
     setStartDate(start);
     setEndDate(end);
-    setCategoryId(categories.length > 0 ? categories[0].id : null);
+    setCategoryId(isMasterMode ? null : (categories.length > 0 ? categories[0].id : null));
     setWeightPercent(0);
     setIsSubmitting(false);
     setShowStageModal(false);
@@ -92,6 +107,10 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
     setStageStartDate(start);
     setStageEndDate(end);
     setCreatingStage(false);
+    if (isMasterMode) {
+      setSelectedMasterProjectId(null);
+      setProjectStages([]);
+    }
 
     setTimeout(() => titleInputRef.current?.focus(), 100);
   }, [isOpen, initialDate, categories]);
@@ -121,6 +140,40 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
     }
   }, [showStageModal, startDate, endDate]);
 
+  // Master mode: load real stages when a project is selected
+  useEffect(() => {
+    if (!isMasterMode || !selectedMasterProjectId) {
+      setProjectStages([]);
+      setCategoryId(null);
+      return;
+    }
+    let cancelled = false;
+    setLoadingStages(true);
+    const api = getGanttApi();
+    api.fetchGanttData('project', { projectId: selectedMasterProjectId })
+      .then((data: any) => {
+        if (cancelled) return;
+        const phases = (data.phases || []).map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          color: p.color,
+          order: p.order,
+          is_collapsed: false,
+          project_id: p.project,
+          start_date: p.start_date,
+          end_date: p.end_date,
+          weight_percent: p.weight_percent,
+          calculated_progress: p.calculated_progress,
+          remaining_weight_percent: p.remaining_weight_percent,
+        }));
+        setProjectStages(phases);
+        setCategoryId(phases.length > 0 ? phases[0].id : null);
+      })
+      .catch(() => { if (!cancelled) setProjectStages([]); })
+      .finally(() => { if (!cancelled) setLoadingStages(false); });
+    return () => { cancelled = true; };
+  }, [isMasterMode, selectedMasterProjectId]);
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -146,6 +199,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+    if (isMasterMode && !isPersonal && !selectedMasterProjectId) return;
 
     const normalizedEndDate = isMilestone ? startDate : endDate;
 
@@ -157,10 +211,11 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
         start_date: startDate,
         end_date: normalizedEndDate,
         status,
-        category_id: categoryId,
-        weight_percent: weightPercent,
+        category_id: isPersonal ? null : categoryId,
+        project_id: isMasterMode ? (selectedMasterProjectId || undefined) : undefined,
+        weight_percent: isPersonal ? 0 : weightPercent,
         is_milestone: isMilestone,
-        is_personal: false,
+        is_personal: isPersonal,
       });
       onClose();
     } catch (err) {
@@ -174,8 +229,8 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
     e.preventDefault();
     
     if (!newStageName.trim()) return;
-    if (!projectId) {
-      alert('Project ID not available.');
+    if (!effectiveProjectId) {
+      alert('Please select a project first.');
       return;
     }
 
@@ -187,14 +242,18 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
       const effectiveEndDate = stageEndDate || endDate || null;
       
       const newCat = await api.createCategory({
-        project_id: projectId,
+        project_id: effectiveProjectId,
         name: newStageName.trim(),
         color: newStageColor,
         start_date: effectiveStartDate,
         end_date: effectiveEndDate,
       });
       
-      setLocalCategories(prev => [...prev, newCat]);
+      if (isMasterMode) {
+        setProjectStages(prev => [...prev, newCat]);
+      } else {
+        setLocalCategories(prev => [...prev, newCat]);
+      }
       setCategoryId(newCat.id);
       setShowStageModal(false);
       onStageCreated?.(newCat);
@@ -267,6 +326,53 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
               />
             </div>
 
+            {/* Master mode: Personal toggle + Project selector */}
+            {isMasterMode && (
+              <>
+                {/* Personal event toggle */}
+                <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <label className="flex items-center gap-2 cursor-pointer flex-1">
+                    <input
+                      type="checkbox"
+                      checked={isPersonal}
+                      onChange={(e) => {
+                        setIsPersonal(e.target.checked);
+                        if (e.target.checked) {
+                          setSelectedMasterProjectId(null);
+                          setCategoryId(null);
+                        }
+                      }}
+                      className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                    />
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">🔒 Personal / Office Event</span>
+                      <p className="text-xs text-gray-500">Not visible to clients (meetings, internal tasks, etc.)</p>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Project selector (hidden when personal) */}
+                {!isPersonal && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Project *</label>
+                    <select
+                      value={selectedMasterProjectId || ''}
+                      onChange={(e) => setSelectedMasterProjectId(e.target.value ? parseInt(e.target.value) : null)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    >
+                      <option value="">Select a project...</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.project_id || cat.id}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </>
+            )}
+
             {/* Dates */}
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -306,7 +412,8 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
               </label>
             </div>
 
-            {/* Category (Stage) */}
+            {/* Category (Stage) — hide when personal event */}
+            {!(isMasterMode && isPersonal) && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Stage
@@ -316,6 +423,12 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
                   </span>
                 )}
               </label>
+              {loadingStages ? (
+                <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  Loading stages...
+                </div>
+              ) : (
               <select
                 value={categoryId || ''}
                 onChange={(e) => {
@@ -330,15 +443,17 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                {localCategories.length === 0 && <option value="">No stages yet</option>}
-                {localCategories.map(cat => (
+                {stageList.length === 0 && <option value="">No stages yet</option>}
+                {stageList.map(cat => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name} ({cat.remaining_weight_percent ?? 100}% available)
                   </option>
                 ))}
-                <option value="__create__">+ Create new Stage...</option>
+                {effectiveProjectId && <option value="__create__">+ Create new Stage...</option>}
               </select>
+              )}
             </div>
+            )}
 
             {/* Stage Creation Modal */}
             {showStageModal && (
@@ -470,7 +585,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
               </button>
               <button
                 type="submit"
-                disabled={!title.trim() || isSubmitting}
+                disabled={!title.trim() || isSubmitting || (isMasterMode && !isPersonal && !selectedMasterProjectId)}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Creating...' : 'Create Item'}

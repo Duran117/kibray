@@ -22,6 +22,7 @@ from core import (
     views_wizards,
 )
 from core import views_client_calendar as client_calendar_views
+from core.api import calendar_feed as calendar_feed_views
 from core import views_financial as fin_views
 from core import views_notifications as notif_views
 from core import views_planner as planner_views
@@ -75,6 +76,12 @@ urlpatterns = [
     path("dashboard/admin/", views.dashboard_admin, name="dashboard_admin"),
     path("dashboard/bi/", views.executive_bi_dashboard, name="dashboard_bi"),
     path("schedule/master/", views.master_schedule_center, name="master_schedule_center"),
+    # Master calendar iCal feed (for Apple Calendar / Google Calendar / Outlook sync)
+    path(
+        "api/v1/calendar/master/<str:user_token>.ics",
+        calendar_feed_views.generate_master_calendar_feed,
+        name="master-calendar-feed",
+    ),
     # PM Calendar - NEW
     path("pm-calendar/", pm_calendar_views.pm_calendar_view, name="pm_calendar"),
     path(
