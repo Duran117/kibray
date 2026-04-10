@@ -150,6 +150,8 @@ from core.models import (  # noqa: E402
     ScheduleItemV2,
     Task,
     TimeEntry,
+    TouchUp,
+    TouchUpPhoto,
 )
 from core.services.earned_value import compute_project_ev  # noqa: E402
 from core.services.financial_service import FinancialAnalyticsService  # BI Module 21  # noqa: E402
@@ -2548,6 +2550,13 @@ def client_project_view(request, project_id):
     pending_tasks = tasks.filter(status__in=["Pending", "In Progress"])
     completed_tasks = tasks.filter(status="Completed")[:10]
 
+    # Touch-ups V2 (sistema principal)
+    project_touchups_v2 = TouchUp.objects.filter(
+        project=project
+    ).select_related("assigned_to__user").prefetch_related("photos").order_by("-created_at")
+    active_touchups_v2 = project_touchups_v2.filter(status__in=["open", "in_progress", "review"])
+    closed_touchups_v2 = project_touchups_v2.filter(status="closed")[:10]
+
     # === COMENTARIOS ===
     comments = Comment.objects.filter(project=project).order_by("-created_at")[:10]
 
@@ -2645,6 +2654,8 @@ def client_project_view(request, project_id):
         "tasks": tasks,
         "pending_tasks": pending_tasks,
         "completed_tasks": completed_tasks,
+        "active_touchups_v2": active_touchups_v2,
+        "closed_touchups_v2": closed_touchups_v2,
         "comments": comments,
         "invoices": invoices,
         "total_invoiced": total_invoiced,
@@ -3668,53 +3679,93 @@ def floor_plan_add_pin(request, plan_id):
 @login_required
 def agregar_tarea(request, project_id):
     """
-    Permite a clientes agregar tareas (principalmente touch-ups).
-    Cliente puede adjuntar fotos y agregar descripción.
-    PM recibirá notificación y asignará a empleado.
+    Permite a clientes (y staff) agregar touch-ups usando el modelo TouchUp V2.
+    - Cliente crea → se auto-asigna al primer admin activo.
+    - Staff crea → puede asignar directamente a un empleado.
+    - Se envían notificaciones a admins y PMs.
     """
+    from core.models import ClientProjectAccess, TouchUp, TouchUpPhoto
+
     project = get_object_or_404(Project, id=project_id)
 
-    # Verificar que el usuario es el cliente de este proyecto o staff
+    # Verificar acceso
     profile = getattr(request.user, "profile", None)
-    from core.models import ClientProjectAccess
-
     has_access = ClientProjectAccess.objects.filter(user=request.user, project=project).exists()
     if profile and profile.role == "client":
         if not (has_access or project.client == request.user.username):
-            messages.error(request, "No tienes acceso a este proyecto.")
+            messages.error(request, _("You don't have access to this project."))
             return redirect("dashboard_client")
     elif not request.user.is_staff and not has_access:
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Access denied."))
         return redirect("dashboard")
 
     if request.method == "POST":
         title = request.POST.get("title", "").strip()
         description = request.POST.get("description", "").strip()
-        image = request.FILES.get("image")
 
         if not title:
-            messages.error(request, "Title is required.")
+            messages.error(request, _("Title is required."))
             return redirect("client_project_view", project_id=project_id)
 
-        # Create task with Pending status and photo if exists
-        task = Task.objects.create(
+        # Create TouchUp V2 (not legacy Task)
+        touchup = TouchUp.objects.create(
             project=project,
             title=title,
             description=description,
-            status="Pending",
+            status="open",
+            priority="medium",
             created_by=request.user,
-            image=image,
-            is_touchup=True,
         )
 
-        # Notificar a PMs
-        from core.notifications import notify_task_created
+        # Handle photo uploads (single legacy field + multiple)
+        photos = request.FILES.getlist("photos") or []
+        single_image = request.FILES.get("image")
+        if single_image:
+            photos.insert(0, single_image)
 
-        notify_task_created(task, request.user)
+        for photo_file in photos:
+            TouchUpPhoto.objects.create(
+                touchup=touchup,
+                image=photo_file,
+                phase="before",
+                uploaded_by=request.user,
+            )
+
+        # Auto-assign to first active admin (superuser or staff with admin role)
+        admin_user = User.objects.filter(
+            is_active=True, is_superuser=True
+        ).first()
+        if not admin_user:
+            admin_user = User.objects.filter(
+                is_active=True, is_staff=True, profile__role="admin"
+            ).first()
+
+        # Notify admins and PMs
+        admins_and_pms = User.objects.filter(
+            is_active=True
+        ).filter(
+            Q(is_superuser=True) | Q(profile__role__in=["admin", "project_manager"])
+        ).distinct()
+
+        creator_name = request.user.get_full_name() or request.user.username
+        for u in admins_and_pms:
+            if u != request.user:
+                Notification.objects.create(
+                    user=u,
+                    notification_type="task_created",
+                    title=_("New Touch-Up: %(title)s") % {"title": title[:60]},
+                    message=_("%(creator)s created a touch-up in %(project)s") % {
+                        "creator": creator_name,
+                        "project": project.name,
+                    },
+                    related_object_type="TouchUp",
+                    related_object_id=touchup.id,
+                    link_url=f"/projects/{project.id}/touchups-v2/{touchup.id}/",
+                )
 
         messages.success(
             request,
-            _("Tarea '%(title)s' creada exitosamente. El PM será notificado.") % {"title": title},
+            _("Touch-up '%(title)s' created successfully. The team has been notified.") % {"title": title},
         )
         return redirect("client_project_view", project_id=project_id)
 
@@ -7723,12 +7774,22 @@ def dashboard_employee(request):
         .first()
     )
 
-    # Touch-ups asignados
+    # Touch-ups asignados (legacy Task model)
     my_touchups = (
         Task.objects.filter(
             assigned_to=employee, is_touchup=True, status__in=["Pending", "In Progress"]
         )
         .select_related("project")
+        .order_by("-created_at")[:10]
+    )
+
+    # Touch-ups V2 asignados (nuevo modelo dedicado)
+    my_touchups_v2 = (
+        TouchUp.objects.filter(
+            assigned_to=employee, status__in=["open", "in_progress", "review"]
+        )
+        .select_related("project")
+        .prefetch_related("photos")
         .order_by("-created_at")[:10]
     )
 
@@ -8134,6 +8195,7 @@ def dashboard_employee(request):
         "my_activities": my_activities,
         "my_schedule": my_schedule,
         "my_touchups": my_touchups,
+        "my_touchups_v2": my_touchups_v2,
         "morning_briefing": morning_briefing,
         "active_filter": active_filter,
         "badges": {"unread_notifications_count": 0},
@@ -8486,6 +8548,20 @@ def dashboard_pm(request):
         is_touchup=True, status__in=["Pending", "In Progress"]
     ).count()
 
+    # TouchUps V2 pendientes (nuevo modelo dedicado)
+    pending_touchups_v2 = (
+        TouchUp.objects.filter(status__in=["open", "in_progress", "review"])
+        .select_related("project", "assigned_to", "created_by")
+        .prefetch_related("photos")
+        .order_by("-created_at")[:20]
+    )
+    pending_touchups_v2_count = TouchUp.objects.filter(
+        status__in=["open", "in_progress", "review"]
+    ).count()
+    unassigned_touchups_v2_count = TouchUp.objects.filter(
+        status__in=["open", "in_progress"], assigned_to__isnull=True
+    ).count()
+
     try:
         if unassigned_time_count > 0:
             morning_briefing.append(
@@ -8588,6 +8664,9 @@ def dashboard_pm(request):
         # Touch-ups
         "pending_touchups": pending_touchups,
         "pending_touchups_count": pending_touchups_count,
+        "pending_touchups_v2": pending_touchups_v2,
+        "pending_touchups_v2_count": pending_touchups_v2_count,
+        "unassigned_touchups_v2_count": unassigned_touchups_v2_count,
         # Context
         "today": today,
         "now": now,
@@ -16444,20 +16523,35 @@ def touchup_list(request, project_id):
         messages.error(request, _("You don't have access to this project."))
         return redirect(redirect_url)
 
-    if not _is_pm_or_admin(request.user):
-        messages.error(request, _("Only PMs and Admins can access touch-ups."))
-        return redirect("project_overview", project_id=project.id)
+    is_pm_admin = _is_pm_or_admin(request.user)
 
-    qs = (
-        TouchUp.objects.filter(project=project)
-        .select_related("assigned_to", "created_by", "closed_by", "color_sample")
-        .prefetch_related("photos")
-    )
+    # Employees can see touch-ups assigned to them; PM/Admin see all
+    if is_pm_admin:
+        qs = (
+            TouchUp.objects.filter(project=project)
+            .select_related("assigned_to", "created_by", "closed_by", "color_sample")
+            .prefetch_related("photos")
+        )
+    else:
+        # Employee — must have an Employee profile
+        try:
+            emp = Employee.objects.get(user=request.user)
+        except Employee.DoesNotExist:
+            messages.error(request, _("You don't have access to this project."))
+            return redirect("dashboard")
+        qs = (
+            TouchUp.objects.filter(project=project, assigned_to=emp)
+            .select_related("assigned_to", "created_by", "closed_by", "color_sample")
+            .prefetch_related("photos")
+        )
 
     # Filters
     status = request.GET.get("status", "")
     if status:
         qs = qs.filter(status=status)
+    elif "status" not in request.GET:
+        # Default: hide closed touch-ups unless explicitly requested
+        qs = qs.exclude(status="closed")
 
     priority = request.GET.get("priority", "")
     if priority:
@@ -16516,6 +16610,7 @@ def touchup_list(request, project_id):
             "sort_by": sort,
             "status_choices": TouchUp.STATUS_CHOICES,
             "priority_choices": TouchUp.PRIORITY_CHOICES,
+            "is_pm_admin": is_pm_admin,
         },
     )
 
@@ -16624,10 +16719,28 @@ def touchup_v2_detail(request, project_id, touchup_id):
 
     has_access, redirect_url = _check_user_project_access(request.user, project)
     if not has_access:
-        messages.error(request, _("You don't have access to this project."))
-        return redirect(redirect_url)
+        # Allow if the touch-up is assigned to this user's employee profile
+        try:
+            emp = Employee.objects.get(user=request.user)
+            if touchup.assigned_to != emp:
+                messages.error(request, _("You don't have access to this project."))
+                return redirect(redirect_url)
+        except Employee.DoesNotExist:
+            messages.error(request, _("You don't have access to this project."))
+            return redirect(redirect_url)
 
-    can_edit = _is_pm_or_admin(request.user)
+    is_pm_admin = _is_pm_or_admin(request.user)
+    can_edit = is_pm_admin
+
+    # Employees can update their own touchup status (open→in_progress→review)
+    is_assigned_employee = False
+    if not is_pm_admin:
+        try:
+            emp = Employee.objects.get(user=request.user)
+            is_assigned_employee = touchup.assigned_to == emp
+        except Employee.DoesNotExist:
+            pass
+
     before_photos = touchup.photos.filter(phase="before")
     progress_photos = touchup.photos.filter(phase="progress")
     after_photos = touchup.photos.filter(phase="after")
@@ -16640,6 +16753,8 @@ def touchup_v2_detail(request, project_id, touchup_id):
             "project": project,
             "touchup": touchup,
             "can_edit": can_edit,
+            "is_assigned_employee": is_assigned_employee,
+            "is_pm_admin": is_pm_admin,
             "before_photos": before_photos,
             "progress_photos": progress_photos,
             "after_photos": after_photos,
@@ -16651,14 +16766,26 @@ def touchup_v2_detail(request, project_id, touchup_id):
 
 @login_required
 def touchup_v2_update(request, project_id, touchup_id):
-    """Update touch-up fields (status, assignment, details). PM/Admin only."""
+    """Update touch-up fields. PM/Admin can update everything.
+    Assigned employees can only update status (open→in_progress, in_progress→review)."""
     from core.models import TouchUp, TouchUpUpdate
 
     project = get_object_or_404(Project, id=project_id)
     touchup = get_object_or_404(TouchUp, pk=touchup_id, project=project)
 
-    if not _is_pm_or_admin(request.user):
-        messages.error(request, _("Only PMs and Admins can update touch-ups."))
+    is_pm_admin = _is_pm_or_admin(request.user)
+
+    # Check if user is the assigned employee
+    is_assigned_employee = False
+    if not is_pm_admin:
+        try:
+            emp = Employee.objects.get(user=request.user)
+            is_assigned_employee = touchup.assigned_to == emp
+        except Employee.DoesNotExist:
+            pass
+
+    if not is_pm_admin and not is_assigned_employee:
+        messages.error(request, _("You don't have permission to update this touch-up."))
         return redirect("touchup_v2_detail", project_id=project.id, touchup_id=touchup.id)
 
     if request.method != "POST":
@@ -16666,38 +16793,54 @@ def touchup_v2_update(request, project_id, touchup_id):
 
     old_status = touchup.status
 
-    # Update fields
-    for field in ["title", "description", "goal", "notes", "color_name",
-                   "color_code", "color_brand", "color_hex", "sheen"]:
-        value = request.POST.get(field)
-        if value is not None:
-            setattr(touchup, field, value.strip())
+    if is_pm_admin:
+        # PM/Admin: full field update
+        for field in ["title", "description", "goal", "notes", "color_name",
+                       "color_code", "color_brand", "color_hex", "sheen"]:
+            value = request.POST.get(field)
+            if value is not None:
+                setattr(touchup, field, value.strip())
 
-    new_status = request.POST.get("status")
-    if new_status and new_status in dict(TouchUp.STATUS_CHOICES):
-        touchup.status = new_status
+        new_status = request.POST.get("status")
+        if new_status and new_status in dict(TouchUp.STATUS_CHOICES):
+            touchup.status = new_status
 
-    priority = request.POST.get("priority")
-    if priority and priority in dict(TouchUp.PRIORITY_CHOICES):
-        touchup.priority = priority
+        priority = request.POST.get("priority")
+        if priority and priority in dict(TouchUp.PRIORITY_CHOICES):
+            touchup.priority = priority
 
-    assigned_to_id = request.POST.get("assigned_to")
-    if assigned_to_id == "":
-        touchup.assigned_to = None
-    elif assigned_to_id:
-        touchup.assigned_to = Employee.objects.filter(id=assigned_to_id).first()
+        assigned_to_id = request.POST.get("assigned_to")
+        if assigned_to_id == "":
+            touchup.assigned_to = None
+        elif assigned_to_id:
+            touchup.assigned_to = Employee.objects.filter(id=assigned_to_id).first()
 
-    due_date = request.POST.get("due_date")
-    if due_date == "":
-        touchup.due_date = None
-    elif due_date:
-        touchup.due_date = due_date
+        due_date = request.POST.get("due_date")
+        if due_date == "":
+            touchup.due_date = None
+        elif due_date:
+            touchup.due_date = due_date
 
-    color_sample_id = request.POST.get("color_sample")
-    if color_sample_id == "":
-        touchup.color_sample = None
-    elif color_sample_id:
-        touchup.color_sample_id = color_sample_id
+        color_sample_id = request.POST.get("color_sample")
+        if color_sample_id == "":
+            touchup.color_sample = None
+        elif color_sample_id:
+            touchup.color_sample_id = color_sample_id
+    else:
+        # Assigned employee: only status transitions allowed
+        EMPLOYEE_TRANSITIONS = {
+            "open": "in_progress",
+            "in_progress": "review",
+        }
+        new_status = request.POST.get("status")
+        allowed_next = EMPLOYEE_TRANSITIONS.get(touchup.status)
+        if new_status and new_status == allowed_next:
+            touchup.status = new_status
+        elif new_status:
+            messages.error(request, _("You can only move this touch-up to '%(next)s'.") % {
+                "next": dict(TouchUp.STATUS_CHOICES).get(allowed_next, "")
+            })
+            return redirect("touchup_v2_detail", project_id=project.id, touchup_id=touchup.id)
 
     touchup.save()
 
@@ -16839,7 +16982,7 @@ def touchup_v2_close(request, project_id, touchup_id):
     )
 
     messages.success(request, _("Touch-up closed successfully."))
-    return redirect("touchup_v2_detail", project_id=project.id, touchup_id=touchup.id)
+    return redirect("touchup_list", project_id=project.id)
 
 
 @login_required

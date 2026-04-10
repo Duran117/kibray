@@ -99,7 +99,7 @@
         <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center mb-3">
             <i class="bi bi-list-task text-blue-600"></i>
         </div>
-        <p class="text-2xl font-bold text-slate-900">{{ pending_tasks.count }}</p>
+        <p class="text-2xl font-bold text-slate-900">{{ active_touchups_v2|length }}</p>
         <p class="text-sm text-slate-500">{% trans "Pending Tasks" %}</p>
     </div>
     <div class="bg-white rounded-xl border border-slate-200 p-5 card-hover">
@@ -187,22 +187,39 @@
                 <h3 class="font-semibold text-slate-900 flex items-center gap-2">
                     <i class="bi bi-list-check text-blue-500"></i> {% trans "Tasks & Touch-ups" %}
                 </h3>
-                {% if pending_tasks %}
-                <span class="px-2.5 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">{{ pending_tasks.count }} {% trans "active" %}</span>
+                {% if active_touchups_v2 %}
+                <span class="px-2.5 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">{{ active_touchups_v2|length }} {% trans "active" %}</span>
                 {% endif %}
             </div>
             <div class="divide-y divide-slate-100">
-                {% for task in pending_tasks|slice:":5" %}
+                {% for tu in active_touchups_v2|slice:":5" %}
                 <div class="px-6 py-4 hover:bg-slate-50 transition">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="font-medium text-slate-900">{{ task.title }}</p>
-                            {% if task.assigned_to %}
-                            <p class="text-xs text-slate-400 mt-1"><i class="bi bi-person"></i> {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}</p>
+                            <p class="font-medium text-slate-900">{{ tu.title }}</p>
+                            {% if tu.assigned_to %}
+                            <p class="text-xs text-slate-400 mt-1"><i class="bi bi-person"></i> {{ tu.assigned_to.user.get_full_name|default:tu.assigned_to.user.username }}</p>
+                            {% else %}
+                            <p class="text-xs text-amber-500 mt-1"><i class="bi bi-exclamation-circle"></i> {% trans "Unassigned" %}</p>
                             {% endif %}
                         </div>
-                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium {% if task.status == 'In Progress' or task.status == 'En Progreso' %}bg-blue-50 text-blue-700{% else %}bg-slate-100 text-slate-600{% endif %}">{{ task.get_status_display|default:task.status }}</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if tu.status == 'in_progress' %}bg-blue-50 text-blue-700
+                            {% elif tu.status == 'review' %}bg-purple-50 text-purple-700
+                            {% else %}bg-slate-100 text-slate-600{% endif %}">
+                            {{ tu.get_status_display }}
+                        </span>
                     </div>
+                    {% if tu.photos.exists %}
+                    <div class="flex gap-1.5 mt-2">
+                        {% for photo in tu.photos.all|slice:":3" %}
+                        <img src="{{ photo.image.url }}" class="w-10 h-10 rounded object-cover" loading="lazy" alt="">
+                        {% endfor %}
+                        {% if tu.photos.count > 3 %}
+                        <span class="w-10 h-10 rounded bg-slate-100 flex items-center justify-center text-xs text-slate-500">+{{ tu.photos.count|add:"-3" }}</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
                 {% empty %}
                 <div class="px-6 py-10 text-center">

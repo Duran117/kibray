@@ -332,13 +332,16 @@
         <h3 class="text-3xl font-bold text-slate-900">{{ open_rfis }}</h3>
     </div>
 
-    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if pending_touchups_count > 0 %}border-purple-500{% else %}border-green-500{% endif %} p-4">
+    <div class="bg-white rounded-lg shadow-sm border-l-4 {% if pending_touchups_v2_count > 0 %}border-purple-500{% else %}border-green-500{% endif %} p-4">
         <div class="flex items-center gap-3 mb-3">
-            <i class="bi bi-brush text-2xl {% if pending_touchups_count > 0 %}text-purple-500{% else %}text-green-500{% endif %}"></i>
+            <i class="bi bi-brush text-2xl {% if pending_touchups_v2_count > 0 %}text-purple-500{% else %}text-green-500{% endif %}"></i>
             <p class="text-sm text-slate-600">{% trans "Touch-ups" %}</p>
         </div>
-        <h3 class="text-3xl font-bold text-slate-900 mb-2">{{ pending_touchups_count }}</h3>
-        {% if pending_touchups_count > 0 %}
+        <h3 class="text-3xl font-bold text-slate-900 mb-2">{{ pending_touchups_v2_count }}</h3>
+        {% if unassigned_touchups_v2_count > 0 %}
+        <p class="text-xs text-red-500 mb-1"><i class="bi bi-exclamation-circle"></i> {{ unassigned_touchups_v2_count }} {% trans "unassigned" %}</p>
+        {% endif %}
+        {% if pending_touchups_v2_count > 0 %}
         <a href="{% url 'pm_select_project' 'touchups' %}" 
            class="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium">
             {% trans "Review" %} <i class="bi bi-arrow-right"></i>
@@ -514,46 +517,49 @@
 </div>
 
 <!-- Pending Touch-ups (Cross-project) -->
-{% if pending_touchups %}
+{% if pending_touchups_v2 %}
 <div class="bg-white rounded-lg shadow-sm border border-purple-200 p-4 mb-6">
     <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
             <i class="bi bi-brush text-purple-600 text-xl"></i>
             <h6 class="text-slate-900 font-semibold">{% trans "Pending Touch-ups" %}</h6>
-            <span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded-full">{{ pending_touchups_count }}</span>
+            <span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded-full">{{ pending_touchups_v2_count }}</span>
         </div>
         <a href="{% url 'pm_select_project' 'touchups' %}" class="text-sm text-purple-600 hover:text-purple-800 font-medium">
             {% trans "View All" %} <i class="bi bi-arrow-right"></i>
         </a>
     </div>
     <div class="space-y-2">
-        {% for task in pending_touchups %}
+        {% for tu in pending_touchups_v2 %}
         <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-purple-50 transition group">
             <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 mb-1">
-                    <span class="font-medium text-slate-900 truncate">{{ task.title }}</span>
-                    <span class="px-2 py-0.5 rounded text-xs font-medium flex-shrink-0 {% if task.status == 'In Progress' %}bg-blue-100 text-blue-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">
-                        {{ task.get_status_display }}
+                    <span class="font-medium text-slate-900 truncate">{{ tu.title }}</span>
+                    <span class="px-2 py-0.5 rounded text-xs font-medium flex-shrink-0
+                        {% if tu.status == 'in_progress' %}bg-blue-100 text-blue-700
+                        {% elif tu.status == 'review' %}bg-amber-100 text-amber-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ tu.get_status_display }}
                     </span>
                 </div>
                 <div class="flex items-center gap-3 text-xs text-slate-500">
-                    <span><i class="bi bi-building mr-1"></i>{{ task.project.name }}</span>
-                    {% if task.assigned_to %}
-                    <span><i class="bi bi-person mr-1"></i>{{ task.assigned_to }}</span>
+                    <span><i class="bi bi-building mr-1"></i>{{ tu.project.name }}</span>
+                    {% if tu.assigned_to %}
+                    <span><i class="bi bi-person mr-1"></i>{{ tu.assigned_to }}</span>
                     {% else %}
                     <span class="text-red-500"><i class="bi bi-person-x mr-1"></i>{% trans "Unassigned" %}</span>
                     {% endif %}
-                    <span><i class="bi bi-calendar mr-1"></i>{{ task.created_at|date:"M d" }}</span>
+                    <span><i class="bi bi-calendar mr-1"></i>{{ tu.created_at|date:"M d" }}</span>
                 </div>
             </div>
             <div class="flex gap-2 flex-shrink-0 opacity-60 group-hover:opacity-100 transition">
-                <a href="{% url 'task_detail' task.id %}" 
+                <a href="{% url 'touchup_v2_detail' tu.project.id tu.id %}" 
                    class="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs rounded-lg hover:bg-slate-100 transition">
                     {% trans "View" %}
                 </a>
-                <a href="{% url 'touchup_board' task.project.id %}" 
+                <a href="{% url 'touchup_list' tu.project.id %}" 
                    class="px-3 py-1.5 bg-purple-600 text-white text-xs rounded-lg hover:bg-purple-700 transition">
-                    {% trans "Board" %}
+                    {% trans "List" %}
                 </a>
             </div>
         </div>

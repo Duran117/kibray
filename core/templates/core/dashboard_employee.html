@@ -1214,7 +1214,7 @@
         <div class="stat-card">
             <div class="stat-icon orange"><i class="bi bi-brush"></i></div>
             <div class="stat-info">
-                <h3>{{ my_touchups|length }}</h3>
+                <h3>{{ my_touchups_v2|length }}</h3>
                 <p>{% trans "Touch-ups Pending" %}</p>
             </div>
         </div>
@@ -1297,41 +1297,49 @@
         <div class="section-card">
             <div class="section-header">
                 <h3><i class="bi bi-brush"></i> {% trans "My Touch-ups" %}</h3>
-                {% if my_touchups %}
-                <span class="section-badge">{{ my_touchups|length }}</span>
+                {% if my_touchups_v2 %}
+                <span class="section-badge">{{ my_touchups_v2|length }}</span>
                 {% endif %}
             </div>
             <div class="section-body">
-                {% if my_touchups %}
+                {% if my_touchups_v2 %}
                 <ul class="task-list">
-                    {% for task in my_touchups %}
-                    <li class="task-item" id="touchup-{{ task.id }}">
+                    {% for tu in my_touchups_v2 %}
+                    <li class="task-item" id="touchup-{{ tu.id }}">
                         <div class="task-content" style="flex: 1;">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
                                 <div style="flex: 1;">
-                                    <p class="task-title">{{ task.title }}</p>
+                                    <p class="task-title">{{ tu.title }}</p>
                                     <div class="task-meta">
                                         <span class="task-tag touchup">
                                             <i class="bi bi-brush"></i> Touch-up
                                         </span>
-                                        <span class="task-tag project">{{ task.project.name }}</span>
-                                        <span class="task-tag" style="background: {% if task.status == 'In Progress' %}#dbeafe{% else %}#fef3c7{% endif %}; color: {% if task.status == 'In Progress' %}#1d4ed8{% else %}#92400e{% endif %};">
-                                            {{ task.get_status_display }}
+                                        <span class="task-tag project">{{ tu.project.name }}</span>
+                                        <span class="task-tag" style="background: {% if tu.status == 'in_progress' %}#dbeafe{% elif tu.status == 'review' %}#fef3c7{% else %}#fee2e2{% endif %}; color: {% if tu.status == 'in_progress' %}#1d4ed8{% elif tu.status == 'review' %}#92400e{% else %}#dc2626{% endif %};">
+                                            {{ tu.get_status_display }}
                                         </span>
                                     </div>
                                 </div>
                                 <div style="display: flex; gap: 6px; flex-shrink: 0;">
-                                    {% if task.status == 'Pending' %}
-                                    <button onclick="updateTouchup({{ task.id }}, 'In Progress')" class="touchup-action-btn start" title="{% trans 'Start' %}">
-                                        <i class="bi bi-play-fill"></i>
-                                    </button>
+                                    {% if tu.status == 'open' %}
+                                    <form method="post" action="{% url 'touchup_v2_update' tu.project.id tu.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="in_progress">
+                                        <button type="submit" class="touchup-action-btn start" title="{% trans 'Start' %}">
+                                            <i class="bi bi-play-fill"></i>
+                                        </button>
+                                    </form>
                                     {% endif %}
-                                    {% if task.status == 'Pending' or task.status == 'In Progress' %}
-                                    <button onclick="updateTouchup({{ task.id }}, 'Completed')" class="touchup-action-btn complete" title="{% trans 'Complete' %}">
-                                        <i class="bi bi-check-lg"></i>
-                                    </button>
+                                    {% if tu.status == 'in_progress' %}
+                                    <form method="post" action="{% url 'touchup_v2_update' tu.project.id tu.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="review">
+                                        <button type="submit" class="touchup-action-btn complete" title="{% trans 'Submit for Review' %}">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                    </form>
                                     {% endif %}
-                                    <a href="{% url 'task_detail' task.id %}" class="touchup-action-btn view" title="{% trans 'View Details' %}">
+                                    <a href="{% url 'touchup_v2_detail' tu.project.id tu.id %}" class="touchup-action-btn view" title="{% trans 'View Details' %}">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                 </div>
@@ -1366,39 +1374,5 @@ function updateTime() {
 }
 updateTime();
 setInterval(updateTime, 1000);
-
-// Touch-up AJAX update
-function updateTouchup(taskId, newStatus) {
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    fetch(`/touchups/quick-update/${taskId}/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': csrfToken,
-        },
-        body: `action=status&status=${newStatus}`
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            const row = document.getElementById(`touchup-${taskId}`);
-            if (newStatus === 'Completed') {
-                row.style.opacity = '0.5';
-                row.querySelector('.task-content > div > div:last-child').innerHTML = 
-                    '<span class="touchup-completed-msg"><i class="bi bi-check-circle-fill"></i> {% trans "Done" %}!</span>';
-                setTimeout(() => row.style.display = 'none', 2000);
-            } else {
-                // Reload to show updated status
-                location.reload();
-            }
-        } else {
-            alert(data.error || 'Error updating touch-up');
-        }
-    })
-    .catch(err => {
-        console.error('Error:', err);
-        alert('Network error');
-    });
-}
 </script>
 {% endblock %}
