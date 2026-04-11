@@ -1,173 +1,382 @@
 {% extends "core/base_modern.html" %}
 {% load i18n %}
+
+{% block title %}{% if is_edit %}{% trans "Edit Photo" %}{% else %}{% trans "New Photo" %}{% endif %} · {{ project.name }} - Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Site Photo Form – Wizard Style (Teal Theme) */
+.form-hero {
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 50%, #0f766e 100%);
+  padding: 2rem 1.5rem; border-radius: 1rem; margin-bottom: 1.5rem;
+  color: white; position: relative; overflow: hidden;
+}
+.form-hero::before {
+  content: ''; position: absolute; top: -50%; right: -50%;
+  width: 100%; height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+}
+.form-hero h1 { font-size: 1.75rem; font-weight: 700; margin: 0; position: relative; z-index: 1; }
+.form-hero .subtitle { opacity: 0.9; font-size: 0.95rem; margin-top: 0.5rem; position: relative; z-index: 1; }
+.breadcrumb-modern {
+  background: white; padding: 0.75rem 1rem; border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 1rem;
+}
+.breadcrumb-modern a { color: #6b7280; text-decoration: none; font-size: 0.875rem; }
+.breadcrumb-modern a:hover { color: #14b8a6; }
+.form-section {
+  background: white; border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem; overflow: hidden;
+}
+.section-header {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+  padding: 1rem 1.25rem; border-bottom: 1px solid #99f6e4;
+  display: flex; align-items: center; gap: 0.75rem;
+}
+.section-header i { font-size: 1.25rem; color: #14b8a6; }
+.section-header h3 { margin: 0; font-size: 1rem; font-weight: 600; color: #374151; }
+.section-body { padding: 1.25rem; }
+.form-field { margin-bottom: 1.25rem; }
+.form-field:last-child { margin-bottom: 0; }
+.form-field label {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-weight: 600; color: #374151; margin-bottom: 0.5rem; font-size: 0.9rem;
+}
+.form-field label i { color: #6b7280; }
+.modern-input {
+  width: 100%; padding: 0.875rem 1rem;
+  border: 2px solid #e5e7eb; border-radius: 0.75rem;
+  font-size: 1rem; transition: all 0.2s ease; background: #fafafa;
+}
+.modern-input:focus {
+  outline: none; border-color: #14b8a6; background: white;
+  box-shadow: 0 0 0 3px rgba(20,184,166,0.1);
+}
+.modern-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23374151' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat; background-position: right 1rem center; background-size: 1rem;
+  padding-right: 3rem;
+}
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; }
+@media (max-width: 640px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+.file-upload-area {
+  border: 2px dashed #99f6e4; border-radius: 0.75rem; padding: 2rem;
+  text-align: center; background: #f0fdfa; transition: all 0.2s ease; cursor: pointer;
+}
+.file-upload-area:hover { border-color: #14b8a6; background: #ccfbf1; }
+.file-upload-area i { font-size: 2.5rem; color: #14b8a6; }
+.btn-submit {
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  color: white; border: none; padding: 1rem 2rem; border-radius: 0.75rem;
+  font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  min-height: 52px; width: 100%;
+}
+.btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(20,184,166,0.3); }
+.btn-cancel {
+  background: white; color: #6b7280; border: 2px solid #e5e7eb;
+  padding: 1rem 2rem; border-radius: 0.75rem; font-size: 1rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s ease; text-decoration: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 52px;
+}
+.btn-cancel:hover { background: #f3f4f6; color: #374151; border-color: #d1d5db; }
+#canvas-wrap { position: relative; max-width: 100%; overflow: auto; }
+#annot-canvas { position: absolute; left: 0; top: 0; cursor: crosshair; }
+.tool-btn { border-radius: 0.5rem !important; }
+.tool-btn.active { background: #14b8a6 !important; color: white !important; border-color: #14b8a6 !important; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-3">
-  <h4>{% trans "New Photo" %} · {{ project.name }}</h4>
-  {% for m in messages %}<div class="alert alert-{{ m.tags }}">{{ m }}</div>{% endfor %}
-  <form method="post" enctype="multipart/form-data" class="card card-body">
+<div class="container-fluid py-3" style="max-width: 900px;">
+  {% for m in messages %}<div class="alert alert-{{ m.tags }} rounded-3">{{ m }}</div>{% endfor %}
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb-modern">
+    <a href="{% url 'dashboard' %}"><i class="bi bi-house me-1"></i>{% trans "Dashboard" %}</a>
+    <span class="mx-2 text-muted">/</span>
+    <a href="{% url 'site_photo_list' project.id %}"><i class="bi bi-images me-1"></i>{% trans "Photos" %}</a>
+    <span class="mx-2 text-muted">/</span>
+    <span class="text-dark fw-semibold">{% if is_edit %}{% trans "Edit" %}{% else %}{% trans "New" %}{% endif %}</span>
+  </div>
+
+  <!-- Hero Header -->
+  <div class="form-hero">
+    <h1><i class="bi bi-{% if is_edit %}pencil-square{% else %}camera{% endif %} me-2"></i>{% if is_edit %}{% trans "Edit Photo" %}{% else %}{% trans "New Photo" %}{% endif %}</h1>
+    <p class="subtitle">{{ project.name }} · {% if is_edit %}{% trans "Update this site photo" %}{% else %}{% trans "Upload and annotate a site photo" %}{% endif %}</p>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" id="photoForm">
     {% csrf_token %}
-    <div class="row g-3">
-      <div class="col-md-3"><label class="form-label">{% trans "Room" %}</label>{{ form.room }}</div>
-      <div class="col-md-3"><label class="form-label">{% trans "Wall/Location" %}</label>{{ form.wall_ref }}</div>
-      <div class="col-md-6"><label class="form-label">{% trans "Image" %}</label>{{ form.image }}</div>
 
-      <!-- Location on Floor Plan -->
-      <div class="col-md-8">
-        <label class="form-label">
-          <i class="bi bi-geo-alt"></i> {% trans "Location on Floor Plan" %}
-        </label>
-        {{ form.plan_pin }}
-        <div class="form-text">{% trans "Select an existing pin to mark where this photo was taken." %}</div>
+    <!-- Section 1: Image Upload -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-image"></i>
+        <h3>{% trans "Photo" %}</h3>
       </div>
-      <div class="col-md-4 d-flex align-items-end">
-        {% if floor_plans %}
-        <a href="{% url 'floor_plan_detail' floor_plans.0.id %}?mode=edit&return_to=site_photo_create&project_id={{ project.id }}" 
-           class="btn btn-outline-primary w-100" target="_blank">
-          <i class="bi bi-pin-map"></i> {% trans "Create New Pin" %}
-        </a>
-        {% else %}
-        <a href="{% url 'floor_plan_create' project.id %}" class="btn btn-outline-secondary w-100">
-          <i class="bi bi-upload"></i> {% trans "Upload Floor Plan First" %}
-        </a>
-        {% endif %}
-      </div>
-
-      <div class="col-md-4"><label class="form-label">{% trans "Approved Color" %}</label>{{ form.approved_color }}</div>
-      <div class="col-md-4"><label class="form-label">{% trans "Color (text)" %}</label>{{ form.color_text }}</div>
-      <div class="col-md-4"><label class="form-label">{% trans "Brand" %}</label>{{ form.brand }}</div>
-
-      <div class="col-md-3"><label class="form-label">{% trans "Finish" %}</label>{{ form.finish }}</div>
-      <div class="col-md-3"><label class="form-label">{% trans "Gloss" %}</label>{{ form.gloss }}</div>
-      <div class="col-md-3 form-check d-flex align-items-end">
-        <label class="form-check-label me-2" for="id_special_finish">{% trans "Special Finish" %}</label>{{ form.special_finish }}
-      </div>
-      <div class="col-md-3"><label class="form-label">{% trans "Coats" %}</label>{{ form.coats }}</div>
-
-      <div class="col-12"><label class="form-label">{% trans "Notes" %}</label>{{ form.notes }}</div>
-
-      {{ form.annotations }} <!-- hidden -->
-
-      <div class="col-12">
-        <div class="border rounded p-2 mb-2">
-          <div class="d-flex gap-2 mb-2">
-            <button type="button" id="tool-pen" class="btn btn-sm btn-outline-secondary">{% trans "Pen" %}</button>
-            <button type="button" id="tool-text" class="btn btn-sm btn-outline-secondary">{% trans "Text" %}</button>
-            <button type="button" id="tool-rect" class="btn btn-sm btn-outline-secondary">{% trans "Rectangle" %}</button>
-            <button type="button" id="tool-undo" class="btn btn-sm btn-outline-secondary">{% trans "Undo" %}</button>
-            <button type="button" id="tool-clear" class="btn btn-sm btn-outline-danger">{% trans "Clear" %}</button>
+      <div class="section-body">
+        <div class="form-field">
+          <input type="file" name="image" id="id_image" accept="image/*" style="display:none;">
+          <div class="file-upload-area" onclick="document.getElementById('id_image').click();">
+            <i class="bi bi-cloud-arrow-up d-block mb-2"></i>
+            <p class="mb-1 fw-semibold">{% trans "Click to upload photo" %}</p>
+            <p class="mb-0 small text-muted">{% trans "JPG, PNG (Max 10MB)" %}</p>
           </div>
-          <div id="canvas-wrap" style="position:relative; max-width:100%; overflow:auto;">
-            <img id="photo-preview" alt="preview" style="max-width:100%; display:none;">
-            <canvas id="annot-canvas" style="position:absolute; left:0; top:0; display:none;"></canvas>
+          <div id="fileInfo" style="display:none;" class="mt-2 p-2 bg-light rounded d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-image text-success fs-4"></i>
+            <span id="fileName" class="small fw-semibold"></span>
           </div>
-          <div class="form-text">{% trans "You can draw annotations on the image (mark details, areas to cover, etc.)." %}</div>
         </div>
-      </div>
-
-      <div class="col-12 d-flex gap-2">
-        <button class="btn btn-primary">{% trans "Save" %}</button>
-        <a class="btn btn-secondary" href="{% url 'site_photo_list' project.id %}">{% trans "Cancel" %}</a>
+        <div class="form-field">
+          <label for="id_caption"><i class="bi bi-chat-left-text"></i> {% trans "Caption" %}</label>
+          {{ form.caption }}
+        </div>
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="id_photo_type"><i class="bi bi-camera-reels"></i> {% trans "Photo Type" %}</label>
+            {{ form.photo_type }}
+          </div>
+          <div class="form-field">
+            <label for="id_visibility"><i class="bi bi-eye"></i> {% trans "Visibility" %}</label>
+            {{ form.visibility }}
+          </div>
+        </div>
+        <!-- GPS location (auto-populated or hidden) -->
+        {{ form.location_lat.as_hidden }}
+        {{ form.location_lng.as_hidden }}
       </div>
     </div>
+
+    <!-- Section 2: Location & Room -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-geo-alt"></i>
+        <h3>{% trans "Location" %}</h3>
+      </div>
+      <div class="section-body">
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="id_room"><i class="bi bi-door-open"></i> {% trans "Room" %}</label>
+            {{ form.room }}
+          </div>
+          <div class="form-field">
+            <label for="id_wall_ref"><i class="bi bi-bounding-box"></i> {% trans "Wall/Location" %}</label>
+            {{ form.wall_ref }}
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="id_plan_pin"><i class="bi bi-pin-map"></i> {% trans "Floor Plan Pin" %}</label>
+            {{ form.plan_pin }}
+            <small class="text-muted d-block mt-1">{% trans "Select an existing pin to mark where this photo was taken." %}</small>
+          </div>
+          <div class="form-field d-flex align-items-end">
+            {% if floor_plans %}
+            <a href="{% url 'floor_plan_detail' floor_plans.0.id %}?mode=edit&return_to=site_photo_create&project_id={{ project.id }}" class="btn btn-outline-primary w-100" target="_blank">
+              <i class="bi bi-pin-map me-1"></i> {% trans "Create New Pin" %}
+            </a>
+            {% else %}
+            <a href="{% url 'floor_plan_create' project.id %}" class="btn btn-outline-secondary w-100">
+              <i class="bi bi-upload me-1"></i> {% trans "Upload Floor Plan First" %}
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Color & Finish -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-palette"></i>
+        <h3>{% trans "Color & Finish" %}</h3>
+      </div>
+      <div class="section-body">
+        <div class="grid-3">
+          <div class="form-field">
+            <label for="id_approved_color"><i class="bi bi-droplet"></i> {% trans "Approved Color" %}</label>
+            {{ form.approved_color }}
+          </div>
+          <div class="form-field">
+            <label for="id_color_text"><i class="bi bi-palette2"></i> {% trans "Color (text)" %}</label>
+            {{ form.color_text }}
+          </div>
+          <div class="form-field">
+            <label for="id_brand"><i class="bi bi-tag"></i> {% trans "Brand" %}</label>
+            {{ form.brand }}
+          </div>
+        </div>
+        <div class="grid-4">
+          <div class="form-field">
+            <label for="id_finish"><i class="bi bi-brush"></i> {% trans "Finish" %}</label>
+            {{ form.finish }}
+          </div>
+          <div class="form-field">
+            <label for="id_gloss"><i class="bi bi-brightness-high"></i> {% trans "Gloss" %}</label>
+            {{ form.gloss }}
+          </div>
+          <div class="form-field">
+            <label><i class="bi bi-stars"></i> {% trans "Special Finish" %}</label>
+            <div class="p-3 border rounded-3 bg-light mt-1">
+              <div class="form-check form-switch">
+                {{ form.special_finish }}
+                <label class="form-check-label ms-2" for="id_special_finish">{% trans "Yes" %}</label>
+              </div>
+            </div>
+          </div>
+          <div class="form-field">
+            <label for="id_coats"><i class="bi bi-layers"></i> {% trans "Coats" %}</label>
+            {{ form.coats }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Notes -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-pencil"></i>
+        <h3>{% trans "Notes" %}</h3>
+      </div>
+      <div class="section-body">
+        <div class="form-field">
+          <label for="id_notes"><i class="bi bi-text-paragraph"></i> {% trans "Notes" %}</label>
+          {{ form.notes }}
+        </div>
+      </div>
+    </div>
+
+    {{ form.annotations }}
+
+    <!-- Section 5: Annotations -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-pen"></i>
+        <h3>{% trans "Annotations" %}</h3>
+      </div>
+      <div class="section-body">
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+          <button type="button" id="tool-pen" class="btn btn-sm btn-outline-secondary tool-btn active"><i class="bi bi-pen me-1"></i>{% trans "Pen" %}</button>
+          <button type="button" id="tool-text" class="btn btn-sm btn-outline-secondary tool-btn"><i class="bi bi-fonts me-1"></i>{% trans "Text" %}</button>
+          <button type="button" id="tool-rect" class="btn btn-sm btn-outline-secondary tool-btn"><i class="bi bi-bounding-box me-1"></i>{% trans "Rectangle" %}</button>
+          <button type="button" id="tool-undo" class="btn btn-sm btn-outline-warning tool-btn"><i class="bi bi-arrow-counterclockwise me-1"></i>{% trans "Undo" %}</button>
+          <button type="button" id="tool-clear" class="btn btn-sm btn-outline-danger tool-btn"><i class="bi bi-trash me-1"></i>{% trans "Clear" %}</button>
+        </div>
+        <div id="canvas-wrap">
+          <img id="photo-preview" alt="preview" style="max-width:100%; display:none;">
+          <canvas id="annot-canvas" style="display:none;"></canvas>
+        </div>
+        <small class="text-muted d-block mt-2"><i class="bi bi-info-circle me-1"></i>{% trans "Upload an image first, then draw annotations on it." %}</small>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-flex flex-column flex-sm-row gap-3 mb-5">
+      <button type="submit" class="btn-submit">
+        <i class="bi bi-check-circle"></i>
+        {% trans "Save Photo" %}
+      </button>
+      <a href="{% url 'site_photo_list' project.id %}" class="btn-cancel">
+        <i class="bi bi-x-circle"></i>
+        {% trans "Cancel" %}
+      </a>
+    </div>
   </form>
+</div>
 
-  <script>
-    const inputFile = document.getElementById("id_image");
-    const img = document.getElementById("photo-preview");
-    const canvas = document.getElementById("annot-canvas");
-    const ctx = canvas.getContext("2d");
-    const hidden = document.getElementById("id_annotations");
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var inputFile = document.getElementById("id_image");
+  var img = document.getElementById("photo-preview");
+  var canvas = document.getElementById("annot-canvas");
+  var ctx = canvas.getContext("2d");
+  var hidden = document.getElementById("id_annotations");
+  var state = { tool: "pen", strokes: [], current: null };
 
-    const state = { tool: "pen", strokes: [], current: null };
-
-    function resizeCanvas() {
-      if (!img.naturalWidth) return;
-      const rect = img.getBoundingClientRect();
-      canvas.width = img.clientWidth;
-      canvas.height = img.clientHeight;
-      canvas.style.width = img.clientWidth + "px";
-      canvas.style.height = img.clientHeight + "px";
-      canvas.style.display = "block";
-    }
-
-    inputFile?.addEventListener("change", e => {
-      const file = e.target.files?.[0];
+  // File preview
+  if (inputFile) {
+    inputFile.addEventListener("change", function(e) {
+      var file = e.target.files && e.target.files[0];
       if (!file) return;
-      const url = URL.createObjectURL(file);
-      img.onload = () => { img.style.display = "block"; resizeCanvas(); redraw(); };
+      document.getElementById("fileName").textContent = file.name;
+      document.getElementById("fileInfo").style.display = "flex";
+      inputFile.closest(".form-field").querySelector(".file-upload-area").style.display = "none";
+      var url = URL.createObjectURL(file);
+      img.onload = function() { img.style.display = "block"; resizeCanvas(); redraw(); };
       img.src = url;
     });
+  }
 
-    window.addEventListener("resize", () => { if (img.style.display === "block") { resizeCanvas(); redraw(); } });
+  function resizeCanvas() {
+    if (!img.naturalWidth) return;
+    canvas.width = img.clientWidth;
+    canvas.height = img.clientHeight;
+    canvas.style.width = img.clientWidth + "px";
+    canvas.style.height = img.clientHeight + "px";
+    canvas.style.display = "block";
+  }
 
-    // Tools
-    document.getElementById("tool-pen")?.addEventListener("click", () => state.tool = "pen");
-    document.getElementById("tool-text")?.addEventListener("click", () => state.tool = "text");
-    document.getElementById("tool-rect")?.addEventListener("click", () => state.tool = "rect");
-    document.getElementById("tool-undo")?.addEventListener("click", () => { state.strokes.pop(); redraw(); saveJSON(); });
-    document.getElementById("tool-clear")?.addEventListener("click", () => { state.strokes = []; redraw(); saveJSON(); });
+  window.addEventListener("resize", function() { if (img.style.display === "block") { resizeCanvas(); redraw(); } });
 
-    function startDraw(x, y) {
-      if (state.tool === "pen") {
-        state.current = { type:"pen", pts:[[x,y]], color:"#ff0000", width:2 };
-      } else if (state.tool === "rect") {
-        state.current = { type:"rect", x1:x, y1:y, x2:x, y2:y, color:"#ff0000", width:2 };
-      } else if (state.tool === "text") {
-        const t = prompt("Texto:");
-        if (t) { state.strokes.push({ type:"text", x:x, y:y, text:t, color:"#ff0000", size:14 }); saveJSON(); redraw(); }
-      }
-    }
-    function moveDraw(x, y) {
-      if (!state.current) return;
-      if (state.current.type === "pen") state.current.pts.push([x,y]);
-      if (state.current.type === "rect") { state.current.x2 = x; state.current.y2 = y; }
-      redraw();
-    }
-    function endDraw() {
-      if (state.current) state.strokes.push(state.current);
-      state.current = null;
-      saveJSON();
-    }
+  // Tool selection with active state
+  var tools = ["pen", "text", "rect"];
+  tools.forEach(function(t) {
+    var btn = document.getElementById("tool-" + t);
+    if (btn) btn.addEventListener("click", function() {
+      state.tool = t;
+      document.querySelectorAll(".tool-btn").forEach(function(b) { b.classList.remove("active"); });
+      this.classList.add("active");
+    });
+  });
+  document.getElementById("tool-undo").addEventListener("click", function() { state.strokes.pop(); redraw(); saveJSON(); });
+  document.getElementById("tool-clear").addEventListener("click", function() { state.strokes = []; redraw(); saveJSON(); });
 
-    function redraw() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      const drawStroke = s => {
-        ctx.strokeStyle = s.color || "#ff0000";
-        ctx.fillStyle = s.color || "#ff0000";
-        ctx.lineWidth = s.width || 2;
-        if (s.type === "pen") {
-          ctx.beginPath();
-          s.pts.forEach((p,i)=> i===0 ? ctx.moveTo(p[0],p[1]) : ctx.lineTo(p[0],p[1]));
-          ctx.stroke();
-        } else if (s.type === "rect") {
-          const x = Math.min(s.x1, s.x2), y = Math.min(s.y1, s.y2);
-          const w = Math.abs(s.x2 - s.x1), h = Math.abs(s.y2 - s.y1);
-          ctx.strokeRect(x,y,w,h);
-        } else if (s.type === "text") {
-          ctx.font = `${s.size||14}px sans-serif`;
-          ctx.fillText(s.text, s.x, s.y);
-        }
-      };
-      state.strokes.forEach(drawStroke);
-      if (state.current) drawStroke(state.current);
-    }
+  function startDraw(x, y) {
+    if (state.tool === "pen") { state.current = { type:"pen", pts:[[x,y]], color:"#ff0000", width:2 }; }
+    else if (state.tool === "rect") { state.current = { type:"rect", x1:x, y1:y, x2:x, y2:y, color:"#ff0000", width:2 }; }
+    else if (state.tool === "text") { var t = prompt("Text:"); if (t) { state.strokes.push({ type:"text", x:x, y:y, text:t, color:"#ff0000", size:14 }); saveJSON(); redraw(); } }
+  }
+  function moveDraw(x, y) {
+    if (!state.current) return;
+    if (state.current.type === "pen") state.current.pts.push([x,y]);
+    if (state.current.type === "rect") { state.current.x2 = x; state.current.y2 = y; }
+    redraw();
+  }
+  function endDraw() { if (state.current) state.strokes.push(state.current); state.current = null; saveJSON(); }
 
-    function saveJSON() {
-      hidden.value = JSON.stringify({ strokes: state.strokes });
-    }
+  function redraw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    var all = state.strokes.concat(state.current ? [state.current] : []);
+    all.forEach(function(s) {
+      ctx.strokeStyle = s.color || "#ff0000";
+      ctx.fillStyle = s.color || "#ff0000";
+      ctx.lineWidth = s.width || 2;
+      if (s.type === "pen") { ctx.beginPath(); s.pts.forEach(function(p, i) { i === 0 ? ctx.moveTo(p[0], p[1]) : ctx.lineTo(p[0], p[1]); }); ctx.stroke(); }
+      else if (s.type === "rect") { var x = Math.min(s.x1, s.x2), y = Math.min(s.y1, s.y2); ctx.strokeRect(x, y, Math.abs(s.x2 - s.x1), Math.abs(s.y2 - s.y1)); }
+      else if (s.type === "text") { ctx.font = (s.size || 14) + "px sans-serif"; ctx.fillText(s.text, s.x, s.y); }
+    });
+  }
 
-    function relPos(evt) {
-      const r = canvas.getBoundingClientRect();
-      return [evt.clientX - r.left, evt.clientY - r.top];
-    }
+  function saveJSON() { if (hidden) hidden.value = JSON.stringify({ strokes: state.strokes }); }
 
-    canvas.addEventListener("mousedown", e => startDraw(...relPos(e)));
-    canvas.addEventListener("mousemove", e => moveDraw(...relPos(e)));
-    window.addEventListener("mouseup", endDraw);
-    // Touch
-    canvas.addEventListener("touchstart", e => { e.preventDefault(); startDraw(...relPos(e.touches[0])); });
-    canvas.addEventListener("touchmove", e => { e.preventDefault(); moveDraw(...relPos(e.touches[0])); });
-    canvas.addEventListener("touchend", e => { e.preventDefault(); endDraw(); });
-  </script>
-</div>
+  function relPos(evt) { var r = canvas.getBoundingClientRect(); return [evt.clientX - r.left, evt.clientY - r.top]; }
+
+  canvas.addEventListener("mousedown", function(e) { startDraw.apply(null, relPos(e)); });
+  canvas.addEventListener("mousemove", function(e) { moveDraw.apply(null, relPos(e)); });
+  window.addEventListener("mouseup", endDraw);
+  canvas.addEventListener("touchstart", function(e) { e.preventDefault(); startDraw.apply(null, relPos(e.touches[0])); });
+  canvas.addEventListener("touchmove", function(e) { e.preventDefault(); moveDraw.apply(null, relPos(e.touches[0])); });
+  canvas.addEventListener("touchend", function(e) { e.preventDefault(); endDraw(); });
+
+  // Add modern-input class to Django-rendered form widgets
+  document.querySelectorAll('#photoForm select').forEach(function(el) { el.classList.add('modern-input', 'modern-select'); });
+  document.querySelectorAll('#photoForm input[type="text"], #photoForm input[type="number"], #photoForm textarea').forEach(function(el) { el.classList.add('modern-input'); });
+  document.querySelectorAll('#photoForm .form-check-input').forEach(function(el) { el.style.width = '3em'; el.style.height = '1.5em'; });
+});
+</script>
 {% endblock %}

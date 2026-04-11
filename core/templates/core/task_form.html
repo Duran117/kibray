@@ -2,381 +2,415 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% if title %}{{ title }}{% elif edit %}Edit Task{% else %}New Task{% endif %} - Kibray{% endblock %}
+{% block title %}{% if title %}{{ title }}{% elif edit %}{% trans "Edit Task" %}{% else %}{% trans "New Task" %}{% endif %} - Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Task Form – Wizard Style (Indigo Theme) */
+.form-hero {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #4338ca 100%);
+  padding: 2rem 1.5rem; border-radius: 1rem; margin-bottom: 1.5rem;
+  color: white; position: relative; overflow: hidden;
+}
+.form-hero::before {
+  content: ''; position: absolute; top: -50%; right: -50%;
+  width: 100%; height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+}
+.form-hero h1 { font-size: 1.75rem; font-weight: 700; margin: 0; position: relative; z-index: 1; }
+.form-hero .subtitle { opacity: 0.9; font-size: 0.95rem; margin-top: 0.5rem; position: relative; z-index: 1; }
+.breadcrumb-modern {
+  background: white; padding: 0.75rem 1rem; border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 1rem;
+}
+.breadcrumb-modern a { color: #6b7280; text-decoration: none; font-size: 0.875rem; }
+.breadcrumb-modern a:hover { color: #6366f1; }
+.form-section {
+  background: white; border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem; overflow: hidden;
+}
+.section-header {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  padding: 1rem 1.25rem; border-bottom: 1px solid #c7d2fe;
+  display: flex; align-items: center; gap: 0.75rem;
+}
+.section-header i { font-size: 1.25rem; color: #6366f1; }
+.section-header h3 { margin: 0; font-size: 1rem; font-weight: 600; color: #374151; }
+.section-body { padding: 1.25rem; }
+.form-field { margin-bottom: 1.25rem; }
+.form-field:last-child { margin-bottom: 0; }
+.form-field label {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-weight: 600; color: #374151; margin-bottom: 0.5rem; font-size: 0.9rem;
+}
+.form-field label i { color: #6b7280; }
+.form-field .required-star { color: #6366f1; font-weight: bold; }
+.modern-input {
+  width: 100%; padding: 0.875rem 1rem;
+  border: 2px solid #e5e7eb; border-radius: 0.75rem;
+  font-size: 1rem; transition: all 0.2s ease; background: #fafafa;
+}
+.modern-input:focus {
+  outline: none; border-color: #6366f1; background: white;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+}
+.modern-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23374151' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat; background-position: right 1rem center; background-size: 1rem;
+  padding-right: 3rem;
+}
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+.btn-submit {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: white; border: none; padding: 1rem 2rem; border-radius: 0.75rem;
+  font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  min-height: 52px; width: 100%;
+}
+.btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(99,102,241,0.3); }
+.btn-cancel {
+  background: white; color: #6b7280; border: 2px solid #e5e7eb;
+  padding: 1rem 2rem; border-radius: 0.75rem; font-size: 1rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s ease; text-decoration: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 52px;
+}
+.btn-cancel:hover { background: #f3f4f6; color: #374151; border-color: #d1d5db; }
+.floating-save {
+  display: none; position: fixed; bottom: 1.5rem; right: 1.5rem;
+  width: 60px; height: 60px; border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: white; border: none; box-shadow: 0 6px 20px rgba(99,102,241,0.4);
+  z-index: 1000; font-size: 1.5rem; cursor: pointer;
+}
+@media (max-width: 768px) {
+  .floating-save { display: flex; align-items: center; justify-content: center; }
+  .form-hero { padding: 1.5rem 1rem; border-radius: 0; margin: -1rem -1rem 1rem -1rem; }
+  .form-hero h1 { font-size: 1.5rem; }
+  .action-buttons .btn-submit { display: none; }
+}
+.file-upload-area {
+  border: 2px dashed #d1d5db; border-radius: 0.75rem; padding: 1.5rem;
+  text-align: center; background: #fafafa; transition: all 0.2s ease; cursor: pointer;
+}
+.file-upload-area:hover { border-color: #6366f1; background: #eef2ff; }
+.file-upload-area i { font-size: 2rem; color: #9ca3af; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3 py-md-4" style="max-width: 900px;">
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 mb-md-4 gap-2">
-    <h2 class="mb-0 h3 h-md-2">
-      <i class="bi bi-{% if edit %}pencil-square{% else %}plus-circle{% endif %} text-primary me-2"></i>
-      {% if title %}{{ title }}{% elif edit %}Edit Task{% else %}New Task{% endif %}
-    </h2>
-    <a href="{% url 'task_command_center' %}" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i>
-      Back to Tasks
-    </a>
+<div class="container-fluid py-3" style="max-width: 800px;">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb-modern">
+    <a href="{% url 'dashboard' %}"><i class="bi bi-house me-1"></i>{% trans "Dashboard" %}</a>
+    <span class="mx-2 text-muted">/</span>
+    <a href="{% url 'task_command_center' %}"><i class="bi bi-list-task me-1"></i>{% trans "Tasks" %}</a>
+    <span class="mx-2 text-muted">/</span>
+    <span class="text-dark fw-semibold">{% if edit %}{% trans "Edit" %}{% else %}{% trans "New" %}{% endif %}</span>
   </div>
 
-  <div class="card shadow-sm">
-    <div class="card-body p-3 p-md-4">
-      <form method="post" enctype="multipart/form-data" id="taskForm">
-        {% csrf_token %}
-        
-        <div class="row g-3">
-          {% if not edit %}
-          <div class="col-12">
-            <label for="{{ form.project.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-folder me-1"></i>
-              Project
-              <span class="text-danger">*</span>
-            </label>
-            <select 
-              name="{{ form.project.name }}" 
-              id="{{ form.project.id_for_label }}"
-              class="form-select"
-              style="min-height: 50px; font-size: 16px;"
-              required
-            >
-              <option value="">Select a project...</option>
-              {% for value, text in form.project.field.choices %}
-                {% if value %}
-                <option value="{{ value }}" {% if form.project.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
-                {% endif %}
-              {% endfor %}
-            </select>
-            {% if form.project.errors %}
-              <div class="invalid-feedback d-block">{{ form.project.errors }}</div>
-            {% endif %}
-          </div>
-          {% else %}
-          {{ form.project.as_hidden }}
-          {% endif %}
-          
-          <div class="col-12">
-            <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-card-heading me-1"></i>
-              Title
-              <span class="text-danger">*</span>
-            </label>
-            <input 
-              type="text" 
-              name="{{ form.title.name }}" 
-              id="{{ form.title.id_for_label }}"
-              class="form-control form-control-lg"
-              value="{{ form.title.value|default:'' }}"
-              placeholder="Enter task title"
-              style="min-height: 50px; font-size: 16px;"
-              required
-            >
-            {% if form.title.errors %}
-              <div class="invalid-feedback d-block">{{ form.title.errors }}</div>
-            {% endif %}
-          </div>
+  <!-- Hero Header -->
+  <div class="form-hero">
+    <h1>
+      <i class="bi bi-{% if edit %}pencil-square{% else %}plus-circle{% endif %} me-2"></i>
+      {% if title %}{{ title }}{% elif edit %}{% trans "Edit Task" %}{% else %}{% trans "New Task" %}{% endif %}
+    </h1>
+    <p class="subtitle">
+      {% if edit %}{% trans "Update the task details below" %}{% else %}{% trans "Create a new task and assign it to your team" %}{% endif %}
+    </p>
+  </div>
 
-          <div class="col-12">
-            <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-text-paragraph me-1"></i>
-              Description
-            </label>
-            <textarea 
-              name="{{ form.description.name }}" 
-              id="{{ form.description.id_for_label }}"
-              class="form-control"
-              rows="4"
-              placeholder="Enter task description"
-              style="min-height: 100px; font-size: 16px;"
-            >{{ form.description.value|default:'' }}</textarea>
-            {% if form.description.errors %}
-              <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
-            {% endif %}
-          </div>
+  <form method="post" enctype="multipart/form-data" id="taskForm">
+    {% csrf_token %}
 
-          <div class="col-12 col-md-6">
-            <label for="{{ form.status.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-flag me-1"></i>
-              Status
+    <!-- Section 1: Basic Info -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-info-circle"></i>
+        <h3>{% trans "Task Details" %}</h3>
+      </div>
+      <div class="section-body">
+        {% if not edit %}
+        <div class="form-field">
+          <label for="{{ form.project.id_for_label }}">
+            <i class="bi bi-folder"></i> {% trans "Project" %} <span class="required-star">*</span>
+          </label>
+          <select name="{{ form.project.name }}" id="{{ form.project.id_for_label }}" class="modern-input modern-select" required>
+            <option value="">{% trans "Select a project..." %}</option>
+            {% for value, text in form.project.field.choices %}
+              {% if value %}
+              <option value="{{ value }}" {% if form.project.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+          {% if form.project.errors %}<div class="text-danger small mt-1">{{ form.project.errors }}</div>{% endif %}
+        </div>
+        {% else %}
+        {{ form.project.as_hidden }}
+        {% endif %}
+
+        <div class="form-field">
+          <label for="{{ form.title.id_for_label }}">
+            <i class="bi bi-card-heading"></i> {% trans "Title" %} <span class="required-star">*</span>
+          </label>
+          <input type="text" name="{{ form.title.name }}" id="{{ form.title.id_for_label }}" class="modern-input" value="{{ form.title.value|default:'' }}" placeholder="{% trans 'Enter task title' %}" required>
+          {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-field">
+          <label for="{{ form.description.id_for_label }}">
+            <i class="bi bi-text-paragraph"></i> {% trans "Description" %}
+          </label>
+          <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}" class="modern-input" rows="4" placeholder="{% trans 'Describe what needs to be done...' %}">{{ form.description.value|default:'' }}</textarea>
+          {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors }}</div>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Status & Assignment -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-person-check"></i>
+        <h3>{% trans "Status & Assignment" %}</h3>
+      </div>
+      <div class="section-body">
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="{{ form.status.id_for_label }}">
+              <i class="bi bi-flag"></i> {% trans "Status" %}
             </label>
-            <select 
-              name="{{ form.status.name }}" 
-              id="{{ form.status.id_for_label }}"
-              class="form-select"
-              style="min-height: 50px; font-size: 16px;"
-            >
+            <select name="{{ form.status.name }}" id="{{ form.status.id_for_label }}" class="modern-input modern-select">
               {% for value, text in form.status.field.choices %}
                 <option value="{{ value }}" {% if form.status.value == value %}selected{% endif %}>{{ text }}</option>
               {% endfor %}
             </select>
-            {% if form.status.errors %}
-              <div class="invalid-feedback d-block">{{ form.status.errors }}</div>
-            {% endif %}
+            {% if form.status.errors %}<div class="text-danger small mt-1">{{ form.status.errors }}</div>{% endif %}
           </div>
 
-          <div class="col-12 col-md-6">
-            <label for="{{ form.assigned_to.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-person-check me-1"></i>
-              Assigned To
+          <div class="form-field">
+            <label for="{{ form.assigned_to.id_for_label }}">
+              <i class="bi bi-person"></i> {% trans "Assigned To" %}
             </label>
-            <select 
-              name="{{ form.assigned_to.name }}" 
-              id="{{ form.assigned_to.id_for_label }}"
-              class="form-select"
-              style="min-height: 50px; font-size: 16px;"
-            >
-              <option value="">Select assignee</option>
+            <select name="{{ form.assigned_to.name }}" id="{{ form.assigned_to.id_for_label }}" class="modern-input modern-select">
+              <option value="">{% trans "Select assignee" %}</option>
               {% for value, text in form.assigned_to.field.choices %}
                 {% if value %}
-                  <option value="{{ value }}" {% if form.assigned_to.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
+                <option value="{{ value }}" {% if form.assigned_to.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
                 {% endif %}
               {% endfor %}
             </select>
-            {% if form.assigned_to.errors %}
-              <div class="invalid-feedback d-block">{{ form.assigned_to.errors }}</div>
-            {% endif %}
+            {% if form.assigned_to.errors %}<div class="text-danger small mt-1">{{ form.assigned_to.errors }}</div>{% endif %}
           </div>
 
-          <div class="col-12 col-md-6">
-            <label for="{{ form.priority.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-exclamation-triangle me-1"></i>
-              Priority
+          <div class="form-field">
+            <label for="{{ form.priority.id_for_label }}">
+              <i class="bi bi-exclamation-triangle"></i> {% trans "Priority" %}
             </label>
-            <select 
-              name="{{ form.priority.name }}" 
-              id="{{ form.priority.id_for_label }}"
-              class="form-select"
-              style="min-height: 50px; font-size: 16px;"
-            >
+            <select name="{{ form.priority.name }}" id="{{ form.priority.id_for_label }}" class="modern-input modern-select">
               {% for value, text in form.priority.field.choices %}
                 <option value="{{ value }}" {% if form.priority.value == value %}selected{% endif %}>{{ text }}</option>
               {% endfor %}
             </select>
-            {% if form.priority.errors %}
-              <div class="invalid-feedback d-block">{{ form.priority.errors }}</div>
-            {% endif %}
+            {% if form.priority.errors %}<div class="text-danger small mt-1">{{ form.priority.errors }}</div>{% endif %}
           </div>
 
-          <div class="col-12 col-md-6">
-            <label for="{{ form.due_date.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-calendar-event me-1"></i>
-              Due Date
+          <div class="form-field">
+            <label for="{{ form.due_date.id_for_label }}">
+              <i class="bi bi-calendar-event"></i> {% trans "Due Date" %}
             </label>
-            <input 
-              type="date" 
-              name="{{ form.due_date.name }}" 
-              id="{{ form.due_date.id_for_label }}"
-              class="form-control"
-              value="{{ form.due_date.value|date:'Y-m-d'|default:'' }}"
-              style="min-height: 50px; font-size: 16px;"
-            >
-            {% if form.due_date.errors %}
-              <div class="invalid-feedback d-block">{{ form.due_date.errors }}</div>
-            {% endif %}
+            <input type="date" name="{{ form.due_date.name }}" id="{{ form.due_date.id_for_label }}" class="modern-input" value="{{ form.due_date.value|date:'Y-m-d'|default:'' }}">
+            {% if form.due_date.errors %}<div class="text-danger small mt-1">{{ form.due_date.errors }}</div>{% endif %}
           </div>
+        </div>
+      </div>
+    </div>
 
-          <div class="col-12 col-md-6">
-            <label for="{{ form.schedule_item_v2.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-calendar-week me-1"></i>
-              Gantt Item
+    <!-- Section 3: Scheduling & Dependencies -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-diagram-3"></i>
+        <h3>{% trans "Schedule & Dependencies" %}</h3>
+      </div>
+      <div class="section-body">
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="{{ form.schedule_item_v2.id_for_label }}">
+              <i class="bi bi-calendar-week"></i> {% trans "Gantt Item" %}
             </label>
-            <select 
-              name="{{ form.schedule_item_v2.name }}" 
-              id="{{ form.schedule_item_v2.id_for_label }}"
-              class="form-select"
-              style="min-height: 50px; font-size: 16px;"
-              onchange="toggleContributionPercent(this)"
-            >
-              <option value="">Select Gantt item (optional)</option>
+            <select name="{{ form.schedule_item_v2.name }}" id="{{ form.schedule_item_v2.id_for_label }}" class="modern-input modern-select" onchange="toggleContributionPercent(this)">
+              <option value="">{% trans "Select Gantt item (optional)" %}</option>
               {% for item in form.schedule_item_v2.field.queryset %}
-                <option value="{{ item.pk }}" 
-                        {% if form.schedule_item_v2.value|stringformat:"s" == item.pk|stringformat:"s" %}selected{% endif %}
-                        data-progress="{{ item.progress }}">
+                <option value="{{ item.pk }}" {% if form.schedule_item_v2.value|stringformat:"s" == item.pk|stringformat:"s" %}selected{% endif %} data-progress="{{ item.progress }}">
                   {{ item.phase.name }} → {{ item.name }}
                 </option>
               {% endfor %}
             </select>
-            {% if form.schedule_item_v2.errors %}
-              <div class="invalid-feedback d-block">{{ form.schedule_item_v2.errors }}</div>
-            {% endif %}
-            <small class="form-text text-muted">Link this task to a Gantt calendar item</small>
+            {% if form.schedule_item_v2.errors %}<div class="text-danger small mt-1">{{ form.schedule_item_v2.errors }}</div>{% endif %}
+            <small class="text-muted mt-1 d-block"><i class="bi bi-info-circle me-1"></i>{% trans "Link this task to a Gantt calendar item" %}</small>
           </div>
 
-          <div class="col-12 col-md-6" id="contributionPercentContainer" style="{% if not form.schedule_item_v2.value %}display:none;{% endif %}">
-            <label for="{{ form.contribution_percent.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-percent me-1"></i>
-              Contribution %
+          <div class="form-field" id="contributionPercentContainer" style="{% if not form.schedule_item_v2.value %}display:none;{% endif %}">
+            <label for="{{ form.contribution_percent.id_for_label }}">
+              <i class="bi bi-percent"></i> {% trans "Contribution %" %}
             </label>
-            <div class="input-group">
-              <input 
-                type="number" 
-                name="{{ form.contribution_percent.name }}" 
-                id="{{ form.contribution_percent.id_for_label }}"
-                class="form-control"
-                value="{{ form.contribution_percent.value|default:0 }}"
-                min="0"
-                max="100"
-                style="min-height: 50px; font-size: 16px;"
-              >
-              <span class="input-group-text">%</span>
-            </div>
-            {% if form.contribution_percent.errors %}
-              <div class="invalid-feedback d-block">{{ form.contribution_percent.errors }}</div>
-            {% endif %}
-          </div>
-
-          <div class="col-12">
-            <label for="{{ form.dependencies.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-diagram-3 me-1"></i>
-              Task Dependencies
-            </label>
-            <select 
-              name="{{ form.dependencies.name }}" 
-              id="{{ form.dependencies.id_for_label }}"
-              class="form-select"
-              multiple
-              size="4"
-              style="font-size: 16px;"
-            >
-              {% for value, text in form.dependencies.field.choices %}
-                {% if value %}
-                  <option value="{{ value }}" 
-                          {% if value in form.dependencies.value %}selected{% endif %}>
-                    {{ text }}
-                  </option>
-                {% endif %}
-              {% endfor %}
-            </select>
-            {% if form.dependencies.errors %}
-              <div class="invalid-feedback d-block">{{ form.dependencies.errors }}</div>
-            {% endif %}
-            <small class="form-text text-muted">
-              Tasks that must be completed before this one. Hold Ctrl (Cmd on Mac) to select multiple.
-            </small>
-          </div>
-
-          <div class="col-12 col-md-6">
-            <label for="{{ form.image.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-image me-1"></i>
-              Image
-            </label>
-            <input 
-              type="file" 
-              name="{{ form.image.name }}" 
-              id="{{ form.image.id_for_label }}"
-              class="form-control"
-              accept="image/*"
-              style="min-height: 50px; font-size: 16px;"
-            >
-            {% if form.image.errors %}
-              <div class="invalid-feedback d-block">{{ form.image.errors }}</div>
-            {% endif %}
-            {% if task and task.image %}
-              <div class="mt-2">
-                <small class="text-muted">Current image:</small>
-                <img src="{{ task.image.url }}" alt="Task image" class="img-thumbnail mt-1" style="max-height: 100px;">
-              </div>
-            {% endif %}
-          </div>
-
-          <div class="col-12 col-md-6">
-            <label class="form-label fw-semibold d-block">
-              <i class="bi bi-brush me-1"></i>
-              Options
-            </label>
-            <div class="form-check form-switch" style="min-height: 50px; padding-top: 12px;">
-              <input 
-                class="form-check-input" 
-                type="checkbox" 
-                name="{{ form.is_touchup.name }}" 
-                id="{{ form.is_touchup.id_for_label }}"
-                {% if form.is_touchup.value %}checked{% endif %}
-                style="width: 3em; height: 1.5em;"
-              >
-              <label class="form-check-label ms-2" for="{{ form.is_touchup.id_for_label }}">
-                Mark as Touch-up
-              </label>
-            </div>
-            {% if form.is_touchup.errors %}
-              <div class="invalid-feedback d-block">{{ form.is_touchup.errors }}</div>
-            {% endif %}
-          </div>
-
-          {% if form.non_field_errors %}
-          <div class="col-12">
-            <div class="alert alert-danger" role="alert">
-              {{ form.non_field_errors }}
-            </div>
-          </div>
-          {% endif %}
-
-          <div class="col-12">
-            <hr class="my-3">
-            <div class="d-flex flex-column flex-sm-row gap-2">
-              <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
-                <i class="bi bi-check-circle me-2"></i>
-                Save Task
-              </button>
-              <a href="{% if task %}{% url 'task_detail' task.id %}{% else %}javascript:history.back();{% endif %}" class="btn btn-outline-secondary btn-lg">
-                <i class="bi bi-x-circle me-2"></i>
-                Cancel
-              </a>
-            </div>
+            <input type="number" name="{{ form.contribution_percent.name }}" id="{{ form.contribution_percent.id_for_label }}" class="modern-input" value="{{ form.contribution_percent.value|default:0 }}" min="0" max="100">
+            {% if form.contribution_percent.errors %}<div class="text-danger small mt-1">{{ form.contribution_percent.errors }}</div>{% endif %}
           </div>
         </div>
-      </form>
+
+        <div class="form-field">
+          <label for="{{ form.dependencies.id_for_label }}">
+            <i class="bi bi-diagram-3"></i> {% trans "Task Dependencies" %}
+          </label>
+          <select name="{{ form.dependencies.name }}" id="{{ form.dependencies.id_for_label }}" class="modern-input" multiple size="4">
+            {% for value, text in form.dependencies.field.choices %}
+              {% if value %}
+              <option value="{{ value }}" {% if value in form.dependencies.value %}selected{% endif %}>{{ text }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+          {% if form.dependencies.errors %}<div class="text-danger small mt-1">{{ form.dependencies.errors }}</div>{% endif %}
+          <small class="text-muted mt-1 d-block"><i class="bi bi-info-circle me-1"></i>{% trans "Hold Ctrl (Cmd on Mac) to select multiple tasks" %}</small>
+        </div>
+      </div>
     </div>
-  </div>
+
+    <!-- Section 4: Attachments & Options -->
+    <div class="form-section">
+      <div class="section-header">
+        <i class="bi bi-gear"></i>
+        <h3>{% trans "Attachments & Options" %}</h3>
+      </div>
+      <div class="section-body">
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="{{ form.image.id_for_label }}">
+              <i class="bi bi-image"></i> {% trans "Image" %}
+            </label>
+            <input type="file" name="{{ form.image.name }}" id="{{ form.image.id_for_label }}" accept="image/*" style="display:none;">
+            <div class="file-upload-area" onclick="document.getElementById('{{ form.image.id_for_label }}').click();">
+              <i class="bi bi-cloud-arrow-up d-block mb-1"></i>
+              <p class="mb-0 small text-muted">{% trans "Click to upload image" %}</p>
+            </div>
+            <div id="imagePreview" style="display:none;" class="mt-2 p-2 bg-light rounded d-flex align-items-center gap-2">
+              <i class="bi bi-file-earmark-image text-primary"></i>
+              <span id="imageName" class="small fw-semibold"></span>
+            </div>
+            {% if form.image.errors %}<div class="text-danger small mt-1">{{ form.image.errors }}</div>{% endif %}
+            {% if task and task.image %}
+            <div class="mt-2 p-2 bg-light rounded">
+              <small class="text-muted">{% trans "Current:" %}</small>
+              <img src="{{ task.image.url }}" alt="Task image" class="img-thumbnail mt-1" style="max-height: 80px;">
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="form-field">
+            <label><i class="bi bi-brush"></i> {% trans "Options" %}</label>
+            <div class="p-3 border rounded-3 bg-light">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="{{ form.is_touchup.name }}" id="{{ form.is_touchup.id_for_label }}" {% if form.is_touchup.value %}checked{% endif %} style="width:3em;height:1.5em;">
+                <label class="form-check-label ms-2 fw-semibold" for="{{ form.is_touchup.id_for_label }}">{% trans "Mark as Touch-up" %}</label>
+              </div>
+            </div>
+            {% if form.is_touchup.errors %}<div class="text-danger small mt-1">{{ form.is_touchup.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Errors -->
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger rounded-3 mb-4">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="action-buttons d-flex flex-column flex-sm-row gap-3 mb-5">
+      <button type="submit" class="btn-submit">
+        <i class="bi bi-check-circle"></i>
+        {% trans "Save Task" %}
+      </button>
+      <a href="{% if task %}{% url 'task_detail' task.id %}{% else %}{% url 'task_command_center' %}{% endif %}" class="btn-cancel">
+        <i class="bi bi-x-circle"></i>
+        {% trans "Cancel" %}
+      </a>
+    </div>
+  </form>
+
+  <!-- Floating Save Button (Mobile) -->
+  <button type="submit" form="taskForm" class="floating-save">
+    <i class="bi bi-check-lg"></i>
+  </button>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('{{ form.title.id_for_label }}').focus();
-  
-  const form = document.getElementById('taskForm');
-  form.addEventListener('submit', function(e) {
-    const title = document.getElementById('{{ form.title.id_for_label }}');
-    if (!title.value.trim()) {
+  var titleField = document.getElementById('{{ form.title.id_for_label }}');
+  if (titleField) titleField.focus();
+
+  // Image preview
+  var imgInput = document.getElementById('{{ form.image.id_for_label }}');
+  if (imgInput) {
+    imgInput.addEventListener('change', function() {
+      var preview = document.getElementById('imagePreview');
+      var nameEl = document.getElementById('imageName');
+      if (this.files && this.files[0]) {
+        nameEl.textContent = this.files[0].name;
+        preview.style.display = 'flex';
+        this.closest('.form-field').querySelector('.file-upload-area').style.display = 'none';
+      }
+    });
+  }
+
+  // Client-side title validation
+  document.getElementById('taskForm').addEventListener('submit', function(e) {
+    var title = document.getElementById('{{ form.title.id_for_label }}');
+    if (title && !title.value.trim()) {
       e.preventDefault();
-      title.classList.add('is-invalid');
+      title.style.borderColor = '#ef4444';
       title.focus();
-      return false;
     }
   });
 });
 
 function toggleContributionPercent(selectEl) {
-  const container = document.getElementById('contributionPercentContainer');
-  const percentInput = document.getElementById('{{ form.contribution_percent.id_for_label }}');
-  
+  var container = document.getElementById('contributionPercentContainer');
+  var input = document.getElementById('{{ form.contribution_percent.id_for_label }}');
   if (selectEl.value) {
     container.style.display = 'block';
   } else {
     container.style.display = 'none';
-    percentInput.value = 0;
+    input.value = 0;
   }
 }
 
-const projectSelect = document.getElementById('{{ form.project.id_for_label }}');
+// Dynamic Gantt items by project
+var projectSelect = document.getElementById('{{ form.project.id_for_label }}');
 if (projectSelect) {
   projectSelect.addEventListener('change', function() {
-    const ganttSelect = document.getElementById('{{ form.schedule_item_v2.id_for_label }}');
-    const projectId = this.value;
-    
+    var ganttSelect = document.getElementById('{{ form.schedule_item_v2.id_for_label }}');
+    var projectId = this.value;
     if (!projectId) {
-      ganttSelect.innerHTML = '<option value="">Select Gantt item (optional)</option>';
+      ganttSelect.innerHTML = '<option value="">{% trans "Select Gantt item (optional)" %}</option>';
       return;
     }
-    
-    fetch(`/api/v1/schedule/v2/items/?project=${projectId}`)
-      .then(r => r.json())
-      .then(data => {
-        let html = '<option value="">Select Gantt item (optional)</option>';
+    fetch('/api/v1/schedule/v2/items/?project=' + projectId)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var html = '<option value="">{% trans "Select Gantt item (optional)" %}</option>';
         if (data.results) {
-          data.results.forEach(item => {
-            html += `<option value="${item.id}">${item.phase_name || 'Phase'} → ${item.name}</option>`;
+          data.results.forEach(function(item) {
+            html += '<option value="' + item.id + '">' + (item.phase_name || 'Phase') + ' \u2192 ' + item.name + '</option>';
           });
         }
         ganttSelect.innerHTML = html;
       })
-      .catch(err => console.error('Error loading Gantt items:', err));
+      .catch(function(err) { console.error('Error loading Gantt items:', err); });
   });
 }
 </script>
