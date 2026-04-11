@@ -332,4 +332,49 @@
 }
 </style>
 
+{# Auto-detect active sidebar item based on current URL #}
+<script>
+(function(){
+    var path = window.location.pathname;
+    var items = document.querySelectorAll('#kb-sidebar .sidebar-item');
+    var best = null, bestLen = 0;
+    items.forEach(function(a){
+        var href = a.getAttribute('href');
+        if(!href || href === '#') return;
+        // Remove query params for comparison
+        var hrefPath = href.split('?')[0];
+        if(path === hrefPath || (hrefPath !== '/' && path.indexOf(hrefPath) === 0)){
+            if(hrefPath.length > bestLen){
+                bestLen = hrefPath.length;
+                best = a;
+            }
+        }
+    });
+    // Remove all template-set active states and apply best match
+    items.forEach(function(a){ a.classList.remove('active'); });
+    if(best){
+        best.classList.add('active');
+        // Scroll active item into view within sidebar
+        best.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+    
+    // Mobile: close sidebar on link click
+    items.forEach(function(a){
+        a.addEventListener('click', function(){
+            var sidebar = document.getElementById('kb-sidebar');
+            var backdrop = document.getElementById('kb-sidebar-backdrop');
+            if(sidebar && window.innerWidth < 1024){
+                sidebar.classList.add('-translate-x-full');
+                sidebar.classList.remove('translate-x-0');
+                if(backdrop){
+                    backdrop.classList.add('opacity-0','pointer-events-none');
+                    backdrop.classList.remove('opacity-100');
+                }
+                document.body.classList.remove('overflow-hidden');
+            }
+        });
+    });
+})();
+</script>
+
 {% endwith %}

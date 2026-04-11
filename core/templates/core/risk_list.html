@@ -4,6 +4,7 @@
 {% block title %}{% trans "Risks" %} - {{ project.name }}{% endblock %}
 
 {% block content %}
+{% include "core/components/project_context_bar.html" with current_section="Risks" %}
 <div class="max-w-6xl mx-auto px-4 py-6">
     <!-- Breadcrumbs -->
     <nav class="flex items-center gap-2 text-sm text-slate-500 mb-4">

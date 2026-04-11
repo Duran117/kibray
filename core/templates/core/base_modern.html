@@ -89,6 +89,63 @@
         @media (min-width: 1024px) {
             .with-sidebar { margin-left: 256px; }
         }
+        
+        /* Solid content boundary - prevent sidebar overlap */
+        #main-content > div { position: relative; z-index: 1; }
+        
+        /* Project context bar */
+        .project-context-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            margin: -24px -16px 20px -16px;
+            background: #1e293b;
+            border-bottom: 2px solid #6366f1;
+            color: white;
+            font-size: 14px;
+            position: sticky;
+            top: 56px;
+            z-index: 25;
+        }
+        @media (min-width: 640px) {
+            .project-context-bar { margin: -24px -24px 20px -24px; padding: 10px 24px; }
+        }
+        @media (min-width: 1024px) {
+            .project-context-bar { margin: -24px -32px 20px -32px; padding: 10px 32px; }
+        }
+        .project-context-bar a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .project-context-bar a:hover { color: #fff; }
+        .project-context-bar .ctx-project-name {
+            font-weight: 600;
+            color: #fff;
+        }
+        .project-context-bar .ctx-separator {
+            color: rgba(255,255,255,0.3);
+        }
+        .project-context-bar .ctx-current {
+            color: rgba(255,255,255,0.6);
+        }
+        .project-context-bar .ctx-back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+            color: #fff;
+            font-weight: 500;
+            transition: background 0.15s;
+            margin-left: auto;
+        }
+        .project-context-bar .ctx-back-btn:hover {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
     </style>
     
     {% block extra_css %}{% endblock %}

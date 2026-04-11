@@ -1,0 +1,31 @@
+{% load i18n %}
+{# 
+  Project Context Bar - Include on any project-scoped page.
+  Provides: breadcrumb navigation, back-to-project button, project name indicator.
+  
+  Required context: project (Project instance)
+  Optional context: current_section (string, e.g. "Tasks", "RFIs")
+#}
+{% if project %}
+<div class="project-context-bar">
+    <a href="{% url 'dashboard' %}" title="{% trans 'Dashboard' %}">
+        <i class="bi bi-house-door"></i>
+    </a>
+    <span class="ctx-separator">/</span>
+    <a href="{% url 'project_list' %}">{% trans "Projects" %}</a>
+    <span class="ctx-separator">/</span>
+    <a href="{% url 'project_overview' project.id %}" class="ctx-project-name">
+        <i class="bi bi-building me-1"></i>{{ project.name|truncatechars:30 }}
+    </a>
+    {% if current_section %}
+    <span class="ctx-separator">/</span>
+    <span class="ctx-current">{{ current_section }}</span>
+    {% endif %}
+    
+    <a href="{% url 'project_overview' project.id %}" class="ctx-back-btn">
+        <i class="bi bi-arrow-left"></i>
+        <span class="hidden sm:inline">{% trans "Back to Project" %}</span>
+        <span class="sm:hidden"><i class="bi bi-grid"></i></span>
+    </a>
+</div>
+{% endif %}

@@ -5,6 +5,7 @@
 {% block title %}{% trans "Material Requests" %}{% endblock %}
 
 {% block content %}
+{% include "core/components/project_context_bar.html" with current_section="Materials" %}
 <div class="min-h-screen bg-gray-50">
     <!-- Modern Header -->
     <div class="bg-gradient-to-r from-amber-600 to-orange-500 text-white px-4 py-6 sm:px-6 lg:px-8">

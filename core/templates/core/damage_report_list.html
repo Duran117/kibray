@@ -1,7 +1,9 @@
 {% extends "core/base_modern.html" %}
 {% load static %}
+{% load i18n %}
 
 {% block content %}
+{% include "core/components/project_context_bar.html" with current_section="Damages" %}
 <div class="container-fluid py-4">
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
