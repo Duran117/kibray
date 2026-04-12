@@ -647,6 +647,42 @@ def dashboard_admin(request):
                         )
                     except Project.DoesNotExist:
                         messages.error(request, _("Project not found."))
+
+            elif switch_type == "project_co":
+                # Switch project AND set a specific CO in one step (from wizard)
+                target_id = request.POST.get("target_id") or request.POST.get("project_id")
+                co_id = request.POST.get("co_id")
+                if target_id:
+                    try:
+                        new_project = Project.objects.get(id=target_id)
+                        new_co = None
+                        if co_id:
+                            new_co = ChangeOrder.objects.get(
+                                id=co_id, project=new_project,
+                                status__in=['draft', 'pending', 'approved', 'sent', 'billed']
+                            )
+                        open_entry.end_time = current_time
+                        open_entry.save()
+                        TimeEntry.objects.create(
+                            employee=employee,
+                            project=new_project,
+                            change_order=new_co,
+                            budget_line=None,
+                            date=today,
+                            start_time=current_time,
+                            end_time=None,
+                            notes=f"Switched from: {old_project.name}" + (f" to CO: {new_co.title}" if new_co else ""),
+                            cost_code=None,
+                        )
+                        msg = _("✓ Entry closed (%(hours)s hrs). Now on %(proj)s") % {
+                            "hours": open_entry.hours_worked, "proj": new_project.name
+                        }
+                        if new_co:
+                            msg += f" — {new_co.title}"
+                        messages.success(request, msg)
+                    except (Project.DoesNotExist, ChangeOrder.DoesNotExist):
+                        messages.error(request, _("Project or Change Order not found."))
+
             return redirect("dashboard_admin")
 
     # Form para clock in
@@ -837,7 +873,7 @@ def dashboard_admin(request):
     english_mode = str(active_lang or "").lower().startswith("en")
 
     # === SWITCH OPTIONS (para cambiar proyecto/CO cuando hay entrada abierta) ===
-    switch_options = {"other_projects": [], "current_project_cos": [], "can_switch_to_base": False}
+    switch_options = {"other_projects": [], "available_cos": [], "current_project_cos": [], "can_switch_to_base": False}
     if open_entry:
         # Otros proyectos (Admin puede ver todos, excluir el actual)
         other_projects = Project.objects.filter(is_archived=False).exclude(id=open_entry.project_id)[:10]
@@ -852,10 +888,12 @@ def dashboard_admin(request):
             project=open_entry.project,
             status__in=['draft', 'pending', 'approved', 'sent', 'billed']
         ).exclude(id=open_entry.change_order_id if open_entry.change_order else None)
-        switch_options["current_project_cos"] = [
-            {"id": co.id, "title": co.title, "pricing_type": co.pricing_type}
+        cos_list = [
+            {"id": co.id, "title": co.title, "pricing_type": co.pricing_type, "pricing_label": f"${co.amount}" if co.pricing_type == 'fixed' else "T&M"}
             for co in current_project_cos
         ]
+        switch_options["current_project_cos"] = cos_list
+        switch_options["available_cos"] = cos_list
         
         # Puede volver a base si actualmente está en un CO
         switch_options["can_switch_to_base"] = open_entry.change_order is not None
@@ -8232,6 +8270,49 @@ def dashboard_employee(request):
                                 )
                     except Project.DoesNotExist:
                         messages.error(request, _("Project not found."))
+
+            elif switch_type == "project_co":
+                # Switch project AND set a specific CO in one step (from wizard)
+                target_id = request.POST.get("target_id") or request.POST.get("project_id")
+                co_id = request.POST.get("co_id")
+                if target_id:
+                    try:
+                        is_assigned = ResourceAssignment.objects.filter(
+                            employee=employee, project_id=target_id, date=today,
+                        ).exists()
+                        if not is_assigned:
+                            messages.error(request, _("You're not assigned to that project today."))
+                        else:
+                            new_project = Project.objects.get(id=target_id)
+                            new_co = None
+                            if co_id:
+                                new_co = ChangeOrder.objects.get(
+                                    id=co_id, project=new_project,
+                                    status__in=['draft', 'pending', 'approved', 'sent', 'billed']
+                                )
+                            open_entry.end_time = current_time
+                            open_entry.save()
+                            ensure_hours_calculated(open_entry, "Emp Switch ProjectCO")
+                            TimeEntry.objects.create(
+                                employee=employee,
+                                project=new_project,
+                                change_order=new_co,
+                                budget_line=None,
+                                date=today,
+                                start_time=current_time,
+                                end_time=None,
+                                notes=f"Switched from: {old_project.name}" + (f" to CO: {new_co.title}" if new_co else ""),
+                                cost_code=None,
+                            )
+                            msg = _("✓ Entry closed (%(hours)s hrs). Now on %(proj)s") % {
+                                "hours": open_entry.hours_worked, "proj": new_project.name
+                            }
+                            if new_co:
+                                msg += f" — {new_co.title}"
+                            messages.success(request, msg)
+                    except (Project.DoesNotExist, ChangeOrder.DoesNotExist):
+                        messages.error(request, _("Project or Change Order not found."))
+
             return redirect("dashboard_employee")
 
     # ✅ Obtener proyectos donde está asignado HOY (SOURCE OF TRUTH: ResourceAssignment)
@@ -8623,6 +8704,43 @@ def dashboard_pm(request):
                             )
                     except Project.DoesNotExist:
                         messages.error(request, _("Project not found."))
+
+            elif switch_type == "project_co":
+                # Switch project AND set a specific CO in one step (from wizard)
+                target_id = request.POST.get("target_id") or request.POST.get("project_id")
+                co_id = request.POST.get("co_id")
+                if target_id:
+                    try:
+                        new_project = Project.objects.get(id=target_id)
+                        new_co = None
+                        if co_id:
+                            new_co = ChangeOrder.objects.get(
+                                id=co_id, project=new_project,
+                                status__in=['draft', 'pending', 'approved', 'sent', 'billed']
+                            )
+                        open_entry.end_time = current_time
+                        open_entry.save()
+                        ensure_hours_calculated(open_entry, "PM Switch ProjectCO")
+                        TimeEntry.objects.create(
+                            employee=employee,
+                            project=new_project,
+                            change_order=new_co,
+                            budget_line=None,
+                            date=today,
+                            start_time=current_time,
+                            end_time=None,
+                            notes=f"Switched from: {old_project.name}" + (f" to CO: {new_co.title}" if new_co else ""),
+                            cost_code=None,
+                        )
+                        msg = _("✓ Entry closed (%(hours)s hrs). Now on %(proj)s") % {
+                            "hours": open_entry.hours_worked, "proj": new_project.name
+                        }
+                        if new_co:
+                            msg += f" — {new_co.title}"
+                        messages.success(request, msg)
+                    except (Project.DoesNotExist, ChangeOrder.DoesNotExist):
+                        messages.error(request, _("Project or Change Order not found."))
+
             return redirect("dashboard_pm")
 
     # Form para clock in
@@ -8796,7 +8914,7 @@ def dashboard_pm(request):
         ]
 
     # === SWITCH OPTIONS (para cambiar proyecto/CO cuando hay entrada abierta) ===
-    switch_options = {"other_projects": [], "current_project_cos": [], "can_switch_to_base": False}
+    switch_options = {"other_projects": [], "available_cos": [], "current_project_cos": [], "can_switch_to_base": False}
     if open_entry:
         # Otros proyectos (PM puede ver todos, excluir el actual)
         other_projects = Project.objects.filter(is_archived=False).exclude(id=open_entry.project_id)[:10]
@@ -8811,10 +8929,12 @@ def dashboard_pm(request):
             project=open_entry.project,
             status__in=['draft', 'pending', 'approved', 'sent', 'billed']
         ).exclude(id=open_entry.change_order_id if open_entry.change_order else None)
-        switch_options["current_project_cos"] = [
-            {"id": co.id, "title": co.title, "pricing_type": co.pricing_type}
+        cos_list = [
+            {"id": co.id, "title": co.title, "pricing_type": co.pricing_type, "pricing_label": f"${co.amount}" if co.pricing_type == 'fixed' else "T&M"}
             for co in current_project_cos
         ]
+        switch_options["current_project_cos"] = cos_list
+        switch_options["available_cos"] = cos_list
         
         # Puede volver a base si actualmente está en un CO
         switch_options["can_switch_to_base"] = open_entry.change_order is not None

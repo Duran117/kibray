@@ -1,0 +1,554 @@
+{% load i18n %}
+{# ══════════════════════════════════════════════════════════════════════════ #}
+{# Clock-In Wizard — Shared component for Employee, PM, and Admin dashboards #}
+{# Usage: {% include "core/components/clock_wizard.html" %}                  #}
+{# Context required: employee, open_entry, form, switch_options              #}
+{# Optional context: accent (default "emerald"), has_assignments_today       #}
+{# ══════════════════════════════════════════════════════════════════════════ #}
+
+{% with accent=accent|default:"emerald" %}
+
+{% if not employee %}
+{# ── No employee linked ── #}
+<div class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6 text-sm">
+    <strong>{% trans "Clock-In unavailable" %}:</strong> {% trans "Your user is not linked to an Employee profile. Ask an admin to link it." %}
+</div>
+
+{% elif open_entry %}
+{# ══════════════════════════════════════════════════════════════════ #}
+{# ACTIVE SESSION — Compact status pill + switch wizard             #}
+{# ══════════════════════════════════════════════════════════════════ #}
+<div id="clockWidget" class="mb-6">
+    {# ── Active Status Bar ── #}
+    <div class="bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl shadow-lg p-4 text-white">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <i class="bi bi-clock-fill text-lg"></i>
+                    </div>
+                    <span class="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-300 rounded-full animate-pulse border-2 border-green-600"></span>
+                </div>
+                <div>
+                    <p class="text-green-100 text-xs font-medium uppercase tracking-wide">{% trans "Working on" %}</p>
+                    <h3 class="font-bold text-lg leading-tight">{{ open_entry.project.name }}</h3>
+                    {% if open_entry.change_order %}
+                    <p class="text-green-200 text-sm mt-0.5">
+                        <i class="bi bi-file-earmark-text mr-1"></i>{{ open_entry.change_order.title }}
+                        <span class="opacity-70">({{ open_entry.change_order.get_pricing_type_display }})</span>
+                    </p>
+                    {% else %}
+                    <p class="text-green-200 text-sm mt-0.5"><i class="bi bi-briefcase mr-1"></i>{% trans "Contract Base" %}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="text-right mr-2 hidden sm:block">
+                    <p class="text-green-100 text-xs">{% trans "Since" %}</p>
+                    <p class="font-mono font-bold text-lg">{{ open_entry.start_time|date:"g:i A" }}</p>
+                </div>
+                {# Clock Out Button #}
+                <form method="post" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="clock_out">
+                    <button type="submit" class="px-5 py-2.5 bg-white/20 hover:bg-red-500 backdrop-blur-sm text-white font-semibold rounded-lg transition-all duration-200 border border-white/30 hover:border-red-400 flex items-center gap-2">
+                        <i class="bi bi-stop-circle"></i>
+                        <span>{% trans "Clock Out" %}</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {# ── Switch Context Actions ── #}
+        {% if switch_options %}
+        <div class="mt-3 pt-3 border-t border-white/20 flex flex-wrap gap-2">
+            {% if switch_options.can_switch_to_base %}
+            <button type="button" onclick="openSwitchWizard('base')" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-sm rounded-lg transition flex items-center gap-1.5 border border-white/20">
+                <i class="bi bi-arrow-return-left"></i> {% trans "Back to Base" %}
+            </button>
+            {% endif %}
+            {% if switch_options.available_cos|length > 0 or switch_options.current_project_cos|length > 0 %}
+            <button type="button" onclick="openSwitchWizard('co')" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-sm rounded-lg transition flex items-center gap-1.5 border border-white/20">
+                <i class="bi bi-file-earmark-text"></i> {% trans "Switch CO" %}
+            </button>
+            {% endif %}
+            {% if switch_options.other_projects|length > 0 %}
+            <button type="button" onclick="openSwitchWizard('project')" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-sm rounded-lg transition flex items-center gap-1.5 border border-white/20">
+                <i class="bi bi-folder"></i> {% trans "Switch Project" %}
+            </button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    {# ═══ Switch Wizard Modal ═══ #}
+    <div id="switchWizardOverlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden transition-opacity duration-200 opacity-0" onclick="closeSwitchWizard(event)">
+        <div class="fixed inset-x-0 bottom-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-lg sm:w-full" id="switchWizardPanel">
+            <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[80vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+                {# Header #}
+                <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+                    <h3 id="switchWizardTitle" class="font-bold text-lg text-slate-900">{% trans "Switch Context" %}</h3>
+                    <button onclick="closeSwitchWizard()" class="p-2 -mr-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                {# Body #}
+                <div class="overflow-y-auto flex-1 p-5" id="switchWizardBody">
+                    {# Dynamically populated by JS #}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    // Switch data from Django context
+    var switchData = {
+        canSwitchToBase: {{ switch_options.can_switch_to_base|yesno:"true,false" }},
+        currentProject: {
+            id: {{ open_entry.project.id }},
+            name: "{{ open_entry.project.name|escapejs }}"
+        },
+        currentCO: {% if open_entry.change_order %}{ id: {{ open_entry.change_order.id }}, title: "{{ open_entry.change_order.title|escapejs }}" }{% else %}null{% endif %},
+        otherProjects: [
+            {% for proj in switch_options.other_projects %}
+            { id: {{ proj.id }}, name: "{{ proj.name|escapejs }}" }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        availableCOs: [
+            {% for co in switch_options.available_cos %}
+            { id: {{ co.id }}, title: "{{ co.title|escapejs }}", pricingLabel: "{{ co.pricing_label|default:co.pricing_type|escapejs }}" }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+            {% for co in switch_options.current_project_cos %}
+            { id: {{ co.id }}, title: "{{ co.title|escapejs }}", pricingType: "{{ co.pricing_type|escapejs }}" }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    };
+
+    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    window.openSwitchWizard = function(mode) {
+        var overlay = document.getElementById('switchWizardOverlay');
+        var title = document.getElementById('switchWizardTitle');
+        var body = document.getElementById('switchWizardBody');
+        overlay.classList.remove('hidden');
+        requestAnimationFrame(function(){ overlay.classList.remove('opacity-0'); });
+
+        if (mode === 'base') {
+            title.textContent = '{% trans "Switch to Base Work" %}';
+            body.innerHTML = renderBaseConfirm();
+        } else if (mode === 'co') {
+            title.textContent = '{% trans "Select Change Order" %}';
+            body.innerHTML = renderCOList();
+        } else if (mode === 'project') {
+            title.textContent = '{% trans "Switch Project" %}';
+            window._switchStep = 'select_project';
+            body.innerHTML = renderProjectList();
+        }
+    };
+
+    window.closeSwitchWizard = function(e) {
+        if (e && e.target !== e.currentTarget) return;
+        var overlay = document.getElementById('switchWizardOverlay');
+        overlay.classList.add('opacity-0');
+        setTimeout(function(){ overlay.classList.add('hidden'); }, 200);
+    };
+
+    function renderBaseConfirm() {
+        return '<div class="text-center py-4">' +
+            '<div class="w-16 h-16 rounded-2xl bg-indigo-100 flex items-center justify-center mx-auto mb-4"><i class="bi bi-briefcase text-indigo-600 text-2xl"></i></div>' +
+            '<h4 class="font-semibold text-slate-900 text-lg mb-2">{% trans "Return to Contract Base" %}</h4>' +
+            '<p class="text-slate-500 text-sm mb-1">{% trans "Current:" %} <strong>' + switchData.currentProject.name + '</strong></p>' +
+            (switchData.currentCO ? '<p class="text-orange-600 text-sm mb-4"><i class="bi bi-file-earmark-text mr-1"></i>' + switchData.currentCO.title + '</p>' : '<p class="text-sm text-slate-400 mb-4">{% trans "Already on base work" %}</p>') +
+            '<p class="text-slate-500 text-sm mb-6">{% trans "Current entry will be closed and a new entry will start on base work." %}</p>' +
+            '<form method="post">' +
+            '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '">' +
+            '<input type="hidden" name="action" value="switch_context">' +
+            '<input type="hidden" name="switch_type" value="base">' +
+            '<input type="hidden" name="target_id" value="' + switchData.currentProject.id + '">' +
+            '<button type="submit" class="w-full px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition flex items-center justify-center gap-2"><i class="bi bi-arrow-return-left"></i>{% trans "Confirm Switch to Base" %}</button>' +
+            '</form></div>';
+    }
+
+    function renderCOList() {
+        if (switchData.availableCOs.length === 0) {
+            return '<div class="text-center py-8"><i class="bi bi-inbox text-slate-300 text-4xl mb-3"></i><p class="text-slate-500">{% trans "No Change Orders available for this project." %}</p></div>';
+        }
+        var html = '<p class="text-sm text-slate-500 mb-4">{% trans "Select the Change Order you will be working on. Your current entry will be closed." %}</p><div class="space-y-2">';
+        switchData.availableCOs.forEach(function(co) {
+            html += '<form method="post" class="block">' +
+                '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '">' +
+                '<input type="hidden" name="action" value="switch_context">' +
+                '<input type="hidden" name="switch_type" value="co">' +
+                '<input type="hidden" name="target_id" value="' + co.id + '">' +
+                '<button type="submit" class="w-full text-left p-4 rounded-xl border-2 border-slate-200 hover:border-orange-400 hover:bg-orange-50 transition group">' +
+                '<div class="flex items-center justify-between">' +
+                '<div class="flex items-center gap-3">' +
+                '<div class="w-10 h-10 rounded-lg bg-orange-100 group-hover:bg-orange-200 flex items-center justify-center transition"><i class="bi bi-file-earmark-text text-orange-600"></i></div>' +
+                '<div><p class="font-semibold text-slate-900">' + co.title + '</p>' +
+                '<p class="text-xs text-slate-500">' + (co.pricingLabel || co.pricingType || '') + '</p></div></div>' +
+                '<i class="bi bi-chevron-right text-slate-400 group-hover:text-orange-500 transition"></i></div>' +
+                '</button></form>';
+        });
+        html += '</div>';
+        return html;
+    }
+
+    function renderProjectList() {
+        if (switchData.otherProjects.length === 0) {
+            return '<div class="text-center py-8"><i class="bi bi-inbox text-slate-300 text-4xl mb-3"></i><p class="text-slate-500">{% trans "No other projects available." %}</p></div>';
+        }
+        var html = '<p class="text-sm text-slate-500 mb-4">{% trans "Select a project. Your current entry will be closed and a new one will start." %}</p><div class="space-y-2">';
+        switchData.otherProjects.forEach(function(proj) {
+            html += '<button type="button" onclick="selectSwitchProject(' + proj.id + ', \'' + proj.name.replace(/'/g, "\\'") + '\')" class="w-full text-left p-4 rounded-xl border-2 border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 transition group">' +
+                '<div class="flex items-center justify-between">' +
+                '<div class="flex items-center gap-3">' +
+                '<div class="w-10 h-10 rounded-lg bg-indigo-100 group-hover:bg-indigo-200 flex items-center justify-center transition"><i class="bi bi-building text-indigo-600"></i></div>' +
+                '<p class="font-semibold text-slate-900">' + proj.name + '</p></div>' +
+                '<i class="bi bi-chevron-right text-slate-400 group-hover:text-indigo-500 transition"></i></div></button>';
+        });
+        html += '</div>';
+        return html;
+    }
+
+    window.selectSwitchProject = function(projId, projName) {
+        var title = document.getElementById('switchWizardTitle');
+        var body = document.getElementById('switchWizardBody');
+        window._switchProjectId = projId;
+        window._switchProjectName = projName;
+
+        // Step 2: Ask work type for new project
+        title.textContent = '{% trans "Work Type" %} — ' + projName;
+        body.innerHTML = '<p class="text-sm text-slate-500 mb-4">{% trans "What type of work will you be doing on this project?" %}</p>' +
+            '<div class="space-y-3">' +
+            // Base work option
+            '<form method="post" class="block">' +
+            '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '">' +
+            '<input type="hidden" name="action" value="switch_context">' +
+            '<input type="hidden" name="switch_type" value="project">' +
+            '<input type="hidden" name="target_id" value="' + projId + '">' +
+            '<button type="submit" class="w-full text-left p-4 rounded-xl border-2 border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 transition group">' +
+            '<div class="flex items-center gap-3">' +
+            '<div class="w-10 h-10 rounded-lg bg-indigo-100 group-hover:bg-indigo-200 flex items-center justify-center transition"><i class="bi bi-briefcase text-indigo-600"></i></div>' +
+            '<div><p class="font-semibold text-slate-900">📋 {% trans "Contract Base" %}</p>' +
+            '<p class="text-xs text-slate-500">{% trans "Regular contract work, no Change Order" %}</p></div></div></button></form>' +
+            // CO option
+            '<button type="button" onclick="loadProjectCOs(' + projId + ')" class="w-full text-left p-4 rounded-xl border-2 border-slate-200 hover:border-orange-400 hover:bg-orange-50 transition group">' +
+            '<div class="flex items-center justify-between"><div class="flex items-center gap-3">' +
+            '<div class="w-10 h-10 rounded-lg bg-orange-100 group-hover:bg-orange-200 flex items-center justify-center transition"><i class="bi bi-file-earmark-text text-orange-600"></i></div>' +
+            '<div><p class="font-semibold text-slate-900">📝 {% trans "Change Order" %}</p>' +
+            '<p class="text-xs text-slate-500">{% trans "Work on a specific Change Order" %}</p></div></div>' +
+            '<i class="bi bi-chevron-right text-slate-400 group-hover:text-orange-500 transition"></i></div></button>' +
+            '</div>' +
+            '<button type="button" onclick="openSwitchWizard(\'project\')" class="mt-4 text-sm text-slate-500 hover:text-slate-700 transition flex items-center gap-1"><i class="bi bi-arrow-left"></i> {% trans "Back to projects" %}</button>';
+    };
+
+    window.loadProjectCOs = function(projId) {
+        var body = document.getElementById('switchWizardBody');
+        var title = document.getElementById('switchWizardTitle');
+        title.textContent = '{% trans "Select Change Order" %}';
+        body.innerHTML = '<div class="flex items-center justify-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>';
+
+        fetch('/api/v1/changeorders/?project=' + projId)
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                var items = data.results || data || [];
+                // Filter to active COs
+                items = items.filter(function(co){ return ['draft','pending','approved','sent','billed'].indexOf(co.status) !== -1; });
+                if (items.length === 0) {
+                    body.innerHTML = '<div class="text-center py-8"><i class="bi bi-inbox text-slate-300 text-4xl mb-3"></i><p class="text-slate-500 mb-4">{% trans "No Change Orders for this project." %}</p>' +
+                        '<form method="post"><input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '"><input type="hidden" name="action" value="switch_context"><input type="hidden" name="switch_type" value="project"><input type="hidden" name="target_id" value="' + projId + '">' +
+                        '<button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition">{% trans "Continue on Base Work" %}</button></form></div>';
+                    return;
+                }
+                var html = '<p class="text-sm text-slate-500 mb-4">{% trans "Select the Change Order for" %} <strong>' + (window._switchProjectName || '') + '</strong></p><div class="space-y-2">';
+                items.forEach(function(co) {
+                    var code = co.number || co.reference_code || ('CO-' + co.id);
+                    var desc = co.description || '';
+                    if (desc.length > 120) desc = desc.substring(0, 120) + '…';
+                    var amount = co.amount ? '$' + parseFloat(co.amount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) : '';
+                    html += '<div class="p-4 rounded-xl border-2 border-slate-200 hover:border-orange-400 hover:bg-orange-50 transition group cursor-pointer" onclick="confirmSwitchProjectCO(' + projId + ',' + co.id + ')">' +
+                        '<div class="flex items-start gap-3">' +
+                        '<div class="w-10 h-10 rounded-lg bg-orange-100 group-hover:bg-orange-200 flex items-center justify-center flex-shrink-0 mt-0.5 transition"><i class="bi bi-file-earmark-text text-orange-600"></i></div>' +
+                        '<div class="flex-1 min-w-0">' +
+                        '<div class="flex items-center gap-2 flex-wrap"><p class="font-semibold text-slate-900">' + code + '</p>' +
+                        '<span class="px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">' + co.status + '</span>' +
+                        (amount ? '<span class="text-sm font-medium text-green-700">' + amount + '</span>' : '') +
+                        '</div>' +
+                        (desc ? '<p class="text-sm text-slate-600 mt-1">' + desc + '</p>' : '') +
+                        '</div><i class="bi bi-chevron-right text-slate-400 group-hover:text-orange-500 transition mt-2 flex-shrink-0"></i></div></div>';
+                });
+                html += '</div><button type="button" onclick="selectSwitchProject(' + projId + ',\'' + (window._switchProjectName || '').replace(/'/g, "\\'") + '\')" class="mt-4 text-sm text-slate-500 hover:text-slate-700 transition flex items-center gap-1"><i class="bi bi-arrow-left"></i> {% trans "Back" %}</button>';
+                body.innerHTML = html;
+            })
+            .catch(function(){
+                body.innerHTML = '<div class="text-center py-8 text-red-500">{% trans "Error loading Change Orders. Please try again." %}</div>';
+            });
+    };
+
+    // For switch: project + CO (need custom POST that clocks into new project with CO)
+    // Since the current backend switch_type=project doesn't accept a CO, we submit as project first
+    // The user can then switch CO from the active status bar
+    window.confirmSwitchProjectCO = function(projId, coId) {
+        var body = document.getElementById('switchWizardBody');
+        var title = document.getElementById('switchWizardTitle');
+        title.textContent = '{% trans "Confirm Switch" %}';
+        body.innerHTML = '<div class="text-center py-4">' +
+            '<div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center mx-auto mb-4"><i class="bi bi-arrow-repeat text-orange-600 text-2xl"></i></div>' +
+            '<p class="text-slate-600 text-sm mb-6">{% trans "Your current entry will be closed and a new one will start on the selected project and Change Order." %}</p>' +
+            '<form method="post" id="switchProjectCOForm">' +
+            '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '">' +
+            '<input type="hidden" name="action" value="switch_context">' +
+            '<input type="hidden" name="switch_type" value="project_co">' +
+            '<input type="hidden" name="target_id" value="' + projId + '">' +
+            '<input type="hidden" name="co_id" value="' + coId + '">' +
+            '<button type="submit" class="w-full px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl transition flex items-center justify-center gap-2"><i class="bi bi-check-circle"></i> {% trans "Confirm & Switch" %}</button>' +
+            '</form>' +
+            '<button type="button" onclick="loadProjectCOs(' + projId + ')" class="mt-3 text-sm text-slate-500 hover:text-slate-700 transition flex items-center gap-1 mx-auto"><i class="bi bi-arrow-left"></i> {% trans "Back" %}</button></div>';
+    };
+})();
+</script>
+
+{% else %}
+{# ══════════════════════════════════════════════════════════════════ #}
+{# CLOCK IN WIZARD — Step-by-step guided flow                      #}
+{# ══════════════════════════════════════════════════════════════════ #}
+{% if has_assignments_today|default:True %}
+<div id="clockWizard" class="mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        {# ── Wizard Header with Step Indicator ── #}
+        <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-{{ accent }}-500 to-{{ accent }}-600 flex items-center justify-center text-white">
+                        <i class="bi bi-play-circle"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900">{% trans "Clock In" %}</h3>
+                </div>
+                <div id="wizStepLabel" class="text-xs font-medium text-slate-500">
+                    {% trans "Step" %} <span id="wizStepNum">1</span> {% trans "of" %} <span id="wizStepTotal">2</span>
+                </div>
+            </div>
+            {# Progress bar #}
+            <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div id="wizProgress" class="h-full bg-gradient-to-r from-{{ accent }}-500 to-{{ accent }}-400 rounded-full transition-all duration-300" style="width:50%"></div>
+            </div>
+        </div>
+
+        {# ── Form (hidden, populated by wizard) ── #}
+        <form method="post" id="wizForm" class="hidden">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="clock_in">
+            <input type="hidden" name="project" id="wizProject" value="">
+            <input type="hidden" name="work_type" id="wizWorkType" value="base">
+            <input type="hidden" name="change_order" id="wizCO" value="">
+            <input type="hidden" name="budget_line" id="wizBudgetLine" value="">
+            <input type="hidden" name="cost_code" id="wizCostCode" value="">
+        </form>
+
+        {# ── Step Container ── #}
+        <div class="p-5" id="wizBody">
+            {# Step 1: Select Project — rendered by JS #}
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    // Projects from Django form queryset
+    var projects = [];
+    {% for p in form.project.field.queryset %}
+    projects.push({ id: {{ p.id }}, name: "{{ p.name|escapejs }}" });
+    {% endfor %}
+
+    var state = { step: 1, project: null, projectName: '', workType: 'base', co: null, coTitle: '' };
+    var totalSteps = 2; // Dynamic: 2 if base, 3 if CO
+    var csrfToken = document.querySelector('#wizForm [name=csrfmiddlewaretoken]').value;
+
+    function updateProgress() {
+        document.getElementById('wizStepNum').textContent = state.step;
+        document.getElementById('wizStepTotal').textContent = totalSteps;
+        document.getElementById('wizProgress').style.width = (state.step / totalSteps * 100) + '%';
+    }
+
+    function render() {
+        var body = document.getElementById('wizBody');
+        updateProgress();
+
+        if (state.step === 1) {
+            renderStep1(body);
+        } else if (state.step === 2) {
+            renderStep2(body);
+        } else if (state.step === 3) {
+            renderStep3(body);
+        } else if (state.step === 4) {
+            renderConfirm(body);
+        }
+    }
+
+    function renderStep1(el) {
+        if (projects.length === 0) {
+            el.innerHTML = '<div class="text-center py-8"><div class="w-16 h-16 rounded-2xl bg-yellow-100 flex items-center justify-center mx-auto mb-3"><i class="bi bi-exclamation-triangle text-yellow-600 text-2xl"></i></div><h4 class="font-semibold text-slate-900 mb-1">{% trans "No Projects Available" %}</h4><p class="text-sm text-slate-500">{% trans "You don\'t have any project assignments for today. Contact your PM." %}</p></div>';
+            return;
+        }
+        if (projects.length === 1) {
+            // Auto-select single project
+            state.project = projects[0].id;
+            state.projectName = projects[0].name;
+            state.step = 2;
+            totalSteps = 2;
+            render();
+            return;
+        }
+        var html = '<p class="text-sm text-slate-600 mb-4"><i class="bi bi-building mr-1"></i> {% trans "Select the project you will be working on:" %}</p><div class="space-y-2">';
+        projects.forEach(function(p) {
+            var isSelected = state.project === p.id;
+            html += '<button type="button" onclick="wizSelectProject(' + p.id + ',\'' + p.name.replace(/'/g, "\\'") + '\')" class="w-full text-left p-4 rounded-xl border-2 transition group ' +
+                (isSelected ? 'border-{{ accent }}-500 bg-{{ accent }}-50 ring-2 ring-{{ accent }}-200' : 'border-slate-200 hover:border-{{ accent }}-400 hover:bg-slate-50') + '">' +
+                '<div class="flex items-center gap-3">' +
+                '<div class="w-10 h-10 rounded-lg ' + (isSelected ? 'bg-{{ accent }}-500 text-white' : 'bg-slate-100 group-hover:bg-{{ accent }}-100 text-slate-600 group-hover:text-{{ accent }}-600') + ' flex items-center justify-center transition"><i class="bi bi-building"></i></div>' +
+                '<div class="flex-1"><p class="font-semibold ' + (isSelected ? 'text-{{ accent }}-900' : 'text-slate-900') + '">' + p.name + '</p></div>' +
+                (isSelected ? '<i class="bi bi-check-circle-fill text-{{ accent }}-500 text-xl"></i>' : '<i class="bi bi-chevron-right text-slate-400 group-hover:text-{{ accent }}-500 transition"></i>') +
+                '</div></button>';
+        });
+        html += '</div>';
+        el.innerHTML = html;
+    }
+
+    window.wizSelectProject = function(id, name) {
+        state.project = id;
+        state.projectName = name;
+        state.step = 2;
+        totalSteps = 2;
+        state.workType = 'base';
+        state.co = null;
+        render();
+    };
+
+    function renderStep2(el) {
+        var html = '<p class="text-sm text-slate-600 mb-1">{% trans "Project:" %} <strong>' + state.projectName + '</strong></p>' +
+            '<p class="text-sm text-slate-500 mb-4">{% trans "What type of work will you be doing?" %}</p>' +
+            '<div class="space-y-3">' +
+            // Base work card
+            '<button type="button" onclick="wizSelectWorkType(\'base\')" class="w-full text-left p-4 rounded-xl border-2 transition group ' +
+            (state.workType === 'base' && state.step === 2 ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 hover:border-indigo-400 hover:bg-slate-50') + '">' +
+            '<div class="flex items-center gap-3">' +
+            '<div class="w-10 h-10 rounded-lg bg-indigo-100 group-hover:bg-indigo-200 flex items-center justify-center transition"><i class="bi bi-briefcase text-indigo-600"></i></div>' +
+            '<div><p class="font-semibold text-slate-900">📋 {% trans "Contract Base" %}</p>' +
+            '<p class="text-xs text-slate-500">{% trans "Regular contract work" %}</p></div></div></button>' +
+            // CO card
+            '<button type="button" onclick="wizSelectWorkType(\'co\')" class="w-full text-left p-4 rounded-xl border-2 transition group border-slate-200 hover:border-orange-400 hover:bg-orange-50">' +
+            '<div class="flex items-center justify-between"><div class="flex items-center gap-3">' +
+            '<div class="w-10 h-10 rounded-lg bg-orange-100 group-hover:bg-orange-200 flex items-center justify-center transition"><i class="bi bi-file-earmark-text text-orange-600"></i></div>' +
+            '<div><p class="font-semibold text-slate-900">📝 {% trans "Change Order" %}</p>' +
+            '<p class="text-xs text-slate-500">{% trans "Work billed under a specific CO" %}</p></div></div>' +
+            '<i class="bi bi-chevron-right text-slate-400 group-hover:text-orange-500 transition"></i></div></button>' +
+            '</div>' +
+            (projects.length > 1 ? '<button type="button" onclick="wizBack(1)" class="mt-4 text-sm text-slate-500 hover:text-slate-700 transition flex items-center gap-1"><i class="bi bi-arrow-left"></i> {% trans "Change project" %}</button>' : '');
+        el.innerHTML = html;
+    }
+
+    window.wizSelectWorkType = function(type) {
+        state.workType = type;
+        if (type === 'base') {
+            totalSteps = 2;
+            submitWizard();
+        } else {
+            totalSteps = 3;
+            state.step = 3;
+            render();
+            loadCOs(state.project);
+        }
+    };
+
+    function renderStep3(el) {
+        el.innerHTML = '<div class="flex items-center justify-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div><p class="ml-3 text-slate-500 text-sm">{% trans "Loading Change Orders..." %}</p></div>';
+    }
+
+    function loadCOs(projId) {
+        fetch('/api/v1/changeorders/?project=' + projId)
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                var items = data.results || data || [];
+                items = items.filter(function(co){ return ['draft','pending','approved','sent','billed'].indexOf(co.status) !== -1; });
+                var body = document.getElementById('wizBody');
+
+                if (items.length === 0) {
+                    body.innerHTML = '<div class="text-center py-6"><i class="bi bi-inbox text-slate-300 text-4xl mb-3"></i><p class="text-slate-500 mb-4">{% trans "No active Change Orders for this project." %}</p>' +
+                        '<button type="button" onclick="wizSelectWorkType(\'base\')" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition">{% trans "Continue on Base Work" %}</button></div>' +
+                        '<button type="button" onclick="wizBack(2)" class="mt-4 text-sm text-slate-500 hover:text-slate-700 transition flex items-center gap-1"><i class="bi bi-arrow-left"></i> {% trans "Back" %}</button>';
+                    return;
+                }
+
+                var html = '<p class="text-sm text-slate-600 mb-1">{% trans "Project:" %} <strong>' + state.projectName + '</strong></p>' +
+                    '<p class="text-sm text-slate-500 mb-4">{% trans "Select the Change Order you will work on:" %}</p><div class="space-y-2 max-h-[40vh] overflow-y-auto">';
+                items.forEach(function(co) {
+                    var code = co.number || co.reference_code || ('CO-' + co.id);
+                    var desc = co.description || '';
+                    if (desc.length > 100) desc = desc.substring(0, 100) + '…';
+                    var amount = co.amount ? '$' + parseFloat(co.amount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) : '';
+                    html += '<button type="button" onclick="wizSelectCO(' + co.id + ',\'' + code.replace(/'/g, "\\'") + '\')" class="w-full text-left p-4 rounded-xl border-2 border-slate-200 hover:border-orange-400 hover:bg-orange-50 transition group">' +
+                        '<div class="flex items-start gap-3">' +
+                        '<div class="w-10 h-10 rounded-lg bg-orange-100 group-hover:bg-orange-200 flex items-center justify-center flex-shrink-0 mt-0.5 transition"><i class="bi bi-file-earmark-text text-orange-600"></i></div>' +
+                        '<div class="flex-1 min-w-0">' +
+                        '<div class="flex items-center gap-2 flex-wrap"><p class="font-semibold text-slate-900">' + code + '</p>' +
+                        '<span class="px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">' + co.status + '</span>' +
+                        (amount ? '<span class="text-sm font-medium text-green-700">' + amount + '</span>' : '') +
+                        '</div>' +
+                        (desc ? '<p class="text-sm text-slate-600 mt-1">' + desc + '</p>' : '') +
+                        '</div><i class="bi bi-chevron-right text-slate-400 group-hover:text-orange-500 transition mt-2 flex-shrink-0"></i></div></button>';
+                });
+                html += '</div><button type="button" onclick="wizBack(2)" class="mt-4 text-sm text-slate-500 hover:text-slate-700 transition flex items-center gap-1"><i class="bi bi-arrow-left"></i> {% trans "Back" %}</button>';
+                body.innerHTML = html;
+            })
+            .catch(function(){
+                var body = document.getElementById('wizBody');
+                body.innerHTML = '<div class="text-center py-6 text-red-500">{% trans "Error loading Change Orders." %}</div>' +
+                    '<button type="button" onclick="wizBack(2)" class="mt-4 text-sm text-slate-500 hover:text-slate-700 transition flex items-center gap-1"><i class="bi bi-arrow-left"></i> {% trans "Back" %}</button>';
+            });
+    }
+
+    window.wizSelectCO = function(coId, coTitle) {
+        state.co = coId;
+        state.coTitle = coTitle;
+        submitWizard();
+    };
+
+    window.wizBack = function(step) {
+        state.step = step;
+        if (step <= 2) { state.workType = 'base'; state.co = null; totalSteps = 2; }
+        render();
+    };
+
+    function submitWizard() {
+        document.getElementById('wizProject').value = state.project;
+        document.getElementById('wizWorkType').value = state.workType;
+        document.getElementById('wizCO').value = state.co || '';
+        document.getElementById('wizForm').submit();
+    }
+
+    // Initialize
+    render();
+})();
+</script>
+{% else %}
+{# No assignments today (employee only) #}
+<div class="mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-yellow-200 p-6">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                <i class="bi bi-exclamation-triangle text-yellow-600 text-xl"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-slate-900">{% trans "No Assignments Today" %}</h4>
+                <p class="text-sm text-slate-500 mt-0.5">{% trans "You don't have any project assignments for today. Contact your PM if this is an error." %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endif %}{# end open_entry check #}
+
+{% endwith %}
