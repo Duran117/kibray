@@ -2,1377 +2,419 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% trans "Employee Dashboard" %} | Kibray{% endblock %}
-
-{% block extra_css %}
-<style>
-/* ===== EMPLOYEE DASHBOARD - ASANA STYLE ===== */
-:root {
-    --emp-primary: #6366f1;
-    --emp-primary-dark: #4f46e5;
-    --emp-success: #10b981;
-    --emp-warning: #f59e0b;
-    --emp-danger: #ef4444;
-    --emp-gray-50: #f9fafb;
-    --emp-gray-100: #f3f4f6;
-    --emp-gray-200: #e5e7eb;
-    --emp-gray-300: #d1d5db;
-    --emp-gray-500: #6b7280;
-    --emp-gray-600: #4b5563;
-    --emp-gray-700: #374151;
-    --emp-gray-800: #1f2937;
-    --emp-gray-900: #111827;
-}
-
-.emp-dashboard {
-    min-height: calc(100vh - 64px);
-    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-    padding: 24px;
-}
-
-/* Header */
-.emp-header {
-    background: white;
-    border-radius: 16px;
-    padding: 32px;
-    margin-bottom: 24px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.emp-greeting {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.emp-avatar {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--emp-primary) 0%, #8b5cf6 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 24px;
-    font-weight: 700;
-    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
-}
-
-.emp-greeting h1 {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--emp-gray-900);
-    margin: 0;
-}
-
-.emp-greeting p {
-    color: var(--emp-gray-500);
-    margin: 4px 0 0 0;
-    font-size: 15px;
-}
-
-.emp-time-display {
-    text-align: right;
-}
-
-.emp-time-display .time {
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--emp-gray-900);
-    font-family: 'SF Mono', 'Consolas', monospace;
-}
-
-.emp-time-display .date {
-    color: var(--emp-gray-500);
-    font-size: 14px;
-}
-
-/* Weekly Hours Card */
-.weekly-hours-card {
-    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-    border-radius: 16px;
-    padding: 28px 32px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.weekly-hours-info {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.weekly-hours-icon {
-    width: 60px;
-    height: 60px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-}
-
-.weekly-hours-text h2 {
-    margin: 0;
-    font-size: 32px;
-    font-weight: 700;
-}
-
-.weekly-hours-text p {
-    margin: 4px 0 0 0;
-    opacity: 0.9;
-    font-size: 14px;
-}
-
-.weekly-pay-estimate {
-    text-align: right;
-    background: rgba(255, 255, 255, 0.15);
-    padding: 16px 24px;
-    border-radius: 12px;
-}
-
-.weekly-pay-estimate .label {
-    font-size: 12px;
-    opacity: 0.9;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
-}
-
-.weekly-pay-estimate .amount {
-    font-size: 28px;
-    font-weight: 700;
-}
-
-.weekly-pay-estimate .note {
-    font-size: 11px;
-    opacity: 0.7;
-    margin-top: 4px;
-}
-
-/* Clock Card */
-.clock-card {
-    background: white;
-    border-radius: 16px;
-    padding: 32px;
-    margin-bottom: 24px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    text-align: center;
-}
-
-.clock-status {
-    margin-bottom: 24px;
-}
-
-.clock-status .icon {
-    font-size: 64px;
-    margin-bottom: 16px;
-}
-
-.clock-status.working .icon {
-    color: var(--emp-success);
-    animation: pulse 2s infinite;
-}
-
-.clock-status.not-working .icon {
-    color: var(--emp-gray-300);
-}
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.05); opacity: 0.8; }
-}
-
-.clock-status h2 {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--emp-gray-900);
-    margin: 0 0 8px 0;
-}
-
-.clock-status p {
-    color: var(--emp-gray-500);
-    margin: 0;
-}
-
-.clock-project {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--emp-gray-100);
-    padding: 8px 16px;
-    border-radius: 20px;
-    margin-top: 12px;
-    font-weight: 500;
-    color: var(--emp-gray-700);
-}
-
-.clock-btn {
-    padding: 16px 48px;
-    border-radius: 12px;
-    font-size: 18px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.clock-btn.clock-in {
-    background: linear-gradient(135deg, var(--emp-success) 0%, #059669 100%);
-    color: white;
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
-}
-
-.clock-btn.clock-in:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
-}
-
-.clock-btn.clock-out {
-    background: linear-gradient(135deg, var(--emp-danger) 0%, #dc2626 100%);
-    color: white;
-    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
-}
-
-.clock-btn.clock-out:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
-}
-
-/* Clock Form */
-.clock-form {
-    max-width: 500px;
-    margin: 0 auto;
-    text-align: left;
-}
-
-.clock-form .form-group {
-    margin-bottom: 20px;
-}
-
-.clock-form label {
-    display: block;
-    font-weight: 600;
-    color: var(--emp-gray-700);
-    margin-bottom: 8px;
-}
-
-.clock-form label small {
-    font-weight: 400;
-}
-
-.co-help-text {
-    font-size: 12px;
-    color: var(--emp-gray-500);
-    margin-top: 6px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.co-help-text i {
-    color: var(--emp-primary);
-}
-
-#change-order-group {
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-    border: 1px solid #7dd3fc;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 20px;
-}
-
-#change-order-group label {
-    color: #0369a1;
-}
-
-#change-order-group select {
-    background: white;
-    border-color: #7dd3fc;
-}
-
-.clock-form select,
-.clock-form textarea {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid var(--emp-gray-200);
-    border-radius: 10px;
-    font-size: 15px;
-    transition: all 0.2s;
-}
-
-.clock-form select:focus,
-.clock-form textarea:focus {
-    outline: none;
-    border-color: var(--emp-primary);
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-}
-
-/* Stats Grid */
-.stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-}
-
-.stat-card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.stat-card .stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-}
-
-.stat-card .stat-icon.blue { background: #dbeafe; color: #2563eb; }
-.stat-card .stat-icon.green { background: #d1fae5; color: #059669; }
-.stat-card .stat-icon.purple { background: #ede9fe; color: #7c3aed; }
-.stat-card .stat-icon.orange { background: #ffedd5; color: #ea580c; }
-
-.stat-card .stat-info h3 {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--emp-gray-900);
-    margin: 0;
-}
-
-.stat-card .stat-info p {
-    font-size: 13px;
-    color: var(--emp-gray-500);
-    margin: 4px 0 0 0;
-}
-
-/* Main Grid */
-.emp-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 24px;
-}
-
-/* Section Cards */
-.section-card {
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    overflow: hidden;
-}
-
-.section-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--emp-gray-100);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.section-header h3 {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--emp-gray-900);
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.section-header h3 i {
-    color: var(--emp-primary);
-}
-
-.section-badge {
-    background: var(--emp-primary);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.section-body {
-    padding: 20px 24px;
-}
-
-/* Task List */
-.task-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.task-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--emp-gray-100);
-}
-
-.task-item:last-child {
-    border-bottom: none;
-}
-
-.task-checkbox {
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--emp-gray-300);
-    border-radius: 50%;
-    flex-shrink: 0;
-    margin-top: 2px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.task-checkbox:hover {
-    border-color: var(--emp-primary);
-}
-
-.task-checkbox.completed {
-    background: var(--emp-success);
-    border-color: var(--emp-success);
-}
-
-.task-content {
-    flex: 1;
-}
-
-.task-title {
-    font-weight: 500;
-    color: var(--emp-gray-900);
-    margin: 0 0 4px 0;
-}
-
-.task-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 12px;
-    color: var(--emp-gray-500);
-}
-
-.task-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 500;
-}
-
-.task-tag.project {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-.task-tag.touchup {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-/* Touch-up Action Buttons */
-.touchup-action-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    transition: all 0.2s;
-    text-decoration: none;
-}
-
-.touchup-action-btn.start {
-    background: #dbeafe;
-    color: #2563eb;
-}
-.touchup-action-btn.start:hover {
-    background: #2563eb;
-    color: white;
-}
-
-.touchup-action-btn.complete {
-    background: #d1fae5;
-    color: #059669;
-}
-.touchup-action-btn.complete:hover {
-    background: #059669;
-    color: white;
-}
-
-.touchup-action-btn.view {
-    background: var(--emp-gray-100);
-    color: var(--emp-gray-600);
-}
-.touchup-action-btn.view:hover {
-    background: var(--emp-gray-200);
-    color: var(--emp-gray-800);
-}
-
-.touchup-completed-msg {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #059669;
-    font-weight: 600;
-    font-size: 13px;
-    animation: fadeInUp 0.3s ease;
-}
-
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Schedule List */
-.schedule-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--emp-gray-100);
-}
-
-.schedule-item:last-child {
-    border-bottom: none;
-}
-
-.schedule-time {
-    background: linear-gradient(135deg, var(--emp-primary) 0%, #8b5cf6 100%);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 13px;
-    text-align: center;
-    min-width: 60px;
-}
-
-.schedule-info h4 {
-    font-weight: 600;
-    color: var(--emp-gray-900);
-    margin: 0 0 4px 0;
-}
-
-.schedule-info p {
-    font-size: 13px;
-    color: var(--emp-gray-500);
-    margin: 0;
-}
-
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--emp-gray-500);
-}
-
-.empty-state i {
-    font-size: 48px;
-    opacity: 0.3;
-    margin-bottom: 16px;
-}
-
-.empty-state p {
-    margin: 0;
-}
-
-/* Assignment Alert */
-.assignment-alert {
-    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-    border: 1px solid #93c5fd;
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin-bottom: 20px;
-}
-
-.assignment-alert h4 {
-    font-weight: 600;
-    color: #1e40af;
-    margin: 0 0 8px 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.assignment-alert ul {
-    margin: 0;
-    padding-left: 20px;
-    color: #1e40af;
-}
-
-.assignment-alert li {
-    margin: 4px 0;
-}
-
-/* No Assignment Warning */
-.no-assignment-warning {
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-    border: 1px solid #fcd34d;
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin-bottom: 20px;
-}
-
-.no-assignment-warning h4 {
-    font-weight: 600;
-    color: #92400e;
-    margin: 0 0 8px 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.no-assignment-warning p {
-    color: #92400e;
-    margin: 0;
-    font-size: 14px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .emp-dashboard {
-        padding: 12px;
-    }
-    
-    .emp-header {
-        flex-direction: column;
-        text-align: center;
-        padding: 20px;
-    }
-    
-    .emp-greeting {
-        flex-direction: column;
-    }
-    
-    .emp-time-display {
-        text-align: center;
-    }
-    
-    .emp-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .clock-card {
-        padding: 20px;
-    }
-    
-    .clock-btn {
-        padding: 14px 32px;
-        font-size: 16px;
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .weekly-hours-card {
-        flex-direction: column;
-        text-align: center;
-        padding: 20px;
-    }
-    
-    .weekly-pay-estimate {
-        text-align: center;
-        width: 100%;
-    }
-    
-    .stats-row {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-    
-    .stat-card {
-        padding: 16px;
-    }
-    
-    .stat-card .stat-info h3 {
-        font-size: 20px;
-    }
-}
-
-/* ===== SWITCH CONTEXT STYLES ===== */
-.switch-context-section {
-    margin-top: 24px;
-    padding: 20px;
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-    border-radius: 16px;
-    border: 1px solid #7dd3fc;
-}
-
-.switch-context-section h4 {
-    font-size: 14px;
-    font-weight: 600;
-    color: #0369a1;
-    margin: 0 0 16px 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.switch-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.switch-group {
-    flex: 1;
-    min-width: 200px;
-}
-
-.switch-group-title {
-    font-size: 11px;
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-}
-
-.switch-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    padding: 12px 16px;
-    background: white;
-    border: 2px solid #e2e8f0;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-bottom: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #334155;
-}
-
-.switch-btn:hover {
-    border-color: var(--emp-primary);
-    background: #f8fafc;
-    transform: translateY(-1px);
-}
-
-.switch-btn.co-btn {
-    border-left: 4px solid #8b5cf6;
-}
-
-.switch-btn.co-btn:hover {
-    border-color: #8b5cf6;
-    background: #faf5ff;
-}
-
-.switch-btn.project-btn {
-    border-left: 4px solid #10b981;
-}
-
-.switch-btn.project-btn:hover {
-    border-color: #10b981;
-    background: #f0fdf4;
-}
-
-.switch-btn.base-btn {
-    border-left: 4px solid #6366f1;
-}
-
-.switch-btn.base-btn:hover {
-    border-color: #6366f1;
-    background: #eef2ff;
-}
-
-.switch-btn .switch-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    flex-shrink: 0;
-}
-
-.switch-btn.co-btn .switch-icon {
-    background: #ede9fe;
-    color: #7c3aed;
-}
-
-.switch-btn.project-btn .switch-icon {
-    background: #d1fae5;
-    color: #059669;
-}
-
-.switch-btn.base-btn .switch-icon {
-    background: #e0e7ff;
-    color: #4f46e5;
-}
-
-.switch-btn .switch-label {
-    flex: 1;
-    text-align: left;
-}
-
-.switch-btn .switch-label .name {
-    font-weight: 600;
-    color: #1e293b;
-}
-
-.switch-btn .switch-label .type {
-    font-size: 11px;
-    color: #64748b;
-}
-
-.switch-btn .switch-arrow {
-    color: #94a3b8;
-    font-size: 18px;
-}
-
-/* Current context badge */
-.current-context-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    margin-top: 8px;
-}
-
-.current-context-badge.on-base {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-.current-context-badge.on-co {
-    background: #ede9fe;
-    color: #7c3aed;
-}
-
-@media (max-width: 768px) {
-    .switch-context-section {
-        margin-top: 16px;
-        padding: 16px;
-    }
-    
-    .switch-options {
-        flex-direction: column;
-    }
-    
-    .switch-group {
-        min-width: 100%;
-    }
-    
-    .switch-btn {
-        padding: 14px;
-    }
-}
-</style>
+{% block title %}{% trans "My Dashboard" %} - Kibray{% endblock %}
+
+{% block page_header %}
+<div class="flex justify-between items-center">
+    <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg">
+            <i class="bi bi-house-heart text-2xl"></i>
+        </div>
+        <div>
+            <h1 class="text-3xl font-bold text-slate-900">{% trans "My Dashboard" %}</h1>
+            <p class="text-slate-600 mt-1">{{ today|date:"D, M d, Y" }}</p>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block content %}
-<div class="emp-dashboard">
-    {% if not employee %}
-    <div class="clock-card">
-        <div class="empty-state">
-            <i class="bi bi-person-x"></i>
-            <h2>{% trans "Account Not Linked" %}</h2>
-            <p>{% trans "Your user account is not linked to an employee profile. Please contact your administrator." %}</p>
-        </div>
-    </div>
-    {% else %}
-    
-    <!-- Header -->
-    <div class="emp-header">
-        <div class="emp-greeting">
-            <div class="emp-avatar">
-                {{ employee.first_name|slice:":1" }}{{ employee.last_name|slice:":1" }}
-            </div>
-            <div>
-                <h1>{% trans "Hello" %}, {{ employee.first_name }}! 👋</h1>
-                <p>{% trans "Welcome to your dashboard" %}</p>
-            </div>
-        </div>
-        <div class="emp-time-display">
-            <div class="time" id="currentTime">--:--</div>
-            <div class="date">{{ today|date:"l, F d, Y" }}</div>
-        </div>
-    </div>
-    
-    <!-- Clock In/Out Card -->
-    <div class="clock-card">
+{% if not employee %}
+<div class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6 text-sm">
+    <strong>{% trans "Clock-In unavailable" %}:</strong> {% trans "Your user is not linked to an Employee profile. Ask an admin to link it." %}
+</div>
+{% endif %}
+
+<!-- ═══ Clock In/Out ═══ -->
+{% if employee %}
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+    <div class="text-center">
         {% if open_entry %}
-        <!-- Currently Working -->
-        <div class="clock-status working">
-            <div class="icon"><i class="bi bi-clock-fill"></i></div>
-            <h2>{% trans "Currently Working" %}</h2>
-            <p>{% trans "Started at" %} {{ open_entry.start_time|time:"g:i A" }}</p>
-            <div class="clock-project">
-                <i class="bi bi-building"></i>
-                {{ open_entry.project.name }}
-                {% if open_entry.change_order %}
-                <span class="current-context-badge on-co">
-                    <i class="bi bi-file-text"></i>
-                    {{ open_entry.change_order.title }}
-                </span>
-                {% else %}
-                <span class="current-context-badge on-base">
-                    <i class="bi bi-house"></i>
-                    {% trans "Base Work" %}
-                </span>
-                {% endif %}
-            </div>
+        <i class="bi bi-clock-fill text-green-500 text-5xl mb-3"></i>
+        <h4 class="text-xl font-bold text-slate-900 mb-2">{% trans "Working on" %} {{ open_entry.project.name }}</h4>
+        {% if open_entry.change_order %}
+        <p class="text-orange-600 text-sm font-medium mb-1">📝 {{ open_entry.change_order.title }}</p>
+        {% endif %}
+        <p class="text-slate-600 mb-4">{% trans "Clock in" %}: {{ open_entry.start_time|date:"g:i A" }}</p>
+        <div class="flex flex-wrap justify-center gap-3 mb-4">
+            <form method="post" class="inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="clock_out">
+                <button type="submit" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow hover:shadow-lg transition">
+                    <i class="bi bi-box-arrow-right mr-2"></i>{% trans "Clock Out" %}
+                </button>
+            </form>
         </div>
-        
-        <!-- Clock Out Button -->
-        <form method="post" style="margin-top: 24px;">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="clock_out">
-            <button type="submit" class="clock-btn clock-out">
-                <i class="bi bi-box-arrow-right"></i>
-                {% trans "Clock Out" %}
-            </button>
-        </form>
-        
-        <!-- Switch Context Section -->
+
+        <!-- Switch Context -->
         {% if switch_options %}
-        <div class="switch-context-section">
-            <h4><i class="bi bi-arrow-left-right"></i> {% trans "Switch Context" %}</h4>
-            
-            <div class="switch-options">
-                <!-- Change Orders del proyecto actual -->
-                {% if switch_options.available_cos %}
-                <div class="switch-group">
-                    <div class="switch-group-title">📋 {% trans "Change Orders" %} ({{ switch_options.current_project.name }})</div>
-                    {% for co in switch_options.available_cos %}
-                    <form method="post" style="display: contents;">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="switch_context">
-                        <input type="hidden" name="switch_type" value="co">
-                        <input type="hidden" name="target_id" value="{{ co.id }}">
-                        <button type="submit" class="switch-btn co-btn">
-                            <div class="switch-icon"><i class="bi bi-file-earmark-text"></i></div>
-                            <div class="switch-label">
-                                <div class="name">{{ co.title }}</div>
-                                <div class="type">{{ co.pricing_label }}</div>
-                            </div>
-                            <div class="switch-arrow"><i class="bi bi-chevron-right"></i></div>
-                        </button>
-                    </form>
-                    {% endfor %}
-                </div>
-                {% endif %}
-                
-                <!-- Volver a trabajo base (solo si está en CO) -->
+        <div class="border-t border-slate-200 pt-4 mt-4">
+            <p class="text-sm text-slate-600 mb-3">{% trans "Switch Context" %}:</p>
+            <div class="flex flex-wrap justify-center gap-2">
                 {% if switch_options.can_switch_to_base %}
-                <div class="switch-group">
-                    <div class="switch-group-title">🏠 {% trans "Base Work" %}</div>
-                    <form method="post" style="display: contents;">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="switch_context">
-                        <input type="hidden" name="switch_type" value="base">
-                        <input type="hidden" name="target_id" value="{{ switch_options.current_project.id }}">
-                        <button type="submit" class="switch-btn base-btn">
-                            <div class="switch-icon"><i class="bi bi-house"></i></div>
-                            <div class="switch-label">
-                                <div class="name">{{ switch_options.current_project.name }}</div>
-                                <div class="type">{% trans "Contract Base Work" %}</div>
-                            </div>
-                            <div class="switch-arrow"><i class="bi bi-chevron-right"></i></div>
-                        </button>
-                    </form>
-                </div>
+                <form method="post" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="switch_context">
+                    <input type="hidden" name="switch_type" value="base">
+                    <input type="hidden" name="target_id" value="{{ open_entry.project.id }}">
+                    <button type="submit" class="px-4 py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 text-sm font-medium rounded-lg border border-indigo-300 transition">
+                        <i class="bi bi-arrow-return-left mr-1"></i>{% trans "Back to Base" %}
+                    </button>
+                </form>
                 {% endif %}
-                
-                <!-- Otros proyectos -->
+                {% if switch_options.available_cos %}
+                <details class="relative inline-block">
+                    <summary class="px-4 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 text-sm font-medium rounded-lg border border-orange-300 transition flex items-center gap-1 cursor-pointer list-none">
+                        <i class="bi bi-file-earmark-text mr-1"></i>{% trans "Switch CO" %} ({{ switch_options.available_cos|length }})<i class="bi bi-chevron-down text-xs ml-1"></i>
+                    </summary>
+                    <div class="absolute left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 z-50" style="top:100%;">
+                        {% for co in switch_options.available_cos %}
+                        <form method="post" class="block">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="switch_context">
+                            <input type="hidden" name="switch_type" value="co">
+                            <input type="hidden" name="target_id" value="{{ co.id }}">
+                            <button type="submit" class="w-full text-left px-4 py-2 hover:bg-orange-50 text-sm border-b border-slate-100 last:border-0">
+                                <span class="font-medium">{{ co.title }}</span>
+                                <span class="text-xs text-slate-500 ml-1">({{ co.pricing_label }})</span>
+                            </button>
+                        </form>
+                        {% endfor %}
+                    </div>
+                </details>
+                {% endif %}
                 {% if switch_options.other_projects %}
-                <div class="switch-group">
-                    <div class="switch-group-title">🏗️ {% trans "Other Projects" %} ({{ switch_options.other_projects_count }})</div>
-                    {% for proj in switch_options.other_projects %}
-                    <form method="post" style="display: contents;">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="switch_context">
-                        <input type="hidden" name="switch_type" value="project">
-                        <input type="hidden" name="target_id" value="{{ proj.id }}">
-                        <button type="submit" class="switch-btn project-btn">
-                            <div class="switch-icon"><i class="bi bi-building"></i></div>
-                            <div class="switch-label">
-                                <div class="name">{{ proj.name }}</div>
-                                <div class="type">{% trans "Base Work" %}</div>
-                            </div>
-                            <div class="switch-arrow"><i class="bi bi-chevron-right"></i></div>
-                        </button>
-                    </form>
-                    {% endfor %}
-                </div>
+                <details class="relative inline-block">
+                    <summary class="px-4 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-sm font-medium rounded-lg border border-emerald-300 transition flex items-center gap-1 cursor-pointer list-none">
+                        <i class="bi bi-folder mr-1"></i>{% trans "Switch Project" %} ({{ switch_options.other_projects|length }})<i class="bi bi-chevron-down text-xs ml-1"></i>
+                    </summary>
+                    <div class="absolute left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 z-50 max-h-64 overflow-y-auto" style="top:100%;">
+                        {% for proj in switch_options.other_projects %}
+                        <form method="post" class="block">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="switch_context">
+                            <input type="hidden" name="switch_type" value="project">
+                            <input type="hidden" name="target_id" value="{{ proj.id }}">
+                            <button type="submit" class="w-full text-left px-4 py-2 hover:bg-emerald-50 text-sm border-b border-slate-100 last:border-0">{{ proj.name }}</button>
+                        </form>
+                        {% endfor %}
+                    </div>
+                </details>
                 {% endif %}
             </div>
         </div>
         {% endif %}
+        <style>
+        details > summary::-webkit-details-marker { display: none; }
+        details > summary::marker { display: none; }
+        details[open] > summary ~ * { animation: fadeIn 0.2s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        </style>
         {% else %}
-        <!-- Not Working -->
-        <div class="clock-status not-working">
-            <div class="icon"><i class="bi bi-clock"></i></div>
-            <h2>{% trans "Ready to Start?" %}</h2>
-            <p>{% trans "Clock in to begin your workday" %}</p>
+        <!-- Clock In Form -->
+        <div class="flex items-center justify-center gap-3 mb-4">
+            <i class="bi bi-clock text-emerald-500 text-4xl"></i>
+            <h4 class="text-xl font-bold text-slate-900">{% trans "Clock In" %}</h4>
         </div>
-        
-        {% if assignments_today %}
-        <div class="assignment-alert">
-            <h4><i class="bi bi-calendar-check"></i> {% trans "Today's Assignments" %}</h4>
-            <ul>
-                {% for a in assignments_today %}
-                <li>{{ a.project.name }} ({{ a.get_shift_display }})</li>
-                {% endfor %}
-            </ul>
+        {% if not has_assignments_today %}
+        <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-3 mb-4 text-sm">
+            <i class="bi bi-exclamation-triangle mr-1"></i> {% trans "You don't have any project assignments for today. Contact your PM." %}
         </div>
         {% else %}
-        <div class="no-assignment-warning">
-            <h4><i class="bi bi-exclamation-triangle"></i> {% trans "No Assignments Today" %}</h4>
-            <p>{% trans "Contact your supervisor for project assignment." %}</p>
-        </div>
-        {% endif %}
-        
-        <form method="post" class="clock-form" id="clock-in-form">
+        <form method="post" class="max-w-2xl mx-auto" id="clockInForm">
             {% csrf_token %}
             <input type="hidden" name="action" value="clock_in">
-            
-            <div class="form-group">
-                <label>{% trans "Project" %}</label>
+            <div class="mb-4 text-left">
+                <label class="block text-sm font-semibold text-slate-700 mb-1"><i class="bi bi-building mr-1"></i> {% trans "Project" %} <span class="text-red-500">*</span></label>
                 {{ form.project }}
             </div>
-            
-            <div class="form-group" id="change-order-group" style="display: none;">
-                <label>
-                    <i class="bi bi-file-earmark-text"></i>
-                    {% trans "Change Order" %} <small style="color: #94a3b8;">({% trans "Optional" %})</small>
-                </label>
-                {{ form.change_order }}
-                <div class="co-help-text">
-                    <i class="bi bi-info-circle"></i>
-                    {% trans "Select if working on a Change Order. Leave empty for base contract work." %}
+            <div class="mb-4 p-4 bg-gradient-to-r from-slate-50 to-emerald-50 rounded-lg border border-slate-200">
+                <label class="block text-sm font-semibold text-slate-700 mb-3"><i class="bi bi-briefcase mr-1"></i> {% trans "Work Type" %}:</label>
+                <div class="flex flex-wrap gap-4 mb-3">
+                    <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-slate-200 hover:border-indigo-400 transition">
+                        <input type="radio" name="work_type" value="base" checked class="w-4 h-4 text-indigo-600" id="workTypeBase">
+                        <span class="text-sm font-medium text-slate-700">📋 {% trans "Contract Base" %}</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-slate-200 hover:border-orange-400 transition">
+                        <input type="radio" name="work_type" value="co" class="w-4 h-4 text-orange-600" id="workTypeCO">
+                        <span class="text-sm font-medium text-slate-700">📝 {% trans "Change Order" %}</span>
+                    </label>
+                </div>
+                <div id="budgetLineSection" class="mt-3">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{% trans "Phase/Budget Item" %}:</label>
+                    {{ form.budget_line }}
+                </div>
+                <div id="changeOrderSection" class="mt-3 hidden">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{% trans "Change Order" %}:</label>
+                    {{ form.change_order }}
+                    <p class="text-xs text-orange-600 mt-1">⚠️ {% trans "CO hours billed separately" %}</p>
                 </div>
             </div>
-            
-            <div class="form-group">
-                <label>{% trans "Budget Line" %} ({% trans "Optional" %})</label>
-                {{ form.budget_line }}
-            </div>
-            
-            <div class="form-group">
-                <label>{% trans "Cost Code" %} ({% trans "Optional" %})</label>
+            <div class="mb-4 text-left">
+                <label class="block text-sm font-semibold text-slate-700 mb-1"><i class="bi bi-tag mr-1"></i> {% trans "Cost Code" %} <span class="text-slate-400 text-xs">({% trans "optional" %})</span></label>
                 {{ form.cost_code }}
             </div>
-            
-            <div class="form-group">
-                <label>{% trans "Notes" %} ({% trans "Optional" %})</label>
-                {{ form.notes }}
-            </div>
-            
-            <div style="text-align: center; margin-top: 24px;">
-                <button type="submit" class="clock-btn clock-in">
-                    <i class="bi bi-box-arrow-in-right"></i>
-                    {% trans "Clock In" %}
-                </button>
-            </div>
+            <button type="submit" class="w-full px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition text-lg">
+                <i class="bi bi-play-circle mr-2"></i>{% trans "Start Working" %}
+            </button>
         </form>
-        
         <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const projectSelect = document.getElementById('id_project');
-            const coSelect = document.getElementById('id_change_order');
-            const coGroup = document.getElementById('change-order-group');
-            
-            if (!projectSelect || !coSelect || !coGroup) return;
-            
-            function updateChangeOrders() {
-                const selectedProjectId = projectSelect.value;
-                
-                if (!selectedProjectId) {
-                    coGroup.style.display = 'none';
-                    return;
-                }
-                
-                // Show the CO group
-                coGroup.style.display = 'block';
-                
-                // Clear and rebuild options
-                coSelect.innerHTML = '<option value="">-- {% trans "None (base work)" %} --</option>';
-                
-                // Fetch active COs for this project via AJAX
-                fetch(`{% url 'changeorders_ajax' %}?project_id=${selectedProjectId}&status=active`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.change_orders && data.change_orders.length > 0) {
-                            data.change_orders.forEach(co => {
-                                const option = document.createElement('option');
-                                option.value = co.id;
-                                option.textContent = `${co.title} (${co.pricing_label})`;
-                                coSelect.appendChild(option);
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        // Error silently handled - COs are optional
-                    });
+            var wBase = document.getElementById('workTypeBase');
+            var wCO = document.getElementById('workTypeCO');
+            var blSec = document.getElementById('budgetLineSection');
+            var coSec = document.getElementById('changeOrderSection');
+            var blSel = document.querySelector('[name="budget_line"]');
+            var coSel = document.querySelector('[name="change_order"]');
+            function toggle() {
+                if (wCO.checked) { blSec.classList.add('hidden'); coSec.classList.remove('hidden'); if(blSel) blSel.value=''; }
+                else { blSec.classList.remove('hidden'); coSec.classList.add('hidden'); if(coSel) coSel.value=''; }
             }
-            
-            projectSelect.addEventListener('change', updateChangeOrders);
-            
-            // Initial state
-            if (projectSelect.value) {
-                updateChangeOrders();
+            wBase.addEventListener('change', toggle);
+            wCO.addEventListener('change', toggle);
+            var ps = document.querySelector('[name="project"]');
+            if (ps) {
+                ps.addEventListener('change', function() {
+                    var pid = this.value;
+                    if (!pid) { if(blSel) blSel.innerHTML='<option value="">-- {% trans "First select project" %} --</option>'; if(coSel) coSel.innerHTML='<option value="">-- {% trans "First select project" %} --</option>'; return; }
+                    fetch('/api/v1/budget-lines/?project=' + pid).then(function(r){return r.json();}).then(function(data){
+                        blSel.innerHTML='<option value="">-- {% trans "Select phase" %} --</option>';
+                        var items=data.results||data||[];
+                        items.forEach(function(bl){ var o=document.createElement('option'); o.value=bl.id; var code=bl.cost_code_code||bl.cost_code_display||''; var name=bl.cost_code_name||bl.description||''; o.textContent=code?code+' - '+name:'Phase '+bl.id; blSel.appendChild(o); });
+                    }).catch(function(){});
+                    fetch('/api/v1/changeorders/?project=' + pid).then(function(r){return r.json();}).then(function(data){
+                        coSel.innerHTML='<option value="">-- {% trans "None (base work)" %} --</option>';
+                        var items=data.results||data||[];
+                        items.forEach(function(co){ var o=document.createElement('option'); o.value=co.id; o.textContent=(co.code||'CO-'+co.id)+': '+(co.description||co.title||''); coSel.appendChild(o); });
+                    }).catch(function(){});
+                });
+                if (ps.value) ps.dispatchEvent(new Event('change'));
             }
         });
         </script>
         {% endif %}
-    </div>
-    
-    <!-- Weekly Hours Summary Card -->
-    <div class="weekly-hours-card">
-        <div class="weekly-hours-info">
-            <div class="weekly-hours-icon">
-                <i class="bi bi-clock-history"></i>
-            </div>
-            <div class="weekly-hours-text">
-                <h2>{{ current_week_hours|floatformat:1 }} {% trans "hrs" %}</h2>
-                <p>{% trans "Current Week" %} ({{ week_start|date:"M d" }} - {{ week_end|date:"M d" }})</p>
-            </div>
-        </div>
-        {% if estimated_weekly_pay %}
-        <div class="weekly-pay-estimate">
-            <div class="label">{% trans "Estimated Pay" %}</div>
-            <div class="amount">${{ estimated_weekly_pay|floatformat:2 }}</div>
-            <div class="note">{% trans "Before taxes & deductions" %}</div>
-        </div>
         {% endif %}
     </div>
-    
-    <!-- Last Week Summary Card -->
-    <div class="weekly-hours-card" style="background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); border: 1px solid #cbd5e1;">
-        <div class="weekly-hours-info">
-            <div class="weekly-hours-icon" style="background: #e2e8f0; color: #64748b;">
-                <i class="bi bi-calendar-week"></i>
-            </div>
-            <div class="weekly-hours-text">
-                <h2 style="color: #475569;">{{ last_week_hours|floatformat:1 }} {% trans "hrs" %}</h2>
-                <p style="color: #64748b;">{% trans "Last Week" %} ({{ last_week_start|date:"M d" }} - {{ last_week_end|date:"M d" }})</p>
-            </div>
-        </div>
-        {% if estimated_last_week_pay %}
-        <div class="weekly-pay-estimate" style="background: rgba(71, 85, 105, 0.1);">
-            <div class="label" style="color: #64748b;">{% trans "Last Week Pay" %}</div>
-            <div class="amount" style="color: #475569;">${{ estimated_last_week_pay|floatformat:2 }}</div>
-            <div class="note" style="color: #94a3b8;">{% trans "Pending payment" %}</div>
-        </div>
-        {% endif %}
+</div>
+{% endif %}
+
+<!-- ═══ Morning Briefing ═══ -->
+{% if morning_briefing %}
+<div class="bg-white rounded-xl shadow-sm border border-emerald-200 p-4 md:p-6 mb-6">
+    <div class="flex items-center gap-2 mb-3">
+        <i class="bi bi-sunrise text-emerald-600 text-xl"></i>
+        <h3 class="text-lg font-semibold text-slate-900">{% trans "Morning Briefing" %}</h3>
     </div>
-    
-    <!-- Stats Row -->
-    <div class="stats-row">
-        <div class="stat-card">
-            <div class="stat-icon blue"><i class="bi bi-calendar-check"></i></div>
-            <div class="stat-info">
-                <h3>{{ my_schedule|length }}</h3>
-                <p>{% trans "Today's Schedule" %}</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+        {% for item in morning_briefing %}
+        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full flex-shrink-0 {% if item.severity == 'danger' %}bg-red-500{% elif item.severity == 'warning' %}bg-yellow-500{% elif item.severity == 'success' %}bg-green-500{% else %}bg-emerald-500{% endif %}"></span>
+                <span class="text-sm text-slate-700">{{ item.text }}</span>
             </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon purple"><i class="bi bi-list-task"></i></div>
-            <div class="stat-info">
-                <h3>{{ my_activities|length }}</h3>
-                <p>{% trans "Activities Assigned" %}</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon orange"><i class="bi bi-brush"></i></div>
-            <div class="stat-info">
-                <h3>{{ my_touchups_v2|length }}</h3>
-                <p>{% trans "Touch-ups Pending" %}</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon green"><i class="bi bi-building"></i></div>
-            <div class="stat-info">
-                <h3>{{ assignments_today|length }}</h3>
-                <p>{% trans "Projects Today" %}</p>
-            </div>
-        </div>
+        {% endfor %}
     </div>
-    
-    <!-- Main Grid -->
-    <div class="emp-grid">
-        <!-- Today's Activities -->
-        <div class="section-card">
-            <div class="section-header">
-                <h3><i class="bi bi-lightning-charge"></i> {% trans "Today's Activities" %}</h3>
-                {% if my_activities %}
-                <span class="section-badge">{{ my_activities|length }}</span>
-                {% endif %}
-            </div>
-            <div class="section-body">
-                {% if my_activities %}
-                <ul class="task-list">
-                    {% for item in my_activities %}
-                    <li class="task-item">
-                        <div class="task-checkbox"></div>
-                        <div class="task-content">
-                            <p class="task-title">{{ item.activity.description }}</p>
-                            <div class="task-meta">
-                                <span class="task-tag project">
-                                    <i class="bi bi-building"></i> {{ item.project.name }}
-                                </span>
-                                {% if item.activity.start_time %}
-                                <span><i class="bi bi-clock"></i> {{ item.activity.start_time|time:"g:i A" }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <div class="empty-state">
-                    <i class="bi bi-clipboard-check"></i>
-                    <p>{% trans "No activities assigned for today" %}</p>
+</div>
+{% endif %}
+
+<!-- ═══ Weekly Hours ═══ -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 text-center">
+        <i class="bi bi-clock text-emerald-500 text-3xl mb-2"></i>
+        <h3 class="text-3xl font-bold text-slate-900">{{ week_hours|floatformat:1 }}h</h3>
+        <p class="text-sm text-slate-600 mt-1">{% trans "This Week" %}</p>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 text-center">
+        <i class="bi bi-building text-indigo-500 text-3xl mb-2"></i>
+        <h3 class="text-3xl font-bold text-slate-900">{{ available_projects_count }}</h3>
+        <p class="text-sm text-slate-600 mt-1">{% trans "Projects Today" %}</p>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 text-center">
+        <i class="bi bi-list-task text-amber-500 text-3xl mb-2"></i>
+        <h3 class="text-3xl font-bold text-slate-900">{{ my_activities|length }}</h3>
+        <p class="text-sm text-slate-600 mt-1">{% trans "Tasks Today" %}</p>
+    </div>
+</div>
+
+<!-- ═══ Today's Assignments ═══ -->
+{% if assignments_today %}
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 mb-6">
+    <div class="flex items-center gap-2 mb-4">
+        <i class="bi bi-clipboard-check text-indigo-600 text-xl"></i>
+        <h3 class="text-lg font-semibold text-slate-900">{% trans "Today's Assignments" %}</h3>
+        <span class="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">{{ assignments_today|length }}</span>
+    </div>
+    <div class="space-y-2">
+        {% for assignment in assignments_today %}
+        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
+                    <i class="bi bi-building text-indigo-600"></i>
                 </div>
-                {% endif %}
+                <div>
+                    <p class="font-semibold text-slate-900">{{ assignment.project.name }}</p>
+                </div>
             </div>
         </div>
-        
-        <!-- My Schedule -->
-        <div class="section-card">
-            <div class="section-header">
-                <h3><i class="bi bi-calendar3"></i> {% trans "Today's Schedule" %}</h3>
-            </div>
-            <div class="section-body">
-                {% if my_schedule %}
-                {% for s in my_schedule %}
-                <div class="schedule-item">
-                    <div class="schedule-time">
-                        {{ s.start_datetime|time:"g:i A" }}
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- ═══ Activities & Touch-ups ═══ -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Daily Activities -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+            <i class="bi bi-calendar-check text-emerald-600 text-xl"></i>
+            <h3 class="text-lg font-semibold text-slate-900">{% trans "Today's Activities" %}</h3>
+        </div>
+        <div class="p-6">
+            {% if my_activities %}
+            <div class="space-y-3">
+                {% for item in my_activities %}
+                <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="bi bi-check2 text-emerald-600"></i>
                     </div>
-                    <div class="schedule-info">
-                        <h4>{{ s.title }}</h4>
-                        <p>{{ s.project.name }}</p>
+                    <div class="flex-1">
+                        <p class="font-medium text-slate-900">{{ item.activity.description }}</p>
+                        <p class="text-xs text-slate-500 mt-1"><i class="bi bi-building mr-1"></i>{{ item.project.name }}</p>
                     </div>
                 </div>
                 {% endfor %}
-                {% else %}
-                <div class="empty-state">
-                    <i class="bi bi-calendar-x"></i>
-                    <p>{% trans "No scheduled events today" %}</p>
-                </div>
-                {% endif %}
             </div>
-        </div>
-        
-        <!-- Touch-ups with Actions -->
-        <div class="section-card">
-            <div class="section-header">
-                <h3><i class="bi bi-brush"></i> {% trans "My Touch-ups" %}</h3>
-                {% if my_touchups_v2 %}
-                <span class="section-badge">{{ my_touchups_v2|length }}</span>
-                {% endif %}
+            {% else %}
+            <div class="text-center py-8">
+                <i class="bi bi-emoji-smile text-4xl text-slate-300 mb-2"></i>
+                <p class="text-slate-500 text-sm">{% trans "No activities scheduled for today" %}</p>
             </div>
-            <div class="section-body">
-                {% if my_touchups_v2 %}
-                <ul class="task-list">
-                    {% for tu in my_touchups_v2 %}
-                    <li class="task-item" id="touchup-{{ tu.id }}">
-                        <div class="task-content" style="flex: 1;">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
-                                <div style="flex: 1;">
-                                    <p class="task-title">{{ tu.title }}</p>
-                                    <div class="task-meta">
-                                        <span class="task-tag touchup">
-                                            <i class="bi bi-brush"></i> Touch-up
-                                        </span>
-                                        <span class="task-tag project">{{ tu.project.name }}</span>
-                                        <span class="task-tag" style="background: {% if tu.status == 'in_progress' %}#dbeafe{% elif tu.status == 'review' %}#fef3c7{% else %}#fee2e2{% endif %}; color: {% if tu.status == 'in_progress' %}#1d4ed8{% elif tu.status == 'review' %}#92400e{% else %}#dc2626{% endif %};">
-                                            {{ tu.get_status_display }}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div style="display: flex; gap: 6px; flex-shrink: 0;">
-                                    {% if tu.status == 'open' %}
-                                    <form method="post" action="{% url 'touchup_v2_update' tu.project.id tu.id %}" style="display:inline;">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="status" value="in_progress">
-                                        <button type="submit" class="touchup-action-btn start" title="{% trans 'Start' %}">
-                                            <i class="bi bi-play-fill"></i>
-                                        </button>
-                                    </form>
-                                    {% endif %}
-                                    {% if tu.status == 'in_progress' %}
-                                    <form method="post" action="{% url 'touchup_v2_update' tu.project.id tu.id %}" style="display:inline;">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="status" value="review">
-                                        <button type="submit" class="touchup-action-btn complete" title="{% trans 'Submit for Review' %}">
-                                            <i class="bi bi-check-lg"></i>
-                                        </button>
-                                    </form>
-                                    {% endif %}
-                                    <a href="{% url 'touchup_v2_detail' tu.project.id tu.id %}" class="touchup-action-btn view" title="{% trans 'View Details' %}">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <div class="empty-state">
-                    <i class="bi bi-brush"></i>
-                    <p>{% trans "No touch-ups assigned" %}</p>
-                </div>
-                {% endif %}
-            </div>
+            {% endif %}
         </div>
     </div>
-    
-    {% endif %}
+
+    <!-- Touch-ups -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+            <i class="bi bi-brush text-purple-600 text-xl"></i>
+            <h3 class="text-lg font-semibold text-slate-900">{% trans "My Touch-ups" %}</h3>
+            {% if my_touchups or my_touchups_v2 %}
+            <span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded-full">{{ my_touchups|length|add:my_touchups_v2|length }}</span>
+            {% endif %}
+        </div>
+        <div class="p-6">
+            {% if my_touchups_v2 %}
+            <div class="space-y-2 mb-4">
+                {% for tu in my_touchups_v2 %}
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-purple-50 transition group">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-medium text-slate-900 truncate">{{ tu.title }}</span>
+                            <span class="px-2 py-0.5 rounded text-xs font-medium flex-shrink-0 {% if tu.status == 'in_progress' %}bg-blue-100 text-blue-700{% elif tu.status == 'review' %}bg-amber-100 text-amber-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{{ tu.get_status_display }}</span>
+                        </div>
+                        <p class="text-xs text-slate-500"><i class="bi bi-building mr-1"></i>{{ tu.project.name }}</p>
+                    </div>
+                    <div class="flex gap-1 flex-shrink-0 opacity-60 group-hover:opacity-100 transition">
+                        <a href="{% url 'touchup_v2_detail' tu.project.id tu.id %}" class="px-3 py-1.5 bg-purple-600 text-white text-xs rounded-lg hover:bg-purple-700 transition">{% trans "View" %}</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if my_touchups %}
+            <div class="space-y-2">
+                {% for tu in my_touchups %}
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-purple-50 transition group">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-medium text-slate-900 truncate">{{ tu.title }}</span>
+                            <span class="px-2 py-0.5 rounded text-xs font-medium flex-shrink-0 {% if tu.status == 'In Progress' %}bg-blue-100 text-blue-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{{ tu.get_status_display }}</span>
+                        </div>
+                        <p class="text-xs text-slate-500"><i class="bi bi-building mr-1"></i>{{ tu.project.name }}</p>
+                    </div>
+                    <div class="flex gap-1 flex-shrink-0 opacity-60 group-hover:opacity-100 transition">
+                        <a href="{% url 'task_detail' tu.id %}" class="px-3 py-1.5 bg-purple-600 text-white text-xs rounded-lg hover:bg-purple-700 transition">{% trans "View" %}</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if not my_touchups and not my_touchups_v2 %}
+            <div class="text-center py-8">
+                <i class="bi bi-check-circle text-4xl text-green-400 mb-2"></i>
+                <p class="text-slate-500 text-sm">{% trans "No pending touch-ups" %}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
-<script>
-// Update time display
-function updateTime() {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: true 
-    });
-    document.getElementById('currentTime').textContent = timeStr;
-}
-updateTime();
-setInterval(updateTime, 1000);
-</script>
+<!-- ═══ Schedule ═══ -->
+{% if my_schedule %}
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+        <i class="bi bi-calendar-week text-teal-600 text-xl"></i>
+        <h3 class="text-lg font-semibold text-slate-900">{% trans "My Schedule" %}</h3>
+    </div>
+    <div class="p-6">
+        <div class="space-y-2">
+            {% for event in my_schedule %}
+            <div class="flex items-center gap-4 p-3 bg-slate-50 rounded-lg">
+                <div class="text-center min-w-[60px]">
+                    <p class="text-xs text-slate-500">{{ event.start_datetime|date:"g:i A" }}</p>
+                </div>
+                <div class="flex-1">
+                    <p class="font-medium text-slate-900">{{ event.title }}</p>
+                    <p class="text-xs text-slate-500"><i class="bi bi-building mr-1"></i>{{ event.project.name }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- ═══ Recent Entries ═══ -->
+{% if recent %}
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+        <i class="bi bi-clock-history text-slate-600 text-xl"></i>
+        <h3 class="text-lg font-semibold text-slate-900">{% trans "Recent Entries" %}</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Date" %}</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Project" %}</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">{% trans "Time" %}</th>
+                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">{% trans "Hours" %}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+                {% for entry in recent %}
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="px-4 py-3 text-sm text-slate-700">{{ entry.date|date:"M d" }}</td>
+                    <td class="px-4 py-3">
+                        <span class="text-sm font-medium text-slate-900">{{ entry.project.name }}</span>
+                        {% if entry.change_order %}<span class="text-xs text-orange-600 ml-1">(CO)</span>{% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-slate-600">
+                        {{ entry.start_time|date:"g:i A" }}{% if entry.end_time %} - {{ entry.end_time|date:"g:i A" }}{% else %} - <span class="text-green-600 font-medium">{% trans "Active" %}</span>{% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        {% if entry.hours_worked %}
+                        <span class="text-sm font-semibold text-slate-900">{{ entry.hours_worked|floatformat:1 }}h</span>
+                        {% else %}
+                        <span class="text-sm text-green-600">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
