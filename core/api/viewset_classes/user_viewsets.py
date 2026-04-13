@@ -10,6 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
+from core.api.permission_classes.role_permissions import IsStaffOrAdmin
 from core.api.serializer_classes import (
     CurrentUserSerializer,
     UserCreateSerializer,
@@ -30,7 +31,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         .prefetch_related("groups", "user_permissions")
         .filter(is_active=True)
     )
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
     filterset_fields = ["is_active", "is_staff"]
     search_fields = ["username", "first_name", "last_name", "email"]
     ordering_fields = ["username", "date_joined", "last_login"]
@@ -49,13 +50,13 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             return UserUpdateSerializer
         return UserDetailSerializer
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def me(self, request):
         """Get current user details"""
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
-    @action(detail=False, methods=["patch"])
+    @action(detail=False, methods=["patch"], permission_classes=[IsAuthenticated])
     def preferred_language(self, request):
         """Update current user's preferred UI language (en or es)."""
         lang = (request.data.get("preferred_language") or "").split("-")[0]

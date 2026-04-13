@@ -23,6 +23,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from core.api.permission_classes.role_permissions import (
+    DenyEmployeeAccess,
+    IsStaffOrAdmin,
+)
+
 from core.models import (
     AISuggestion,
     AuditLog,
@@ -195,7 +200,7 @@ class MeetingMinuteViewSet(viewsets.ModelViewSet):
 
 class ProjectManagerAssignmentViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectManagerAssignmentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     def get_queryset(self):
         return ProjectManagerAssignment.objects.select_related("project", "pm").order_by(
@@ -270,7 +275,7 @@ class PermissionMatrixViewSet(viewsets.ModelViewSet):
     """
 
     serializer_class = PermissionMatrixSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ["user", "role", "entity_type", "scope_project"]
     search_fields = ["user__username", "user__first_name", "user__last_name"]
@@ -351,7 +356,7 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
     """
 
     serializer_class = AuditLogSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ["user", "action", "entity_type", "entity_id", "success"]
     search_fields = ["username", "entity_repr", "ip_address"]
@@ -414,7 +419,7 @@ class LoginAttemptViewSet(viewsets.ReadOnlyModelViewSet):
     """
 
     serializer_class = LoginAttemptSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ["username", "success", "ip_address"]
     search_fields = ["username", "ip_address"]
@@ -503,7 +508,7 @@ class ChatChannelViewSetReadOnly(viewsets.ReadOnlyModelViewSet):
 # Invoices (Module 6) - DRF API
 class InvoiceViewSet(viewsets.ModelViewSet):
     serializer_class = InvoiceSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
     # Module 6 tests expect an unpaginated list response for list endpoints
     pagination_class = None
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
@@ -1312,7 +1317,7 @@ class DamageReportViewSet(viewsets.ModelViewSet):
 
 class PayrollPeriodViewSet(viewsets.ModelViewSet):
     serializer_class = PayrollPeriodSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ["status", "week_start", "week_end"]
     ordering_fields = ["week_start", "week_end", "created_at"]
@@ -1432,7 +1437,7 @@ class PayrollPeriodViewSet(viewsets.ModelViewSet):
 
 class PayrollRecordViewSet(viewsets.ModelViewSet):
     serializer_class = PayrollRecordSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ["period", "employee", "week_start", "week_end", "reviewed"]
     ordering_fields = ["week_start", "employee__last_name"]
@@ -1471,7 +1476,7 @@ class PayrollRecordViewSet(viewsets.ModelViewSet):
 
 class PayrollPaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PayrollPaymentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ["payroll_record", "payment_date", "payment_method"]
     ordering_fields = ["payment_date", "amount"]
@@ -2705,7 +2710,7 @@ class IncomeViewSet(viewsets.ModelViewSet):
 
     queryset = Income.objects.select_related("project").all().order_by("-date")
     serializer_class = IncomeSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = IncomeFilter
@@ -2785,7 +2790,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         .order_by("-date")
     )
     serializer_class = ExpenseSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
     pagination_class = StandardResultsSetPagination
     parser_classes = [MultiPartParser, FormParser]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -2862,7 +2867,7 @@ class CostCodeViewSet(viewsets.ModelViewSet):
 
     queryset = CostCode.objects.all().order_by("code")
     serializer_class = CostCodeSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["code", "name", "category"]
     ordering_fields = ["code", "name", "category"]
@@ -2893,7 +2898,7 @@ class BudgetLineViewSet(viewsets.ModelViewSet):
 
     queryset = BudgetLine.objects.select_related("project", "cost_code").all()
     serializer_class = BudgetLineSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     ordering_fields = ["cost_code__code", "baseline_amount", "revised_amount"]
 
@@ -2973,7 +2978,7 @@ class DailyLogPlanningViewSet(viewsets.ModelViewSet):
         "planned_templates", "planned_tasks", "project"
     )
     serializer_class = DailyLogPlanningSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ["project", "date", "is_complete"]
     ordering_fields = ["date", "created_at"]
@@ -3052,7 +3057,7 @@ class TaskTemplateViewSet(viewsets.ModelViewSet):
 
     queryset = TaskTemplate.objects.filter(is_active=True)
     serializer_class = TaskTemplateSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ["category", "is_favorite", "created_by"]
     search_fields = ["title", "description", "tags"]
@@ -5110,7 +5115,7 @@ class SitePhotoViewSet(viewsets.ModelViewSet):
 
 
 class InvoiceDashboardView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     def get(self, request: Request):
         from django.db.models import Count, Sum
@@ -5146,7 +5151,7 @@ class InvoiceDashboardView(APIView):
 class InvoiceTrendsView(APIView):
     # Monthly invoice trends and aging report
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     def get(self, request: Request):
         from datetime import timedelta
@@ -5227,7 +5232,7 @@ class InvoiceTrendsView(APIView):
 
 
 class MaterialsDashboardView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     def get(self, request: Request):
         from django.db.models import Count
@@ -5265,7 +5270,7 @@ class MaterialsDashboardView(APIView):
 class MaterialsUsageAnalyticsView(APIView):
     # Materials usage analytics: top consumed, consumption by project, turnover, reorder suggestions
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     def get(self, request: Request):
         from datetime import timedelta
@@ -5373,7 +5378,7 @@ class MaterialsUsageAnalyticsView(APIView):
 class FinancialDashboardView(APIView):
     # Per-project financial summary with EV metrics and budget tracking
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     def get(self, request: Request):
         from datetime import datetime
@@ -5453,7 +5458,7 @@ class FinancialDashboardView(APIView):
 class PayrollDashboardView(APIView):
     # Weekly payroll overview: periods, totals, outstanding
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     def get(self, request: Request):
         from django.db.models import Sum
@@ -5660,7 +5665,7 @@ class AdminDashboardView(APIView):
 class ProjectHealthDashboardView(APIView):
     # Comprehensive project health metrics dashboard.
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     def get(self, request: Request, project_id: int) -> Response:
         # Get project health metrics including completion, budget, timeline, risks.
@@ -5675,7 +5680,7 @@ class ProjectHealthDashboardView(APIView):
 class TouchupAnalyticsDashboardView(APIView):
     # Touch-up task analytics with trends.
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     def get(self, request: Request) -> Response:
         # Get touchup analytics with optional project filter.
@@ -5689,7 +5694,7 @@ class TouchupAnalyticsDashboardView(APIView):
 class ColorApprovalAnalyticsDashboardView(APIView):
     # Color approval workflow metrics.
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     def get(self, request: Request) -> Response:
         # Get color approval analytics with optional project filter.
@@ -5703,19 +5708,12 @@ class ColorApprovalAnalyticsDashboardView(APIView):
 class PMPerformanceDashboardView(APIView):
     # PM workload and performance analytics.
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     def get(self, request: Request) -> Response:
         # Get PM performance analytics. Admin access required.
         from core.services.analytics import get_pm_performance_analytics
 
-        # Restrict to admins or staff
-        user = request.user
-        if not (user.is_superuser or user.is_staff):
-            return Response(
-                {"detail": "Admin access required"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
         data = get_pm_performance_analytics()
         return Response(data)
 
@@ -5728,7 +5726,7 @@ class PMPerformanceDashboardView(APIView):
 class InventoryValuationReportView(APIView):
     # Gap D: Comprehensive inventory valuation report.
     # Shows total inventory value, breakdown by category, and aging.
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     def get(self, request: Request) -> Response:
         # Get inventory valuation report.
@@ -5833,7 +5831,7 @@ class InventoryValuationReportView(APIView):
 class InvoiceAgingReportAPIView(APIView):
     # Gap E: Invoice aging report API endpoint.
     # Returns unpaid invoices grouped by age buckets (0-30, 31-60, 61-90, 90+ days).
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     def get(self, request: Request) -> Response:
         # Get accounts receivable aging report.
@@ -5912,7 +5910,7 @@ class InvoiceAgingReportAPIView(APIView):
 class CashFlowProjectionAPIView(APIView):
     # Gap E: Cash flow projection API endpoint.
     # Shows expected cash inflows (unpaid invoices) and outflows (projected expenses).
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     def get(self, request: Request) -> Response:
         # Get cash flow projection for next 90 days.
@@ -6022,7 +6020,7 @@ class CashFlowProjectionAPIView(APIView):
 class BudgetVarianceAnalysisAPIView(APIView):
     # Gap E: Budget variance analysis API endpoint.
     # Shows budget vs actual for active projects.
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     def get(self, request: Request) -> Response:
         # Get budget variance analysis for all active projects.
@@ -6256,7 +6254,7 @@ class BIAnalyticsViewSet(viewsets.ViewSet):
     # API endpoints for Business Intelligence metrics and analytics.
     # Provides JSON access to financial KPIs, cash flow projections,
     # project margins, and inventory risk data for SPA/dashboard consumption.
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     @action(detail=False, methods=["get"], url_path="kpis")
     def company_kpis(self, request):

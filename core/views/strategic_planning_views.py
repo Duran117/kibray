@@ -2,6 +2,7 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from core.api.permission_classes.role_permissions import IsStaffOrAdmin
 from core.models import (
     StrategicItem,
     StrategicMaterialRequirement,
@@ -25,7 +26,7 @@ class StrategicPlanningSessionViewSet(viewsets.ModelViewSet):
     ViewSet for managing Strategic Planning Sessions.
     """
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsStaffOrAdmin]
     queryset = StrategicPlanningSession.objects.all()
 
     def get_serializer_class(self):
@@ -122,7 +123,7 @@ class StrategicItemViewSet(viewsets.ModelViewSet):
     ViewSet for managing Strategic Items directly.
     """
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsStaffOrAdmin]
     queryset = StrategicItem.objects.all()
     serializer_class = StrategicItemSerializer
 
@@ -154,7 +155,7 @@ class StrategicTaskViewSet(viewsets.ModelViewSet):
     ViewSet for managing Strategic Tasks.
     """
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsStaffOrAdmin]
     queryset = StrategicTask.objects.all()
     serializer_class = StrategicTaskSerializer
 
@@ -164,7 +165,7 @@ class StrategicSubtaskViewSet(viewsets.ModelViewSet):
     ViewSet for managing Strategic Subtasks.
     """
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsStaffOrAdmin]
     queryset = StrategicSubtask.objects.all()
     serializer_class = StrategicSubtaskSerializer
 
@@ -174,6 +175,6 @@ class StrategicMaterialViewSet(viewsets.ModelViewSet):
     ViewSet for managing Strategic Material Requirements.
     """
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsStaffOrAdmin]
     queryset = StrategicMaterialRequirement.objects.all()
     serializer_class = StrategicMaterialRequirementSerializer

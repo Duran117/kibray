@@ -12,6 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from core.api.permission_classes.role_permissions import IsStaffOrAdmin
 from core.api.serializer_classes import (
     AnalyticsResponseSerializer,
     ProjectAnalyticsSerializer,
@@ -24,7 +25,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
     ViewSet for analytics and reporting
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 
     def list(self, request):
         """Get global analytics dashboard data"""

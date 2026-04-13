@@ -10,12 +10,15 @@ from signatures.models import Signature
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
-    """Allow anyone to read; modifications restricted to owner (signer)."""
+    """Authenticated users can read; modifications restricted to owner (signer)."""
 
     def has_permission(self, request, view):
+        # SECURITY: All actions require authentication
+        if not request.user or not request.user.is_authenticated:
+            return False
         if view.action in ("list", "retrieve", "verify"):
             return True
-        return request.user and request.user.is_authenticated
+        return True
 
     def has_object_permission(self, request, view, obj):
         if request.method in ("GET",):

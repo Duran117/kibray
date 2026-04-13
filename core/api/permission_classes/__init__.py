@@ -12,6 +12,11 @@ from .project_permissions import (
     IsProjectLeadOrReadOnly,
     IsProjectMember,
 )
+from .role_permissions import (
+    DenyEmployeeAccess,
+    IsStaffOrAdmin,
+    IsStaffOrReadOnlyForEmployee,
+)
 from .task_permissions import (
     CanDeleteTask,
     CanUpdateTaskStatus,
@@ -28,4 +33,7 @@ __all__ = [
     "CanDeleteTask",
     "CanApproveChangeOrder",
     "CanSubmitChangeOrder",
+    "IsStaffOrAdmin",
+    "IsStaffOrReadOnlyForEmployee",
+    "DenyEmployeeAccess",
 ]

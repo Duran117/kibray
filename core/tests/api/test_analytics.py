@@ -14,10 +14,11 @@ class AnalyticsAPITestCase(APITestCase):
     
     def setUp(self):
         """Set up test data"""
-        # Create test user
+        # Create test user (staff – analytics is restricted to staff/admin)
         self.user = User.objects.create_user(
             username='testuser',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
         )
         
         # Create organization and contact

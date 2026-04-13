@@ -3081,7 +3081,13 @@ def color_sample_detail(request, sample_id):
     sample = get_object_or_404(ColorSample, id=sample_id)
     project = sample.project
     
-    # Check access for clients
+    # SECURITY: Check project access for all users
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("You don't have access to this project."))
+        return redirect(redirect_url or "dashboard")
+    
+    # Additional check for clients: verify explicit project access
     profile = getattr(request.user, "profile", None)
     if profile and profile.role == "client":
         has_access = ClientProjectAccess.objects.filter(
@@ -6517,6 +6523,11 @@ def estimate_detail_view(request, estimate_id):
     
     est = get_object_or_404(Estimate, pk=estimate_id)
     
+    # SECURITY: Only staff/superusers can view estimates (financial data)
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
+    
     # Handle manual approval action
     if request.method == "POST" and request.POST.get("action") == "approve_manual":
         if not est.approved:
@@ -6664,6 +6675,11 @@ def estimate_send_email(request, estimate_id):
     GET: retorna fragmento HTML con formulario pre-llenado (para cargar en modal).
     POST: envía el correo y redirige al detalle del estimate con mensaje de éxito.
     """
+    # SECURITY: Only staff/superusers can send estimates
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
+    
     import uuid
 
     from django.conf import settings
@@ -7387,6 +7403,7 @@ def root_redirect(request):
     return redirect("dashboard")
 
 
+@login_required
 def navigation_app_view(request):
     """
     Serves the React navigation SPA for Phase 4 features.
@@ -7615,18 +7632,36 @@ def project_list(request):
     """List projects filtered by user role.
     
     - Clients: Only see projects they have access to
-    - Staff/Admin: See all projects
+    - Employees: Only see projects they are assigned to
+    - Staff/Admin/PM: See all projects
     """
     profile = getattr(request.user, "profile", None)
+    role = getattr(profile, "role", None) if profile else None
     
     # If user is a client, only show their projects
-    if profile and profile.role == "client":
+    if role == "client":
         # Get projects via ClientProjectAccess
         access_projects = Project.objects.filter(client_accesses__user=request.user)
         # Get projects via legacy client field
         legacy_projects = Project.objects.filter(client=request.user.username)
         # Combine both querysets
         projects = access_projects.union(legacy_projects).order_by("-start_date")
+    elif role == "employee":
+        # SECURITY: Employees can only see projects they have time entries for
+        # or projects they are scheduled to work on (via daily plan activities)
+        emp = getattr(request.user, "employee", None)
+        if emp:
+            from core.models import TimeEntry
+            time_entry_projects = Project.objects.filter(
+                timeentry__employee=emp
+            ).distinct()
+            # Also check daily plan assignments
+            activity_projects = Project.objects.filter(
+                daily_plans__activities__assigned_employees=emp
+            ).distinct()
+            projects = (time_entry_projects | activity_projects).distinct().order_by("-start_date")
+        else:
+            projects = Project.objects.none()
     else:
         # Staff, admin, PM - show all projects
         projects = Project.objects.all().order_by("id")
@@ -7646,6 +7681,9 @@ def _parse_date(s):
 @login_required
 def download_progress_sample(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
+    # SECURITY: Only staff can download project data
+    if not _is_staffish(request.user):
+        return HttpResponseForbidden(_("Access denied"))
     resp = HttpResponse(content_type="text/csv")
     resp["Content-Disposition"] = f'attachment; filename="progress_sample_project_{project.id}.csv"'
     resp.write("project_id,cost_code,date,percent_complete,qty_completed,note\r\n")
@@ -9523,6 +9561,11 @@ def materials_request_view(request, project_id):
 @login_required
 def pickup_view(request, project_id: int):
     project = get_object_or_404(Project, pk=project_id)
+    # SECURITY: Check project access
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("Access denied."))
+        return redirect(redirect_url or "dashboard")
     return render(request, "core/pickup_view.html", {"project": project})
 
 
@@ -9531,6 +9574,13 @@ def task_list_view(request, project_id: int):
     from datetime import timedelta
 
     project = get_object_or_404(Project, pk=project_id)
+    
+    # SECURITY: Check project access
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("Access denied."))
+        return redirect(redirect_url or "dashboard")
+    
     tasks = (
         Task.objects.filter(project=project)
         .select_related("assigned_to")
@@ -10046,22 +10096,29 @@ def project_schedule_view(request, project_id: int):
     PM/Admin ven la vista completa con todos los detalles.
     """
     project = get_object_or_404(Project, pk=project_id)
+    
+    # SECURITY: Check project access
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("Access denied."))
+        return redirect(redirect_url or "dashboard")
+    
     profile = getattr(request.user, "profile", None)
 
     # Si es cliente, redirigir a la vista hermosa
     if profile and profile.role == "client":
-        from django.shortcuts import redirect
-        from django.urls import reverse
-
         return redirect(reverse("client_project_calendar", kwargs={"project_id": project_id}))
 
     # Para PM/Admin: Vista completa
     if ScheduleForm:
         form = ScheduleForm(request.POST or None)
-        if request.method == "POST" and form.is_valid():
+        if request.method == "POST" and _is_staffish(request.user) and form.is_valid():
             s = form.save(commit=False)
             s.project = project
             s.save()
+            return redirect("project_schedule", project_id=project.id)
+        elif request.method == "POST" and not _is_staffish(request.user):
+            messages.error(request, _("Only staff can modify the schedule."))
             return redirect("project_schedule", project_id=project.id)
     else:
         form = None
@@ -12533,6 +12590,11 @@ def schedule_generator_view(request, project_id):
     - CRUD inline para categorías e ítems
     """
     project = get_object_or_404(Project, id=project_id)
+
+    # SECURITY: Only staff or project managers can access schedule generator
+    if not _is_staffish(request.user):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
 
     # Check permissions (staff or project manager)
     user_profile = getattr(request.user, "profile", None)
@@ -16367,7 +16429,12 @@ def project_cost_codes(request, project_id):
 def project_estimates(request, project_id):
     """
     Lista de estimados del proyecto.
+    Solo visible para staff/admin.
     """
+    # SECURITY: Only staff/superusers can view estimates (financial data)
+    if not (request.user.is_staff or request.user.is_superuser):
+        return HttpResponseForbidden(_('Access denied'))
+    
     project = get_object_or_404(Project, pk=project_id)
     
     estimates = project.estimates.all().order_by('-version')
