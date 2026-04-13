@@ -467,9 +467,10 @@ PRESET_PRODUCTS = [
 @login_required
 def dashboard_admin(request):
     """Dashboard completo para Admin con todas las métricas, alertas y aprobaciones"""
-    if not (request.user.is_superuser or request.user.is_staff):
-        # Never render/redirect into a view that could show privileged data.
-        # Return 403 immediately to avoid any transient exposure.
+    # SECURITY: Only superusers and users with admin role can access
+    profile = getattr(request.user, "profile", None)
+    role = getattr(profile, "role", None) if profile else None
+    if not (request.user.is_superuser or role == "admin"):
         return HttpResponseForbidden("Forbidden")
 
     # Respect session language hint for legacy rendering (used by i18n tests)
@@ -8467,7 +8468,10 @@ def dashboard_employee(request):
 @login_required
 def dashboard_pm(request):
     """Dashboard operacional para PM: materiales, planning, issues, tiempo sin CO"""
-    if not request.user.is_staff:
+    # SECURITY: Only PMs, admins, and superusers can access
+    profile = getattr(request.user, "profile", None)
+    role = getattr(profile, "role", None) if profile else None
+    if not (request.user.is_superuser or role in ("admin", "project_manager") or request.user.is_staff):
         messages.error(request, "Acceso solo para PM/Staff.")
         return redirect("dashboard_employee")
 

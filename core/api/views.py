@@ -2898,7 +2898,24 @@ class BudgetLineViewSet(viewsets.ModelViewSet):
     ordering_fields = ["cost_code__code", "baseline_amount", "revised_amount"]
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = BudgetLine.objects.select_related("project", "cost_code").all()
+
+        # SECURITY: Employees only see budget lines for their assigned projects
+        user = self.request.user
+        if not (user.is_superuser or user.is_staff):
+            profile = getattr(user, "profile", None)
+            role = getattr(profile, "role", None) if profile else None
+            if role not in ("admin", "project_manager"):
+                from core.models import Employee, ResourceAssignment
+                employee = Employee.objects.filter(user=user).first()
+                if employee:
+                    assigned_project_ids = ResourceAssignment.objects.filter(
+                        employee=employee
+                    ).values_list("project_id", flat=True).distinct()
+                    queryset = queryset.filter(project_id__in=assigned_project_ids)
+                else:
+                    queryset = queryset.none()
+
         project_id = self.request.query_params.get("project")
         if project_id:
             queryset = queryset.filter(project_id=project_id)

@@ -16,20 +16,47 @@ from core.api.serializer_classes import (
     ChangeOrderDetailSerializer,
     ChangeOrderListSerializer,
 )
-from core.models import ChangeOrder
+from core.models import ChangeOrder, Employee
 
 
 class ChangeOrderViewSet(viewsets.ModelViewSet):
     """
-    ViewSet for change orders with full CRUD operations
+    ViewSet for change orders with full CRUD operations.
+    SECURITY: Employees can only see COs for projects they are assigned to.
+    Staff/Admin can see all COs.
     """
 
-    queryset = ChangeOrder.objects.select_related("project")
     permission_classes = [IsAuthenticated]
     filterset_class = ChangeOrderFilter
     search_fields = ["reference_code", "description"]
     ordering_fields = ["date_created", "amount", "status"]
     ordering = ["-date_created"]
+
+    def get_queryset(self):
+        """Filter COs based on user role for security."""
+        qs = ChangeOrder.objects.select_related("project")
+        user = self.request.user
+
+        # Staff, superusers, admins, PMs see all COs
+        if user.is_superuser or user.is_staff:
+            return qs
+
+        profile = getattr(user, "profile", None)
+        role = getattr(profile, "role", None) if profile else None
+        if role in ("admin", "project_manager"):
+            return qs
+
+        # Employees: only COs for projects they are assigned to (via ResourceAssignment)
+        employee = Employee.objects.filter(user=user).first()
+        if employee:
+            from core.models import ResourceAssignment
+            assigned_project_ids = ResourceAssignment.objects.filter(
+                employee=employee
+            ).values_list("project_id", flat=True).distinct()
+            return qs.filter(project_id__in=assigned_project_ids)
+
+        # No employee profile and not staff — return empty
+        return qs.none()
 
     def get_serializer_class(self):
         if self.action == "list":
