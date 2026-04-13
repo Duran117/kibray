@@ -247,73 +247,45 @@
 
 {% else %}
 {# ══════════════════════════════════════════════════════════════════ #}
-{# CLOCK IN WIZARD — Step-by-step guided flow                      #}
+{# CLOCK IN — Clean, functional, no fluff                          #}
 {# ══════════════════════════════════════════════════════════════════ #}
 {% if has_assignments_today|default:True %}
 <div id="clockWizard" class="mb-6">
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        {# ── Wizard Header ── #}
-        <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
-            <div class="flex items-center justify-between mb-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white">
-                        <i class="bi bi-play-circle"></i>
-                    </div>
-                    <h3 class="font-bold text-slate-900">{% trans "Clock In" %}</h3>
-                </div>
-                <div id="wizStepLabel" class="text-xs font-medium text-slate-500">
-                    {% trans "Step" %} <span id="wizStepNum">1</span> {% trans "of" %} <span id="wizStepTotal">2</span>
-                </div>
-            </div>
-            <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                <div id="wizProgress" class="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full transition-all duration-300" style="width:50%"></div>
-            </div>
-        </div>
+    {# ── Hidden form submitted by wizard ── #}
+    <form method="post" id="wizForm" class="hidden">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="clock_in">
+        <input type="hidden" name="project" id="wizProject" value="">
+        <input type="hidden" name="work_type" id="wizWorkType" value="base">
+        <input type="hidden" name="change_order" id="wizCO" value="">
+        <input type="hidden" name="budget_line" id="wizBudgetLine" value="">
+        <input type="hidden" name="cost_code" id="wizCostCode" value="">
+    </form>
 
-        {# ── Hidden form submitted by wizard ── #}
-        <form method="post" id="wizForm" class="hidden">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="clock_in">
-            <input type="hidden" name="project" id="wizProject" value="">
-            <input type="hidden" name="work_type" id="wizWorkType" value="base">
-            <input type="hidden" name="change_order" id="wizCO" value="">
-            <input type="hidden" name="budget_line" id="wizBudgetLine" value="">
-            <input type="hidden" name="cost_code" id="wizCostCode" value="">
-        </form>
-
-        {# ── Step Container ── #}
-        <div class="p-5" id="wizBody"></div>
-    </div>
+    {# ── Main container ── #}
+    <div id="wizBody"></div>
 </div>
 
 <script>
 (function(){
     var projects = [{% for p in form.project.field.queryset %}{ id: {{ p.id }}, name: "{{ p.name|escapejs }}" }{% if not forloop.last %},{% endif %}{% endfor %}];
     var state = { step: 1, project: null, projectName: '', workType: 'base', co: null };
-    var totalSteps = 2;
-    var csrf = document.querySelector('#wizForm [name=csrfmiddlewaretoken]').value;
-
-    function progress() {
-        document.getElementById('wizStepNum').textContent = state.step;
-        document.getElementById('wizStepTotal').textContent = totalSteps;
-        document.getElementById('wizProgress').style.width = (state.step / totalSteps * 100) + '%';
-    }
 
     function render() {
         var el = document.getElementById('wizBody');
-        progress();
         if (state.step === 1) step1(el);
         else if (state.step === 2) step2(el);
         else if (state.step === 3) step3(el);
     }
 
+    /* ═══ STEP 1: Select project ═══ */
     function step1(el) {
         if (projects.length === 0) {
-            el.innerHTML = '<div class="text-center py-8"><div class="w-16 h-16 rounded-2xl bg-yellow-100 flex items-center justify-center mx-auto mb-3"><i class="bi bi-exclamation-triangle text-yellow-600 text-2xl"></i></div>' +
-                '<h4 class="font-semibold text-slate-900 mb-1">{% trans "No Projects Available" %}</h4>' +
-                '<p class="text-sm text-slate-500">{% trans "Contact your PM if this is an error." %}</p></div>';
+            el.innerHTML = '<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">' +
+                '<i class="bi bi-exclamation-triangle mr-2"></i>{% trans "No Projects Available" %} — {% trans "Contact your PM if this is an error." %}</div>';
             return;
         }
+        /* Auto-advance if only one project */
         if (projects.length === 1) {
             state.project = projects[0].id;
             state.projectName = projects[0].name;
@@ -321,162 +293,77 @@
             render();
             return;
         }
-
-        /* ── Creative dropdown-style project selector ── */
-        var colors = [
-            {bg:'bg-emerald-100', text:'text-emerald-600', ring:'ring-emerald-400', dot:'bg-emerald-500'},
-            {bg:'bg-blue-100',    text:'text-blue-600',    ring:'ring-blue-400',    dot:'bg-blue-500'},
-            {bg:'bg-violet-100',  text:'text-violet-600',  ring:'ring-violet-400',  dot:'bg-violet-500'},
-            {bg:'bg-amber-100',   text:'text-amber-600',   ring:'ring-amber-400',   dot:'bg-amber-500'},
-            {bg:'bg-rose-100',    text:'text-rose-600',    ring:'ring-rose-400',     dot:'bg-rose-500'},
-            {bg:'bg-cyan-100',    text:'text-cyan-600',    ring:'ring-cyan-400',     dot:'bg-cyan-500'},
-            {bg:'bg-pink-100',    text:'text-pink-600',    ring:'ring-pink-400',     dot:'bg-pink-500'},
-            {bg:'bg-teal-100',    text:'text-teal-600',    ring:'ring-teal-400',     dot:'bg-teal-500'}
-        ];
-
-        var h = '<div class="mb-4">' +
-            '<label class="text-sm font-medium text-slate-700 mb-2 block"><i class="bi bi-building mr-1.5"></i>{% trans "Select your project" %}</label>' +
-            '<div class="relative" id="projectDropdown">' +
-            /* Trigger button */
-            '<button type="button" onclick="wizToggleDropdown()" id="projectDropBtn" ' +
-            'class="w-full flex items-center justify-between px-4 py-3 bg-white border-2 border-slate-200 rounded-xl text-left hover:border-green-400 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 group">' +
-            '<div class="flex items-center gap-3">' +
-            '<div class="w-9 h-9 rounded-lg bg-slate-100 group-hover:bg-green-100 flex items-center justify-center transition">' +
-            '<i class="bi bi-building text-slate-400 group-hover:text-green-600 transition"></i></div>' +
-            '<span class="text-slate-400 font-medium" id="projectDropLabel">{% trans "Choose a project..." %}</span>' +
-            '</div>' +
-            '<i class="bi bi-chevron-down text-slate-400 group-hover:text-green-500 transition-transform duration-200" id="projectDropArrow"></i>' +
-            '</button>' +
-            /* Dropdown panel */
-            '<div id="projectDropPanel" class="hidden absolute z-20 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden animate-in">' +
-            /* Search input */
-            (projects.length > 3 ?
-            '<div class="p-3 border-b border-slate-100">' +
-            '<div class="relative">' +
-            '<i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>' +
-            '<input type="text" id="projectSearchInput" oninput="wizFilterProjects()" placeholder="{% trans "Search projects..." %}" ' +
-            'class="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:border-green-400 focus:ring-1 focus:ring-green-200 outline-none transition" />' +
-            '</div></div>' : '') +
-            /* Options list */
-            '<div class="max-h-[240px] overflow-y-auto py-1" id="projectOptionsList">';
-
-        projects.forEach(function(p, idx) {
-            var c = colors[idx % colors.length];
-            var initials = p.name.split(/\s+/).map(function(w){ return w.charAt(0); }).join('').substring(0, 2).toUpperCase();
-            h += '<button type="button" data-project-name="' + p.name.toLowerCase() + '" ' +
-                'onclick="wizPickProject(' + p.id + ',\'' + p.name.replace(/'/g,"\\'") + '\')" ' +
-                'class="wizProjectOpt w-full flex items-center gap-3 px-4 py-3 hover:bg-green-50 transition-colors duration-150 group">' +
-                '<div class="w-10 h-10 rounded-xl ' + c.bg + ' flex items-center justify-center flex-shrink-0 ring-0 group-hover:ring-2 ' + c.ring + ' transition-all duration-150">' +
-                '<span class="text-sm font-bold ' + c.text + '">' + initials + '</span></div>' +
-                '<div class="flex-1 text-left min-w-0">' +
-                '<p class="font-semibold text-slate-800 truncate text-sm">' + p.name + '</p>' +
-                '</div>' +
-                '<div class="w-5 h-5 rounded-full border-2 border-slate-200 group-hover:border-green-500 group-hover:bg-green-500 flex items-center justify-center transition-all duration-150 flex-shrink-0">' +
-                '<i class="bi bi-check text-white text-xs opacity-0 group-hover:opacity-100 transition"></i></div>' +
-                '</button>';
+        /* Native select — reliable on all devices */
+        var h = '<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">' +
+            '<label for="wizProjectSelect" class="block text-sm font-medium text-slate-700 mb-2">' +
+            '<i class="bi bi-play-circle text-green-600 mr-1.5"></i>{% trans "Clock In" %} — {% trans "Select project" %}</label>' +
+            '<select id="wizProjectSelect" class="w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-slate-900 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none cursor-pointer">' +
+            '<option value="">{% trans "Choose a project..." %}</option>';
+        projects.forEach(function(p) {
+            h += '<option value="' + p.id + '">' + p.name + '</option>';
         });
-
-        h += '</div></div></div></div>' +
-            /* Quick select chips for ≤ 4 projects */
-            (projects.length <= 4 ?
-            '<div class="flex flex-wrap gap-2 mt-1">' +
-            '<span class="text-xs text-slate-400 w-full mb-1">{% trans "Quick select:" %}</span>' +
-            projects.map(function(p, idx) {
-                var c = colors[idx % colors.length];
-                return '<button type="button" onclick="wizPickProject(' + p.id + ',\'' + p.name.replace(/'/g,"\\'") + '\')" ' +
-                    'class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 hover:border-green-400 hover:bg-green-50 text-xs font-medium text-slate-700 transition-all duration-150">' +
-                    '<span class="w-2 h-2 rounded-full ' + c.dot + '"></span>' +
-                    '<span class="truncate max-w-[120px]">' + p.name + '</span></button>';
-            }).join('') +
-            '</div>' : '');
-
+        h += '</select>' +
+            '<button type="button" id="wizProjectNextBtn" disabled ' +
+            'class="mt-3 w-full py-2.5 bg-green-600 text-white font-semibold rounded-lg transition disabled:opacity-40 disabled:cursor-not-allowed hover:bg-green-700">' +
+            '<i class="bi bi-arrow-right mr-1"></i>{% trans "Continue" %}</button></div>';
         el.innerHTML = h;
 
-        /* Focus search if present */
-        var searchEl = document.getElementById('projectSearchInput');
-        if (searchEl) setTimeout(function(){ searchEl.focus(); }, 100);
+        /* Wire up events */
+        var sel = document.getElementById('wizProjectSelect');
+        var btn = document.getElementById('wizProjectNextBtn');
+        sel.addEventListener('change', function() {
+            btn.disabled = !sel.value;
+        });
+        btn.addEventListener('click', function() {
+            if (!sel.value) return;
+            var opt = sel.options[sel.selectedIndex];
+            state.project = parseInt(sel.value);
+            state.projectName = opt.text;
+            state.step = 2;
+            state.workType = 'base';
+            state.co = null;
+            render();
+        });
     }
 
-    /* ── Dropdown toggle ── */
-    window.wizToggleDropdown = function() {
-        var panel = document.getElementById('projectDropPanel');
-        var arrow = document.getElementById('projectDropArrow');
-        if (panel.classList.contains('hidden')) {
-            panel.classList.remove('hidden');
-            arrow.style.transform = 'rotate(180deg)';
-            var searchEl = document.getElementById('projectSearchInput');
-            if (searchEl) setTimeout(function(){ searchEl.focus(); }, 50);
-        } else {
-            panel.classList.add('hidden');
-            arrow.style.transform = '';
-        }
-    };
-
-    /* Close dropdown on outside click */
-    document.addEventListener('click', function(e) {
-        var dd = document.getElementById('projectDropdown');
-        if (dd && !dd.contains(e.target)) {
-            var panel = document.getElementById('projectDropPanel');
-            var arrow = document.getElementById('projectDropArrow');
-            if (panel && !panel.classList.contains('hidden')) {
-                panel.classList.add('hidden');
-                if (arrow) arrow.style.transform = '';
-            }
-        }
-    });
-
-    /* ── Search filter ── */
-    window.wizFilterProjects = function() {
-        var query = document.getElementById('projectSearchInput').value.toLowerCase();
-        var items = document.querySelectorAll('.wizProjectOpt');
-        items.forEach(function(item) {
-            var name = item.getAttribute('data-project-name') || '';
-            item.style.display = name.indexOf(query) !== -1 ? '' : 'none';
-        });
-    };
-
-    window.wizPickProject = function(id, name) {
-        state.project = id;
-        state.projectName = name;
-        state.step = 2;
-        state.workType = 'base';
-        state.co = null;
-        totalSteps = 2;
-        render();
-    };
-
+    /* ═══ STEP 2: Work type ═══ */
     function step2(el) {
-        var h = '<p class="text-sm text-slate-600 mb-1">{% trans "Project" %}: <strong>' + state.projectName + '</strong></p>' +
-            '<p class="text-sm text-slate-500 mb-4">{% trans "What type of work will you be doing?" %}</p>' +
-            '<div class="space-y-3">' +
-            '<button type="button" onclick="wizPickWorkType(\'base\')" class="w-full text-left p-4 rounded-xl border-2 border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 transition group">' +
-            '<div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-indigo-100 group-hover:bg-indigo-200 flex items-center justify-center transition"><i class="bi bi-briefcase text-indigo-600"></i></div>' +
-            '<div><p class="font-semibold text-slate-900">📋 {% trans "Contract Base" %}</p><p class="text-xs text-slate-500">{% trans "Regular contract work" %}</p></div></div></button>' +
-            '<button type="button" onclick="wizPickWorkType(\'co\')" class="w-full text-left p-4 rounded-xl border-2 border-slate-200 hover:border-orange-400 hover:bg-orange-50 transition group">' +
-            '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-orange-100 group-hover:bg-orange-200 flex items-center justify-center transition"><i class="bi bi-file-earmark-text text-orange-600"></i></div>' +
-            '<div><p class="font-semibold text-slate-900">📝 {% trans "Change Order" %}</p><p class="text-xs text-slate-500">{% trans "Work billed under a specific CO" %}</p></div></div>' +
-            '<i class="bi bi-chevron-right text-slate-400 group-hover:text-orange-500 transition"></i></div></button></div>' +
-            (projects.length > 1 ? '<button type="button" onclick="wizGoBack(1)" class="mt-4 text-sm text-slate-500 hover:text-slate-700 transition flex items-center gap-1"><i class="bi bi-arrow-left"></i> {% trans "Change project" %}</button>' : '');
+        var h = '<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">' +
+            '<p class="text-sm text-slate-600 mb-3"><i class="bi bi-building mr-1.5 text-green-600"></i><strong>' + state.projectName + '</strong></p>' +
+            '<div class="grid grid-cols-2 gap-2">' +
+            '<button type="button" id="wizBtnBase" class="flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 transition text-center">' +
+            '<i class="bi bi-briefcase text-indigo-600 text-lg"></i>' +
+            '<span class="text-sm font-semibold text-slate-800">{% trans "Contract Base" %}</span></button>' +
+            '<button type="button" id="wizBtnCO" class="flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 border-slate-200 hover:border-orange-400 hover:bg-orange-50 transition text-center">' +
+            '<i class="bi bi-file-earmark-text text-orange-600 text-lg"></i>' +
+            '<span class="text-sm font-semibold text-slate-800">{% trans "Change Order" %}</span></button>' +
+            '</div>' +
+            (projects.length > 1 ? '<button type="button" id="wizBackToProj" class="mt-3 text-xs text-slate-400 hover:text-slate-600 transition"><i class="bi bi-arrow-left mr-1"></i>{% trans "Change project" %}</button>' : '') +
+            '</div>';
         el.innerHTML = h;
-    }
 
-    window.wizPickWorkType = function(type) {
-        state.workType = type;
-        if (type === 'base') {
+        document.getElementById('wizBtnBase').addEventListener('click', function() {
+            state.workType = 'base';
             submitWiz();
-        } else {
-            totalSteps = 3;
+        });
+        document.getElementById('wizBtnCO').addEventListener('click', function() {
             state.step = 3;
             render();
-            loadWizCOs(state.project);
-        }
-    };
-
-    function step3(el) {
-        el.innerHTML = '<div class="flex items-center justify-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div><p class="ml-3 text-slate-500 text-sm">{% trans "Loading Change Orders..." %}</p></div>';
+            loadCOs(state.project);
+        });
+        var backBtn = document.getElementById('wizBackToProj');
+        if (backBtn) backBtn.addEventListener('click', function() {
+            state.step = 1; state.project = null; state.projectName = ''; render();
+        });
     }
 
-    function loadWizCOs(projId) {
+    /* ═══ STEP 3: Select CO ═══ */
+    function step3(el) {
+        el.innerHTML = '<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">' +
+            '<div class="flex items-center gap-2 text-slate-500 text-sm"><div class="animate-spin rounded-full h-5 w-5 border-2 border-slate-300 border-t-orange-500"></div>{% trans "Loading Change Orders..." %}</div></div>';
+    }
+
+    function loadCOs(projId) {
         fetch('/api/v1/changeorders/?project=' + projId)
             .then(function(r){ return r.json(); })
             .then(function(data){
@@ -485,46 +372,55 @@
                 });
                 var el = document.getElementById('wizBody');
                 if (items.length === 0) {
-                    el.innerHTML = '<div class="text-center py-6"><i class="bi bi-inbox text-slate-300 text-4xl block mb-3"></i>' +
-                        '<p class="text-slate-500 mb-4">{% trans "No active Change Orders for this project." %}</p>' +
-                        '<button type="button" onclick="wizPickWorkType(\'base\')" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition">{% trans "Continue on Base Work" %}</button></div>' +
-                        '<button type="button" onclick="wizGoBack(2)" class="mt-4 text-sm text-slate-500 hover:text-slate-700 transition flex items-center gap-1"><i class="bi bi-arrow-left"></i> {% trans "Back" %}</button>';
+                    el.innerHTML = '<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 text-center">' +
+                        '<p class="text-slate-500 text-sm mb-3">{% trans "No active Change Orders for this project." %}</p>' +
+                        '<button type="button" id="wizCOFallback" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">{% trans "Continue on Base Work" %}</button></div>';
+                    document.getElementById('wizCOFallback').addEventListener('click', function() {
+                        state.workType = 'base'; submitWiz();
+                    });
                     return;
                 }
-                var h = '<p class="text-sm text-slate-600 mb-1">{% trans "Project" %}: <strong>' + state.projectName + '</strong></p>' +
-                    '<p class="text-sm text-slate-500 mb-4">{% trans "Select the Change Order:" %}</p><div class="space-y-2 max-h-[40vh] overflow-y-auto">';
+                var h = '<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">' +
+                    '<p class="text-sm text-slate-600 mb-3"><strong>' + state.projectName + '</strong> — {% trans "Select CO" %}</p>' +
+                    '<div class="space-y-2 max-h-[300px] overflow-y-auto">';
                 items.forEach(function(co) {
                     var code = co.number || co.reference_code || ('CO-' + co.id);
                     var desc = co.description || '';
-                    if (desc.length > 100) desc = desc.substring(0, 100) + '…';
+                    if (desc.length > 80) desc = desc.substring(0, 80) + '…';
                     var amt = co.amount ? '$' + parseFloat(co.amount).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
-                    h += '<button type="button" onclick="wizPickCO(' + co.id + ')" class="w-full text-left p-4 rounded-xl border-2 border-slate-200 hover:border-orange-400 hover:bg-orange-50 transition group">' +
-                        '<div class="flex items-start gap-3"><div class="w-10 h-10 rounded-lg bg-orange-100 group-hover:bg-orange-200 flex items-center justify-center flex-shrink-0 mt-0.5 transition"><i class="bi bi-file-earmark-text text-orange-600"></i></div>' +
-                        '<div class="flex-1 min-w-0"><div class="flex items-center gap-2 flex-wrap"><p class="font-semibold text-slate-900">' + code + '</p>' +
-                        '<span class="px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">' + co.status + '</span>' +
-                        (amt ? '<span class="text-sm font-medium text-green-700">' + amt + '</span>' : '') + '</div>' +
-                        (desc ? '<p class="text-sm text-slate-600 mt-1">' + desc + '</p>' : '') +
-                        '</div><i class="bi bi-chevron-right text-slate-400 group-hover:text-orange-500 transition mt-2 flex-shrink-0"></i></div></button>';
+                    h += '<button type="button" data-co-id="' + co.id + '" class="wizCOBtn w-full text-left p-3 rounded-lg border border-slate-200 hover:border-orange-400 hover:bg-orange-50 transition">' +
+                        '<div class="flex items-center justify-between">' +
+                        '<div class="min-w-0"><span class="font-semibold text-sm text-slate-900">' + code + '</span>' +
+                        '<span class="ml-2 text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">' + co.status + '</span>' +
+                        (amt ? '<span class="ml-2 text-xs font-medium text-green-700">' + amt + '</span>' : '') +
+                        (desc ? '<p class="text-xs text-slate-500 mt-0.5 truncate">' + desc + '</p>' : '') +
+                        '</div><i class="bi bi-chevron-right text-slate-300 flex-shrink-0 ml-2"></i></div></button>';
                 });
-                h += '</div><button type="button" onclick="wizGoBack(2)" class="mt-4 text-sm text-slate-500 hover:text-slate-700 transition flex items-center gap-1"><i class="bi bi-arrow-left"></i> {% trans "Back" %}</button>';
+                h += '</div><button type="button" id="wizCOBack" class="mt-3 text-xs text-slate-400 hover:text-slate-600 transition"><i class="bi bi-arrow-left mr-1"></i>{% trans "Back" %}</button></div>';
                 el.innerHTML = h;
+
+                /* Wire CO buttons */
+                document.querySelectorAll('.wizCOBtn').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        state.co = parseInt(this.getAttribute('data-co-id'));
+                        state.workType = 'co';
+                        submitWiz();
+                    });
+                });
+                document.getElementById('wizCOBack').addEventListener('click', function() {
+                    state.step = 2; state.co = null; render();
+                });
             })
             .catch(function(){
-                document.getElementById('wizBody').innerHTML = '<div class="text-center py-6 text-red-500">{% trans "Error loading Change Orders." %}</div>' +
-                    '<button type="button" onclick="wizGoBack(2)" class="mt-4 text-sm text-slate-500 hover:text-slate-700 transition flex items-center gap-1"><i class="bi bi-arrow-left"></i> {% trans "Back" %}</button>';
+                var el = document.getElementById('wizBody');
+                el.innerHTML = '<div class="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">' +
+                    '<i class="bi bi-exclamation-circle mr-1"></i>{% trans "Error loading Change Orders." %} ' +
+                    '<button type="button" id="wizCORetry" class="underline font-medium">{% trans "Retry" %}</button></div>';
+                document.getElementById('wizCORetry').addEventListener('click', function() {
+                    state.step = 3; render(); loadCOs(state.project);
+                });
             });
     }
-
-    window.wizPickCO = function(coId) {
-        state.co = coId;
-        submitWiz();
-    };
-
-    window.wizGoBack = function(step) {
-        state.step = step;
-        if (step <= 2) { state.workType = 'base'; state.co = null; totalSteps = 2; }
-        render();
-    };
 
     function submitWiz() {
         document.getElementById('wizProject').value = state.project;
