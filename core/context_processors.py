@@ -111,6 +111,7 @@ def recent_projects(request):
     """Provides recent projects filtered by user role for sidebar navigation.
     
     - Clients: Only see projects they have access to
+    - Employees: Only see projects they are assigned to (via ResourceAssignment)
     - Staff/Admin/PM: See all recent projects
     """
     if not request.user.is_authenticated:
@@ -129,6 +130,23 @@ def recent_projects(request):
             legacy_projects = Project.objects.filter(client=request.user.username)
             # Combine both querysets and get recent ones
             projects = list(access_projects.union(legacy_projects).order_by("-start_date")[:5])
+        elif profile and profile.role == "employee" and not request.user.is_staff:
+            # Employees only see projects they are assigned to
+            from core.models import ResourceAssignment
+            employee = getattr(request.user, "employee_profile", None)
+            if employee:
+                assigned_project_ids = (
+                    ResourceAssignment.objects.filter(employee=employee)
+                    .values_list("project_id", flat=True)
+                    .distinct()
+                )
+                projects = list(
+                    Project.objects.filter(
+                        id__in=assigned_project_ids, is_archived=False
+                    ).order_by("-start_date")[:5]
+                )
+            else:
+                projects = []
         else:
             # Staff, admin, PM - show recent active projects
             projects = list(

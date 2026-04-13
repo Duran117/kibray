@@ -321,17 +321,119 @@
             render();
             return;
         }
-        var h = '<p class="text-sm text-slate-600 mb-4"><i class="bi bi-building mr-1"></i> {% trans "Select the project you will be working on:" %}</p><div class="space-y-2">';
-        projects.forEach(function(p) {
-            h += '<button type="button" onclick="wizPickProject(' + p.id + ',\'' + p.name.replace(/'/g,"\\'") + '\')" class="w-full text-left p-4 rounded-xl border-2 border-slate-200 hover:border-green-400 hover:bg-green-50 transition group">' +
-                '<div class="flex items-center gap-3">' +
-                '<div class="w-10 h-10 rounded-lg bg-slate-100 group-hover:bg-green-100 text-slate-600 group-hover:text-green-600 flex items-center justify-center transition"><i class="bi bi-building"></i></div>' +
-                '<div class="flex-1"><p class="font-semibold text-slate-900">' + p.name + '</p></div>' +
-                '<i class="bi bi-chevron-right text-slate-400 group-hover:text-green-500 transition"></i></div></button>';
+
+        /* ── Creative dropdown-style project selector ── */
+        var colors = [
+            {bg:'bg-emerald-100', text:'text-emerald-600', ring:'ring-emerald-400', dot:'bg-emerald-500'},
+            {bg:'bg-blue-100',    text:'text-blue-600',    ring:'ring-blue-400',    dot:'bg-blue-500'},
+            {bg:'bg-violet-100',  text:'text-violet-600',  ring:'ring-violet-400',  dot:'bg-violet-500'},
+            {bg:'bg-amber-100',   text:'text-amber-600',   ring:'ring-amber-400',   dot:'bg-amber-500'},
+            {bg:'bg-rose-100',    text:'text-rose-600',    ring:'ring-rose-400',     dot:'bg-rose-500'},
+            {bg:'bg-cyan-100',    text:'text-cyan-600',    ring:'ring-cyan-400',     dot:'bg-cyan-500'},
+            {bg:'bg-pink-100',    text:'text-pink-600',    ring:'ring-pink-400',     dot:'bg-pink-500'},
+            {bg:'bg-teal-100',    text:'text-teal-600',    ring:'ring-teal-400',     dot:'bg-teal-500'}
+        ];
+
+        var h = '<div class="mb-4">' +
+            '<label class="text-sm font-medium text-slate-700 mb-2 block"><i class="bi bi-building mr-1.5"></i>{% trans "Select your project" %}</label>' +
+            '<div class="relative" id="projectDropdown">' +
+            /* Trigger button */
+            '<button type="button" onclick="wizToggleDropdown()" id="projectDropBtn" ' +
+            'class="w-full flex items-center justify-between px-4 py-3 bg-white border-2 border-slate-200 rounded-xl text-left hover:border-green-400 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 group">' +
+            '<div class="flex items-center gap-3">' +
+            '<div class="w-9 h-9 rounded-lg bg-slate-100 group-hover:bg-green-100 flex items-center justify-center transition">' +
+            '<i class="bi bi-building text-slate-400 group-hover:text-green-600 transition"></i></div>' +
+            '<span class="text-slate-400 font-medium" id="projectDropLabel">{% trans "Choose a project..." %}</span>' +
+            '</div>' +
+            '<i class="bi bi-chevron-down text-slate-400 group-hover:text-green-500 transition-transform duration-200" id="projectDropArrow"></i>' +
+            '</button>' +
+            /* Dropdown panel */
+            '<div id="projectDropPanel" class="hidden absolute z-20 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden animate-in">' +
+            /* Search input */
+            (projects.length > 3 ?
+            '<div class="p-3 border-b border-slate-100">' +
+            '<div class="relative">' +
+            '<i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>' +
+            '<input type="text" id="projectSearchInput" oninput="wizFilterProjects()" placeholder="{% trans "Search projects..." %}" ' +
+            'class="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:border-green-400 focus:ring-1 focus:ring-green-200 outline-none transition" />' +
+            '</div></div>' : '') +
+            /* Options list */
+            '<div class="max-h-[240px] overflow-y-auto py-1" id="projectOptionsList">';
+
+        projects.forEach(function(p, idx) {
+            var c = colors[idx % colors.length];
+            var initials = p.name.split(/\s+/).map(function(w){ return w.charAt(0); }).join('').substring(0, 2).toUpperCase();
+            h += '<button type="button" data-project-name="' + p.name.toLowerCase() + '" ' +
+                'onclick="wizPickProject(' + p.id + ',\'' + p.name.replace(/'/g,"\\'") + '\')" ' +
+                'class="wizProjectOpt w-full flex items-center gap-3 px-4 py-3 hover:bg-green-50 transition-colors duration-150 group">' +
+                '<div class="w-10 h-10 rounded-xl ' + c.bg + ' flex items-center justify-center flex-shrink-0 ring-0 group-hover:ring-2 ' + c.ring + ' transition-all duration-150">' +
+                '<span class="text-sm font-bold ' + c.text + '">' + initials + '</span></div>' +
+                '<div class="flex-1 text-left min-w-0">' +
+                '<p class="font-semibold text-slate-800 truncate text-sm">' + p.name + '</p>' +
+                '</div>' +
+                '<div class="w-5 h-5 rounded-full border-2 border-slate-200 group-hover:border-green-500 group-hover:bg-green-500 flex items-center justify-center transition-all duration-150 flex-shrink-0">' +
+                '<i class="bi bi-check text-white text-xs opacity-0 group-hover:opacity-100 transition"></i></div>' +
+                '</button>';
         });
-        h += '</div>';
+
+        h += '</div></div></div></div>' +
+            /* Quick select chips for ≤ 4 projects */
+            (projects.length <= 4 ?
+            '<div class="flex flex-wrap gap-2 mt-1">' +
+            '<span class="text-xs text-slate-400 w-full mb-1">{% trans "Quick select:" %}</span>' +
+            projects.map(function(p, idx) {
+                var c = colors[idx % colors.length];
+                return '<button type="button" onclick="wizPickProject(' + p.id + ',\'' + p.name.replace(/'/g,"\\'") + '\')" ' +
+                    'class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 hover:border-green-400 hover:bg-green-50 text-xs font-medium text-slate-700 transition-all duration-150">' +
+                    '<span class="w-2 h-2 rounded-full ' + c.dot + '"></span>' +
+                    '<span class="truncate max-w-[120px]">' + p.name + '</span></button>';
+            }).join('') +
+            '</div>' : '');
+
         el.innerHTML = h;
+
+        /* Focus search if present */
+        var searchEl = document.getElementById('projectSearchInput');
+        if (searchEl) setTimeout(function(){ searchEl.focus(); }, 100);
     }
+
+    /* ── Dropdown toggle ── */
+    window.wizToggleDropdown = function() {
+        var panel = document.getElementById('projectDropPanel');
+        var arrow = document.getElementById('projectDropArrow');
+        if (panel.classList.contains('hidden')) {
+            panel.classList.remove('hidden');
+            arrow.style.transform = 'rotate(180deg)';
+            var searchEl = document.getElementById('projectSearchInput');
+            if (searchEl) setTimeout(function(){ searchEl.focus(); }, 50);
+        } else {
+            panel.classList.add('hidden');
+            arrow.style.transform = '';
+        }
+    };
+
+    /* Close dropdown on outside click */
+    document.addEventListener('click', function(e) {
+        var dd = document.getElementById('projectDropdown');
+        if (dd && !dd.contains(e.target)) {
+            var panel = document.getElementById('projectDropPanel');
+            var arrow = document.getElementById('projectDropArrow');
+            if (panel && !panel.classList.contains('hidden')) {
+                panel.classList.add('hidden');
+                if (arrow) arrow.style.transform = '';
+            }
+        }
+    });
+
+    /* ── Search filter ── */
+    window.wizFilterProjects = function() {
+        var query = document.getElementById('projectSearchInput').value.toLowerCase();
+        var items = document.querySelectorAll('.wizProjectOpt');
+        items.forEach(function(item) {
+            var name = item.getAttribute('data-project-name') || '';
+            item.style.display = name.indexOf(query) !== -1 ? '' : 'none';
+        });
+    };
 
     window.wizPickProject = function(id, name) {
         state.project = id;

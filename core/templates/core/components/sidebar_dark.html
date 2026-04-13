@@ -210,8 +210,8 @@
         </div>
         {% endif %}
         
-        {# ===== PROJECTS SECTION (Not for clients) ===== #}
-        {% if role != 'client' %}
+        {# ===== PROJECTS SECTION (Not for clients or basic employees) ===== #}
+        {% if role != 'client' and role != 'employee' or user.is_staff %}
         <div>
             <div class="sidebar-section-title">{% trans "Projects" %}</div>
             <div class="space-y-1">
@@ -231,6 +231,21 @@
                 {% endif %}
             </div>
         </div>
+        {% elif role == 'employee' and not user.is_staff %}
+        {# ── Employee: Only show their assigned projects ── #}
+        {% if recent_projects %}
+        <div>
+            <div class="sidebar-section-title">{% trans "My Projects" %}</div>
+            <div class="space-y-1">
+                {% for rp in recent_projects|slice:":5" %}
+                <a href="{% url 'project_overview' rp.id %}" class="sidebar-item">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                    <span class="truncate">{{ rp.name }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
         {% endif %}
         
         {# ===== STAFF/PM SECTION ===== #}
