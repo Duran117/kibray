@@ -591,6 +591,13 @@ class DashboardConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         """Connect to project dashboard channel"""
+        # SECURITY: Require authenticated user
+        user = self.scope.get("user")
+        if not user or not user.is_authenticated:
+            await self.close()
+            return
+
+        self.user = user
         self.project_id = self.scope["url_route"]["kwargs"]["project_id"]  # type: ignore[typeddict-item]
         self.room_group_name = f"dashboard_project_{self.project_id}"
 
@@ -682,6 +689,13 @@ class DailyPlanConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         """Connect to daily plan channel"""
+        # SECURITY: Require authenticated user
+        user = self.scope.get("user")
+        if not user or not user.is_authenticated:
+            await self.close()
+            return
+
+        self.user = user
         self.date = self.scope["url_route"]["kwargs"]["date"]  # type: ignore[typeddict-item]
         self.room_group_name = f"daily_plan_{self.date}"
 
@@ -712,6 +726,13 @@ class QualityInspectionConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         """Connect to quality inspection channel"""
+        # SECURITY: Require authenticated user
+        user = self.scope.get("user")
+        if not user or not user.is_authenticated:
+            await self.close()
+            return
+
+        self.user = user
         self.inspection_id = self.scope["url_route"]["kwargs"]["inspection_id"]  # type: ignore[typeddict-item]
         self.room_group_name = f"quality_inspection_{self.inspection_id}"
 
@@ -749,6 +770,12 @@ class TaskConsumer(RateLimitMixin, AsyncWebsocketConsumer):
 
     async def connect(self):
         """Accept connection and join project task group"""
+        # SECURITY: Require authenticated user
+        user = self.scope.get("user")
+        if not user or not user.is_authenticated:
+            await self.close()
+            return
+
         try:
             query = parse_qs(self.scope.get("query_string", b"").decode())  # type: ignore[typeddict-item]
             lang = (query.get("lang", [None])[0] or "").split("-")[0]
@@ -759,7 +786,7 @@ class TaskConsumer(RateLimitMixin, AsyncWebsocketConsumer):
             self.lang = None
         self.project_id = self.scope["url_route"]["kwargs"]["project_id"]  # type: ignore[typeddict-item]
         self.task_group_name = f"tasks_project_{self.project_id}"
-        self.user = self.scope["user"]  # type: ignore[typeddict-item]
+        self.user = user
 
         # Join task group
         await self.channel_layer.group_add(self.task_group_name, self.channel_name)
@@ -874,7 +901,13 @@ class StatusConsumer(RateLimitMixin, AsyncWebsocketConsumer):
 
     async def connect(self):
         """Accept connection and join status group"""
-        self.user = self.scope["user"]  # type: ignore[typeddict-item]
+        # SECURITY: Require authenticated user
+        user = self.scope.get("user")
+        if not user or not user.is_authenticated:
+            await self.close()
+            return
+
+        self.user = user
         self.status_group_name = "user_status"
 
         # Join status group

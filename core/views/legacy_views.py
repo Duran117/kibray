@@ -13835,6 +13835,22 @@ def folder_public_upload(request, token):
     uploaded_file = request.FILES.get("file")
     if not uploaded_file:
         return JsonResponse({"error": gettext("No se recibió archivo")}, status=400)
+
+    # SECURITY: Validate file size (max 25 MB)
+    max_size = 25 * 1024 * 1024  # 25 MB
+    if uploaded_file.size > max_size:
+        return JsonResponse({"error": gettext("El archivo excede el tamaño máximo de 25 MB")}, status=400)
+
+    # SECURITY: Validate file extension
+    import os
+    allowed_extensions = {
+        ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".csv", ".txt",
+        ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".heic",
+        ".mp4", ".mov", ".avi", ".dwg", ".dxf", ".zip", ".rar",
+    }
+    _, ext = os.path.splitext(uploaded_file.name.lower())
+    if ext not in allowed_extensions:
+        return JsonResponse({"error": gettext("Tipo de archivo no permitido")}, status=400)
     
     # Create file record
     file_obj = ProjectFile.objects.create(

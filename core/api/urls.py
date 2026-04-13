@@ -1,3 +1,4 @@
+from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import include, path
 from drf_spectacular.views import (
     SpectacularAPIView,
@@ -234,10 +235,10 @@ urlpatterns = [
     # JWT Auth
     path("auth/login/", TwoFactorTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    # API Documentation (Phase 5)
-    path("schema/", SpectacularAPIView.as_view(), name="api-schema"),
-    path("docs/", SpectacularSwaggerView.as_view(url_name="api-schema"), name="api-docs"),
-    path("redoc/", SpectacularRedocView.as_view(url_name="api-schema"), name="api-redoc"),
+    # API Documentation (Phase 5) — staff-only access
+    path("schema/", staff_member_required(SpectacularAPIView.as_view()), name="api-schema"),
+    path("docs/", staff_member_required(SpectacularSwaggerView.as_view(url_name="api-schema")), name="api-docs"),
+    path("redoc/", staff_member_required(SpectacularRedocView.as_view(url_name="api-schema")), name="api-redoc"),
     # Global Search
     path("search/", global_search, name="global_search"),
     # ChangeOrder Photos

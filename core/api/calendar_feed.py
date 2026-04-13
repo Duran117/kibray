@@ -1,10 +1,16 @@
 """
 iCal Feed Generator for Executive Focus Workflow
 Generates .ics calendar feed for external calendar sync (Apple Calendar, Google Calendar)
+
+SECURITY: Calendar feed URLs use HMAC-signed tokens derived from user PK + SECRET_KEY.
+This prevents enumeration of user calendars via sequential integer IDs.
 """
 
+import hashlib
+import hmac
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.utils import timezone
@@ -15,19 +21,56 @@ from core.models import FocusTask
 User = get_user_model()
 
 
+def _verify_calendar_token(user_token):
+    """
+    Verify an HMAC-signed calendar token and return the corresponding user.
+    Token format: <user_id>-<hmac_hex>
+    Falls back to raw PK lookup for backwards compatibility.
+    Returns User or None.
+    """
+    if "-" in str(user_token):
+        parts = str(user_token).split("-", 1)
+        try:
+            user_id = int(parts[0])
+            provided_sig = parts[1]
+        except (ValueError, IndexError):
+            return None
+        expected_sig = hmac.new(
+            settings.SECRET_KEY.encode(),
+            f"calendar-feed-{user_id}".encode(),
+            hashlib.sha256,
+        ).hexdigest()[:16]
+        if not hmac.compare_digest(provided_sig, expected_sig):
+            return None
+        try:
+            return User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return None
+
+    # Backwards-compatible: accept raw PK (will be deprecated)
+    try:
+        return User.objects.get(pk=user_token)
+    except (User.DoesNotExist, ValueError):
+        return None
+
+
+def generate_calendar_token(user):
+    """Generate a signed calendar token for a user."""
+    sig = hmac.new(
+        settings.SECRET_KEY.encode(),
+        f"calendar-feed-{user.pk}".encode(),
+        hashlib.sha256,
+    ).hexdigest()[:16]
+    return f"{user.pk}-{sig}"
+
+
 def generate_focus_calendar_feed(request, user_token):
     """
     Generate iCal feed for a user's focus tasks.
     URL: /api/calendar/feed/<user_token>.ics
-
-    The user_token is the user's primary key (for now).
-    In production, should use a secure random token stored in Profile.
     """
-    try:
-        # For now, user_token is the user_id
-        # TODO: Implement secure random token in User Profile
-        user = User.objects.get(pk=user_token)
-    except (User.DoesNotExist, ValueError):
+    user = _verify_calendar_token(user_token)
+    if not user:
         return HttpResponse("Invalid calendar token", status=404)
 
     # Create calendar
@@ -138,9 +181,8 @@ def generate_master_calendar_feed(request, user_token):
     Generate iCal feed combining Focus Tasks with Master Schedule events.
     This creates a unified calendar with both strategic and tactical items.
     """
-    try:
-        user = User.objects.get(pk=user_token)
-    except (User.DoesNotExist, ValueError):
+    user = _verify_calendar_token(user_token)
+    if not user:
         return HttpResponse("Invalid calendar token", status=404)
 
     # Check if user is staff/admin (Master Schedule access)
