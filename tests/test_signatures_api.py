@@ -7,7 +7,8 @@ from django.contrib.auth import get_user_model
 pytestmark = pytest.mark.django_db
 
 
-def test_signatures_list_empty(client):
+def test_signatures_list_empty(authenticated_client):
+    client, user = authenticated_client
     resp = client.get("/api/v1/signatures/")
     assert resp.status_code == 200
     data = resp.json()

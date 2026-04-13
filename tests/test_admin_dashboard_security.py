@@ -129,11 +129,11 @@ class TestAdminDashboardHTMLViewSecurity:
             assert "dashboard/admin" not in response.url
 
     def test_staff_user_allowed_access(self, client, staff_user):
-        """Usuarios staff deben poder acceder"""
+        """Staff sin superuser ni role=admin NO accede (view requiere superuser o role=admin)"""
         client.force_login(staff_user)
         url = reverse("dashboard_admin")
         response = client.get(url)
-        assert response.status_code == 200
+        assert response.status_code == 403
 
     def test_admin_user_allowed_access(self, client, admin_user):
         """Usuarios admin deben poder acceder"""

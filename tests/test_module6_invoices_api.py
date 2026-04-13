@@ -17,7 +17,9 @@ def api_client():
 
 @pytest.fixture
 def user(db):
-    return User.objects.create_user(username="invoicer", password="pass123", email="invoicer@example.com")
+    return User.objects.create_user(
+        username="invoicer", password="pass123", email="invoicer@example.com", is_staff=True
+    )
 
 
 @pytest.fixture

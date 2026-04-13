@@ -16,9 +16,10 @@ import pytest
 import json
 from channels.testing import WebsocketCommunicator
 from channels.db import database_sync_to_async
+from channels.routing import URLRouter
 from django.contrib.auth import get_user_model
 
-from kibray_backend.asgi import application
+from core.routing import websocket_urlpatterns
 from core.websocket_security import (
     WebSocketSecurityValidator,
     RateLimiter,
@@ -29,10 +30,15 @@ User = get_user_model()
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
+# Use URLRouter directly (without AuthMiddlewareStack) so that
+# scope["user"] set in tests is preserved.
+_test_app = URLRouter(websocket_urlpatterns)
+
 
 @database_sync_to_async
 def create_user(username="testuser", **kwargs):
     """Helper to create test user"""
+    kwargs.setdefault("is_staff", True)
     return User.objects.create_user(
         username=username,
         password="testpass123",
@@ -53,11 +59,14 @@ class TestAuthentication:
     @pytest.mark.asyncio
     async def test_unauthenticated_connection_rejected(self):
         """Test that unauthenticated connections are rejected"""
+        from django.contrib.auth.models import AnonymousUser
         # Try to connect without authentication
         communicator = WebsocketCommunicator(
-            application,
+            _test_app,
             "/ws/chat/project/1/",
         )
+        # Simulate what AuthMiddlewareStack does for unauthenticated users
+        communicator.scope["user"] = AnonymousUser()
         
         # Should not connect or should close immediately
         connected, _ = await communicator.connect()
@@ -84,7 +93,7 @@ class TestAuthentication:
         project = await create_project("Auth Test Project")
         
         communicator = WebsocketCommunicator(
-            application,
+            _test_app,
             f"/ws/chat/project/{project.id}/",
         )
         communicator.scope["user"] = user
@@ -101,7 +110,7 @@ class TestAuthentication:
         project = await create_project("Inactive Test Project")
         
         communicator = WebsocketCommunicator(
-            application,
+            _test_app,
             f"/ws/chat/project/{project.id}/",
         )
         communicator.scope["user"] = user
@@ -334,7 +343,7 @@ async def test_websocket_with_malicious_message():
     project = await create_project("XSS Test Project")
     
     communicator = WebsocketCommunicator(
-        application,
+        _test_app,
         f"/ws/chat/project/{project.id}/",
     )
     communicator.scope["user"] = user
@@ -372,7 +381,7 @@ async def test_rate_limit_websocket():
     project = await create_project("Rate Limit Test Project")
     
     communicator = WebsocketCommunicator(
-        application,
+        _test_app,
         f"/ws/chat/project/{project.id}/",
     )
     communicator.scope["user"] = user

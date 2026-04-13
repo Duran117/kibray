@@ -48,7 +48,7 @@ def test_project_budget_overview_query_count(client):
 def test_invoice_list_query_count(client):
     """Ensure invoice list uses select_related to reduce queries"""
     User = get_user_model()
-    user = User.objects.create_user(username="invuser", password="pass123")
+    user = User.objects.create_user(username="invuser", password="pass123", is_staff=True)
     client.force_login(user)
 
     from core.models import Invoice

@@ -271,7 +271,7 @@ class PermissionMatrixViewSet(viewsets.ModelViewSet):
     """
     Q16.1: Role-based access control matrix
     - Admins can manage all permissions
-    - Users can view their own permissions
+    - Users can view their own permissions via my_permissions / check_permission
     """
 
     serializer_class = PermissionMatrixSerializer
@@ -279,6 +279,12 @@ class PermissionMatrixViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ["user", "role", "entity_type", "scope_project"]
     search_fields = ["user__username", "user__first_name", "user__last_name"]
+
+    def get_permissions(self):
+        # Allow any authenticated user to query their own permissions
+        if self.action in ("my_permissions", "check_permission"):
+            return [IsAuthenticated()]
+        return super().get_permissions()
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
@@ -361,6 +367,12 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_fields = ["user", "action", "entity_type", "entity_id", "success"]
     search_fields = ["username", "entity_repr", "ip_address"]
 
+    def get_permissions(self):
+        # Allow any authenticated user to query their own activity/history
+        if self.action in ("recent_activity", "entity_history"):
+            return [IsAuthenticated()]
+        return super().get_permissions()
+
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
             return AuditLog.objects.none()
@@ -423,6 +435,12 @@ class LoginAttemptViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ["username", "success", "ip_address"]
     search_fields = ["username", "ip_address"]
+
+    def get_permissions(self):
+        # Allow any authenticated user to view their own recent failures
+        if self.action == "recent_failures":
+            return [IsAuthenticated()]
+        return super().get_permissions()
 
     def get_queryset(self):
         user = self.request.user

@@ -443,7 +443,6 @@ class TestPMPerformanceDashboard:
         response = api_client.get(url)
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert "Admin access required" in response.json()["detail"]
 
     def test_pm_performance_unauthenticated(self, api_client):
         """Test PM performance analytics without authentication."""

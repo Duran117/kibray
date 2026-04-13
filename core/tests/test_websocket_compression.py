@@ -8,14 +8,19 @@ import pytest
 import json
 from channels.testing import WebsocketCommunicator
 from channels.db import database_sync_to_async
+from channels.routing import URLRouter
 from django.contrib.auth import get_user_model
 
-from kibray_backend.asgi import application
+from core.routing import websocket_urlpatterns
 from core.models import ChatChannel, Project
 
 User = get_user_model()
 
 pytestmark = pytest.mark.django_db(transaction=True)
+
+# Use URLRouter directly (without AuthMiddlewareStack) so that
+# scope["user"] set in tests is preserved.
+_test_app = URLRouter(websocket_urlpatterns)
 
 
 @database_sync_to_async
@@ -24,7 +29,8 @@ def create_user(username="testuser"):
     return User.objects.create_user(
         username=username,
         password="testpass123",
-        email=f"{username}@test.com"
+        email=f"{username}@test.com",
+        is_staff=True,
     )
 
 
@@ -64,7 +70,7 @@ class TestWebSocketCompression:
         
         # Create communicator with compression header
         communicator = WebsocketCommunicator(
-            application,
+            _test_app,
             f"/ws/chat/project/{project.id}/",
             headers=[
                 (b"sec-websocket-extensions", b"permessage-deflate; client_max_window_bits"),
@@ -100,7 +106,7 @@ class TestWebSocketCompression:
         project = await create_project("Large Message Project")
         
         communicator = WebsocketCommunicator(
-            application,
+            _test_app,
             f"/ws/chat/project/{project.id}/",
         )
         communicator.scope["user"] = user
@@ -130,7 +136,7 @@ class TestWebSocketCompression:
         project = await create_project("Multi Message Project")
         
         communicator = WebsocketCommunicator(
-            application,
+            _test_app,
             f"/ws/chat/project/{project.id}/",
             headers=[
                 (b"sec-websocket-extensions", b"permessage-deflate"),
@@ -140,7 +146,7 @@ class TestWebSocketCompression:
         
         connected, _ = await communicator.connect()
         assert connected
-        
+
         # Send multiple messages
         for i in range(5):
             message = {
@@ -195,7 +201,7 @@ class TestWebSocketCompression:
         
         # Connect without compression header
         communicator = WebsocketCommunicator(
-            application,
+            _test_app,
             f"/ws/chat/project/{project.id}/",
         )
         communicator.scope["user"] = user
