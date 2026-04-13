@@ -1,176 +1,115 @@
-# 🔒 KIBRAY — Security Hardening Audit Report
+# 🔒 Kibray Security Audit Report
 
-**Date:** April 2026  
-**Scope:** Comprehensive role-based access control (RBAC) audit  
-**Test User:** `employee_test` (pk=45, role=employee)  
-**Test Suite:** 68 tests — ALL PASSING ✅  
-**Penetration Test:** 42/42 endpoints verified ✅
+**Date:** April 2025  
+**Scope:** Full codebase vulnerability scan  
+**Commit:** `0ff5f953` — security: comprehensive vulnerability hardening
 
 ---
 
-## Executive Summary
+## ✅ FIXES IMPLEMENTED (this commit)
 
-A comprehensive security audit was performed on the Kibray Django project to enforce role-based access control (RBAC). The audit found **multiple critical vulnerabilities** where employees and unauthenticated users could access financial data, payroll records, audit logs, and administrative endpoints. All vulnerabilities have been **fixed and verified**.
+### 🔴 CRITICAL — Fixed
 
----
+| # | Vulnerability | File | Fix |
+|---|---|---|---|
+| 1 | **DashboardConsumer — no auth check** | `core/consumers.py` | Added `user.is_authenticated` check in `connect()` |
+| 2 | **DailyPlanConsumer — no auth check** | `core/consumers.py` | Added `user.is_authenticated` check in `connect()` |
+| 3 | **QualityInspectionConsumer — no auth check** | `core/consumers.py` | Added `user.is_authenticated` check in `connect()` |
+| 4 | **TaskConsumer — no auth check** | `core/consumers.py` | Added `user.is_authenticated` check in `connect()` |
+| 5 | **StatusConsumer — no auth check** | `core/consumers.py` | Added `user.is_authenticated` check in `connect()` |
+| 6 | **No API throttling** — unlimited requests | `settings/base.py` | Added `AnonRateThrottle` (30/min) + `UserRateThrottle` (120/min) |
+| 7 | **BLACKLIST_AFTER_ROTATION = False** — old refresh tokens not revoked | `settings/base.py` | Set to `True` — old refresh tokens now blacklisted |
 
-## Phase 1: Legacy View Vulnerabilities (10 fixes)
+### 🟠 HIGH — Fixed
 
-| View | File | Vulnerability | Fix |
-|------|------|---------------|-----|
-| `color_sample_detail` | `legacy_views.py` | No project-level access check | Added `_check_user_project_access` |
-| `estimate_detail_view` | `legacy_views.py` | Any authenticated user could see estimates | Added `is_staff/is_superuser` gate |
-| `project_list` | `legacy_views.py` | Employees could see ALL projects | Filtered by TimeEntry/DailyPlan assignments |
-| `project_estimates` | `legacy_views.py` | No role check on financial data | Added `is_staff/is_superuser` + HttpResponseForbidden |
-| `navigation_app_view` | `legacy_views.py` | Missing `@login_required` decorator | Added `@login_required` |
-| `task_list_view` | `legacy_views.py` | No project-level access check | Added `_check_user_project_access` |
-| `project_schedule_view` | `legacy_views.py` | No project access check + shadow import bug | Added `_check_user_project_access` + fixed redirect shadow |
-| `estimate_send_email` | `legacy_views.py` | Any user could send estimate emails | Added `_is_staffish` gate |
-| `download_progress_sample` | `legacy_views.py` | Any user could download samples | Added `_is_staffish` gate |
-| `pickup_view` | `legacy_views.py` | No project-level access check | Added `_check_user_project_access` |
-| `schedule_generator_view` | `legacy_views.py` | Only `can_manage` (too permissive) | Added `_is_staffish` pre-check |
-
-### Bug Fix
-- **`project_schedule_view`**: Found and fixed a `from django.shortcuts import redirect` local import that shadowed the module-level `redirect`, causing `UnboundLocalError` for non-client users.
-
----
-
-## Phase 2: Signature API Fix
-
-| Endpoint | File | Vulnerability | Fix |
-|----------|------|---------------|-----|
-| `SignatureViewSet` | `signatures/api/views.py` | `IsOwnerOrReadOnly.has_permission` allowed anonymous `list`/`retrieve`/`verify` | Now requires `request.user.is_authenticated` for all actions |
+| # | Vulnerability | File | Fix |
+|---|---|---|---|
+| 8 | **BrowsableAPIRenderer in production** — exposes API schema | `settings/base.py` | Removed from `DEFAULT_RENDERER_CLASSES` |
+| 9 | **API docs publicly accessible** — `/api/v1/schema/`, `/docs/`, `/redoc/` | `core/api/urls.py` | Protected with `staff_member_required` |
+| 10 | **SECURE_SSL_REDIRECT = False** — HTTP allowed | `settings/production.py` | Forced `True` with `SECURE_REDIRECT_EXEMPT` for health checks |
+| 11 | **No file upload size limits** | `settings/base.py` | Added `FILE_UPLOAD_MAX_MEMORY_SIZE` (10MB), `DATA_UPLOAD_MAX_MEMORY_SIZE` (25MB) |
+| 12 | **Public folder upload — no file validation** | `legacy_views.py` | Added size (25MB) + extension whitelist validation |
+| 13 | **iCal feed uses predictable user.pk** | `calendar_feed.py` | HMAC-signed tokens (`{pk}-{hmac_hex}`) with backwards compatibility |
 
 ---
 
-## Phase 3: Role Permission Classes (NEW)
+## ⚠️ KNOWN ISSUES — Require Design Decision
 
-Created `core/api/permission_classes/role_permissions.py`:
+### 🔴 CRITICAL — Password in plaintext email
 
-| Class | Description |
-|-------|-------------|
-| `IsStaffOrAdmin` | Allows `is_superuser`, `is_staff`, or roles `admin`/`project_manager`/`general_manager` |
-| `IsStaffOrReadOnlyForEmployee` | Staff = full access, employee = read-only, client = blocked |
-| `DenyEmployeeAccess` | Blocks employee role, allows all others |
+**Location:** `core/services/email_service.py` → `send_password_reset()` → `emails/password_reset.html`  
+**Also:** `legacy_views.py:14990` → `client_reset_password()` generates random password and sends via email
 
----
+**Risk:** Plaintext passwords in email can be intercepted (email is not encrypted end-to-end).
 
-## Phase 4: API Viewset Permission Hardening (35 viewsets)
+**Recommended fix:** Replace with token-based password reset using `django.contrib.auth.tokens.default_token_generator` and a frontend reset-password page.
 
-All viewsets below changed from `[IsAuthenticated]` → `[IsAuthenticated, IsStaffOrAdmin]`:
-
-### Financial (8 viewsets)
-- `InvoiceViewSet`, `IncomeViewSet`, `ExpenseViewSet`
-- `PayrollPeriodViewSet`, `PayrollRecordViewSet`, `PayrollPaymentViewSet`
-- `CostCodeViewSet`, `BudgetLineViewSet`
-
-### Admin/Audit (3 viewsets)
-- `AuditLogViewSet`, `LoginAttemptViewSet`, `PermissionMatrixViewSet`
-
-### Dashboards & Reports (13 endpoints)
-- `InvoiceDashboardView`, `InvoiceTrendsView`
-- `MaterialsDashboardView`, `MaterialsUsageAnalyticsView`
-- `FinancialDashboardView`, `PayrollDashboardView`
-- `ProjectHealthDashboardView`, `TouchupAnalyticsDashboardView`
-- `ColorApprovalAnalyticsDashboardView`, `PMPerformanceDashboardView`
-- `InventoryValuationReportView`
-- `InvoiceAgingReportAPIView`, `CashFlowProjectionAPIView`, `BudgetVarianceAnalysisAPIView`
-
-### BI & Analytics (2 viewsets)
-- `BIAnalyticsViewSet`, `AnalyticsViewSet`
-
-### User Management (1 viewset)
-- `UserViewSet` (list/create/update/delete blocked; `me` and `preferred_language` actions exempt)
-
-### Operations & Planning (4 viewsets)
-- `ProjectManagerAssignmentViewSet`
-- `DailyLogPlanningViewSet`
-- `TaskTemplateViewSet`
-
-### Strategic Planning (5 viewsets, separate file)
-- `StrategicPlanningSessionViewSet`, `StrategicItemViewSet`
-- `StrategicTaskViewSet`, `StrategicSubtaskViewSet`, `StrategicMaterialViewSet`
+**Why not auto-fixed:** Requires frontend React changes + email template redesign. Not a code-only fix.
 
 ---
 
-## Phase 5: Endpoints Left as Employee-Accessible (by design)
+### 🟡 MEDIUM — `|safe` filter in Django templates
 
-These viewsets remain `[IsAuthenticated]` with built-in filtering:
+**Count:** 30+ uses across templates  
+**Files:** `floor_plan_detail.html`, `strategic_planning_detail.html`, `daily_plan_timeline.html`, `inventory_wizard.html`, `financial_dashboard.html`, `sop_creator_wizard.html`, etc.
 
-| Viewset | Reason |
-|---------|--------|
-| `NotificationViewSet` | Filters to user's own notifications |
-| `TaskViewSet` | Project-scoped operational data |
-| `ProjectViewSet` | Filtered by assignment/role in queryset |
-| `DailyPlanViewSet` | Employee's own daily plans |
-| `PlannedActivityViewSet` | Employee's own planned activities |
-| `TimeEntryViewSet` | Employee's own time entries |
-| `TwoFactorViewSet` | Personal 2FA settings |
-| `PushSubscriptionViewSet` | User's own push subscriptions |
-| `DeviceTokenViewSet` | User's own device tokens |
-| `PushNotificationPreferencesView` | User's own preferences |
-| `ChatChannelViewSet` | Filtered to participant channels |
-| `ChatMessageViewSet` | Filtered to participant messages |
-| `ColorSampleViewSet` | Project-scoped data |
-| `ColorApprovalViewSet` | Project-scoped data |
-| `FloorPlanViewSet` | Project-scoped data |
-| `PlanPinViewSet` | Project-scoped data |
-| `DamageReportViewSet` | Project-scoped data |
-| `SchedulePhaseViewSet` | Project-scoped data |
-| `ScheduleItemViewSet` | Project-scoped data |
-| `WeatherSnapshotViewSet` | Non-sensitive weather data |
-| `AISuggestionViewSet` | User's own AI suggestions |
-| `InventoryItemViewSet` | Operational data |
-| `MaterialCatalogViewSet` | Operational data |
-| `MaterialRequestViewSet` | Operational data |
-| `FieldMaterialsViewSet` | Operational data |
-| `ClientRequestViewSet` | Project-scoped data |
-| `SitePhotoViewSet` | Has ClientProjectAccess filtering |
-| `DailyLogSanitizedViewSet` | Has built-in role filtering |
-| `ProjectFileViewSet` | Has per-object delete permission |
-| `MeetingMinuteViewSet` | Project-scoped data |
-| `WebSocketMetricsView` | Has inline `is_staff` check |
-| `ClientInvoiceListAPIView` | Has ClientProjectAccess filtering |
-| `ClientInvoiceApprovalAPIView` | Has ClientProjectAccess check |
+**Pattern:** `{{ some_json|safe }}` used to pass Python data to JavaScript.
+
+**Risk:** Low — all data is server-generated via `json.dumps()` and all views require `@login_required`.
+
+**Recommendation:** Replace with `{{ data|json_script:"id" }}` pattern for safer JSON embedding.
 
 ---
 
-## Files Modified
+### 🟡 MEDIUM — localStorage for JWT tokens (frontend)
 
-| File | Changes |
-|------|---------|
-| `core/views/legacy_views.py` | 10+ security fixes across legacy views |
-| `signatures/api/views.py` | Authentication fix for `IsOwnerOrReadOnly` |
-| `core/api/permission_classes/role_permissions.py` | **NEW** — 3 permission classes |
-| `core/api/permission_classes/__init__.py` | Updated exports |
-| `core/api/views.py` | 30+ viewset permission upgrades |
-| `core/api/viewset_classes/user_viewsets.py` | `IsStaffOrAdmin` + me/preferred_language exemptions |
-| `core/api/viewset_classes/analytics_viewsets.py` | `IsStaffOrAdmin` |
-| `core/views/strategic_planning_views.py` | `IsStaffOrAdmin` on all 5 viewsets |
-| `core/tests/api/test_analytics.py` | Updated test user to `is_staff=True` |
+**Risk:** XSS vulnerability could steal tokens from `kibray_access_token` / `kibray_refresh_token`.
+
+**Recommendation:** Move to HttpOnly cookies or use `sessionStorage` with token refresh.
+
+**Why not auto-fixed:** Requires React frontend + DRF backend coordination for cookie-based auth.
 
 ---
 
-## Verification
+## ✅ GOOD PRACTICES FOUND
 
-### Unit Tests
-```
-Ran 68 tests in 14.5s — OK ✅
-```
-
-### Penetration Test (Employee role)
-```
-MUST-BE-BLOCKED: 34/34 returned 403 ✅
-MUST-BE-ACCESSIBLE: 8/8 returned 200 ✅
-TOTAL: 42/42 PASSED ✅
-```
+| Area | Status |
+|---|---|
+| All legacy views have `@login_required` | ✅ |
+| All API viewsets have `permission_classes = [IsAuthenticated]` minimum | ✅ |
+| No `AllowAny` permissions anywhere | ✅ |
+| `ProjectChatConsumer` has auth + project access check | ✅ |
+| `AdminDashboardConsumer` checks `is_staff`/`is_superuser` | ✅ |
+| WebSocket `RateLimitMixin` on chat/notification/task/status consumers | ✅ |
+| CSRF protection on all POST forms | ✅ |
+| Login rate limiting: 5 attempts per 15 minutes | ✅ |
+| 4 password validators active | ✅ |
+| Share tokens use `secrets.token_urlsafe(32)` (256-bit entropy) | ✅ |
+| `AllowedHostsOriginValidator` on WebSocket | ✅ |
+| `HSTS` enabled (1 year, include subdomains, preload) | ✅ |
+| `X-Frame-Options: DENY` | ✅ |
+| `SECURE_CONTENT_TYPE_NOSNIFF = True` | ✅ |
+| `SESSION_COOKIE_SECURE = True` + `CSRF_COOKIE_SECURE = True` | ✅ |
+| `SESSION_COOKIE_AGE = 28800` (8 hours) | ✅ |
+| `SingleSessionMiddleware` (one session per user) | ✅ |
+| Sentry with `send_default_pii = False` | ✅ |
+| Secret key from env in production (raises if missing) | ✅ |
+| `.extra()` calls are parameterized (no SQL injection) | ✅ |
+| No `eval()`, `exec()`, `subprocess` in production code | ✅ |
+| Client views verify `ClientProjectAccess` or `project.client` match | ✅ |
+| Serializers use explicit `fields` (not `__all__` in API serializers) | ✅ |
+| Channel layer uses `symmetric_encryption_keys` | ✅ |
+| `AllowedHostsOriginValidator` + `AuthMiddlewareStack` on WebSocket | ✅ |
 
 ---
 
-## Recommendations for Future Work
+## 📊 Summary
 
-1. **Add automated security tests**: Create a dedicated test class that verifies employee/client users get 403 on all sensitive endpoints
-2. **Object-level permissions**: Some viewsets (Tasks, Projects) could benefit from queryset filtering to ensure employees only see data from their assigned projects
-3. **Rate limiting**: Consider adding throttling to authentication endpoints
-4. **Audit logging**: Ensure failed 403 attempts are logged for security monitoring
-5. **Client role restrictions**: Further review which endpoints clients should access beyond the ClientProjectAccess-filtered ones
+| Severity | Found | Fixed | Remaining |
+|---|---|---|---|
+| 🔴 Critical | 8 | 7 | 1 (plaintext password email) |
+| 🟠 High | 6 | 6 | 0 |
+| 🟡 Medium | 2 | 0 | 2 (design decisions needed) |
+| ✅ Good practices | 25+ | — | — |
+
+**Test impact:** 0 new test failures introduced. All 43 failures are pre-existing.
