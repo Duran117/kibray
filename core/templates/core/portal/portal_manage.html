@@ -5,19 +5,19 @@
 {% block title %}{% trans "Resident Portal" %} — {{ project.name }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" role="main">
     <div class="row">
         <div class="col-12">
             <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2 class="mb-1">
-                        <i class="bi bi-building me-2"></i>{% trans "Resident Portal" %}
+                        <i class="bi bi-building me-2" aria-hidden="true"></i>{% trans "Resident Portal" %}
                     </h2>
                     <p class="text-muted mb-0">{{ project.name }}</p>
                 </div>
                 <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-1"></i>{% trans "Back to Project" %}
+                    <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "Back to Project" %}
                 </a>
             </div>
         </div>
@@ -29,15 +29,15 @@
             <!-- Portal Link Card -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-link-45deg me-2"></i>{% trans "Shareable Link" %}</h5>
+                    <h3 class="mb-0"><i class="bi bi-link-45deg me-2" aria-hidden="true"></i>{% trans "Shareable Link" %}</h3>
                     <form method="post">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="toggle_active">
                         <button type="submit" class="btn btn-sm {% if portal.is_active %}btn-success{% else %}btn-outline-secondary{% endif %}">
                             {% if portal.is_active %}
-                            <i class="bi bi-check-circle me-1"></i>{% trans "Active" %}
+                            <i class="bi bi-check-circle me-1" aria-hidden="true"></i>{% trans "Active" %}
                             {% else %}
-                            <i class="bi bi-pause-circle me-1"></i>{% trans "Inactive" %}
+                            <i class="bi bi-pause-circle me-1" aria-hidden="true"></i>{% trans "Inactive" %}
                             {% endif %}
                         </button>
                     </form>
@@ -46,18 +46,18 @@
                     {% if portal.is_active %}
                     <div class="input-group">
                         <input type="text" class="form-control" id="portalUrl" value="{{ portal_url }}" readonly>
-                        <button class="btn btn-outline-primary" type="button" onclick="copyLink()">
-                            <i class="bi bi-clipboard me-1"></i>{% trans "Copy" %}
+                        <button class="btn btn-outline-primary" type="button" id="copyLinkBtn">
+                            <i class="bi bi-clipboard me-1" aria-hidden="true"></i>{% trans "Copy" %}
                         </button>
                     </div>
                     <div class="mt-2">
-                        <a href="{{ portal_url }}" target="_blank" class="text-primary small">
-                            <i class="bi bi-box-arrow-up-right me-1"></i>{% trans "Open portal" %}
+                        <a href="{{ portal_url }}" target="_blank" rel="noopener noreferrer" class="text-primary small">
+                            <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>{% trans "Open portal" %}
                         </a>
                     </div>
                     {% else %}
                     <div class="alert alert-warning mb-0">
-                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>
                         {% trans "Portal is inactive. Click 'Inactive' above to activate." %}
                     </div>
                     {% endif %}
@@ -67,7 +67,7 @@
             <!-- Settings Card -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-gear me-2"></i>{% trans "Portal Settings" %}</h5>
+                    <h3 class="mb-0"><i class="bi bi-gear me-2" aria-hidden="true"></i>{% trans "Portal Settings" %}</h3>
                 </div>
                 <div class="card-body">
                     <form method="post">
@@ -108,7 +108,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-save me-1"></i>{% trans "Save Settings" %}
+                            <i class="bi bi-save me-1" aria-hidden="true"></i>{% trans "Save Settings" %}
                         </button>
                     </form>
                 </div>
@@ -117,7 +117,7 @@
             <!-- Portal Touch-ups -->
             <div class="card shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>{% trans "Resident-Submitted Touch-Ups" %}</h5>
+                    <h3 class="mb-0"><i class="bi bi-list-check me-2" aria-hidden="true"></i>{% trans "Resident-Submitted Touch-Ups" %}</h3>
                 </div>
                 <div class="card-body p-0">
                     {% if portal_touchups %}
@@ -155,7 +155,7 @@
                     </div>
                     {% else %}
                     <div class="text-center text-muted py-4">
-                        <i class="bi bi-inbox d-block" style="font-size:2rem"></i>
+                        <i class="bi bi-inbox d-block" style="font-size:2rem" aria-hidden="true"></i>
                         <p class="mt-2 mb-0">{% trans "No touch-ups submitted yet." %}</p>
                     </div>
                     {% endif %}
@@ -168,7 +168,7 @@
             <!-- Units Management -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-door-open me-2"></i>{% trans "Units" %}</h5>
+                    <h3 class="mb-0"><i class="bi bi-door-open me-2" aria-hidden="true"></i>{% trans "Units" %}</h3>
                 </div>
                 <div class="card-body">
                     <!-- Add single unit -->
@@ -181,7 +181,7 @@
                             <input type="number" name="floor" class="form-control"
                                    placeholder="{% trans 'Floor' %}" style="max-width:80px">
                             <button type="submit" class="btn btn-outline-primary">
-                                <i class="bi bi-plus"></i>
+                                <i class="bi bi-plus" aria-hidden="true"></i>
                             </button>
                         </div>
                     </form>
@@ -189,7 +189,7 @@
                     <!-- Bulk add -->
                     <details class="mb-3">
                         <summary class="text-primary small cursor-pointer">
-                            <i class="bi bi-list-ul me-1"></i>{% trans "Bulk add units" %}
+                            <i class="bi bi-list-ul me-1" aria-hidden="true"></i>{% trans "Bulk add units" %}
                         </summary>
                         <form method="post" class="mt-2">
                             {% csrf_token %}
@@ -218,9 +218,9 @@
                                 {% csrf_token %}
                                 <input type="hidden" name="action" value="delete_unit">
                                 <input type="hidden" name="unit_id" value="{{ u.id }}">
-                                <button type="submit" class="btn btn-sm btn-outline-danger"
-                                        onclick="return confirm('{% trans "Delete this unit?" %}')">
-                                    <i class="bi bi-trash"></i>
+                                <button type="submit" class="btn btn-sm btn-outline-danger btn-delete-unit"
+                                        data-confirm="{% trans 'Delete this unit?' %}">
+                                    <i class="bi bi-trash" aria-hidden="true"></i>
                                 </button>
                             </form>
                         </div>
@@ -237,7 +237,7 @@
             <!-- Recent Sessions -->
             <div class="card shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-people me-2"></i>{% trans "Recent Visitors" %}</h5>
+                    <h3 class="mb-0"><i class="bi bi-people me-2" aria-hidden="true"></i>{% trans "Recent Visitors" %}</h3>
                 </div>
                 <div class="card-body p-0">
                     {% if sessions %}
@@ -273,18 +273,31 @@
 </div>
 
 <script>
-function copyLink() {
-    const input = document.getElementById('portalUrl');
-    navigator.clipboard.writeText(input.value).then(() => {
-        const btn = input.nextElementSibling;
-        const originalHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="bi bi-check me-1"></i>{% trans "Copied!" %}';
-        btn.classList.replace('btn-outline-primary', 'btn-success');
-        setTimeout(() => {
-            btn.innerHTML = originalHtml;
-            btn.classList.replace('btn-success', 'btn-outline-primary');
-        }, 2000);
+// Copy link (replaces inline onclick)
+var copyBtn = document.getElementById('copyLinkBtn');
+if (copyBtn) {
+    copyBtn.addEventListener('click', function() {
+        var input = document.getElementById('portalUrl');
+        navigator.clipboard.writeText(input.value).then(function() {
+            var btn = input.nextElementSibling;
+            var originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check me-1" aria-hidden="true"></i>{% trans "Copied!" %}';
+            btn.classList.replace('btn-outline-primary', 'btn-success');
+            setTimeout(function() {
+                btn.innerHTML = originalHtml;
+                btn.classList.replace('btn-success', 'btn-outline-primary');
+            }, 2000);
+        });
     });
 }
+
+// Delete unit confirmation (replaces inline onclick)
+document.querySelectorAll('.btn-delete-unit').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+        if (!confirm(this.dataset.confirm)) {
+            e.preventDefault();
+        }
+    });
+});
 </script>
 {% endblock %}

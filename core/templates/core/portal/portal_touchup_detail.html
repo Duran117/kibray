@@ -238,9 +238,25 @@
             margin: 0;
             white-space: pre-wrap;
         }
+        /* Skip link for a11y */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #000;
+            color: #fff;
+            padding: 8px 16px;
+            z-index: 200;
+            font-size: 0.85rem;
+            transition: top 0.2s;
+        }
+        .skip-link:focus { top: 0; }
     </style>
 </head>
 <body>
+
+<!-- Skip link for accessibility -->
+<a href="#mainContent" class="skip-link">{% trans "Skip to content" %}</a>
 
 <!-- ── NAV ── -->
 <nav class="portal-nav" role="navigation" aria-label="{% trans 'Detail navigation' %}">
@@ -251,7 +267,7 @@
     <h1>{{ touchup.title|truncatechars:40 }}</h1>
 </nav>
 
-<main class="container">
+<main class="container" id="mainContent">
 
     <!-- ── STATUS & INFO ── -->
     <div class="detail-card">
@@ -287,7 +303,7 @@
 
         {% if touchup.status == "closed" and touchup.closing_notes %}
         <div class="closing-notes">
-            <h5><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{% trans "Resolution" %}</h5>
+            <h3><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{% trans "Resolution" %}</h3>
             <p>{{ touchup.closing_notes }}</p>
         </div>
         {% endif %}
@@ -297,7 +313,7 @@
     {% if before_photos or progress_photos or after_photos %}
     <div class="detail-card photo-section">
         {% if before_photos %}
-        <h4><i class="bi bi-camera me-1" aria-hidden="true"></i>{% trans "Before" %}</h4>
+        <h3><i class="bi bi-camera me-1" aria-hidden="true"></i>{% trans "Before" %}</h3>
         <div class="photo-grid">
             {% for p in before_photos %}
             <img src="{{ p.image.url }}" alt="{{ p.caption|default:'Before photo' }}"
@@ -309,7 +325,7 @@
         {% endif %}
 
         {% if progress_photos %}
-        <h4><i class="bi bi-tools me-1" aria-hidden="true"></i>{% trans "Progress" %}</h4>
+        <h3><i class="bi bi-tools me-1" aria-hidden="true"></i>{% trans "Progress" %}</h3>
         <div class="photo-grid">
             {% for p in progress_photos %}
             <img src="{{ p.image.url }}" alt="{{ p.caption|default:'Progress photo' }}"
@@ -321,7 +337,7 @@
         {% endif %}
 
         {% if after_photos %}
-        <h4><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{% trans "After" %}</h4>
+        <h3><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{% trans "After" %}</h3>
         <div class="photo-grid">
             {% for p in after_photos %}
             <img src="{{ p.image.url }}" alt="{{ p.caption|default:'After photo' }}"
@@ -337,9 +353,9 @@
     <!-- ── FLOOR PLAN ── -->
     {% if touchup.floor_plan and touchup.pin_x and touchup.pin_y %}
     <div class="detail-card fp-section">
-        <h4 style="font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#64748b;margin:0 0 8px">
+        <h3 style="font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#64748b;margin:0 0 8px">
             <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>{% trans "Location" %} — {{ touchup.floor_plan.name }}
-        </h4>
+        </h3>
         <div class="fp-container">
             <img src="{{ touchup.floor_plan.image.url }}" alt="{% trans 'Floor plan' %}: {{ touchup.floor_plan.name }}">
             <div class="fp-pin" id="fpPin" aria-label="{% trans 'Issue location' %}"></div>
@@ -351,9 +367,9 @@
     {% with updates=touchup.updates.all %}
     {% if updates %}
     <div class="detail-card">
-        <h4 style="font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#64748b;margin:0 0 4px">
+        <h3 style="font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#64748b;margin:0 0 4px">
             <i class="bi bi-clock-history me-1" aria-hidden="true"></i>{% trans "Activity" %}
-        </h4>
+        </h3>
         <div class="timeline" role="list" aria-label="{% trans 'Activity timeline' %}">
             {% for u in updates %}
             <div class="timeline-item" role="listitem">

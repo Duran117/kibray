@@ -105,9 +105,24 @@
             height: 1rem;
             border-width: 2px;
         }
+        /* Skip link for a11y */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #000;
+            color: #fff;
+            padding: 8px 16px;
+            z-index: 200;
+            font-size: 0.85rem;
+            transition: top 0.2s;
+        }
+        .skip-link:focus { top: 0; }
     </style>
 </head>
 <body>
+<!-- Skip link for accessibility -->
+<a href="#identifyForm" class="skip-link">{% trans "Skip to form" %}</a>
 <main>
 <div class="portal-card" role="region" aria-label="{% trans 'Resident identification' %}">
     <div class="portal-header">

@@ -367,7 +367,7 @@
         {% if photo %}
         <img src="{{ photo.image.url }}" class="tu-thumb" alt="{% trans 'Photo of' %} {{ tu.title }}">
         {% else %}
-        <div class="tu-thumb" aria-hidden="true"><i class="bi bi-brush"></i></div>
+        <div class="tu-thumb" aria-hidden="true"><i class="bi bi-brush" aria-hidden="true"></i></div>
         {% endif %}
         {% endwith %}
         <div class="tu-card-body">
@@ -397,7 +397,7 @@
         {% if photo %}
         <img src="{{ photo.image.url }}" class="tu-thumb" alt="{% trans 'Photo of' %} {{ tu.title }}">
         {% else %}
-        <div class="tu-thumb" aria-hidden="true"><i class="bi bi-brush"></i></div>
+        <div class="tu-thumb" aria-hidden="true"><i class="bi bi-brush" aria-hidden="true"></i></div>
         {% endif %}
         {% endwith %}
         <div class="tu-card-body">
@@ -413,11 +413,12 @@
 
     <!-- ── NEW TOUCH-UP FORM ── -->
     <div class="new-tu-section" id="newTouchup">
-        <h3 onclick="toggleForm()" id="formToggle" role="button" tabindex="0"
-            aria-expanded="true" aria-controls="touchupFormWrapper">
+        <h2 id="formToggle" role="button" tabindex="0"
+            aria-expanded="true" aria-controls="touchupFormWrapper"
+            style="font-size:1.1rem">
             <span><i class="bi bi-plus-circle me-2" aria-hidden="true"></i>{% trans "Report a New Issue" %}</span>
             <i class="bi bi-chevron-down toggle-icon" aria-hidden="true"></i>
-        </h3>
+        </h2>
 
         <div id="touchupFormWrapper">
         <form method="post" action="{% url 'portal_create_touchup' token=portal.token %}"
@@ -458,7 +459,7 @@
                         <option value="urgent">{% trans "Urgent" %}</option>
                     </select>
                 </div>
-                <button type="button" class="btn btn-portal" onclick="goStep(2)">
+                <button type="button" class="btn btn-portal" data-go-step="2">
                     {% trans "Next: Photos" %} <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
                 </button>
             </div>
@@ -481,11 +482,11 @@
                 </div>
                 {% endif %}
                 <div class="d-flex gap-2 mt-3">
-                    <button type="button" class="btn btn-outline-secondary flex-fill" style="border-radius:12px" onclick="goStep(1)">
+                    <button type="button" class="btn btn-outline-secondary flex-fill" style="border-radius:12px" data-go-step="1">
                         <i class="bi bi-arrow-left me-1" aria-hidden="true"></i> {% trans "Back" %}
                     </button>
                     {% if floor_plans %}
-                    <button type="button" class="btn btn-portal flex-fill" onclick="goStep(3)">
+                    <button type="button" class="btn btn-portal flex-fill" data-go-step="3">
                         {% trans "Next: Location" %} <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
                     </button>
                     {% else %}
@@ -501,7 +502,7 @@
             <div id="step3" style="display:none" role="group" aria-label="{% trans 'Step 3: Location' %}">
                 <div class="mb-3">
                     <label class="form-label" for="fpSelect">{% trans "Tap on the floor plan to mark the location" %}</label>
-                    <select class="form-select mb-2" id="fpSelect" onchange="loadFloorPlan()">
+                    <select class="form-select mb-2" id="fpSelect">
                         <option value="">{% trans "Select a floor plan…" %}</option>
                         {% for fp in floor_plans %}
                         <option value="{{ fp.id }}" data-url="{{ fp.image.url }}">
@@ -515,7 +516,7 @@
                             <div class="fp-pin" id="fpPin" style="display:none"></div>
                         </div>
                         <div class="photo-hint mt-1" id="pinFeedback" style="display:none">
-                            <i class="bi bi-check-circle text-success me-1"></i>{% trans "Location marked!" %}
+                            <i class="bi bi-check-circle text-success me-1" aria-hidden="true"></i>{% trans "Location marked!" %}
                         </div>
                     </div>
                 </div>
@@ -524,7 +525,7 @@
                 <input type="hidden" name="pin_y" id="pinY">
 
                 <div class="d-flex gap-2 mt-3">
-                    <button type="button" class="btn btn-outline-secondary flex-fill" style="border-radius:12px" onclick="goStep(2)">
+                    <button type="button" class="btn btn-outline-secondary flex-fill" style="border-radius:12px" data-go-step="2">
                         <i class="bi bi-arrow-left me-1" aria-hidden="true"></i> {% trans "Back" %}
                     </button>
                     <button type="submit" class="btn btn-portal flex-fill" id="submitBtn3">
@@ -540,7 +541,7 @@
 </main>
 
 <!-- ── FAB: Scroll to form ── -->
-<button class="fab-new" id="fabNew" onclick="scrollToForm()"
+<button class="fab-new" id="fabNew"
         aria-label="{% trans 'Report a new issue' %}" title="{% trans 'Report a new issue' %}">
     <i class="bi bi-plus-lg" aria-hidden="true"></i>
 </button>
@@ -735,6 +736,24 @@ if (fpContainer) {
         var feedback = document.getElementById('pinFeedback');
         if (feedback) feedback.style.display = 'block';
     });
+}
+// ─── Form toggle via click (replaces inline onclick) ───
+formToggle.addEventListener('click', toggleForm);
+
+// ─── FAB click (replaces inline onclick) ───
+fabBtn.addEventListener('click', scrollToForm);
+
+// ─── Step navigation via data-go-step (replaces inline onclick) ───
+document.querySelectorAll('[data-go-step]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        goStep(parseInt(this.dataset.goStep));
+    });
+});
+
+// ─── Floor plan select change (replaces inline onchange) ───
+var fpSelect = document.getElementById('fpSelect');
+if (fpSelect) {
+    fpSelect.addEventListener('change', loadFloorPlan);
 }
 </script>
 </body>
