@@ -275,7 +275,7 @@
         {% if touchup.assigned_to %}
         <div class="info-row">
             <span class="info-label">{% trans "Assigned To" %}</span>
-            <span>{{ touchup.assigned_to.get_full_name|default:touchup.assigned_to.username }}</span>
+            <span>{{ touchup.assigned_to }}</span>
         </div>
         {% endif %}
         {% if touchup.due_date %}
@@ -360,7 +360,7 @@
                 <span class="time">{{ u.created_at|date:"M d" }}</span>
                 <div class="content">
                     {% if u.author %}<span class="author">{{ u.author.get_full_name|default:u.author.username }}</span> — {% endif %}
-                    {{ u.note }}
+                    {{ u.comment }}
                 </div>
             </div>
             {% endfor %}
