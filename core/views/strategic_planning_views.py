@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -59,10 +61,8 @@ class StrategicPlanningSessionViewSet(viewsets.ModelViewSet):
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            import traceback
-
-            traceback.print_exc()
-            print(f"ERROR creating session: {e}")
+            logger = logging.getLogger(__name__)
+            logger.exception("Error creating strategic planning session")
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=["post"])

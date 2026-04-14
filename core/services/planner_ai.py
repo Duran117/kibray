@@ -13,8 +13,11 @@ except ImportError:
     openai = None
 
 import json
+import logging
 
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 # Configure OpenAI
 if OPENAI_AVAILABLE and openai:
@@ -105,7 +108,7 @@ RULES:
             return result
 
         except Exception as e:
-            print(f"AI Brain Dump Error: {e}")
+            logger.error("AI Brain Dump Error: %s", e)
             return {"high_impact": [], "noise": [], "summary": f"Error processing: {str(e)}"}
 
     @staticmethod
@@ -189,7 +192,7 @@ Return JSON:
             return result
 
         except Exception as e:
-            print(f"AI Frog Suggestion Error: {e}")
+            logger.error("AI Frog Suggestion Error: %s", e)
             return {"recommended_index": 0, "reasoning": f"Error: {str(e)}", "alternative": ""}
 
     @staticmethod
@@ -264,7 +267,7 @@ Return JSON array:
             return [{"text": step.get("text", step), "done": False} for step in steps]
 
         except Exception as e:
-            print(f"AI Micro-Steps Error: {e}")
+            logger.error("AI Micro-Steps Error: %s", e)
             return [
                 {"text": "Start the task", "done": False},
                 {"text": "Complete the main work", "done": False},
@@ -345,7 +348,7 @@ Consider:
             return json.loads(result_text)
 
         except Exception as e:
-            print(f"AI Time Block Error: {e}")
+            logger.error("AI Time Block Error: %s", e)
             return {
                 "suggested_start": "09:00",
                 "suggested_end": "11:00",

@@ -13080,9 +13080,26 @@ def changeorder_send_to_client(request, co_id):
         co.status = "sent"
         co.save()
 
-        # TODO: Send email notification to client
-        # This would integrate with your notification system
-        # send_co_notification_to_client(co)
+        # Notify project admins/PMs about CO sent to client
+        staff_users = User.objects.filter(
+            is_active=True,
+            profile__role__in=["admin", "project_manager"],
+        ).exclude(pk=request.user.pk).distinct()
+        for u in staff_users:
+            Notification.objects.create(
+                user=u,
+                project=co.project,
+                notification_type="change_order",
+                title=_("Change Order #%(id)s sent to client") % {"id": co.id},
+                message=_("%(user)s sent CO #%(id)s for project %(project)s to the client.") % {
+                    "user": request.user.get_full_name() or request.user.username,
+                    "id": co.id,
+                    "project": co.project.name,
+                },
+                related_object_type="ChangeOrder",
+                related_object_id=co.id,
+                link_url=f"/changeorders/{co.id}/",
+            )
 
         return JsonResponse(
             {
@@ -15880,7 +15897,23 @@ def proposal_public_view(request, token):
                 request,
                 "We have received your comments. Our team will contact you soon."
             )
-            # TODO: Notify PM/Admin via email or notification
+            # Notify admins/PMs about proposal rejection
+            staff_users = User.objects.filter(
+                is_active=True,
+                profile__role__in=["admin", "project_manager"],
+            ).distinct()
+            for u in staff_users:
+                Notification.objects.create(
+                    user=u,
+                    project=project,
+                    notification_type="change_order",
+                    title=_("Proposal revision requested — %(project)s") % {"project": project.name},
+                    message=_("Client feedback on proposal: %(feedback)s") % {
+                        "feedback": (feedback[:200] + "...") if len(feedback) > 200 else feedback,
+                    },
+                    related_object_type="Proposal",
+                    related_object_id=proposal.id,
+                )
 
     context = {
         "proposal": proposal,
@@ -16069,8 +16102,25 @@ def contract_client_view(request, token):
                         "You will receive a confirmation email shortly."
                     )
                     
-                    # TODO: Send confirmation email to client
-                    # TODO: Notify admin of signed contract
+                    # Notify admins of signed contract
+                    staff_users = User.objects.filter(
+                        is_active=True,
+                        profile__role__in=["admin", "project_manager"],
+                    ).distinct()
+                    for u in staff_users:
+                        Notification.objects.create(
+                            user=u,
+                            project=contract.project,
+                            notification_type="contract",
+                            title=_("Contract signed — %(project)s") % {"project": contract.project.name},
+                            message=_("%(client)s signed contract %(number)s for project %(project)s.") % {
+                                "client": client_name,
+                                "number": contract.contract_number,
+                                "project": contract.project.name,
+                            },
+                            related_object_type="Contract",
+                            related_object_id=contract.id,
+                        )
                     
                 except Exception as e:
                     logger.error(f"Error signing contract {contract.contract_number}: {e}")
@@ -16094,7 +16144,24 @@ def contract_client_view(request, token):
                         "Our team will review and contact you soon."
                     )
                     
-                    # TODO: Notify admin of revision request
+                    # Notify admins of revision request
+                    staff_users = User.objects.filter(
+                        is_active=True,
+                        profile__role__in=["admin", "project_manager"],
+                    ).distinct()
+                    for u in staff_users:
+                        Notification.objects.create(
+                            user=u,
+                            project=contract.project,
+                            notification_type="contract",
+                            title=_("Contract revision requested — %(project)s") % {"project": contract.project.name},
+                            message=_("Client requested revision on contract %(number)s: %(notes)s") % {
+                                "number": contract.contract_number,
+                                "notes": (revision_notes[:200] + "...") if len(revision_notes) > 200 else revision_notes,
+                            },
+                            related_object_type="Contract",
+                            related_object_id=contract.id,
+                        )
                     
                 except Exception as e:
                     logger.error(f"Error requesting revision for {contract.contract_number}: {e}")
@@ -16555,8 +16622,7 @@ def project_invoices(request, project_id):
     
     project = get_object_or_404(Project, pk=project_id)
     
-    # TODO: Implementar modelo Invoice si no existe
-    invoices = []  # project.invoices.all().order_by('-created_at')
+    invoices = project.invoices.all().order_by('-created_at')
     
     context = {
         'project': project,
