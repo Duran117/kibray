@@ -187,28 +187,60 @@
                 <h3 class="font-semibold text-slate-900 flex items-center gap-2">
                     <i class="bi bi-list-check text-blue-500"></i> {% trans "Tasks & Touch-ups" %}
                 </h3>
-                {% if active_touchups_v2 %}
-                <span class="px-2.5 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">{{ active_touchups_v2|length }} {% trans "active" %}</span>
-                {% endif %}
+                <div class="flex items-center gap-2">
+                    {% if active_touchups_v2 %}
+                    <span class="px-2.5 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">{{ active_touchups_v2|length }} {% trans "active" %}</span>
+                    {% endif %}
+                    <button type="button" onclick="document.getElementById('touchupModal').classList.remove('hidden')"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition">
+                        <i class="bi bi-plus-circle"></i> {% trans "Report Issue" %}
+                    </button>
+                </div>
             </div>
             <div class="divide-y divide-slate-100">
-                {% for tu in active_touchups_v2|slice:":5" %}
-                <div class="px-6 py-4 hover:bg-slate-50 transition">
+                {% for tu in active_touchups_v2|slice:":10" %}
+                <div class="px-6 py-4 hover:bg-slate-50 transition cursor-pointer" onclick="showTouchupTracker({{ tu.id }})">
                     <div class="flex justify-between items-start">
-                        <div>
-                            <p class="font-medium text-slate-900">{{ tu.title }}</p>
-                            {% if tu.assigned_to %}
-                            <p class="text-xs text-slate-400 mt-1"><i class="bi bi-person"></i> {{ tu.assigned_to.user.get_full_name|default:tu.assigned_to.user.username }}</p>
-                            {% else %}
-                            <p class="text-xs text-amber-500 mt-1"><i class="bi bi-exclamation-circle"></i> {% trans "Unassigned" %}</p>
-                            {% endif %}
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <p class="font-medium text-slate-900 truncate">{{ tu.title }}</p>
+                                {% if tu.floor_plan %}
+                                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-cyan-50 text-cyan-700 rounded text-xs" title="{% trans 'Has location pin' %}">
+                                    <i class="bi bi-geo-alt-fill text-xs"></i> {{ tu.floor_plan.name|truncatechars:15 }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            <div class="flex items-center gap-3 mt-1">
+                                {% if tu.assigned_to %}
+                                <p class="text-xs text-slate-400"><i class="bi bi-person"></i> {{ tu.assigned_to.user.get_full_name|default:tu.assigned_to.user.username }}</p>
+                                {% else %}
+                                <p class="text-xs text-amber-500"><i class="bi bi-exclamation-circle"></i> {% trans "Unassigned" %}</p>
+                                {% endif %}
+                                <p class="text-xs text-slate-400"><i class="bi bi-clock"></i> {{ tu.created_at|date:"M d" }}</p>
+                            </div>
                         </div>
-                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium flex-shrink-0
                             {% if tu.status == 'in_progress' %}bg-blue-50 text-blue-700
                             {% elif tu.status == 'review' %}bg-purple-50 text-purple-700
+                            {% elif tu.status == 'closed' %}bg-emerald-50 text-emerald-700
                             {% else %}bg-slate-100 text-slate-600{% endif %}">
                             {{ tu.get_status_display }}
                         </span>
+                    </div>
+                    <!-- Status tracker bar -->
+                    <div class="mt-3">
+                        <div class="flex items-center gap-1">
+                            <div class="flex-1 h-1.5 rounded-full {% if tu.status == 'open' or tu.status == 'in_progress' or tu.status == 'review' or tu.status == 'closed' %}bg-indigo-500{% else %}bg-slate-200{% endif %}"></div>
+                            <div class="flex-1 h-1.5 rounded-full {% if tu.status == 'in_progress' or tu.status == 'review' or tu.status == 'closed' %}bg-blue-500{% else %}bg-slate-200{% endif %}"></div>
+                            <div class="flex-1 h-1.5 rounded-full {% if tu.status == 'review' or tu.status == 'closed' %}bg-purple-500{% else %}bg-slate-200{% endif %}"></div>
+                            <div class="flex-1 h-1.5 rounded-full {% if tu.status == 'closed' %}bg-emerald-500{% else %}bg-slate-200{% endif %}"></div>
+                        </div>
+                        <div class="flex justify-between mt-1">
+                            <span class="text-xs {% if tu.status == 'open' %}text-indigo-600 font-medium{% else %}text-slate-400{% endif %}">{% trans "Open" %}</span>
+                            <span class="text-xs {% if tu.status == 'in_progress' %}text-blue-600 font-medium{% else %}text-slate-400{% endif %}">{% trans "Working" %}</span>
+                            <span class="text-xs {% if tu.status == 'review' %}text-purple-600 font-medium{% else %}text-slate-400{% endif %}">{% trans "Review" %}</span>
+                            <span class="text-xs {% if tu.status == 'closed' %}text-emerald-600 font-medium{% else %}text-slate-400{% endif %}">{% trans "Done" %}</span>
+                        </div>
                     </div>
                     {% if tu.photos.exists %}
                     <div class="flex gap-1.5 mt-2">
@@ -224,10 +256,31 @@
                 {% empty %}
                 <div class="px-6 py-10 text-center">
                     <i class="bi bi-check-circle text-3xl text-slate-300 mb-2"></i>
-                    <p class="text-sm text-slate-500">{% trans "No pending tasks" %}</p>
+                    <p class="text-sm text-slate-500 mb-3">{% trans "No pending tasks" %}</p>
+                    <button type="button" onclick="document.getElementById('touchupModal').classList.remove('hidden')"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
+                        <i class="bi bi-plus-circle"></i> {% trans "Report an Issue" %}
+                    </button>
                 </div>
                 {% endfor %}
             </div>
+            {% if closed_touchups_v2 %}
+            <div class="px-6 py-3 border-t border-slate-100 bg-slate-50">
+                <details>
+                    <summary class="text-xs text-slate-500 cursor-pointer hover:text-slate-700">
+                        <i class="bi bi-check-circle"></i> {% trans "View completed touch-ups" %} ({{ closed_touchups_v2|length }})
+                    </summary>
+                    <div class="mt-2 space-y-2">
+                        {% for tu in closed_touchups_v2 %}
+                        <div class="flex items-center justify-between py-1.5">
+                            <span class="text-xs text-slate-600 line-through">{{ tu.title|truncatechars:40 }}</span>
+                            <span class="text-xs text-emerald-600"><i class="bi bi-check"></i> {{ tu.closed_at|date:"M d" }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </details>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Recent Photos -->
@@ -464,4 +517,481 @@
         </div>
     </div>
 </div>
+
+<!-- ========================= TOUCH-UP CREATION MODAL ========================= -->
+<div id="touchupModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
+  <div class="fixed inset-0 bg-black/50 transition-opacity" onclick="closeTouchupModal()"></div>
+  <div class="flex min-h-full items-end sm:items-center justify-center p-4">
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg transform transition-all" onclick="event.stopPropagation()">
+
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+          <i class="bi bi-exclamation-triangle text-amber-500"></i> {% trans "Report an Issue" %}
+        </h3>
+        <button type="button" onclick="closeTouchupModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center transition">
+          <i class="bi bi-x-lg text-slate-400"></i>
+        </button>
+      </div>
+
+      <form method="post" action="{% url 'agregar_tarea' project.id %}" enctype="multipart/form-data" id="touchupForm">
+        {% csrf_token %}
+        <input type="hidden" name="floor_plan_id" id="tu_floor_plan_id" value="">
+        <input type="hidden" name="pin_x" id="tu_pin_x" value="">
+        <input type="hidden" name="pin_y" id="tu_pin_y" value="">
+
+        <div class="p-6 space-y-5">
+
+          <!-- Step indicator -->
+          <div class="flex items-center justify-center gap-2 mb-2" id="tuStepNav">
+            <button type="button" onclick="tuGoToStep(1)" class="tu-step-dot active" data-step="1">
+              <span class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-medium">1</span>
+              <span class="text-xs mt-1">{% trans "Photo" %}</span>
+            </button>
+            <div class="w-12 h-0.5 bg-slate-200"></div>
+            <button type="button" onclick="tuGoToStep(2)" class="tu-step-dot" data-step="2">
+              <span class="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-sm font-medium">2</span>
+              <span class="text-xs mt-1">{% trans "Describe" %}</span>
+            </button>
+            <div class="w-12 h-0.5 bg-slate-200"></div>
+            <button type="button" onclick="tuGoToStep(3)" class="tu-step-dot" data-step="3">
+              <span class="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-sm font-medium">3</span>
+              <span class="text-xs mt-1">{% trans "Location" %}</span>
+            </button>
+          </div>
+
+          <!-- STEP 1: Photos -->
+          <div id="tuStep1" class="tu-step">
+            <div class="text-center py-4">
+              <div id="tuPhotoPreview" class="flex flex-wrap gap-2 justify-center mb-3"></div>
+              <div id="tuPhotoCount" class="text-sm text-slate-500 mb-3 hidden"></div>
+              <div id="tuPhotoFilesWrap"></div>
+              <button type="button" onclick="tuAddPhotos()" class="inline-flex items-center gap-2 px-5 py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-600 hover:border-indigo-400 hover:text-indigo-600 transition">
+                <i class="bi bi-camera text-xl"></i> {% trans "Take or Select Photos" %}
+              </button>
+              <p class="text-xs text-slate-400 mt-2">{% trans "Photos help our team understand the issue faster" %}</p>
+            </div>
+          </div>
+
+          <!-- STEP 2: Description -->
+          <div id="tuStep2" class="tu-step hidden">
+            <div class="space-y-3">
+              <div>
+                <label for="tu_title" class="block text-sm font-medium text-slate-700 mb-1">{% trans "What's the issue?" %} <span class="text-red-500">*</span></label>
+                <input type="text" id="tu_title" name="title" required maxlength="200"
+                       class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                       placeholder="{% trans 'e.g. Paint scratched on living room wall' %}">
+              </div>
+              <div>
+                <label for="tu_description" class="block text-sm font-medium text-slate-700 mb-1">{% trans "Details" %} <span class="text-slate-400 font-normal">({% trans "optional" %})</span></label>
+                <textarea id="tu_description" name="description" rows="3"
+                          class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                          placeholder="{% trans 'Describe the location and what needs to be fixed...' %}"></textarea>
+              </div>
+              <div>
+                <label for="tu_priority" class="block text-sm font-medium text-slate-700 mb-1">{% trans "Priority" %}</label>
+                <div class="flex gap-2">
+                  <label class="flex-1 cursor-pointer">
+                    <input type="radio" name="priority" value="low" class="sr-only peer">
+                    <div class="text-center px-3 py-2 border border-slate-200 rounded-lg text-sm peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition">{% trans "Low" %}</div>
+                  </label>
+                  <label class="flex-1 cursor-pointer">
+                    <input type="radio" name="priority" value="medium" class="sr-only peer" checked>
+                    <div class="text-center px-3 py-2 border border-slate-200 rounded-lg text-sm peer-checked:border-amber-500 peer-checked:bg-amber-50 peer-checked:text-amber-700 transition">{% trans "Medium" %}</div>
+                  </label>
+                  <label class="flex-1 cursor-pointer">
+                    <input type="radio" name="priority" value="high" class="sr-only peer">
+                    <div class="text-center px-3 py-2 border border-slate-200 rounded-lg text-sm peer-checked:border-red-500 peer-checked:bg-red-50 peer-checked:text-red-700 transition">{% trans "High" %}</div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 3: Location (Optional) -->
+          <div id="tuStep3" class="tu-step hidden">
+            {% if floor_plans %}
+            <p class="text-sm text-slate-600 mb-3">
+              <i class="bi bi-geo-alt text-indigo-500"></i>
+              {% trans "Optionally mark the exact location on a floor plan" %}
+            </p>
+
+            <!-- Level Selector (if multiple plans) -->
+            {% if floor_plans|length > 1 %}
+            <div class="mb-3">
+              <label class="block text-sm font-medium text-slate-700 mb-1">{% trans "Select Level" %}</label>
+              <div class="flex flex-wrap gap-2" id="tuLevelBtns">
+                {% for fp in floor_plans %}
+                <button type="button"
+                        class="tu-level-btn px-3 py-1.5 border border-slate-200 rounded-lg text-sm hover:border-indigo-300 transition"
+                        data-plan-id="{{ fp.id }}"
+                        data-plan-url="{{ fp.image.url }}"
+                        onclick="tuSelectLevel(this)">
+                  {{ fp.name }}
+                </button>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Floor plan image with pin -->
+            <div id="tuPlanContainer" class="relative border border-slate-200 rounded-lg overflow-hidden bg-slate-50 {% if floor_plans|length > 1 %}hidden{% endif %}" style="max-height: 350px;">
+              <img id="tuPlanImage"
+                   {% if floor_plans|length == 1 %}src="{{ floor_plans.0.image.url }}"{% else %}src=""{% endif %}
+                   class="w-full h-auto cursor-crosshair"
+                   onclick="tuPlacePin(event)"
+                   alt="{% trans 'Floor Plan' %}"
+                   draggable="false">
+              <!-- Pin marker -->
+              <div id="tuPinMarker" class="hidden absolute pointer-events-none" style="transform: translate(-50%, -100%);">
+                <svg width="24" height="32" viewBox="0 0 24 32" fill="none">
+                  <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 20 12 20s12-11 12-20C24 5.373 18.627 0 12 0z" fill="#6366f1"/>
+                  <circle cx="12" cy="12" r="5" fill="white"/>
+                </svg>
+              </div>
+            </div>
+
+            {% if floor_plans|length == 1 %}
+            <script>document.addEventListener('DOMContentLoaded',function(){document.getElementById('tu_floor_plan_id').value='{{ floor_plans.0.id }}';});</script>
+            {% endif %}
+
+            <!-- Location summary -->
+            <div id="tuLocationSummary" class="hidden mt-3 p-3 bg-indigo-50 rounded-lg flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i class="bi bi-geo-alt-fill text-indigo-600"></i>
+                <span class="text-sm text-indigo-800" id="tuLocationText">{% trans "Pin placed" %}</span>
+              </div>
+              <button type="button" onclick="tuClearPin()" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                <i class="bi bi-x-circle"></i> {% trans "Remove" %}
+              </button>
+            </div>
+
+            {% else %}
+            <div class="text-center py-6">
+              <i class="bi bi-map text-2xl text-slate-300 mb-2"></i>
+              <p class="text-sm text-slate-500">{% trans "No floor plans available for this project" %}</p>
+              <p class="text-xs text-slate-400 mt-1">{% trans "You can skip this step" %}</p>
+            </div>
+            {% endif %}
+          </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
+          <button type="button" id="tuBtnBack" onclick="tuGoToStep(tuCurrentStep-1)" class="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 transition hidden">
+            <i class="bi bi-arrow-left"></i> {% trans "Back" %}
+          </button>
+          <div class="flex-1"></div>
+          <button type="button" id="tuBtnNext" onclick="tuGoToStep(tuCurrentStep+1)" class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
+            {% trans "Next" %} <i class="bi bi-arrow-right"></i>
+          </button>
+          <button type="submit" id="tuBtnSubmit" class="hidden px-5 py-2.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition">
+            <i class="bi bi-send"></i> {% trans "Submit" %}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= TOUCH-UP DETAIL TRACKER MODAL ========================= -->
+<div id="touchupTrackerModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
+  <div class="fixed inset-0 bg-black/50" onclick="closeTouchupTracker()"></div>
+  <div class="flex min-h-full items-end sm:items-center justify-center p-4">
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all" onclick="event.stopPropagation()">
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-slate-900" id="trackerTitle">{% trans "Touch-Up Details" %}</h3>
+        <button type="button" onclick="closeTouchupTracker()" class="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center">
+          <i class="bi bi-x-lg text-slate-400"></i>
+        </button>
+      </div>
+      <div class="p-6" id="trackerContent">
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ============================================================
+   TOUCH-UP CREATION MODAL
+   ============================================================ */
+let tuCurrentStep = 1;
+let tuPhotoIndex = 0;
+
+function closeTouchupModal() {
+  document.getElementById('touchupModal').classList.add('hidden');
+}
+
+function tuGoToStep(step) {
+  if (step < 1 || step > 3) return;
+  if (step > 2 && !document.getElementById('tu_title').value.trim()) {
+    if (tuCurrentStep <= 2) {
+      tuCurrentStep = 2;
+      showTuStep(2);
+      document.getElementById('tu_title').focus();
+      document.getElementById('tu_title').classList.add('ring-2', 'ring-red-400');
+      setTimeout(function(){ document.getElementById('tu_title').classList.remove('ring-2', 'ring-red-400'); }, 2000);
+      return;
+    }
+  }
+  tuCurrentStep = step;
+  showTuStep(step);
+}
+
+function showTuStep(step) {
+  document.querySelectorAll('.tu-step').forEach(function(el){ el.classList.add('hidden'); });
+  document.getElementById('tuStep' + step).classList.remove('hidden');
+
+  document.querySelectorAll('.tu-step-dot').forEach(function(dot){
+    var s = parseInt(dot.dataset.step);
+    var circle = dot.querySelector('span:first-child');
+    if (s === step) {
+      circle.className = 'w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-medium';
+    } else if (s < step) {
+      circle.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-medium';
+    } else {
+      circle.className = 'w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-sm font-medium';
+    }
+  });
+
+  document.getElementById('tuBtnBack').classList.toggle('hidden', step === 1);
+  document.getElementById('tuBtnNext').classList.toggle('hidden', step === 3);
+  document.getElementById('tuBtnSubmit').classList.toggle('hidden', step !== 3);
+
+  if (step === 2) {
+    setTimeout(function(){ document.getElementById('tu_title').focus(); }, 200);
+  }
+}
+
+function tuAddPhotos() {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.name = 'photos';
+  input.accept = 'image/*';
+  input.multiple = true;
+  input.style.display = 'none';
+  input.dataset.idx = tuPhotoIndex++;
+  input.addEventListener('change', function() {
+    if (!this.files.length) { this.remove(); return; }
+    tuRenderPreviews();
+  });
+  document.getElementById('tuPhotoFilesWrap').appendChild(input);
+  input.click();
+}
+
+function tuRemovePhotoInput(idx) {
+  var el = document.querySelector('#tuPhotoFilesWrap input[data-idx="' + idx + '"]');
+  if (el) el.remove();
+  tuRenderPreviews();
+}
+
+function tuRenderPreviews() {
+  var container = document.getElementById('tuPhotoPreview');
+  var countEl = document.getElementById('tuPhotoCount');
+  container.innerHTML = '';
+  var total = 0;
+  document.querySelectorAll('#tuPhotoFilesWrap input[type="file"]').forEach(function(input) {
+    var idx = input.dataset.idx;
+    Array.from(input.files).forEach(function(file) {
+      total++;
+      var wrapper = document.createElement('div');
+      wrapper.className = 'relative';
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        wrapper.innerHTML = '<img src="' + e.target.result + '" class="w-16 h-16 rounded-lg object-cover border border-slate-200">'
+          + '<button type="button" onclick="tuRemovePhotoInput(' + idx + ')" class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600">&times;</button>';
+      };
+      reader.readAsDataURL(file);
+      container.appendChild(wrapper);
+    });
+  });
+  if (total) {
+    countEl.textContent = total + ' {% trans "photo(s)" %}';
+    countEl.classList.remove('hidden');
+  } else {
+    countEl.classList.add('hidden');
+  }
+}
+
+function tuSelectLevel(btn) {
+  document.querySelectorAll('.tu-level-btn').forEach(function(b) {
+    b.classList.remove('border-indigo-500', 'bg-indigo-50', 'text-indigo-700');
+    b.classList.add('border-slate-200');
+  });
+  btn.classList.add('border-indigo-500', 'bg-indigo-50', 'text-indigo-700');
+  btn.classList.remove('border-slate-200');
+
+  document.getElementById('tu_floor_plan_id').value = btn.dataset.planId;
+  document.getElementById('tuPlanImage').src = btn.dataset.planUrl;
+  document.getElementById('tuPlanContainer').classList.remove('hidden');
+  tuClearPin();
+}
+
+function tuPlacePin(event) {
+  var img = document.getElementById('tuPlanImage');
+  var rect = img.getBoundingClientRect();
+  var x = (event.clientX - rect.left) / rect.width;
+  var y = (event.clientY - rect.top) / rect.height;
+  var px = Math.max(0, Math.min(1, x));
+  var py = Math.max(0, Math.min(1, y));
+
+  document.getElementById('tu_pin_x').value = px.toFixed(4);
+  document.getElementById('tu_pin_y').value = py.toFixed(4);
+
+  var marker = document.getElementById('tuPinMarker');
+  marker.classList.remove('hidden');
+  marker.style.left = (px * 100) + '%';
+  marker.style.top = (py * 100) + '%';
+
+  var planBtn = document.querySelector('.tu-level-btn.border-indigo-500');
+  var levelText = planBtn ? planBtn.textContent.trim() : '{% trans "Floor Plan" %}';
+  document.getElementById('tuLocationText').textContent = levelText;
+  document.getElementById('tuLocationSummary').classList.remove('hidden');
+}
+
+function tuClearPin() {
+  document.getElementById('tu_pin_x').value = '';
+  document.getElementById('tu_pin_y').value = '';
+  document.getElementById('tuPinMarker').classList.add('hidden');
+  document.getElementById('tuLocationSummary').classList.add('hidden');
+}
+
+/* ============================================================
+   TOUCH-UP TRACKER (Detail inline popup)
+   ============================================================ */
+var touchupData = {
+  {% for tu in active_touchups_v2 %}
+  '{{ tu.id }}': {
+    title: "{{ tu.title|escapejs }}",
+    status: "{{ tu.status }}",
+    statusDisplay: "{{ tu.get_status_display|escapejs }}",
+    priority: "{{ tu.priority }}",
+    priorityDisplay: "{{ tu.get_priority_display|escapejs }}",
+    createdAt: "{{ tu.created_at|date:'M d, Y' }}",
+    description: "{{ tu.description|escapejs|truncatechars:200 }}",
+    assignedTo: "{{ tu.assigned_to.user.get_full_name|default:''|escapejs }}",
+    hasPlan: {% if tu.floor_plan_id %}true{% else %}false{% endif %},
+    planName: "{{ tu.floor_plan.name|default:''|escapejs }}",
+    planImage: "{% if tu.floor_plan %}{{ tu.floor_plan.image.url }}{% endif %}",
+    pinX: "{{ tu.floor_plan_pin_x|default:'' }}",
+    pinY: "{{ tu.floor_plan_pin_y|default:'' }}",
+    closedAt: "{{ tu.closed_at|date:'M d, Y'|default:'' }}"
+  },
+  {% endfor %}
+  {% for tu in closed_touchups_v2 %}
+  '{{ tu.id }}': {
+    title: "{{ tu.title|escapejs }}",
+    status: "{{ tu.status }}",
+    statusDisplay: "{{ tu.get_status_display|escapejs }}",
+    priority: "{{ tu.priority }}",
+    priorityDisplay: "{{ tu.get_priority_display|escapejs }}",
+    createdAt: "{{ tu.created_at|date:'M d, Y' }}",
+    description: "{{ tu.description|escapejs|truncatechars:200 }}",
+    assignedTo: "{{ tu.assigned_to.user.get_full_name|default:''|escapejs }}",
+    hasPlan: {% if tu.floor_plan_id %}true{% else %}false{% endif %},
+    planName: "{{ tu.floor_plan.name|default:''|escapejs }}",
+    planImage: "{% if tu.floor_plan %}{{ tu.floor_plan.image.url }}{% endif %}",
+    pinX: "{{ tu.floor_plan_pin_x|default:'' }}",
+    pinY: "{{ tu.floor_plan_pin_y|default:'' }}",
+    closedAt: "{{ tu.closed_at|date:'M d, Y'|default:'' }}"
+  },
+  {% endfor %}
+};
+
+function showTouchupTracker(id) {
+  var tu = touchupData[String(id)];
+  if (!tu) return;
+
+  document.getElementById('trackerTitle').textContent = tu.title;
+
+  var statusColors = {
+    'open': 'bg-slate-100 text-slate-600',
+    'in_progress': 'bg-blue-50 text-blue-700',
+    'review': 'bg-purple-50 text-purple-700',
+    'closed': 'bg-emerald-50 text-emerald-700'
+  };
+  var priorityColors = {
+    'low': 'bg-slate-100 text-slate-600',
+    'medium': 'bg-amber-50 text-amber-700',
+    'high': 'bg-red-50 text-red-700',
+    'urgent': 'bg-red-100 text-red-800'
+  };
+
+  var html = '';
+  html += '<div class="flex items-center gap-2 mb-4">';
+  html += '<span class="px-2.5 py-1 rounded-full text-xs font-medium ' + (statusColors[tu.status] || '') + '">' + tu.statusDisplay + '</span>';
+  html += '<span class="px-2.5 py-1 rounded-full text-xs font-medium ' + (priorityColors[tu.priority] || '') + '">' + tu.priorityDisplay + '</span>';
+  html += '</div>';
+
+  var steps = ['open', 'in_progress', 'review', 'closed'];
+  var stepLabels = {'open': '{% trans "Open" %}', 'in_progress': '{% trans "Working" %}', 'review': '{% trans "Review" %}', 'closed': '{% trans "Done" %}'};
+  var stepIdx = steps.indexOf(tu.status);
+  var colors = ['bg-indigo-500', 'bg-blue-500', 'bg-purple-500', 'bg-emerald-500'];
+  html += '<div class="mb-5"><div class="flex items-center gap-1 mb-2">';
+  steps.forEach(function(s, i) {
+    html += '<div class="flex-1 h-2 rounded-full ' + (i <= stepIdx ? colors[i] : 'bg-slate-200') + '"></div>';
+  });
+  html += '</div><div class="flex justify-between">';
+  steps.forEach(function(s) {
+    var isCurrent = s === tu.status;
+    html += '<span class="text-xs ' + (isCurrent ? 'font-semibold text-slate-900' : 'text-slate-400') + '">' + stepLabels[s] + '</span>';
+  });
+  html += '</div></div>';
+
+  if (tu.description) {
+    html += '<div class="mb-4"><p class="text-sm text-slate-600">' + tu.description + '</p></div>';
+  }
+
+  html += '<div class="grid grid-cols-2 gap-3 mb-4 text-sm">';
+  html += '<div><span class="text-slate-400 block text-xs">{% trans "Created" %}</span><span class="text-slate-700">' + tu.createdAt + '</span></div>';
+  if (tu.assignedTo) {
+    html += '<div><span class="text-slate-400 block text-xs">{% trans "Assigned To" %}</span><span class="text-slate-700">' + tu.assignedTo + '</span></div>';
+  }
+  if (tu.closedAt) {
+    html += '<div><span class="text-slate-400 block text-xs">{% trans "Completed" %}</span><span class="text-emerald-600">' + tu.closedAt + '</span></div>';
+  }
+  html += '</div>';
+
+  if (tu.hasPlan && tu.planImage && tu.pinX && tu.pinY) {
+    html += '<div class="mb-2"><span class="text-xs font-medium text-slate-500 flex items-center gap-1"><i class="bi bi-geo-alt text-indigo-500"></i> ' + tu.planName + '</span></div>';
+    html += '<div class="relative border border-slate-200 rounded-lg overflow-hidden" style="max-height:220px;">';
+    html += '<img src="' + tu.planImage + '" class="w-full h-auto" draggable="false">';
+    html += '<div class="absolute pointer-events-none" style="left:' + (parseFloat(tu.pinX)*100) + '%;top:' + (parseFloat(tu.pinY)*100) + '%;transform:translate(-50%,-100%)">';
+    html += '<svg width="24" height="32" viewBox="0 0 24 32" fill="none"><path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 20 12 20s12-11 12-20C24 5.373 18.627 0 12 0z" fill="#6366f1"/><circle cx="12" cy="12" r="5" fill="white"/></svg>';
+    html += '</div></div>';
+  }
+
+  document.getElementById('trackerContent').innerHTML = html;
+  document.getElementById('touchupTrackerModal').classList.remove('hidden');
+}
+
+function closeTouchupTracker() {
+  document.getElementById('touchupTrackerModal').classList.add('hidden');
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeTouchupModal();
+    closeTouchupTracker();
+  }
+});
+
+document.getElementById('touchupForm').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+    if (tuCurrentStep < 3) {
+      e.preventDefault();
+      tuGoToStep(tuCurrentStep + 1);
+    }
+  }
+});
+</script>
+
+<style>
+.tu-step-dot { display:flex; flex-direction:column; align-items:center; gap:2px; background:none; border:none; cursor:pointer; padding:0; }
+#tuPlanContainer { user-select:none; -webkit-user-select:none; }
+</style>
 {% endblock %}

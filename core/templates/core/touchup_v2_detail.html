@@ -203,7 +203,9 @@
 
       <!-- Info Card -->
       <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white fw-semibold"><i class="bi bi-info-circle"></i> {% trans "Details" %}</div>
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <span class="fw-semibold"><i class="bi bi-info-circle"></i> {% trans "Details" %}</span>
+        </div>
         <div class="card-body">
           {% if touchup.description %}
           <div class="mb-3">
@@ -225,6 +227,53 @@
           {% endif %}
         </div>
       </div>
+
+      <!-- Floor Plan Location Card -->
+      {% if touchup.floor_plan and touchup.floor_plan_pin_x and touchup.floor_plan_pin_y %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <span class="fw-semibold"><i class="bi bi-geo-alt text-primary"></i> {% trans "Location" %}</span>
+          {% if can_edit %}
+          <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editLocationModal">
+            <i class="bi bi-pencil"></i> {% trans "Edit" %}
+          </button>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          <div class="mb-2">
+            <span class="badge bg-primary bg-opacity-10 text-primary"><i class="bi bi-layers"></i> {{ touchup.floor_plan.name }}</span>
+          </div>
+          <div class="position-relative border rounded overflow-hidden" style="max-height: 300px;">
+            <img src="{{ touchup.floor_plan.image.url }}" class="w-100 h-auto" alt="{{ touchup.floor_plan.name }}" draggable="false">
+            <div class="position-absolute" id="detailPinMarker" style="pointer-events:none; transform:translate(-50%,-100%);">
+              <svg width="28" height="36" viewBox="0 0 24 32" fill="none">
+                <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 20 12 20s12-11 12-20C24 5.373 18.627 0 12 0z" fill="#6366f1"/>
+                <circle cx="12" cy="12" r="5" fill="white"/>
+              </svg>
+            </div>
+          </div>
+          <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            var m = document.getElementById('detailPinMarker');
+            if (m) { m.style.left = ({{ touchup.floor_plan_pin_x }} * 100) + '%'; m.style.top = ({{ touchup.floor_plan_pin_y }} * 100) + '%'; }
+          });
+          </script>
+        </div>
+      </div>
+      {% elif floor_plans and can_edit %}
+      <!-- No pin set yet, but floor plans exist — allow adding -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <span class="fw-semibold"><i class="bi bi-geo-alt text-muted"></i> {% trans "Location" %}</span>
+        </div>
+        <div class="card-body text-center py-4">
+          <p class="text-muted small mb-2">{% trans "No location pin set for this touch-up." %}</p>
+          <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editLocationModal">
+            <i class="bi bi-geo-alt"></i> {% trans "Add Location" %}
+          </button>
+        </div>
+      </div>
+      {% endif %}
 
       <!-- Color Card -->
       {% if touchup.color_name or touchup.color_code or touchup.color_hex %}
@@ -507,6 +556,139 @@
     </form>
   </div>
 </div>
+{% endif %}
+
+<!-- EDIT LOCATION MODAL -->
+{% if can_edit and floor_plans %}
+<div class="modal fade" id="editLocationModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <form method="post" action="{% url 'touchup_v2_update' project.id touchup.id %}" class="modal-content">
+      {% csrf_token %}
+      <!-- Keep existing fields unchanged -->
+      <input type="hidden" name="title" value="{{ touchup.title }}">
+      <input type="hidden" name="description" value="{{ touchup.description }}">
+      <input type="hidden" name="status" value="{{ touchup.status }}">
+      <input type="hidden" name="priority" value="{{ touchup.priority }}">
+      <input type="hidden" name="floor_plan_id" id="loc_floor_plan_id" value="{{ touchup.floor_plan_id|default:'' }}">
+      <input type="hidden" name="pin_x" id="loc_pin_x" value="{{ touchup.floor_plan_pin_x|default:'' }}">
+      <input type="hidden" name="pin_y" id="loc_pin_y" value="{{ touchup.floor_plan_pin_y|default:'' }}">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-geo-alt text-primary"></i> {% trans "Edit Location" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small mb-3">{% trans "Tap on the floor plan to mark the exact location." %}</p>
+
+        {% if floor_plans|length > 1 %}
+        <div class="mb-3">
+          <label class="form-label">{% trans "Select Level" %}</label>
+          <div class="d-flex flex-wrap gap-2">
+            {% for fp in floor_plans %}
+            <button type="button"
+                    class="btn btn-sm loc-level-btn {% if touchup.floor_plan_id == fp.id %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                    data-plan-id="{{ fp.id }}"
+                    data-plan-url="{{ fp.image.url }}"
+                    onclick="locSelectLevel(this)">
+              {{ fp.name }}
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <div id="locPlanContainer" class="position-relative border rounded overflow-hidden bg-light {% if floor_plans|length > 1 and not touchup.floor_plan %}d-none{% endif %}" style="max-height: 500px; overflow-y: auto;">
+          <img id="locPlanImage"
+               {% if touchup.floor_plan %}src="{{ touchup.floor_plan.image.url }}"{% elif floor_plans|length == 1 %}src="{{ floor_plans.0.image.url }}"{% else %}src=""{% endif %}
+               class="w-100 h-auto"
+               style="cursor: crosshair;"
+               onclick="locPlacePin(event)"
+               alt="{% trans 'Floor Plan' %}"
+               draggable="false">
+          <div id="locPinMarker" class="position-absolute {% if not touchup.floor_plan_pin_x %}d-none{% endif %}" style="pointer-events:none; transform:translate(-50%,-100%);">
+            <svg width="28" height="36" viewBox="0 0 24 32" fill="none">
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 20 12 20s12-11 12-20C24 5.373 18.627 0 12 0z" fill="#6366f1"/>
+              <circle cx="12" cy="12" r="5" fill="white"/>
+            </svg>
+          </div>
+        </div>
+
+        {% if floor_plans|length == 1 and not touchup.floor_plan %}
+        <script>document.addEventListener('DOMContentLoaded',function(){document.getElementById('loc_floor_plan_id').value='{{ floor_plans.0.id }}';});</script>
+        {% endif %}
+
+        <div id="locLocationSummary" class="{% if not touchup.floor_plan_pin_x %}d-none{% endif %} mt-3 p-3 bg-primary bg-opacity-10 rounded d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-geo-alt-fill text-primary"></i>
+            <span class="small text-primary" id="locLocationText">
+              {% if touchup.floor_plan %}{{ touchup.floor_plan.name }}{% else %}{% trans "Pin placed" %}{% endif %}
+            </span>
+          </div>
+          <button type="button" onclick="locClearPin()" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-x-circle"></i> {% trans "Remove" %}
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> {% trans "Save Location" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+/* Position existing pin marker in edit modal */
+document.addEventListener('DOMContentLoaded', function() {
+  var px = '{{ touchup.floor_plan_pin_x|default:"" }}';
+  var py = '{{ touchup.floor_plan_pin_y|default:"" }}';
+  if (px && py) {
+    var marker = document.getElementById('locPinMarker');
+    marker.style.left = (parseFloat(px) * 100) + '%';
+    marker.style.top = (parseFloat(py) * 100) + '%';
+  }
+});
+
+function locSelectLevel(btn) {
+  document.querySelectorAll('.loc-level-btn').forEach(function(b) {
+    b.classList.remove('btn-primary');
+    b.classList.add('btn-outline-secondary');
+  });
+  btn.classList.remove('btn-outline-secondary');
+  btn.classList.add('btn-primary');
+  document.getElementById('loc_floor_plan_id').value = btn.dataset.planId;
+  document.getElementById('locPlanImage').src = btn.dataset.planUrl;
+  document.getElementById('locPlanContainer').classList.remove('d-none');
+  locClearPin();
+}
+
+function locPlacePin(event) {
+  var img = document.getElementById('locPlanImage');
+  var rect = img.getBoundingClientRect();
+  var x = (event.clientX - rect.left) / rect.width;
+  var y = (event.clientY - rect.top) / rect.height;
+  var px = Math.max(0, Math.min(1, x));
+  var py = Math.max(0, Math.min(1, y));
+  document.getElementById('loc_pin_x').value = px.toFixed(4);
+  document.getElementById('loc_pin_y').value = py.toFixed(4);
+  var marker = document.getElementById('locPinMarker');
+  marker.classList.remove('d-none');
+  marker.style.left = (px * 100) + '%';
+  marker.style.top = (py * 100) + '%';
+  var planBtn = document.querySelector('.loc-level-btn.btn-primary');
+  var levelText = planBtn ? planBtn.textContent.trim() : '{% trans "Floor Plan" %}';
+  document.getElementById('locLocationText').textContent = levelText;
+  document.getElementById('locLocationSummary').classList.remove('d-none');
+  document.getElementById('locLocationSummary').classList.add('d-flex');
+}
+
+function locClearPin() {
+  document.getElementById('loc_pin_x').value = '';
+  document.getElementById('loc_pin_y').value = '';
+  document.getElementById('locPinMarker').classList.add('d-none');
+  document.getElementById('locLocationSummary').classList.add('d-none');
+  document.getElementById('locLocationSummary').classList.remove('d-flex');
+}
+</script>
 {% endif %}
 
 <!-- Cumulative Photo Upload JS -->

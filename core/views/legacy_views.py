@@ -2592,7 +2592,7 @@ def client_project_view(request, project_id):
     # Touch-ups V2 (sistema principal)
     project_touchups_v2 = TouchUp.objects.filter(
         project=project
-    ).select_related("assigned_to__user").prefetch_related("photos").order_by("-created_at")
+    ).select_related("assigned_to__user", "floor_plan").prefetch_related("photos").order_by("-created_at")
     active_touchups_v2 = project_touchups_v2.filter(status__in=["open", "in_progress", "review"])
     closed_touchups_v2 = project_touchups_v2.filter(status="closed")[:10]
 
@@ -2684,6 +2684,12 @@ def client_project_view(request, project_id):
         project=project, is_public=True
     ).select_related("category").order_by("-uploaded_at")[:10]
 
+    # === FLOOR PLANS (for touch-up location picker) ===
+    from core.models import FloorPlan
+    floor_plans = FloorPlan.objects.filter(
+        project=project, is_current=True
+    ).order_by("level", "name")
+
     context = {
         "project": project,
         "pending_requests": pending_requests,
@@ -2705,6 +2711,7 @@ def client_project_view(request, project_id):
         "color_samples": color_samples,
         "project_manager": project_manager,
         "public_files": public_files,
+        "floor_plans": floor_plans,
         # Financial summary
         "latest_estimate": latest_estimate,
         "base_contract_total": base_contract_total,
@@ -3752,15 +3759,40 @@ def agregar_tarea(request, project_id):
             messages.error(request, _("Title is required."))
             return redirect("client_project_view", project_id=project_id)
 
+        # Floor plan location (optional)
+        floor_plan_id = request.POST.get("floor_plan_id") or None
+        pin_x = request.POST.get("pin_x") or None
+        pin_y = request.POST.get("pin_y") or None
+
+        floor_plan_obj = None
+        if floor_plan_id:
+            from core.models import FloorPlan
+            floor_plan_obj = FloorPlan.objects.filter(
+                id=floor_plan_id, project=project
+            ).first()
+
         # Create TouchUp V2 (not legacy Task)
-        touchup = TouchUp.objects.create(
+        touchup_kwargs = dict(
             project=project,
             title=title,
             description=description,
             status="open",
-            priority="medium",
+            priority=request.POST.get("priority", "medium") or "medium",
             created_by=request.user,
         )
+        if floor_plan_obj and pin_x and pin_y:
+            from decimal import Decimal, InvalidOperation
+            try:
+                px = Decimal(pin_x)
+                py = Decimal(pin_y)
+                if 0 <= px <= 1 and 0 <= py <= 1:
+                    touchup_kwargs["floor_plan"] = floor_plan_obj
+                    touchup_kwargs["pin_x"] = px
+                    touchup_kwargs["pin_y"] = py
+            except (InvalidOperation, ValueError):
+                pass  # Skip invalid pin data, create without location
+
+        touchup = TouchUp.objects.create(**touchup_kwargs)
 
         # Handle photo uploads (single legacy field + multiple)
         photos = request.FILES.getlist("photos") or []
@@ -17034,6 +17066,22 @@ def touchup_v2_create(request, project_id):
             created_by=request.user,
         )
 
+        # Handle floor plan pin location (optional)
+        floor_plan_id = request.POST.get("floor_plan_id")
+        pin_x = request.POST.get("pin_x")
+        pin_y = request.POST.get("pin_y")
+        if floor_plan_id and pin_x and pin_y:
+            try:
+                from core.models import FloorPlan
+                from decimal import Decimal
+                fp = FloorPlan.objects.get(id=floor_plan_id, project=project)
+                touchup.floor_plan = fp
+                touchup.floor_plan_pin_x = Decimal(pin_x)
+                touchup.floor_plan_pin_y = Decimal(pin_y)
+                touchup.save(update_fields=["floor_plan", "floor_plan_pin_x", "floor_plan_pin_y"])
+            except (FloorPlan.DoesNotExist, Exception):
+                pass
+
         # Handle multiple initial photos
         photos = request.FILES.getlist("photos")
         for photo in photos:
@@ -17068,6 +17116,21 @@ def touchup_v2_create(request, project_id):
     employees = Employee.objects.filter(is_active=True).order_by("first_name", "last_name")
     color_samples = project.color_samples.filter(status__in=["approved", "review"]).order_by("name")
 
+    # Floor plans for optional pin location
+    from core.models import FloorPlan
+    floor_plans = FloorPlan.objects.filter(project=project, is_current=True).order_by("level")
+    import json
+    floor_plans_data = [
+        {
+            "id": fp.id,
+            "name": fp.name,
+            "level": fp.level,
+            "level_identifier": fp.level_identifier or "",
+            "image_url": fp.image.url if fp.image else "",
+        }
+        for fp in floor_plans
+    ]
+
     return render(
         request,
         "core/touchup_v2_create.html",
@@ -17076,6 +17139,8 @@ def touchup_v2_create(request, project_id):
             "employees": employees,
             "color_samples": color_samples,
             "priority_choices": TouchUp.PRIORITY_CHOICES,
+            "floor_plans": floor_plans,
+            "floor_plans_json": json.dumps(floor_plans_data),
         },
     )
 
@@ -17088,7 +17153,7 @@ def touchup_v2_detail(request, project_id, touchup_id):
     project = get_object_or_404(Project, id=project_id)
     touchup = get_object_or_404(
         TouchUp.objects.select_related(
-            "assigned_to", "created_by", "closed_by", "color_sample", "project"
+            "assigned_to", "created_by", "closed_by", "color_sample", "project", "floor_plan"
         ).prefetch_related("photos", "updates__author"),
         pk=touchup_id,
         project=project,
@@ -17123,6 +17188,21 @@ def touchup_v2_detail(request, project_id, touchup_id):
     after_photos = touchup.photos.filter(phase="after")
     employees = Employee.objects.filter(is_active=True).order_by("first_name", "last_name")
 
+    # Floor plans for location display & editing
+    from core.models import FloorPlan
+    floor_plans = FloorPlan.objects.filter(project=project, is_current=True).order_by("level")
+    import json
+    floor_plans_data = [
+        {
+            "id": fp.id,
+            "name": fp.name,
+            "level": fp.level,
+            "level_identifier": fp.level_identifier or "",
+            "image_url": fp.image.url if fp.image else "",
+        }
+        for fp in floor_plans
+    ]
+
     return render(
         request,
         "core/touchup_v2_detail.html",
@@ -17137,6 +17217,8 @@ def touchup_v2_detail(request, project_id, touchup_id):
             "after_photos": after_photos,
             "employees": employees,
             "status_choices": TouchUp.STATUS_CHOICES,
+            "floor_plans": floor_plans,
+            "floor_plans_json": json.dumps(floor_plans_data),
         },
     )
 
@@ -17219,6 +17301,28 @@ def touchup_v2_update(request, project_id, touchup_id):
             })
             return redirect("touchup_v2_detail", project_id=project.id, touchup_id=touchup.id)
 
+    # Handle floor plan pin location (PM/Admin only)
+    if is_pm_admin:
+        floor_plan_id = request.POST.get("floor_plan_id")
+        pin_x = request.POST.get("pin_x")
+        pin_y = request.POST.get("pin_y")
+        if floor_plan_id is not None:  # Field was in the form
+            if floor_plan_id and pin_x and pin_y:
+                try:
+                    from core.models import FloorPlan
+                    from decimal import Decimal
+                    fp = FloorPlan.objects.get(id=floor_plan_id, project=project)
+                    touchup.floor_plan = fp
+                    touchup.floor_plan_pin_x = Decimal(pin_x)
+                    touchup.floor_plan_pin_y = Decimal(pin_y)
+                except (FloorPlan.DoesNotExist, Exception):
+                    pass
+            elif floor_plan_id and not pin_x:
+                # Floor plan selected but pin cleared
+                touchup.floor_plan = None
+                touchup.floor_plan_pin_x = None
+                touchup.floor_plan_pin_y = None
+
     touchup.save()
 
     # Create status change update if status changed
@@ -17233,6 +17337,29 @@ def touchup_v2_update(request, project_id, touchup_id):
             old_status=old_status,
             new_status=touchup.status,
         )
+
+        # Notify the creator about status changes (started, completed, etc.)
+        if touchup.created_by and touchup.created_by != request.user:
+            status_messages = {
+                "in_progress": _("Work has started on your touch-up: %(title)s"),
+                "review": _("Your touch-up is now under review: %(title)s"),
+                "closed": _("Your touch-up has been completed: %(title)s"),
+            }
+            msg_template = status_messages.get(touchup.status)
+            if msg_template:
+                Notification.objects.create(
+                    user=touchup.created_by,
+                    project=project,
+                    notification_type="touchup",
+                    title=msg_template % {"title": touchup.title[:60]},
+                    message=_("%(user)s updated the status to %(status)s") % {
+                        "user": request.user.get_full_name() or request.user.username,
+                        "status": touchup.get_status_display(),
+                    },
+                    related_object_type="TouchUp",
+                    related_object_id=touchup.id,
+                    link_url=f"/projects/{project.id}/touchups-v2/{touchup.id}/",
+                )
 
     messages.success(request, _("Touch-up updated."))
     return redirect("touchup_v2_detail", project_id=project.id, touchup_id=touchup.id)
@@ -17357,6 +17484,22 @@ def touchup_v2_close(request, project_id, touchup_id):
         old_status=old_status,
         new_status="closed",
     )
+
+    # Notify the creator that their touch-up was completed
+    if touchup.created_by and touchup.created_by != request.user:
+        Notification.objects.create(
+            user=touchup.created_by,
+            project=project,
+            notification_type="touchup",
+            title=_("Your touch-up has been completed: %(title)s") % {"title": touchup.title[:60]},
+            message=_("%(user)s closed this touch-up in %(project)s") % {
+                "user": request.user.get_full_name() or request.user.username,
+                "project": project.name,
+            },
+            related_object_type="TouchUp",
+            related_object_id=touchup.id,
+            link_url=f"/projects/{project.id}/touchups-v2/{touchup.id}/",
+        )
 
     messages.success(request, _("Touch-up closed successfully."))
     return redirect("touchup_list", project_id=project.id)

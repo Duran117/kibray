@@ -9429,6 +9429,24 @@ class TouchUp(models.Model):
         help_text=_("Link to approved color sample if available"),
     )
 
+    # Floor plan location (optional)
+    floor_plan = models.ForeignKey(
+        "FloorPlan",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="touchups_v2_on_plan",
+        help_text=_("Floor plan where this touch-up is located"),
+    )
+    pin_x = models.DecimalField(
+        max_digits=6, decimal_places=4, null=True, blank=True,
+        help_text=_("Normalized X coordinate on floor plan (0..1)"),
+    )
+    pin_y = models.DecimalField(
+        max_digits=6, decimal_places=4, null=True, blank=True,
+        help_text=_("Normalized Y coordinate on floor plan (0..1)"),
+    )
+
     # Status & Priority
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="open")
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default="medium")

@@ -31,10 +31,20 @@
       <span class="wizard-dot-icon"><i class="bi bi-sliders"></i></span>
       <small class="d-none d-sm-block">{% trans "Details" %}</small>
     </div>
+    {% if floor_plans %}
+    <div class="wizard-line"></div>
+    <div class="wizard-dot" data-step="4">
+      <span class="wizard-dot-icon"><i class="bi bi-geo-alt-fill"></i></span>
+      <small class="d-none d-sm-block">{% trans "Location" %}</small>
+    </div>
+    {% endif %}
   </div>
 
   <form method="post" enctype="multipart/form-data" id="wizardForm">
     {% csrf_token %}
+    <input type="hidden" name="floor_plan_id" id="fp_floor_plan_id" value="">
+    <input type="hidden" name="pin_x" id="fp_pin_x" value="">
+    <input type="hidden" name="pin_y" id="fp_pin_y" value="">
 
     <!-- ========== STEP 1: PHOTOS ========== -->
     <div class="wizard-step" id="step1">
@@ -204,6 +214,105 @@
         </div>
       </div>
 
+      <!-- Summary preview (only when no floor plans = no step 4) -->
+      {% if not floor_plans %}
+      <div class="card border-0 bg-light mb-3" id="summaryCard">
+        <div class="card-body py-3">
+          <div class="d-flex align-items-center gap-3">
+            <div id="summaryThumb" class="rounded border bg-white d-flex align-items-center justify-content-center" style="width:64px; height:64px; min-width:64px; overflow:hidden;">
+              <i class="bi bi-image text-muted" style="font-size:1.5rem;"></i>
+            </div>
+            <div class="flex-fill">
+              <strong id="summaryTitle" class="text-dark">—</strong>
+              <div class="small text-muted" id="summaryMeta"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between mt-3">
+        <button type="button" class="btn btn-outline-secondary" onclick="goToStep(2)">
+          <i class="bi bi-arrow-left"></i> {% trans "Back" %}
+        </button>
+        {% if floor_plans %}
+        <button type="button" class="btn btn-primary btn-lg" onclick="goToStep(4)">
+          {% trans "Next" %} <i class="bi bi-arrow-right"></i>
+        </button>
+        {% else %}
+        <div class="d-flex gap-2">
+          <button type="submit" name="action" value="create" class="btn btn-primary btn-lg">
+            <i class="bi bi-check-circle"></i> {% trans "Create" %}
+          </button>
+          <button type="submit" name="action" value="create_another" class="btn btn-outline-primary btn-lg" title="{% trans 'Create & add another' %}">
+            <i class="bi bi-plus-circle"></i> {% trans "+ Another" %}
+          </button>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if floor_plans %}
+    <!-- ========== STEP 4: LOCATION (Floor Plan Pin) ========== -->
+    <div class="wizard-step d-none" id="step4">
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+          <h5 class="mb-3"><i class="bi bi-geo-alt text-primary"></i> {% trans "Mark Location" %} <span class="text-muted small fw-normal">({% trans "optional" %})</span></h5>
+          <p class="text-muted small mb-3">{% trans "Tap on the floor plan to mark exactly where the work is needed." %}</p>
+
+          {% if floor_plans|length > 1 %}
+          <!-- Level selector -->
+          <div class="mb-3">
+            <label class="form-label">{% trans "Select Level" %}</label>
+            <div class="d-flex flex-wrap gap-2" id="fpLevelBtns">
+              {% for fp in floor_plans %}
+              <button type="button"
+                      class="btn btn-outline-secondary btn-sm fp-level-btn"
+                      data-plan-id="{{ fp.id }}"
+                      data-plan-url="{{ fp.image.url }}"
+                      onclick="fpSelectLevel(this)">
+                {{ fp.name }}
+              </button>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Floor plan image with pin -->
+          <div id="fpPlanContainer" class="position-relative border rounded overflow-hidden bg-light {% if floor_plans|length > 1 %}d-none{% endif %}" style="max-height: 400px;">
+            <img id="fpPlanImage"
+                 {% if floor_plans|length == 1 %}src="{{ floor_plans.0.image.url }}"{% else %}src=""{% endif %}
+                 class="w-100 h-auto"
+                 style="cursor: crosshair;"
+                 onclick="fpPlacePin(event)"
+                 alt="{% trans 'Floor Plan' %}"
+                 draggable="false">
+            <!-- Pin marker -->
+            <div id="fpPinMarker" class="position-absolute d-none" style="pointer-events: none; transform: translate(-50%, -100%);">
+              <svg width="28" height="36" viewBox="0 0 24 32" fill="none">
+                <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 20 12 20s12-11 12-20C24 5.373 18.627 0 12 0z" fill="#6366f1"/>
+                <circle cx="12" cy="12" r="5" fill="white"/>
+              </svg>
+            </div>
+          </div>
+
+          {% if floor_plans|length == 1 %}
+          <script>document.addEventListener('DOMContentLoaded',function(){document.getElementById('fp_floor_plan_id').value='{{ floor_plans.0.id }}';});</script>
+          {% endif %}
+
+          <!-- Location summary -->
+          <div id="fpLocationSummary" class="d-none mt-3 p-3 bg-primary bg-opacity-10 rounded d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-geo-alt-fill text-primary"></i>
+              <span class="small text-primary" id="fpLocationText">{% trans "Pin placed" %}</span>
+            </div>
+            <button type="button" onclick="fpClearPin()" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-x-circle"></i> {% trans "Remove" %}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Summary preview -->
       <div class="card border-0 bg-light mb-3" id="summaryCard">
         <div class="card-body py-3">
@@ -220,7 +329,7 @@
       </div>
 
       <div class="d-flex justify-content-between mt-3">
-        <button type="button" class="btn btn-outline-secondary" onclick="goToStep(2)">
+        <button type="button" class="btn btn-outline-secondary" onclick="goToStep(3)">
           <i class="bi bi-arrow-left"></i> {% trans "Back" %}
         </button>
         <div class="d-flex gap-2">
@@ -233,6 +342,7 @@
         </div>
       </div>
     </div>
+    {% endif %}
 
   </form>
 </div>
@@ -254,17 +364,28 @@
 <script>
 let currentStep = 1;
 let photoIndex = 0;
+const hasFloorPlans = {{ floor_plans|length|default:"0" }} > 0;
+const maxStep = hasFloorPlans ? 4 : 3;
 
 /* ---- Navigation ---- */
 function goToStep(n) {
-  if (n === 3) {
+  if (n < 1 || n > maxStep) return;
+
+  // Validate title before advancing past step 2
+  if (n >= 3 && currentStep <= 2) {
     const titleEl = document.getElementById('title');
     if (!titleEl.value.trim()) {
+      if (currentStep !== 2) { goToStep(2); return; }
       titleEl.focus();
       titleEl.classList.add('is-invalid');
       return;
     }
     titleEl.classList.remove('is-invalid');
+  }
+
+  // Update summary before showing final step
+  const lastStep = maxStep;
+  if (n === lastStep) {
     updateSummary();
   }
 
@@ -394,8 +515,55 @@ function fillColorFromSample(sel) {
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.type !== 'submit') {
     e.preventDefault();
-    if (currentStep < 3) goToStep(currentStep + 1);
+    if (currentStep < maxStep) goToStep(currentStep + 1);
   }
 });
+
+/* ---- Floor Plan Pin (Step 4) ---- */
+function fpSelectLevel(btn) {
+  document.querySelectorAll('.fp-level-btn').forEach(function(b) {
+    b.classList.remove('btn-primary');
+    b.classList.add('btn-outline-secondary');
+  });
+  btn.classList.remove('btn-outline-secondary');
+  btn.classList.add('btn-primary');
+
+  document.getElementById('fp_floor_plan_id').value = btn.dataset.planId;
+  document.getElementById('fpPlanImage').src = btn.dataset.planUrl;
+  document.getElementById('fpPlanContainer').classList.remove('d-none');
+  fpClearPin();
+}
+
+function fpPlacePin(event) {
+  var img = document.getElementById('fpPlanImage');
+  var rect = img.getBoundingClientRect();
+  var x = (event.clientX - rect.left) / rect.width;
+  var y = (event.clientY - rect.top) / rect.height;
+  var px = Math.max(0, Math.min(1, x));
+  var py = Math.max(0, Math.min(1, y));
+
+  document.getElementById('fp_pin_x').value = px.toFixed(4);
+  document.getElementById('fp_pin_y').value = py.toFixed(4);
+
+  var marker = document.getElementById('fpPinMarker');
+  marker.classList.remove('d-none');
+  marker.style.left = (px * 100) + '%';
+  marker.style.top = (py * 100) + '%';
+
+  var planBtn = document.querySelector('.fp-level-btn.btn-primary');
+  var levelText = planBtn ? planBtn.textContent.trim() : '{% trans "Floor Plan" %}';
+  document.getElementById('fpLocationText').textContent = levelText;
+  document.getElementById('fpLocationSummary').classList.remove('d-none');
+  document.getElementById('fpLocationSummary').classList.add('d-flex');
+}
+
+function fpClearPin() {
+  document.getElementById('fp_pin_x').value = '';
+  document.getElementById('fp_pin_y').value = '';
+  var marker = document.getElementById('fpPinMarker');
+  if (marker) marker.classList.add('d-none');
+  var summary = document.getElementById('fpLocationSummary');
+  if (summary) { summary.classList.add('d-none'); summary.classList.remove('d-flex'); }
+}
 </script>
 {% endblock %}
