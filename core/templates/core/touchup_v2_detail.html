@@ -229,7 +229,7 @@
       </div>
 
       <!-- Floor Plan Location Card -->
-      {% if touchup.floor_plan and touchup.floor_plan_pin_x and touchup.floor_plan_pin_y %}
+      {% if touchup.floor_plan and touchup.pin_x and touchup.pin_y %}
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
           <span class="fw-semibold"><i class="bi bi-geo-alt text-primary"></i> {% trans "Location" %}</span>
@@ -255,7 +255,7 @@
           <script>
           document.addEventListener('DOMContentLoaded', function() {
             var m = document.getElementById('detailPinMarker');
-            if (m) { m.style.left = ({{ touchup.floor_plan_pin_x }} * 100) + '%'; m.style.top = ({{ touchup.floor_plan_pin_y }} * 100) + '%'; }
+            if (m) { m.style.left = ({{ touchup.pin_x }} * 100) + '%'; m.style.top = ({{ touchup.pin_y }} * 100) + '%'; }
           });
           </script>
         </div>
@@ -570,8 +570,8 @@
       <input type="hidden" name="status" value="{{ touchup.status }}">
       <input type="hidden" name="priority" value="{{ touchup.priority }}">
       <input type="hidden" name="floor_plan_id" id="loc_floor_plan_id" value="{{ touchup.floor_plan_id|default:'' }}">
-      <input type="hidden" name="pin_x" id="loc_pin_x" value="{{ touchup.floor_plan_pin_x|default:'' }}">
-      <input type="hidden" name="pin_y" id="loc_pin_y" value="{{ touchup.floor_plan_pin_y|default:'' }}">
+      <input type="hidden" name="pin_x" id="loc_pin_x" value="{{ touchup.pin_x|default:'' }}">
+      <input type="hidden" name="pin_y" id="loc_pin_y" value="{{ touchup.pin_y|default:'' }}">
       <div class="modal-header">
         <h5 class="modal-title"><i class="bi bi-geo-alt text-primary"></i> {% trans "Edit Location" %}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -604,7 +604,7 @@
                onclick="locPlacePin(event)"
                alt="{% trans 'Floor Plan' %}"
                draggable="false">
-          <div id="locPinMarker" class="position-absolute {% if not touchup.floor_plan_pin_x %}d-none{% endif %}" style="pointer-events:none; transform:translate(-50%,-100%);">
+          <div id="locPinMarker" class="position-absolute {% if not touchup.pin_x %}d-none{% endif %}" style="pointer-events:none; transform:translate(-50%,-100%);">
             <svg width="28" height="36" viewBox="0 0 24 32" fill="none">
               <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 20 12 20s12-11 12-20C24 5.373 18.627 0 12 0z" fill="#6366f1"/>
               <circle cx="12" cy="12" r="5" fill="white"/>
@@ -616,7 +616,7 @@
         <script>document.addEventListener('DOMContentLoaded',function(){document.getElementById('loc_floor_plan_id').value='{{ floor_plans.0.id }}';});</script>
         {% endif %}
 
-        <div id="locLocationSummary" class="{% if not touchup.floor_plan_pin_x %}d-none{% endif %} mt-3 p-3 bg-primary bg-opacity-10 rounded d-flex align-items-center justify-content-between">
+        <div id="locLocationSummary" class="{% if not touchup.pin_x %}d-none{% endif %} mt-3 p-3 bg-primary bg-opacity-10 rounded d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
             <i class="bi bi-geo-alt-fill text-primary"></i>
             <span class="small text-primary" id="locLocationText">
@@ -639,8 +639,8 @@
 <script>
 /* Position existing pin marker in edit modal */
 document.addEventListener('DOMContentLoaded', function() {
-  var px = '{{ touchup.floor_plan_pin_x|default:"" }}';
-  var py = '{{ touchup.floor_plan_pin_y|default:"" }}';
+  var px = '{{ touchup.pin_x|default:"" }}';
+  var py = '{{ touchup.pin_y|default:"" }}';
   if (px && py) {
     var marker = document.getElementById('locPinMarker');
     marker.style.left = (parseFloat(px) * 100) + '%';

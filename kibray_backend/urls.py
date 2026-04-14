@@ -27,6 +27,7 @@ from core import views_financial as fin_views
 from core import views_notifications as notif_views
 from core import views_planner as planner_views
 from core import views_pm_calendar as pm_calendar_views
+from core.views import portal_views
 from core.api.views import tasks_gantt_alias
 # from reports.api.views import ProjectCostSummaryView  # TODO: Module reports not created yet
 from signatures.api.views import SignatureViewSet
@@ -1095,6 +1096,15 @@ urlpatterns = [
     path("contracts/edit/<int:contract_id>/", views.contract_edit_view, name="contract_edit"),
     # Public contract view/sign (no login required)
     path("contracts/<str:token>/", views.contract_client_view, name="contract_client_view"),
+    # ── HOA Resident Portal (public, no login required) ──
+    path("portal/<uuid:token>/", portal_views.portal_landing, name="portal_landing"),
+    path("portal/<uuid:token>/identify/", portal_views.portal_identify, name="portal_identify"),
+    path("portal/<uuid:token>/dashboard/", portal_views.portal_dashboard, name="portal_dashboard"),
+    path("portal/<uuid:token>/touchup/create/", portal_views.portal_create_touchup, name="portal_create_touchup"),
+    path("portal/<uuid:token>/touchup/<int:touchup_id>/", portal_views.portal_touchup_detail, name="portal_touchup_detail"),
+    path("portal/<uuid:token>/logout/", portal_views.portal_logout, name="portal_logout"),
+    # ── Portal Management (staff, login required) ──
+    path("projects/<int:project_id>/portal/manage/", portal_views.portal_manage, name="portal_manage"),
 ]
 
 # Media files - serve in production using django.views.static.serve

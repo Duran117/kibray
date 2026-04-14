@@ -1,0 +1,342 @@
+{% load i18n %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ touchup.title }} — {{ project.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --portal-primary: #3b82f6;
+            --portal-primary-dark: #2563eb;
+            --portal-bg: #f1f5f9;
+        }
+        body {
+            background: var(--portal-bg);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+        .portal-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .portal-nav a {
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            font-size: 1.25rem;
+        }
+        .portal-nav a:hover { color: #fff; }
+        .portal-nav h1 { font-size: 1.1rem; font-weight: 700; margin: 0; flex: 1; }
+
+        .container { max-width: 720px; margin: 0 auto; padding: 0 16px; }
+        .detail-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            padding: 20px;
+            margin-top: 16px;
+        }
+        .detail-card h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .detail-description {
+            color: #475569;
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.88rem;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: #64748b; font-weight: 600; }
+        .badge-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-open     { background: #dbeafe; color: #1d4ed8; }
+        .badge-in_progress { background: #fef3c7; color: #b45309; }
+        .badge-review   { background: #e0e7ff; color: #4338ca; }
+        .badge-closed   { background: #dcfce7; color: #15803d; }
+
+        /* Photos */
+        .photo-section h4 {
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #64748b;
+            margin: 16px 0 8px;
+        }
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
+        }
+        .photo-grid img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        .photo-grid img:hover { transform: scale(1.03); }
+
+        /* Floor Plan */
+        .fp-section {
+            margin-top: 16px;
+        }
+        .fp-container {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+        }
+        .fp-container img {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+        .fp-pin {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #ef4444;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        /* Timeline */
+        .timeline { margin-top: 12px; }
+        .timeline-item {
+            display: flex;
+            gap: 12px;
+            padding: 10px 0;
+            border-left: 2px solid #e2e8f0;
+            margin-left: 10px;
+            padding-left: 16px;
+            position: relative;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 14px;
+            width: 10px;
+            height: 10px;
+            background: var(--portal-primary);
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+        .timeline-item .time {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            white-space: nowrap;
+            min-width: 60px;
+        }
+        .timeline-item .content {
+            font-size: 0.85rem;
+            color: #334155;
+        }
+        .timeline-item .author {
+            font-weight: 600;
+            color: #475569;
+        }
+
+        /* Lightbox */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .lightbox.active { display: flex; }
+        .lightbox img {
+            max-width: 95vw;
+            max-height: 90vh;
+            border-radius: 8px;
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<div class="portal-nav">
+    <a href="{% url 'portal_dashboard' token=portal.token %}">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h1>{{ touchup.title|truncatechars:40 }}</h1>
+</div>
+
+<div class="container">
+
+    <!-- ── STATUS & INFO ── -->
+    <div class="detail-card">
+        <h2>{{ touchup.title }}</h2>
+        {% if touchup.description %}
+        <p class="detail-description">{{ touchup.description }}</p>
+        {% endif %}
+
+        <div class="info-row">
+            <span class="info-label">{% trans "Status" %}</span>
+            <span class="badge-status badge-{{ touchup.status }}">{{ touchup.get_status_display }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">{% trans "Priority" %}</span>
+            <span>{{ touchup.get_priority_display }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">{% trans "Reported" %}</span>
+            <span>{{ touchup.created_at|date:"M d, Y · H:i" }}</span>
+        </div>
+        {% if touchup.assigned_to %}
+        <div class="info-row">
+            <span class="info-label">{% trans "Assigned To" %}</span>
+            <span>{{ touchup.assigned_to }}</span>
+        </div>
+        {% endif %}
+        {% if touchup.due_date %}
+        <div class="info-row">
+            <span class="info-label">{% trans "Due Date" %}</span>
+            <span>{{ touchup.due_date|date:"M d, Y" }}</span>
+        </div>
+        {% endif %}
+        {% if touchup.status == "closed" and touchup.closing_notes %}
+        <div class="info-row">
+            <span class="info-label">{% trans "Closing Notes" %}</span>
+            <span>{{ touchup.closing_notes|truncatechars:200 }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ── PHOTOS ── -->
+    {% if before_photos or progress_photos or after_photos %}
+    <div class="detail-card photo-section">
+        {% if before_photos %}
+        <h4><i class="bi bi-camera me-1"></i>{% trans "Before" %}</h4>
+        <div class="photo-grid">
+            {% for p in before_photos %}
+            <img src="{{ p.image.url }}" alt="{{ p.caption }}" onclick="openLightbox('{{ p.image.url }}')">
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if progress_photos %}
+        <h4><i class="bi bi-tools me-1"></i>{% trans "Progress" %}</h4>
+        <div class="photo-grid">
+            {% for p in progress_photos %}
+            <img src="{{ p.image.url }}" alt="{{ p.caption }}" onclick="openLightbox('{{ p.image.url }}')">
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if after_photos %}
+        <h4><i class="bi bi-check-circle me-1"></i>{% trans "After" %}</h4>
+        <div class="photo-grid">
+            {% for p in after_photos %}
+            <img src="{{ p.image.url }}" alt="{{ p.caption }}" onclick="openLightbox('{{ p.image.url }}')">
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ── FLOOR PLAN ── -->
+    {% if touchup.floor_plan and touchup.pin_x and touchup.pin_y %}
+    <div class="detail-card fp-section">
+        <h4 style="font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#64748b;margin:0 0 8px">
+            <i class="bi bi-geo-alt me-1"></i>{% trans "Location" %} — {{ touchup.floor_plan.name }}
+        </h4>
+        <div class="fp-container">
+            <img src="{{ touchup.floor_plan.image.url }}" alt="{{ touchup.floor_plan.name }}">
+            <div class="fp-pin" id="fpPin"></div>
+        </div>
+        <script>
+            (function(){
+                var pinX = parseFloat("{{ touchup.pin_x }}");
+                var pinY = parseFloat("{{ touchup.pin_y }}");
+                var pin = document.getElementById('fpPin');
+                pin.style.left = (pinX * 100) + '%';
+                pin.style.top = (pinY * 100) + '%';
+            })();
+        </script>
+    </div>
+    {% endif %}
+
+    <!-- ── UPDATES / TIMELINE ── -->
+    {% with updates=touchup.updates.all %}
+    {% if updates %}
+    <div class="detail-card">
+        <h4 style="font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#64748b;margin:0 0 4px">
+            <i class="bi bi-clock-history me-1"></i>{% trans "Activity" %}
+        </h4>
+        <div class="timeline">
+            {% for u in updates %}
+            <div class="timeline-item">
+                <span class="time">{{ u.created_at|date:"M d" }}</span>
+                <div class="content">
+                    {% if u.author %}<span class="author">{{ u.author.get_full_name|default:u.author.username }}</span> — {% endif %}
+                    {{ u.note }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+
+</div><!-- /container -->
+
+<!-- ── LIGHTBOX ── -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+    <img id="lightboxImg" src="" alt="">
+</div>
+
+<script>
+function openLightbox(url) {
+    document.getElementById('lightboxImg').src = url;
+    document.getElementById('lightbox').classList.add('active');
+}
+function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox();
+});
+</script>
+</body>
+</html>

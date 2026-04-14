@@ -7,6 +7,7 @@ import hmac
 import secrets
 import struct
 import time
+import uuid
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -9481,6 +9482,24 @@ class TouchUp(models.Model):
     # Closure
     closing_notes = models.TextField(blank=True, help_text=_("Notes provided when closing"))
 
+    # Resident portal (anonymous touch-up creator)
+    resident_name = models.CharField(
+        max_length=120, blank=True,
+        help_text=_("Name of the resident who reported this (HOA portal)"),
+    )
+    resident_unit = models.CharField(
+        max_length=60, blank=True,
+        help_text=_("Unit/address identifier from resident portal"),
+    )
+    resident_email = models.EmailField(
+        blank=True,
+        help_text=_("Contact email from resident portal"),
+    )
+    resident_phone = models.CharField(
+        max_length=30, blank=True,
+        help_text=_("Contact phone from resident portal"),
+    )
+
     class Meta:
         ordering = ["-created_at"]
         verbose_name = _("Touch-Up")
@@ -9569,6 +9588,128 @@ class TouchUpUpdate(models.Model):
 
     def __str__(self):
         return f"Update by {self.author} on {self.touchup.title}"
+
+
+# ========================================================================================
+# HOA RESIDENT PORTAL MODELS
+# ========================================================================================
+
+
+class ResidentPortal(models.Model):
+    """
+    Per-project portal configuration for HOA/multi-unit properties.
+    PM creates a portal → gets a shareable link → residents self-identify and submit touch-ups.
+    No login required — shared link with session-based identification.
+    """
+
+    project = models.OneToOneField(
+        Project, on_delete=models.CASCADE, related_name="resident_portal",
+    )
+    token = models.UUIDField(
+        default=uuid.uuid4, unique=True, editable=False,
+        help_text=_("Unique token for the public portal URL"),
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text=_("Enable/disable the portal"),
+    )
+    welcome_message = models.TextField(
+        blank=True,
+        help_text=_("Custom welcome message shown to residents"),
+    )
+    require_unit = models.BooleanField(
+        default=True,
+        help_text=_("Require unit/address when identifying"),
+    )
+    require_email = models.BooleanField(
+        default=False,
+        help_text=_("Require email when identifying"),
+    )
+    require_phone = models.BooleanField(
+        default=False,
+        help_text=_("Require phone when identifying"),
+    )
+    allow_photo_upload = models.BooleanField(
+        default=True,
+        help_text=_("Allow residents to upload photos with touch-ups"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+        related_name="created_portals",
+    )
+
+    class Meta:
+        verbose_name = _("Resident Portal")
+        verbose_name_plural = _("Resident Portals")
+
+    def __str__(self):
+        return f"Portal: {self.project.name}"
+
+    def get_absolute_url(self):
+        return f"/portal/{self.token}/"
+
+
+class ProjectUnit(models.Model):
+    """
+    Units/addresses within an HOA project (e.g., Unit 101, 1234 Main St).
+    Optional — if defined, residents pick from a list; otherwise they type freely.
+    """
+
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="units",
+    )
+    identifier = models.CharField(
+        max_length=60,
+        help_text=_("Unit number or address (e.g., 'Unit 101', '1234 Main St')"),
+    )
+    resident_name = models.CharField(
+        max_length=120, blank=True,
+        help_text=_("Pre-assigned resident name (optional)"),
+    )
+    floor = models.IntegerField(
+        null=True, blank=True,
+        help_text=_("Floor/level for multi-story buildings"),
+    )
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = _("Project Unit")
+        verbose_name_plural = _("Project Units")
+        ordering = ["identifier"]
+        unique_together = [("project", "identifier")]
+
+    def __str__(self):
+        return f"{self.identifier} — {self.project.name}"
+
+
+class ResidentSession(models.Model):
+    """
+    Tracks resident visits through the portal.
+    Created on self-identification; stored in session cookie for subsequent visits.
+    """
+
+    portal = models.ForeignKey(
+        ResidentPortal, on_delete=models.CASCADE, related_name="sessions",
+    )
+    name = models.CharField(max_length=120)
+    unit = models.CharField(max_length=60, blank=True)
+    email = models.EmailField(blank=True)
+    phone = models.CharField(max_length=30, blank=True)
+    session_key = models.CharField(
+        max_length=64, blank=True, db_index=True,
+        help_text=_("Django session key or generated token for cookie"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_active = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Resident Session")
+        verbose_name_plural = _("Resident Sessions")
+        ordering = ["-last_active"]
+
+    def __str__(self):
+        return f"{self.name} ({self.unit}) — {self.portal.project.name}"
 
 
 # ---------------------

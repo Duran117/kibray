@@ -1,0 +1,290 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Resident Portal" %} — {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="bi bi-building me-2"></i>{% trans "Resident Portal" %}
+                    </h2>
+                    <p class="text-muted mb-0">{{ project.name }}</p>
+                </div>
+                <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>{% trans "Back to Project" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left column: Portal Settings -->
+        <div class="col-lg-7">
+            <!-- Portal Link Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-link-45deg me-2"></i>{% trans "Shareable Link" %}</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="toggle_active">
+                        <button type="submit" class="btn btn-sm {% if portal.is_active %}btn-success{% else %}btn-outline-secondary{% endif %}">
+                            {% if portal.is_active %}
+                            <i class="bi bi-check-circle me-1"></i>{% trans "Active" %}
+                            {% else %}
+                            <i class="bi bi-pause-circle me-1"></i>{% trans "Inactive" %}
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+                <div class="card-body">
+                    {% if portal.is_active %}
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="portalUrl" value="{{ portal_url }}" readonly>
+                        <button class="btn btn-outline-primary" type="button" onclick="copyLink()">
+                            <i class="bi bi-clipboard me-1"></i>{% trans "Copy" %}
+                        </button>
+                    </div>
+                    <div class="mt-2">
+                        <a href="{{ portal_url }}" target="_blank" class="text-primary small">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>{% trans "Open portal" %}
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning mb-0">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        {% trans "Portal is inactive. Click 'Inactive' above to activate." %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Settings Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-gear me-2"></i>{% trans "Portal Settings" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_settings">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{% trans "Welcome Message" %}</label>
+                            <textarea name="welcome_message" class="form-control" rows="3"
+                                      placeholder="{% trans 'Optional message shown on the identification page…' %}">{{ portal.welcome_message }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{% trans "Required Fields" %}</label>
+                            <div class="form-check">
+                                <input type="checkbox" name="require_unit" class="form-check-input" id="reqUnit"
+                                       {% if portal.require_unit %}checked{% endif %}>
+                                <label class="form-check-label" for="reqUnit">{% trans "Require unit/address" %}</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="require_email" class="form-check-input" id="reqEmail"
+                                       {% if portal.require_email %}checked{% endif %}>
+                                <label class="form-check-label" for="reqEmail">{% trans "Require email" %}</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="require_phone" class="form-check-input" id="reqPhone"
+                                       {% if portal.require_phone %}checked{% endif %}>
+                                <label class="form-check-label" for="reqPhone">{% trans "Require phone" %}</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" name="allow_photo_upload" class="form-check-input" id="allowPhoto"
+                                       {% if portal.allow_photo_upload %}checked{% endif %}>
+                                <label class="form-check-label" for="allowPhoto">{% trans "Allow residents to upload photos" %}</label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i>{% trans "Save Settings" %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Portal Touch-ups -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>{% trans "Resident-Submitted Touch-Ups" %}</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if portal_touchups %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{% trans "Title" %}</th>
+                                    <th>{% trans "Resident" %}</th>
+                                    <th>{% trans "Unit" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tu in portal_touchups %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'touchup_v2_detail' project_id=project.id touchup_id=tu.id %}">
+                                            {{ tu.title|truncatechars:40 }}
+                                        </a>
+                                    </td>
+                                    <td class="text-muted small">{{ tu.resident_name }}</td>
+                                    <td class="text-muted small">{{ tu.resident_unit }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if tu.status == 'open' %}primary{% elif tu.status == 'in_progress' %}warning text-dark{% elif tu.status == 'review' %}info{% else %}success{% endif %}">
+                                            {{ tu.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-muted small">{{ tu.created_at|date:"M d" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-inbox d-block" style="font-size:2rem"></i>
+                        <p class="mt-2 mb-0">{% trans "No touch-ups submitted yet." %}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column: Units & Sessions -->
+        <div class="col-lg-5">
+            <!-- Units Management -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-door-open me-2"></i>{% trans "Units" %}</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Add single unit -->
+                    <form method="post" class="mb-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_unit">
+                        <div class="input-group input-group-sm">
+                            <input type="text" name="identifier" class="form-control"
+                                   placeholder="{% trans 'Unit # or address' %}" required>
+                            <input type="number" name="floor" class="form-control"
+                                   placeholder="{% trans 'Floor' %}" style="max-width:80px">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="bi bi-plus"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Bulk add -->
+                    <details class="mb-3">
+                        <summary class="text-primary small cursor-pointer">
+                            <i class="bi bi-list-ul me-1"></i>{% trans "Bulk add units" %}
+                        </summary>
+                        <form method="post" class="mt-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="bulk_add_units">
+                            <textarea name="bulk_units" class="form-control form-control-sm" rows="4"
+                                      placeholder="{% trans 'One unit per line, e.g.:\n101\n102\n103' %}"></textarea>
+                            <button type="submit" class="btn btn-sm btn-outline-primary mt-2">
+                                {% trans "Add All" %}
+                            </button>
+                        </form>
+                    </details>
+
+                    <!-- Unit list -->
+                    {% if units %}
+                    <div class="list-group list-group-flush" style="max-height:300px;overflow-y:auto">
+                        {% for u in units %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                            <div>
+                                <strong>{{ u.identifier }}</strong>
+                                {% if u.floor %}<span class="text-muted small ms-1">({{ u.floor }})</span>{% endif %}
+                                {% if u.resident_name %}
+                                <br><span class="text-muted small">{{ u.resident_name }}</span>
+                                {% endif %}
+                            </div>
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_unit">
+                                <input type="hidden" name="unit_id" value="{{ u.id }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('{% trans "Delete this unit?" %}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3 small">
+                        {% trans "No units added yet. Units help residents self-identify." %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Sessions -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-people me-2"></i>{% trans "Recent Visitors" %}</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if sessions %}
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{% trans "Name" %}</th>
+                                    <th>{% trans "Unit" %}</th>
+                                    <th>{% trans "Last Active" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in sessions %}
+                                <tr>
+                                    <td class="small">{{ s.name }}</td>
+                                    <td class="small text-muted">{{ s.unit|default:"—" }}</td>
+                                    <td class="small text-muted">{{ s.last_active|timesince }} {% trans "ago" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3 small">
+                        {% trans "No visitors yet." %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyLink() {
+    const input = document.getElementById('portalUrl');
+    navigator.clipboard.writeText(input.value).then(() => {
+        const btn = input.nextElementSibling;
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check me-1"></i>{% trans "Copied!" %}';
+        btn.classList.replace('btn-outline-primary', 'btn-success');
+        setTimeout(() => {
+            btn.innerHTML = originalHtml;
+            btn.classList.replace('btn-success', 'btn-outline-primary');
+        }, 2000);
+    });
+}
+</script>
+{% endblock %}

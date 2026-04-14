@@ -17076,9 +17076,9 @@ def touchup_v2_create(request, project_id):
                 from decimal import Decimal
                 fp = FloorPlan.objects.get(id=floor_plan_id, project=project)
                 touchup.floor_plan = fp
-                touchup.floor_plan_pin_x = Decimal(pin_x)
-                touchup.floor_plan_pin_y = Decimal(pin_y)
-                touchup.save(update_fields=["floor_plan", "floor_plan_pin_x", "floor_plan_pin_y"])
+                touchup.pin_x = Decimal(pin_x)
+                touchup.pin_y = Decimal(pin_y)
+                touchup.save(update_fields=["floor_plan", "pin_x", "pin_y"])
             except (FloorPlan.DoesNotExist, Exception):
                 pass
 
@@ -17313,15 +17313,15 @@ def touchup_v2_update(request, project_id, touchup_id):
                     from decimal import Decimal
                     fp = FloorPlan.objects.get(id=floor_plan_id, project=project)
                     touchup.floor_plan = fp
-                    touchup.floor_plan_pin_x = Decimal(pin_x)
-                    touchup.floor_plan_pin_y = Decimal(pin_y)
+                    touchup.pin_x = Decimal(pin_x)
+                    touchup.pin_y = Decimal(pin_y)
                 except (FloorPlan.DoesNotExist, Exception):
                     pass
             elif floor_plan_id and not pin_x:
                 # Floor plan selected but pin cleared
                 touchup.floor_plan = None
-                touchup.floor_plan_pin_x = None
-                touchup.floor_plan_pin_y = None
+                touchup.pin_x = None
+                touchup.pin_y = None
 
     touchup.save()
 

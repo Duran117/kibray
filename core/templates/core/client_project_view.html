@@ -877,8 +877,8 @@ var touchupData = {
     hasPlan: {% if tu.floor_plan_id %}true{% else %}false{% endif %},
     planName: "{{ tu.floor_plan.name|default:''|escapejs }}",
     planImage: "{% if tu.floor_plan %}{{ tu.floor_plan.image.url }}{% endif %}",
-    pinX: "{{ tu.floor_plan_pin_x|default:'' }}",
-    pinY: "{{ tu.floor_plan_pin_y|default:'' }}",
+    pinX: "{{ tu.pin_x|default:'' }}",
+    pinY: "{{ tu.pin_y|default:'' }}",
     closedAt: "{{ tu.closed_at|date:'M d, Y'|default:'' }}"
   },
   {% endfor %}
@@ -895,8 +895,8 @@ var touchupData = {
     hasPlan: {% if tu.floor_plan_id %}true{% else %}false{% endif %},
     planName: "{{ tu.floor_plan.name|default:''|escapejs }}",
     planImage: "{% if tu.floor_plan %}{{ tu.floor_plan.image.url }}{% endif %}",
-    pinX: "{{ tu.floor_plan_pin_x|default:'' }}",
-    pinY: "{{ tu.floor_plan_pin_y|default:'' }}",
+    pinX: "{{ tu.pin_x|default:'' }}",
+    pinY: "{{ tu.pin_y|default:'' }}",
     closedAt: "{{ tu.closed_at|date:'M d, Y'|default:'' }}"
   },
   {% endfor %}
