@@ -12,7 +12,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 
-from core.models import BudgetLine, CostCode, Project
+from core.models import BudgetLine, CostCode, Expense, Project
 
 
 # Templates predefinidos de Budget Lines
@@ -99,7 +99,9 @@ def budget_wizard_view(request, project_id):
         "cost_codes": cost_codes,
         "total_baseline": totals["total_baseline"] or Decimal("0"),
         "total_revised": totals["total_revised"] or Decimal("0"),
-        "total_spent": Decimal("0"),  # TODO: Calcular gastos reales
+        "total_spent": Expense.objects.filter(project=project).aggregate(
+            total=Sum("amount")
+        )["total"] or Decimal("0"),
     }
     
     return render(request, "core/budget_wizard.html", context)

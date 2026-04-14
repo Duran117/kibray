@@ -3431,7 +3431,7 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
 
         # If audio file provided, transcribe it
         if audio_file and not transcription:
-            # TODO: Implement speech-to-text with Whisper or cloud service
+            # DEFERRED: Speech-to-text requires Whisper or cloud service integration
             # For now, return error
             return Response(
                 {

@@ -80,7 +80,7 @@ def generate_focus_calendar_feed(request, user_token):
     cal.add("calscale", "GREGORIAN")
     cal.add("method", "PUBLISH")
     cal.add("x-wr-calname", f"{user.get_full_name()} - Focus Tasks")
-    cal.add("x-wr-timezone", "America/New_York")  # TODO: Use user's timezone from profile
+    cal.add("x-wr-timezone", settings.TIME_ZONE)
     cal.add("x-wr-caldesc", "Executive Focus Workflow - Pareto + Eat That Frog Tasks")
 
     # Get future tasks (next 90 days)

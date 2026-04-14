@@ -7219,8 +7219,8 @@ class DailyPlan(models.Model):
         if not self.project.address:
             return None
 
-        # Get project coordinates (mock for now, should use geocoding)
-        # TODO: Implement geocoding for project.address
+        # Get project coordinates — geocoding requires external API (Google Maps, Mapbox)
+        # DEFERRED: When a geocoding service is configured, resolve project.address here
         latitude = 40.7128  # Default NYC coordinates
         longitude = -74.0060
 

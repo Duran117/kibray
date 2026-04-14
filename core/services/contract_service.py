@@ -290,8 +290,28 @@ class ContractService:
         
         logger.info(f"Revision requested for contract {contract.contract_number}")
         
-        # TODO: Send notification to admin
-        # NotificationService.notify_contract_revision(contract)
+        # Notify admins about revision request
+        from django.contrib.auth.models import User
+        from django.db.models import Q
+        from core.models import Notification
+
+        staff = (
+            User.objects.filter(is_active=True)
+            .filter(
+                Q(is_superuser=True) | Q(profile__role__in=["admin", "project_manager"])
+            )
+            .distinct()
+        )
+        for u in staff:
+            Notification.objects.create(
+                user=u,
+                project=contract.project,
+                notification_type="contract",
+                title=f"Contract revision requested: {contract.contract_number}",
+                message=f"The client requested changes to contract {contract.contract_number}. Revision #{contract.revision_count}.",
+                related_object_type="Contract",
+                related_object_id=contract.id,
+            )
         
         return contract
     

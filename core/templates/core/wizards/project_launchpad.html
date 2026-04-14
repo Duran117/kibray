@@ -369,13 +369,26 @@
     }
     
     async function launchProject() {
+        // Collect AI-suggested phases if available
+        const phasesEl = document.getElementById('suggestedPhases');
+        const phases = [];
+        if (phasesEl) {
+            phasesEl.querySelectorAll('li').forEach(li => {
+                const text = li.textContent.trim();
+                if (text && text !== '{% trans "No phases generated yet." %}') {
+                    phases.push(text);
+                }
+            });
+        }
+
         const payload = {
             name: document.getElementById('finalName').value,
             description: document.getElementById('finalDescription').value,
             client_id: document.getElementById('clientSelect').value === 'new' ? null : document.getElementById('clientSelect').value,
             start_date: document.getElementById('startDate').value,
             address: document.getElementById('address').value,
-            duration_days: document.getElementById('finalDuration').value
+            duration_days: document.getElementById('finalDuration').value,
+            phases: phases
         };
         
         try {

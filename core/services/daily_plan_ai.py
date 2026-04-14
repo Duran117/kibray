@@ -20,11 +20,14 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from core.models import (
+    ActivityTemplate,
     DailyPlan,
     Employee,
+    EmployeeCertification,
     InventoryItem,
     PlannedActivity,
     Project,
+    ScheduleItemV2,
 )
 
 # ===== DATA STRUCTURES =====
@@ -261,7 +264,7 @@ class DailyPlanAIAssistant:
             employee_issues=employee_issues,
             schedule_issues=schedule_issues,
             safety_issues=safety_issues,
-            suggestions=[],  # TODO: Implement smart suggestions
+            suggestions=self._generate_suggestions(daily_plan, activities),
         )
 
     def _check_materials(
@@ -400,7 +403,32 @@ class DailyPlanAIAssistant:
                     except Employee.DoesNotExist:
                         pass
 
-        # TODO: Check for conflicts with other projects on same date
+        # Check for conflicts with other projects on same date
+        all_employee_ids = list(employee_hours.keys())
+        if all_employee_ids and plan_date:
+            other_plans = DailyPlan.objects.filter(
+                date=plan_date,
+            ).exclude(pk=activities[0].daily_plan_id if activities else 0)
+
+            for other_plan in other_plans:
+                other_activities = other_plan.activities.prefetch_related("assigned_employees").all()
+                for other_activity in other_activities:
+                    for emp in other_activity.assigned_employees.filter(id__in=all_employee_ids):
+                        issues.append(
+                            EmployeeIssue(
+                                employee_name=f"{emp.first_name} {emp.last_name}",
+                                issue_type="double_booking",
+                                description=(
+                                    f"Also assigned to '{other_activity.title}' on project "
+                                    f"'{other_plan.project.name}' for the same date"
+                                ),
+                                severity="warning",
+                                suggestion="Verify this employee can work on multiple projects on the same day",
+                                affected_activities=[
+                                    a.id for a in activities if emp in a.assigned_employees.all()
+                                ],
+                            )
+                        )
 
         return passed, issues
 
@@ -510,10 +538,101 @@ class DailyPlanAIAssistant:
             else:
                 passed.append("Weather conditions are suitable for planned work")
 
-        # TODO: Check employee certifications
-        # TODO: Check required safety equipment
+        # Check employee certifications — warn if any are expired
+        all_employee_ids = set()
+        for activity in activities:
+            for emp in activity.assigned_employees.all():
+                all_employee_ids.add(emp.id)
+
+        if all_employee_ids:
+            expired_certs = EmployeeCertification.objects.filter(
+                employee_id__in=all_employee_ids,
+                expires_at__isnull=False,
+                expires_at__lt=timezone.now().date(),
+            ).select_related("employee")
+
+            for cert in expired_certs:
+                issues.append(
+                    SafetyIssue(
+                        issue_type="certification",
+                        description=(
+                            f"{cert.employee.first_name} {cert.employee.last_name}'s "
+                            f"'{cert.certification_name}' certification expired on {cert.expires_at}"
+                        ),
+                        severity="warning",
+                        suggestion="Renew certification before assigning safety-critical tasks",
+                        required_action=f"Renew {cert.certification_name} for {cert.employee.first_name} {cert.employee.last_name}",
+                    )
+                )
+
+            if not expired_certs.exists():
+                passed.append("All assigned employee certifications are current")
+
+        # Check required safety equipment from activity templates
+        activities_with_safety = [a for a in activities if a.activity_template and a.activity_template.safety_warnings]
+        if activities_with_safety:
+            for activity in activities_with_safety:
+                issues.append(
+                    SafetyIssue(
+                        issue_type="equipment",
+                        description=f"Activity '{activity.title}' has safety warnings: {activity.activity_template.safety_warnings[:120]}",
+                        severity="info",
+                        suggestion="Ensure all workers review safety guidelines before starting",
+                        required_action="Brief team on safety requirements",
+                    )
+                )
+        else:
+            passed.append("No special safety equipment requirements")
 
         return passed, issues
+
+    def _generate_suggestions(
+        self, daily_plan: DailyPlan, existing_activities: list[PlannedActivity]
+    ) -> list[ActivitySuggestion]:
+        """Generate smart suggestions based on project schedule and existing activities."""
+        suggestions: list[ActivitySuggestion] = []
+        project = daily_plan.project
+        plan_date = daily_plan.plan_date
+
+        if not project or not plan_date:
+            return suggestions
+
+        # Find schedule items whose date range includes today and are not yet done
+        eligible_items = ScheduleItemV2.objects.filter(
+            project=project,
+            start_date__lte=plan_date,
+            end_date__gte=plan_date,
+            status__in=["planned", "in_progress"],
+        ).exclude(is_milestone=True)
+
+        # IDs of schedule items already covered by existing activities
+        covered_item_ids = {
+            a.schedule_item_id for a in existing_activities if a.schedule_item_id
+        }
+
+        for item in eligible_items[:5]:  # Limit to top 5 suggestions
+            if item.id in covered_item_ids:
+                continue
+
+            # Try to match an activity template by name similarity
+            template = ActivityTemplate.objects.filter(
+                is_active=True, name__icontains=item.name.split()[0] if item.name else ""
+            ).first()
+
+            suggestions.append(
+                ActivitySuggestion(
+                    title=item.name,
+                    description=item.description or f"From schedule: {item.name}",
+                    estimated_hours=float(template.time_estimate) if template and template.time_estimate else 4.0,
+                    suggested_employees=[],
+                    required_materials=list(template.materials_list) if template else [],
+                    schedule_item_id=item.id,
+                    activity_template_id=template.id if template else None,
+                    confidence=0.7,
+                )
+            )
+
+        return suggestions
 
     def generate_checklist(self, daily_plan: DailyPlan) -> dict:
         """

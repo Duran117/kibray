@@ -8,7 +8,7 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .models import ClientOrganization, Project
+from .models import ClientOrganization, Project, SchedulePhaseV2
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +118,15 @@ def project_launchpad_save(request):
             billing_organization_id=client_id if client_id else None,
         )
 
-        # TODO: Create Phases/Schedule items if provided in the wizard payload
+        # Create schedule phases if provided in the wizard payload
+        phases = data.get("phases", [])
+        for idx, phase_name in enumerate(phases):
+            if isinstance(phase_name, str) and phase_name.strip():
+                SchedulePhaseV2.objects.create(
+                    project=project,
+                    name=phase_name.strip(),
+                    order=idx,
+                )
 
         return JsonResponse(
             {

@@ -2,6 +2,10 @@
 ChangeOrder-related viewsets for the Kibray API
 """
 
+import logging
+
+from django.contrib.auth.models import User
+from django.db.models import Q
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -16,7 +20,9 @@ from core.api.serializer_classes import (
     ChangeOrderDetailSerializer,
     ChangeOrderListSerializer,
 )
-from core.models import ChangeOrder, Employee
+from core.models import ChangeOrder, Employee, Notification
+
+logger = logging.getLogger(__name__)
 
 
 class ChangeOrderViewSet(viewsets.ModelViewSet):
@@ -91,7 +97,26 @@ class ChangeOrderViewSet(viewsets.ModelViewSet):
             change_order.notes = f"{change_order.notes}\n\nApproval notes: {notes}".strip()
         change_order.save()
 
-        # TODO: Create notification/alert for project members
+        # Notify admins and PMs about CO approval
+        staff = (
+            User.objects.filter(is_active=True)
+            .filter(
+                Q(is_superuser=True)
+                | Q(profile__role__in=["admin", "project_manager"])
+            )
+            .exclude(pk=request.user.pk)
+            .distinct()
+        )
+        for u in staff:
+            Notification.objects.create(
+                user=u,
+                project=change_order.project,
+                notification_type="change_order",
+                title=f"CO Approved: {change_order.reference_code or 'N/A'}",
+                message=f"Change order for {change_order.project.name} was approved by {request.user.get_full_name() or request.user.username}.",
+                related_object_type="ChangeOrder",
+                related_object_id=change_order.id,
+            )
 
         serializer = self.get_serializer_class()(change_order)
         return Response(
@@ -115,7 +140,26 @@ class ChangeOrderViewSet(viewsets.ModelViewSet):
             change_order.notes = f"{change_order.notes}\n\nRejection notes: {notes}".strip()
         change_order.save()
 
-        # TODO: Create notification/alert for submitter
+        # Notify admins and PMs about CO rejection
+        staff = (
+            User.objects.filter(is_active=True)
+            .filter(
+                Q(is_superuser=True)
+                | Q(profile__role__in=["admin", "project_manager"])
+            )
+            .exclude(pk=request.user.pk)
+            .distinct()
+        )
+        for u in staff:
+            Notification.objects.create(
+                user=u,
+                project=change_order.project,
+                notification_type="change_order",
+                title=f"CO Rejected: {change_order.reference_code or 'N/A'}",
+                message=f"Change order for {change_order.project.name} was rejected by {request.user.get_full_name() or request.user.username}.",
+                related_object_type="ChangeOrder",
+                related_object_id=change_order.id,
+            )
 
         serializer = self.get_serializer_class()(change_order)
         return Response({"message": "Change order rejected", "change_order": serializer.data})
