@@ -73,6 +73,18 @@
         </div>
       </div>
     </div>
+    {% if stats.portal > 0 %}
+    <div class="col-6 col-md-3 col-lg">
+      <div class="card border-0 shadow-sm h-100 {% if filter_source == 'portal' %}border-2 border-info{% endif %}">
+        <div class="card-body py-3 text-center">
+          <a href="?source=portal" class="text-decoration-none">
+            <div class="fs-3 fw-bold text-info"><i class="bi bi-door-open"></i> {{ stats.portal }}</div>
+            <small class="text-muted">{% trans "Portal" %}</small>
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
   </div>
 
   <!-- Filters -->
@@ -121,7 +133,15 @@
             <option value="due_date" {% if sort_by == 'due_date' %}selected{% endif %}>{% trans "Due Date" %}</option>
           </select>
         </div>
-        <div class="col-md-2 d-flex gap-1">
+        <div class="col-md-1">
+          <label class="form-label small mb-1">{% trans "Source" %}</label>
+          <select name="source" class="form-select form-select-sm">
+            <option value="">{% trans "All" %}</option>
+            <option value="portal" {% if filter_source == 'portal' %}selected{% endif %}>{% trans "Portal" %}</option>
+            <option value="staff" {% if filter_source == 'staff' %}selected{% endif %}>{% trans "Staff" %}</option>
+          </select>
+        </div>
+        <div class="col-md-1 d-flex gap-1">
           <button type="submit" class="btn btn-primary btn-sm flex-fill"><i class="bi bi-funnel"></i> {% trans "Filter" %}</button>
           <a href="{% url 'touchup_list' project.id %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x"></i></a>
         </div>
@@ -162,6 +182,12 @@
               {% else %}bg-light text-dark{% endif %}">
               {{ tu.get_priority_display }}
             </span>
+            {% if tu.resident_name %}
+            <!-- Portal Badge -->
+            <span class="position-absolute bottom-0 start-0 m-2 badge bg-info text-white" title="{% trans 'Submitted via Resident Portal' %} — {{ tu.resident_name }}{% if tu.resident_unit %} ({{ tu.resident_unit }}){% endif %}">
+              <i class="bi bi-door-open" aria-hidden="true"></i> {% trans "Portal" %}
+            </span>
+            {% endif %}
           </div>
           <div class="card-body py-2 px-3">
             <h6 class="card-title mb-1 text-dark text-truncate" title="{{ tu.title }}">{{ tu.title }}</h6>
@@ -215,15 +241,15 @@
   <nav class="mt-4">
     <ul class="pagination justify-content-center">
       {% if page_obj.has_previous %}
-        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ filter_status }}&priority={{ filter_priority }}&assigned={{ filter_assigned }}&q={{ filter_search }}&sort={{ sort_by }}">&laquo;</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ filter_status }}&priority={{ filter_priority }}&assigned={{ filter_assigned }}&q={{ filter_search }}&source={{ filter_source }}&sort={{ sort_by }}">&laquo;</a></li>
       {% endif %}
       {% for num in page_obj.paginator.page_range %}
         <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-          <a class="page-link" href="?page={{ num }}&status={{ filter_status }}&priority={{ filter_priority }}&assigned={{ filter_assigned }}&q={{ filter_search }}&sort={{ sort_by }}">{{ num }}</a>
+          <a class="page-link" href="?page={{ num }}&status={{ filter_status }}&priority={{ filter_priority }}&assigned={{ filter_assigned }}&q={{ filter_search }}&source={{ filter_source }}&sort={{ sort_by }}">{{ num }}</a>
         </li>
       {% endfor %}
       {% if page_obj.has_next %}
-        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ filter_status }}&priority={{ filter_priority }}&assigned={{ filter_assigned }}&q={{ filter_search }}&sort={{ sort_by }}">&raquo;</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ filter_status }}&priority={{ filter_priority }}&assigned={{ filter_assigned }}&q={{ filter_search }}&source={{ filter_source }}&sort={{ sort_by }}">&raquo;</a></li>
       {% endif %}
     </ul>
   </nav>

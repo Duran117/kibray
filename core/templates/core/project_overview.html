@@ -444,6 +444,13 @@
       <span class="nav-text">{% trans "Issues" %}</span>
     </a>
     
+    <!-- Resident Portal -->
+    <div class="section-title">{% trans "Portal" %}</div>
+    <a href="{% url 'portal_manage' project.id %}" class="nav-item">
+      <i class="bi bi-door-open"></i>
+      <span class="nav-text">{% trans "Resident Portal" %}{% if portal_touchup_count %} <span class="badge bg-info rounded-pill ms-1">{{ portal_touchup_count }}</span>{% endif %}</span>
+    </a>
+    
     <!-- Change Orders -->
     <div class="section-title">{% trans "Change Orders" %}</div>
     <a href="{% url 'changeorder_board' %}" class="nav-item">
@@ -616,6 +623,13 @@
       <a href="{% url 'risk_list' project.id %}" class="nav-item">
         <i class="bi bi-shield-exclamation"></i>
         <span class="nav-text">{% trans "Risks" %}</span>
+      </a>
+      
+      <!-- Resident Portal -->
+      <div class="section-title">{% trans "Portal" %}</div>
+      <a href="{% url 'portal_manage' project.id %}" class="nav-item">
+        <i class="bi bi-door-open"></i>
+        <span class="nav-text">{% trans "Resident Portal" %}{% if portal_touchup_count %} <span class="badge bg-info rounded-pill ms-1" style="font-size: .65rem;">{{ portal_touchup_count }}</span>{% endif %}</span>
       </a>
       
       <!-- Change Orders -->
@@ -934,6 +948,39 @@
             <div class="text-3xl font-bold text-purple-600">{{ pending_cos|default:"0" }}</div>
             <div class="text-xs text-slate-500 mt-1">{% trans "COs Pendientes" %}</div>
           </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resident Portal Status Card -->
+    <div class="bg-white rounded-xl shadow-sm p-4 mb-6 mt-6">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+          <i class="bi bi-door-open text-slate-400"></i>
+          {% trans "Resident Portal" %}
+        </h3>
+        <a href="{% url 'portal_manage' project.id %}" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+          {% trans "Manage" %} <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="text-center p-3 bg-slate-50 rounded-lg">
+          <div class="text-2xl font-bold {% if portal_active %}text-green-600{% else %}text-slate-400{% endif %}">
+            {% if portal_active %}<i class="bi bi-check-circle-fill"></i>{% else %}<i class="bi bi-x-circle"></i>{% endif %}
+          </div>
+          <div class="text-xs text-slate-500 mt-1">{% if portal_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}</div>
+        </div>
+        <div class="text-center p-3 bg-slate-50 rounded-lg">
+          <div class="text-2xl font-bold text-blue-600">{{ portal_touchup_count|default:"0" }}</div>
+          <div class="text-xs text-slate-500 mt-1">{% trans "Portal Touch-ups" %}</div>
+        </div>
+        <div class="text-center p-3 bg-slate-50 rounded-lg">
+          <div class="text-2xl font-bold text-teal-600">{{ portal_session_count|default:"0" }}</div>
+          <div class="text-xs text-slate-500 mt-1">{% trans "Residents" %}</div>
+        </div>
+        <div class="text-center p-3 bg-slate-50 rounded-lg">
+          <div class="text-2xl font-bold text-amber-600">{{ portal_unit_count|default:"0" }}</div>
+          <div class="text-xs text-slate-500 mt-1">{% trans "Units" %}</div>
         </div>
       </div>
     </div>

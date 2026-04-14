@@ -9345,6 +9345,28 @@ def project_overview(request, project_id: int):
         except Exception:
             leftovers = q.order_by("id")
 
+    # Resident Portal data
+    portal_active = False
+    portal_touchup_count = 0
+    portal_session_count = 0
+    portal_unit_count = 0
+    try:
+        from core.models import ResidentPortal, TouchUp as TouchUpModel
+
+        portal_obj = ResidentPortal.objects.filter(project=project).first()
+        if portal_obj:
+            portal_active = portal_obj.is_active
+            portal_touchup_count = (
+                TouchUpModel.objects.filter(project=project)
+                .exclude(resident_name="")
+                .exclude(resident_name__isnull=True)
+                .count()
+            )
+            portal_session_count = portal_obj.sessions.count()
+            portal_unit_count = project.units.count()
+    except Exception:
+        pass
+
     return render(
         request,
         "core/project_overview.html",
@@ -9379,6 +9401,11 @@ def project_overview(request, project_id: int):
             "cos_in_progress": cos_in_progress,
             "cos_completed": cos_completed,
             "total_cos": total_cos,
+            # Resident Portal
+            "portal_active": portal_active,
+            "portal_touchup_count": portal_touchup_count,
+            "portal_session_count": portal_session_count,
+            "portal_unit_count": portal_unit_count,
         },
     )
 
@@ -16978,6 +17005,14 @@ def touchup_list(request, project_id):
 
         qs = qs.filter(Q(title__icontains=search) | Q(description__icontains=search))
 
+    # Source filter (portal vs staff)
+    source = request.GET.get("source", "")
+    if source == "portal":
+        qs = qs.exclude(resident_name="").exclude(resident_name__isnull=True)
+    elif source == "staff":
+        from django.db.models import Q as SourceQ
+        qs = qs.filter(SourceQ(resident_name="") | SourceQ(resident_name__isnull=True))
+
     # Sort
     sort = request.GET.get("sort", "-created_at")
     valid_sorts = [
@@ -16996,6 +17031,7 @@ def touchup_list(request, project_id):
         in_progress=Count("id", filter=DQ(status="in_progress")),
         review=Count("id", filter=DQ(status="review")),
         closed=Count("id", filter=DQ(status="closed")),
+        portal=Count("id", filter=~DQ(resident_name="") & DQ(resident_name__isnull=False)),
     )
 
     # Employees for filter dropdown
@@ -17016,6 +17052,7 @@ def touchup_list(request, project_id):
             "filter_priority": priority,
             "filter_assigned": assigned,
             "filter_search": search,
+            "filter_source": source,
             "sort_by": sort,
             "status_choices": TouchUp.STATUS_CHOICES,
             "priority_choices": TouchUp.PRIORITY_CHOICES,
