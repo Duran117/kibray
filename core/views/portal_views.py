@@ -18,6 +18,7 @@ URL pattern: /portal/<uuid:token>/
 import json
 from decimal import Decimal, InvalidOperation
 
+from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
@@ -117,10 +118,10 @@ def portal_identify(request, token):
     if request.method != "POST":
         return redirect("portal_landing", token=token)
 
-    name = request.POST.get("name", "").strip()
-    unit = request.POST.get("unit", "").strip()
-    email = request.POST.get("email", "").strip()
-    phone = request.POST.get("phone", "").strip()
+    name = request.POST.get("name", "").strip()[:120]
+    unit = request.POST.get("unit", "").strip()[:60]
+    email = request.POST.get("email", "").strip()[:254]
+    phone = request.POST.get("phone", "").strip()[:30]
 
     # Validation
     errors = []
@@ -225,16 +226,22 @@ def portal_create_touchup(request, token):
         return redirect("portal_landing", token=token)
 
     project = portal.project
-    title = request.POST.get("title", "").strip()
+    title = request.POST.get("title", "").strip()[:200]  # Enforce max_length
 
     if not title:
         return redirect("portal_dashboard", token=token)
 
+    # Validate priority value
+    valid_priorities = {"low", "medium", "high", "urgent"}
+    priority = request.POST.get("priority", "medium") or "medium"
+    if priority not in valid_priorities:
+        priority = "medium"
+
     touchup = TouchUp.objects.create(
         project=project,
         title=title,
-        description=request.POST.get("description", "").strip(),
-        priority=request.POST.get("priority", "medium") or "medium",
+        description=request.POST.get("description", "").strip()[:5000],
+        priority=priority,
         resident_name=session.name,
         resident_unit=session.unit,
         resident_email=session.email,
@@ -259,17 +266,21 @@ def portal_create_touchup(request, token):
     # Handle photos
     if portal.allow_photo_upload:
         photos = request.FILES.getlist("photos")
-        for photo in photos:
-            TouchUpPhoto.objects.create(
-                touchup=touchup,
-                image=photo,
-                phase="before",
-                # No uploaded_by — anonymous upload
-            )
+        max_photo_size = 10 * 1024 * 1024  # 10 MB per photo
+        max_photos = 10
+        for photo in photos[:max_photos]:
+            if photo.size <= max_photo_size:
+                TouchUpPhoto.objects.create(
+                    touchup=touchup,
+                    image=photo,
+                    phase="before",
+                    # No uploaded_by — anonymous upload
+                )
 
     # Notify staff
     _notify_staff_new_touchup(portal, touchup)
 
+    messages.success(request, _("Your issue has been submitted! We'll take care of it."))
     return redirect("portal_dashboard", token=token)
 
 
@@ -343,10 +354,15 @@ def portal_manage(request, project_id):
             portal.require_phone = request.POST.get("require_phone") == "on"
             portal.allow_photo_upload = request.POST.get("allow_photo_upload") == "on"
             portal.save()
+            messages.success(request, _("Portal settings updated."))
 
         elif action == "toggle_active":
             portal.is_active = not portal.is_active
             portal.save(update_fields=["is_active"])
+            if portal.is_active:
+                messages.success(request, _("Portal activated."))
+            else:
+                messages.warning(request, _("Portal deactivated."))
 
         elif action == "add_unit":
             identifier = request.POST.get("identifier", "").strip()

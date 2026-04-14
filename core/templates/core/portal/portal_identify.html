@@ -6,8 +6,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% trans "Resident Portal" %} — {{ project.name }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" crossorigin="anonymous">
     <style>
         :root {
             --portal-primary: #3b82f6;
@@ -74,11 +74,15 @@
             font-size: 1rem;
             font-weight: 600;
             width: 100%;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, opacity 0.2s;
         }
         .btn-portal:hover {
             background: var(--portal-primary-dark);
             color: #fff;
+        }
+        .btn-portal:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
         .welcome-msg {
             background: #f0f9ff;
@@ -96,23 +100,29 @@
         .required-star {
             color: #ef4444;
         }
+        .spinner-border {
+            width: 1rem;
+            height: 1rem;
+            border-width: 2px;
+        }
     </style>
 </head>
 <body>
-<div class="portal-card">
+<main>
+<div class="portal-card" role="region" aria-label="{% trans 'Resident identification' %}">
     <div class="portal-header">
-        <h1><i class="bi bi-building me-2"></i>{{ project.name }}</h1>
+        <h1><i class="bi bi-building me-2" aria-hidden="true"></i>{{ project.name }}</h1>
         <p>{% trans "Resident Touch-Up Portal" %}</p>
     </div>
     <div class="portal-body">
         {% if portal.welcome_message %}
-        <div class="welcome-msg">
+        <div class="welcome-msg" role="note">
             {{ portal.welcome_message }}
         </div>
         {% endif %}
 
         {% if errors %}
-        <div class="alert alert-danger">
+        <div class="alert alert-danger" role="alert">
             <ul class="mb-0 ps-3">
                 {% for e in errors %}
                 <li>{{ e }}</li>
@@ -121,25 +131,26 @@
         </div>
         {% endif %}
 
-        <form method="post" action="{% url 'portal_identify' token=portal.token %}">
+        <form method="post" action="{% url 'portal_identify' token=portal.token %}" id="identifyForm" novalidate>
             {% csrf_token %}
 
             <div class="mb-3">
-                <label class="form-label">
-                    {% trans "Your Name" %} <span class="required-star">*</span>
+                <label class="form-label" for="idName">
+                    {% trans "Your Name" %} <span class="required-star" aria-label="{% trans 'required' %}">*</span>
                 </label>
-                <input type="text" name="name" class="form-control"
+                <input type="text" name="name" class="form-control" id="idName"
                        placeholder="{% trans 'Full name' %}"
-                       value="{{ form_name|default:'' }}" required>
+                       value="{{ form_name|default:'' }}" required maxlength="120"
+                       aria-required="true" autocomplete="name">
             </div>
 
             <div class="mb-3">
-                <label class="form-label">
+                <label class="form-label" for="idUnit">
                     {% trans "Unit / Address" %}
-                    {% if portal.require_unit %}<span class="required-star">*</span>{% endif %}
+                    {% if portal.require_unit %}<span class="required-star" aria-label="{% trans 'required' %}">*</span>{% endif %}
                 </label>
                 {% if units %}
-                <select name="unit" class="form-select" {% if portal.require_unit %}required{% endif %}>
+                <select name="unit" class="form-select" id="idUnit" {% if portal.require_unit %}required aria-required="true"{% endif %}>
                     <option value="">{% trans "Select your unit…" %}</option>
                     {% for u in units %}
                     <option value="{{ u.identifier }}" {% if form_unit == u.identifier %}selected{% endif %}>
@@ -148,41 +159,59 @@
                     {% endfor %}
                 </select>
                 {% else %}
-                <input type="text" name="unit" class="form-control"
+                <input type="text" name="unit" class="form-control" id="idUnit"
                        placeholder="{% trans 'Unit number or address' %}"
-                       value="{{ form_unit|default:'' }}"
-                       {% if portal.require_unit %}required{% endif %}>
+                       value="{{ form_unit|default:'' }}" maxlength="60"
+                       {% if portal.require_unit %}required aria-required="true"{% endif %}>
                 {% endif %}
             </div>
 
             <div class="mb-3">
-                <label class="form-label">
+                <label class="form-label" for="idEmail">
                     {% trans "Email" %}
-                    {% if portal.require_email %}<span class="required-star">*</span>{% endif %}
+                    {% if portal.require_email %}<span class="required-star" aria-label="{% trans 'required' %}">*</span>{% endif %}
                 </label>
-                <input type="email" name="email" class="form-control"
+                <input type="email" name="email" class="form-control" id="idEmail"
                        placeholder="{% trans 'your@email.com' %}"
-                       value="{{ form_email|default:'' }}"
-                       {% if portal.require_email %}required{% endif %}>
+                       value="{{ form_email|default:'' }}" maxlength="254"
+                       {% if portal.require_email %}required aria-required="true"{% endif %}
+                       autocomplete="email">
             </div>
 
             <div class="mb-3">
-                <label class="form-label">
+                <label class="form-label" for="idPhone">
                     {% trans "Phone" %}
-                    {% if portal.require_phone %}<span class="required-star">*</span>{% endif %}
+                    {% if portal.require_phone %}<span class="required-star" aria-label="{% trans 'required' %}">*</span>{% endif %}
                 </label>
-                <input type="tel" name="phone" class="form-control"
+                <input type="tel" name="phone" class="form-control" id="idPhone"
                        placeholder="{% trans '(555) 123-4567' %}"
-                       value="{{ form_phone|default:'' }}"
-                       {% if portal.require_phone %}required{% endif %}>
+                       value="{{ form_phone|default:'' }}" maxlength="30"
+                       {% if portal.require_phone %}required aria-required="true"{% endif %}
+                       autocomplete="tel">
             </div>
 
-            <button type="submit" class="btn btn-portal mt-2">
-                <i class="bi bi-arrow-right-circle me-1"></i>
+            <button type="submit" class="btn btn-portal mt-2" id="identifyBtn">
+                <i class="bi bi-arrow-right-circle me-1" aria-hidden="true"></i>
                 {% trans "Enter Portal" %}
             </button>
         </form>
     </div>
 </div>
+</main>
+
+<script>
+// Double-submit prevention + loading spinner
+document.getElementById('identifyForm').addEventListener('submit', function(e) {
+    var name = document.getElementById('idName').value.trim();
+    if (!name) {
+        e.preventDefault();
+        document.getElementById('idName').focus();
+        return;
+    }
+    var btn = document.getElementById('identifyBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> {% trans "Entering…" %}';
+});
+</script>
 </body>
 </html>
