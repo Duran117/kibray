@@ -2532,30 +2532,16 @@ def manual_timeentry_create(request):
 def client_project_view(request, project_id):
     """
     Dashboard completo de UN proyecto individual para el cliente.
-    El cliente ve: pending requests, minutas, fotos, schedule, tareas/touch-ups.
+    El cliente ve: pending requests, minutas, fotos, schedule, tareas/touch-ups,
+    pending contracts/COs for signature, color sample approvals, daily logs.
     """
     project = get_object_or_404(Project, id=project_id)
 
-    # Verificar acceso: el usuario debe ser el cliente de este proyecto
-    # o tener perfil de cliente con acceso (en caso de múltiples PMs de una compañía)
-    profile = getattr(request.user, "profile", None)
-    from core.models import ClientProjectAccess
-
-    has_explicit_access = ClientProjectAccess.objects.filter(
-        user=request.user, project=project
-    ).exists()
-    if profile and profile.role == "client":
-        # Permitir si está asignado por acceso granular o si coincide el nombre de cliente (legacy)
-        if not (has_explicit_access or project.client == request.user.username):
-            messages.error(request, "You don't have access to this project.")
-            return redirect("dashboard_client")
-    else:
-        # Permitir staff; si es PM externo (no staff), permitir solo si tiene acceso granular
-        if request.user.is_staff or has_explicit_access:
-            pass
-        else:
-            messages.error(request, "Access denied.")
-            return redirect("dashboard")
+    # SECURITY: Reuse centralised access check
+    has_access, redirect_url = _check_user_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("You don't have access to this project."))
+        return redirect(redirect_url)
 
     # === SOLICITUDES Y COMUNICACIÓN ===
     from core.models import ClientRequest, ProjectMinute
@@ -2690,6 +2676,49 @@ def client_project_view(request, project_id):
         project=project, is_current=True
     ).order_by("level", "name")
 
+    # === CONTRACTS PENDING SIGNATURE ===
+    from core.models import Contract
+    pending_contracts = Contract.objects.filter(
+        project=project,
+        status="pending_signature",
+    ).order_by("-created_at")[:5]
+
+    # === CHANGE ORDERS PENDING CLIENT SIGNATURE ===
+    from core.services.financial_service import ChangeOrderService as _COService
+    pending_change_orders = ChangeOrder.objects.filter(
+        project=project,
+        status__in=["approved", "sent"],
+        signed_at__isnull=True,
+    ).filter(
+        Q(signature_image__isnull=True) | Q(signature_image="")
+    ).order_by("-date_created")[:10]
+    for co in pending_change_orders:
+        if co.pricing_type == "T_AND_M":
+            co.calculated_total = _COService.get_billable_amount(co).get("grand_total", Decimal("0"))
+        else:
+            co.calculated_total = co.amount or Decimal("0")
+
+    # === COLOR SAMPLES PENDING APPROVAL ===
+    from core.models import ColorSample
+    pending_color_samples = ColorSample.objects.filter(
+        project=project,
+        status__in=["proposed", "review"],
+    ).order_by("-created_at")[:5]
+
+    # === DAILY LOGS (published only — visible to client) ===
+    from core.models import DailyLog
+    recent_daily_logs = DailyLog.objects.filter(
+        project=project,
+        is_published=True,
+    ).select_related("created_by").order_by("-date")[:5]
+
+    # === UNREAD NOTIFICATIONS COUNT ===
+    unread_notifications = Notification.objects.filter(
+        user=request.user,
+        project=project,
+        is_read=False,
+    ).count()
+
     context = {
         "project": project,
         "pending_requests": pending_requests,
@@ -2720,6 +2749,12 @@ def client_project_view(request, project_id):
         "approved_cos_total": approved_cos_total,
         "pending_cos_total": pending_cos_total,
         "total_contract_value": total_contract_value,
+        # Actionable items for client
+        "pending_contracts": pending_contracts,
+        "pending_change_orders": pending_change_orders,
+        "pending_color_samples": pending_color_samples,
+        "recent_daily_logs": recent_daily_logs,
+        "unread_notifications": unread_notifications,
     }
     return render(request, "core/client_project_view.html", context)
 

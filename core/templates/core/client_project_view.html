@@ -86,6 +86,40 @@
     </a>
 </div>
 
+<!-- ====== ACTION REQUIRED BANNER ====== -->
+{% if pending_contracts or pending_change_orders or pending_color_samples %}
+<div class="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-100 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+            <i class="bi bi-bell text-amber-600"></i>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-amber-900">{% trans "Action Required" %}</p>
+            <p class="text-xs text-amber-700">
+                {% if pending_contracts %}{{ pending_contracts|length }} {% trans "contract(s) ready for signature" %}{% endif %}
+                {% if pending_contracts and pending_change_orders %} · {% endif %}
+                {% if pending_change_orders %}{{ pending_change_orders|length }} {% trans "change order(s) awaiting signature" %}{% endif %}
+                {% if pending_change_orders and pending_color_samples %} · {% endif %}
+                {% if pending_color_samples %}{{ pending_color_samples|length }} {% trans "color sample(s) awaiting approval" %}{% endif %}
+            </p>
+        </div>
+    </div>
+    <a href="#actions-section" class="text-amber-500 hover:text-amber-700 transition">
+        <i class="bi bi-chevron-right"></i>
+    </a>
+</div>
+{% endif %}
+
+<!-- ====== NOTIFICATION BADGE (if unread) ====== -->
+{% if unread_notifications %}
+<div class="mb-6 p-3 bg-indigo-50 rounded-xl border border-indigo-100 flex items-center gap-3">
+    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+        <i class="bi bi-bell-fill text-indigo-600 text-sm"></i>
+    </div>
+    <p class="text-sm text-indigo-800">{% trans "You have" %} <strong>{{ unread_notifications }}</strong> {% trans "unread notification(s)" %}</p>
+</div>
+{% endif %}
+
 <!-- Stats Row -->
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
     <div class="bg-white rounded-xl border border-slate-200 p-5 card-hover">
@@ -336,10 +370,117 @@
             </div>
         </div>
         {% endif %}
+
+        <!-- ====== DAILY LOGS ====== -->
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-journal-text text-slate-500"></i> {% trans "Daily Progress" %}
+                </h3>
+                <a href="{% url 'daily_log' project.id %}" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">{% trans "View all" %} &rarr;</a>
+            </div>
+            {% if recent_daily_logs %}
+            <div class="divide-y divide-slate-100">
+                {% for log in recent_daily_logs %}
+                <a href="{% url 'daily_log_detail' log.id %}" class="block px-6 py-4 hover:bg-slate-50 transition group">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm font-medium text-slate-900">{{ log.date|date:"M d, Y" }}</span>
+                        {% if log.schedule_progress_percent %}
+                        <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{{ log.schedule_progress_percent|floatformat:0 }}%</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center gap-3 text-xs text-slate-500">
+                        {% if log.weather %}<span><i class="bi bi-cloud-sun me-1"></i>{{ log.weather|truncatewords:2 }}</span>{% endif %}
+                        {% if log.crew_count %}<span><i class="bi bi-people me-1"></i>{{ log.crew_count }}</span>{% endif %}
+                        {% if log.created_by %}<span><i class="bi bi-person me-1"></i>{{ log.created_by.get_full_name|default:log.created_by.username }}</span>{% endif %}
+                    </div>
+                    {% if log.accomplishments %}
+                    <p class="text-xs text-slate-500 mt-2 line-clamp-2">{{ log.accomplishments|truncatewords:15 }}</p>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="px-6 py-8 text-center">
+                <i class="bi bi-journal-text text-2xl text-slate-300 mb-2"></i>
+                <p class="text-sm text-slate-500">{% trans "No daily logs published yet" %}</p>
+            </div>
+            {% endif %}
+        </div>
     </div>
 
     <!-- COLUMN 2: Sidebar -->
     <div class="space-y-6">
+
+        <!-- ====== PENDING ACTIONS ====== -->
+        {% if pending_contracts or pending_change_orders or pending_color_samples %}
+        <div id="actions-section" class="space-y-3">
+            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">{% trans "Your Actions" %}</h3>
+
+            <!-- Pending Contracts -->
+            {% for contract in pending_contracts %}
+            <a href="{% url 'contract_client_view' token=contract.client_view_token %}"
+               class="block p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 card-hover group">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-medium text-emerald-700 uppercase tracking-wide">
+                        <i class="bi bi-file-earmark-text me-1"></i>{% trans "Contract Ready" %}
+                    </span>
+                    <span class="text-sm font-semibold text-emerald-900">{{ contract.total_amount|currency }}</span>
+                </div>
+                <p class="text-sm font-medium text-slate-900 line-clamp-1">{{ contract.contract_number }}</p>
+                <div class="flex items-center gap-1 mt-2 text-xs text-emerald-600 group-hover:text-emerald-700">
+                    <i class="bi bi-pen"></i>
+                    <span>{% trans "Review & Sign Contract" %}</span>
+                    <i class="bi bi-arrow-right ml-auto opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                </div>
+            </a>
+            {% endfor %}
+
+            <!-- Pending Change Orders -->
+            {% for co in pending_change_orders %}
+            <a href="{% url 'changeorder_customer_signature' changeorder_id=co.id %}"
+               class="block p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100 card-hover group">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-medium text-amber-700 uppercase tracking-wide">{% trans "Signature Required" %}</span>
+                    <span class="text-sm font-semibold text-amber-900">{{ co.calculated_total|currency }}</span>
+                </div>
+                <p class="text-sm font-medium text-slate-900 line-clamp-1">{{ co.description|truncatewords:8 }}</p>
+                <div class="flex items-center gap-1 mt-2 text-xs text-amber-600 group-hover:text-amber-700">
+                    <i class="bi bi-pen"></i>
+                    <span>{% trans "Review & Sign" %}</span>
+                    <i class="bi bi-arrow-right ml-auto opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                </div>
+            </a>
+            {% endfor %}
+
+            <!-- Pending Color Samples -->
+            {% if pending_color_samples %}
+            <div class="space-y-2">
+                <p class="text-xs text-slate-400 uppercase tracking-wide">{% trans "Color Approvals" %}</p>
+                {% for sample in pending_color_samples %}
+                <a href="{% url 'color_sample_detail' sample_id=sample.id %}"
+                   class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 card-hover group">
+                    {% if sample.sample_image %}
+                    <img src="{{ sample.sample_image.url }}" alt="{{ sample.name }}"
+                         class="w-12 h-12 rounded-lg object-cover">
+                    {% elif sample.color_code %}
+                    <div class="w-12 h-12 rounded-lg" style="background: {{ sample.color_code }};"></div>
+                    {% else %}
+                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center">
+                        <i class="bi bi-palette text-violet-500"></i>
+                    </div>
+                    {% endif %}
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-slate-900 truncate">{{ sample.name|default:sample.code }}</p>
+                        <p class="text-xs text-slate-500">{{ sample.room_location|default:"—" }}</p>
+                    </div>
+                    <i class="bi bi-chevron-right text-slate-300 group-hover:text-slate-500 transition-colors"></i>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
 
         <!-- Financial Summary -->
         <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
