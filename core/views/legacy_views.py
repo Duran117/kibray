@@ -208,6 +208,44 @@ def _check_user_project_access(user, project):
 # ===== END SECURITY HELPER =====
 
 
+def _is_admin_user(user):
+    """Return True if user is superuser or has admin role."""
+    if user.is_superuser:
+        return True
+    profile = getattr(user, "profile", None)
+    return profile and getattr(profile, "role", None) == "admin"
+
+
+def _require_admin_or_redirect(request):
+    """
+    SECURITY: Guard for admin-only views.
+    Returns None if user is admin, or an HttpResponseRedirect otherwise.
+    Usage:
+        guard = _require_admin_or_redirect(request)
+        if guard:
+            return guard
+    """
+    if not _is_admin_user(request.user):
+        messages.error(request, "No tienes permiso para acceder a esta función.")
+        return redirect("dashboard")
+    return None
+
+
+def _require_roles(request, allowed_roles, *, allow_staff=True):
+    """
+    SECURITY: Guard for role-restricted views.
+    Returns None if user has an allowed role, or an HttpResponseRedirect.
+    """
+    if allow_staff and (request.user.is_superuser or request.user.is_staff):
+        return None
+    profile = getattr(request.user, "profile", None)
+    role = getattr(profile, "role", None)
+    if role in allowed_roles:
+        return None
+    messages.error(request, "No tienes permiso para acceder a esta función.")
+    return redirect("dashboard")
+
+
 # --- CLIENT REQUESTS ---
 @login_required
 def client_request_create(request, project_id):
@@ -1752,10 +1790,9 @@ def payroll_weekly_review(request):
     
     SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
-    # Solo admin/superuser puede acceder
-    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
-        messages.error(request, "No tienes permiso para acceder a esta función.")
-        return redirect("dashboard")
+    guard = _require_admin_or_redirect(request)
+    if guard:
+        return guard
 
     from datetime import datetime, timedelta
     from decimal import Decimal, InvalidOperation
@@ -2111,10 +2148,9 @@ def payroll_record_payment(request, record_id):
     Soporta pagos con ahorro - el empleado puede llevarse menos y dejar el resto.
     SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
-    # Solo admin/superuser puede acceder
-    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
-        messages.error(request, "No tienes permiso para acceder a esta función.")
-        return redirect("dashboard")
+    guard = _require_admin_or_redirect(request)
+    if guard:
+        return guard
 
     record = get_object_or_404(PayrollRecord, id=record_id)
 
@@ -2192,10 +2228,9 @@ def payroll_payment_history(request, employee_id=None):
     Historial de pagos de nómina. Si se especifica employee_id, muestra solo ese empleado.
     SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
-    # Solo admin/superuser puede acceder
-    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
-        messages.error(request, "No tienes permiso para acceder a esta función.")
-        return redirect("dashboard")
+    guard = _require_admin_or_redirect(request)
+    if guard:
+        return guard
 
     if employee_id:
         employee = get_object_or_404(Employee, id=employee_id)
@@ -2236,10 +2271,9 @@ def employee_savings_ledger(request, employee_id=None):
     from core.models import EmployeeSavings
     from decimal import Decimal
     
-    # Solo admin/superuser puede acceder
-    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
-        messages.error(request, "No tienes permiso para acceder a esta función.")
-        return redirect("dashboard")
+    guard = _require_admin_or_redirect(request)
+    if guard:
+        return guard
     
     # Si se especifica employee_id, mostrar solo ese empleado
     if employee_id:
@@ -2430,10 +2464,9 @@ def manual_timeentry_create(request):
     from decimal import Decimal
     from datetime import datetime
     
-    # Solo admin/superuser puede acceder
-    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
-        messages.error(request, "No tienes permiso para acceder a esta función.")
-        return redirect("dashboard")
+    guard = _require_admin_or_redirect(request)
+    if guard:
+        return guard
     
     employees = Employee.objects.filter(is_active=True).order_by('last_name', 'first_name')
     projects = Project.objects.filter(is_archived=False).order_by('name')
@@ -13087,7 +13120,8 @@ def changeorder_update_status(request, co_id):
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "JSON inválido"}, status=400)
     except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
+        logger.exception("Error updating change order status")
+        return JsonResponse({"success": False, "error": "Error interno del servidor"}, status=500)
 
 
 @login_required
@@ -13146,7 +13180,8 @@ def changeorder_send_to_client(request, co_id):
         )
 
     except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
+        logger.exception("Error sending change order to client")
+        return JsonResponse({"success": False, "error": "Error interno del servidor"}, status=500)
 
 
 # ========================================================================================
@@ -13467,7 +13502,7 @@ def file_download(request, file_id):
             return HttpResponseNotFound("El archivo no está disponible. Por favor contacte al administrador.")
         except Exception as e:
             logger.error(f"File download error: {e}")
-            return HttpResponseNotFound(f"Error al descargar: {str(e)}")
+            return HttpResponseNotFound("Error al descargar. Por favor contacte al administrador.")
 
     return HttpResponseNotFound("Archivo no encontrado")
 
@@ -13671,7 +13706,7 @@ def file_regenerate_pdf(request, file_id):
                 return JsonResponse({"error": gettext("Error al regenerar PDF")}, status=500)
     except Exception as e:
         logger.error(f"Failed to regenerate PDF: {e}")
-        return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"error": gettext("Error al regenerar PDF")}, status=500)
 
 
 @login_required
@@ -14705,7 +14740,7 @@ def pin_info_ajax(request, pin_id):
 
     except Exception as e:
         logger.error(f"Error in pin_info_ajax for pin {pin_id}: {str(e)}", exc_info=True)
-        return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"error": "Error loading pin information"}, status=500)
 
 
 @login_required
@@ -16990,7 +17025,8 @@ def changeorder_public_pdf_download(request, changeorder_id, token):
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
     except Exception as e:
-        return HttpResponse(f"Error generating PDF: {str(e)}", status=500)
+        logger.exception(f"Error generating Change Order PDF for CO #{changeorder.id}")
+        return HttpResponse("Error generating PDF. Please try again later.", status=500)
 
 
 def colorsample_public_pdf_download(request, sample_id, token):
@@ -17025,7 +17061,8 @@ def colorsample_public_pdf_download(request, sample_id, token):
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
     except Exception as e:
-        return HttpResponse(f"Error generating PDF: {str(e)}", status=500)
+        logger.exception(f"Error generating Color Sample PDF for sample #{colorsample.id}")
+        return HttpResponse("Error generating PDF. Please try again later.", status=500)
 
 
 # ========================================================================================
@@ -17714,4 +17751,5 @@ def touchup_v2_save_annotation(request, project_id, touchup_id, photo_id):
         photo.save(update_fields=["annotations"])
         return JsonResponse({"success": True})
     except (json.JSONDecodeError, Exception) as e:
-        return JsonResponse({"error": str(e)}, status=400)
+        logger.error(f"Error saving photo annotations: {e}")
+        return JsonResponse({"error": "Invalid request data"}, status=400)

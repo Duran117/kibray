@@ -1091,7 +1091,14 @@
     }
     
     function showError(message) {
-        // TODO: Implement toast notification
+        const container = document.getElementById('toast-container');
+        if (container) {
+            const toast = document.createElement('div');
+            toast.className = 'px-4 py-3 rounded-lg shadow-lg bg-red-600 text-white text-sm font-medium animate-fade-in';
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 5000);
+        }
         console.error('Chat error:', message);
     }
     
