@@ -44,6 +44,17 @@ except Exception:  # Build may omit system deps (Railway minimal image)
 
 logger = logging.getLogger(__name__)
 
+# ─── Role Constants ──────────────────────────────────────────────────
+# Canonical role sets used for access control across all views.
+# Always use these instead of inline lists to prevent drift.
+ROLES_ADMIN = {"admin", "superuser"}
+ROLES_PM = {"project_manager"}
+ROLES_STAFF = ROLES_ADMIN | ROLES_PM  # admin + superuser + pm
+ROLES_FIELD = ROLES_STAFF | {"superintendent"}
+ROLES_ALL_INTERNAL = ROLES_FIELD | {"employee", "painter"}
+ROLES_CLIENT_SIDE = {"client", "designer", "owner"}
+ROLES_PROJECT_ACCESS = ROLES_STAFF | ROLES_CLIENT_SIDE  # everyone who can access a project
+
 
 # Fallback lightweight PDF generator (text only) using ReportLab
 def _generate_basic_pdf_from_html(html: str) -> bytes:
@@ -210,10 +221,10 @@ def _check_user_project_access(user, project):
 
 def _is_admin_user(user):
     """Return True if user is superuser or has admin role."""
-    if user.is_superuser:
+    if user.is_superuser or user.is_staff:
         return True
     profile = getattr(user, "profile", None)
-    return profile and getattr(profile, "role", None) == "admin"
+    return profile and getattr(profile, "role", None) in ROLES_ADMIN
 
 
 def _require_admin_or_redirect(request):
@@ -527,7 +538,7 @@ def dashboard_admin(request):
     open_entry = None
     if employee:
         open_entry = (
-            TimeEntry.objects.filter(employee=employee, end_time__isnull=True)
+            TimeEntry.objects.filter(employee=employee, end_time__isnull=True).select_related("project", "change_order")
             .order_by("-date", "-start_time")
             .first()
         )
@@ -828,7 +839,7 @@ def dashboard_admin(request):
     completed_projects = Project.objects.filter(end_date__isnull=False).count()
 
     # === MÉTRICAS TIEMPO ===
-    today_entries = TimeEntry.objects.filter(date=today)
+    today_entries = TimeEntry.objects.filter(date=today).select_related("employee")
     today_hours = today_entries.aggregate(total=Sum("hours_worked"))["total"] or Decimal("0")
     today_labor_cost = sum(entry.labor_cost for entry in today_entries)
 
@@ -1544,7 +1555,7 @@ def expense_create_view(request):
     if not (
         request.user.is_superuser
         or request.user.is_staff
-        or role in ["admin", "superuser", "project_manager"]
+        or role in ROLES_STAFF
     ):
         return redirect("dashboard")
 
@@ -1577,7 +1588,7 @@ def income_create_view(request):
     if not (
         request.user.is_superuser
         or request.user.is_staff
-        or role in ["admin", "superuser", "project_manager"]
+        or role in ROLES_STAFF
     ):
         return redirect("dashboard")
 
@@ -1742,7 +1753,7 @@ def timeentry_edit_view(request, entry_id: int):
     # Permissions: staff/pm or owner
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
-    is_staff_pm = role in ["admin", "superuser", "project_manager"] or request.user.is_staff
+    is_staff_pm = role in ROLES_STAFF or request.user.is_staff
     is_owner = bool(getattr(entry.employee, "user_id", None) == request.user.id)
     if not (is_staff_pm or is_owner):
         messages.error(request, "Acceso denegado.")
@@ -1768,7 +1779,7 @@ def timeentry_delete_view(request, entry_id: int):
 
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
-    is_staff_pm = role in ["admin", "superuser", "project_manager"] or request.user.is_staff
+    is_staff_pm = role in ROLES_STAFF or request.user.is_staff
     is_owner = bool(getattr(entry.employee, "user_id", None) == request.user.id)
     if not (is_staff_pm or is_owner):
         messages.error(request, "Acceso denegado.")
@@ -3431,7 +3442,7 @@ def floor_plan_list(request, project_id):
     profile = getattr(request.user, "profile", None)
     can_edit_pins = request.user.is_staff or (
         profile
-        and profile.role in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
+        and profile.role in ROLES_PROJECT_ACCESS
     )
 
     return render(
@@ -3495,12 +3506,12 @@ def floor_plan_detail(request, plan_id):
     profile = getattr(request.user, "profile", None)
     can_edit_pins = request.user.is_staff or (
         profile
-        and profile.role in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
+        and profile.role in ROLES_PROJECT_ACCESS
     )
 
     # Check if user can delete pins/plan (only PM, Admin, Owner - NOT Designer)
     can_delete = request.user.is_staff or (
-        profile and profile.role in ["project_manager", "admin", "superuser", "owner"]
+        profile and profile.role in (ROLES_STAFF | {"owner"})
     )
 
     # Serialize pins data for JavaScript
@@ -3564,12 +3575,12 @@ def floor_plan_touchup_view(request, plan_id):
     profile = getattr(request.user, "profile", None)
     can_edit_pins = request.user.is_staff or (
         profile
-        and profile.role in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
+        and profile.role in ROLES_PROJECT_ACCESS
     )
 
     # Check if user can delete pins/plan (only PM, Admin, Owner - NOT Designer)
     can_delete = request.user.is_staff or (
-        profile and profile.role in ["project_manager", "admin", "superuser", "owner"]
+        profile and profile.role in (ROLES_STAFF | {"owner"})
     )
 
     # Serialize pins data for JavaScript
@@ -4139,7 +4150,7 @@ def damage_report_edit(request, report_id):
     profile = getattr(request.user, "profile", None)
     can_edit = (
         request.user.is_staff
-        or (profile and profile.role in ["superintendent", "project_manager"])
+        or (profile and profile.role in ROLES_FIELD)
         or (request.user == report.reported_by)
     )
     if not can_edit:
@@ -4175,7 +4186,7 @@ def damage_report_delete(request, report_id):
     profile = getattr(request.user, "profile", None)
     can_delete = (
         request.user.is_staff
-        or (profile and profile.role in ["superintendent", "project_manager"])
+        or (profile and profile.role in ROLES_FIELD)
         or (request.user == report.reported_by)
     )
     if not can_delete:
@@ -6922,7 +6933,7 @@ def daily_log_view(request, project_id):
     # Verificar permisos (PM, admin, superuser)
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
-    can_create = role in ["admin", "superuser", "project_manager"]
+    can_create = role in ROLES_STAFF
 
     if request.method == "POST" and can_create:
         form = DailyLogForm(request.POST, project=project)
@@ -7141,7 +7152,7 @@ def daily_log_detail(request, log_id):
             return redirect("dashboard_client")
 
     # POST: Agregar más fotos
-    if request.method == "POST" and role in ["admin", "superuser", "project_manager"]:
+    if request.method == "POST" and role in ROLES_STAFF:
         photos = request.FILES.getlist("photos")
         caption = request.POST.get("caption", "")
         for photo_file in photos:
@@ -7160,7 +7171,7 @@ def daily_log_detail(request, log_id):
     context = {
         "log": log,
         "project": log.project,
-        "can_edit": role in ["admin", "superuser", "project_manager"],
+        "can_edit": role in ROLES_STAFF,
         "schedule_progress_entries": schedule_progress_entries,
     }
 
@@ -7176,7 +7187,7 @@ def daily_log_delete(request, log_id):
 
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
-    can_delete = role in ["admin", "superuser", "project_manager"]
+    can_delete = role in ROLES_STAFF
 
     if not can_delete:
         messages.error(request, "You don't have permission to delete Daily Logs")
@@ -7793,9 +7804,11 @@ def download_progress_sample(request, project_id):
 
 
 def _is_staffish(user):
+    """Return True if user is staff, superuser, admin, or PM."""
+    if user.is_superuser or user.is_staff:
+        return True
     role = getattr(getattr(user, "profile", None), "role", None)
-    # Permite superuser/staff y roles comunes del sistema
-    return bool(user.is_superuser or user.is_staff or role in ("admin", "project_manager"))
+    return role in ROLES_STAFF
 
 
 def _ensure_inventory_item(name: str, category_key: str, unit: str, *, no_threshold=False):
@@ -8116,7 +8129,7 @@ def dashboard_employee(request):
 
     # TimeEntry abierto (si está trabajando)
     open_entry = (
-        TimeEntry.objects.filter(employee=employee, end_time__isnull=True)
+        TimeEntry.objects.filter(employee=employee, end_time__isnull=True).select_related("project", "change_order")
         .order_by("-date", "-start_time")
         .first()
     )
@@ -8634,7 +8647,7 @@ def dashboard_pm(request):
     open_entry = None
     if employee:
         open_entry = (
-            TimeEntry.objects.filter(employee=employee, end_time__isnull=True)
+            TimeEntry.objects.filter(employee=employee, end_time__isnull=True).select_related("project", "change_order")
             .order_by("-date", "-start_time")
             .first()
         )
@@ -14380,7 +14393,7 @@ def touchup_plan_detail(request, plan_id):
 
     # Can create: authorized roles
     can_create = request.user.is_staff or (
-        profile and profile.role in ["project_manager", "admin", "client", "designer", "owner"]
+        profile and profile.role in ROLES_PROJECT_ACCESS
     )
 
     context = {
@@ -14447,7 +14460,7 @@ def touchup_detail_ajax(request, touchup_id):
     # Permission check
     can_view = (
         request.user.is_staff
-        or (profile and profile.role in ["project_manager", "admin", "superuser"])
+        or (profile and profile.role in ROLES_STAFF)
         or touchup.assigned_to == request.user
     )
 
@@ -14456,7 +14469,7 @@ def touchup_detail_ajax(request, touchup_id):
 
     # Check if user can approve (PM/Admin)
     can_approve = request.user.is_staff or (
-        profile and profile.role in ["project_manager", "admin", "superuser"]
+        profile and profile.role in ROLES_STAFF
     )
 
     data = {
@@ -14754,7 +14767,7 @@ def pin_update(request, pin_id):
     # Permission check
     can_edit = request.user.is_staff or (
         profile
-        and profile.role in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
+        and profile.role in ROLES_PROJECT_ACCESS
     )
 
     if not can_edit:
@@ -14794,7 +14807,7 @@ def pin_add_photo(request, pin_id):
     # Permission check
     can_edit = request.user.is_staff or (
         profile
-        and profile.role in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
+        and profile.role in ROLES_PROJECT_ACCESS
     )
 
     if not can_edit:
@@ -14848,7 +14861,7 @@ def pin_delete_photo(request, attachment_id):
     # Permission check
     can_edit = request.user.is_staff or (
         profile
-        and profile.role in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
+        and profile.role in ROLES_PROJECT_ACCESS
     )
 
     if not can_edit:
@@ -17072,15 +17085,10 @@ def colorsample_public_pdf_download(request, sample_id, token):
 
 def _is_pm_or_admin(user):
     """Check if user is PM/Admin/Staff."""
-    if user.is_staff:
+    if user.is_staff or user.is_superuser:
         return True
     profile = getattr(user, "profile", None)
-    return profile and profile.role in [
-        "project_manager",
-        "admin",
-        "superuser",
-        "owner",
-    ]
+    return profile and profile.role in ROLES_STAFF
 
 
 @login_required
