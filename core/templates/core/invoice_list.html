@@ -1,266 +1,83 @@
 {% extends "core/base_modern.html" %}
 {% load humanize i18n %}
 
-{% block extra_css %}
-<style>
-    /* ===== ESTILO PROFESIONAL PARA INVOICE LIST ===== */
-    .invoice-container {
-        padding: 24px;
-        background: #f8fafc;
-        min-height: calc(100vh - 60px);
-    }
-    
-    .invoice-header {
-        background: white;
-        padding: 24px 32px;
-        border-radius: 12px;
-        margin-bottom: 24px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    }
-    
-    .invoice-header h2 {
-        margin: 0;
-        color: #1e293b;
-        font-size: 24px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-    
-    .invoice-table-wrapper {
-        background: white;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    
-    .invoice-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 13px;
-    }
-    
-    .invoice-table thead {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-    
-    .invoice-table thead th {
-        padding: 16px;
-        font-weight: 700;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        text-align: left;
-        border-bottom: 2px solid #5a67d8;
-    }
-    
-    .invoice-table thead th:last-child {
-        text-align: right;
-    }
-    
-    .invoice-table tbody tr {
-        border-bottom: 1px solid #e2e8f0;
-        transition: background 0.2s ease;
-    }
-    
-    .invoice-table tbody tr:nth-child(even) {
-        background: #f8fafc;
-    }
-    
-    .invoice-table tbody tr:nth-child(odd) {
-        background: #ffffff;
-    }
-    
-    .invoice-table tbody tr:hover {
-        background: #eff6ff !important;
-        cursor: pointer;
-    }
-    
-    .invoice-table tbody td {
-        padding: 16px;
-        color: #334155;
-        vertical-align: middle;
-        border-bottom: 1px solid #e2e8f0;
-    }
-    
-    .invoice-table tbody td:last-child {
-        text-align: right;
-    }
-    
-    /* Invoice Number */
-    .invoice-number {
-        font-family: 'Courier New', monospace;
-        font-weight: 700;
-        color: #1e40af;
-        background: #dbeafe;
-        padding: 4px 10px;
-        border-radius: 6px;
-        display: inline-block;
-        font-size: 13px;
-    }
-    
-    /* Amount */
-    .invoice-amount {
-        font-weight: 700;
-        color: #059669;
-        font-size: 15px;
-    }
-    
-    /* Status Badges */
-    .invoice-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-    
-    .invoice-status.paid {
-        background: #d1fae5;
-        color: #065f46;
-    }
-    
-    .invoice-status.pending {
-        background: #fef3c7;
-        color: #92400e;
-    }
-    
-    /* Project/Client */
-    .invoice-project {
-        font-weight: 600;
-        color: #1e293b;
-        margin-bottom: 2px;
-    }
-    
-    .invoice-client {
-        font-size: 11px;
-        color: #64748b;
-    }
-    
-    /* Date */
-    .invoice-date {
-        font-size: 12px;
-        color: #64748b;
-    }
-    
-    /* Actions */
-    .invoice-table .btn-sm {
-        font-size: 11px;
-        padding: 5px 10px;
-        border-radius: 6px;
-        font-weight: 600;
-        margin-left: 4px;
-    }
-    
-    /* Empty State */
-    .empty-state {
-        padding: 60px;
-        text-align: center;
-        color: #94a3b8;
-    }
-    
-    .empty-state i {
-        font-size: 3rem;
-        opacity: 0.3;
-        margin-bottom: 16px;
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-        .invoice-table-wrapper {
-            overflow-x: auto;
-        }
-        
-        .invoice-table {
-            min-width: 900px;
-        }
-    }
-</style>
+{% block title %}{% trans "Invoices" %} - Kibray{% endblock %}
+
+{% block page_header %}
+<div class="flex justify-between items-center flex-wrap gap-4">
+    <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+            <i class="bi bi-receipt text-2xl"></i>
+        </div>
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900">{% trans "Invoices" %}</h1>
+            <p class="text-slate-500 mt-0.5 text-sm">{% trans "Manage and track all invoices" %}</p>
+        </div>
+    </div>
+    <button type="button" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold rounded-lg transition shadow-sm" data-bs-toggle="modal" data-bs-target="#createInvoiceModal">
+        <i class="bi bi-plus-circle"></i> {% trans "Create Invoice" %}
+    </button>
+</div>
 {% endblock %}
 
 {% block content %}
-<div class="invoice-container">
-    <!-- Header -->
-    <div class="invoice-header d-flex justify-content-between align-items-center">
-        <h2>
-            <i class="bi bi-receipt"></i> Facturas
-        </h2>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createInvoiceModal">
-            <i class="bi bi-plus-circle"></i> Crear Factura
-        </button>
-    </div>
-    
-    <!-- Tabla de Facturas -->
-    <div class="invoice-table-wrapper">
-        <table class="invoice-table">
-            <thead>
+<!-- Invoice Table -->
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gradient-to-r from-slate-700 to-slate-800 text-white">
                 <tr>
-                    <th><i class="bi bi-hash"></i> No.</th>
-                    <th><i class="bi bi-building"></i> Proyecto / Cliente</th>
-                    <th><i class="bi bi-calendar3"></i> Fecha</th>
-                    <th><i class="bi bi-currency-dollar"></i> Monto</th>
-                    <th><i class="bi bi-flag"></i> Estado</th>
-                    <th><i class="bi bi-gear"></i> Acciones</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider"><i class="bi bi-hash mr-1"></i> {% trans "No." %}</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider"><i class="bi bi-building mr-1"></i> {% trans "Project / Client" %}</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider"><i class="bi bi-calendar3 mr-1"></i> {% trans "Date" %}</th>
+                    <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider"><i class="bi bi-currency-dollar mr-1"></i> {% trans "Amount" %}</th>
+                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider"><i class="bi bi-flag mr-1"></i> {% trans "Status" %}</th>
+                    <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider"><i class="bi bi-gear mr-1"></i> {% trans "Actions" %}</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-slate-100">
                 {% for invoice in invoices %}
-                <tr>
-                    <!-- Invoice Number -->
-                    <td>
-                        <span class="invoice-number">{{ invoice.invoice_number }}</span>
+                <tr class="hover:bg-slate-50 transition group">
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 font-mono font-bold text-sm">{{ invoice.invoice_number }}</span>
                     </td>
-                    
-                    <!-- Project / Client -->
-                    <td>
-                        <div class="invoice-project">{{ invoice.project.name }}</div>
-                        <div class="invoice-client">{{ invoice.project.client }}</div>
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-semibold text-slate-900">{{ invoice.project.name }}</div>
+                        <div class="text-xs text-slate-500">{{ invoice.project.client }}</div>
                     </td>
-                    
-                    <!-- Date -->
-                    <td>
-                        <span class="invoice-date">{{ invoice.date_issued|date:"d/m/Y" }}</span>
+                    <td class="px-6 py-4">
+                        <span class="text-sm text-slate-600">{{ invoice.date_issued|date:"M d, Y" }}</span>
                     </td>
-                    
-                    <!-- Amount -->
-                    <td>
-                        <span class="invoice-amount">${{ invoice.total_amount|floatformat:2|intcomma }}</span>
+                    <td class="px-6 py-4 text-right">
+                        <span class="text-sm font-bold text-emerald-600">${{ invoice.total_amount|floatformat:2|intcomma }}</span>
                     </td>
-                    
-                    <!-- Status -->
-                    <td>
+                    <td class="px-6 py-4 text-center">
                         {% if invoice.fully_paid %}
-                            <span class="invoice-status paid">
-                                <i class="bi bi-check-circle"></i> Pagada
-                            </span>
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                            <i class="bi bi-check-circle-fill"></i> {% trans "Paid" %}
+                        </span>
                         {% else %}
-                            <span class="invoice-status pending">
-                                <i class="bi bi-clock"></i> Pendiente
-                            </span>
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                            <i class="bi bi-clock"></i> {% trans "Pending" %}
+                        </span>
                         {% endif %}
                     </td>
-                    
-                    <!-- Actions -->
-                    <td>
-                        <a href="{% url 'invoice_detail' pk=invoice.pk %}" class="btn btn-sm btn-primary">
-                            <i class="bi bi-eye"></i> Ver
-                        </a>
-                        <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_blank" class="btn btn-sm btn-danger">
-                            <i class="bi bi-file-pdf"></i> PDF
-                        </a>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="{% url 'invoice_detail' pk=invoice.pk %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">
+                                <i class="bi bi-eye"></i> {% trans "View" %}
+                            </a>
+                            <a href="{% url 'invoice_pdf' pk=invoice.pk %}" target="_blank" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition">
+                                <i class="bi bi-file-pdf"></i> PDF
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="empty-state">
-                        <i class="bi bi-inbox"></i>
-                        <p>No hay facturas aún. Crea tu primera factura usando el botón de arriba.</p>
+                    <td colspan="6" class="px-6 py-16 text-center">
+                        <i class="bi bi-inbox text-4xl text-slate-300 block mb-3"></i>
+                        <p class="text-slate-500 text-sm">{% trans "No invoices yet. Create your first invoice using the button above." %}</p>
                     </td>
                 </tr>
                 {% endfor %}
@@ -269,48 +86,48 @@
     </div>
 </div>
 
-  <!-- Modal para seleccionar proyecto -->
-  <div class="modal fade" id="createInvoiceModal" tabindex="-1" aria-labelledby="createInvoiceModalLabel" aria-hidden="true">
+<!-- Create Invoice Modal -->
+<div class="modal fade" id="createInvoiceModal" tabindex="-1" aria-labelledby="createInvoiceModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="createInvoiceModalLabel">
-            <i class="bi bi-plus-circle"></i> Crear Nueva Factura
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p class="text-muted">Selecciona el proyecto para el cual deseas crear una factura:</p>
-          <form id="projectSelectForm">
-            <div class="mb-3">
-              <label for="projectSelect" class="form-label">Proyecto</label>
-              <select class="form-select" id="projectSelect" required>
-                <option value="">-- Selecciona un proyecto --</option>
-                {% for project in projects %}
-                <option value="{{ project.id }}">{{ project.name }}</option>
-                {% endfor %}
-              </select>
+        <div class="modal-content rounded-xl overflow-hidden border-0 shadow-xl">
+            <div class="modal-header bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-0 px-6 py-4">
+                <h5 class="modal-title font-bold flex items-center gap-2" id="createInvoiceModalLabel">
+                    <i class="bi bi-plus-circle"></i> {% trans "Create New Invoice" %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-          </form>
+            <div class="modal-body px-6 py-5">
+                <p class="text-slate-500 text-sm mb-4">{% trans "Select the project for which you want to create an invoice:" %}</p>
+                <form id="projectSelectForm">
+                    <div class="mb-3">
+                        <label for="projectSelect" class="form-label text-sm font-semibold text-slate-700">{% trans "Project" %}</label>
+                        <select class="form-select rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500" id="projectSelect" required>
+                            <option value="">-- {% trans "Select a project" %} --</option>
+                            {% for project in projects %}
+                            <option value="{{ project.id }}">{{ project.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 px-6 py-4 bg-slate-50">
+                <button type="button" class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                <button type="button" class="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-lg transition shadow-sm" onclick="goToInvoiceBuilder()">
+                    <i class="bi bi-arrow-right mr-1"></i> {% trans "Continue" %}
+                </button>
+            </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-primary" onclick="goToInvoiceBuilder()">
-            <i class="bi bi-arrow-right"></i> Continuar
-          </button>
-        </div>
-      </div>
     </div>
-  </div>
+</div>
 
-  <script>
-    function goToInvoiceBuilder() {
-      const projectId = document.getElementById('projectSelect').value;
-      if (projectId) {
+<script>
+function goToInvoiceBuilder() {
+    const projectId = document.getElementById('projectSelect').value;
+    if (projectId) {
         window.location.href = `/invoices/builder/${projectId}/`;
-      } else {
-        alert('Por favor selecciona un proyecto');
-      }
+    } else {
+        alert('{% trans "Please select a project" %}');
     }
-  </script>
+}
+</script>
 {% endblock %}
