@@ -1,260 +1,38 @@
-from collections import defaultdict
-import contextlib
-import csv
-from datetime import date, datetime, timedelta
-from decimal import Decimal, InvalidOperation
-from functools import wraps
-import io
-from io import BytesIO
-import json
-import logging
-import re
+"""Legacy monolithic views module.
 
-from django.conf import settings
-from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.core import signing
-from django.core.exceptions import ValidationError
-from django.core.paginator import Paginator
-from django.db import IntegrityError, transaction
-from django.db.models import Count, Max, Q, Sum
-from django.db.models.functions import Coalesce
-from django.http import (
-    Http404,
-    HttpResponse,
-    HttpResponseBadRequest,
-    HttpResponseForbidden,
-    HttpResponseNotFound,
-    JsonResponse,
+Shared helpers, constants, and common imports live in core.views._helpers.
+This module re-imports them for backward compatibility.
+"""
+# Re-export everything from _helpers so existing code keeps working
+from core.views._helpers import *  # noqa: F401, F403
+from core.views._helpers import (  # explicit imports for linters
+    _generate_basic_pdf_from_html,
+    _check_user_project_access,
+    _is_admin_user,
+    _is_pm_or_admin,
+    _is_staffish,
+    _require_admin_or_redirect,
+    _require_roles,
+    _parse_date,
+    _ensure_inventory_item,
+    staff_required,
+    logger,
+    pisa,
+    ROLES_ADMIN,
+    ROLES_PM,
+    ROLES_STAFF,
+    ROLES_FIELD,
+    ROLES_ALL_INTERNAL,
+    ROLES_CLIENT_SIDE,
+    ROLES_PROJECT_ACCESS,
 )
-from django.shortcuts import get_object_or_404, redirect, render
-from django.template.loader import get_template
-from django.urls import reverse
-from django.utils import timezone, translation
-from django.utils.translation import gettext
-from django.utils.translation import gettext_lazy as _
-from django.views.decorators.http import require_http_methods, require_POST
-
-try:
-    from xhtml2pdf import pisa  # Optional HTML->PDF engine (requires system cairo libs)
-except Exception:  # Build may omit system deps (Railway minimal image)
-    pisa = None
-
-logger = logging.getLogger(__name__)
-
-# ─── Role Constants ──────────────────────────────────────────────────
-# Canonical role sets used for access control across all views.
-# Always use these instead of inline lists to prevent drift.
-ROLES_ADMIN = {"admin", "superuser"}
-ROLES_PM = {"project_manager"}
-ROLES_STAFF = ROLES_ADMIN | ROLES_PM  # admin + superuser + pm
-ROLES_FIELD = ROLES_STAFF | {"superintendent"}
-ROLES_ALL_INTERNAL = ROLES_FIELD | {"employee", "painter"}
-ROLES_CLIENT_SIDE = {"client", "designer", "owner"}
-ROLES_PROJECT_ACCESS = ROLES_STAFF | ROLES_CLIENT_SIDE  # everyone who can access a project
+# _ is excluded from wildcard imports (underscore prefix), import explicitly
+from django.utils.translation import gettext_lazy as _  # noqa: F811
 
 
-# Fallback lightweight PDF generator (text only) using ReportLab
-def _generate_basic_pdf_from_html(html: str) -> bytes:
-    """Very small fallback: strip tags and render lines into a single-page PDF.
-    Avoids hard dependency on xhtml2pdf when system cairo is missing.
-    """
-    try:
-        from reportlab.lib.pagesizes import LETTER
-        from reportlab.pdfgen import canvas
-    except Exception:
-        return b"PDF generation unavailable"
-    text = re.sub(r"<[^>]+>", "", html)
-    buf = BytesIO()
-    c = canvas.Canvas(buf, pagesize=LETTER)
-    y = 770
-    for raw_line in text.splitlines():
-        line = raw_line.strip()
-        if not line:
-            continue
-        if y < 50:
-            c.showPage()
-            y = 770
-        c.drawString(40, y, line[:110])
-        y -= 14
-    c.showPage()
-    c.save()
-    return buf.getvalue()
+# --- CLIENT REQUESTS ---
 
 
-from core import models  # noqa: E402
-from core.forms import (  # noqa: E402
-    ActivationWizardForm,
-    ActivityTemplateForm,
-    BudgetLineForm,
-    BudgetLineScheduleForm,
-    BudgetProgressEditForm,
-    BudgetProgressForm,
-    ChangeOrderForm,
-    ClockInForm,
-    ColorSampleForm,
-    ColorSampleReviewForm,
-    CostCodeForm,
-    EstimateForm,
-    EstimateLineFormSet,
-    ExpenseForm,
-    FloorPlanForm,
-    IncomeForm,
-    InventoryMovementForm,
-    InvoiceForm,
-    InvoiceLineFormSet,
-    IssueForm,
-    MaterialsRequestForm,
-    PlanPinForm,
-    ProposalEmailForm,
-    RFIAnswerForm,
-    RFIForm,
-    RiskForm,
-    SchedulePhaseForm,
-    ScheduleForm,
-    ScheduleItemForm,
-    TimeEntryForm,
-)
-from core.models import (  # noqa: E402
-    RFI,
-    ActivityCompletion,
-    ActivityTemplate,
-    BudgetLine,
-    BudgetProgress,
-    ChangeOrder,
-    ChangeOrderPhoto,
-    ChatChannel,
-    ChatMessage,
-    ColorApproval,
-    ColorSample,
-    Comment,
-    CostCode,
-    DailyLog,
-    DailyPlan,
-    DamageReport,
-    Employee,
-    Estimate,
-    Expense,
-    FloorPlan,
-    Income,
-    InventoryLocation,
-    Invoice,
-    InvoiceLine,
-    Issue,
-    MaterialCatalog,
-    MaterialRequest,
-    MaterialRequestItem,
-    Notification,
-    PayrollPayment,
-    PayrollPeriod,
-    PayrollRecord,
-    PlannedActivity,
-    Profile,
-    Project,
-    ProjectInventory,
-    ResourceAssignment,
-    Risk,
-    Schedule,
-    SchedulePhaseV2,
-    ScheduleItemV2,
-    Task,
-    TimeEntry,
-    TouchUp,
-    TouchUpPhoto,
-)
-from core.services.earned_value import compute_project_ev  # noqa: E402
-from core.services.financial_service import FinancialAnalyticsService  # BI Module 21  # noqa: E402
-
-
-# ===== SECURITY HELPER: Check project access =====
-def _check_user_project_access(user, project):
-    """
-    SECURITY: Verify if a user has access to a specific project.
-    
-    Returns:
-        tuple: (has_access: bool, redirect_url: str or None)
-    
-    Rules:
-        - Staff/superusers can access all projects
-        - Clients can only access projects where they are the contact
-        - Users with explicit ClientProjectAccess can access
-        - Assigned users (if field exists) can access
-    """
-    from core.models import ClientProjectAccess
-    
-    # Staff can access all projects
-    if user.is_staff or user.is_superuser:
-        return True, None
-    
-    # Check explicit granular access
-    has_explicit_access = ClientProjectAccess.objects.filter(
-        user=user, project=project
-    ).exists()
-    if has_explicit_access:
-        return True, None
-    
-    # Check if user is the client contact for this project
-    # project.client is a CharField (plain text), not a FK.
-    # Match by comparing stored name/email text with the user's info.
-    if project.client:
-        client_text = project.client.strip().lower()
-        if client_text and (
-            client_text == user.email.lower()
-            or client_text == user.get_full_name().lower()
-            or client_text == user.username.lower()
-        ):
-            return True, None
-    
-    # Check if user is assigned to the project (for workers/PMs)
-    if hasattr(project, 'assigned_to') and project.assigned_to.filter(id=user.id).exists():
-        return True, None
-    
-    # No access
-    profile = getattr(user, "profile", None)
-    if profile and profile.role == "client":
-        return False, "dashboard_client"
-    return False, "dashboard"
-# ===== END SECURITY HELPER =====
-
-
-def _is_admin_user(user):
-    """Return True if user is superuser or has admin role."""
-    if user.is_superuser or user.is_staff:
-        return True
-    profile = getattr(user, "profile", None)
-    return profile and getattr(profile, "role", None) in ROLES_ADMIN
-
-
-def _require_admin_or_redirect(request):
-    """
-    SECURITY: Guard for admin-only views.
-    Returns None if user is admin, or an HttpResponseRedirect otherwise.
-    Usage:
-        guard = _require_admin_or_redirect(request)
-        if guard:
-            return guard
-    """
-    if not _is_admin_user(request.user):
-        messages.error(request, "No tienes permiso para acceder a esta función.")
-        return redirect("dashboard")
-    return None
-
-
-def _require_roles(request, allowed_roles, *, allow_staff=True):
-    """
-    SECURITY: Guard for role-restricted views.
-    Returns None if user has an allowed role, or an HttpResponseRedirect.
-    """
-    if allow_staff and (request.user.is_superuser or request.user.is_staff):
-        return None
-    profile = getattr(request.user, "profile", None)
-    role = getattr(profile, "role", None)
-    if role in allowed_roles:
-        return None
-    messages.error(request, "No tienes permiso para acceder a esta función.")
-    return redirect("dashboard")
 
 
 # --- CLIENT REQUESTS ---
@@ -7780,15 +7558,6 @@ def project_list(request):
     return render(request, "core/project_list.html", {"projects": projects})
 
 
-def _parse_date(s):
-    for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%d/%m/%Y"):
-        try:
-            return datetime.strptime((s or "").strip(), fmt).date()
-        except ValueError:
-            continue
-    raise ValueError(f"Fecha inválida: {s}")
-
-
 @login_required
 def download_progress_sample(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
@@ -7801,93 +7570,6 @@ def download_progress_sample(request, project_id):
     # Fila de ejemplo
     resp.write(f"{project.id},LAB001,2025-08-24,25,,Inicio\r\n")
     return resp
-
-
-def _is_staffish(user):
-    """Return True if user is staff, superuser, admin, or PM."""
-    if user.is_superuser or user.is_staff:
-        return True
-    role = getattr(getattr(user, "profile", None), "role", None)
-    return role in ROLES_STAFF
-
-
-def _ensure_inventory_item(name: str, category_key: str, unit: str, *, no_threshold=False):
-    """
-    Busca o crea un InventoryItem con el nombre dado.
-    Si no existe, lo crea con umbrales por categoría:
-    - Consumibles (tape, plastic, etc.): threshold=5
-    - Resto: threshold=1 (a menos que no_threshold=True)
-    """
-    from core.models import InventoryItem
-
-    # Categorías consideradas consumibles (umbral mayor)
-    consumable_categories = {
-        "tape",
-        "plastic",
-        "masking_paper",
-        "floor_paper",
-        "sandpaper",
-        "tray_liner",
-        "blades",
-        "gloves",
-        "mask",
-        "respirator",
-        "caulk",
-    }
-
-    # Mapeo simple de category_key a CATEGORY_CHOICES del modelo
-    category_map = {
-        "tape": "MATERIAL",
-        "plastic": "MATERIAL",
-        "masking_paper": "MATERIAL",
-        "floor_paper": "MATERIAL",
-        "sandpaper": "MATERIAL",
-        "paint": "PINTURA",
-        "primer": "PINTURA",
-        "stain": "PINTURA",
-        "ladder": "ESCALERA",
-        "sander": "LIJADORA",
-        "sprayer": "SPRAY",
-        "other": "OTRO",
-    }
-    category = category_map.get(category_key, "MATERIAL")
-
-    item, created = InventoryItem.objects.get_or_create(
-        name=name.strip(),
-        defaults={
-            "category": category,
-            "unit": unit or "pcs",
-            "no_threshold": no_threshold,
-            "default_threshold": (
-                None if no_threshold else (5 if category_key in consumable_categories else 1)
-            ),
-            "is_equipment": category in {"ESCALERA", "LIJADORA", "SPRAY", "HERRAMIENTA"},
-        },
-    )
-
-    # Si existía pero no tiene umbral configurado, completa:
-    if not created and not item.no_threshold and item.default_threshold is None:
-        item.default_threshold = 5 if category_key in consumable_categories else 1
-        item.save(update_fields=["default_threshold"])
-
-    return item
-
-
-def staff_required(view_func):
-    @wraps(view_func)
-    def _wrapped(request, *args, **kwargs):
-        if _is_staffish(request.user):
-            return view_func(request, *args, **kwargs)
-        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return HttpResponseForbidden("Forbidden")
-        messages.error(request, "No tienes permisos para esta acción.")
-        project_id = kwargs.get("project_id")
-        return (
-            redirect("project_ev", project_id=project_id) if project_id else redirect("dashboard")
-        )
-
-    return _wrapped
-
 
 @login_required
 @staff_required
@@ -17081,14 +16763,6 @@ def colorsample_public_pdf_download(request, sample_id, token):
 # ========================================================================================
 # TOUCH-UP V2 VIEWS
 # ========================================================================================
-
-
-def _is_pm_or_admin(user):
-    """Check if user is PM/Admin/Staff."""
-    if user.is_staff or user.is_superuser:
-        return True
-    profile = getattr(user, "profile", None)
-    return profile and profile.role in ROLES_STAFF
 
 
 @login_required
