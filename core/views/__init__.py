@@ -17,6 +17,21 @@ from .financial_views import *  # noqa: F403
 from .materials_views import *  # noqa: F403
 from .daily_plan_views import *  # noqa: F403
 from .schedule_views import *  # noqa: F403
+from .dashboard_views import *  # noqa: F403
+from .changeorder_views import *  # noqa: F403
+from .project_views import *  # noqa: F403
+from .project_progress_views import *  # noqa: F403
+from .task_views import *  # noqa: F403
+from .touchup_legacy_views import *  # noqa: F403
+from .damage_report_views import *  # noqa: F403
+from .chat_views import *  # noqa: F403
+from .daily_log_views import *  # noqa: F403
+from .rfi_issue_risk_views import *  # noqa: F403
+from .site_photo_views import *  # noqa: F403
+from .meeting_minutes_views import *  # noqa: F403
+from .expense_income_views import *  # noqa: F403
+from .contract_views import *  # noqa: F403
+from .misc_views import *  # noqa: F403
 from .strategic_planning_frontend import (
     StrategicPlanningDashboardView,
     StrategicPlanningDetailView,
