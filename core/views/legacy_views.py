@@ -1491,9 +1491,9 @@ def project_pdf_view(request, project_id):
         messages.error(request, _("You don't have access to this project."))
         return redirect(redirect_url)
     
-    incomes = Income.objects.filter(project=project)
-    expenses = Expense.objects.filter(project=project)
-    time_entries = TimeEntry.objects.filter(project=project)
+    incomes = Income.objects.filter(project=project).select_related("change_order")
+    expenses = Expense.objects.filter(project=project).select_related("change_order", "cost_code")
+    time_entries = TimeEntry.objects.filter(project=project).select_related("employee")
     schedules = Schedule.objects.filter(project=project).order_by("start_datetime")
 
     total_income = incomes.aggregate(total=Sum("amount"))["total"] or 0
@@ -2248,7 +2248,7 @@ def payroll_payment_history(request, employee_id=None):
         records = PayrollRecord.objects.filter(employee=employee).order_by("-week_start")
     else:
         employee = None
-        records = PayrollRecord.objects.all().order_by("-week_start", "employee__last_name")
+        records = PayrollRecord.objects.select_related("employee").all().order_by("-week_start", "employee__last_name")
 
     # Agregar datos de pagos a cada registro
     records_data = []
@@ -2481,7 +2481,7 @@ def manual_timeentry_create(request):
     
     employees = Employee.objects.filter(is_active=True).order_by('last_name', 'first_name')
     projects = Project.objects.filter(is_archived=False).order_by('name')
-    change_orders = ChangeOrder.objects.filter(status='approved').order_by('-date_created')[:100]
+    change_orders = ChangeOrder.objects.filter(status='approved').select_related("project").order_by('-date_created')[:100]
     
     if request.method == "POST":
         employee_id = request.POST.get("employee_id")
@@ -5488,7 +5488,7 @@ def unassigned_timeentries_view(request):
 
     projects = Project.objects.all().order_by("name")
     employees = Employee.objects.filter(is_active=True).order_by("last_name")
-    change_orders = ChangeOrder.objects.filter(status__in=["pending", "approved", "sent"]).order_by(
+    change_orders = ChangeOrder.objects.filter(status__in=["pending", "approved", "sent"]).select_related("project").order_by(
         "-date_created"
     )
     if project_id:
@@ -8543,7 +8543,7 @@ def dashboard_employee(request):
         ]
 
     # Historial reciente (últimas 5 entradas)
-    recent = TimeEntry.objects.filter(employee=employee).order_by("-date", "-start_time")[:5]
+    recent = TimeEntry.objects.filter(employee=employee).select_related("project", "change_order").order_by("-date", "-start_time")[:5]
 
     # Mensaje si no tiene asignaciones hoy
     has_assignments_today = my_projects_today.exists()
