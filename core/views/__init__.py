@@ -8,6 +8,9 @@ imports of individual view modules.
 """
 
 from .legacy_views import *  # noqa: F403
+from .touchup_v2_views import *  # noqa: F403
+from .file_views import *  # noqa: F403
+from .client_mgmt_views import *  # noqa: F403
 from .strategic_planning_frontend import (
     StrategicPlanningDashboardView,
     StrategicPlanningDetailView,
