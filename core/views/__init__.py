@@ -11,6 +11,12 @@ from .legacy_views import *  # noqa: F403
 from .touchup_v2_views import *  # noqa: F403
 from .file_views import *  # noqa: F403
 from .client_mgmt_views import *  # noqa: F403
+from .payroll_views import *  # noqa: F403
+from .color_floor_views import *  # noqa: F403
+from .financial_views import *  # noqa: F403
+from .materials_views import *  # noqa: F403
+from .daily_plan_views import *  # noqa: F403
+from .schedule_views import *  # noqa: F403
 from .strategic_planning_frontend import (
     StrategicPlanningDashboardView,
     StrategicPlanningDetailView,
