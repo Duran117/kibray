@@ -1,36 +1,80 @@
 {% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Import Progress" %} - {{ project.name }}{% endblock %}
+
+{% block page_header %}
+<div class="flex items-center gap-4">
+    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg">
+        <i class="bi bi-upload text-2xl"></i>
+    </div>
+    <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-slate-900">{% trans "Import Progress" %}</h1>
+        <p class="text-slate-500 mt-0.5 text-sm">{{ project.name }}</p>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
-<h3>Import Progress – {{ project.name }}</h3>
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Upload form -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">{% trans "Select CSV File" %}</label>
+                <input type="file" name="file" accept=".csv,text/csv" required
+                       class="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition" />
+            </div>
+            <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                <input type="checkbox" name="create_missing" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                {% trans "Create missing BudgetLines" %}
+            </label>
+            <div class="flex flex-wrap gap-2 pt-2">
+                <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold rounded-lg transition shadow-sm">
+                    <i class="bi bi-cloud-upload"></i> {% trans "Upload CSV" %}
+                </button>
+                <a href="{% url 'project_ev' project.id %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition">
+                    <i class="bi bi-graph-up"></i> {% trans "View EV" %}
+                </a>
+                <a href="{% url 'project_overview' project.id %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition">
+                    <i class="bi bi-arrow-left"></i> {% trans "Back" %}
+                </a>
+                <a href="{% url 'download_progress_sample' project.id %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition">
+                    <i class="bi bi-download"></i> {% trans "Download Sample" %}
+                </a>
+            </div>
+        </form>
+    </div>
 
-<form method="post" enctype="multipart/form-data" class="mb-3">
-  {% csrf_token %}
-  <div class="d-flex gap-2 align-items-center mb-2">
-    <input type="file" name="file" accept=".csv,text/csv" required />
-    <label class="ms-2">
-      <input type="checkbox" name="create_missing" />
-      Crear BudgetLines faltantes
-    </label>
-    <button class="btn btn-primary btn-sm">Upload CSV</button>
-    <a href="{% url 'project_ev' project.id %}" class="btn btn-secondary btn-sm">Back</a>
-  <a href="{% url 'project_overview' project.id %}" class="btn btn-secondary btn-sm">Back</a>
-    <a href="{% url 'download_progress_sample' project.id %}" class="btn btn-outline-info btn-sm">Download sample</a>
-  </div>
-</form>
+    {% if result %}
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+        <i class="bi bi-info-circle-fill text-blue-500 text-xl"></i>
+        <div class="text-sm text-blue-900">
+            <strong>{% trans "Import Result:" %}</strong>
+            {% trans "Created" %}: {{ result.created }} · {% trans "Updated" %}: {{ result.updated }} · {% trans "Skipped" %}: {{ result.skipped }}
+        </div>
+    </div>
+    {% endif %}
 
-{% if result %}
-  <div class="alert alert-info">
-    Created: {{ result.created }}, Updated: {{ result.updated }}, Skipped: {{ result.skipped }}
-  </div>
-{% endif %}
+    {% if errors %}
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+        <div class="flex items-start gap-3">
+            <i class="bi bi-exclamation-triangle-fill text-amber-500 text-xl"></i>
+            <div class="flex-1">
+                <strong class="text-sm text-amber-900">{% trans "Details:" %}</strong>
+                <ul class="mt-2 list-disc list-inside text-sm text-amber-800 space-y-1">
+                    {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
-{% if errors %}
-  <div class="alert alert-warning">
-    <strong>Detalles:</strong>
-    <ul>
-      {% for e in errors %}<li>{{ e }}</li>{% endfor %}
-    </ul>
-  </div>
-{% endif %}
-
-<p>CSV esperado (UTF-8): project_id (opcional), cost_code, date, percent_complete, qty_completed, note</p>
+    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm text-slate-600">
+        <strong class="text-slate-700">{% trans "Expected CSV format" %}</strong> ({% trans "UTF-8" %}):
+        <code class="block mt-2 px-3 py-2 bg-white rounded border border-slate-200 font-mono text-xs">project_id ({% trans "optional" %}), cost_code, date, percent_complete, qty_completed, note</code>
+    </div>
+</div>
+{% endblock %}
 {% endblock %}
