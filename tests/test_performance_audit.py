@@ -33,7 +33,10 @@ def admin_client(db):
 # Views to audit — (url_name, kwargs, max_queries)
 PERF_TARGETS = [
     ("dashboard", {}, 30),
-    ("dashboard_admin", {}, 50),
+    # dashboard_admin: ~40 queries with empty/test DB; in prod with N projects
+    # the EV loop now uses bulk_compute_actual_costs (3 queries total) instead
+    # of 3 per project (Phase A2). Budget reflects test-mode baseline + small headroom.
+    ("dashboard_admin", {}, 45),
     ("dashboard_pm", {}, 50),
     ("dashboard_employee", {}, 50),
     ("project_list", {}, 30),

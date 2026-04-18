@@ -297,9 +297,30 @@ def dashboard_admin(request):
     today = timezone.localdate()
     projects_with_alerts = []
 
-    for project in Project.objects.filter(end_date__isnull=True).order_by("name"):
+    # Prefetch budget_lines + progress_points to avoid N+1 inside compute_project_ev
+    from django.db.models import Prefetch
+    from core.models import BudgetLine
+    from core.services.earned_value import bulk_compute_actual_costs
+    active_projects_qs = (
+        Project.objects.filter(end_date__isnull=True)
+        .prefetch_related(
+            Prefetch(
+                "budget_lines",
+                queryset=BudgetLine.objects.prefetch_related("progress_points"),
+            )
+        )
+        .order_by("name")
+    )
+    active_projects_list = list(active_projects_qs)
+    # Bulk-compute Actual Costs for all active projects in 3 queries total
+    ac_by_project = bulk_compute_actual_costs(
+        [p.id for p in active_projects_list], as_of=today
+    )
+    for project in active_projects_list:
         try:
-            metrics = compute_project_ev(project, as_of=today)
+            metrics = compute_project_ev(
+                project, as_of=today, prefetched_ac=ac_by_project.get(project.id)
+            )
             alerts = []
 
             # SPI < 0.9: retraso en cronograma
