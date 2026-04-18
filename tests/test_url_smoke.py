@@ -181,3 +181,88 @@ def test_smoke_all_get_urls_no_500(admin_client, url_patterns):
         if len(failures) > 30:
             msg += f"\n... and {len(failures) - 30} more"
         pytest.fail(f"URL smoke test failures ({len(failures)}):\n{msg}")
+
+
+# ---------------- Security audit: anonymous access ----------------
+# URL names that are intentionally public (no login required).
+# These should return 200 / 302 (not auth-redirect) when hit anonymously.
+PUBLIC_URL_NAMES = {
+    # Auth pages
+    "login", "logout", "signup", "register",
+    "password_reset", "password_reset_done",
+    "password_reset_confirm", "password_reset_complete",
+    "password_change", "password_change_done",
+    # Health / metadata
+    "health_check", "healthz", "ready", "liveness",
+    "health-check", "health-check-detailed",
+    "readiness-check", "liveness-check",
+    # Django javascript catalog (i18n) — public by design
+    "javascript-catalog", "jsi18n",
+    # Public token-based pages (already in SKIP_NAMES above)
+    "changeorder_customer_signature", "changeorder_customer_signature_token",
+    "color_sample_client_signature", "color_sample_client_signature_token",
+    "proposal_public_view", "contract_client_view",
+    "changeorder_public_pdf_download", "colorsample_public_pdf_download",
+    "file_public_view", "file_public_download",
+    "folder_public_view", "folder_public_upload",
+    # Language switcher (POST only, but anonymous OK)
+    "set_language", "set_language_view",
+    # Robots / sitemap / favicon
+    "robots_txt", "sitemap", "favicon",
+    # Root URL — may redirect to login or to dashboard depending
+    "home", "index", "root",
+}
+
+
+@pytest.mark.django_db
+def test_security_audit_anonymous_login_required(url_patterns):
+    """Ensure non-public URLs redirect anonymous users to login (302) or return 401/403.
+
+    A view that returns 200 to an anonymous user MUST be in PUBLIC_URL_NAMES.
+    Catches any view missing @login_required / LoginRequiredMixin.
+    """
+    client = Client()  # anonymous
+    leaks: list[str] = []
+    audited = 0
+
+    for pattern_str, name, callback in url_patterns:
+        if name in SKIP_NAMES:
+            continue
+        if name in PUBLIC_URL_NAMES:
+            continue
+        # Skip nameless patterns (typically includes/redirects)
+        if not name:
+            continue
+        callback_name = getattr(callback, "__name__", "")
+        if callback_name in {"PATCH", "POST", "PUT", "DELETE"}:
+            continue
+
+        url = _build_test_url(pattern_str)
+        if url is None:
+            continue
+
+        try:
+            response = client.get(url)
+        except Exception:
+            # View exceptions on anonymous are not security leaks per se
+            continue
+
+        audited += 1
+        # 200 = view rendered for anonymous user → potential leak unless whitelisted
+        if response.status_code == 200:
+            # Check response content for the login page (some views render login inline)
+            body = response.content.decode("utf-8", errors="ignore")[:500].lower()
+            if "login" in body or "sign in" in body or "iniciar sesión" in body:
+                continue  # rendered login page inline — acceptable
+            leaks.append(f"{name} ({url}) → 200 anonymous (possible auth leak)")
+
+    print(f"\n  SECURITY AUDIT: audited={audited} leaks={len(leaks)}")
+
+    if leaks:
+        msg = "\n".join(leaks[:30])
+        if len(leaks) > 30:
+            msg += f"\n... and {len(leaks) - 30} more"
+        pytest.fail(
+            f"Found {len(leaks)} URLs returning 200 to anonymous users.\n"
+            f"Add @login_required / LoginRequiredMixin, or whitelist in PUBLIC_URL_NAMES.\n{msg}"
+        )
