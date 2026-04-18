@@ -25,6 +25,7 @@ from django.utils.translation import gettext_lazy as _  # noqa: F811
 
 
 # --- CRUD SCHEDULE, EXPENSE, INCOME, TIMEENTRY ---
+@login_required
 def expense_create_view(request):
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")

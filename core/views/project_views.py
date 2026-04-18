@@ -1043,6 +1043,7 @@ def project_overview(request, project_id: int):
 
 
 
+@login_required
 def pickup_view(request, project_id: int):
     project = get_object_or_404(Project, pk=project_id)
     # SECURITY: Check project access

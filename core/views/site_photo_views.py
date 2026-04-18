@@ -28,6 +28,7 @@ from django.utils.translation import gettext_lazy as _  # noqa: F811
 # ACTIVITY 1: DAILY PLAN ENHANCEMENTS
 # ===========================
 
+@login_required
 def site_photo_list(request, project_id):
     from core.models import Project, SitePhoto
 
