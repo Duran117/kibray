@@ -469,7 +469,8 @@ def set_language_view(request, code: str = ""):
         lang_code = settings.LANGUAGE_CODE
 
     translation.activate(lang_code)
-    request.session[translation.LANGUAGE_SESSION_KEY] = lang_code
+    # Django 4.0+ removed LANGUAGE_SESSION_KEY; use the standard session key directly
+    request.session[settings.LANGUAGE_COOKIE_NAME] = lang_code
 
     # persist on user profile if logged in
     try:
