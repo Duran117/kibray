@@ -6,7 +6,12 @@ omit =
     */venv/*
     */.venv/*
     core/consumers_fixed.py
+    # Async / WebSocket modules not exercised by sync test suite
+    core/websocket_*.py
 
 [report]
 show_missing = True
 skip_covered = False
+# Coverage floor — fail CI if we drop below this baseline (set just under
+# current 37% measurement to leave small headroom; tighten as coverage grows).
+fail_under = 35
