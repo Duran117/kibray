@@ -1,6 +1,18 @@
 # 📖 KIBRAY - Índice de Documentación
 
-> **Última actualización**: Noviembre 28, 2025
+> **Última actualización**: Diciembre 2025 — post refactor Phases 1-8
+
+---
+
+## 🏛️ Arquitectura (NUEVO)
+
+- 🏛️ **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** — **Referencia canónica de arquitectura**
+  - Stack técnico, layout de carpetas
+  - Mapa completo de los 40 módulos de views (post Phase 8)
+  - Convenciones de código y naming
+  - Infraestructura de tests (URL smoke, performance audit)
+  - Presupuestos de queries por página (N+1 enforcement)
+  - Convenciones para nuevas features
 
 ---
 
