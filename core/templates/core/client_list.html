@@ -5,61 +5,53 @@
 {% block title %}{% trans "Gestión de Clientes" %} - Kibray{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <!-- Breadcrumb / Navegación -->
-    <div class="row mb-3">
-        <div class="col-12">
-            <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i>
-                {% trans "Volver al Dashboard" %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="mb-3">
+        <a href="{% url 'dashboard' %}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-slate-300 text-slate-700 hover:bg-slate-100 text-sm transition-colors">
+            <i class="bi bi-arrow-left"></i>
+            {% trans "Volver al Dashboard" %}
+        </a>
+    </div>
+
+    <div class="mb-6">
+        <div class="flex justify-between items-center flex-wrap gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <i class="bi bi-people-fill text-blue-600"></i>
+                    {% trans "Gestión de Clientes" %}
+                </h1>
+                <p class="text-slate-500 mt-1 text-sm">
+                    {% trans "Total:" %} <strong>{{ total_clients }}</strong> {% trans "clientes" %}
+                </p>
+            </div>
+            <a href="{% url 'client_create' %}"
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors">
+                <i class="bi bi-person-plus-fill"></i>
+                {% trans "Crear Nuevo Cliente" %}
             </a>
         </div>
     </div>
 
-    <!-- Header con botón de crear -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                <div>
-                    <h1 class="h3 mb-1">
-                        <i class="bi bi-people-fill text-primary me-2"></i>
-                        {% trans "Gestión de Clientes" %}
-                    </h1>
-                    <p class="text-muted mb-0">
-                        {% trans "Total:" %} <strong>{{ total_clients }}</strong> {% trans "clientes" %}
-                    </p>
-                </div>
-                <a href="{% url 'client_create' %}" class="btn btn-primary">
-                    <i class="bi bi-person-plus-fill me-2"></i>
-                    {% trans "Crear Nuevo Cliente" %}
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filtros y búsqueda -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label">
-                        <i class="bi bi-search me-1"></i>
+    <div class="bg-white shadow-sm rounded-lg mb-6">
+        <div class="p-4">
+            <form method="get" class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                <div class="md:col-span-6">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">
+                        <i class="bi bi-search mr-1"></i>
                         {% trans "Buscar" %}
                     </label>
-                    <input 
-                        type="text" 
-                        name="search" 
-                        class="form-control" 
-                        placeholder="{% trans 'Nombre, email, usuario...' %}"
-                        value="{{ search_query }}"
-                    >
+                    <input type="text" name="search"
+                           class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="{% trans 'Nombre, email, usuario...' %}"
+                           value="{{ search_query }}">
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">
-                        <i class="bi bi-funnel me-1"></i>
+                <div class="md:col-span-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">
+                        <i class="bi bi-funnel mr-1"></i>
                         {% trans "Estado" %}
                     </label>
-                    <select name="status" class="form-select">
+                    <select name="status"
+                            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">{% trans "Todos" %}</option>
                         <option value="active" {% if status_filter == 'active' %}selected{% endif %}>
                             {% trans "Activos" %}
@@ -69,9 +61,10 @@
                         </option>
                     </select>
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-secondary w-100">
-                        <i class="bi bi-filter me-1"></i>
+                <div class="md:col-span-2 flex items-end">
+                    <button type="submit"
+                            class="w-full inline-flex items-center justify-center gap-1 px-3 py-2 rounded-md bg-slate-600 hover:bg-slate-700 text-white font-medium transition-colors">
+                        <i class="bi bi-filter"></i>
                         {% trans "Filtrar" %}
                     </button>
                 </div>
@@ -79,132 +72,124 @@
         </div>
     </div>
 
-    <!-- Lista de clientes -->
     {% if page_obj %}
-    <div class="card shadow-sm">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>{% trans "Cliente" %}</th>
-                            <th>{% trans "Email" %}</th>
-                            <th>{% trans "Proyectos" %}</th>
-                            <th>{% trans "Idioma" %}</th>
-                            <th>{% trans "Estado" %}</th>
-                            <th>{% trans "Registrado" %}</th>
-                            <th class="text-end">{% trans "Acciones" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in page_obj %}
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
-                                        {{ item.user.first_name|slice:":1" }}{{ item.user.last_name|slice:":1" }}
-                                    </div>
-                                    <div>
-                                        <strong>{{ item.user.get_full_name|default:item.user.username }}</strong>
-                                        <br>
-                                        <small class="text-muted">@{{ item.user.username }}</small>
-                                    </div>
+    <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-slate-100">
+                    <tr class="text-left">
+                        <th class="px-4 py-3 font-semibold text-slate-700">{% trans "Cliente" %}</th>
+                        <th class="px-4 py-3 font-semibold text-slate-700">{% trans "Email" %}</th>
+                        <th class="px-4 py-3 font-semibold text-slate-700">{% trans "Proyectos" %}</th>
+                        <th class="px-4 py-3 font-semibold text-slate-700">{% trans "Idioma" %}</th>
+                        <th class="px-4 py-3 font-semibold text-slate-700">{% trans "Estado" %}</th>
+                        <th class="px-4 py-3 font-semibold text-slate-700">{% trans "Registrado" %}</th>
+                        <th class="px-4 py-3 font-semibold text-slate-700 text-right">{% trans "Acciones" %}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    {% for item in page_obj %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold flex-shrink-0">
+                                    {{ item.user.first_name|slice:":1" }}{{ item.user.last_name|slice:":1" }}
                                 </div>
-                            </td>
-                            <td>
-                                <i class="bi bi-envelope me-1 text-muted"></i>
-                                {{ item.user.email }}
-                            </td>
-                            <td>
-                                <span class="badge bg-info">
-                                    {{ item.project_count }} {% trans "proyecto(s)" %}
+                                <div>
+                                    <div class="font-semibold text-slate-800">{{ item.user.get_full_name|default:item.user.username }}</div>
+                                    <div class="text-xs text-slate-500">@{{ item.user.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-slate-700">
+                            <i class="bi bi-envelope mr-1 text-slate-400"></i>
+                            {{ item.user.email }}
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800">
+                                {{ item.project_count }} {% trans "proyecto(s)" %}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-700">
+                                <i class="bi bi-translate mr-1"></i>
+                                {% if item.user.profile.language == 'es' %}Español{% else %}English{% endif %}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            {% if item.user.is_active %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="bi bi-check-circle mr-1"></i>{% trans "Activo" %}
                                 </span>
-                            </td>
-                            <td>
-                                {% if item.user.profile.language == 'es' %}
-                                    <span class="badge bg-secondary">
-                                        <i class="bi bi-translate me-1"></i>Español
-                                    </span>
-                                {% else %}
-                                    <span class="badge bg-secondary">
-                                        <i class="bi bi-translate me-1"></i>English
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if item.user.is_active %}
-                                    <span class="badge bg-success">
-                                        <i class="bi bi-check-circle me-1"></i>{% trans "Activo" %}
-                                    </span>
-                                {% else %}
-                                    <span class="badge bg-danger">
-                                        <i class="bi bi-x-circle me-1"></i>{% trans "Inactivo" %}
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <small class="text-muted">
-                                    {{ item.user.date_joined|date:"d M Y" }}
-                                </small>
-                            </td>
-                            <td class="text-end">
-                                <div class="btn-group" role="group">
-                                    <a href="{% url 'client_detail' item.user.id %}" 
-                                       class="btn btn-sm btn-outline-primary"
-                                       title="{% trans 'Ver detalles' %}">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="{% url 'client_edit' item.user.id %}" 
-                                       class="btn btn-sm btn-outline-secondary"
-                                       title="{% trans 'Editar' %}">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a href="{% url 'client_assign_project' item.user.id %}" 
-                                       class="btn btn-sm btn-outline-info"
-                                       title="{% trans 'Asignar proyectos' %}">
-                                        <i class="bi bi-folder-plus"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    <i class="bi bi-x-circle mr-1"></i>{% trans "Inactivo" %}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-xs text-slate-500">
+                            {{ item.user.date_joined|date:"d M Y" }}
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            <div class="inline-flex items-center gap-1">
+                                <a href="{% url 'client_detail' item.user.id %}"
+                                   class="inline-flex items-center justify-center w-8 h-8 rounded-md border border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white text-xs transition-colors"
+                                   title="{% trans 'Ver detalles' %}">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'client_edit' item.user.id %}"
+                                   class="inline-flex items-center justify-center w-8 h-8 rounded-md border border-slate-400 text-slate-600 hover:bg-slate-500 hover:text-white text-xs transition-colors"
+                                   title="{% trans 'Editar' %}">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'client_assign_project' item.user.id %}"
+                                   class="inline-flex items-center justify-center w-8 h-8 rounded-md border border-cyan-500 text-cyan-600 hover:bg-cyan-500 hover:text-white text-xs transition-colors"
+                                   title="{% trans 'Asignar proyectos' %}">
+                                    <i class="bi bi-folder-plus"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        
-        <!-- Paginación -->
+
         {% if page_obj.has_other_pages %}
-        <div class="card-footer">
-            <nav aria-label="Page navigation">
-                <ul class="pagination mb-0 justify-content-center">
+        <div class="border-t border-slate-200 px-4 py-3">
+            <nav aria-label="Page navigation" class="flex justify-center">
+                <ul class="inline-flex items-center gap-1 text-sm">
                     {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                    <li>
+                        <a class="px-3 py-1.5 rounded-md border border-slate-300 text-slate-700 hover:bg-slate-100 transition-colors"
+                           href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
                             {% trans "Primera" %}
                         </a>
                     </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                    <li>
+                        <a class="px-3 py-1.5 rounded-md border border-slate-300 text-slate-700 hover:bg-slate-100 transition-colors"
+                           href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
                             {% trans "Anterior" %}
                         </a>
                     </li>
                     {% endif %}
-                    
-                    <li class="page-item active">
-                        <span class="page-link">
+
+                    <li>
+                        <span class="px-3 py-1.5 rounded-md bg-blue-600 text-white font-medium">
                             {% trans "Página" %} {{ page_obj.number }} {% trans "de" %} {{ page_obj.paginator.num_pages }}
                         </span>
                     </li>
-                    
+
                     {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                    <li>
+                        <a class="px-3 py-1.5 rounded-md border border-slate-300 text-slate-700 hover:bg-slate-100 transition-colors"
+                           href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
                             {% trans "Siguiente" %}
                         </a>
                     </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                    <li>
+                        <a class="px-3 py-1.5 rounded-md border border-slate-300 text-slate-700 hover:bg-slate-100 transition-colors"
+                           href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
                             {% trans "Última" %}
                         </a>
                     </li>
@@ -215,13 +200,14 @@
         {% endif %}
     </div>
     {% else %}
-    <div class="card shadow-sm">
-        <div class="card-body text-center py-5">
-            <i class="bi bi-people display-1 text-muted mb-3"></i>
-            <h4>{% trans "No hay clientes registrados" %}</h4>
-            <p class="text-muted">{% trans "Comienza creando tu primer cliente" %}</p>
-            <a href="{% url 'client_create' %}" class="btn btn-primary mt-3">
-                <i class="bi bi-person-plus-fill me-2"></i>
+    <div class="bg-white shadow-sm rounded-lg">
+        <div class="text-center py-12 px-4">
+            <i class="bi bi-people text-6xl text-slate-300 mb-4 block"></i>
+            <h4 class="text-xl font-semibold text-slate-700 mb-2">{% trans "No hay clientes registrados" %}</h4>
+            <p class="text-slate-500 mb-4">{% trans "Comienza creando tu primer cliente" %}</p>
+            <a href="{% url 'client_create' %}"
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors">
+                <i class="bi bi-person-plus-fill"></i>
                 {% trans "Crear Primer Cliente" %}
             </a>
         </div>

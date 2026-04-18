@@ -200,16 +200,16 @@
 {% block content %}
 <div class="project-container">
     <!-- Header -->
-    <div class="project-header d-flex justify-content-between align-items-center">
+    <div class="project-header flex justify-between items-center">
         <h2>
             <i class="bi bi-folder2-open"></i> {% trans "Projects" %}
         </h2>
         {% if user.is_staff %}
-        <div>
-            <a class="btn btn-warning me-2" href="{% url 'project_launchpad' %}">
+        <div class="flex items-center gap-2">
+            <a class="inline-flex items-center gap-1 px-3 py-2 rounded-md bg-yellow-500 hover:bg-yellow-600 text-white font-medium text-sm transition-colors" href="{% url 'project_launchpad' %}">
                 <i class="bi bi-rocket-takeoff-fill"></i> {% trans "Launchpad (AI)" %}
             </a>
-            <a class="btn btn-outline-success" href="{% url 'project_create' %}">
+            <a class="inline-flex items-center gap-1 px-3 py-2 rounded-md border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white font-medium text-sm transition-colors" href="{% url 'project_create' %}">
                 <i class="bi bi-plus-circle"></i> {% trans "Manual" %}
             </a>
         </div>
@@ -273,15 +273,15 @@
                     
                     <!-- Actions -->
                     <td>
-                        <div class="btn-group" role="group">
-                            <a class="btn btn-sm btn-primary" href="{% url 'project_overview' p.id %}" title="{% trans 'Dashboard' %}">
+                        <div class="inline-flex items-center gap-1" role="group">
+                            <a class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs transition-colors" href="{% url 'project_overview' p.id %}" title="{% trans 'Dashboard' %}">
                                 <i class="bi bi-speedometer2"></i>
                             </a>
                             {% if user.is_staff %}
-                            <a class="btn btn-sm btn-secondary" href="{% url 'project_edit' p.id %}" title="{% trans 'Editar' %}">
+                            <a class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-gray-500 hover:bg-gray-600 text-white text-xs transition-colors" href="{% url 'project_edit' p.id %}" title="{% trans 'Editar' %}">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <a class="btn btn-sm btn-danger" href="{% url 'project_delete' p.id %}" title="{% trans 'Eliminar' %}">
+                            <a class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-red-600 hover:bg-red-700 text-white text-xs transition-colors" href="{% url 'project_delete' p.id %}" title="{% trans 'Eliminar' %}">
                                 <i class="bi bi-trash"></i>
                             </a>
                             {% endif %}
@@ -301,11 +301,11 @@
             <h4>{% trans "No projects yet" %}</h4>
             <p>{% trans "Create your first project to get started" %}</p>
             {% if user.is_staff %}
-            <a class="btn btn-primary mt-2" href="{% url 'project_create' %}">
+            <a class="inline-flex items-center gap-2 px-4 py-2 mt-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors" href="{% url 'project_create' %}">
                 <i class="bi bi-plus-circle"></i> {% trans "Create Project" %}
             </a>
             {% else %}
-            <p class="text-muted">{% trans "Contact your administrator to create projects" %}</p>
+            <p class="text-gray-500">{% trans "Contact your administrator to create projects" %}</p>
             {% endif %}
         </div>
     </div>
