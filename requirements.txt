@@ -6,7 +6,7 @@
 # ==============================================================================
 
 # Core Django Framework
-Django==5.2.8
+Django==5.2.13
 djangorestframework==3.16.0
 djangorestframework-simplejwt==5.5.1
 django-cors-headers==4.9.0
@@ -38,7 +38,7 @@ Pillow==11.3.0
 boto3==1.39.9
 
 # Authentication & Security
-PyJWT==2.10.1
+PyJWT==2.12.1
 
 # AI & Machine Learning (optional — installed if OPENAI_API_KEY is set)
 # openai==1.55.0
@@ -49,7 +49,7 @@ drf-spectacular==0.29.0
 # Utilities
 python-dateutil==2.9.0.post0
 python-decouple==3.8
-requests==2.32.4
+requests==2.33.1
 icalendar==6.1.0
 python-json-logger==2.0.7
 django-crispy-forms==2.5
