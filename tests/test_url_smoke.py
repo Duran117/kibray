@@ -266,3 +266,98 @@ def test_security_audit_anonymous_login_required(url_patterns):
             f"Found {len(leaks)} URLs returning 200 to anonymous users.\n"
             f"Add @login_required / LoginRequiredMixin, or whitelist in PUBLIC_URL_NAMES.\n{msg}"
         )
+
+
+# ---------------- Role-based authorization matrix (Phase C2) ----------------
+# Maps role-restricted dashboard URL → set of role values that ARE allowed (200).
+# Any other role logged in must be denied (302 redirect or 403 forbidden, NOT 200).
+ROLE_RESTRICTED_DASHBOARDS = {
+    # url path                  : allowed roles (besides superuser)
+    "/dashboard/admin/":     {"admin"},
+    "/dashboard/pm/":        {"admin", "project_manager"},
+    "/dashboard/client/":    {"client"},
+    "/dashboard/designer/":  {"designer"},
+}
+
+# All role values from core.models.ROLE_CHOICES we exercise in the matrix.
+ALL_ROLES = ["admin", "project_manager", "employee", "client", "designer"]
+
+
+def _make_role_user(role: str):
+    """Create a User + Profile with the given role.
+
+    Note: A post_save signal on User auto-creates Profile(role='employee').
+    We must mutate the *cached* user.profile attribute, because force_login
+    later updates user.last_login which fires post_save with created=False,
+    calling instance.profile.save() on the cached profile object. If we
+    create a separate Profile via update_or_create, the cache still holds
+    the original role='employee' and gets re-saved, clobbering our change.
+    """
+    user = User.objects.create_user(
+        username=f"matrix_{role}",
+        email=f"matrix_{role}@test.com",
+        password="pass1234",
+    )
+    # user.profile already exists (created by post_save signal with role='employee')
+    user.profile.role = role
+    user.profile.save()
+    return user
+
+
+@pytest.mark.django_db
+def test_role_authorization_matrix():
+    """Phase C2: Role-based authorization matrix.
+
+    For every role-restricted dashboard, verify each of the 5 roles either:
+      - gets 200 if its role is in the allowed set, OR
+      - gets 302 (redirect) / 403 (forbidden) otherwise.
+
+    Catches authorization regressions: e.g. an `employee` user gaining
+    accidental access to `/dashboard/admin/`.
+    """
+    # Pre-create one user per role
+    role_clients = {}
+    for role in ALL_ROLES:
+        user = _make_role_user(role)
+        c = Client()
+        c.force_login(user)
+        role_clients[role] = c
+
+    failures: list[str] = []
+    checked = 0
+
+    for url, allowed_roles in ROLE_RESTRICTED_DASHBOARDS.items():
+        for role, client in role_clients.items():
+            try:
+                response = client.get(url)
+            except Exception as exc:
+                failures.append(f"{url} as {role} → EXCEPTION {type(exc).__name__}: {str(exc)[:80]}")
+                continue
+
+            checked += 1
+            status = response.status_code
+
+            if role in allowed_roles:
+                # Allowed role must reach the view (200) or at most a benign redirect to itself
+                if status not in (200, 302):
+                    failures.append(
+                        f"{url} as {role} (allowed) → {status} (expected 200/302)"
+                    )
+            else:
+                # Forbidden role MUST be denied — never 200
+                if status == 200:
+                    failures.append(
+                        f"{url} as {role} (FORBIDDEN) → 200 LEAK (expected 302/403)"
+                    )
+                elif status not in (301, 302, 303, 307, 308, 401, 403):
+                    failures.append(
+                        f"{url} as {role} (forbidden) → unexpected {status}"
+                    )
+
+    print(f"\n  ROLE MATRIX: checked={checked} failures={len(failures)}")
+
+    if failures:
+        msg = "\n".join(failures)
+        pytest.fail(
+            f"Role authorization matrix found {len(failures)} violations:\n{msg}"
+        )
