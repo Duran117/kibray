@@ -286,19 +286,14 @@ ALL_ROLES = ["admin", "project_manager", "employee", "client", "designer"]
 def _make_role_user(role: str):
     """Create a User + Profile with the given role.
 
-    Note: A post_save signal on User auto-creates Profile(role='employee').
-    We must mutate the *cached* user.profile attribute, because force_login
-    later updates user.last_login which fires post_save with created=False,
-    calling instance.profile.save() on the cached profile object. If we
-    create a separate Profile via update_or_create, the cache still holds
-    the original role='employee' and gets re-saved, clobbering our change.
+    Note: post_save User signal auto-creates Profile(role='employee', language='en')
+    via get_or_create. We mutate the existing profile to set the test role.
     """
     user = User.objects.create_user(
         username=f"matrix_{role}",
         email=f"matrix_{role}@test.com",
         password="pass1234",
     )
-    # user.profile already exists (created by post_save signal with role='employee')
     user.profile.role = role
     user.profile.save()
     return user

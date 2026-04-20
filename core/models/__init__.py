@@ -2020,11 +2020,20 @@ class Profile(models.Model):
 
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
+    """Auto-create a Profile for new Users.
+
+    Historic note: this used to also call ``instance.profile.save()`` on every
+    User update, which (a) caused an extra UPDATE per User save, and (b) could
+    silently overwrite Profile mutations made elsewhere when the Profile was
+    re-fetched from the cached ``user.profile`` attribute (e.g. after
+    ``force_login`` updated ``last_login``). Removed in Phase D2 — Profile
+    has its own lifecycle and does not need to mirror User.save() calls.
+    """
     if created:
-        Profile.objects.create(user=instance, role="employee", language="en")
-    else:
-        if hasattr(instance, "profile"):
-            instance.profile.save()
+        Profile.objects.get_or_create(
+            user=instance,
+            defaults={"role": "employee", "language": "en"},
+        )
 
 
 # ---------------------
