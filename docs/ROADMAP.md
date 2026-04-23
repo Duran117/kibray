@@ -1,11 +1,26 @@
 # Kibray Roadmap (Reduced Plan)
 
-Date: 2025-11-25
+Date: 2026-04-23 (updated after Phase E1+E1.3 completion)
 
 This roadmap focuses only on pending phases and ordered activities. Completed phases (FASE 1–2, core parts of FASE 3, and implemented dashboards/automation/security/tests) are omitted for brevity.
 
 ## Current Focus
-- Set one focus at a time (update this line): Clients & Communication (FASE 5)
+- Set one focus at a time (update this line): Phase E2 — Documentation refresh; Phase E3 — Deployment
+
+## Recent Progress (April 2026)
+- ✅ **Phase D1**: Security patch — `pypdf 6.2.0 → 6.10.2` (18 CVEs)
+- ✅ **Phase E1.1**: Unit tests for 5 lowest-coverage view modules
+  - `security_decorators` 0% → 94% (+33 tests)
+  - `payroll_views` 2.8% → 63% (+25 tests)
+  - `task_views` 6.2% → 61% (+33 tests)
+  - `financial_views` 7.9% → 37% (+54 tests)
+  - `client_mgmt_views` 16.2% → 72% (+54 tests)
+- ✅ **Phase E1.2**: Cross-module integration tests — 8 flows, +16 tests
+  (Invoice→Payment→Income, Multi-payment→PAID, CO↔Invoice, Client portal touch-up,
+  Project cascade, ColorApproval+notifications, Estimate-prefixed numbering, Org-link delete-block)
+- ✅ **Phase E1.3**: Playwright E2E suite review — 18 specs / 1,426 LOC catalogued
+  (see `docs/E2E_REVIEW.md` — 4 critical, 6 medium, 3 low findings)
+- 📊 **Test suite**: 1040 → **1255 passed**, 0 regressions, 17 skipped, ~7 min runtime
 
 ## Ordered Pending Activities
 
@@ -63,9 +78,13 @@ This roadmap focuses only on pending phases and ordered activities. Completed ph
   - Generic relations, legal audit trail
 
 ### Phase E: Testing & Documentation (FASE 9–10)
-- Tests: unit per new model, integration for critical flows, E2E for main workflows; optional load testing
-- Documentation: REQUIREMENTS_DOCUMENTATION.md, API docs, user guides
-- Deployment: checklist and backup scripts (pg_dump for prod)
+- ✅ E1.1 Unit tests for low-coverage view modules (5 modules, +199 tests)
+- ✅ E1.2 Cross-module integration tests (8 flows, +16 tests)
+- ✅ E1.3 Playwright E2E suite static review (`docs/E2E_REVIEW.md`)
+- 🔄 E1.3.a Stabilize E2E (unify creds, remove hardcoded venv path, add npm scripts, replace hard sleeps)
+- ⏳ E1.3.b Add E2E for financial flows (Invoice list/payment, Client portal)
+- 🔄 E2 Documentation: REQUIREMENTS_DOCUMENTATION.md, API docs refresh, user guides
+- ⏳ E3 Deployment: checklist and backup scripts (pg_dump for prod), Railway env validation
 
 ## Memory Map (Keep Me Aligned)
 - Architecture
