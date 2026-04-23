@@ -1,7 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
-
-const ADMIN_USER = 'admin';
-const ADMIN_PASS = 'Kibray2025!Admin';
+// @ts-ignore -- shared JS helper
+import { ADMIN_USER, ADMIN_PASS } from './_helpers/auth.js';
 
 test.describe('Strategic Planner Full Features', () => {
   

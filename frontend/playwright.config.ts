@@ -24,8 +24,10 @@ export default defineConfig({
     }
   ],
   webServer: {
-    command: '/Users/jesus/Documents/kibray/.venv/bin/python ../manage.py runserver 8000',
-    port: 8000,
+    // Override Python interpreter via PYTHON env var (defaults to python3 on PATH).
+    // Override server port via DJANGO_PORT (defaults to 8000).
+    command: `${process.env.PYTHON ?? 'python3'} ../manage.py runserver ${process.env.DJANGO_PORT ?? '8000'}`,
+    port: Number(process.env.DJANGO_PORT ?? '8000'),
     timeout: 120_000,
     reuseExistingServer: true
   }

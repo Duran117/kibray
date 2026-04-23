@@ -19,7 +19,11 @@
     "clean:all": "npm run clean:navigation && npm run clean:gantt",
     "django:collectstatic": "python manage.py collectstatic --noinput",
     "django:runserver": "python manage.py runserver",
-    "full:build": "npm run clean:all && npm run build:all && npm run django:collectstatic"
+    "full:build": "npm run clean:all && npm run build:all && npm run django:collectstatic",
+    "test:e2e": "playwright test",
+    "test:e2e:frontend": "cd frontend && playwright test",
+    "test:e2e:smoke": "playwright test --grep @smoke",
+    "test:e2e:report": "playwright show-report"
   },
   "engines": {
     "node": ">=16.0.0",
