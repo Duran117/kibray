@@ -15,6 +15,8 @@
 - [ ] **Lint clean:** `ruff check .` exits 0
 - [ ] **Format clean:** `black --check .` exits 0
 - [ ] **Migrations consistent:** `python manage.py makemigrations --dry-run --check` exits 0
+- [ ] **Env vars validated:** `python scripts/check_railway_env.py` exits 0
+      (run with the production env loaded — locally use `railway run python scripts/check_railway_env.py`)
 - [ ] **No secret leakage:** `git diff origin/main..HEAD | grep -Ei 'sk_live|pk_live|password\s*='` returns nothing
 - [ ] **Static collected (smoke):** `python manage.py collectstatic --noinput --dry-run` succeeds
 - [ ] **E2E smoke (optional but recommended):**
@@ -89,3 +91,16 @@ Required in production (Railway → Variables):
 | `EMAIL_*` | SMTP for notifications |
 
 Sanity-check before deploy: `railway variables` (Railway CLI) or the dashboard.
+
+Or run the bundled validator end-to-end:
+
+```bash
+# Locally with the prod env injected:
+railway run python scripts/check_railway_env.py
+
+# Strict mode (warnings also fail the check):
+railway run python scripts/check_railway_env.py --strict
+
+# Machine-readable output (for CI):
+railway run python scripts/check_railway_env.py --json
+```
