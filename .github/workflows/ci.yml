@@ -28,6 +28,27 @@ jobs:
       - name: Run Django checks
         run: python manage.py check
 
+      - name: Validate env-validator script (smoke + happy-path)
+        # Phase E3: ensure scripts/check_railway_env.py keeps working as the
+        # production env catalogue evolves. Runs the script with a synthetic
+        # production-shaped env so any regression in the validator (or the
+        # production settings catalogue it mirrors) breaks CI immediately.
+        env:
+          DJANGO_SETTINGS_MODULE: kibray_backend.settings.production
+          DJANGO_SECRET_KEY: ci-only-key-must-be-at-least-32-characters-long
+          DEBUG: "False"
+          ALLOWED_HOSTS: ci.example.com
+          DATABASE_URL: postgres://u:p@localhost:5432/db
+          CORS_ALLOWED_ORIGINS: https://ci.example.com
+          CSRF_TRUSTED_ORIGINS: https://ci.example.com
+          EMAIL_HOST: smtp.example.com
+          EMAIL_HOST_USER: ci@example.com
+          EMAIL_HOST_PASSWORD: ci-smtp-password
+        run: |
+          mkdir -p reports
+          python scripts/check_railway_env.py
+          python scripts/check_railway_env.py --json > reports/env_validation.json
+
       - name: Lint (ruff)
         run: ruff check .
 
@@ -59,4 +80,5 @@ jobs:
             reports/bandit_core.json
             reports/detect_secrets.json
             reports/coverage.xml
+            reports/env_validation.json
             test-results/junit.xml
