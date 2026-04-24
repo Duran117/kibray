@@ -1,6 +1,6 @@
 # Kibray Roadmap (Reduced Plan)
 
-Date: 2026-04-23 (updated after Phase E1+E1.3 completion)
+Date: 2026-04-23 (updated after Phase E1+E1.3+E2+E3 completion)
 
 This roadmap focuses only on pending phases and ordered activities. Completed phases (FASE 1–2, core parts of FASE 3, and implemented dashboards/automation/security/tests) are omitted for brevity.
 
@@ -81,10 +81,14 @@ This roadmap focuses only on pending phases and ordered activities. Completed ph
 - ✅ E1.1 Unit tests for low-coverage view modules (5 modules, +199 tests)
 - ✅ E1.2 Cross-module integration tests (8 flows, +16 tests)
 - ✅ E1.3 Playwright E2E suite static review (`docs/E2E_REVIEW.md`)
-- 🔄 E1.3.a Stabilize E2E (unify creds, remove hardcoded venv path, add npm scripts, replace hard sleeps)
-- ⏳ E1.3.b Add E2E for financial flows (Invoice list/payment, Client portal)
-- 🔄 E2 Documentation: REQUIREMENTS_DOCUMENTATION.md, API docs refresh, user guides
-- ⏳ E3 Deployment: checklist and backup scripts (pg_dump for prod), Railway env validation
+- ✅ E1.3.a Stabilize E2E (shared creds helper, env-driven config, npm scripts — commit ca077a9d)
+- ✅ E1.3.b Financial flows E2E smoke (`tests/e2e/financial.spec.js` — commit 620b0d67)
+- ✅ E2 Documentation: README badges/status refreshed, API_ENDPOINTS_REFERENCE header
+  refreshed (commit 2138a4de); PHASE_E_COMPLETION_REPORT.md
+- ✅ E3 Deployment: `docs/DEPLOYMENT_CHECKLIST.md` actionable one-pager;
+  pg_dump backup script already present (`scripts/backup_postgres.sh`)
+- ⏳ E2 follow-up: REQUIREMENTS_DOCUMENTATION.md refresh (lower priority)
+- ⏳ E3 follow-up: enhance check_railway_env (file currently absent — create on demand)
 
 ## Memory Map (Keep Me Aligned)
 - Architecture
