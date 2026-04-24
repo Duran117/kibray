@@ -76,6 +76,10 @@ app.conf.beat_schedule = {
         "task": "core.tasks.cleanup_old_notifications",
         "schedule": crontab(hour=2, minute=0, day_of_week=0),  # Sunday 02:00
     },
+    "generate-daily-plan-reminders": {
+        "task": "core.tasks.generate_daily_plan_reminders",
+        "schedule": crontab(hour=16, minute=0),  # daily 16:00 (afternoon prep)
+    },
     # ---- WebSocket / presence maintenance ----
     "cleanup-stale-user-status": {
         "task": "core.tasks.cleanup_stale_user_status",
@@ -85,6 +89,10 @@ app.conf.beat_schedule = {
     "collect-websocket-metrics": {
         "task": "core.tasks.collect_websocket_metrics",
         "schedule": 900.0,  # every 15 minutes
+    },
+    "cleanup-old-websocket-metrics": {
+        "task": "core.tasks.cleanup_old_websocket_metrics",
+        "schedule": crontab(hour=2, minute=30, day_of_week=0),  # Sunday 02:30
     },
     # ---- Resource cleanup ----
     "cleanup-old-assignments": {

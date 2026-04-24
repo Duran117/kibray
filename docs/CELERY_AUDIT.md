@@ -1,22 +1,23 @@
 # Celery Tasks Audit (Phase C — Automation)
 
-**Date:** 2026-04-24  
-**Scope:** `core/tasks.py`, `kibray_backend/celery_config.py`, `kibray_backend/celery.py`  
-**Outcome:** 1 critical bug found and fixed, 1 dead-code module removed,
-beat_schedule consolidated to reference only real tasks.
+**Date:** 2026-04-24 (Pass 2: orphan resolution)
+**Scope:** `core/tasks.py`, `kibray_backend/celery_config.py`
+**Outcome:** Pass 1 fixed 12 ghost tasks + removed dead duplicate app.
+Pass 2 resolved orphans: 1 deleted, 2 newly scheduled, 2 confirmed as
+on-demand utilities.
 
 ---
 
-## TL;DR
+## TL;DR (post Pass 2)
 
 | Item | Status |
 |---|---|
-| Celery app modules found | **2** (one was dead code) |
-| Real `@shared_task` definitions in `core/tasks.py` | 21 |
-| Active beat_schedule entries (before) | 12 — **all referenced non-existent tasks** |
-| Active beat_schedule entries (after) | 13 — all reference real, registered tasks |
-| Dead modules removed | `kibray_backend/celery.py` |
-| Tests after change | 1,271 passed, 0 regressions |
+| Real `@shared_task` definitions in `core/tasks.py` | **22** (was 23, deleted 1 legacy) |
+| Active beat_schedule entries | **15** (was 13 in Pass 1) |
+| On-demand tasks with real callsites | 5 |
+| On-demand utilities (no callers yet) | 2 (kept, flagged) |
+| True orphans remaining | **0** |
+| Tests after change | **1280 passed**, 17 skipped, 0 regressions |
 
 ---
 
@@ -69,66 +70,67 @@ So we had:
 2. **Rewrote** `celery_config.py::beat_schedule` to reference only real tasks,
    merging the useful entries from the deleted file.
 
-### Final beat_schedule (13 entries, all verified)
+### Final beat_schedule (15 entries, all verified)
 
 | Schedule | Task | Cadence |
 |---|---|---|
 | check-overdue-invoices | `check_overdue_invoices` | daily 06:00 |
-| alert-incomplete-daily-plans | `alert_incomplete_daily_plans` | daily 17:15 |
-| generate-weekly-payroll | `generate_weekly_payroll` | Mon 07:00 |
-| check-inventory-shortages | `check_inventory_shortages` | daily 08:00 |
-| send-pending-notifications | `send_pending_notifications` | hourly :00 |
 | update-invoice-statuses | `update_invoice_statuses` | daily 01:00 |
+| generate-weekly-payroll | `generate_weekly_payroll` | Mon 07:00 |
+| alert-incomplete-daily-plans | `alert_incomplete_daily_plans` | daily 17:15 |
+| check-inventory-shortages | `check_inventory_shortages` | daily 08:00 |
+| alert-high-priority-touchups | `alert_high_priority_touchups` | daily 09:00 |
 | update-daily-plans-weather | `update_daily_plans_weather` | daily 05:00 |
 | fetch-weather-snapshots | `update_daily_weather_snapshots` | daily 05:00 |
-| alert-high-priority-touchups | `alert_high_priority_touchups` | daily 09:00 |
+| send-pending-notifications | `send_pending_notifications` | hourly :00 |
 | cleanup-old-notifications | `cleanup_old_notifications` | Sun 02:00 |
+| **generate-daily-plan-reminders** *(new Pass 2)* | `generate_daily_plan_reminders` | **daily 16:00** |
 | cleanup-stale-user-status | `cleanup_stale_user_status` | every 5 min |
-| cleanup-old-assignments | `cleanup_old_assignments` | Sun 03:00 |
 | collect-websocket-metrics | `collect_websocket_metrics` | every 15 min |
+| **cleanup-old-websocket-metrics** *(new Pass 2)* | `cleanup_old_websocket_metrics` | **Sun 02:30** |
+| cleanup-old-assignments | `cleanup_old_assignments` | Sun 03:00 |
 
-## 4. Inventory of all 21 Real Tasks
+## 4. Inventory of all 22 Real Tasks (post Pass 2)
 
-Source: `core/tasks.py` (1,388 LOC). Status after fix:
+Source: `core/tasks.py`. Status legend:
+🟢 scheduled · 🔵 on-demand (real callsite) · ⚪ on-demand utility (no callers yet, kept intentionally)
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 1 | `check_inventory_shortages` | 🟢 scheduled | daily 08:00 |
-| 2 | `check_overdue_invoices` | 🟢 scheduled | daily 06:00 |
-| 3 | `alert_incomplete_daily_plans` | 🟢 scheduled | daily 17:15 |
-| 4 | `generate_weekly_payroll` | 🟢 scheduled | Mon 07:00 |
-| 5 | `update_daily_weather_snapshots` | 🟢 scheduled | daily 05:00 |
-| 6 | `alert_high_priority_touchups` | 🟢 scheduled | daily 09:00 |
-| 7 | `update_daily_weather_snapshots_legacy` | ⚠️ legacy orphan | candidate for deletion next pass |
-| 8 | `send_pending_notifications` | 🟢 scheduled | hourly |
-| 9 | `update_invoice_statuses` | 🟢 scheduled | daily 01:00 |
-| 10 | `cleanup_old_notifications` | 🟢 scheduled | Sun 02:00 |
-| 11 | `generate_daily_plan_reminders` | ⚠️ orphan | not scheduled, no callsites — review intended use |
-| 12 | `update_daily_plans_weather` | 🟢 scheduled | daily 05:00 |
-| 13 | `fetch_weather_for_plan` | 🔵 on-demand | called from `DailyPlan.save()` |
-| 14 | `cleanup_stale_user_status` | 🟢 scheduled | every 5 min |
-| 15 | `send_websocket_notification` | 🔵 on-demand candidate | currently no callsites — review |
-| 16 | `collect_websocket_metrics` | 🟢 scheduled | every 15 min (now) |
-| 17 | `cleanup_old_websocket_metrics` | ⚠️ orphan | not scheduled — TODO add weekly entry |
-| 18 | `process_signature_post_tasks` | 🔵 on-demand | called from `misc_views.py`, `changeorder_views.py` |
-| 19 | `cleanup_old_assignments` | 🟢 scheduled | Sun 03:00 |
-| 20 | `process_sop_image` | 🔵 on-demand | called from `sop_api.py` |
-| 21 | `process_changeorder_photos` | ⚠️ orphan | not scheduled, no callsites — review |
+| 1 | `check_inventory_shortages` | 🟢 | daily 08:00 |
+| 2 | `check_overdue_invoices` | 🟢 | daily 06:00 |
+| 3 | `alert_incomplete_daily_plans` | 🟢 | daily 17:15 |
+| 4 | `generate_weekly_payroll` | 🟢 | Mon 07:00 |
+| 5 | `update_daily_weather_snapshots` | 🟢 | daily 05:00 |
+| 6 | `alert_high_priority_touchups` | 🟢 | daily 09:00 |
+| 7 | `send_pending_notifications` | 🟢 | hourly |
+| 8 | `update_invoice_statuses` | 🟢 | daily 01:00 |
+| 9 | `cleanup_old_notifications` | 🟢 | Sun 02:00 |
+| 10 | `generate_daily_plan_reminders` | 🟢 | **Pass 2: scheduled daily 16:00** |
+| 11 | `update_daily_plans_weather` | 🟢 | daily 05:00 |
+| 12 | `fetch_weather_for_plan` | 🔵 | called from `DailyPlan.save()` |
+| 13 | `cleanup_stale_user_status` | 🟢 | every 5 min |
+| 14 | `send_websocket_notification` | ⚪ | utility for signals/views; no current callers — keep |
+| 15 | `collect_websocket_metrics` | 🟢 | every 15 min |
+| 16 | `cleanup_old_websocket_metrics` | 🟢 | **Pass 2: scheduled Sun 02:30** |
+| 17 | `process_signature_post_tasks` | 🔵 | `misc_views.py`, `changeorder_views.py` |
+| 18 | `cleanup_old_assignments` | 🟢 | Sun 03:00 |
+| 19 | `process_sop_image` | 🔵 | `sop_api.py` |
+| 20 | `process_changeorder_photos` | ⚪ | utility for CO photo flow; no current callers — keep |
+| 21 | `process_changeorder_creation` | 🔵 | `changeorder_views.py:518` |
+| 22 | `process_contract_generation` | 🔵 | `financial_views.py:1172,1223` |
 
-Legend: 🟢 scheduled · 🔵 on-demand (real callsite) · ⚠️ orphan (not wired)
+**Removed in Pass 2:** `update_daily_weather_snapshots_legacy` — Module 30
+skeleton with placeholder logic, fully superseded by
+`update_daily_weather_snapshots`.
 
 ## 5. Remaining Backlog (non-blocking)
 
-1. **Decide fate of orphans** (4 tasks, ~150 LOC):
-   - `update_daily_weather_snapshots_legacy` — explicit "legacy" in name; safe to delete
-     after one release cycle of confirmation.
-   - `generate_daily_plan_reminders` — review intent vs. `send_pending_notifications`.
-   - `send_websocket_notification` — likely meant to be invoked from signals; verify.
-   - `process_changeorder_photos` — likely meant to mirror `process_sop_image`; check
-     ChangeOrder photo upload flow.
-   - `cleanup_old_websocket_metrics` — add weekly schedule (Sun 02:30).
-2. **Split `core/tasks.py` (1,388 LOC)** by domain (financial, weather, notifications,
-   websocket, processing). Currently a single hard-to-navigate file.
+1. **Wire the two on-demand utilities** (`send_websocket_notification`,
+   `process_changeorder_photos`) when their respective UI flows land,
+   or delete them if the UI is no longer planned.
+2. **Split `core/tasks.py`** (now 1,355 LOC) by domain
+   (financial / weather / notifications / websocket / processing).
 3. **Add task-level metrics** to Sentry / Prometheus once observability is wired.
 4. **Add a beat-schedule integration test** that imports the celery app and asserts
    every entry's `task` field resolves to a registered task — would have caught this
