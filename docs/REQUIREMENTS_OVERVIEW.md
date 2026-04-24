@@ -1,8 +1,12 @@
 # REQUIREMENTS OVERVIEW
 **System:** Kibray ERP - Business Command Center  
-**Last Updated:** December 8, 2025  
+**Last Updated:** April 2026 (Phase E refresh; content verified December 8, 2025)  
 **Status:** Official Master Document  
-**Owner Authorization:** Approved via Owner Decision Questionnaire
+**Owner Authorization:** Approved via Owner Decision Questionnaire  
+**Test Coverage:** 1,271 unit + integration tests passing
+(see [`PHASE_E_COMPLETION_REPORT.md`](PHASE_E_COMPLETION_REPORT.md))  
+**Operational readiness:** Deployment hardening complete — see
+[`DEPLOYMENT_CHECKLIST.md`](DEPLOYMENT_CHECKLIST.md)
 
 ---
 

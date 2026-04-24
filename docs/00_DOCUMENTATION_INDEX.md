@@ -1,6 +1,10 @@
 # 📖 KIBRAY - Índice de Documentación
 
-> **Última actualización**: Diciembre 2025 — post refactor Phases 1-8
+> **Última actualización**: Abril 2026 — post Phase E (Tests + Docs + Deploy)
+>
+> **Métricas actuales**: 1,271 tests pasando · cobertura ≥35% (enforced) ·
+> 12 commits Phase E desplegados · suite E2E estabilizada con specs
+> financieros y de portal cliente nuevos.
 
 ---
 
@@ -24,8 +28,9 @@
    - Resumen ejecutivo del proyecto (95% completitud)
    - Estado de todos los Gaps A-F (completos)
    - Arquitectura técnica completa
-   - 670 tests pasando
-   - Listo para producción
+   - 1,271 tests pasando (Phase E, abril 2026)
+   - Listo para producción — ver
+     [`DEPLOYMENT_CHECKLIST.md`](./DEPLOYMENT_CHECKLIST.md)
 
 2. 📖 **[`README.md`](../README.md)**
    - Overview general del proyecto
