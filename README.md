@@ -5,8 +5,8 @@
 [![Python](https://img.shields.io/badge/Python-3.11.14-blue.svg)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/Django-5.2.8-green.svg)](https://www.djangoproject.com/)
 [![React](https://img.shields.io/badge/React-18.3-blue.svg)](https://reactjs.org/)
-[![Tests](https://img.shields.io/badge/Tests-670%20passing-brightgreen.svg)]()
-[![Coverage](https://img.shields.io/badge/Coverage-85%25-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-1255%20passing-brightgreen.svg)]()
+[![Coverage](https://img.shields.io/badge/Coverage-enforced%2035%25-brightgreen.svg)]()
 [![Code Style](https://img.shields.io/badge/Code%20Style-black-black.svg)](https://github.com/psf/black)
 [![Linter](https://img.shields.io/badge/Linter-ruff-blue.svg)](https://github.com/astral-sh/ruff)
 [![PWA](https://img.shields.io/badge/PWA-Enabled-purple.svg)](https://web.dev/progressive-web-apps/)
@@ -35,7 +35,9 @@
 Kibray is a comprehensive construction management platform designed specifically for painting contractors. It streamlines project management, financial tracking, employee performance, and field operations.
 
 **System Status**: ✅ **100% Complete - Production Ready**  
-**Tests**: 670 passing | **API Endpoints**: 45+ ViewSets | **Modules**: 15+ implemented | **i18n**: 1,667 strings | **PWA**: Full offline support
+**Tests**: 1,255 passing (17 skipped) | **API Endpoints**: 45+ ViewSets | **Modules**: 15+ implemented | **i18n**: 1,667 strings | **PWA**: Full offline support
+
+> **Phase E (April 2026)** — Test hardening complete. +215 new tests across 5 view modules + 8 cross-module integration flows. See [`docs/PHASE_E_COMPLETION_REPORT.md`](./docs/PHASE_E_COMPLETION_REPORT.md). E2E suite reviewed in [`docs/E2E_REVIEW.md`](./docs/E2E_REVIEW.md).
 
 **Key Capabilities:**
 - 📊 Financial dashboards and reporting
@@ -344,7 +346,7 @@ pytest --cov=. --cov-report=term-missing
 pytest tests/test_signatures_api.py tests/test_reports_api.py tests/test_performance_queries.py -q
 ```
 
-**Current Test Status**: ✅ **481 passed**, 2 skipped, 0 failures
+**Current Test Status**: ✅ **1,255 passed**, 17 skipped, 0 failures (Phase E expansion, April 2026)
 
 ### **Code Quality Tools**
 
@@ -409,8 +411,12 @@ tests/
 
 ### **Coverage Reports**
 
-Current coverage: **50%** (baseline established)  
-Target: **>90%** for production readiness
+Current coverage: **enforced 35% floor** (pytest.ini `--cov-fail-under=35`); 1,255 tests passing.  
+Target: **>60%** by end of Phase E; **>90%** for production readiness.
+
+> Phase E expansion (April 2026): +215 tests across security decorators, payroll, tasks,
+> financial views, client management, and 8 cross-module integration flows. See
+> [`docs/PHASE_E_COMPLETION_REPORT.md`](docs/PHASE_E_COMPLETION_REPORT.md).
 
 ```bash
 # Generate HTML coverage report
@@ -498,7 +504,9 @@ python manage.py runserver
 - **[Gantt Setup Guide](GANTT_SETUP_GUIDE.md)** - Project scheduling
 
 ### **Technical Documentation**
-- **[API Documentation](API_README.md)** - REST API reference
+- **[API Endpoints Reference](docs/API_ENDPOINTS_REFERENCE.md)** - Active REST API reference (1,194 lines)
+- **[E2E Review](docs/E2E_REVIEW.md)** - Playwright suite inventory & findings
+- **[Phase E Completion Report](docs/PHASE_E_COMPLETION_REPORT.md)** - Tests + Docs + Deploy status
 - **[Database Schema Audit](DB_SCHEMA_AUDIT.md)** - Model constraints and validation
 - **[System Analysis](SYSTEM_ANALYSIS.md)** - Full system breakdown
 - **[Financial Module Analysis](FINANCIAL_MODULE_ANALYSIS.md)** - Financial system architecture
@@ -521,7 +529,8 @@ python manage.py runserver
 - **Storage:** AWS S3 (production)
 
 ### **Testing & Quality**
-- **Testing:** pytest 8.3.3, pytest-django 4.9.0, pytest-cov 5.0.0
+- **Testing:** pytest 8.4.2, pytest-django 4.11.1, pytest-cov 7.1.0 (1,255 tests, 35% coverage floor)
+- **E2E:** Playwright (chromium/firefox/webkit) — see [`tests/e2e/README.md`](tests/e2e/README.md)
 - **Linter:** ruff 0.8.4 (pycodestyle, pyflakes, isort, bugbear)
 - **Formatter:** black 24.10.0 (line-length 120)
 - **CI/CD:** GitHub Actions
@@ -756,15 +765,22 @@ john@example.com     → Employee with email
 
 ### **Run Tests**
 ```bash
-# All tests
+# Full unit + integration suite (excludes e2e per pytest.ini)
 pytest
 
-# Specific app
-pytest core/tests/
+# Specific module
+pytest tests/test_integration_flows.py -v
 
-# Coverage
-pytest --cov=core
+# With coverage (HTML report)
+pytest --cov=. --cov-report=html && open htmlcov/index.html
+
+# E2E (Playwright)
+npm run test:e2e            # root suite (chromium/firefox/webkit)
+npm run test:e2e:frontend   # frontend/ suite (chromium-only)
+npm run test:e2e:smoke      # smoke spec only
 ```
+
+See [`tests/e2e/README.md`](tests/e2e/README.md) for E2E env vars and troubleshooting.
 
 ### **Test PWA**
 1. Open DevTools (F12)

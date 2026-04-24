@@ -1,8 +1,9 @@
 # API ENDPOINTS REFERENCE
 **System:** Kibray ERP  
-**Last Updated:** December 8, 2025  
+**Last Updated:** April 2026 (Phase E refresh; content verified December 8, 2025)  
 **Status:** Official Master Document  
-**Owner Authorization:** Approved via Owner Decision Questionnaire
+**Owner Authorization:** Approved via Owner Decision Questionnaire  
+**Test Coverage:** 1,255 unit + integration tests passing (see [`docs/PHASE_E_COMPLETION_REPORT.md`](PHASE_E_COMPLETION_REPORT.md))
 
 ---
 
