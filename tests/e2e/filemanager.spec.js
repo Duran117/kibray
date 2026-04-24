@@ -19,8 +19,8 @@ test.describe('File Manager', () => {
     const authToken = await page.evaluate(() => localStorage.getItem('authToken'));
     console.log('Auth token in localStorage:', authToken);
     
-    // Wait for React to render
-    await page.waitForTimeout(3000);
+    // The final assertion below already waits up to 10s for the React tree
+    // to render the heading, so an extra 3s sleep is redundant.
     
     const currentURL = page.url();
     console.log('Final URL:', currentURL);

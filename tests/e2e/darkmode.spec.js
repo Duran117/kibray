@@ -9,7 +9,13 @@ test.describe('Dark Mode', () => {
       return;
     }
     await toggle.first().click();
-    await page.waitForTimeout(500);
+    // Replace fixed 500ms sleep with a polled assertion that the dark class
+    // appears on <body>. Playwright's expect-poll retries up to the timeout.
+    await expect
+      .poll(async () => (await page.locator('body').getAttribute('class')) || '', {
+        timeout: 3000,
+      })
+      .toContain('dark');
     const bodyClass = await page.locator('body').getAttribute('class');
     expect(bodyClass || '').toContain('dark');
   });

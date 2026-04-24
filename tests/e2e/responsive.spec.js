@@ -11,7 +11,9 @@ test.describe('Responsive Design', () => {
     test(`renders on ${device.name}`, async ({ page }) => {
       await page.setViewportSize({ width: device.width, height: device.height });
       await page.goto('/files'); // Go to a route we know works
-      await page.waitForTimeout(2000); // Wait for React to mount
+      // Replace arbitrary 2s sleep with real wait for network to settle
+      // (React app is mounted by then). Cap at 10s.
+      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
       // Just check that SOMETHING renders (body has content)
       const bodyText = await page.locator('body').textContent();
       expect(bodyText.length).toBeGreaterThan(0);

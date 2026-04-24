@@ -37,9 +37,12 @@ test.describe('Strategic Planner E2E', () => {
     // Select project (assuming at least one exists, select the first option that isn't placeholder)
     const projectSelect = page.locator('select[name="project"]');
     await projectSelect.click();
-    // We need to wait for options to populate via fetch
-    await page.waitForTimeout(1000); 
-    
+    // Wait for the fetch-populated options to appear (>1 means placeholder + at
+    // least one real project). Polled assertion replaces the arbitrary 1s sleep.
+    await expect
+      .poll(async () => await projectSelect.locator('option').count(), { timeout: 5000 })
+      .toBeGreaterThan(1);
+
     // Select the second option (index 1) as index 0 is usually "Select Project..."
     await projectSelect.selectOption({ index: 1 });
     

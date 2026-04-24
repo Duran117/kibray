@@ -17,8 +17,9 @@ test.describe('Unified dashboard shell', () => {
       await expect(sidebar).toBeVisible();
       await expect(page.locator('[data-layout-root]')).toBeVisible();
 
-      // Check no horizontal overflow at common small width
-  await page.waitForTimeout(300);
+      // Check no horizontal overflow at common small width.
+      // Wait for fonts/layout to settle so scrollWidth measurement is stable.
+      await page.evaluate(() => document.fonts && document.fonts.ready);
       const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
       const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
       expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
