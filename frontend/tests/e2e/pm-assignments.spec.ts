@@ -53,7 +53,10 @@ test.describe.serial('PMAssignments E2E Tests', () => {
     await page.fill('form input[placeholder="PM User ID"]', '1');
     await page.fill('form input[placeholder="Role (default: project_manager)"]', 'project_manager');
     await page.click('form button:has-text("Assign")');
-    await page.waitForTimeout(800);
+    // Wait for the form to disappear (real signal of successful submit) and
+    // for the list-refresh fetch to settle.
+    await expect(page.locator('form >> text=New PM Assignment')).toBeHidden({ timeout: 5000 });
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     const cards = page.locator('.pm-assignments > div > div');
     expect(await cards.count()).toBeGreaterThan(0);
   });
@@ -81,7 +84,7 @@ test.describe.serial('PMAssignments E2E Tests', () => {
     page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
     await page.goto('/pm-assignments/');
     await page.waitForSelector('.pm-assignments');
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     const relevant = errors.filter(e => !e.includes('favicon') && !e.includes('404'));
     expect(relevant.length).toBe(0);
   });

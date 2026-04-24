@@ -117,8 +117,8 @@ test.describe.serial('TouchupBoard E2E Tests', () => {
     await page.goto('/projects/1/touchups-react/');
     await page.waitForSelector('.touchup-board', { timeout: 10000 });
     
-    // Wait a moment for API to load
-    await page.waitForTimeout(2000);
+    // Wait for the data fetch that populates cards/empty-state to settle.
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     
     // Check if any cards are present (or verify empty state)
     const cards = page.locator('.task-card, .card, [class*="card"]');
@@ -141,7 +141,7 @@ test.describe.serial('TouchupBoard E2E Tests', () => {
     
     await page.goto('/projects/1/touchups-react/');
     await page.waitForSelector('.touchup-board', { timeout: 10000 });
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     
     // Filter out known non-React errors (like favicon 404)
     const reactErrors = errors.filter(e => 
@@ -178,7 +178,7 @@ test.describe.serial('TouchupBoard E2E Tests', () => {
   test('Priority colors or indicators visible on cards', async ({ page }) => {
     await page.goto('/projects/1/touchups-react/');
     await page.waitForSelector('.touchup-board', { timeout: 10000 });
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     
     // Check if any priority indicators exist
     const priorityLow = page.locator('text=low').or(page.locator('[class*="priority"]'));

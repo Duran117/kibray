@@ -123,6 +123,8 @@ test.describe.serial('NotificationCenter E2E Tests', () => {
     const item = page.locator('#notification-root div[style*="cursor"]').first();
     await expect(item).toBeVisible();
     await item.click();
-    await page.waitForTimeout(500); // allow state update
+    // The click triggers a fetch + state update; assert the panel is still
+    // attached as a stand-in for "click did not crash the component".
+    await expect(page.locator('#notification-root')).toBeVisible();
   });
 });

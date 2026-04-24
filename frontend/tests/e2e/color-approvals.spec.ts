@@ -78,8 +78,9 @@ test.describe.serial('ColorApprovals E2E Tests', () => {
     await page.fill('form input[placeholder="Location"]', 'UI Lab');
     await page.fill('form textarea[placeholder="Notes"]', 'Created in E2E test');
     await page.click('form button:has-text("Submit")');
-    // Wait a moment for list refresh
-    await page.waitForTimeout(1000);
+    // Form-hidden + network-idle is a more reliable signal than a 1s sleep.
+    await expect(page.locator('form >> text=New Approval Request')).toBeHidden({ timeout: 5000 });
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     // Expect at least one card present now
     const cards = page.locator('.color-approvals > div > div');
     expect(await cards.count()).toBeGreaterThan(0);
@@ -95,8 +96,8 @@ test.describe.serial('ColorApprovals E2E Tests', () => {
     const approveBtn = page.locator('button:has-text("Approve")').first();
     await expect(approveBtn).toBeVisible({ timeout: 5000 });
     await approveBtn.click();
-    await page.waitForTimeout(800);
-    // After approve, status text should include APPROVED somewhere
+    // Poll for the APPROVED label to appear instead of a fixed sleep.
+    await expect(page.locator('text=APPROVED').first()).toBeVisible({ timeout: 5000 });
     const approvedText = page.locator('text=APPROVED');
     expect(await approvedText.count()).toBeGreaterThan(0);
   });
@@ -111,7 +112,7 @@ test.describe.serial('ColorApprovals E2E Tests', () => {
     await expect(rejectBtn).toBeVisible({ timeout: 5000 });
     page.once('dialog', d => d.accept('Not suitable')); // respond to prompt
     await rejectBtn.click();
-    await page.waitForTimeout(800);
+    await expect(page.locator('text=REJECTED').first()).toBeVisible({ timeout: 5000 });
     const rejectedText = page.locator('text=REJECTED');
     expect(await rejectedText.count()).toBeGreaterThan(0);
   });
@@ -129,7 +130,7 @@ test.describe.serial('ColorApprovals E2E Tests', () => {
     page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
     await page.goto('/color-approvals/');
     await page.waitForSelector('.color-approvals');
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     const relevant = errors.filter(e => !e.includes('favicon') && !e.includes('404'));
     expect(relevant.length).toBe(0);
   });

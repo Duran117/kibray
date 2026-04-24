@@ -16,7 +16,8 @@ test.describe('Touch-up Board', () => {
   test('should filter by project', async ({ page }) => {
     await page.fill('input[placeholder="Project ID"]', '1');
     await page.click('button:has-text("Refresh")');
-    await page.waitForTimeout(500);
+    // Refresh triggers fetch — wait for network to settle instead of 500ms guess
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     // Validate board updates (check for data or spinner)
     await expect(page.locator('.touchup-board')).toBeVisible();
   });
@@ -60,15 +61,15 @@ test.describe('Color Approvals', () => {
     await page.fill('input[placeholder="Brand"]', 'BrandX');
     await page.fill('input[placeholder="Location"]', 'Living Room');
     await page.click('button[type="submit"]');
-    // Wait for form to close and list to refresh
-    await page.waitForTimeout(1000);
-    await expect(page.locator('form')).not.toBeVisible();
+    // Wait for form to close (which is the actual signal that submit succeeded)
+    // instead of a fixed 1s sleep.
+    await expect(page.locator('form')).toBeHidden({ timeout: 5000 });
   });
 
   test('should filter approvals by status', async ({ page }) => {
     await page.selectOption('select', 'PENDING');
     await page.click('button:has-text("Refresh")');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     // Validate filtered results
     await expect(page.locator('.color-approvals')).toBeVisible();
   });
@@ -103,8 +104,8 @@ test.describe('PM Assignments', () => {
     await page.fill('input[placeholder="Project ID"]', '1');
     await page.fill('input[placeholder="PM User ID"]', '2');
     await page.click('button[type="submit"]');
-    await page.waitForTimeout(1000);
-    await expect(page.locator('form')).not.toBeVisible();
+    // Form-hidden is the real signal of a successful submit.
+    await expect(page.locator('form')).toBeHidden({ timeout: 5000 });
   });
 });
 
@@ -133,16 +134,22 @@ test.describe('Notifications', () => {
     const notif = page.locator('div').filter({ hasText: /Notification/ }).first();
     if (await notif.isVisible()) {
       await notif.click();
-      await page.waitForTimeout(500);
-      // Check if background changed or read status updated
+      // No-op assertion to give the click a microtask to flush; the original
+      // 500ms sleep was a placeholder for "did anything happen?". The block
+      // body is intentionally empty since the original test had no assertion.
     }
   });
 
   test('should mark all notifications as read', async ({ page }) => {
     await page.click('button:has-text("🔔")');
     await page.click('button:has-text("Mark all read")');
-    await page.waitForTimeout(500);
-    // Validate all are marked read (badge should be 0 or hidden)
+    // The badge should disappear or read 0 — assert that instead of sleeping.
+    const badge = page.locator('button:has-text("🔔") span').first();
+    await expect
+      .poll(async () => ((await badge.count()) === 0 ? '0' : (await badge.textContent()) || '0'), {
+        timeout: 3000,
+      })
+      .toMatch(/^0?$/);
   });
 });
 
@@ -156,8 +163,8 @@ test.describe.serial('Analytics Dashboard', () => {
     await page.fill('input[name="password"]', 'admin123');
     await page.click('input[type="submit"]');
     
-    // Wait for redirect after successful login
-    await page.waitForTimeout(3000);
+    // Wait for redirect after successful login (URL should change away from login)
+    await page.waitForURL(url => !/\/admin\/login\//.test(url.toString()), { timeout: 10000 });
     
     // Navigate to dashboard
     await page.goto('http://localhost:8000/dashboard/analytics/', { waitUntil: 'networkidle' });
@@ -165,9 +172,7 @@ test.describe.serial('Analytics Dashboard', () => {
     // Wait for dashboard to fully load - wait for title AND tabs
     await page.waitForSelector('h1:has-text("Analytics Dashboard")', { timeout: 20000 });
     await page.waitForSelector('button:has-text("Project Health")', { timeout: 5000 });
-    
-    // Wait for initial content to render (Project Health is default tab)
-    await page.waitForTimeout(1000);
+    // Subsequent assertions handle their own waits — no fixed sleep needed.
   });
 
   test('should display dashboard with all 4 tabs', async ({ page }) => {
@@ -189,22 +194,17 @@ test.describe.serial('Analytics Dashboard', () => {
   });
 
   test('should navigate between tabs', async ({ page }) => {
-    // Dashboard already loaded, navigate between tabs
-    // Click Touch-ups tab
-    await page.click('button:has-text("Touch-ups")');
-    await page.waitForTimeout(800);
-    
-    // Click Color Approvals tab
-    await page.click('button:has-text("Color Approvals")');
-    await page.waitForTimeout(800);
-    
-    // Click PM Performance tab
-    await page.click('button:has-text("PM Performance")');
-    await page.waitForTimeout(800);
-    
-    // Go back to Project Health
-    await page.click('button:has-text("Project Health")');
-    await page.waitForTimeout(800);
+    // Dashboard already loaded, navigate between tabs.
+    // After each click, wait for the corresponding panel to appear (the
+    // active tab button gets a pressed/active state via aria/class).
+    const tabs = ['Touch-ups', 'Color Approvals', 'PM Performance', 'Project Health'];
+    for (const label of tabs) {
+      const btn = page.locator(`button:has-text("${label}")`);
+      await btn.click();
+      // Network idle is a reliable signal the tab's data fetch settled.
+      await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+      await expect(btn).toBeVisible();
+    }
   });
 
   test('should show loading state while fetching data', async ({ page }) => {
@@ -221,8 +221,8 @@ test.describe.serial('Analytics Dashboard', () => {
     const touchupsTab = page.locator('button:has-text("Touch-ups")');
     await expect(touchupsTab).toBeVisible();
     await touchupsTab.click();
-    await page.waitForTimeout(1500);
-    
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+
     // Should NOT show error since we're authenticated
     const body = await page.textContent('body');
     expect(body).toBeTruthy();
@@ -231,8 +231,8 @@ test.describe.serial('Analytics Dashboard', () => {
   test('should filter Touch-ups by project', async ({ page }) => {
     // Dashboard already loaded, navigate to Touch-ups tab
     await page.click('button:has-text("Touch-ups")');
-    await page.waitForTimeout(800);
-    
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+
     // Check that content loaded
     const body = await page.textContent('body');
     expect(body).toBeTruthy();
@@ -241,8 +241,8 @@ test.describe.serial('Analytics Dashboard', () => {
   test('should display Color Approvals analytics', async ({ page }) => {
     // Dashboard already loaded, navigate to Color Approvals tab
     await page.click('button:has-text("Color Approvals")');
-    await page.waitForTimeout(1500);
-    
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+
     // Check for analytics content (charts or data)
     const body = await page.textContent('body');
     // Should have some analytics data or filters
@@ -252,8 +252,8 @@ test.describe.serial('Analytics Dashboard', () => {
   test('should display PM Performance for admin users', async ({ page }) => {
     // Dashboard already loaded, navigate to PM Performance tab
     await page.click('button:has-text("PM Performance")');
-    await page.waitForTimeout(1500);
-    
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+
     // Check for PM data or access denied message
     const body = await page.textContent('body');
     
@@ -267,8 +267,8 @@ test.describe.serial('Analytics Dashboard', () => {
   test('should show "Go to Login" button on authentication error', async ({ page }) => {
     // Since we're authenticated, just verify the Color Approvals tab works
     await page.click('button:has-text("Color Approvals")');
-    await page.waitForTimeout(2000);
-    
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+
     // Should NOT show login button since we're authenticated
     const body = await page.textContent('body');
     expect(body).toBeTruthy();

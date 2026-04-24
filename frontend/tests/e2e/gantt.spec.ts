@@ -58,7 +58,8 @@ test.describe.serial('Gantt Schedule E2E', () => {
     const calendarBtn = page.locator('button:has-text("Calendar")').or(page.locator('button:has-text("Calendario")'));
     if (await calendarBtn.count() > 0) {
       await calendarBtn.first().click();
-      await page.waitForTimeout(500);
+      // Calendar view fetches its own data — wait for network to settle.
+      await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     }
   });
 
@@ -67,7 +68,9 @@ test.describe.serial('Gantt Schedule E2E', () => {
     page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
     await page.goto('/projects/1/schedule/gantt/');
     await waitForGanttMount(page);
-    await page.waitForTimeout(1000);
+    // Give the page a chance to settle so any deferred fetches / effects
+    // emit their console errors. networkidle is a deterministic signal.
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     const relevant = errors.filter(e => !e.includes('favicon') && !e.includes('404'));
     expect(relevant.length).toBe(0);
   });
