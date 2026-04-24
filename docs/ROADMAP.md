@@ -1,11 +1,21 @@
 # Kibray Roadmap (Reduced Plan)
 
-Date: 2026-04-23 (updated after Phase E1+E1.3+E2+E3 completion)
+Date: 2026-04-24 (updated after Phase E closure + Phase C automation audit)
 
 This roadmap focuses only on pending phases and ordered activities. Completed phases (FASE 1–2, core parts of FASE 3, and implemented dashboards/automation/security/tests) are omitted for brevity.
 
 ## Current Focus
-- Set one focus at a time (update this line): Phase E2 — Documentation refresh; Phase E3 — Deployment
+- Set one focus at a time (update this line): Phase C — Automation: Celery audit ✅; next pick = Reports (async generation + permission-based access)
+
+## Recent Progress (April 24, 2026)
+- ✅ **Phase E** (full): tag `v2026.04-phase-e` — 17 commits, suite 1040 → 1271
+- ✅ **Phase C kickoff — Celery audit consolidation** (`docs/CELERY_AUDIT.md`):
+  - Found 12 ghost tasks scheduled against names that did not exist (silent NotRegistered for months)
+  - Found duplicate `kibray_backend/celery.py` (dead code, never imported) — removed
+  - Rewrote `celery_config.py::beat_schedule` with 13 verified entries (all real tasks)
+  - Added `tests/test_celery_beat_schedule.py` (9 guard tests) so this class of bug
+    can never recur silently — would have caught the original regression at CI time
+  - Suite: 1271 → **1280 passed**, 0 regressions
 
 ## Recent Progress (April 2026)
 - ✅ **Phase D1**: Security patch — `pypdf 6.2.0 → 6.10.2` (18 CVEs)

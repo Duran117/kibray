@@ -24,66 +24,73 @@ app.autodiscover_tasks()
 # PERIODIC TASKS SCHEDULE
 # ============================================
 
+# NOTE: Every entry below MUST reference a real @shared_task defined in
+# core/tasks.py. A previous version of this file referenced 12 ghost tasks
+# that never existed, so beat fired NotRegistered errors silently for months.
+# See docs/CELERY_AUDIT.md (Phase C) for the full audit. If you add a new
+# entry, run:
+#   python -c "from kibray_backend.celery_config import app; import core.tasks; \
+#     [print(n,'->',e['task'] in app.tasks) for n,e in app.conf.beat_schedule.items()]"
 app.conf.beat_schedule = {
-    # Calculate Earned Value daily at 6 PM (after employee clock out)
-    "calculate-daily-ev": {
-        "task": "core.tasks.calculate_all_projects_ev",
-        "schedule": crontab(hour=18, minute=0),  # 6:00 PM daily
+    # ---- Financial automations ----
+    "check-overdue-invoices": {
+        "task": "core.tasks.check_overdue_invoices",
+        "schedule": crontab(hour=6, minute=0),  # daily 06:00
     },
-    # Send invoice reminders for overdue invoices
-    "send-invoice-reminders": {
-        "task": "core.tasks.send_overdue_invoice_reminders",
-        "schedule": crontab(hour=9, minute=0),  # 9:00 AM daily
+    "update-invoice-statuses": {
+        "task": "core.tasks.update_invoice_statuses",
+        "schedule": crontab(hour=1, minute=0),  # daily 01:00 (SENT -> OVERDUE)
     },
-    # Check for low inventory and send alerts
-    "check-low-inventory": {
-        "task": "core.tasks.check_inventory_levels",
-        "schedule": crontab(hour=8, minute=0),  # 8:00 AM daily
+    "generate-weekly-payroll": {
+        "task": "core.tasks.generate_weekly_payroll",
+        "schedule": crontab(hour=7, minute=0, day_of_week=1),  # Monday 07:00
     },
-    # Send daily plan notifications to employees
-    "send-daily-plan-notifications": {
-        "task": "core.tasks.send_daily_plan_notifications",
-        "schedule": crontab(hour=6, minute=30),  # 6:30 AM daily
+    # ---- Operations / planning ----
+    "alert-incomplete-daily-plans": {
+        "task": "core.tasks.alert_incomplete_daily_plans",
+        "schedule": crontab(hour=17, minute=15),  # daily 17:15 (after 17:00 deadline)
     },
-    # Update weather forecasts for active projects
-    "update-weather-forecasts": {
-        "task": "core.tasks.update_project_weather",
-        "schedule": crontab(hour="*/3"),  # Every 3 hours
+    "check-inventory-shortages": {
+        "task": "core.tasks.check_inventory_shortages",
+        "schedule": crontab(hour=8, minute=0),  # daily 08:00
     },
-    # Auto-generate weekly payroll reminders
-    "payroll-weekly-reminder": {
-        "task": "core.tasks.send_payroll_reminder",
-        "schedule": crontab(day_of_week="friday", hour=10, minute=0),  # Friday 10 AM
+    "alert-high-priority-touchups": {
+        "task": "core.tasks.alert_high_priority_touchups",
+        "schedule": crontab(hour=9, minute=0),  # daily 09:00
     },
-    # Check for unanswered RFIs and send reminders
-    "rfi-followup-reminders": {
-        "task": "core.tasks.send_rfi_followup_reminders",
-        "schedule": crontab(hour=14, minute=0),  # 2:00 PM daily
+    # ---- Weather ingestion ----
+    "update-daily-plans-weather": {
+        "task": "core.tasks.update_daily_plans_weather",
+        "schedule": crontab(hour=5, minute=0),  # daily 05:00
     },
-    # Cleanup old notifications (keep last 90 days)
+    "fetch-weather-snapshots": {
+        "task": "core.tasks.update_daily_weather_snapshots",
+        "schedule": crontab(hour=5, minute=0),  # daily 05:00 (parallel to plans)
+    },
+    # ---- Notifications ----
+    "send-pending-notifications": {
+        "task": "core.tasks.send_pending_notifications",
+        "schedule": crontab(minute=0),  # hourly :00
+    },
     "cleanup-old-notifications": {
         "task": "core.tasks.cleanup_old_notifications",
-        "schedule": crontab(day_of_week="sunday", hour=2, minute=0),  # Sunday 2 AM
+        "schedule": crontab(hour=2, minute=0, day_of_week=0),  # Sunday 02:00
     },
-    # Generate weekly project reports for PMs
-    "weekly-project-reports": {
-        "task": "core.tasks.generate_weekly_project_reports",
-        "schedule": crontab(day_of_week="monday", hour=7, minute=0),  # Monday 7 AM
+    # ---- WebSocket / presence maintenance ----
+    "cleanup-stale-user-status": {
+        "task": "core.tasks.cleanup_stale_user_status",
+        "schedule": 300.0,  # every 5 minutes
+        "kwargs": {"threshold_minutes": 5},
     },
-    # Check for projects without activity and send alerts
-    "inactive-project-check": {
-        "task": "core.tasks.check_inactive_projects",
-        "schedule": crontab(hour=11, minute=0),  # 11:00 AM daily
+    "collect-websocket-metrics": {
+        "task": "core.tasks.collect_websocket_metrics",
+        "schedule": 900.0,  # every 15 minutes
     },
-    # Auto-update change order status based on approval deadlines
-    "update-co-deadlines": {
-        "task": "core.tasks.update_change_order_deadlines",
-        "schedule": crontab(hour=10, minute=30),  # 10:30 AM daily
-    },
-    # Backup critical data to S3
-    "daily-backup": {
-        "task": "core.tasks.backup_database_to_s3",
-        "schedule": crontab(hour=3, minute=0),  # 3:00 AM daily
+    # ---- Resource cleanup ----
+    "cleanup-old-assignments": {
+        "task": "core.tasks.cleanup_old_assignments",
+        "schedule": crontab(hour=3, minute=0, day_of_week=0),  # Sunday 03:00
+        "kwargs": {"days": 30},
     },
 }
 
