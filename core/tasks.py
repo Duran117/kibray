@@ -1362,3 +1362,126 @@ def process_contract_generation(contract_id: int, user_id: int = None, regenerat
         return {"status": "error", "error": str(e)}
 
 
+# ============================================================================
+# GENERIC ASYNC REPORT TASK (Phase C / Reports)
+# ============================================================================
+# This task is the worker counterpart of `core.services.report_registry`.
+# Any registered report (see `core.services.report_generators`) can be
+# generated here without adding new tasks.
+#
+# Storage: writes to `default_storage` under `reports/<user_id>/<report>_<ts>.<ext>`
+# Notification: creates a `Notification` row on success/failure so the
+#   requesting user gets a link in the bell icon.
+# Routing: `task_routes` already sends `core.tasks.generate_*` to the
+#   `reports` queue (see kibray_backend/celery_config.py).
+# ============================================================================
+
+
+@shared_task(name="core.tasks.generate_report_async", bind=True, max_retries=2, default_retry_delay=30)
+def generate_report_async(self, report_name: str, user_id: int, **kwargs):
+    """
+    Generate a registered report in the background and notify the user.
+
+    Args:
+        report_name: registry key (e.g. "estimate_pdf")
+        user_id: PK of the user requesting the report (used for permission
+            check + notification target + storage namespace)
+        **kwargs: passed through to the generator (e.g. estimate_id=123)
+
+    Returns:
+        dict with status, file path, and notification_id on success;
+        or status=error + reason on failure.
+    """
+    from django.contrib.auth import get_user_model
+    from django.core.files.base import ContentFile
+    from django.core.files.storage import default_storage
+
+    from core.models import Notification
+    from core.services import report_generators  # noqa: F401  (auto-registers)
+    from core.services.report_registry import (
+        ReportNotFound,
+        ReportPermissionDenied,
+        get as get_report,
+        render as render_report,
+    )
+
+    User = get_user_model()
+
+    # Resolve user once — needed for both perm-check and notification.
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        logger.error(f"generate_report_async: user {user_id} not found")
+        return {"status": "error", "error": "user_not_found", "user_id": user_id}
+
+    try:
+        spec = get_report(report_name)
+    except ReportNotFound:
+        logger.error(f"generate_report_async: unknown report {report_name!r}")
+        Notification.objects.create(
+            user=user,
+            notification_type="system",
+            title="Report unavailable",
+            message=f"Requested report {report_name!r} is not registered.",
+        )
+        return {"status": "error", "error": "report_not_found", "report": report_name}
+
+    # Permission gate (mirrors render() but lets us surface a friendlier
+    # message via Notification before bubbling).
+    try:
+        pdf_bytes = render_report(report_name, user=user, **kwargs)
+    except ReportPermissionDenied as exc:
+        logger.warning(f"generate_report_async: {exc}")
+        Notification.objects.create(
+            user=user,
+            notification_type="system",
+            title="Report denied",
+            message=f"You are not allowed to generate {report_name!r}.",
+        )
+        return {"status": "error", "error": "permission_denied", "report": report_name}
+    except Exception as exc:  # noqa: BLE001
+        logger.exception(f"generate_report_async: generator failed for {report_name}: {exc}")
+        # Retry transient failures (e.g. DB hiccup, S3 blip) up to 2x.
+        try:
+            raise self.retry(exc=exc)
+        except self.MaxRetriesExceededError:
+            Notification.objects.create(
+                user=user,
+                notification_type="system",
+                title="Report failed",
+                message=f"Could not generate {report_name!r}: {exc}",
+            )
+            return {
+                "status": "error",
+                "error": "generation_failed",
+                "report": report_name,
+                "exception": str(exc),
+            }
+
+    # Persist + notify
+    ts = timezone.now().strftime("%Y%m%d_%H%M%S")
+    relpath = f"reports/{user_id}/{report_name}_{ts}.{spec.file_extension}"
+    saved_path = default_storage.save(relpath, ContentFile(pdf_bytes))
+    download_url = default_storage.url(saved_path) if hasattr(default_storage, "url") else saved_path
+
+    notification = Notification.objects.create(
+        user=user,
+        notification_type="system",
+        title="Report ready",
+        message=f"Your {report_name!r} report is ready to download.",
+        link_url=download_url,
+        related_object_type="report",
+    )
+    logger.info(
+        f"generate_report_async: stored {saved_path} for user={user_id} report={report_name}"
+    )
+    return {
+        "status": "success",
+        "report": report_name,
+        "user_id": user_id,
+        "path": saved_path,
+        "download_url": download_url,
+        "notification_id": notification.id,
+        "size_bytes": len(pdf_bytes),
+    }
+

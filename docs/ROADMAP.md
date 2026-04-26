@@ -1,21 +1,26 @@
 # Kibray Roadmap (Reduced Plan)
 
-Date: 2026-04-24 (updated after Phase E closure + Phase C automation audit)
+Date: 2026-04-26 (updated after Phase C Reports foundation)
 
 This roadmap focuses only on pending phases and ordered activities. Completed phases (FASE 1–2, core parts of FASE 3, and implemented dashboards/automation/security/tests) are omitted for brevity.
 
 ## Current Focus
-- Set one focus at a time (update this line): Phase C — Automation: Celery audit ✅; next pick = Reports (async generation + permission-based access)
+- Set one focus at a time (update this line): Phase C — Automation ✅ + Reports foundation ✅; next pick = migrate first heavy PDF (signed_contract_pdf) to async at callsite, OR start Phase D (Payroll unification / Task dependencies)
 
-## Recent Progress (April 24, 2026)
+## Recent Progress (April 2026)
 - ✅ **Phase E** (full): tag `v2026.04-phase-e` — 17 commits, suite 1040 → 1271
-- ✅ **Phase C kickoff — Celery audit consolidation** (`docs/CELERY_AUDIT.md`):
-  - Found 12 ghost tasks scheduled against names that did not exist (silent NotRegistered for months)
-  - Found duplicate `kibray_backend/celery.py` (dead code, never imported) — removed
-  - Rewrote `celery_config.py::beat_schedule` with 13 verified entries (all real tasks)
-  - Added `tests/test_celery_beat_schedule.py` (9 guard tests) so this class of bug
-    can never recur silently — would have caught the original regression at CI time
-  - Suite: 1271 → **1280 passed**, 0 regressions
+- ✅ **Phase C — Celery audit** (2 passes): ghost-task fix, dead-app removal,
+  9 guard tests, orphan resolution. 22 real tasks, 15 scheduled, 0 orphans.
+- ✅ **Phase C — Reports foundation** (`docs/REPORTS_AUDIT.md`):
+  - `core/services/report_registry.py`: tiny pluggable registry with
+    permission gate + typed errors
+  - `core/services/report_generators.py`: 5 PDF adapters auto-register
+    (estimate, contract, signed contract, change order, color sample)
+  - `core.tasks.generate_report_async`: generic worker task — perm-gated,
+    retries (2x / 30 s), persists to default_storage, creates Notification
+    on done/fail. Routes to existing `reports` celery queue.
+  - 18 new tests covering registry/permissions/async happy + 4 error paths
+  - Suite: 1280 → **1298 passed**, 0 regressions
 
 ## Recent Progress (April 2026)
 - ✅ **Phase D1**: Security patch — `pypdf 6.2.0 → 6.10.2` (18 CVEs)
