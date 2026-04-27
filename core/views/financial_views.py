@@ -640,12 +640,24 @@ def invoice_mark_sent(request, invoice_id):
         invoice.sent_by = request.user
         invoice.save()
         
-        # --- Auto-save PDF to Project Files ---
+        # --- Auto-save PDF to Project Files (deferred to Celery so the
+        #     status-flip request returns immediately; on_commit avoids
+        #     the worker racing this transaction). ---
         try:
-            from core.services.document_storage_service import auto_save_invoice_pdf
-            auto_save_invoice_pdf(invoice, user=request.user, overwrite=True)
+            from core.tasks import auto_save_pdf_async
+
+            invoice_id = invoice.id
+            user_id = request.user.id
+            transaction.on_commit(
+                lambda: auto_save_pdf_async.delay(
+                    doc_kind="invoice",
+                    doc_id=invoice_id,
+                    user_id=user_id,
+                    overwrite=True,
+                )
+            )
         except Exception as e:
-            logger.warning(f"Failed to auto-save Invoice PDF: {e}")
+            logger.warning(f"Failed to enqueue Invoice PDF auto-save: {e}")
         
         messages.success(
             request,
@@ -1189,10 +1201,21 @@ def estimate_detail_view(request, estimate_id):
                     logger.warning(f"Contract creation error: {ve}")
             except Exception as e:
                 logger.warning(f"Failed to create contract: {e}")
-                # Fallback to old PDF generation
-                from core.services.document_storage_service import auto_save_estimate_pdf
-                auto_save_estimate_pdf(est, user=request.user, as_contract=True, overwrite=True)
-                messages.info(request, _("Contract PDF saved to project documents (legacy format)."))
+                # Fallback to old PDF generation (deferred to Celery)
+                from core.tasks import auto_save_pdf_async
+
+                est_id = est.id
+                user_id = request.user.id
+                transaction.on_commit(
+                    lambda: auto_save_pdf_async.delay(
+                        doc_kind="estimate",
+                        doc_id=est_id,
+                        user_id=user_id,
+                        as_contract=True,
+                        overwrite=True,
+                    )
+                )
+                messages.info(request, _("Contract PDF queued for background generation (legacy format)."))
         else:
             messages.info(request, _("Estimate was already approved."))
         
@@ -1234,13 +1257,21 @@ def estimate_detail_view(request, estimate_id):
                         logger.error(f"Failed to regenerate PDF (fallback): {e}")
                         messages.error(request, _(f"Error: {str(e)}"))
             else:
-                # For non-approved estimates, use regular estimate PDF
-                from core.services.document_storage_service import auto_save_estimate_pdf
-                result = auto_save_estimate_pdf(est, user=request.user, as_contract=False, overwrite=True)
-                if result:
-                    messages.success(request, _("Estimate PDF regenerated successfully!"))
-                else:
-                    messages.error(request, _("Failed to regenerate PDF."))
+                # For non-approved estimates, queue regular estimate PDF generation
+                from core.tasks import auto_save_pdf_async
+
+                est_id = est.id
+                user_id = request.user.id
+                transaction.on_commit(
+                    lambda: auto_save_pdf_async.delay(
+                        doc_kind="estimate",
+                        doc_id=est_id,
+                        user_id=user_id,
+                        as_contract=False,
+                        overwrite=True,
+                    )
+                )
+                messages.success(request, _("Estimate PDF regeneration queued in background."))
         except Exception as e:
             logger.error(f"Failed to regenerate PDF: {e}")
             messages.error(request, _(f"Error: {str(e)}"))

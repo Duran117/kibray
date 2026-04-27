@@ -1581,6 +1581,96 @@ def generate_signed_contract_pdf_async(self, contract_id: int, user_id: int = No
     return {"contract_id": contract_id, "project_file_id": project_file.id}
 
 
+# ============================================================================
+# Generic auto-save PDF task — moves the heavy ReportLab/xhtml2pdf renders
+# triggered by status-changes (estimate approved, invoice sent, etc.) off
+# the request thread. Dispatch with ``transaction.on_commit`` so the worker
+# never races the parent transaction.
+# ============================================================================
+
+# (kind, model_label, helper, accepted_opts)
+_AUTO_SAVE_PDF_DISPATCH = {
+    "invoice": ("core.Invoice", "auto_save_invoice_pdf", {"overwrite"}),
+    "estimate": ("core.Estimate", "auto_save_estimate_pdf", {"overwrite", "as_contract"}),
+    "changeorder": ("core.ChangeOrder", "auto_save_changeorder_pdf", {"overwrite"}),
+    "colorsample": ("core.ColorSample", "auto_save_colorsample_pdf", {"overwrite"}),
+}
+
+
+@shared_task(
+    name="core.tasks.auto_save_pdf_async",
+    bind=True,
+    max_retries=2,
+    default_retry_delay=30,
+)
+def auto_save_pdf_async(self, doc_kind: str, doc_id: int, user_id: int = None, **opts):
+    """Off-thread wrapper around the ``auto_save_*_pdf`` helpers.
+
+    Args:
+        doc_kind: one of ``invoice``, ``estimate``, ``changeorder``,
+            ``colorsample`` — selects which helper + model to use.
+        doc_id: PK of the source document.
+        user_id: PK of the user attribution (optional).
+        **opts: forwarded to the helper. Only options listed in
+            ``_AUTO_SAVE_PDF_DISPATCH`` are passed through (defensive
+            filter — extra keys from upstream callers are ignored, never
+            raised).
+
+    Returns:
+        dict with ``project_file_id`` on success, ``None`` if the helper
+        returned None (e.g. unsigned change order), or ``error`` key on
+        unrecoverable failure.
+    """
+    from django.apps import apps
+    from django.contrib.auth import get_user_model
+
+    from core.services import document_storage_service as dss
+
+    if doc_kind not in _AUTO_SAVE_PDF_DISPATCH:
+        logger.error(f"auto_save_pdf_async: unknown doc_kind {doc_kind!r}")
+        return {"error": "unknown_doc_kind", "doc_kind": doc_kind}
+
+    model_label, helper_name, allowed_opts = _AUTO_SAVE_PDF_DISPATCH[doc_kind]
+    app_label, model_name = model_label.split(".")
+    model = apps.get_model(app_label, model_name)
+    try:
+        instance = model.objects.get(pk=doc_id)
+    except model.DoesNotExist:
+        logger.error(f"auto_save_pdf_async: {model_label}({doc_id}) not found")
+        return {"error": "doc_not_found", "doc_kind": doc_kind, "doc_id": doc_id}
+
+    user = None
+    if user_id:
+        User = get_user_model()
+        user = User.objects.filter(pk=user_id).first()
+
+    helper = getattr(dss, helper_name)
+    safe_opts = {k: v for k, v in opts.items() if k in allowed_opts}
+
+    try:
+        project_file = helper(instance, user=user, **safe_opts)
+    except Exception as exc:  # noqa: BLE001
+        logger.exception(
+            f"auto_save_pdf_async: helper {helper_name} failed for "
+            f"{doc_kind}({doc_id}): {exc}"
+        )
+        try:
+            raise self.retry(exc=exc)
+        except self.MaxRetriesExceededError:
+            return {
+                "error": "generation_failed",
+                "doc_kind": doc_kind,
+                "doc_id": doc_id,
+                "exception": str(exc),
+            }
+
+    pf_id = getattr(project_file, "id", None) if project_file is not None else None
+    logger.info(
+        f"auto_save_pdf_async: {doc_kind}({doc_id}) -> project_file={pf_id}"
+    )
+    return {"doc_kind": doc_kind, "doc_id": doc_id, "project_file_id": pf_id}
+
+
 @shared_task(name="core.tasks.generate_daily_ev_snapshots")
 def generate_daily_ev_snapshots():
     """Phase D3 — daily Earned Value snapshot generator.

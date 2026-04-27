@@ -100,11 +100,21 @@ def proposal_public_view(request, token):
             
             # --- Auto-save Estimate/Contract PDF to Project Files (legacy, keep for backward compatibility) ---
             try:
-                from core.services.document_storage_service import auto_save_estimate_pdf
-                # Save as contract since it's been approved
-                auto_save_estimate_pdf(estimate, user=None, as_contract=True, overwrite=True)
+                from core.tasks import auto_save_pdf_async
+
+                est_id = estimate.id
+                # Defer to Celery so client-facing approval response is fast.
+                transaction.on_commit(
+                    lambda: auto_save_pdf_async.delay(
+                        doc_kind="estimate",
+                        doc_id=est_id,
+                        user_id=None,
+                        as_contract=True,
+                        overwrite=True,
+                    )
+                )
             except Exception as e:
-                logger.warning(f"Failed to auto-save Estimate PDF: {e}")
+                logger.warning(f"Failed to enqueue Estimate PDF auto-save: {e}")
             
             # Redirect to contract signing page if contract was created
             if contract_url:

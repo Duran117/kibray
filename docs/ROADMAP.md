@@ -1,13 +1,42 @@
 # Kibray Roadmap (Reduced Plan)
 
-Date: 2026-04-27 (updated after signed-contract PDF async migration)
+Date: 2026-04-27 (updated after auto_save_pdf_async migration)
 
 This roadmap focuses only on pending phases and ordered activities. Completed phases (FASE 1–2, core parts of FASE 3, and implemented dashboards/automation/security/tests) are omitted for brevity.
 
 ## Current Focus
-- Set one focus at a time (update this line): **Phase D fully complete** (D1 ✅ + D2 ✅ + D3 ✅ + D4 ✅) + first heavy-PDF async migration ✅ (signed_contract_pdf via dedicated Celery task). Next pick = migrate next heavy PDFs (estimate_pdf, change_order_pdf, invoice_pdf) to `generate_report_async` at their callsites, OR dashboard widgets consuming Critical Path / EV Snapshots data.
+- Set one focus at a time (update this line): **Phase D fully complete** (D1 ✅ + D2 ✅ + D3 ✅ + D4 ✅) + signed_contract_pdf async ✅ + generic `auto_save_pdf_async` migration ✅ (invoice_mark_sent + 2 estimate callsites + client-approval). Next pick = dashboard widgets consuming Critical Path / EV Snapshots data, OR remaining inline PDF callsites (`generate_signed_changeorder_pdf` from view layers, `auto_save_changeorder_pdf` / `auto_save_colorsample_pdf` triggers).
 
 ## Recent Progress (April 2026)
+- ✅ **Generic `auto_save_pdf_async` migration** (post signed-contract):
+  - `core/tasks.py::auto_save_pdf_async(doc_kind, doc_id, user_id, **opts)` —
+    new `@shared_task(bind=True, max_retries=2, default_retry_delay=30)`
+    backed by an explicit dispatch table for `invoice` / `estimate` /
+    `changeorder` / `colorsample`. Filters helper kwargs to the allowed
+    set per kind (defensive — extra/foreign keys are dropped, never
+    raised). Returns `{doc_kind, doc_id, project_file_id}` on success or
+    an `error`-keyed dict on terminal failure.
+  - Migrated 4 request-thread callsites to dispatch via
+    `transaction.on_commit`:
+    1. `core/views/financial_views.py::invoice_mark_sent` — defer Invoice
+       PDF auto-save after status flip to SENT.
+    2. `core/views/contract_views.py::proposal_public_view` (client
+       approval) — defer Estimate PDF (`as_contract=True`) auto-save.
+    3. `core/views/financial_views.py::estimate_detail` (contract creation
+       fallback) — defer legacy Estimate-as-Contract PDF.
+    4. `core/views/financial_views.py::estimate_detail` (regenerate_pdf
+       action for non-approved estimates) — defer regular Estimate PDF.
+  - Tests: `tests/test_auto_save_pdf_async.py` — 11 tests covering
+    dispatch-table coverage, unknown doc_kind, missing instance, invoice
+    helper invocation with user/overwrite, estimate helper with
+    `as_contract`, unsafe-opt filtering, helper-returns-None, helper
+    exception → MaxRetries → error dict, user_id=None, plus end-to-end
+    `invoice_mark_sent` view test that asserts Celery `.delay` enqueued
+    via on_commit and the no-op path (already SENT) does not enqueue.
+  - Validation: full suite **1421 passed / 17 skipped** (was 1410, +11
+    new, 0 regressions); 3× determinism loop on auto-save + signed-
+    contract + financial + report tests: 96/96 each (~61s).
+
 - ✅ **Async signed-contract PDF migration** (post Phase D):
   - `core/services/contract_service.py::ContractService.sign_contract` —
     new `async_pdf: bool = True` parameter; when True, uses
