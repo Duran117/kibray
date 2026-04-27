@@ -1485,3 +1485,19 @@ def generate_report_async(self, report_name: str, user_id: int, **kwargs):
         "size_bytes": len(pdf_bytes),
     }
 
+
+
+@shared_task(name="core.tasks.generate_daily_ev_snapshots")
+def generate_daily_ev_snapshots():
+    """Phase D3 — daily Earned Value snapshot generator.
+
+    Persists one ``EVSnapshot`` per project per day so the UI / forecasting
+    dashboards have a trended history. Idempotent: re-running the same day
+    overwrites existing rows. Scheduled at 18:00 (after employee clock-out)
+    via ``kibray_backend/celery_config.py``.
+    """
+    from core.services.ev_snapshots import bulk_create_snapshots
+
+    snaps = bulk_create_snapshots()
+    logger.info("generate_daily_ev_snapshots: created/updated %s snapshots", len(snaps))
+    return {"snapshots": len(snaps)}

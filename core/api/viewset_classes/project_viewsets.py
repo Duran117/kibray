@@ -183,6 +183,88 @@ class ProjectViewSet(viewsets.ModelViewSet):
             )
         return Response(result)
 
+    @action(detail=True, methods=["get"], url_path="ev-snapshots")
+    def ev_snapshots(self, request, pk=None):
+        """List historical Earned Value snapshots for the project (Phase D3).
+
+        Query params:
+        - ``since``: optional ISO date (``YYYY-MM-DD``); only return snapshots
+          on or after this date.
+        - ``limit``: optional max rows (default 90, capped at 365).
+        """
+        from datetime import date as date_cls
+
+        project = self.get_object()
+        qs = project.ev_snapshots.all().order_by("-date")
+
+        since_raw = request.query_params.get("since")
+        if since_raw:
+            try:
+                since = date_cls.fromisoformat(since_raw)
+                qs = qs.filter(date__gte=since)
+            except ValueError:
+                return Response({"error": "invalid_since", "detail": since_raw}, status=400)
+
+        try:
+            limit = int(request.query_params.get("limit", 90))
+        except (TypeError, ValueError):
+            limit = 90
+        limit = max(1, min(limit, 365))
+        qs = qs[:limit]
+
+        rows = [
+            {
+                "date": s.date.isoformat(),
+                "PV": str(s.planned_value),
+                "EV": str(s.earned_value),
+                "AC": str(s.actual_cost),
+                "SPI": str(s.spi),
+                "CPI": str(s.cpi),
+                "SV": str(s.schedule_variance),
+                "CV": str(s.cost_variance),
+                "EAC": str(s.estimate_at_completion),
+                "ETC": str(s.estimate_to_complete),
+                "VAC": str(s.variance_at_completion),
+                "percent_complete": str(s.percent_complete),
+                "percent_spent": str(s.percent_spent),
+            }
+            for s in qs
+        ]
+        return Response({"project_id": project.id, "count": len(rows), "snapshots": rows})
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="ev-snapshots/generate",
+    )
+    def ev_snapshots_generate(self, request, pk=None):
+        """Force an immediate Earned Value snapshot for the project (Phase D3).
+
+        Useful for QA / dashboards that need fresh data outside the 18:00
+        Celery beat run. Idempotent for the current day (upsert).
+        """
+        from core.services.ev_snapshots import create_snapshot
+
+        project = self.get_object()
+        snap = create_snapshot(project)
+        return Response(
+            {
+                "project_id": project.id,
+                "date": snap.date.isoformat(),
+                "PV": str(snap.planned_value),
+                "EV": str(snap.earned_value),
+                "AC": str(snap.actual_cost),
+                "SPI": str(snap.spi),
+                "CPI": str(snap.cpi),
+                "EAC": str(snap.estimate_at_completion),
+                "ETC": str(snap.estimate_to_complete),
+                "VAC": str(snap.variance_at_completion),
+                "percent_complete": str(snap.percent_complete),
+                "percent_spent": str(snap.percent_spent),
+            },
+            status=201,
+        )
+
     def perform_create(self, serializer):
         """Set created_by on project creation"""
         # Note: Current Project model doesn't have created_by field

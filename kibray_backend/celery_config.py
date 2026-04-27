@@ -100,6 +100,11 @@ app.conf.beat_schedule = {
         "schedule": crontab(hour=3, minute=0, day_of_week=0),  # Sunday 03:00
         "kwargs": {"days": 30},
     },
+    # ---- Earned Value snapshots (Phase D3) ----
+    "generate-daily-ev-snapshots": {
+        "task": "core.tasks.generate_daily_ev_snapshots",
+        "schedule": crontab(hour=18, minute=0),  # daily 18:00 (after clock-out)
+    },
 }
 
 # ============================================

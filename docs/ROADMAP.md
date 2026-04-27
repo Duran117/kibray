@@ -1,13 +1,29 @@
 # Kibray Roadmap (Reduced Plan)
 
-Date: 2026-04-27 (updated after Phase D2 Critical Path)
+Date: 2026-04-27 (updated after Phase D3 EV Snapshots)
 
 This roadmap focuses only on pending phases and ordered activities. Completed phases (FASE 1–2, core parts of FASE 3, and implemented dashboards/automation/security/tests) are omitted for brevity.
 
 ## Current Focus
-- Set one focus at a time (update this line): Phase D2 — Critical Path ✅; next pick = Phase D3 (EVM snapshots/forecasting) OR Phase D1 (Payroll workflow states), OR migrate first heavy PDF (signed_contract_pdf) to async at callsite.
+- Set one focus at a time (update this line): Phase D3 — EV Snapshots ✅; next pick = Phase D1 (Payroll workflow states) OR Phase D4 (Signatures GenericFK) OR migrate first heavy PDF (signed_contract_pdf) to async at callsite.
 
 ## Recent Progress (April 2026)
+- ✅ **Phase D3 — Earned Value Snapshots & Forecasting**:
+  - `core/services/ev_snapshots.py`: pure `compute_forecast` (SV/CV/EAC/ETC/VAC,
+    %complete, %spent) + `create_snapshot` (idempotent upsert per project/day)
+    + `bulk_create_snapshots` for the daily Celery batch. Caps SPI/CPI to fit
+    NUMERIC(5,3); ETC clamped ≥ 0; division-by-zero safe.
+  - `core.tasks.generate_daily_ev_snapshots` Celery task scheduled at 18:00
+    via `kibray_backend/celery_config.py` (after employee clock-out).
+  - REST: `GET /api/v1/projects/{id}/ev-snapshots/?since=YYYY-MM-DD&limit=N`
+    (descending, capped at 365) + `POST .../ev-snapshots/generate/` for
+    on-demand regeneration.
+  - 26 new tests across 6 classes (forecast formulas incl. CPI=0.5/2/None,
+    BAC=0, ETC clamping, NUMERIC overflow capping; persistence idempotency;
+    bulk iteration + queryset filter; Celery task end-to-end + beat-schedule
+    guard; endpoints with since/limit/auth).
+  - Suite: 1321 → **1347 passed**, 0 regressions. 3-iteration determinism
+    loop on related tests: 80/80 each (~51-59s).
 - ✅ **Phase D2 — Critical Path Method**:
   - `core/services/critical_path.py`: pure CPM algorithm (forward/backward
     pass, slack, FS/SS/FF/SF + lag) + Django integration with default
