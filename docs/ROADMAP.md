@@ -1,13 +1,31 @@
 # Kibray Roadmap (Reduced Plan)
 
-Date: 2026-04-27 (updated after Phase D3 EV Snapshots)
+Date: 2026-04-27 (updated after Phase D1 Payroll workflow)
 
 This roadmap focuses only on pending phases and ordered activities. Completed phases (FASE 1–2, core parts of FASE 3, and implemented dashboards/automation/security/tests) are omitted for brevity.
 
 ## Current Focus
-- Set one focus at a time (update this line): Phase D3 — EV Snapshots ✅; next pick = Phase D1 (Payroll workflow states) OR Phase D4 (Signatures GenericFK) OR migrate first heavy PDF (signed_contract_pdf) to async at callsite.
+- Set one focus at a time (update this line): Phase D1 — Payroll workflow ✅; next pick = Phase D4 (Signatures GenericFK) OR migrate first heavy PDF (signed_contract_pdf) to async at callsite.
 
 ## Recent Progress (April 2026)
+- ✅ **Phase D1 — Payroll workflow state machine**:
+  - `core/services/payroll_workflow.py`: explicit state-machine over the
+    existing 4 states (`draft → under_review → approved → paid`) with
+    `submit_for_review`, `approve`, `mark_paid`, `reopen` transitions.
+    `PayrollTransitionError` raised on illegal source; `paid` is terminal;
+    `reopen` clears `approved_by`/`approved_at`. All transitions
+    idempotent. Backwards compat: `draft → approved` allowed (legacy
+    single-step approval used by existing tests/UI).
+  - `PayrollPeriodViewSet` REST: `submit-for-review`, `mark-paid`,
+    `reopen`, `legal-transitions` actions; existing `approve` rewired to
+    use the workflow service. Returns `409 Conflict` on illegal
+    transitions with the offending current_status echoed back.
+  - 34 new tests across 6 classes (state-machine matrix 11 cases via
+    parametrize, each transition's happy-path/idempotency/illegal-source,
+    reopen audit-clearing, full lifecycle through API, 409 on illegal,
+    auth required).
+  - Suite: 1347 → **1381 passed**, 0 regressions. 3-iteration determinism
+    loop on payroll/EV/CPM tests: 84/84 each (~55-62s).
 - ✅ **Phase D3 — Earned Value Snapshots & Forecasting**:
   - `core/services/ev_snapshots.py`: pure `compute_forecast` (SV/CV/EAC/ETC/VAC,
     %complete, %spent) + `create_snapshot` (idempotent upsert per project/day)

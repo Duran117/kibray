@@ -1356,13 +1356,78 @@ class PayrollPeriodViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def approve(self, request, pk=None):
+        from core.services.payroll_workflow import (
+            PayrollTransitionError,
+            approve as wf_approve,
+        )
+
         period = self.get_object()
         skip = request.data.get("skip_validation") in (True, "true", "1", 1)
         try:
-            period.approve(approved_by=request.user, skip_validation=bool(skip))
+            wf_approve(period, approved_by=request.user, skip_validation=bool(skip))
             return Response({"status": "approved"})
+        except PayrollTransitionError as e:
+            return Response({"error": str(e), "current_status": period.status}, status=409)
         except Exception as e:
             return Response({"error": gettext("%(error)s") % {"error": str(e)}}, status=400)
+
+    @action(detail=True, methods=["post"], url_path="submit-for-review")
+    def submit_for_review(self, request, pk=None):
+        """Phase D1 — draft → under_review."""
+        from core.services.payroll_workflow import (
+            PayrollTransitionError,
+            submit_for_review as wf_submit,
+        )
+
+        period = self.get_object()
+        try:
+            wf_submit(period, submitted_by=request.user)
+            return Response({"status": period.status})
+        except PayrollTransitionError as e:
+            return Response({"error": str(e), "current_status": period.status}, status=409)
+
+    @action(detail=True, methods=["post"], url_path="mark-paid")
+    def mark_paid(self, request, pk=None):
+        """Phase D1 — approved → paid (terminal)."""
+        from core.services.payroll_workflow import (
+            PayrollTransitionError,
+            mark_paid as wf_mark_paid,
+        )
+
+        period = self.get_object()
+        try:
+            wf_mark_paid(period, paid_by=request.user)
+            return Response({"status": period.status})
+        except PayrollTransitionError as e:
+            return Response({"error": str(e), "current_status": period.status}, status=409)
+
+    @action(detail=True, methods=["post"])
+    def reopen(self, request, pk=None):
+        """Phase D1 — under_review/approved → draft (illegal once paid)."""
+        from core.services.payroll_workflow import (
+            PayrollTransitionError,
+            reopen as wf_reopen,
+        )
+
+        period = self.get_object()
+        try:
+            wf_reopen(period, reopened_by=request.user)
+            return Response({"status": period.status})
+        except PayrollTransitionError as e:
+            return Response({"error": str(e), "current_status": period.status}, status=409)
+
+    @action(detail=True, methods=["get"], url_path="legal-transitions")
+    def legal_transitions(self, request, pk=None):
+        """Phase D1 — return states this period may transition into."""
+        from core.services.payroll_workflow import legal_targets
+
+        period = self.get_object()
+        return Response(
+            {
+                "status": period.status,
+                "legal_targets": sorted(legal_targets(period)),
+            }
+        )
 
     @action(detail=True, methods=["post"])
     def generate_expenses(self, request, pk=None):
