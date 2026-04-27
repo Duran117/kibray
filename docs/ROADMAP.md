@@ -1,13 +1,48 @@
 # Kibray Roadmap (Reduced Plan)
 
-Date: 2026-04-27 (updated after auto_save_pdf_async migration)
+Date: 2026-04-27 (updated after Phase D dashboard widgets)
 
 This roadmap focuses only on pending phases and ordered activities. Completed phases (FASE 1–2, core parts of FASE 3, and implemented dashboards/automation/security/tests) are omitted for brevity.
 
 ## Current Focus
-- Set one focus at a time (update this line): **Phase D fully complete** (D1 ✅ + D2 ✅ + D3 ✅ + D4 ✅) + signed_contract_pdf async ✅ + generic `auto_save_pdf_async` migration ✅ (invoice_mark_sent + 2 estimate callsites + client-approval). Next pick = dashboard widgets consuming Critical Path / EV Snapshots data, OR remaining inline PDF callsites (`generate_signed_changeorder_pdf` from view layers, `auto_save_changeorder_pdf` / `auto_save_colorsample_pdf` triggers).
+- Set one focus at a time (update this line): **Phase D fully complete** (D1 ✅ + D2 ✅ + D3 ✅ + D4 ✅) + signed_contract_pdf async ✅ + generic `auto_save_pdf_async` ✅ + Phase D dashboard widgets ✅ (Earned Value + Critical Path on project_overview). Next pick = either (a) interactive Critical Path drill-down page (full Gantt highlight + slack table) consuming `/api/projects/<id>/critical-path/`, or (b) EV trend sparkline using the snapshot history endpoint, or (c) move on to next backlog area.
 
 ## Recent Progress (April 2026)
+- ✅ **Phase D dashboard widgets** (Earned Value + Critical Path):
+  - `core/services/dashboard_widgets.py` — new module with two
+    exception-safe accessors:
+    * `get_ev_widget(project)` — returns the latest persisted
+      `EVSnapshot` summary plus a status badge (`healthy` / `at_risk` /
+      `critical` / `unknown`) classified from min(SPI, CPI). Returns
+      `None` if the project has no snapshots yet.
+    * `get_critical_path_widget(project)` — wraps `compute_critical_path`,
+      caps the preview list at 8 critical tasks (`preview_truncated`
+      flag), and degrades to a `{error: "cycle_detected"}` dict on
+      `CriticalPathCycleError` so the template can render an inline
+      warning instead of crashing the page.
+  - `core/views/project_overview_views.py::project_overview` — adds
+    `ev_widget` + `critical_path_widget` to the template context (still
+    None when no data — UI handles placeholder).
+  - `core/templates/core/components/_project_phase_d_widgets.html` — new
+    partial rendering side-by-side EV health card (SPI / CPI / %
+    complete + PV/EV/AC/EAC/VAC dl) and Critical Path summary card
+    (duration hours, critical-task count, preview list with truncation
+    indicator). All hooks have `data-testid` attributes for QA.
+  - `core/templates/core/project_overview.html` — includes the partial
+    right after the existing KPI grid.
+  - Tests: `tests/test_dashboard_widgets_phase_d.py` — 14 tests.
+    EV: no-snapshot returns None, latest-only selection, status
+    classification (healthy/at_risk/critical), exception isolation.
+    Critical Path: no-tasks → None, basic chain summary shape, preview
+    truncation at the 8-task cap, `CriticalPathCycleError` → error
+    dict, unexpected exception → None. End-to-end: project_overview
+    exposes both context keys, renders empty placeholders without data,
+    renders EV badge + SPI/CPI cells with snapshot, renders CP
+    badge + preview list with a chained TaskDependency.
+  - Validation: full suite **1435 passed / 17 skipped** (was 1421, +14
+    new, 0 regressions); 3× determinism loop on widgets + critical_path
+    + ev_snapshots tests: 63/63 each (~50s).
+
 - ✅ **Generic `auto_save_pdf_async` migration** (post signed-contract):
   - `core/tasks.py::auto_save_pdf_async(doc_kind, doc_id, user_id, **opts)` —
     new `@shared_task(bind=True, max_retries=2, default_retry_delay=30)`
@@ -26,16 +61,10 @@ This roadmap focuses only on pending phases and ordered activities. Completed ph
        fallback) — defer legacy Estimate-as-Contract PDF.
     4. `core/views/financial_views.py::estimate_detail` (regenerate_pdf
        action for non-approved estimates) — defer regular Estimate PDF.
-  - Tests: `tests/test_auto_save_pdf_async.py` — 11 tests covering
-    dispatch-table coverage, unknown doc_kind, missing instance, invoice
-    helper invocation with user/overwrite, estimate helper with
-    `as_contract`, unsafe-opt filtering, helper-returns-None, helper
-    exception → MaxRetries → error dict, user_id=None, plus end-to-end
-    `invoice_mark_sent` view test that asserts Celery `.delay` enqueued
-    via on_commit and the no-op path (already SENT) does not enqueue.
-  - Validation: full suite **1421 passed / 17 skipped** (was 1410, +11
-    new, 0 regressions); 3× determinism loop on auto-save + signed-
-    contract + financial + report tests: 96/96 each (~61s).
+  - Tests: `tests/test_auto_save_pdf_async.py` — 11 tests.
+  - Validation: full suite 1421 passed / 17 skipped (was 1410, +11 new,
+    0 regressions); 3× determinism loop: 96/96 each.
+
 
 - ✅ **Async signed-contract PDF migration** (post Phase D):
   - `core/services/contract_service.py::ContractService.sign_contract` —

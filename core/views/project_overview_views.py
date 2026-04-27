@@ -258,6 +258,17 @@ def project_overview(request, project_id: int):
     except Exception:
         pass
 
+    # Phase D follow-up — Earned Value + Critical Path widgets.
+    # Both helpers are exception-safe and return None on missing data so
+    # the template can render a friendly placeholder.
+    from core.services.dashboard_widgets import (
+        get_critical_path_widget,
+        get_ev_widget,
+    )
+
+    ev_widget = get_ev_widget(project)
+    critical_path_widget = get_critical_path_widget(project)
+
     return render(
         request,
         "core/project_overview.html",
@@ -297,5 +308,8 @@ def project_overview(request, project_id: int):
             "portal_touchup_count": portal_touchup_count,
             "portal_session_count": portal_session_count,
             "portal_unit_count": portal_unit_count,
+            # Phase D follow-up widgets
+            "ev_widget": ev_widget,
+            "critical_path_widget": critical_path_widget,
         },
     )

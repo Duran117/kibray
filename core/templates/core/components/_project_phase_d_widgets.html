@@ -1,0 +1,118 @@
+{% load i18n %}
+{# Phase D follow-up widgets — Earned Value + Critical Path summary cards.
+   Both ev_widget and critical_path_widget may be None (no data yet) or
+   contain an `error` key (e.g. CPM cycle). Templates render placeholders
+   defensively. #}
+<div id="phase-d-widgets" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+  {# ── Earned Value card ───────────────────────────────────────── #}
+  <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+      <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+        <i class="bi bi-graph-up text-indigo-500"></i>
+        {% trans "Earned Value (EV)" %}
+      </h3>
+      {% if ev_widget %}
+        {% if ev_widget.status == "healthy" %}
+          <span data-testid="ev-status" class="text-xs font-bold px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">{% trans "Healthy" %}</span>
+        {% elif ev_widget.status == "at_risk" %}
+          <span data-testid="ev-status" class="text-xs font-bold px-2 py-1 rounded-full bg-amber-100 text-amber-700">{% trans "At Risk" %}</span>
+        {% elif ev_widget.status == "critical" %}
+          <span data-testid="ev-status" class="text-xs font-bold px-2 py-1 rounded-full bg-red-100 text-red-700">{% trans "Critical" %}</span>
+        {% else %}
+          <span data-testid="ev-status" class="text-xs font-bold px-2 py-1 rounded-full bg-slate-100 text-slate-600">{% trans "Unknown" %}</span>
+        {% endif %}
+      {% endif %}
+    </div>
+    <div class="p-4">
+      {% if ev_widget %}
+        <div class="text-xs text-slate-400 mb-2">{% trans "As of" %} {{ ev_widget.date|date:"M d, Y" }}</div>
+        <div class="grid grid-cols-3 gap-3 mb-4">
+          <div>
+            <div class="text-[10px] uppercase tracking-wide text-slate-400">{% trans "SPI" %}</div>
+            <div data-testid="ev-spi" class="text-xl font-bold text-slate-900">{{ ev_widget.SPI }}</div>
+          </div>
+          <div>
+            <div class="text-[10px] uppercase tracking-wide text-slate-400">{% trans "CPI" %}</div>
+            <div data-testid="ev-cpi" class="text-xl font-bold text-slate-900">{{ ev_widget.CPI }}</div>
+          </div>
+          <div>
+            <div class="text-[10px] uppercase tracking-wide text-slate-400">{% trans "% Complete" %}</div>
+            <div class="text-xl font-bold text-slate-900">{{ ev_widget.percent_complete }}%</div>
+          </div>
+        </div>
+        <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+          <dt class="text-slate-500">{% trans "Planned (PV)" %}</dt>
+          <dd class="text-slate-900 font-semibold text-right">${{ ev_widget.PV|floatformat:0 }}</dd>
+          <dt class="text-slate-500">{% trans "Earned (EV)" %}</dt>
+          <dd class="text-slate-900 font-semibold text-right">${{ ev_widget.EV|floatformat:0 }}</dd>
+          <dt class="text-slate-500">{% trans "Actual (AC)" %}</dt>
+          <dd class="text-slate-900 font-semibold text-right">${{ ev_widget.AC|floatformat:0 }}</dd>
+          <dt class="text-slate-500">{% trans "EAC" %}</dt>
+          <dd class="text-slate-900 font-semibold text-right">${{ ev_widget.EAC|floatformat:0 }}</dd>
+          <dt class="text-slate-500">{% trans "VAC" %}</dt>
+          <dd class="{% if ev_widget.VAC < 0 %}text-red-600{% else %}text-emerald-600{% endif %} font-semibold text-right">${{ ev_widget.VAC|floatformat:0 }}</dd>
+        </dl>
+      {% else %}
+        <div data-testid="ev-empty" class="text-sm text-slate-500 text-center py-6">
+          <i class="bi bi-info-circle text-2xl text-slate-300 block mb-2"></i>
+          {% trans "No EV snapshot yet. The first daily snapshot will appear after the next 18:00 run." %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Critical Path card ──────────────────────────────────────── #}
+  <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+      <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+        <i class="bi bi-diagram-3 text-rose-500"></i>
+        {% trans "Critical Path" %}
+      </h3>
+      {% if critical_path_widget and not critical_path_widget.error %}
+        <span data-testid="cp-count" class="text-xs font-bold px-2 py-1 rounded-full bg-rose-100 text-rose-700">
+          {{ critical_path_widget.critical_count }} / {{ critical_path_widget.task_count }} {% trans "critical" %}
+        </span>
+      {% endif %}
+    </div>
+    <div class="p-4">
+      {% if critical_path_widget and critical_path_widget.error == "cycle_detected" %}
+        <div data-testid="cp-error" class="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <i class="bi bi-exclamation-triangle"></i>
+          {% trans "A dependency cycle was detected — please review task dependencies before the critical path can be calculated." %}
+        </div>
+      {% elif critical_path_widget %}
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <div class="text-[10px] uppercase tracking-wide text-slate-400">{% trans "Project Duration" %}</div>
+            <div data-testid="cp-duration" class="text-xl font-bold text-slate-900">{{ critical_path_widget.duration_hours }}h</div>
+          </div>
+          <div>
+            <div class="text-[10px] uppercase tracking-wide text-slate-400">{% trans "Tasks on Path" %}</div>
+            <div class="text-xl font-bold text-slate-900">{{ critical_path_widget.critical_count }}</div>
+          </div>
+        </div>
+        {% if critical_path_widget.preview %}
+          <div class="text-[10px] uppercase tracking-wide text-slate-400 mb-2">{% trans "Critical Tasks" %}</div>
+          <ul data-testid="cp-preview" class="text-xs space-y-1">
+            {% for t in critical_path_widget.preview %}
+              <li class="flex items-center justify-between gap-2 py-1 border-b border-slate-50 last:border-0">
+                <span class="text-slate-700 truncate">{{ t.title }}</span>
+                <span class="text-slate-400 flex-shrink-0">{{ t.duration_minutes }}m</span>
+              </li>
+            {% endfor %}
+          </ul>
+          {% if critical_path_widget.preview_truncated %}
+            <div class="text-xs text-slate-400 mt-2">{% trans "…and more" %}</div>
+          {% endif %}
+        {% endif %}
+      {% else %}
+        <div data-testid="cp-empty" class="text-sm text-slate-500 text-center py-6">
+          <i class="bi bi-info-circle text-2xl text-slate-300 block mb-2"></i>
+          {% trans "No tasks with dependencies yet — add task links to compute the critical path." %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
