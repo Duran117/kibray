@@ -1487,6 +1487,100 @@ def generate_report_async(self, report_name: str, user_id: int, **kwargs):
 
 
 
+@shared_task(
+    name="core.tasks.generate_signed_contract_pdf_async",
+    bind=True,
+    max_retries=2,
+    default_retry_delay=30,
+)
+def generate_signed_contract_pdf_async(self, contract_id: int, user_id: int = None):
+    """Render the signed-contract PDF off the request thread.
+
+    Mirrors the inline path in :meth:`ContractService.sign_contract` (heavy
+    ReportLab render → ``ProjectFile`` → ``contract.signed_pdf_file``) but
+    runs in the ``reports`` queue so HTTP responses stay snappy.
+
+    Args:
+        contract_id: PK of the contract that was just signed.
+        user_id: PK of the staff user (countersigner) — optional.
+
+    Returns:
+        dict with ``contract_id`` and either ``project_file_id`` on success
+        or an ``error`` key on failure (no retry).
+    """
+    from django.contrib.auth import get_user_model
+
+    from core.models import Contract, Notification
+    from core.services.contract_service import ContractService
+
+    try:
+        contract = Contract.objects.get(pk=contract_id)
+    except Contract.DoesNotExist:
+        logger.error(
+            f"generate_signed_contract_pdf_async: contract {contract_id} not found"
+        )
+        return {"error": "contract_not_found", "contract_id": contract_id}
+
+    user = None
+    if user_id:
+        User = get_user_model()
+        user = User.objects.filter(pk=user_id).first()
+
+    try:
+        project_file = ContractService.generate_signed_contract_pdf(contract, user)
+    except Exception as exc:  # noqa: BLE001
+        logger.exception(
+            f"generate_signed_contract_pdf_async: render failed for contract {contract_id}: {exc}"
+        )
+        try:
+            raise self.retry(exc=exc)
+        except self.MaxRetriesExceededError:
+            if user is not None:
+                Notification.objects.create(
+                    user=user,
+                    notification_type="system",
+                    title="Signed contract PDF failed",
+                    message=(
+                        f"Could not generate signed PDF for contract "
+                        f"{contract.contract_number}: {exc}"
+                    ),
+                )
+            return {
+                "error": "generation_failed",
+                "contract_id": contract_id,
+                "exception": str(exc),
+            }
+
+    if project_file is None:
+        logger.warning(
+            f"generate_signed_contract_pdf_async: generator returned None for "
+            f"contract {contract_id}"
+        )
+        return {"contract_id": contract_id, "project_file_id": None}
+
+    contract.signed_pdf_file = project_file
+    contract.save(update_fields=["signed_pdf_file"])
+
+    if user is not None:
+        Notification.objects.create(
+            user=user,
+            notification_type="system",
+            title="Signed contract PDF ready",
+            message=(
+                f"Signed PDF for contract {contract.contract_number} has been "
+                f"generated."
+            ),
+            related_object_type="contract",
+            related_object_id=contract.id,
+        )
+
+    logger.info(
+        f"generate_signed_contract_pdf_async: contract={contract_id} "
+        f"project_file={project_file.id}"
+    )
+    return {"contract_id": contract_id, "project_file_id": project_file.id}
+
+
 @shared_task(name="core.tasks.generate_daily_ev_snapshots")
 def generate_daily_ev_snapshots():
     """Phase D3 — daily Earned Value snapshot generator.

@@ -1,13 +1,35 @@
 # Kibray Roadmap (Reduced Plan)
 
-Date: 2026-04-27 (updated after Phase D4 — Phase D fully complete)
+Date: 2026-04-27 (updated after signed-contract PDF async migration)
 
 This roadmap focuses only on pending phases and ordered activities. Completed phases (FASE 1–2, core parts of FASE 3, and implemented dashboards/automation/security/tests) are omitted for brevity.
 
 ## Current Focus
-- Set one focus at a time (update this line): **Phase D fully complete** (D1 ✅ + D2 ✅ + D3 ✅ + D4 ✅); next pick = migrate first heavy PDF (signed_contract_pdf) to async at callsite via `generate_report_async`, OR dashboard widgets consuming Critical Path / EV Snapshots data.
+- Set one focus at a time (update this line): **Phase D fully complete** (D1 ✅ + D2 ✅ + D3 ✅ + D4 ✅) + first heavy-PDF async migration ✅ (signed_contract_pdf via dedicated Celery task). Next pick = migrate next heavy PDFs (estimate_pdf, change_order_pdf, invoice_pdf) to `generate_report_async` at their callsites, OR dashboard widgets consuming Critical Path / EV Snapshots data.
 
 ## Recent Progress (April 2026)
+- ✅ **Async signed-contract PDF migration** (post Phase D):
+  - `core/services/contract_service.py::ContractService.sign_contract` —
+    new `async_pdf: bool = True` parameter; when True, uses
+    `transaction.on_commit(...)` to enqueue
+    `core.tasks.generate_signed_contract_pdf_async.delay(contract_id, user_id)`
+    so the HTTP signing request returns immediately. Inline path preserved
+    for `async_pdf=False` (tests / management commands).
+  - Module-level `sign_contract` wrapper forwards the new flag.
+  - `core/tasks.py::generate_signed_contract_pdf_async` — new
+    `@shared_task(bind=True, max_retries=2, default_retry_delay=30)` that
+    loads the contract, calls `ContractService.generate_signed_contract_pdf`,
+    attaches the resulting `ProjectFile` to `contract.signed_pdf_file`, and
+    creates a `Notification` on success/failure.
+  - Tests: `tests/test_signed_contract_async.py` — 13 tests covering
+    dispatch default, on_commit + Celery `.delay` enqueue, inline fallback,
+    `generate_signed_pdf=False` short-circuit, unsignable contracts raising
+    before dispatch, module-level wrapper forwarding, missing-contract,
+    success path (notification + ProjectFile attachment), generator-returns-
+    None, render-exception → MaxRetries → notification, and
+    no-user-no-notification.
+  - Validation: full suite **1410 passed / 17 skipped** (was 1397, +13 new);
+    3× determinism loop on contract+signature+report tests: 56/56 each.
 - ✅ **Phase D4 — Signature GenericForeignKey**:
   - `signatures/models.py`: added optional `content_type` (FK to ContentType) +
     `object_id` + `content_object` GFK so any model (Estimate, Contract,

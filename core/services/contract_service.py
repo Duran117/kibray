@@ -161,11 +161,12 @@ class ContractService:
         signature_data: Optional[bytes] = None,
         ip_address: Optional[str] = None,
         generate_signed_pdf: bool = True,
-        user: Optional["User"] = None
+        user: Optional["User"] = None,
+        async_pdf: bool = True,
     ) -> "Contract":
         """
         Process client signature on contract.
-        
+
         Args:
             contract: Contract to sign
             client_name: Client's typed name
@@ -173,52 +174,76 @@ class ContractService:
             ip_address: Client's IP address
             generate_signed_pdf: Whether to generate signed PDF
             user: Staff user (for countersign)
-            
+            async_pdf: When True (default) the heavy PDF rendering is dispatched
+                to the Celery task ``core.tasks.generate_signed_contract_pdf_async``
+                so the HTTP request returns immediately. Set to False to render
+                inline (legacy behaviour, useful for tests / management
+                commands that need the PDF available before returning).
+
         Returns:
             Updated Contract instance
-            
+
         Raises:
             ValueError: If contract cannot be signed
         """
         from core.models import Contract
-        
+
         if not contract.can_be_signed:
             raise ValueError(f"Contract {contract.contract_number} cannot be signed (status: {contract.status})")
-        
+
         # Save signature
         contract.client_signed_name = client_name
         contract.client_signed_at = timezone.now()
         contract.client_ip_address = ip_address
-        
+
         if signature_data:
             # Save signature image
             filename = f"signature_{contract.contract_number}_{timezone.now().strftime('%Y%m%d%H%M%S')}.png"
             contract.client_signature.save(filename, ContentFile(signature_data), save=False)
-        
+
         # Update status
         contract.status = 'signed'
-        
+
         # Auto-countersign by staff if provided
         if user and user.is_staff:
             contract.contractor_signed_at = timezone.now()
             contract.contractor_signed_by = user
             contract.status = 'active'
-        
+
         contract.save()
-        
+
         logger.info(f"Contract {contract.contract_number} signed by {client_name}")
-        
+
         # Generate signed PDF
         if generate_signed_pdf:
-            try:
-                signed_pdf = ContractService.generate_signed_contract_pdf(contract, user)
-                if signed_pdf:
-                    contract.signed_pdf_file = signed_pdf
-                    contract.save(update_fields=['signed_pdf_file'])
-            except Exception as e:
-                logger.error(f"Failed to generate signed PDF: {e}")
-        
+            if async_pdf:
+                # Dispatch the heavy ReportLab render to Celery so the request
+                # returns immediately. Defer the import so the task module is
+                # only loaded when actually needed.
+                try:
+                    from core.tasks import generate_signed_contract_pdf_async
+
+                    # Use transaction.on_commit so the worker only runs after
+                    # the contract row is committed (avoids "DoesNotExist" race).
+                    transaction.on_commit(
+                        lambda: generate_signed_contract_pdf_async.delay(
+                            contract_id=contract.id,
+                            user_id=user.id if user else None,
+                        )
+                    )
+                except Exception as e:  # pragma: no cover — defensive
+                    logger.error(f"Failed to enqueue signed PDF task: {e}")
+            else:
+                try:
+                    signed_pdf = ContractService.generate_signed_contract_pdf(contract, user)
+                    if signed_pdf:
+                        contract.signed_pdf_file = signed_pdf
+                        contract.save(update_fields=['signed_pdf_file'])
+                except Exception as e:
+                    logger.error(f"Failed to generate signed PDF: {e}")
+
         return contract
+
     
     @staticmethod
     def generate_signed_contract_pdf(
@@ -446,9 +471,11 @@ def create_contract_from_estimate(estimate, user=None, auto_generate_pdf=True):
     return ContractService.create_contract_from_estimate(estimate, user, auto_generate_pdf)
 
 
-def sign_contract(contract, client_name, signature_data=None, ip_address=None, generate_signed_pdf=True, user=None):
+def sign_contract(contract, client_name, signature_data=None, ip_address=None, generate_signed_pdf=True, user=None, async_pdf=True):
     """Process client signature on contract."""
-    return ContractService.sign_contract(contract, client_name, signature_data, ip_address, generate_signed_pdf, user)
+    return ContractService.sign_contract(
+        contract, client_name, signature_data, ip_address, generate_signed_pdf, user, async_pdf
+    )
 
 
 def request_contract_revision(contract, revision_notes):
