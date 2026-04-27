@@ -143,6 +143,46 @@ class ProjectViewSet(viewsets.ModelViewSet):
             )
         return Response(ProjectBudgetSummarySerializer(summaries, many=True).data)
 
+    @action(detail=True, methods=["get"], url_path="critical-path")
+    def critical_path(self, request, pk=None):
+        """Critical Path Method (CPM) analysis for the project.
+
+        Phase D2 — runs forward/backward passes over ``TaskDependency`` and
+        returns earliest/latest schedules, slack and the critical chain.
+
+        Query params:
+        - ``durations``: optional comma-separated overrides ``id:minutes``
+          (used mainly by tests). Example: ``?durations=1:60,2:120``
+        """
+        from core.services.critical_path import (
+            CriticalPathCycleError,
+            compute_critical_path,
+        )
+
+        project = self.get_object()
+
+        overrides: dict[int, int] = {}
+        raw = request.query_params.get("durations", "")
+        if raw:
+            for chunk in raw.split(","):
+                chunk = chunk.strip()
+                if not chunk or ":" not in chunk:
+                    continue
+                tid, mins = chunk.split(":", 1)
+                try:
+                    overrides[int(tid)] = int(mins)
+                except (TypeError, ValueError):
+                    continue
+
+        try:
+            result = compute_critical_path(project.id, durations=overrides or None)
+        except CriticalPathCycleError as exc:
+            return Response(
+                {"error": "cycle_detected", "detail": str(exc)},
+                status=400,
+            )
+        return Response(result)
+
     def perform_create(self, serializer):
         """Set created_by on project creation"""
         # Note: Current Project model doesn't have created_by field
