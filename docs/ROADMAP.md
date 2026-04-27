@@ -1,13 +1,30 @@
 # Kibray Roadmap (Reduced Plan)
 
-Date: 2026-04-27 (updated after Phase D1 Payroll workflow)
+Date: 2026-04-27 (updated after Phase D4 — Phase D fully complete)
 
 This roadmap focuses only on pending phases and ordered activities. Completed phases (FASE 1–2, core parts of FASE 3, and implemented dashboards/automation/security/tests) are omitted for brevity.
 
 ## Current Focus
-- Set one focus at a time (update this line): Phase D1 — Payroll workflow ✅; next pick = Phase D4 (Signatures GenericFK) OR migrate first heavy PDF (signed_contract_pdf) to async at callsite.
+- Set one focus at a time (update this line): **Phase D fully complete** (D1 ✅ + D2 ✅ + D3 ✅ + D4 ✅); next pick = migrate first heavy PDF (signed_contract_pdf) to async at callsite via `generate_report_async`, OR dashboard widgets consuming Critical Path / EV Snapshots data.
 
 ## Recent Progress (April 2026)
+- ✅ **Phase D4 — Signature GenericForeignKey**:
+  - `signatures/models.py`: added optional `content_type` (FK to ContentType) +
+    `object_id` + `content_object` GFK so any model (Estimate, Contract,
+    ChangeOrder, ColorSample, MeetingMinute, Project, …) can attach
+    signatures without dedicated FK columns. New compound index
+    `sig_gfk_idx`. Both fields nullable for backwards compat.
+  - Migration `signatures/0003_signature_content_type_signature_object_id_and_more.py`.
+  - `SignatureSerializer`: exposes derived `content_type_label` (e.g.
+    `core.project`) for one-shot rendering.
+  - `SignatureViewSet`: list filters `?content_type=`, `?content_type_label=`,
+    `?object_id=` (bad values short-circuit to empty). New `for-object`
+    action `GET /api/v1/signatures/for-object/?content_type_label=app.model&object_id=N`.
+  - 16 new tests across 5 classes (model GFK round-trip + null compat;
+    serializer derived field; list filters + isolation; for-object happy +
+    400/404 validation paths + auth; create over the wire with GFK).
+  - Suite: 1381 → **1397 passed**, 0 regressions. 3-iteration determinism
+    loop on Phase D tests: 104/104 each (~58s).
 - ✅ **Phase D1 — Payroll workflow state machine**:
   - `core/services/payroll_workflow.py`: explicit state-machine over the
     existing 4 states (`draft → under_review → approved → paid`) with
