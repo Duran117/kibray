@@ -1,13 +1,40 @@
 # Kibray Roadmap (Reduced Plan)
 
-Date: 2026-04-27 (updated after Phase D dashboard widgets)
+Date: 2026-04-27 (updated after EV sparkline)
 
 This roadmap focuses only on pending phases and ordered activities. Completed phases (FASE 1–2, core parts of FASE 3, and implemented dashboards/automation/security/tests) are omitted for brevity.
 
 ## Current Focus
-- Set one focus at a time (update this line): **Phase D fully complete** (D1 ✅ + D2 ✅ + D3 ✅ + D4 ✅) + signed_contract_pdf async ✅ + generic `auto_save_pdf_async` ✅ + Phase D dashboard widgets ✅ (Earned Value + Critical Path on project_overview). Next pick = either (a) interactive Critical Path drill-down page (full Gantt highlight + slack table) consuming `/api/projects/<id>/critical-path/`, or (b) EV trend sparkline using the snapshot history endpoint, or (c) move on to next backlog area.
+- Set one focus at a time (update this line): **Phase D fully complete** (D1 ✅ + D2 ✅ + D3 ✅ + D4 ✅) + signed_contract_pdf async ✅ + generic `auto_save_pdf_async` ✅ + Phase D dashboard widgets ✅ + EV trend sparkline ✅. Next pick = (a) interactive Critical Path drill-down page (full Gantt highlight + slack table) consuming `/api/projects/<id>/critical-path/`, (b) wire Chart.js client-side renderer for the new sparkline canvases, or (c) move on to next backlog area.
 
 ## Recent Progress (April 2026)
+- ✅ **EV trend sparkline widget** (post Phase D dashboard widgets):
+  - `core/services/dashboard_widgets.py::get_ev_sparkline(project, days=30)`
+    — returns the last N `EVSnapshot` rows in chronological order with
+    JSON-safe `str(Decimal)` arrays for `labels`/`spi`/`cpi`/`ev`/`pv`,
+    plus `first`/`last` convenience points for delta calculation. Returns
+    `None` when there are fewer than 2 snapshots (single point isn't a
+    trend). Window clamped to `[2, 365]` and falls back to default on
+    invalid input. Exception-safe (returns `None` on lookup failure).
+  - `core/views/project_overview_views.py::project_overview` adds
+    `ev_sparkline` to the template context.
+  - `core/templates/core/components/_project_phase_d_widgets.html` —
+    sparkline section appended to the EV card: caption with day-window +
+    point count + SPI delta, plus a `<canvas data-testid="ev-sparkline-canvas">`
+    with `data-labels`/`data-spi`/`data-cpi`/`data-ev`/`data-pv` JSON
+    attributes ready for a Chart.js / minimal renderer to consume. Hidden
+    when fewer than 2 snapshots.
+  - Tests: `tests/test_dashboard_widgets_phase_d.py` — 12 new sparkline
+    tests covering: no-snapshots → None, single-snapshot → None, 2+
+    snapshots returned chronologically (out-of-order insert verified),
+    window clamping (above max → 365, below min → 2, invalid → default),
+    exception → None, JSON round-trip safety, and end-to-end overview
+    integration (context key always exposed, canvas rendered with data,
+    canvas omitted when only one snapshot).
+  - Validation: full suite **1447 passed / 17 skipped** (was 1435, +12
+    new, 0 regressions); 3× determinism loop on widgets + critical_path
+    + ev_snapshots tests: 75/75 each (~51s).
+
 - ✅ **Phase D dashboard widgets** (Earned Value + Critical Path):
   - `core/services/dashboard_widgets.py` — new module with two
     exception-safe accessors:

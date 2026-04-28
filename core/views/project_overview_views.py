@@ -263,10 +263,12 @@ def project_overview(request, project_id: int):
     # the template can render a friendly placeholder.
     from core.services.dashboard_widgets import (
         get_critical_path_widget,
+        get_ev_sparkline,
         get_ev_widget,
     )
 
     ev_widget = get_ev_widget(project)
+    ev_sparkline = get_ev_sparkline(project)
     critical_path_widget = get_critical_path_widget(project)
 
     return render(
@@ -310,6 +312,7 @@ def project_overview(request, project_id: int):
             "portal_unit_count": portal_unit_count,
             # Phase D follow-up widgets
             "ev_widget": ev_widget,
+            "ev_sparkline": ev_sparkline,
             "critical_path_widget": critical_path_widget,
         },
     )

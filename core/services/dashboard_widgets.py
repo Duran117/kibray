@@ -86,6 +86,81 @@ def get_ev_widget(project) -> dict[str, Any] | None:
     }
 
 
+# Sparkline window — 30d gives a nice balance between trend visibility and
+# query weight (a single indexed scan over EVSnapshot).
+EV_SPARKLINE_DEFAULT_DAYS = 30
+EV_SPARKLINE_MAX_DAYS = 365
+
+
+def get_ev_sparkline(project, days: int = EV_SPARKLINE_DEFAULT_DAYS) -> dict[str, Any] | None:
+    """Return a tiny EV trend payload for an inline sparkline.
+
+    Picks the last ``days`` ``EVSnapshot`` rows (default 30, capped at 365)
+    in **chronological** order so the front-end can plot points left→right
+    without re-sorting. Returns ``None`` if there are fewer than two
+    snapshots — a single point isn't a trend, and the EV card already
+    shows the latest values.
+
+    Payload shape::
+
+        {
+            "days": 30,                # window requested (clamped)
+            "count": 17,               # actual rows returned
+            "labels": ["2026-04-01", ...],
+            "spi":   ["1.020", ...],   # str(Decimal) — JSON-safe
+            "cpi":   ["0.985", ...],
+            "ev":    ["12500.00", ...],
+            "pv":    ["12000.00", ...],
+            "first": {date, SPI, CPI, EV, PV},   # convenience for delta calc
+            "last":  {date, SPI, CPI, EV, PV},
+        }
+    """
+    try:
+        days = int(days)
+    except (TypeError, ValueError):
+        days = EV_SPARKLINE_DEFAULT_DAYS
+    days = max(2, min(days, EV_SPARKLINE_MAX_DAYS))
+
+    try:
+        if not hasattr(project, "ev_snapshots"):
+            return None
+        # Take the most-recent N then reverse for chronological order.
+        recent = list(project.ev_snapshots.order_by("-date")[:days])
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "get_ev_sparkline: lookup failed for project=%s: %s",
+            getattr(project, "id", "?"),
+            exc,
+        )
+        return None
+
+    if len(recent) < 2:
+        return None
+
+    recent.reverse()  # chronological
+
+    def _point(s):
+        return {
+            "date": s.date.isoformat(),
+            "SPI": str(s.spi),
+            "CPI": str(s.cpi),
+            "EV": str(s.earned_value),
+            "PV": str(s.planned_value),
+        }
+
+    return {
+        "days": days,
+        "count": len(recent),
+        "labels": [s.date.isoformat() for s in recent],
+        "spi": [str(s.spi) for s in recent],
+        "cpi": [str(s.cpi) for s in recent],
+        "ev": [str(s.earned_value) for s in recent],
+        "pv": [str(s.planned_value) for s in recent],
+        "first": _point(recent[0]),
+        "last": _point(recent[-1]),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Critical Path
 # ---------------------------------------------------------------------------
@@ -164,6 +239,8 @@ def get_critical_path_widget(project) -> dict[str, Any] | None:
 
 __all__ = [
     "get_ev_widget",
+    "get_ev_sparkline",
     "get_critical_path_widget",
     "CRITICAL_PATH_PREVIEW_LIMIT",
+    "EV_SPARKLINE_DEFAULT_DAYS",
 ]

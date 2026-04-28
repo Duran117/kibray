@@ -239,3 +239,135 @@ class TestProjectOverviewWidgets:
         assert 'data-testid="cp-count"' in body
         assert 'data-testid="cp-preview"' in body
         assert 'data-testid="cp-empty"' not in body
+
+
+# ─── EV sparkline unit tests ────────────────────────────────────────
+
+
+class TestEvSparkline:
+    def test_no_snapshots_returns_none(self, project):
+        assert dashboard_widgets.get_ev_sparkline(project) is None
+
+    def test_single_snapshot_returns_none(self, project):
+        _make_snapshot(project, day_offset=0)
+        assert dashboard_widgets.get_ev_sparkline(project) is None
+
+    def test_two_snapshots_returns_chronological_payload(self, project):
+        # Insert OUT OF ORDER to verify reverse() chronological sorting.
+        _make_snapshot(project, day_offset=2, spi="0.900", cpi="0.910",
+                       pv="100.00", ev="90.00", ac="99.00")
+        _make_snapshot(project, day_offset=0, spi="1.020", cpi="1.030",
+                       pv="200.00", ev="204.00", ac="198.00")
+
+        out = dashboard_widgets.get_ev_sparkline(project)
+        assert out is not None
+        assert out["count"] == 2
+        # Chronological: oldest first, newest last
+        assert out["labels"][0] < out["labels"][1]
+        assert out["spi"] == ["0.900", "1.020"]
+        assert out["cpi"] == ["0.910", "1.030"]
+        assert out["ev"] == ["90.00", "204.00"]
+        assert out["pv"] == ["100.00", "200.00"]
+        # first / last convenience points
+        assert out["first"]["SPI"] == "0.900"
+        assert out["last"]["SPI"] == "1.020"
+        assert out["last"]["EV"] == "204.00"
+
+    def test_days_clamps_window(self, project):
+        # 5 snapshots spanning 5 days
+        for i in range(5):
+            _make_snapshot(project, day_offset=i, spi=f"1.0{i:02d}")
+        # Request only last 3
+        out = dashboard_widgets.get_ev_sparkline(project, days=3)
+        assert out is not None
+        assert out["days"] == 3
+        assert out["count"] == 3
+        # Should be the 3 MOST RECENT (offset 0,1,2) in chronological order
+        assert out["labels"][-1] == date.today().isoformat()
+
+    def test_days_below_minimum_clamps_to_two(self, project):
+        for i in range(3):
+            _make_snapshot(project, day_offset=i)
+        out = dashboard_widgets.get_ev_sparkline(project, days=1)
+        assert out is not None
+        assert out["days"] == 2
+        assert out["count"] == 2
+
+    def test_days_above_maximum_clamps_to_365(self, project):
+        for i in range(2):
+            _make_snapshot(project, day_offset=i)
+        out = dashboard_widgets.get_ev_sparkline(project, days=10_000)
+        assert out is not None
+        assert out["days"] == dashboard_widgets.EV_SPARKLINE_MAX_DAYS
+
+    def test_invalid_days_falls_back_to_default(self, project):
+        for i in range(2):
+            _make_snapshot(project, day_offset=i)
+        out = dashboard_widgets.get_ev_sparkline(project, days="not-a-number")
+        assert out is not None
+        assert out["days"] == dashboard_widgets.EV_SPARKLINE_DEFAULT_DAYS
+
+    def test_exception_returns_none(self, project):
+        from unittest import mock
+
+        with mock.patch.object(
+            type(project),
+            "ev_snapshots",
+            new=mock.PropertyMock(side_effect=RuntimeError("db down")),
+        ):
+            assert dashboard_widgets.get_ev_sparkline(project) is None
+
+    def test_payload_is_json_safe(self, project):
+        """All numeric values must be strings (Decimal is not JSON-safe)."""
+        import json
+
+        for i in range(3):
+            _make_snapshot(project, day_offset=i, spi="1.000", cpi="0.990")
+        out = dashboard_widgets.get_ev_sparkline(project)
+        assert out is not None
+        # Must round-trip through json without TypeError
+        json.dumps(out)
+        for k in ("spi", "cpi", "ev", "pv"):
+            assert all(isinstance(v, str) for v in out[k])
+
+
+class TestEvSparklineInOverview:
+    def _login(self, user):
+        c = TestClient()
+        c.login(username=user.username, password="pw")
+        return c
+
+    def test_overview_exposes_ev_sparkline_context_key(
+        self, project, admin_user
+    ):
+        c = self._login(admin_user)
+        resp = c.get(reverse("project_overview", kwargs={"project_id": project.id}))
+        assert resp.status_code == 200
+        assert "ev_sparkline" in resp.context
+        assert resp.context["ev_sparkline"] is None  # no snapshots yet
+
+    def test_overview_renders_sparkline_canvas_when_data(
+        self, project, admin_user
+    ):
+        _make_snapshot(project, day_offset=2)
+        _make_snapshot(project, day_offset=0)
+
+        c = self._login(admin_user)
+        resp = c.get(reverse("project_overview", kwargs={"project_id": project.id}))
+        assert resp.status_code == 200
+        assert resp.context["ev_sparkline"] is not None
+        body = resp.content.decode()
+        assert 'data-testid="ev-sparkline"' in body
+        assert 'data-testid="ev-sparkline-canvas"' in body
+        assert 'data-testid="ev-sparkline-spi-last"' in body
+
+    def test_overview_omits_sparkline_when_only_one_snapshot(
+        self, project, admin_user
+    ):
+        _make_snapshot(project, day_offset=0)
+        c = self._login(admin_user)
+        resp = c.get(reverse("project_overview", kwargs={"project_id": project.id}))
+        assert resp.status_code == 200
+        assert resp.context["ev_sparkline"] is None
+        body = resp.content.decode()
+        assert 'data-testid="ev-sparkline-canvas"' not in body
