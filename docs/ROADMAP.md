@@ -1,13 +1,38 @@
 # Kibray Roadmap (Reduced Plan)
 
-Date: 2026-04-27 (updated after EV sparkline)
+Date: 2026-04-27 (updated after EV sparkline canvas renderer)
 
 This roadmap focuses only on pending phases and ordered activities. Completed phases (FASE 1–2, core parts of FASE 3, and implemented dashboards/automation/security/tests) are omitted for brevity.
 
 ## Current Focus
-- Set one focus at a time (update this line): **Phase D fully complete** (D1 ✅ + D2 ✅ + D3 ✅ + D4 ✅) + signed_contract_pdf async ✅ + generic `auto_save_pdf_async` ✅ + Phase D dashboard widgets ✅ + EV trend sparkline ✅. Next pick = (a) interactive Critical Path drill-down page (full Gantt highlight + slack table) consuming `/api/projects/<id>/critical-path/`, (b) wire Chart.js client-side renderer for the new sparkline canvases, or (c) move on to next backlog area.
+- Set one focus at a time (update this line): **Phase D fully complete** (D1 ✅ + D2 ✅ + D3 ✅ + D4 ✅) + signed_contract_pdf async ✅ + generic `auto_save_pdf_async` ✅ + Phase D dashboard widgets ✅ + EV trend sparkline (data + canvas renderer) ✅. Next pick = (a) interactive Critical Path drill-down page (full Gantt highlight + slack table) consuming `/api/projects/<id>/critical-path/`, (b) sparkline tooltip / hover state using the existing `data-labels`/`data-ev`/`data-pv` attributes, or (c) move on to next backlog area.
 
 ## Recent Progress (April 2026)
+- ✅ **EV sparkline canvas renderer** (post sparkline data widget):
+  - `core/static/core/js/ev_sparkline.js` — new zero-dependency vanilla
+    canvas renderer (~120 LoC) that finds every
+    `<canvas data-testid="ev-sparkline-canvas">`, parses the JSON
+    `data-spi` / `data-cpi` arrays, normalises both series to a shared
+    y-axis padded to always include the 1.000 baseline, and draws two
+    thin lines (SPI = indigo-500, CPI = rose-500) plus a dashed
+    on-budget reference line. HiDPI-safe (devicePixelRatio scaling),
+    debounced re-render on window resize, exposes
+    `window.kibrayEvSparkline.{renderAll,renderOne}` for tests / manual
+    debugging.
+  - `core/templates/core/components/_project_phase_d_widgets.html` —
+    `{% load static %}` + conditional
+    `<script src="{% static 'core/js/ev_sparkline.js' %}" defer>` only
+    when `ev_sparkline` truthy (overview pages without snapshots stay
+    asset-free).
+  - Tests: `tests/test_dashboard_widgets_phase_d.py` — +3 tests:
+    script tag present + deferred when sparkline data exists, script tag
+    absent when no sparkline, static asset well-formed (exists,
+    exposes `kibrayEvSparkline`, references the data attributes the
+    template emits, balanced braces / parens cheap-syntax sanity).
+  - Validation: full suite **1450 passed / 17 skipped** (was 1447, +3
+    new, 0 regressions); 3× determinism loop on dashboard widgets:
+    29/29 each (~49s).
+
 - ✅ **EV trend sparkline widget** (post Phase D dashboard widgets):
   - `core/services/dashboard_widgets.py::get_ev_sparkline(project, days=30)`
     — returns the last N `EVSnapshot` rows in chronological order with

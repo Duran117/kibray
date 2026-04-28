@@ -371,3 +371,62 @@ class TestEvSparklineInOverview:
         assert resp.context["ev_sparkline"] is None
         body = resp.content.decode()
         assert 'data-testid="ev-sparkline-canvas"' not in body
+
+
+class TestEvSparklineRendererScript:
+    """Verify the vanilla canvas renderer is wired only when needed and
+    that the static asset itself is well-formed."""
+
+    def _login(self, user):
+        c = TestClient()
+        c.login(username=user.username, password="pw")
+        return c
+
+    def test_script_tag_present_when_sparkline_data_exists(
+        self, project, admin_user
+    ):
+        _make_snapshot(project, day_offset=2)
+        _make_snapshot(project, day_offset=0)
+        c = self._login(admin_user)
+        resp = c.get(reverse("project_overview", kwargs={"project_id": project.id}))
+        body = resp.content.decode()
+        assert 'data-testid="ev-sparkline-script"' in body
+        assert "ev_sparkline.js" in body
+        # Must be deferred so it doesn't block initial paint.
+        assert "defer" in body[body.find('data-testid="ev-sparkline-script"') :
+                                body.find('data-testid="ev-sparkline-script"') + 200]
+
+    def test_script_tag_absent_when_no_sparkline(self, project, admin_user):
+        c = self._login(admin_user)
+        resp = c.get(reverse("project_overview", kwargs={"project_id": project.id}))
+        body = resp.content.decode()
+        assert 'data-testid="ev-sparkline-script"' not in body
+        assert "ev_sparkline.js" not in body
+
+    def test_renderer_static_file_is_well_formed(self):
+        """Smoke check: file exists, is non-empty, exposes the global
+        debug hook, and balanced braces (cheap syntax sanity)."""
+        from pathlib import Path
+
+        from django.conf import settings
+
+        candidates = [
+            Path(settings.BASE_DIR) / "core" / "static" / "core" / "js" / "ev_sparkline.js",
+        ]
+        path = next((p for p in candidates if p.exists()), None)
+        assert path is not None, "ev_sparkline.js must ship as a static asset"
+        src = path.read_text(encoding="utf-8")
+        assert len(src) > 200
+        # Public API the partial template / tests reach for.
+        assert "kibrayEvSparkline" in src
+        assert "renderAll" in src
+        # Reads each data-* attribute the partial emits and the renderer
+        # actually consumes. (`ev` / `pv` / `labels` are reserved for a
+        # future tooltip; only `spi` and `cpi` are drawn today.)
+        for attr in ("spi", "cpi"):
+            assert f'"{attr}"' in src or f"'{attr}'" in src, (
+                f"renderer must reference data-{attr}"
+            )
+        # Balanced braces / parens (no truncated file).
+        assert src.count("{") == src.count("}")
+        assert src.count("(") == src.count(")")
