@@ -27,6 +27,10 @@
     
     {# Modern Forms CSS #}
     <link rel="stylesheet" href="{% static 'css/modern-forms.css' %}">
+
+    {# Global responsive table layer (auto wraps every <table> in a horizontal
+       scroller and exposes data-label cells for opt-in card layout). #}
+    <link rel="stylesheet" href="{% static 'css/responsive-tables.css' %}">
     
     {# Tailwind Config - Kibray Dark Theme #}
     <script>
@@ -267,6 +271,10 @@
         window.kbReparentOverlays = reparentOverlays;
     })();
     </script>
+
+    {# Global responsive table enhancer — must load before page-specific JS
+       so HTMX/AJAX list refreshes pick up the MutationObserver. #}
+    <script src="{% static 'js/responsive-tables.js' %}"></script>
 
     {# Core JavaScript #}
     <script src="{% static 'core/js/kibray-core.js' %}"></script>
