@@ -11,7 +11,8 @@ setup('authenticate', async ({ page, context }) => {
   // Ensure admin user exists
   const repoRoot = process.cwd();
   const managePy = path.join(repoRoot, 'manage.py');
-  const createCmd = `python3 ${managePy} shell -c "from django.contrib.auth import get_user_model; User=get_user_model();\nusername='${ADMIN_USER}';\npassword='${ADMIN_PASS}';\nif not User.objects.filter(username=username).exists():\n    User.objects.create_superuser(username=username, email=username+'@test.com', password=password)\nelse:\n    u=User.objects.get(username=username);\n    u.is_staff=True; u.is_superuser=True; u.set_password(password); u.save()"`;
+  const pythonBin = path.join(repoRoot, '.venv', 'bin', 'python');
+  const createCmd = `${pythonBin} ${managePy} shell -c "from django.contrib.auth import get_user_model; User=get_user_model();\nusername='${ADMIN_USER}';\npassword='${ADMIN_PASS}';\nif not User.objects.filter(username=username).exists():\n    User.objects.create_superuser(username=username, email=username+'@test.com', password=password)\nelse:\n    u=User.objects.get(username=username);\n    u.is_staff=True; u.is_superuser=True; u.set_password(password); u.save()"`;
   execSync(createCmd, { stdio: 'inherit' });
 
   // Login via UI to obtain session cookie

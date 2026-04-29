@@ -46,7 +46,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'python3 manage.py runserver',
+    command: '.venv/bin/python manage.py runserver --noreload',
     url: 'http://localhost:8000',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,

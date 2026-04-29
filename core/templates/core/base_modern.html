@@ -200,7 +200,74 @@
     
     {# Bootstrap 5 JS Bundle (with Popper) - Required for Modals #}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
+
+    {#
+      Stacking-context fix for Bootstrap modals (issue: sidebar blocks dropdowns
+      and inputs inside modals). The rule `#main-content > div { z-index: 1 }`
+      above creates a stacking context that traps any descendant modal at z=1
+      relative to the sidebar (z=40), so its z-index: 1055 has no effect.
+
+      Recommended Bootstrap workaround: re-parent every `.modal` to <body> on
+      show, then move it back on hide so Django/HTMX re-render still finds it.
+      Same treatment applies to `.modal-backdrop` (Bootstrap appends it to
+      <body> by default — we leave it alone).
+
+      Also raises any non-Bootstrap fixed-position panel marked with
+      `data-kb-overlay` above the sidebar, used by the Playwright UI audit
+      sweep to whitelist intentional overlays (e.g. payroll hour-entry drawer).
+    #}
+    <script>
+    (function(){
+        if (typeof document === 'undefined') return;
+
+        // ---- Bootstrap modals: re-parent to <body> on show ----
+        document.addEventListener('show.bs.modal', function(ev){
+            var modal = ev.target;
+            if (!modal || modal._kbReparented) return;
+            modal._kbOriginalParent = modal.parentNode;
+            modal._kbOriginalNext = modal.nextSibling;
+            document.body.appendChild(modal);
+            modal._kbReparented = true;
+        }, true);
+        document.addEventListener('hidden.bs.modal', function(ev){
+            var modal = ev.target;
+            if (!modal || !modal._kbReparented) return;
+            try {
+                if (modal._kbOriginalParent) {
+                    modal._kbOriginalParent.insertBefore(modal, modal._kbOriginalNext || null);
+                }
+            } catch(_e) { /* parent may be gone — keep modal in body */ }
+            modal._kbReparented = false;
+            modal._kbOriginalParent = null;
+            modal._kbOriginalNext = null;
+        }, true);
+
+        // ---- Custom fixed overlays (non-Bootstrap): re-parent on DOM ready ----
+        // Any element with these classes / data-kb-overlay attribute is moved
+        // to <body> at load time so it escapes the #main-content stacking trap.
+        var OVERLAY_SELECTOR = [
+            '[data-kb-overlay]',
+            '.entry-modal-overlay',           // payroll hours editor
+            '.mobile-drawer-overlay',         // project overview drawer
+        ].join(',');
+        function reparentOverlays(){
+            document.querySelectorAll(OVERLAY_SELECTOR).forEach(function(el){
+                if (el._kbOverlayMoved) return;
+                if (el.parentNode === document.body) { el._kbOverlayMoved = true; return; }
+                document.body.appendChild(el);
+                el._kbOverlayMoved = true;
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', reparentOverlays);
+        } else {
+            reparentOverlays();
+        }
+        // Expose for late-injected overlays (HTMX, etc.)
+        window.kbReparentOverlays = reparentOverlays;
+    })();
+    </script>
+
     {# Core JavaScript #}
     <script src="{% static 'core/js/kibray-core.js' %}"></script>
     
