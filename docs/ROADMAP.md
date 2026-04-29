@@ -1,13 +1,50 @@
 # Kibray Roadmap (Reduced Plan)
 
-Date: 2026-04-27 (updated after EV sparkline canvas renderer)
+Date: 2026-04-28 (updated after Critical Path drill-down page)
 
 This roadmap focuses only on pending phases and ordered activities. Completed phases (FASE 1–2, core parts of FASE 3, and implemented dashboards/automation/security/tests) are omitted for brevity.
 
 ## Current Focus
-- Set one focus at a time (update this line): **Phase D fully complete** (D1 ✅ + D2 ✅ + D3 ✅ + D4 ✅) + signed_contract_pdf async ✅ + generic `auto_save_pdf_async` ✅ + Phase D dashboard widgets ✅ + EV trend sparkline (data + canvas renderer) ✅. Next pick = (a) interactive Critical Path drill-down page (full Gantt highlight + slack table) consuming `/api/projects/<id>/critical-path/`, (b) sparkline tooltip / hover state using the existing `data-labels`/`data-ev`/`data-pv` attributes, or (c) move on to next backlog area.
+- Set one focus at a time (update this line): **Phase D fully complete** (D1 ✅ + D2 ✅ + D3 ✅ + D4 ✅) + signed_contract_pdf async ✅ + generic `auto_save_pdf_async` ✅ + Phase D dashboard widgets ✅ + EV trend sparkline (data + canvas renderer) ✅ + Critical Path drill-down page ✅. Next pick = (a) sparkline tooltip / hover state using the existing `data-labels`/`data-ev`/`data-pv` attributes, (b) CPM what-if duration overrides via `?durations=` form on the drill-down page (the API already supports it), or (c) move on to next backlog area.
 
 ## Recent Progress (April 2026)
+- ✅ **Critical Path drill-down page** (post sparkline canvas renderer):
+  - `core/views/project_overview_views.py::project_critical_path` — new
+    staff-gated view that calls `compute_critical_path(project.id)`,
+    catches `CriticalPathCycleError` for a friendly 200 instead of 500,
+    pre-computes Gantt-bar `offset_pct`/`width_pct` from each task's
+    ES + duration relative to `project_duration_minutes` (clamped so
+    rounding can't push past 100%), and supports `?critical_only=1` to
+    filter the rendered table to critical tasks only.
+  - `kibray_backend/urls.py` — registers
+    `path("projects/<int:project_id>/critical-path/", views.project_critical_path,
+    name="project_critical_path")` next to `project_overview`.
+  - `core/templates/core/project_critical_path.html` — new full-page
+    template extending `base_modern.html`: header with summary badges
+    (`cpm-summary`, `cpm-duration`) + critical-only toggle, simple
+    horizontal Gantt visualisation (`cpm-gantt` / `cpm-gantt-row`),
+    full CPM table (`cpm-table` / `cpm-row` × N) with columns Task /
+    Duration / ES / EF / LS / LF / Slack and a `cpm-critical-badge`
+    per critical row. Friendly states: `cpm-empty` for projects with
+    no tasks, `cpm-cycle-error` when a dependency cycle is detected.
+    Back-link (`cpm-back-link`) to the project overview.
+  - `core/templates/core/components/_project_phase_d_widgets.html` —
+    Critical Path card header now exposes a `cp-drilldown-link` ("Open →")
+    pointing to the new page so PMs can jump from the overview summary
+    to the full table in one click.
+  - Tests: `tests/test_critical_path_drilldown.py` — 11 new tests
+    covering URL routing, staff-only gating (anonymous → /login,
+    non-staff → 302, unknown id → 404), empty-project placeholder,
+    full-table render with one critical badge per critical task,
+    Gantt bars with monotonic offsets along the chain, `?critical_only=1`
+    filter excludes off-path tasks, cycle returns 200 with the
+    `cpm-cycle-error` hook (not 500), and the overview widget exposes
+    the drill-down link.
+  - Validation: full suite **1461 passed / 17 skipped** (was 1450,
+    +11 new, 0 regressions); 3× determinism loop on
+    `test_critical_path_drilldown.py + test_critical_path.py +
+    test_dashboard_widgets_phase_d.py`: 63/63 each (~27s).
+
 - ✅ **EV sparkline canvas renderer** (post sparkline data widget):
   - `core/static/core/js/ev_sparkline.js` — new zero-dependency vanilla
     canvas renderer (~120 LoC) that finds every

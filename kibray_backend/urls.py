@@ -173,6 +173,11 @@ urlpatterns = [
     # Project overview + acciones
     path("projects/<int:project_id>/overview/", views.project_overview, name="project_overview"),
     path(
+        "projects/<int:project_id>/critical-path/",
+        views.project_critical_path,
+        name="project_critical_path",
+    ),
+    path(
         "projects/<int:project_id>/profit/",
         views.project_profit_dashboard,
         name="project_profit_dashboard",

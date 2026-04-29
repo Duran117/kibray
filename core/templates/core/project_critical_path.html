@@ -1,0 +1,194 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Critical Path" %} · {{ project.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .cpm-bar-track {
+    position: relative;
+    height: 12px;
+    background: #f1f5f9;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .cpm-bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: 6px;
+    background: #94a3b8;
+  }
+  .cpm-bar.is-critical {
+    background: #e11d48;
+  }
+  .cpm-table th,
+  .cpm-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.8125rem;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .cpm-table th:first-child,
+  .cpm-table td:first-child,
+  .cpm-table th:nth-child(2),
+  .cpm-table td:nth-child(2) {
+    text-align: left;
+  }
+  .cpm-table tr.is-critical td {
+    background: #fef2f2;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div data-testid="cpm-page" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+  {# ── Header ─────────────────────────────────────────────────── #}
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+    <div>
+      <nav class="text-xs text-slate-500 mb-1">
+        <a href="{% url 'project_overview' project_id=project.id %}"
+           data-testid="cpm-back-link"
+           class="hover:text-slate-700">
+          ← {{ project.name }}
+        </a>
+      </nav>
+      <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+        <i class="bi bi-diagram-3 text-rose-500"></i>
+        {% trans "Critical Path" %}
+      </h1>
+    </div>
+    <div class="flex items-center gap-3">
+      {% if not cpm_error %}
+        <span data-testid="cpm-summary"
+              class="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-700">
+          {{ critical_count }} / {{ task_count }} {% trans "critical" %}
+        </span>
+        <span data-testid="cpm-duration"
+              class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+          {{ project_duration_hours }}h
+        </span>
+      {% endif %}
+      {% if show_critical_only %}
+        <a data-testid="cpm-toggle-all"
+           href="{% url 'project_critical_path' project_id=project.id %}"
+           class="text-xs font-semibold px-3 py-1.5 rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200">
+          {% trans "Show all tasks" %}
+        </a>
+      {% else %}
+        <a data-testid="cpm-toggle-critical"
+           href="{% url 'project_critical_path' project_id=project.id %}?critical_only=1"
+           class="text-xs font-semibold px-3 py-1.5 rounded-md bg-rose-100 text-rose-700 hover:bg-rose-200">
+          {% trans "Critical only" %}
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Cycle error ────────────────────────────────────────────── #}
+  {% if cpm_error %}
+    <div data-testid="cpm-cycle-error"
+         class="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-4 mb-6">
+      <div class="font-semibold flex items-center gap-2">
+        <i class="bi bi-exclamation-triangle"></i>
+        {% trans "Dependency cycle detected" %}
+      </div>
+      <p class="text-sm mt-1">
+        {% trans "The critical path cannot be computed while a cycle exists in the task dependency graph. Please review the task dependencies and remove the cycle to enable the analysis." %}
+      </p>
+    </div>
+  {% elif task_count == 0 %}
+    <div data-testid="cpm-empty"
+         class="bg-white border border-slate-200 rounded-lg p-8 text-center text-slate-500">
+      <i class="bi bi-info-circle text-3xl text-slate-300 block mb-2"></i>
+      {% trans "No tasks with dependencies yet — add task links to compute the critical path." %}
+    </div>
+  {% else %}
+
+    {# ── Gantt-style bar visualisation ────────────────────────── #}
+    {% if bars %}
+      <div data-testid="cpm-gantt"
+           class="bg-white rounded-xl shadow-sm p-4 mb-6 overflow-hidden">
+        <h2 class="text-sm font-semibold text-slate-700 mb-3">{% trans "Schedule" %}</h2>
+        <div class="space-y-2">
+          {% for b in bars %}
+            <div class="grid grid-cols-12 items-center gap-3"
+                 data-testid="cpm-gantt-row"
+                 data-task-id="{{ b.task_id }}">
+              <div class="col-span-3 text-xs text-slate-700 truncate" title="{{ b.title }}">
+                {% if b.is_critical %}<span class="text-rose-500">●</span>{% endif %}
+                {{ b.title }}
+              </div>
+              <div class="col-span-9">
+                <div class="cpm-bar-track">
+                  <div class="cpm-bar {% if b.is_critical %}is-critical{% endif %}"
+                       style="left: {{ b.offset_pct }}%; width: {{ b.width_pct }}%;"
+                       title="{{ b.duration_minutes }}m"></div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    {# ── Full CPM table ───────────────────────────────────────── #}
+    <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
+      <table class="cpm-table w-full" data-testid="cpm-table">
+        <thead>
+          <tr class="text-[11px] uppercase tracking-wide text-slate-500 bg-slate-50">
+            <th>#</th>
+            <th>{% trans "Task" %}</th>
+            <th>{% trans "Duration (min)" %}</th>
+            <th>{% trans "ES" %}</th>
+            <th>{% trans "EF" %}</th>
+            <th>{% trans "LS" %}</th>
+            <th>{% trans "LF" %}</th>
+            <th>{% trans "Slack" %}</th>
+            <th>{% trans "Critical" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in visible_tasks %}
+            <tr data-testid="cpm-row"
+                data-task-id="{{ t.task_id }}"
+                class="{% if t.is_critical %}is-critical{% endif %}">
+              <td class="text-slate-400">{{ t.task_id }}</td>
+              <td class="text-slate-900 font-medium">{{ t.title|default:"—" }}</td>
+              <td>{{ t.duration_minutes }}</td>
+              <td>{{ t.es }}</td>
+              <td>{{ t.ef }}</td>
+              <td>{{ t.ls }}</td>
+              <td>{{ t.lf }}</td>
+              <td class="{% if t.slack_minutes == 0 %}text-rose-600 font-semibold{% else %}text-slate-500{% endif %}">
+                {{ t.slack_minutes }}
+              </td>
+              <td>
+                {% if t.is_critical %}
+                  <span data-testid="cpm-critical-badge"
+                        class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">
+                    {% trans "CRITICAL" %}
+                  </span>
+                {% else %}
+                  <span class="text-slate-300">—</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="9" class="text-center text-slate-500 py-6"
+                  data-testid="cpm-row-empty">
+                {% trans "No critical tasks to display." %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  {% endif %}
+
+</div>
+{% endblock %}

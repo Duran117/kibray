@@ -94,11 +94,20 @@
         <i class="bi bi-diagram-3 text-rose-500"></i>
         {% trans "Critical Path" %}
       </h3>
-      {% if critical_path_widget and not critical_path_widget.error %}
-        <span data-testid="cp-count" class="text-xs font-bold px-2 py-1 rounded-full bg-rose-100 text-rose-700">
-          {{ critical_path_widget.critical_count }} / {{ critical_path_widget.task_count }} {% trans "critical" %}
-        </span>
-      {% endif %}
+      <div class="flex items-center gap-2">
+        {% if critical_path_widget and not critical_path_widget.error %}
+          <span data-testid="cp-count" class="text-xs font-bold px-2 py-1 rounded-full bg-rose-100 text-rose-700">
+            {{ critical_path_widget.critical_count }} / {{ critical_path_widget.task_count }} {% trans "critical" %}
+          </span>
+        {% endif %}
+        {% if project %}
+          <a data-testid="cp-drilldown-link"
+             href="{% url 'project_critical_path' project_id=project.id %}"
+             class="text-xs font-semibold text-rose-600 hover:text-rose-700">
+            {% trans "Open" %} →
+          </a>
+        {% endif %}
+      </div>
     </div>
     <div class="p-4">
       {% if critical_path_widget and critical_path_widget.error == "cycle_detected" %}

@@ -316,3 +316,107 @@ def project_overview(request, project_id: int):
             "critical_path_widget": critical_path_widget,
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# Critical Path drill-down (Phase D follow-up)
+# ---------------------------------------------------------------------------
+
+
+@login_required
+def project_critical_path(request, project_id: int):
+    """Full-page Critical Path drill-down for a single project.
+
+    Renders the complete CPM table (ES/EF/LS/LF/slack + critical badge) plus
+    a simple horizontal Gantt-style bar visualisation. Defensive against
+    cycles in the dependency graph: returns a 200 with a friendly error
+    instead of crashing the page.
+
+    Query params
+    ------------
+    ``critical_only=1`` — filter the rendered table to critical tasks only.
+    """
+    if not request.user.is_staff:
+        messages.error(request, "Acceso solo para PM/Staff.")
+        return redirect("dashboard_employee")
+
+    project = get_object_or_404(Project, pk=project_id)
+
+    from core.services.critical_path import (
+        compute_critical_path,
+        CriticalPathCycleError,
+    )
+
+    cpm_error = None
+    try:
+        cpm = compute_critical_path(project.id)
+    except CriticalPathCycleError as exc:
+        cpm_error = str(exc) or "cycle_detected"
+        cpm = {
+            "tasks": [],
+            "edges": [],
+            "critical_path_ids": [],
+            "project_duration_minutes": 0,
+        }
+    except Exception:  # pragma: no cover — extra safety net
+        logger.exception("Unexpected error computing critical path for project %s", project.id)
+        cpm = {
+            "tasks": [],
+            "edges": [],
+            "critical_path_ids": [],
+            "project_duration_minutes": 0,
+        }
+
+    show_critical_only = request.GET.get("critical_only") == "1"
+    visible_tasks = (
+        [t for t in cpm["tasks"] if t.get("is_critical")]
+        if show_critical_only
+        else cpm["tasks"]
+    )
+
+    project_duration_minutes = int(cpm.get("project_duration_minutes") or 0)
+    project_duration_hours = round(project_duration_minutes / 60, 1)
+    critical_count = sum(1 for t in cpm["tasks"] if t.get("is_critical"))
+
+    # Pre-compute bar offsets/widths (% of project_duration_minutes) for the
+    # template — keeps the template free of math and lets us assert deterministic
+    # output in tests.
+    bars = []
+    if project_duration_minutes > 0:
+        for t in visible_tasks:
+            es = int(t.get("es") or 0)
+            dur = int(t.get("duration_minutes") or 0)
+            offset_pct = round(100 * es / project_duration_minutes, 2)
+            width_pct = round(100 * max(dur, 1) / project_duration_minutes, 2)
+            # Clamp so widths don't push past 100% due to rounding.
+            if offset_pct + width_pct > 100:
+                width_pct = round(100 - offset_pct, 2)
+            bars.append(
+                {
+                    "task_id": t["task_id"],
+                    "title": t.get("title") or f"Task #{t['task_id']}",
+                    "is_critical": t.get("is_critical", False),
+                    "offset_pct": offset_pct,
+                    "width_pct": max(width_pct, 0.5),
+                    "duration_minutes": dur,
+                    "slack_minutes": int(t.get("slack_minutes") or 0),
+                }
+            )
+
+    return render(
+        request,
+        "core/project_critical_path.html",
+        {
+            "project": project,
+            "show_sidebar": False,
+            "cpm": cpm,
+            "cpm_error": cpm_error,
+            "visible_tasks": visible_tasks,
+            "show_critical_only": show_critical_only,
+            "project_duration_minutes": project_duration_minutes,
+            "project_duration_hours": project_duration_hours,
+            "task_count": len(cpm["tasks"]),
+            "critical_count": critical_count,
+            "bars": bars,
+        },
+    )
