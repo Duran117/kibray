@@ -1,11 +1,11 @@
 {% load i18n %}
-{# 
+{% comment %}
   Project Context Bar - Include on any project-scoped page.
   Provides: breadcrumb navigation, back-to-project button, project name indicator.
-  
+
   Required context: project (Project instance)
   Optional context: current_section (string, e.g. "Tasks", "RFIs")
-#}
+{% endcomment %}
 {% if project %}
 <div class="project-context-bar">
     <a href="{% url 'dashboard' %}" title="{% trans 'Dashboard' %}">

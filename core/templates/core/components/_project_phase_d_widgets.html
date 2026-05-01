@@ -1,9 +1,9 @@
 {% load i18n %}
 {% load static %}
-{# Phase D follow-up widgets — Earned Value + Critical Path summary cards.
+{% comment %}Phase D follow-up widgets — Earned Value + Critical Path summary cards.
    Both ev_widget and critical_path_widget may be None (no data yet) or
    contain an `error` key (e.g. CPM cycle). Templates render placeholders
-   defensively. #}
+   defensively.{% endcomment %}
 <div id="phase-d-widgets" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
   {# ── Earned Value card ───────────────────────────────────────── #}
@@ -151,8 +151,8 @@
 
 </div>
 
-{# Vanilla canvas renderer for the EV sparkline. Only loads when there's
-   actually a sparkline to draw, keeping the overview page light. #}
+{% comment %}Vanilla canvas renderer for the EV sparkline. Only loads when there's
+   actually a sparkline to draw, keeping the overview page light.{% endcomment %}
 {% if ev_sparkline %}
   <script src="{% static 'core/js/ev_sparkline.js' %}" data-testid="ev-sparkline-script" defer></script>
 {% endif %}

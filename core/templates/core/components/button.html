@@ -1,11 +1,11 @@
 {% load i18n %}
 
-{#
+{% comment %}
   Button Component
-  
+
   Usage:
   {% include "core/components/button.html" with text="Save" icon="check" variant="primary" type="submit" %}
-  
+
   Parameters:
   - text: button label (required)
   - variant: primary|secondary|danger|success (default: secondary)
@@ -13,7 +13,7 @@
   - type: button|submit|reset (default: button)
   - extra_classes: additional CSS classes
   - attrs: additional HTML attributes as string, e.g. 'data-id="123" disabled'
-#}
+{% endcomment %}
 
 <button type="{{ type|default:'button' }}" 
         class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all

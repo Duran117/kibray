@@ -1,21 +1,21 @@
 {% load i18n %}
 
-{#
+{% comment %}
   Photo Grid Component with square thumbnails
-  
+
   Usage:
   {% include "core/components/photo_grid.html" with photos=changeorder.photos.all %}
-  
+
   Required:
   - photos: queryset of photo objects with .id, .image.url, .annotations, .description
-  
+
   JavaScript hooks:
   - .photo-edit-btn with data-photo-id and data-image-url
   - .photo-delete-btn with data-photo-id
   - .photo-annotations-data script tag with JSON
-  
+
   Event handlers attached by kibray-core.js PhotoGallery module
-#}
+{% endcomment %}
 
 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
     {% for photo in photos %}

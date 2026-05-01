@@ -28,8 +28,8 @@
     {# Modern Forms CSS #}
     <link rel="stylesheet" href="{% static 'css/modern-forms.css' %}">
 
-    {# Global responsive table layer (auto wraps every <table> in a horizontal
-       scroller and exposes data-label cells for opt-in card layout). #}
+    {% comment %}Global responsive table layer (auto wraps every <table> in a horizontal
+       scroller and exposes data-label cells for opt-in card layout).{% endcomment %}
     <link rel="stylesheet" href="{% static 'css/responsive-tables.css' %}">
     
     {# Tailwind Config - Kibray Dark Theme #}
@@ -205,7 +205,7 @@
     {# Bootstrap 5 JS Bundle (with Popper) - Required for Modals #}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    {#
+    {% comment %}
       Stacking-context fix for Bootstrap modals (issue: sidebar blocks dropdowns
       and inputs inside modals). The rule `#main-content > div { z-index: 1 }`
       above creates a stacking context that traps any descendant modal at z=1
@@ -219,7 +219,7 @@
       Also raises any non-Bootstrap fixed-position panel marked with
       `data-kb-overlay` above the sidebar, used by the Playwright UI audit
       sweep to whitelist intentional overlays (e.g. payroll hour-entry drawer).
-    #}
+    {% endcomment %}
     <script>
     (function(){
         if (typeof document === 'undefined') return;
@@ -272,8 +272,8 @@
     })();
     </script>
 
-    {# Global responsive table enhancer — must load before page-specific JS
-       so HTMX/AJAX list refreshes pick up the MutationObserver. #}
+    {% comment %}Global responsive table enhancer — must load before page-specific JS
+       so HTMX/AJAX list refreshes pick up the MutationObserver.{% endcomment %}
     <script src="{% static 'js/responsive-tables.js' %}"></script>
 
     {# Core JavaScript #}
