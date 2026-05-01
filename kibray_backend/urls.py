@@ -529,6 +529,7 @@ urlpatterns = [
     ),
     path("invoices/<int:invoice_id>/delete/", views.invoice_delete, name="invoice_delete"),
     path("invoices/<int:invoice_id>/cancel/", views.invoice_cancel, name="invoice_cancel"),
+    path("invoices/<int:invoice_id>/edit/", views.invoice_edit, name="invoice_edit"),
     path("invoices/<int:pk>/", views.invoice_detail, name="invoice_detail"),
     path("invoices/<int:pk>/pdf/", views.invoice_pdf, name="invoice_pdf"),
     path("ajax/changeorders/", views.changeorders_ajax, name="changeorders_ajax"),

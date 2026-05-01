@@ -701,6 +701,130 @@ def invoice_mark_approved(request, invoice_id):
 
 
 @login_required
+@transaction.atomic
+def invoice_edit(request, invoice_id):
+    """Edit a DRAFT invoice: change dates/notes, edit/delete lines, add manual lines, unlink COs.
+
+    Only DRAFT invoices are editable. Once an invoice is SENT/APPROVED/PAID/etc.
+    it must be cancelled and re-issued (audit trail).
+
+    POST fields:
+      - date_issued, due_date, notes
+      - line_id_<pk>_description / line_id_<pk>_amount  → update existing
+      - line_id_<pk>_delete=on                           → delete existing
+      - new_description[] / new_amount[]                 → add manual lines
+      - remove_co_<co_id>=on                             → unlink CO and revert its status
+    """
+    if not _is_staffish(request.user):
+        messages.error(request, _("Access denied."))
+        return redirect("dashboard")
+
+    invoice = get_object_or_404(
+        Invoice.objects.select_related("project").prefetch_related("lines", "change_orders"),
+        pk=invoice_id,
+    )
+
+    if invoice.status != "DRAFT":
+        messages.error(
+            request,
+            _(
+                "⚠️ Solo se pueden editar facturas en estado BORRADOR. "
+                "Estado actual: %(status)s. Cancela la factura y crea una nueva si necesitas cambios."
+            )
+            % {"status": invoice.get_status_display()},
+        )
+        return redirect("invoice_detail", pk=invoice.id)
+
+    if request.method == "POST":
+        # ---- 1. Header fields -----------------------------------------------
+        di = request.POST.get("date_issued")
+        dd = request.POST.get("due_date")
+        notes = request.POST.get("notes", "")
+        if di:
+            with contextlib.suppress(Exception):
+                invoice.date_issued = datetime.strptime(di, "%Y-%m-%d").date()
+        if dd:
+            with contextlib.suppress(Exception):
+                invoice.due_date = datetime.strptime(dd, "%Y-%m-%d").date()
+        else:
+            invoice.due_date = None
+        invoice.notes = notes
+
+        # ---- 2. Update / delete existing lines ------------------------------
+        for line in list(invoice.lines.all()):
+            if request.POST.get(f"line_id_{line.id}_delete") == "on":
+                # Free up any Expense pointing at this line so it can be re-billed
+                line.expenses_linked.update(invoice_line=None)
+                # InvoiceLine.time_entry is a SET_NULL FK on the line itself —
+                # deleting the line releases the TimeEntry automatically.
+                line.delete()
+                continue
+            new_desc = request.POST.get(f"line_id_{line.id}_description", "").strip()
+            new_amount_raw = request.POST.get(f"line_id_{line.id}_amount", "").strip()
+            if new_desc:
+                line.description = new_desc[:255]
+            if new_amount_raw:
+                try:
+                    line.amount = Decimal(new_amount_raw)
+                except (InvalidOperation, ValueError):
+                    pass
+            line.save(update_fields=["description", "amount"])
+
+        # ---- 3. Add new manual lines ----------------------------------------
+        new_descs = request.POST.getlist("new_description")
+        new_amounts = request.POST.getlist("new_amount")
+        for desc, amt in zip(new_descs, new_amounts):
+            desc = (desc or "").strip()
+            amt = (amt or "").strip()
+            if not desc or not amt:
+                continue
+            try:
+                amount = Decimal(amt)
+            except (InvalidOperation, ValueError):
+                continue
+            if amount <= 0:
+                continue
+            InvoiceLine.objects.create(
+                invoice=invoice, description=desc[:255], amount=amount
+            )
+
+        # ---- 4. Unlink Change Orders ----------------------------------------
+        for co in list(invoice.change_orders.all()):
+            if request.POST.get(f"remove_co_{co.id}") == "on":
+                invoice.change_orders.remove(co)
+                # If the CO is no longer attached to any invoice, revert its status
+                if not co.invoices.exists():
+                    co.status = "approved"
+                    co.save(update_fields=["status"])
+
+        # ---- 5. Recalculate total -------------------------------------------
+        # Bypass any prefetched cache from get_object_or_404 above.
+        total = InvoiceLine.objects.filter(invoice=invoice).aggregate(
+            total=Sum("amount")
+        )["total"] or Decimal("0")
+        invoice.total_amount = total
+        invoice.save()
+
+        messages.success(
+            request,
+            _("✅ Factura %(num)s actualizada. Nuevo total: $%(total)s")
+            % {"num": invoice.invoice_number, "total": f"{invoice.total_amount:,.2f}"},
+        )
+        return redirect("invoice_detail", pk=invoice.id)
+
+    # GET — render the form
+    return render(
+        request,
+        "core/invoice_edit.html",
+        {
+            "invoice": invoice,
+            "lines": invoice.lines.all().order_by("id"),
+            "linked_cos": invoice.change_orders.all(),
+        },
+    )
+
+
+@login_required
 @require_POST
 @transaction.atomic
 def invoice_delete(request, invoice_id):

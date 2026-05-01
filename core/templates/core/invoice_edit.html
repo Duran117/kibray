@@ -1,0 +1,256 @@
+{% extends "core/base_modern.html" %}
+{% load static i18n humanize %}
+
+{% block title %}{% trans "Edit Invoice" %} #{{ invoice.invoice_number }} | Kibray{% endblock %}
+
+{% block page_header %}
+<div class="flex justify-between items-center flex-wrap gap-4">
+    <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-lg">
+            <i class="bi bi-pencil-square text-2xl"></i>
+        </div>
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900">{% trans "Edit Invoice" %} #{{ invoice.invoice_number }}</h1>
+            <p class="text-slate-500 mt-0.5 text-sm">{{ invoice.project.name }} · <span class="text-amber-600 font-semibold">{% trans "DRAFT" %}</span></p>
+        </div>
+    </div>
+    <div class="flex items-center gap-3">
+        <a href="{% url 'invoice_detail' pk=invoice.id %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition">
+            <i class="bi bi-x-lg"></i> {% trans "Cancel" %}
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<form method="post" id="invoiceEditForm">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main column -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Header / dates -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 flex items-center gap-2">
+                    <i class="bi bi-calendar-event text-indigo-600"></i>
+                    <h3 class="text-base font-semibold text-slate-900">{% trans "Invoice Info" %}</h3>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{% trans "Issue Date" %}</label>
+                        <input type="date" name="date_issued" value="{{ invoice.date_issued|date:'Y-m-d' }}"
+                               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{% trans "Due Date" %}</label>
+                        <input type="date" name="due_date" value="{{ invoice.due_date|date:'Y-m-d' }}"
+                               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{% trans "Notes" %}</label>
+                        <textarea name="notes" rows="2"
+                                  class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">{{ invoice.notes }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Line items -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="bi bi-list-ul text-indigo-600"></i>
+                        <h3 class="text-base font-semibold text-slate-900">{% trans "Line Items" %}</h3>
+                    </div>
+                    <span id="liveTotal" class="text-sm font-bold text-slate-900"></span>
+                </div>
+                <div class="p-4 space-y-2" id="linesContainer">
+                    {% for line in lines %}
+                    <div class="grid grid-cols-12 gap-2 items-center p-3 bg-slate-50 rounded-lg border border-slate-100 line-row" data-line-id="{{ line.id }}">
+                        <div class="col-span-12 md:col-span-7">
+                            <label class="md:hidden text-xs font-semibold text-slate-500 mb-1 block">{% trans "Description" %}</label>
+                            <input type="text" name="line_id_{{ line.id }}_description" value="{{ line.description }}"
+                                   class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                   placeholder="{% trans 'Description' %}">
+                        </div>
+                        <div class="col-span-7 md:col-span-3">
+                            <label class="md:hidden text-xs font-semibold text-slate-500 mb-1 block">{% trans "Amount" %}</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                                <input type="number" step="0.01" min="0" name="line_id_{{ line.id }}_amount" value="{{ line.amount|floatformat:2 }}"
+                                       class="line-amount w-full pl-7 pr-3 py-2 text-sm text-right border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                        </div>
+                        <div class="col-span-5 md:col-span-2 flex justify-end">
+                            <label class="inline-flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs font-medium cursor-pointer hover:bg-red-100 transition">
+                                <input type="checkbox" name="line_id_{{ line.id }}_delete" class="line-delete">
+                                <i class="bi bi-trash3"></i> {% trans "Delete" %}
+                            </label>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-center text-slate-400 py-6">{% trans "No line items yet — add one below." %}</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Add new lines -->
+                <div class="px-4 pb-4 border-t border-slate-100 pt-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i class="bi bi-plus-circle text-emerald-600"></i>
+                        <span class="text-sm font-semibold text-slate-700">{% trans "Add manual line" %}</span>
+                    </div>
+                    <div id="newLinesContainer" class="space-y-2"></div>
+                    <button type="button" id="addLineBtn"
+                            class="mt-2 inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition">
+                        <i class="bi bi-plus-lg"></i> {% trans "Add another line" %}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Linked Change Orders -->
+            {% if linked_cos %}
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 flex items-center gap-2">
+                    <i class="bi bi-file-diff text-amber-500"></i>
+                    <h3 class="text-base font-semibold text-slate-900">{% trans "Linked Change Orders" %}</h3>
+                </div>
+                <div class="p-4 space-y-2">
+                    <p class="text-xs text-slate-500 mb-2">
+                        {% trans "Unlink a Change Order to revert it to Approved status. The invoice line stays unless you also delete it above." %}
+                    </p>
+                    {% for co in linked_cos %}
+                    <label class="flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-100 cursor-pointer transition">
+                        <div>
+                            <div class="text-sm font-semibold text-slate-900">CO #{{ co.id }}</div>
+                            <div class="text-xs text-slate-500">{{ co.title|default:co.description|truncatewords:8 }}</div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-bold text-emerald-600">${{ co.amount|floatformat:2 }}</span>
+                            <span class="inline-flex items-center gap-1 text-xs text-red-600">
+                                <input type="checkbox" name="remove_co_{{ co.id }}" class="form-check-input">
+                                {% trans "Unlink" %}
+                            </span>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden sticky top-20">
+                <div class="px-5 py-4 border-b border-slate-200 flex items-center gap-2">
+                    <i class="bi bi-calculator text-indigo-600"></i>
+                    <h3 class="text-base font-semibold text-slate-900">{% trans "Summary" %}</h3>
+                </div>
+                <div class="p-5 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-slate-500">{% trans "Current total" %}</span>
+                        <span class="text-sm font-semibold text-slate-900">${{ invoice.total_amount|floatformat:2|intcomma }}</span>
+                    </div>
+                    <hr class="border-slate-200">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-semibold text-slate-700">{% trans "New total" %}</span>
+                        <span id="sidebarTotal" class="text-2xl font-extrabold text-indigo-700">$0.00</span>
+                    </div>
+                    <button type="submit"
+                            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold rounded-lg transition shadow-sm">
+                        <i class="bi bi-check2-circle"></i> {% trans "Save Changes" %}
+                    </button>
+                    <a href="{% url 'invoice_detail' pk=invoice.id %}"
+                       class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 text-sm font-medium rounded-lg transition">
+                        {% trans "Discard" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+(function () {
+    "use strict";
+
+    const linesContainer = document.getElementById('linesContainer');
+    const newLinesContainer = document.getElementById('newLinesContainer');
+    const addLineBtn = document.getElementById('addLineBtn');
+    const sidebarTotal = document.getElementById('sidebarTotal');
+    const liveTotal = document.getElementById('liveTotal');
+
+    function fmt(n) {
+        return '$' + (n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function recalc() {
+        let total = 0;
+        // Existing lines (skip those marked delete)
+        document.querySelectorAll('.line-row').forEach(function (row) {
+            const del = row.querySelector('.line-delete');
+            if (del && del.checked) {
+                row.classList.add('opacity-40', 'line-through');
+                return;
+            }
+            row.classList.remove('opacity-40', 'line-through');
+            const amt = parseFloat(row.querySelector('.line-amount').value || '0');
+            if (!isNaN(amt)) total += amt;
+        });
+        // New lines
+        newLinesContainer.querySelectorAll('input[name="new_amount"]').forEach(function (inp) {
+            const v = parseFloat(inp.value || '0');
+            if (!isNaN(v)) total += v;
+        });
+        sidebarTotal.textContent = fmt(total);
+        liveTotal.textContent = fmt(total);
+    }
+
+    function newLineHTML() {
+        return `
+        <div class="grid grid-cols-12 gap-2 items-center p-3 bg-emerald-50 rounded-lg border border-emerald-100 new-line-row">
+            <div class="col-span-12 md:col-span-7">
+                <input type="text" name="new_description" placeholder="{% trans 'Description' %}"
+                       class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+            </div>
+            <div class="col-span-8 md:col-span-3">
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                    <input type="number" step="0.01" min="0" name="new_amount" placeholder="0.00"
+                           class="w-full pl-7 pr-3 py-2 text-sm text-right border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+            </div>
+            <div class="col-span-4 md:col-span-2 flex justify-end">
+                <button type="button" class="remove-new-line inline-flex items-center gap-1 px-3 py-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition">
+                    <i class="bi bi-x-lg"></i> {% trans "Remove" %}
+                </button>
+            </div>
+        </div>`;
+    }
+
+    addLineBtn.addEventListener('click', function () {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = newLineHTML().trim();
+        const node = wrapper.firstChild;
+        newLinesContainer.appendChild(node);
+        node.querySelector('input[name="new_description"]').focus();
+        recalc();
+    });
+
+    newLinesContainer.addEventListener('click', function (ev) {
+        const btn = ev.target.closest('.remove-new-line');
+        if (!btn) return;
+        btn.closest('.new-line-row').remove();
+        recalc();
+    });
+
+    document.addEventListener('input', function (ev) {
+        if (ev.target.matches('.line-amount, input[name="new_amount"]')) recalc();
+    });
+    document.addEventListener('change', function (ev) {
+        if (ev.target.matches('.line-delete')) recalc();
+    });
+
+    recalc();
+})();
+</script>
+{% endblock %}

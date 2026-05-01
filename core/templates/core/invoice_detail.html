@@ -219,6 +219,9 @@
             </div>
             <div class="p-5 space-y-2">
                 {% if invoice.status == 'DRAFT' %}
+                <a href="{% url 'invoice_edit' invoice.id %}" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-semibold rounded-lg transition shadow-sm">
+                    <i class="bi bi-pencil-square"></i> {% trans "Edit Invoice" %}
+                </a>
                 <form method="post" action="{% url 'invoice_mark_sent' invoice.id %}">{% csrf_token %}
                     <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold rounded-lg transition shadow-sm">
                         <i class="bi bi-send-fill"></i> {% trans "Mark as Sent" %}
