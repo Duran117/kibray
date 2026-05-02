@@ -48,10 +48,15 @@
                     </div>
                     <div class="card-body p-2 p-md-3">
                         {% if estimate %}
+                            <div class="alert alert-warning py-2 mb-3 small">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                <strong>{% trans "Important:" %}</strong>
+                                {% trans "Only enable this if you want to bill the base contract (estimate). To bill ONLY a Change Order, leave this unchecked." %}
+                            </div>
                             <div class="form-check form-switch mb-3">
-                                <input class="form-check-input estimate-checkbox" type="checkbox" name="include_estimate" id="include_estimate" checked style="width: 3em; height: 1.5em;">
+                                <input class="form-check-input estimate-checkbox" type="checkbox" name="include_estimate" id="include_estimate" style="width: 3em; height: 1.5em;">
                                 <label class="form-check-label ms-2" for="include_estimate">
-                                    <strong>{% trans "Estimate v" %}{{ estimate.version }}</strong>
+                                    <strong>{% trans "Include Estimate v" %}{{ estimate.version }}</strong>
                                     <span class="d-none d-md-inline"> - {% trans "Approved" %} {{ estimate.created_at|date:"M d, Y" }}</span>
                                 </label>
                             </div>
