@@ -35,7 +35,7 @@ def dashboard_pm(request):
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", None) if profile else None
     if not (request.user.is_superuser or role in ("admin", "project_manager") or request.user.is_staff):
-        messages.error(request, "Acceso solo para PM/Staff.")
+        messages.error(request, _("Acceso solo para PM/Staff."))
         return redirect("dashboard_employee")
 
     # Language prompt if user has no preference yet

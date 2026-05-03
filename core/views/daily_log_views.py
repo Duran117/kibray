@@ -117,7 +117,7 @@ def daily_log_detail(request, log_id):
 
     # Empleados no pueden ver
     if role == "employee":
-        messages.error(request, "No tienes permiso para ver Daily Logs")
+        messages.error(request, _("No tienes permiso para ver Daily Logs"))
         return redirect("dashboard_employee")
 
     # Clientes: verificar acceso al proyecto Y que esté publicado
@@ -127,7 +127,7 @@ def daily_log_detail(request, log_id):
             messages.error(request, _("You don't have access to this project."))
             return redirect("dashboard_client")
         if not log.is_published:
-            messages.error(request, "Este Daily Log no está disponible")
+            messages.error(request, _("Este Daily Log no está disponible"))
             return redirect("dashboard_client")
 
     # POST: Agregar más fotos
@@ -170,13 +170,13 @@ def daily_log_delete(request, log_id):
     can_delete = role in ROLES_STAFF
 
     if not can_delete:
-        messages.error(request, "You don't have permission to delete Daily Logs")
+        messages.error(request, _("You don't have permission to delete Daily Logs"))
         return redirect("daily_log_detail", log_id=log.id)
 
     if request.method == "POST":
         project_id = log.project_id
         log.delete()
-        messages.success(request, "Daily Log deleted successfully")
+        messages.success(request, _("Daily Log deleted successfully"))
         return redirect("daily_log", project_id=project_id)
 
     return render(
@@ -198,7 +198,7 @@ def daily_log_create(request, project_id):
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"]:
-        messages.error(request, "Only PM can create Daily Logs")
+        messages.error(request, _("Only PM can create Daily Logs"))
         return redirect("project_overview", project_id=project.id)
 
     # Helper function to configure formset querysets

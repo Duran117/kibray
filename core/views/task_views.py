@@ -213,7 +213,7 @@ def task_list_view(request, project_id: int):
                 inst.project = project
                 inst.save()
                 form.save_m2m()  # Save dependencies
-                messages.success(request, "Tarea creada.")
+                messages.success(request, _("Tarea creada."))
                 return redirect("task_list", project_id=project.id)
         else:
             form = task_form_cls(initial={"project": project})
@@ -262,7 +262,7 @@ def task_detail(request, task_id: int):
 def task_edit_view(request, task_id: int):
     task = get_object_or_404(Task, pk=task_id)
     if not request.user.is_staff:
-        messages.error(request, "Solo staff puede editar tareas.")
+        messages.error(request, _("Solo staff puede editar tareas."))
         return redirect("task_detail", task_id=task.id)
     from core.forms import TaskForm
 
@@ -270,7 +270,7 @@ def task_edit_view(request, task_id: int):
         form = TaskForm(request.POST, request.FILES, instance=task)
         if form.is_valid():
             form.save()
-            messages.success(request, "Tarea actualizada.")
+            messages.success(request, _("Tarea actualizada."))
             # Redirect to command center with project filter
             return redirect(f"/tasks/command-center/?project={task.project_id}")
     else:
@@ -283,12 +283,12 @@ def task_edit_view(request, task_id: int):
 def task_delete_view(request, task_id: int):
     task = get_object_or_404(Task, pk=task_id)
     if not request.user.is_staff:
-        messages.error(request, "Solo staff puede eliminar tareas.")
+        messages.error(request, _("Solo staff puede eliminar tareas."))
         return redirect("task_detail", task_id=task.id)
     if request.method == "POST":
         project_id = task.project_id
         task.delete()
-        messages.success(request, "Tarea eliminada.")
+        messages.success(request, _("Tarea eliminada."))
         # Redirect to command center with project filter
         return redirect(f"/tasks/command-center/?project={project_id}")
     return render(request, "core/task_confirm_delete.html", {"task": task})

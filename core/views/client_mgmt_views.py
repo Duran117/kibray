@@ -110,7 +110,7 @@ def client_create(request):
                 # No mostrar contraseña en UI - solo indicar que se creó
                 messages.success(
                     request,
-                    "Cliente creado exitosamente. Recuerda proporcionarle sus credenciales de acceso de forma segura.",
+                    _("Cliente creado exitosamente. Recuerda proporcionarle sus credenciales de acceso de forma segura."),
                 )
 
             return redirect("client_detail", user_id=user.id)
@@ -130,7 +130,7 @@ def client_detail(request, user_id):
 
     # Verificar que es un cliente
     if not hasattr(client, "profile") or client.profile.role != "client":
-        messages.error(request, "Este usuario no es un cliente.")
+        messages.error(request, _("Este usuario no es un cliente."))
         return redirect("client_list")
 
     # Obtener ClientContact si existe (cliente corporativo)
@@ -192,7 +192,7 @@ def client_edit(request, user_id):
 
     # Verificar que es un cliente
     if not hasattr(client, "profile") or client.profile.role != "client":
-        messages.error(request, "Este usuario no es un cliente.")
+        messages.error(request, _("Este usuario no es un cliente."))
         return redirect("client_list")
 
     if request.method == "POST":
@@ -205,7 +205,7 @@ def client_edit(request, user_id):
                 user.profile.language = form.cleaned_data.get("language", "en")
                 user.profile.save()
 
-            messages.success(request, "Información del cliente actualizada exitosamente.")
+            messages.success(request, _("Información del cliente actualizada exitosamente."))
             return redirect("client_detail", user_id=user.id)
     else:
         form = ClientEditForm(instance=client)
@@ -223,7 +223,7 @@ def client_delete(request, user_id):
 
     # Verificar que es un cliente
     if not hasattr(client, "profile") or client.profile.role != "client":
-        messages.error(request, "Este usuario no es un cliente.")
+        messages.error(request, _("Este usuario no es un cliente."))
         return redirect("client_list")
 
     if request.method == "POST":
@@ -299,7 +299,7 @@ def client_reset_password(request, user_id):
     client = get_object_or_404(User, id=user_id)
 
     if not hasattr(client, "profile") or client.profile.role != "client":
-        messages.error(request, "Este usuario no es un cliente.")
+        messages.error(request, _("Este usuario no es un cliente."))
         return redirect("client_list")
 
     if request.method == "POST":
@@ -352,7 +352,7 @@ def client_assign_project(request, user_id):
     client = get_object_or_404(User, id=user_id)
 
     if not hasattr(client, "profile") or client.profile.role != "client":
-        messages.error(request, "Este usuario no es un cliente.")
+        messages.error(request, _("Este usuario no es un cliente."))
         return redirect("client_list")
 
     if request.method == "POST":
@@ -361,7 +361,7 @@ def client_assign_project(request, user_id):
         access_role = request.POST.get("access_role", "client")  # Get role from form
 
         if not project_id:
-            messages.error(request, "Proyecto no especificado.")
+            messages.error(request, _("Proyecto no especificado."))
             return redirect("client_detail", user_id=client.id)
 
         project = get_object_or_404(Project, id=project_id)
@@ -386,13 +386,13 @@ def client_assign_project(request, user_id):
                 messages.info(request, f'El cliente ya tiene acceso al proyecto "{project.name}".')
 
         elif action == "remove":
-            deleted_count, _ = ClientProjectAccess.objects.filter(
+            deleted_count, __ = ClientProjectAccess.objects.filter(
                 user=client, project=project
             ).delete()
             if deleted_count > 0:
                 messages.success(request, f'Acceso al proyecto "{project.name}" removido.')
             else:
-                messages.info(request, "El cliente no tenía acceso a ese proyecto.")
+                messages.info(request, _("El cliente no tenía acceso a ese proyecto."))
         
         elif action == "update_role":
             # Update existing access role

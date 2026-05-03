@@ -63,14 +63,14 @@ def rfi_edit_view(request, rfi_id):
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("rfi_list", project_id=rfi.project_id)
 
     if request.method == "POST":
         form = RFIForm(request.POST, instance=rfi)
         if form.is_valid():
             form.save()
-            messages.success(request, "RFI actualizado.")
+            messages.success(request, _("RFI actualizado."))
             return redirect("rfi_list", project_id=rfi.project_id)
     else:
         form = RFIForm(instance=rfi)
@@ -85,13 +85,13 @@ def rfi_delete_view(request, rfi_id):
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("rfi_list", project_id=rfi.project_id)
 
     project_id = rfi.project_id
     if request.method == "POST":
         rfi.delete()
-        messages.success(request, "RFI eliminado.")
+        messages.success(request, _("RFI eliminado."))
         return redirect("rfi_list", project_id=project_id)
     return render(request, "core/rfi_confirm_delete.html", {"rfi": rfi})
 
@@ -120,14 +120,14 @@ def issue_edit_view(request, issue_id):
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("issue_list", project_id=issue.project_id)
 
     if request.method == "POST":
         form = IssueForm(request.POST, instance=issue)
         if form.is_valid():
             form.save()
-            messages.success(request, "Issue actualizado.")
+            messages.success(request, _("Issue actualizado."))
             return redirect("issue_list", project_id=issue.project_id)
     else:
         form = IssueForm(instance=issue)
@@ -144,13 +144,13 @@ def issue_delete_view(request, issue_id):
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("issue_list", project_id=issue.project_id)
 
     project_id = issue.project_id
     if request.method == "POST":
         issue.delete()
-        messages.success(request, "Issue eliminado.")
+        messages.success(request, _("Issue eliminado."))
         return redirect("issue_list", project_id=project_id)
     return render(request, "core/issue_confirm_delete.html", {"issue": issue})
 
@@ -179,14 +179,14 @@ def risk_edit_view(request, risk_id):
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("risk_list", project_id=risk.project_id)
 
     if request.method == "POST":
         form = RiskForm(request.POST, instance=risk)
         if form.is_valid():
             form.save()
-            messages.success(request, "Risk actualizado.")
+            messages.success(request, _("Risk actualizado."))
             return redirect("risk_list", project_id=risk.project_id)
     else:
         form = RiskForm(instance=risk)
@@ -203,13 +203,13 @@ def risk_delete_view(request, risk_id):
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("risk_list", project_id=risk.project_id)
 
     project_id = risk.project_id
     if request.method == "POST":
         risk.delete()
-        messages.success(request, "Risk eliminado.")
+        messages.success(request, _("Risk eliminado."))
         return redirect("risk_list", project_id=project_id)
     return render(request, "core/risk_confirm_delete.html", {"risk": risk})
 

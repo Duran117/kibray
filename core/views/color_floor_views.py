@@ -72,7 +72,7 @@ def color_sample_create(request, project_id):
             inst.project = project
             inst.created_by = request.user
             inst.save()
-            messages.success(request, "Color sample created.")
+            messages.success(request, _("Color sample created."))
             return redirect("color_sample_list", project_id=project_id)
     else:
         form = ColorSampleForm(initial={"project": project})
@@ -106,7 +106,7 @@ def color_sample_detail(request, sample_id):
             user=request.user, project=project
         ).exists() or project.client == request.user.username
         if not has_access:
-            messages.error(request, "You don't have access to this project.")
+            messages.error(request, _("You don't have access to this project."))
             return redirect("dashboard_client")
     
     return render(
@@ -131,7 +131,7 @@ def color_sample_review(request, sample_id):
         request.user.is_staff
         or (profile and profile.role in ["client", "project_manager", "designer"])
     ):
-        messages.error(request, "Access denied.")
+        messages.error(request, _("Access denied."))
         return redirect("dashboard")
 
     if request.method == "POST":
@@ -142,7 +142,7 @@ def color_sample_review(request, sample_id):
             # Validate status transition
             requested_status = inst.status
             if requested_status in ["approved", "rejected"] and not request.user.is_staff:
-                messages.error(request, "Only staff can approve or reject colors.")
+                messages.error(request, _("Only staff can approve or reject colors."))
             else:
                 if requested_status == "approved" and not inst.approved_by:
                     inst.approved_by = request.user
@@ -226,7 +226,7 @@ def color_sample_client_feedback(request, sample_id):
     # Check access - client must have access to this project
     profile = getattr(request.user, "profile", None)
     if not profile:
-        messages.error(request, "Access denied.")
+        messages.error(request, _("Access denied."))
         return redirect("dashboard")
     
     # Allow clients, PMs, and staff
@@ -236,10 +236,10 @@ def color_sample_client_feedback(request, sample_id):
             user=request.user, project=project
         ).exists() or project.client == request.user.username
         if not has_access:
-            messages.error(request, "You don't have access to this project.")
+            messages.error(request, _("You don't have access to this project."))
             return redirect("dashboard_client")
     elif profile.role not in ["project_manager", "designer"] and not request.user.is_staff:
-        messages.error(request, "Access denied.")
+        messages.error(request, _("Access denied."))
         return redirect("dashboard")
     
     if request.method == "POST":
@@ -290,14 +290,14 @@ def color_sample_edit(request, sample_id):
     profile = getattr(request.user, "profile", None)
 
     if not (request.user.is_staff or (profile and profile.role in ["client", "project_manager"])):
-        messages.error(request, "Access denied.")
+        messages.error(request, _("Access denied."))
         return redirect("color_sample_detail", sample_id=sample_id)
 
     if request.method == "POST":
         form = ColorSampleForm(request.POST, request.FILES, instance=sample)
         if form.is_valid():
             form.save()
-            messages.success(request, "Color sample updated.")
+            messages.success(request, _("Color sample updated."))
             return redirect("color_sample_detail", sample_id=sample_id)
     else:
         form = ColorSampleForm(instance=sample)
@@ -322,13 +322,13 @@ def color_sample_delete(request, sample_id):
     profile = getattr(request.user, "profile", None)
 
     if not (request.user.is_staff or (profile and profile.role == "project_manager")):
-        messages.error(request, "Access denied.")
+        messages.error(request, _("Access denied."))
         return redirect("color_sample_detail", sample_id=sample_id)
 
     if request.method == "POST":
         project_id = sample.project.id
         sample.delete()
-        messages.success(request, "Color sample deleted.")
+        messages.success(request, _("Color sample deleted."))
         return redirect("color_sample_list", project_id=project_id)
 
     return render(
@@ -402,7 +402,7 @@ def floor_plan_create(request, project_id):
             inst.project = project
             inst.created_by = request.user
             inst.save()
-            messages.success(request, "Plano subido.")
+            messages.success(request, _("Plano subido."))
             return redirect("floor_plan_list", project_id=project_id)
     else:
         form = FloorPlanForm()
@@ -572,13 +572,13 @@ def floor_plan_edit(request, plan_id):
     project = plan.project
     profile = getattr(request.user, "profile", None)
     if not (request.user.is_staff or (profile and profile.role in ["project_manager"])):
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("floor_plan_detail", plan_id=plan.id)
     if request.method == "POST":
         form = FloorPlanForm(request.POST, request.FILES, instance=plan)
         if form.is_valid():
             form.save()
-            messages.success(request, "Plano actualizado.")
+            messages.success(request, _("Plano actualizado."))
             return redirect("floor_plan_detail", plan_id=plan.id)
     else:
         form = FloorPlanForm(instance=plan)
@@ -601,12 +601,12 @@ def floor_plan_delete(request, plan_id):
     project = plan.project
     profile = getattr(request.user, "profile", None)
     if not (request.user.is_staff or (profile and profile.role in ["project_manager"])):
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("floor_plan_detail", plan_id=plan.id)
     if request.method == "POST":
         project_id = project.id
         plan.delete()
-        messages.success(request, "Plano eliminado.")
+        messages.success(request, _("Plano eliminado."))
         return redirect("floor_plan_list", project_id=project_id)
     return render(
         request,
@@ -670,7 +670,7 @@ def floor_plan_add_pin(request, plan_id):
             x = Decimal(request.POST.get("x"))
             y = Decimal(request.POST.get("y"))
         except Exception:
-            messages.error(request, "Coordenadas inválidas.")
+            messages.error(request, _("Coordenadas inválidas."))
             return redirect("floor_plan_detail", plan_id=plan.id)
 
         # Capturar datos de trayectoria multipunto si existen
@@ -718,7 +718,7 @@ def floor_plan_add_pin(request, plan_id):
                 from core.notifications import notify_damage_reported
 
                 notify_damage_reported(dr, request.user)
-            messages.success(request, "Pin agregado.")
+            messages.success(request, _("Pin agregado."))
             return redirect("floor_plan_detail", plan_id=plan.id)
     else:
         form = PlanPinForm()

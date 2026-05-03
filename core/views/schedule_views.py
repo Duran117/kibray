@@ -132,7 +132,7 @@ def schedule_generator_view(request, project_id):
                 messages.success(request, f'Fase "{phase.name}" creada.')
                 return redirect("schedule_generator", project_id=project.id)
             else:
-                messages.error(request, "Error al crear fase.")
+                messages.error(request, _("Error al crear fase."))
 
         # Create item
         elif action == "create_item" and can_manage:
@@ -144,7 +144,7 @@ def schedule_generator_view(request, project_id):
             if not phase_id and not new_cat_name:
                 messages.error(
                     request,
-                    "Debes seleccionar una fase existente o escribir el nombre de una nueva.",
+                    _("Debes seleccionar una fase existente o escribir el nombre de una nueva."),
                 )
                 return redirect("schedule_generator", project_id=project.id)
 
@@ -172,7 +172,7 @@ def schedule_generator_view(request, project_id):
                 )
                 messages.success(request, f'Ítem "{item.name}" creado.')
             else:
-                messages.error(request, "Error al crear ítem. Verifica los campos.")
+                messages.error(request, _("Error al crear ítem. Verifica los campos."))
             return redirect("schedule_generator", project_id=project.id)
 
         # Update item progress

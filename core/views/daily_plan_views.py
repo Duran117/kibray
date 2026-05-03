@@ -338,7 +338,7 @@ def daily_plan_create(request, project_id):
                 plan_date = datetime.strptime(plan_date_str, "%Y-%m-%d").date()
             except ValueError:
                 # Invalid date format: re-render form with error instead of raising exception
-                messages.error(request, "Invalid date format")
+                messages.error(request, _("Invalid date format"))
                 from core.services.planning_service import get_suggested_items_for_date
 
                 target_date = timezone.now().date() + timedelta(days=1)
@@ -357,7 +357,7 @@ def daily_plan_create(request, project_id):
                 )
 
         if not plan_date:
-            messages.error(request, "Plan date is required")
+            messages.error(request, _("Plan date is required"))
             return redirect("daily_planning_dashboard")
 
         # Check if plan already exists
@@ -728,7 +728,7 @@ def daily_plan_delete_activity(request, activity_id):
 
     if request.method == "POST":
         activity.delete()
-        messages.success(request, "Activity deleted")
+        messages.success(request, _("Activity deleted"))
 
     return redirect("daily_plan_edit", plan_id=plan_id)
 
@@ -788,7 +788,7 @@ def employee_morning_dashboard(request):
     try:
         employee = request.user.employee
     except Exception:
-        messages.error(request, "You are not registered as an employee")
+        messages.error(request, _("You are not registered as an employee"))
         return redirect("dashboard")
 
     today = timezone.now().date()
@@ -824,7 +824,7 @@ def activity_complete(request, activity_id):
     try:
         employee = request.user.employee
     except Exception:
-        messages.error(request, "You are not registered as an employee")
+        messages.error(request, _("You are not registered as an employee"))
         return redirect("dashboard")
 
     # Check if employee is assigned
@@ -974,7 +974,7 @@ def sop_create_edit(request, template_id=None):
                 for f in uploaded_files:
                     SOPReferenceFile.objects.create(sop=sop, file=f)
 
-            messages.success(request, "SOP saved successfully!")
+            messages.success(request, _("SOP saved successfully!"))
             return redirect("sop_library")
     else:
         form = ActivityTemplateForm(instance=instance)

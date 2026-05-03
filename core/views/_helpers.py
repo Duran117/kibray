@@ -208,7 +208,7 @@ def _is_admin_user(user):
 def _require_admin_or_redirect(request):
     """SECURITY: Guard for admin-only views. Returns None if admin, redirect otherwise."""
     if not _is_admin_user(request.user):
-        messages.error(request, "No tienes permiso para acceder a esta función.")
+        messages.error(request, _("No tienes permiso para acceder a esta función."))
         return redirect("dashboard")
     return None
 
@@ -221,7 +221,7 @@ def _require_roles(request, allowed_roles, *, allow_staff=True):
     role = getattr(profile, "role", None)
     if role in allowed_roles:
         return None
-    messages.error(request, "No tienes permiso para acceder a esta función.")
+    messages.error(request, _("No tienes permiso para acceder a esta función."))
     return redirect("dashboard")
 
 
@@ -259,7 +259,7 @@ def staff_required(view_func):
             return view_func(request, *args, **kwargs)
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return HttpResponseForbidden("Forbidden")
-        messages.error(request, "No tienes permisos para esta acción.")
+        messages.error(request, _("No tienes permisos para esta acción."))
         project_id = kwargs.get("project_id")
         return (
             redirect("project_ev", project_id=project_id) if project_id else redirect("dashboard")

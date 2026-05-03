@@ -410,7 +410,7 @@ def changeorder_contractor_signature_view(request, changeorder_id):
 
     # Check if contractor already signed
     if changeorder.contractor_signature:
-        messages.info(request, "Este Change Order ya fue firmado por el contratista.")
+        messages.info(request, _("Este Change Order ya fue firmado por el contratista."))
         return redirect("changeorder_detail", changeorder_id=changeorder.id)
 
     if request.method == "POST":
@@ -424,7 +424,7 @@ def changeorder_contractor_signature_view(request, changeorder_id):
         signer_name = request.POST.get("signer_name", "").strip() or request.user.get_full_name() or request.user.username
 
         if not signature_data:
-            messages.error(request, "Por favor dibuja tu firma antes de continuar.")
+            messages.error(request, _("Por favor dibuja tu firma antes de continuar."))
             return render(
                 request,
                 "core/changeorder_contractor_signature_form.html",

@@ -67,7 +67,7 @@ def project_minute_create(request, project_id):
 
     # Solo admin/staff pueden crear minutas
     if not (request.user.is_staff or request.user.is_superuser):
-        messages.error(request, "No tienes permisos para crear minutas.")
+        messages.error(request, _("No tienes permisos para crear minutas."))
         return redirect("project_minutes_list", project_id=project.id)
 
     from core.models import ProjectMinute
@@ -82,7 +82,7 @@ def project_minute_create(request, project_id):
         attachment = request.FILES.get("attachment")
 
         if not title or not event_date_str:
-            messages.error(request, "Título y fecha son requeridos.")
+            messages.error(request, _("Título y fecha son requeridos."))
         else:
             try:
                 event_date = timezone.datetime.fromisoformat(event_date_str)
@@ -100,7 +100,7 @@ def project_minute_create(request, project_id):
                 visible_to_client=visible_to_client,
                 created_by=request.user,
             )
-            messages.success(request, "Minuta creada exitosamente.")
+            messages.success(request, _("Minuta creada exitosamente."))
             return redirect("project_minutes_list", project_id=project.id)
 
     context = {
@@ -123,7 +123,7 @@ def project_minute_detail(request, minute_id):
 
     # Verificar permisos
     if not (request.user.is_staff or request.user.is_superuser or minute.visible_to_client):
-        messages.error(request, "No tienes permisos para ver esta minuta.")
+        messages.error(request, _("No tienes permisos para ver esta minuta."))
         return redirect("project_minutes_list", project_id=minute.project.id)
 
     context = {
@@ -145,7 +145,7 @@ def project_minute_edit(request, minute_id):
 
     # Solo admin/staff pueden editar
     if not (request.user.is_staff or request.user.is_superuser):
-        messages.error(request, "No tienes permisos para editar minutas.")
+        messages.error(request, _("No tienes permisos para editar minutas."))
         return redirect("project_minute_detail", minute_id=minute.id)
 
     if request.method == "POST":
@@ -167,7 +167,7 @@ def project_minute_edit(request, minute_id):
             minute.attachment = attachment
 
         minute.save()
-        messages.success(request, "Minuta actualizada exitosamente.")
+        messages.success(request, _("Minuta actualizada exitosamente."))
         return redirect("project_minute_detail", minute_id=minute.id)
 
     context = {
@@ -190,12 +190,12 @@ def project_minute_delete(request, minute_id):
 
     # Solo admin/staff pueden eliminar
     if not (request.user.is_staff or request.user.is_superuser):
-        messages.error(request, "No tienes permisos para eliminar minutas.")
+        messages.error(request, _("No tienes permisos para eliminar minutas."))
         return redirect("project_minute_detail", minute_id=minute.id)
 
     if request.method == "POST":
         minute.delete()
-        messages.success(request, "Minuta eliminada exitosamente.")
+        messages.success(request, _("Minuta eliminada exitosamente."))
         return redirect("project_minutes_list", project_id=project_id)
 
     return redirect("project_minute_detail", minute_id=minute.id)
@@ -211,7 +211,7 @@ def minute_comment_add(request, minute_id):
 
     # Verificar que puede ver la minuta
     if not (request.user.is_staff or request.user.is_superuser or minute.visible_to_client):
-        messages.error(request, "No tienes permisos.")
+        messages.error(request, _("No tienes permisos."))
         return redirect("project_minutes_list", project_id=minute.project.id)
 
     if request.method == "POST":
@@ -222,9 +222,9 @@ def minute_comment_add(request, minute_id):
                 author=request.user,
                 content=content,
             )
-            messages.success(request, "Comentario agregado.")
+            messages.success(request, _("Comentario agregado."))
         else:
-            messages.error(request, "El comentario no puede estar vacío.")
+            messages.error(request, _("El comentario no puede estar vacío."))
 
     # Redireccionar según de dónde vino
     next_url = request.POST.get("next", "")
@@ -244,12 +244,12 @@ def minute_comment_delete(request, comment_id):
 
     # Solo el autor o admin puede eliminar
     if not (request.user == comment.author or request.user.is_staff or request.user.is_superuser):
-        messages.error(request, "No tienes permisos para eliminar este comentario.")
+        messages.error(request, _("No tienes permisos para eliminar este comentario."))
         return redirect("project_minute_detail", minute_id=minute_id)
 
     if request.method == "POST":
         comment.delete()
-        messages.success(request, "Comentario eliminado.")
+        messages.success(request, _("Comentario eliminado."))
 
     return redirect("project_minute_detail", minute_id=minute_id)
 

@@ -30,12 +30,12 @@ from django.utils.translation import gettext_lazy as _  # noqa: F811
 
 
 def _ensure_default_channels(project, user):
-    group, _ = ChatChannel.objects.get_or_create(
+    group, __ = ChatChannel.objects.get_or_create(
         project=project,
         name="Group",
         defaults={"channel_type": "group", "is_default": True, "created_by": user},
     )
-    direct, _ = ChatChannel.objects.get_or_create(
+    direct, __ = ChatChannel.objects.get_or_create(
         project=project,
         name="Direct",
         defaults={"channel_type": "direct", "is_default": True, "created_by": user},
@@ -110,7 +110,7 @@ def project_chat_premium(request, project_id, channel_id=None):
         channel = get_object_or_404(ChatChannel, id=channel_id, project=project)
         # Access control
         if not (request.user.is_staff or channel.participants.filter(id=request.user.id).exists()):
-            messages.error(request, "No tienes acceso a este canal.")
+            messages.error(request, _("No tienes acceso a este canal."))
             return redirect("project_chat_premium", project_id=project.id)
     else:
         # Default to group channel
@@ -148,7 +148,7 @@ def project_chat_premium(request, project_id, channel_id=None):
                 messages.success(request, f"Canal '{channel_name}' creado.")
                 return redirect("project_chat_premium_channel", project_id=project.id, channel_id=new_channel.id)
             else:
-                messages.error(request, "El nombre del canal es requerido.")
+                messages.error(request, _("El nombre del canal es requerido."))
         
         elif action == "invite":
             username = (request.POST.get("username") or "").strip()
@@ -158,12 +158,12 @@ def project_chat_premium(request, project_id, channel_id=None):
                 channel.participants.add(u)
                 messages.success(request, _("%(username)s invitado al canal.") % {"username": username})
             except DjangoUser.DoesNotExist:
-                messages.error(request, "Usuario no encontrado.")
+                messages.error(request, _("Usuario no encontrado."))
             return redirect("project_chat_premium_channel", project_id=project.id, channel_id=channel.id)
         
         elif action == "delete_channel":
             if channel.is_default:
-                messages.error(request, "No puedes eliminar el canal por defecto.")
+                messages.error(request, _("No puedes eliminar el canal por defecto."))
             else:
                 channel_name = channel.name
                 channel.delete()
@@ -229,10 +229,10 @@ def agregar_comentario(request, project_id):
     has_access = ClientProjectAccess.objects.filter(user=request.user, project=project).exists()
     if profile and profile.role == "client":
         if not (has_access or project.client == request.user.username):
-            messages.error(request, "No tienes acceso a este proyecto.")
+            messages.error(request, _("No tienes acceso a este proyecto."))
             return redirect("dashboard_client")
     elif not request.user.is_staff and not has_access:
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("dashboard")
 
     if request.method == "POST":
@@ -240,14 +240,14 @@ def agregar_comentario(request, project_id):
         image = request.FILES.get("image")
 
         if not text and not image:
-            messages.error(request, "Debes agregar texto o imagen.")
+            messages.error(request, _("Debes agregar texto o imagen."))
             return redirect("client_project_view", project_id=project_id)
 
         Comment.objects.create(
             project=project, user=request.user, text=text or "Imagen adjunta", image=image
         )
 
-        messages.success(request, "Comentario agregado exitosamente.")
+        messages.success(request, _("Comentario agregado exitosamente."))
         return redirect("client_project_view", project_id=project_id)
 
     return render(request, "core/agregar_comentario.html", {"project": project})

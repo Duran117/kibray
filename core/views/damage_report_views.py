@@ -115,13 +115,13 @@ def damage_report_edit(request, report_id):
         or (request.user == report.reported_by)
     )
     if not can_edit:
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("damage_report_detail", report_id=report.id)
     if request.method == "POST":
         form = DamageReportForm(project, request.POST, request.FILES, instance=report)
         if form.is_valid():
             form.save()
-            messages.success(request, "Reporte actualizado.")
+            messages.success(request, _("Reporte actualizado."))
             return redirect("damage_report_detail", report_id=report.id)
     else:
         form = DamageReportForm(project, instance=report)
@@ -152,12 +152,12 @@ def damage_report_delete(request, report_id):
         or (request.user == report.reported_by)
     )
     if not can_delete:
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("damage_report_detail", report_id=report.id)
     if request.method == "POST":
         project_id = project.id
         report.delete()
-        messages.success(request, "Reporte de daño eliminado.")
+        messages.success(request, _("Reporte de daño eliminado."))
         return redirect("damage_report_list", project_id=project_id)
     return render(
         request,

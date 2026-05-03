@@ -33,7 +33,7 @@ def dashboard_client(request):
     """Client visual dashboard with progress, photos, invoices"""
     profile = getattr(request.user, "profile", None)
     if not profile or profile.role != "client":
-        messages.error(request, "Access restricted to clients only.")
+        messages.error(request, _("Access restricted to clients only."))
         return redirect("dashboard")
 
     # Activate user's preferred language

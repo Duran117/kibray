@@ -114,7 +114,7 @@ def payroll_weekly_review(request):
                         existing_entry.delete()
                 
                 # Actualizar PayrollRecord
-                record, _ = PayrollRecord.objects.get_or_create(
+                record, __ = PayrollRecord.objects.get_or_create(
                     period=period,
                     employee=emp,
                     week_start=week_start,
@@ -240,7 +240,7 @@ def payroll_weekly_review(request):
                 except (ValueError, InvalidOperation) as e:
                     messages.warning(request, f"Error procesando pago para {emp.first_name}: {str(e)}")
 
-            messages.success(request, "Nómina actualizada correctamente.")
+            messages.success(request, _("Nómina actualizada correctamente."))
             return redirect(f"{request.path}?week_start={week_start.isoformat()}")
 
     # Preparar datos de cada empleado
@@ -439,7 +439,7 @@ def payroll_record_payment(request, record_id):
             # Redirigir de vuelta a la revisión semanal
             return redirect("payroll_weekly_review")
         else:
-            messages.error(request, "Monto y fecha de pago son requeridos.")
+            messages.error(request, _("Monto y fecha de pago son requeridos."))
 
     return render(
         request,
@@ -598,7 +598,7 @@ def employee_savings_ledger(request, employee_id=None):
                                 }
                             )
                 except Employee.DoesNotExist:
-                    messages.error(request, "Employee not found.")
+                    messages.error(request, _("Employee not found."))
                 except Exception as e:
                     messages.error(request, f"Error: {str(e)}")
                 

@@ -1511,7 +1511,7 @@ def estimate_send_email(request, estimate_id):
                     html_content=html_body,
                     fail_silently=False
                 )
-                messages.success(request, "Propuesta enviada correctamente al cliente.")
+                messages.success(request, _("Propuesta enviada correctamente al cliente."))
             except Exception as e:
                 success_flag = False
                 error_msg = str(e)

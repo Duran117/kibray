@@ -179,7 +179,7 @@ def touchup_plans_list(request, project_id):
         or profile.role
         not in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
     ):
-        messages.error(request, "No tienes permiso para gestionar touch-ups")
+        messages.error(request, _("No tienes permiso para gestionar touch-ups"))
         return redirect("project_overview", project_id)
 
     # Get plans with active touch-ups
@@ -220,7 +220,7 @@ def touchup_plan_detail(request, plan_id):
         "owner",
     ]
     if not request.user.is_staff and (not profile or profile.role not in allowed_roles):
-        messages.error(request, "No tienes permiso para ver touch-ups")
+        messages.error(request, _("No tienes permiso para ver touch-ups"))
         return redirect("project_overview", project.id)
 
     # Get touchups - filter by assigned user if employee
@@ -365,7 +365,7 @@ def touchup_update(request, touchup_id):
         form = TouchUpPinForm(request.POST, instance=touchup, project=touchup.plan.project)
         if form.is_valid():
             form.save()
-            messages.success(request, "Touch-up actualizado")
+            messages.success(request, _("Touch-up actualizado"))
             return JsonResponse({"success": True, "message": gettext("Touch-up actualizado")})
         else:
             return JsonResponse({"error": "Formulario inválido", "errors": form.errors}, status=400)
@@ -636,7 +636,7 @@ def pin_update(request, pin_id):
 
         pin.save()
 
-        messages.success(request, "Pin actualizado exitosamente")
+        messages.success(request, _("Pin actualizado exitosamente"))
         return JsonResponse({"success": True, "message": gettext("Pin actualizado")})
 
     return JsonResponse({"error": gettext("Método no permitido")}, status=405)

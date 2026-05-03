@@ -35,7 +35,7 @@ def dashboard_employee(request):
     # Obtener empleado ligado al usuario
     employee = Employee.objects.filter(user=request.user).first()
     if not employee:
-        messages.error(request, "Tu usuario no está vinculado a un empleado.")
+        messages.error(request, _("Tu usuario no está vinculado a un empleado."))
         # NOTE: keep legacy template only (clean template was removed)
         return render(
             request,

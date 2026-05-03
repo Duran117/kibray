@@ -562,7 +562,7 @@ def executive_bi_dashboard(request):
     Supports cache invalidation via ?refresh query parameter.
     """
     if not (request.user.is_superuser or request.user.is_staff):
-        messages.error(request, "Acceso solo para Admin/Staff.")
+        messages.error(request, _("Acceso solo para Admin/Staff."))
         return redirect("dashboard")
 
     # Check if refresh is requested
@@ -615,7 +615,7 @@ def master_schedule_center(request):
     Requires admin/staff access. Data loaded via /api/v1/gantt/v2/master/.
     """
     if not (request.user.is_superuser or request.user.is_staff):
-        messages.error(request, "Acceso solo para Admin/Staff.")
+        messages.error(request, _("Acceso solo para Admin/Staff."))
         return redirect("dashboard")
 
     from django.contrib.auth import get_user_model

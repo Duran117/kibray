@@ -96,14 +96,14 @@ def project_activation_view(request, project_id):
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"]:
-        messages.error(request, "No tienes permisos para activar proyectos")
+        messages.error(request, _("No tienes permisos para activar proyectos"))
         return redirect("dashboard")
 
     # Get approved estimate
     estimate = project.estimates.filter(approved=True).order_by("-version").first()
 
     if not estimate:
-        messages.error(request, "No hay estimado aprobado para este proyecto")
+        messages.error(request, _("No hay estimado aprobado para este proyecto"))
         return redirect("project_overview", project_id=project.id)
 
     # Check if already activated
@@ -169,7 +169,7 @@ def project_activation_view(request, project_id):
                 if summary["invoice_created"]:
                     msg_parts.append(f"✓ Factura de anticipo creada (${summary['invoice_amount']})")
 
-                messages.success(request, " | ".join(msg_parts))
+                messages.success(request, _(" | ").join(msg_parts))
 
                 # Redirect to Gantt if schedule was created, otherwise to project detail
                 if create_schedule:
@@ -352,8 +352,8 @@ def project_delete(request, project_id):
         ):
             messages.error(
                 request,
-                "❌ No se puede eliminar este proyecto porque tiene datos financieros o operacionales asociados. "
-                "Considera marcarlo como completado en lugar de eliminarlo para preservar la integridad de los datos.",
+                _("❌ No se puede eliminar este proyecto porque tiene datos financieros o operacionales asociados. "
+                  "Considera marcarlo como completado en lugar de eliminarlo para preservar la integridad de los datos."),
             )
             return redirect("project_overview", project_id=project.id)
 

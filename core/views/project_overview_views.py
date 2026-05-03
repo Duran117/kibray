@@ -30,7 +30,7 @@ from django.utils.translation import gettext_lazy as _  # noqa: F811
 @login_required
 def project_overview(request, project_id: int):
     if not request.user.is_staff:
-        messages.error(request, "Acceso solo para PM/Staff.")
+        messages.error(request, _("Acceso solo para PM/Staff."))
         return redirect("dashboard_employee")
 
     project = get_object_or_404(Project, pk=project_id)
@@ -337,7 +337,7 @@ def project_critical_path(request, project_id: int):
     ``critical_only=1`` — filter the rendered table to critical tasks only.
     """
     if not request.user.is_staff:
-        messages.error(request, "Acceso solo para PM/Staff.")
+        messages.error(request, _("Acceso solo para PM/Staff."))
         return redirect("dashboard_employee")
 
     project = get_object_or_404(Project, pk=project_id)

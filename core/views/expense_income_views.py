@@ -106,13 +106,13 @@ def income_edit_view(request, income_id):
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("income_list")
     if request.method == "POST":
         form = IncomeForm(request.POST, request.FILES, instance=income)
         if form.is_valid():
             form.save()
-            messages.success(request, "Ingreso actualizado.")
+            messages.success(request, _("Ingreso actualizado."))
             return redirect("income_list")
     else:
         form = IncomeForm(instance=income)
@@ -128,11 +128,11 @@ def income_delete_view(request, income_id):
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("income_list")
     if request.method == "POST":
         income.delete()
-        messages.success(request, "Ingreso eliminado.")
+        messages.success(request, _("Ingreso eliminado."))
         return redirect("income_list")
     return render(request, "core/income_confirm_delete.html", {"income": income})
 
@@ -162,13 +162,13 @@ def expense_edit_view(request, expense_id):
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("expense_list")
     if request.method == "POST":
         form = ExpenseForm(request.POST, request.FILES, instance=expense)
         if form.is_valid():
             form.save()
-            messages.success(request, "Gasto actualizado.")
+            messages.success(request, _("Gasto actualizado."))
             return redirect("expense_list")
     else:
         form = ExpenseForm(instance=expense)
@@ -196,11 +196,11 @@ def expense_delete_view(request, expense_id):
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"] and not request.user.is_staff:
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("expense_list")
     if request.method == "POST":
         expense.delete()
-        messages.success(request, "Gasto eliminado.")
+        messages.success(request, _("Gasto eliminado."))
         return redirect("expense_list")
     return render(request, "core/expense_confirm_delete.html", {"expense": expense})
 
@@ -222,7 +222,7 @@ def timeentry_create_view(request):
                 emp = Employee.objects.filter(user=request.user).first()
             entry.employee = emp
             entry.save()
-            messages.success(request, "Horas registradas.")
+            messages.success(request, _("Horas registradas."))
             return redirect("dashboard")
     else:
         form = TimeEntryForm()
@@ -243,14 +243,14 @@ def timeentry_edit_view(request, entry_id: int):
     is_staff_pm = role in ROLES_STAFF or request.user.is_staff
     is_owner = bool(getattr(entry.employee, "user_id", None) == request.user.id)
     if not (is_staff_pm or is_owner):
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("dashboard")
 
     if request.method == "POST":
         form = TimeEntryForm(request.POST, instance=entry)
         if form.is_valid():
             form.save()
-            messages.success(request, "Registro de horas actualizado.")
+            messages.success(request, _("Registro de horas actualizado."))
             return redirect("dashboard")
     else:
         form = TimeEntryForm(instance=entry)
@@ -270,12 +270,12 @@ def timeentry_delete_view(request, entry_id: int):
     is_staff_pm = role in ROLES_STAFF or request.user.is_staff
     is_owner = bool(getattr(entry.employee, "user_id", None) == request.user.id)
     if not (is_staff_pm or is_owner):
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect("dashboard")
 
     if request.method == "POST":
         entry.delete()
-        messages.success(request, "Registro de horas eliminado.")
+        messages.success(request, _("Registro de horas eliminado."))
         return redirect("dashboard")
     return render(request, "core/timeentry_confirm_delete.html", {"timeentry": entry})
 
@@ -363,11 +363,11 @@ def manual_timeentry_create(request):
                 return redirect(f"/payroll/week/?week_start={week_start.isoformat()}")
                 
             except Employee.DoesNotExist:
-                messages.error(request, "Employee not found.")
+                messages.error(request, _("Employee not found."))
             except Project.DoesNotExist:
-                messages.error(request, "Project not found.")
+                messages.error(request, _("Project not found."))
             except ChangeOrder.DoesNotExist:
-                messages.error(request, "Change Order not found.")
+                messages.error(request, _("Change Order not found."))
             except Exception as e:
                 messages.error(request, f"Error creating time entry: {str(e)}")
         else:
@@ -430,7 +430,7 @@ def unassigned_timeentries_view(request):
             )
             if diff:
                 messages.error(
-                    request, "Selecciona registros del mismo proyecto que el CO elegido."
+                    request, _("Selecciona registros del mismo proyecto que el CO elegido.")
                 )
                 return redirect(request.get_full_path())
             updated = TimeEntry.objects.filter(
@@ -454,7 +454,7 @@ def unassigned_timeentries_view(request):
             if not project_for_new:
                 messages.error(
                     request,
-                    "No se puede crear CO sin proyecto asociado en los registros seleccionados.",
+                    _("No se puede crear CO sin proyecto asociado en los registros seleccionados."),
                 )
             else:
                 # validar que todos pertenecen al mismo proyecto
@@ -464,7 +464,7 @@ def unassigned_timeentries_view(request):
                     .exists()
                 )
                 if mixed:
-                    messages.error(request, "Para crear CO, selecciona filas de un solo proyecto.")
+                    messages.error(request, _("Para crear CO, selecciona filas de un solo proyecto."))
                     return redirect(request.get_full_path())
                 description = request.POST.get("new_co_description", "Trabajo adicional")
                 amount = request.POST.get("new_co_amount") or "0"

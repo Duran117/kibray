@@ -120,13 +120,13 @@ def proposal_public_view(request, token):
             if contract_url:
                 messages.success(
                     request,
-                    "Thank you! Your estimate has been approved. Please review and sign the contract to proceed."
+                    _("Thank you! Your estimate has been approved. Please review and sign the contract to proceed.")
                 )
                 return redirect(contract_url)
             else:
                 messages.success(
                     request,
-                    "Thank you! We have received your approval. We will begin working on your project."
+                    _("Thank you! We have received your approval. We will begin working on your project.")
                 )
 
         elif action == "reject":
@@ -135,7 +135,7 @@ def proposal_public_view(request, token):
             proposal.save(update_fields=["client_comment"])
             messages.info(
                 request,
-                "We have received your comments. Our team will contact you soon."
+                _("We have received your comments. Our team will contact you soon.")
             )
             # Notify admins/PMs about proposal rejection
             staff_users = User.objects.filter(
@@ -310,7 +310,7 @@ def contract_client_view(request, token):
             signature_data_b64 = request.POST.get("signature_data", "")
             
             if not client_name:
-                messages.error(request, "Please enter your full name to sign the contract.")
+                messages.error(request, _("Please enter your full name to sign the contract."))
             else:
                 try:
                     # Decode signature if provided
@@ -340,8 +340,8 @@ def contract_client_view(request, token):
                     
                     messages.success(
                         request,
-                        "Thank you! Your contract has been signed successfully. "
-                        "You will receive a confirmation email shortly."
+                        _("Thank you! Your contract has been signed successfully. "
+                          "You will receive a confirmation email shortly.")
                     )
                     
                     # Notify admins of signed contract
@@ -366,13 +366,13 @@ def contract_client_view(request, token):
                     
                 except Exception as e:
                     logger.error(f"Error signing contract {contract.contract_number}: {e}")
-                    messages.error(request, "An error occurred while signing. Please try again.")
+                    messages.error(request, _("An error occurred while signing. Please try again."))
         
         elif action == "request_revision" and contract.status in ['pending_signature', 'revision_requested']:
             revision_notes = request.POST.get("revision_notes", "").strip()
             
             if not revision_notes:
-                messages.error(request, "Please provide details about the changes you need.")
+                messages.error(request, _("Please provide details about the changes you need."))
             else:
                 try:
                     contract = ContractService.request_revision(
@@ -382,8 +382,8 @@ def contract_client_view(request, token):
                     
                     messages.info(
                         request,
-                        "Your revision request has been submitted. "
-                        "Our team will review and contact you soon."
+                        _("Your revision request has been submitted. "
+                          "Our team will review and contact you soon.")
                     )
                     
                     # Notify admins of revision request
@@ -407,7 +407,7 @@ def contract_client_view(request, token):
                     
                 except Exception as e:
                     logger.error(f"Error requesting revision for {contract.contract_number}: {e}")
-                    messages.error(request, "An error occurred. Please try again.")
+                    messages.error(request, _("An error occurred. Please try again."))
     
     # Build context
     context = {

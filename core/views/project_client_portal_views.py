@@ -393,11 +393,11 @@ def client_financials_view(request, project_id):
     
     if profile and profile.role == "client":
         if not (has_explicit_access or project.client == request.user.username):
-            messages.error(request, "You don't have access to this project.")
+            messages.error(request, _("You don't have access to this project."))
             return redirect("dashboard_client")
     else:
         if not (request.user.is_staff or has_explicit_access):
-            messages.error(request, "Access denied.")
+            messages.error(request, _("Access denied."))
             return redirect("dashboard")
 
     # === CONTRACT DATA ===

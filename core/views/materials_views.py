@@ -225,7 +225,7 @@ def materials_request_view(request, project_id):
 def inventory_view(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     storage = InventoryLocation.objects.filter(is_storage=True).first()
-    loc, _ = InventoryLocation.objects.get_or_create(
+    loc, __ = InventoryLocation.objects.get_or_create(
         project=project, name="Principal", defaults={"is_storage": False}
     )
     stocks = (
@@ -258,7 +258,7 @@ def inventory_move_view(request, project_id):
     storage = InventoryLocation.objects.filter(is_storage=True).first()
     if not storage:
         storage = InventoryLocation.objects.create(name="Main Storage", is_storage=True)
-    proj_loc, _ = InventoryLocation.objects.get_or_create(
+    proj_loc, __ = InventoryLocation.objects.get_or_create(
         project=project, name="Principal", defaults={"is_storage": False}
     )
 
@@ -317,13 +317,13 @@ def inventory_move_view(request, project_id):
             if form.cleaned_data.get("add_expense"):
                 next_url = reverse("inventory_history", args=[project.id])
                 create_url = f"{reverse('expense_create')}?project_id={project.id}&next={next_url}&ref=inv_move_{move.id}"
-                messages.info(request, "Ahora registra el gasto del ticket.")
+                messages.info(request, _("Ahora registra el gasto del ticket."))
                 return redirect(create_url)
             if form.cleaned_data.get("no_expense"):
-                messages.success(request, "Movimiento aplicado. Marcado sin gasto.")
+                messages.success(request, _("Movimiento aplicado. Marcado sin gasto."))
                 return redirect("inventory_view", project_id=project.id)
 
-            messages.success(request, "Movimiento aplicado.")
+            messages.success(request, _("Movimiento aplicado."))
             return redirect("inventory_view", project_id=project.id)
     return render(request, "core/inventory_move.html", {"project": project, "form": form})
 
@@ -398,11 +398,11 @@ def materials_receive_ticket_view(request, request_id):
 
         # Validar
         if not items_data:
-            messages.error(request, "Selecciona al menos un ítem con cantidad > 0.")
+            messages.error(request, _("Selecciona al menos un ítem con cantidad > 0."))
             return redirect("materials_receive_ticket", request_id=mat_request.id)
 
         if not no_expense and (not store_name or not total or Decimal(total) <= 0):
-            messages.error(request, "Completa tienda y total o marca 'Sin gasto'.")
+            messages.error(request, _("Completa tienda y total o marca 'Sin gasto'."))
             return redirect("materials_receive_ticket", request_id=mat_request.id)
 
         # Crear Expense (si aplica)
@@ -419,7 +419,7 @@ def materials_receive_ticket_view(request, request_id):
             )
 
         # Asegurar ubicación Principal del proyecto
-        loc, _ = InventoryLocation.objects.get_or_create(
+        loc, __ = InventoryLocation.objects.get_or_create(
             project=project, name="Principal", defaults={"is_storage": False}
         )
 
@@ -507,11 +507,11 @@ def materials_direct_purchase_view(request, project_id):
 
         # Validar
         if not items_data:
-            messages.error(request, "Agrega al menos un ítem con cantidad > 0.")
+            messages.error(request, _("Agrega al menos un ítem con cantidad > 0."))
             return redirect("materials_direct_purchase", project_id=project.id)
 
         if not no_expense and (not store_name or not total or Decimal(total) <= 0):
-            messages.error(request, "Completa tienda y total o marca 'Sin gasto'.")
+            messages.error(request, _("Completa tienda y total o marca 'Sin gasto'."))
             return redirect("materials_direct_purchase", project_id=project.id)
 
         # Crear Expense (si aplica)
@@ -536,7 +536,7 @@ def materials_direct_purchase_view(request, project_id):
         )
 
         # Asegurar ubicación Principal del proyecto
-        loc, _ = InventoryLocation.objects.get_or_create(
+        loc, __ = InventoryLocation.objects.get_or_create(
             project=project, name="Principal", defaults={"is_storage": False}
         )
 
@@ -707,13 +707,13 @@ def materials_request_submit(request, request_id):
 
     # Verify user can submit
     if mat_request.requested_by != request.user and not request.user.is_staff:
-        messages.error(request, "No tienes permiso para enviar esta solicitud")
+        messages.error(request, _("No tienes permiso para enviar esta solicitud"))
         return redirect("materials_request_detail", request_id=request_id)
 
     if mat_request.submit_for_approval(request.user):
-        messages.success(request, "Solicitud enviada para aprobación")
+        messages.success(request, _("Solicitud enviada para aprobación"))
     else:
-        messages.warning(request, "La solicitud no está en estado borrador")
+        messages.warning(request, _("La solicitud no está en estado borrador"))
 
     return redirect("materials_request_detail", request_id=request_id)
 
@@ -728,7 +728,7 @@ def materials_request_approve(request, request_id):
     if mat_request.approve(request.user):
         messages.success(request, _("Solicitud #%(id)s aprobada") % {"id": mat_request.id})
     else:
-        messages.warning(request, "La solicitud no está pendiente de aprobación")
+        messages.warning(request, _("La solicitud no está pendiente de aprobación"))
 
     return redirect("materials_request_detail", request_id=request_id)
 
@@ -778,7 +778,7 @@ def materials_receive_partial(request, request_id):
             else:
                 messages.error(request, message)
         else:
-            messages.warning(request, "No se especificaron cantidades recibidas")
+            messages.warning(request, _("No se especificaron cantidades recibidas"))
 
         return redirect("materials_request_detail", request_id=request_id)
 
@@ -803,7 +803,7 @@ def materials_create_expense(request, request_id):
 
     total_amount_str = request.POST.get("total_amount")
     if not total_amount_str:
-        messages.error(request, "Debes especificar el monto total")
+        messages.error(request, _("Debes especificar el monto total"))
         return redirect("materials_request_detail", request_id=request_id)
 
     try:
@@ -814,7 +814,7 @@ def materials_create_expense(request, request_id):
             _("Gasto #%(id)s creado por $%(amount)s") % {"id": expense.id, "amount": total_amount},
         )
     except (ValueError, InvalidOperation):
-        messages.error(request, "Monto inválido")
+        messages.error(request, _("Monto inválido"))
     except Exception as e:
         messages.error(request, _("Error al crear gasto: %(error)s") % {"error": str(e)})
 
@@ -865,7 +865,7 @@ def inventory_adjust(request, item_id, location_id):
     reason = request.POST.get("reason", "")
 
     if not quantity_str or not reason:
-        messages.error(request, "Cantidad y razón son requeridos")
+        messages.error(request, _("Cantidad y razón son requeridos"))
         return redirect("inventory_view", project_id=location.project_id)
 
     try:

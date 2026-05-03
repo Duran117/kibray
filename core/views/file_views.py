@@ -141,7 +141,7 @@ def file_category_create(request, project_id):
         category.save()
         messages.success(request, f'Categoría "{category.name}" creada')
     else:
-        messages.error(request, "Error al crear categoría")
+        messages.error(request, _("Error al crear categoría"))
 
     return redirect("project_files", project_id=project_id)
 
@@ -192,7 +192,7 @@ def file_upload(request, project_id, category_id):
         file_obj.save()
         messages.success(request, f'Archivo "{file_obj.name}" subido correctamente')
     else:
-        messages.error(request, "Error al subir archivo")
+        messages.error(request, _("Error al subir archivo"))
 
     return redirect("project_files", project_id=project_id)
 
@@ -259,7 +259,7 @@ def file_download(request, file_id):
             file_obj.save(update_fields=['download_count'])
             
             # Get content type
-            content_type, _ = mimetypes.guess_type(file_obj.name)
+            content_type, __ = mimetypes.guess_type(file_obj.name)
             if not content_type:
                 content_type = "application/octet-stream"
             
@@ -821,7 +821,7 @@ def folder_public_upload(request, token):
         ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".heic",
         ".mp4", ".mov", ".avi", ".dwg", ".dxf", ".zip", ".rar",
     }
-    _, ext = os.path.splitext(uploaded_file.name.lower())
+    __, ext = os.path.splitext(uploaded_file.name.lower())
     if ext not in allowed_extensions:
         return JsonResponse({"error": gettext("Tipo de archivo no permitido")}, status=400)
     
