@@ -1,7 +1,10 @@
 {% load i18n %}
 {% load static %}
 
-{% with prof=request.user.profile|default_if_none:'' role=request.user.profile.role|default:'employee' %}
+{% with prof=request.user.profile|default_if_none:'' role=request.user.profile.role|default:'employee' is_staffish=request.user.is_staff is_admin=request.user.is_superuser %}
+{# SECURITY: derive a strict client/employee flag — used to hide menu sections that
+   would otherwise leak the existence of staff-only features (Daily Plans, Strategic,
+   Tasks, Materials, Issues, Damages, Touch-ups, CO Board, Resident Portal, Financiero…). #}
 
 {# Dark Modern Sidebar - Asana Style #}
 {# Detects project context: if a Project model instance is in context, show project navigation #}
@@ -21,9 +24,11 @@
     {% if project.id %}
     {# ╔══════════════════════════════════════════════════════════╗ #}
     {# ║  PROJECT CONTEXT SIDEBAR — shown when inside a project  ║ #}
+    {# ║  SECURITY: Each section is gated by role. Clients and   ║ #}
+    {# ║  basic employees only see what they are authorized to.  ║ #}
     {# ╚══════════════════════════════════════════════════════════╝ #}
-    
-    {# Project Header #}
+
+    {# Project Header (visible to everyone with project access) #}
     <div class="mb-2">
         <div class="flex items-center gap-3 px-1 mb-3">
             <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white flex-shrink-0">
@@ -34,23 +39,126 @@
                 <span class="text-[11px] text-slate-400">{% trans "Project" %}</span>
             </div>
         </div>
-        {# Back to Dashboard #}
+        {# Back to Dashboard — destination depends on role #}
+        {% if role == 'client' %}
+        <a href="{% url 'dashboard_client' %}" class="sidebar-item text-slate-500 hover:text-white mb-1">
+            <i class="bi bi-arrow-left"></i>
+            <span>{% trans "Back to Dashboard" %}</span>
+        </a>
+        {% else %}
         <a href="{% url 'dashboard' %}" class="sidebar-item text-slate-500 hover:text-white mb-1">
             <i class="bi bi-arrow-left"></i>
             <span>{% trans "Back to Dashboard" %}</span>
         </a>
+        {% endif %}
     </div>
-    
+
+    {# ────────────────────────────────────────────────────────── #}
+    {# CLIENT view of a project — minimal, read-only menu        #}
+    {# ────────────────────────────────────────────────────────── #}
+    {% if role == 'client' %}
     <div class="space-y-1">
         <a href="{% url 'project_overview' project.id %}" class="sidebar-item">
             <i class="bi bi-house-door"></i>
             <span>{% trans "Overview" %}</span>
         </a>
     </div>
-    
-    {# Planificación #}
+
     <div>
-        <div class="sidebar-section-title">{% trans "Planificación" %}</div>
+        <div class="sidebar-section-title">{% trans "Project Updates" %}</div>
+        <div class="space-y-1">
+            <a href="{% url 'daily_log' project.id %}" class="sidebar-item">
+                <i class="bi bi-journal-text"></i>
+                <span>{% trans "Daily Logs" %}</span>
+            </a>
+            <a href="{% url 'project_minutes_list' project.id %}" class="sidebar-item">
+                <i class="bi bi-journal-richtext"></i>
+                <span>{% trans "Meeting Minutes" %}</span>
+            </a>
+            <a href="{% url 'project_files' project.id %}" class="sidebar-item">
+                <i class="bi bi-folder2-open"></i>
+                <span>{% trans "Files" %}</span>
+            </a>
+        </div>
+    </div>
+
+    <div>
+        <div class="sidebar-section-title">{% trans "For Your Approval" %}</div>
+        <div class="space-y-1">
+            <a href="{% url 'color_sample_list' project.id %}" class="sidebar-item">
+                <i class="bi bi-palette"></i>
+                <span>{% trans "Color Samples" %}</span>
+            </a>
+        </div>
+    </div>
+
+    <div>
+        <div class="sidebar-section-title">{% trans "Communication" %}</div>
+        <div class="space-y-1">
+            <a href="{% url 'client_requests_list' project.id %}" class="sidebar-item">
+                <i class="bi bi-chat-square-text"></i>
+                <span>{% trans "My Requests" %}</span>
+            </a>
+        </div>
+    </div>
+
+    {# ────────────────────────────────────────────────────────── #}
+    {# EMPLOYEE (non-staff) view — only what they need on site   #}
+    {# ────────────────────────────────────────────────────────── #}
+    {% elif role == 'employee' and not is_staffish %}
+    <div class="space-y-1">
+        <a href="{% url 'project_overview' project.id %}" class="sidebar-item">
+            <i class="bi bi-house-door"></i>
+            <span>{% trans "Overview" %}</span>
+        </a>
+    </div>
+
+    <div>
+        <div class="sidebar-section-title">{% trans "My Work" %}</div>
+        <div class="space-y-1">
+            <a href="{% url 'task_list' project.id %}" class="sidebar-item">
+                <i class="bi bi-check2-square"></i>
+                <span>{% trans "Tasks" %}</span>
+            </a>
+            <a href="{% url 'damage_report_list' project.id %}" class="sidebar-item">
+                <i class="bi bi-exclamation-diamond"></i>
+                <span>{% trans "Damages" %}</span>
+            </a>
+            <a href="{% url 'materials_requests_list' project.id %}" class="sidebar-item">
+                <i class="bi bi-truck"></i>
+                <span>{% trans "Materials" %}</span>
+            </a>
+        </div>
+    </div>
+
+    <div>
+        <div class="sidebar-section-title">{% trans "Reference" %}</div>
+        <div class="space-y-1">
+            <a href="{% url 'project_files' project.id %}" class="sidebar-item">
+                <i class="bi bi-folder2-open"></i>
+                <span>{% trans "Files" %}</span>
+            </a>
+            <a href="{% url 'floor_plan_list' project.id %}" class="sidebar-item">
+                <i class="bi bi-map"></i>
+                <span>{% trans "Floor Plans" %}</span>
+            </a>
+        </div>
+    </div>
+
+    {# ────────────────────────────────────────────────────────── #}
+    {# STAFF / PM / ADMIN — full project menu                    #}
+    {# ────────────────────────────────────────────────────────── #}
+    {% else %}
+    <div class="space-y-1">
+        <a href="{% url 'project_overview' project.id %}" class="sidebar-item">
+            <i class="bi bi-house-door"></i>
+            <span>{% trans "Overview" %}</span>
+        </a>
+    </div>
+
+    {# Planning #}
+    <div>
+        <div class="sidebar-section-title">{% trans "Planning" %}</div>
         <div class="space-y-1">
             <a href="{% url 'schedule_gantt_react' project.id %}" class="sidebar-item">
                 <i class="bi bi-diagram-3"></i>
@@ -70,22 +178,22 @@
             </a>
         </div>
     </div>
-    
-    {# Documentos #}
+
+    {# Documents #}
     <div>
-        <div class="sidebar-section-title">{% trans "Documentos" %}</div>
+        <div class="sidebar-section-title">{% trans "Documents" %}</div>
         <div class="space-y-1">
             <a href="{% url 'project_files' project.id %}" class="sidebar-item">
                 <i class="bi bi-folder2-open"></i>
-                <span>{% trans "Archivos" %}</span>
+                <span>{% trans "Files" %}</span>
             </a>
             <a href="{% url 'floor_plan_list' project.id %}" class="sidebar-item">
                 <i class="bi bi-map"></i>
-                <span>{% trans "Planos 2D" %}</span>
+                <span>{% trans "Floor Plans" %}</span>
             </a>
             <a href="{% url 'project_minutes_list' project.id %}" class="sidebar-item">
                 <i class="bi bi-journal-richtext"></i>
-                <span>{% trans "Minutas" %}</span>
+                <span>{% trans "Meeting Minutes" %}</span>
             </a>
             <a href="{% url 'rfi_list' project.id %}" class="sidebar-item">
                 <i class="bi bi-question-diamond"></i>
@@ -93,11 +201,11 @@
             </a>
         </div>
     </div>
-    
-    {# Financiero #}
-    {% if user.is_staff or user.is_superuser or role == 'project_manager' or role == 'admin' %}
+
+    {# Financial — PM/Admin only #}
+    {% if is_staffish or is_admin or role == 'project_manager' or role == 'admin' %}
     <div>
-        <div class="sidebar-section-title">{% trans "Financiero" %}</div>
+        <div class="sidebar-section-title">{% trans "Financial" %}</div>
         <div class="space-y-1">
             <a href="{% url 'project_financials_hub' project.id %}" class="sidebar-item">
                 <i class="bi bi-currency-dollar"></i>
@@ -117,15 +225,15 @@
             </a>
             <a href="{% url 'invoice_builder' project.id %}" class="sidebar-item">
                 <i class="bi bi-receipt"></i>
-                <span>{% trans "Facturas" %}</span>
+                <span>{% trans "Invoices" %}</span>
             </a>
         </div>
     </div>
     {% endif %}
-    
-    {# Operaciones #}
+
+    {# Operations #}
     <div>
-        <div class="sidebar-section-title">{% trans "Operaciones" %}</div>
+        <div class="sidebar-section-title">{% trans "Operations" %}</div>
         <div class="space-y-1">
             <a href="{% url 'touchup_list' project.id %}" class="sidebar-item">
                 <i class="bi bi-brush"></i>
@@ -153,7 +261,7 @@
             </a>
         </div>
     </div>
-    
+
     {# Design #}
     <div>
         <div class="sidebar-section-title">{% trans "Design" %}</div>
@@ -168,8 +276,9 @@
             </a>
         </div>
     </div>
-    
-    {# Change Orders #}
+
+    {# Change Orders — staff only #}
+    {% if is_staffish or is_admin or role == 'project_manager' or role == 'admin' %}
     <div>
         <div class="sidebar-section-title">{% trans "Change Orders" %}</div>
         <div class="space-y-1">
@@ -179,10 +288,11 @@
             </a>
         </div>
     </div>
-    
-    {# Comunicación #}
+    {% endif %}
+
+    {# Communication #}
     <div>
-        <div class="sidebar-section-title">{% trans "Comunicación" %}</div>
+        <div class="sidebar-section-title">{% trans "Communication" %}</div>
         <div class="space-y-1">
             <a href="{% url 'client_requests_list' project.id %}" class="sidebar-item">
                 <i class="bi bi-people"></i>
@@ -190,6 +300,7 @@
             </a>
         </div>
     </div>
+    {% endif %}{# end role split inside project context #}
 
     {% else %}
     {# ╔══════════════════════════════════════════════════════════╗ #}
