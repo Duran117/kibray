@@ -27,7 +27,14 @@ def api_client():
 
 @pytest.fixture
 def user(db):
-    return User.objects.create_user(username="pm13", password="pass123", email="pm13@example.com")
+    # Phase 9: TimeEntryViewSet now scopes by project access. The test acts as
+    # an internal/admin user managing entries for many employees/projects, so
+    # mark is_staff=True to mirror the original implicit privilege.
+    u = User.objects.create_user(
+        username="pm13", password="pass123", email="pm13@example.com",
+        is_staff=True,
+    )
+    return u
 
 
 @pytest.fixture

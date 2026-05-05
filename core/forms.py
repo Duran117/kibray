@@ -928,7 +928,10 @@ class BudgetProgressEditForm(forms.ModelForm):
 
 class ClockInForm(forms.Form):
     project = forms.ModelChoiceField(
-        queryset=Project.objects.all(), label="Proyecto", empty_label="-- Selecciona proyecto --"
+        # SECURITY (Phase 9): default to empty queryset; the view MUST pass
+        # `available_projects=...` or `user=...` so we never leak the entire
+        # project list. ``__init__`` below replaces this queryset.
+        queryset=Project.objects.none(), label="Proyecto", empty_label="-- Selecciona proyecto --"
     )
     change_order = forms.ModelChoiceField(
         queryset=ChangeOrder.objects.filter(status__in=["approved", "sent"]).exclude(
@@ -951,6 +954,10 @@ class ClockInForm(forms.Form):
     def __init__(self, *args, **kwargs):
         # ✅ Permitir filtrar proyectos disponibles
         available_projects = kwargs.pop("available_projects", None)
+        # SECURITY (Phase 9): if no explicit queryset is provided, derive one
+        # from the user via core.access.accessible_projects so we never leak
+        # the entire project table to non-admin users.
+        user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
         # POLÍTICA ESTRICTA: Respetar el queryset proporcionado por el view
@@ -965,9 +972,15 @@ class ClockInForm(forms.Form):
                 self.fields["project"].empty_label = None  # Auto-select único proyecto
             else:
                 self.fields["project"].empty_label = "-- Selecciona proyecto asignado --"
+        elif user is not None:
+            # Derive scope from user role
+            from core.access import accessible_projects
+            self.fields["project"].queryset = accessible_projects(user)
+            self.fields["project"].empty_label = "-- Selecciona proyecto --"
         else:
-            # Fallback si no se proporciona queryset (no debería ocurrir)
-            self.fields["project"].queryset = Project.objects.all()
+            # FAIL-CLOSED fallback: empty queryset.
+            # Was previously Project.objects.all() — leaked everything.
+            self.fields["project"].queryset = Project.objects.none()
             self.fields["project"].empty_label = "-- Selecciona proyecto --"
 
         # Filtrar COs y BudgetLines por proyecto

@@ -108,7 +108,7 @@ def dashboard_employee(request):
             if open_entry:
                 messages.warning(request, _("You already have an open entry. Clock out first."))
                 return redirect("dashboard_employee")
-            form = ClockInForm(request.POST)
+            form = ClockInForm(request.POST, user=request.user)
             if form.is_valid():
                 project = form.cleaned_data["project"]
 

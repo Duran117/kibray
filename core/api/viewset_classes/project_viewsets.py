@@ -38,17 +38,24 @@ class ProjectViewSet(viewsets.ModelViewSet):
     ordering = ["name"]
 
     def get_queryset(self):
-        """Filter queryset based on user permissions"""
-        queryset = super().get_queryset()
-        user = self.request.user
+        """SECURITY (Phase 9): delegate scoping to core.access.
 
-        # Superusers see all projects
-        if user.is_superuser or user.is_staff:
-            return queryset
+        - admin/staff/superuser → all projects.
+        - PM → projects via ProjectManagerAssignment.
+        - employee → projects via ResourceAssignment ∪ TimeEntry.
+        - client → projects via active ClientProjectAccess (or legacy
+                   text-match on Project.client).
+        - other internal roles → all projects (Owner/Designer/Super).
 
-        # Filter to projects where user is lead or observer
-        # Note: This uses ClientContact, which may have a link to User
-        return queryset.filter(Q(project_lead__user=user) | Q(observers__user=user)).distinct()
+        Previous implementation only checked project_lead/observers, which
+        ignored PM assignments and ClientProjectAccess entirely — PMs and
+        clients saw an empty list even on assigned projects.
+        """
+        from core.access import accessible_projects
+        # Preserve the select_related/prefetch from the class-level queryset
+        return accessible_projects(self.request.user).select_related(
+            "billing_organization", "project_lead"
+        ).prefetch_related("observers")
 
     def get_serializer_class(self):
         if self.action == "list":

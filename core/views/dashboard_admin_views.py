@@ -65,7 +65,7 @@ def dashboard_admin(request):
             if open_entry:
                 messages.warning(request, _("You already have an open entry. Clock out first."))
                 return redirect("dashboard_admin")
-            form = ClockInForm(request.POST)
+            form = ClockInForm(request.POST, user=request.user)
             if form.is_valid():
                 TimeEntry.objects.create(
                     employee=employee,
@@ -250,7 +250,7 @@ def dashboard_admin(request):
             return redirect("dashboard_admin")
 
     # Form para clock in
-    form = ClockInForm() if employee else None
+    form = ClockInForm(user=request.user) if employee else None
 
     # === MÉTRICAS FINANCIERAS (refactored to service) ===
     fa = FinancialAnalyticsService()

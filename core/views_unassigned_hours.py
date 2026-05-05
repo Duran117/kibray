@@ -40,8 +40,12 @@ def unassigned_hours_hub(request):
     employee_profile = Employee.objects.filter(user=request.user).first()
 
     employees = Employee.objects.filter(is_active=True).order_by("first_name", "last_name")
-    projects = Project.objects.all().order_by("name")
-    change_orders = ChangeOrder.objects.select_related("project").order_by("project__name", "id")
+    # SECURITY (Phase 9): scope to user's accessible projects.
+    from core.access import accessible_projects
+    projects = accessible_projects(request.user).order_by("name")
+    change_orders = ChangeOrder.objects.filter(project__in=projects).select_related(
+        "project"
+    ).order_by("project__name", "id")
     cost_codes = CostCode.objects.filter(active=True).order_by("code")
 
     base_qs = TimeEntry.objects.select_related(

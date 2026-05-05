@@ -72,7 +72,7 @@ def dashboard_pm(request):
             if open_entry:
                 messages.warning(request, _("You already have an open entry. Clock out first."))
                 return redirect("dashboard_pm")
-            form = ClockInForm(request.POST)
+            form = ClockInForm(request.POST, user=request.user)
             if form.is_valid():
                 TimeEntry.objects.create(
                     employee=employee,
@@ -311,7 +311,7 @@ def dashboard_pm(request):
             return redirect("dashboard_pm")
 
     # Form para clock in
-    form = ClockInForm() if employee else None
+    form = ClockInForm(user=request.user) if employee else None
 
     # === ALERTAS OPERACIONALES ===
     # 1. Tiempo sin CO
@@ -552,7 +552,9 @@ def pm_select_project(request, action: str):
         messages.error(request, _("Access restricted to PM/Staff only."))
         return redirect("dashboard_employee")
 
-    projects = Project.objects.all().order_by("name")
+    # SECURITY (Phase 9): scope to user's accessible projects.
+    from core.access import accessible_projects
+    projects = accessible_projects(request.user).order_by("name")
 
     if request.method == "POST":
         project_id = request.POST.get("project")

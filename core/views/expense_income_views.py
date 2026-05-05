@@ -46,8 +46,12 @@ def expense_create_view(request):
         form = ExpenseForm()
     
     # Pass projects and change_orders for dynamic filtering
-    projects = Project.objects.all().order_by('name')
-    change_orders = ChangeOrder.objects.select_related('project').all().order_by('project__name', 'id')
+    # SECURITY (Phase 9): scope to user's accessible projects, not Project.objects.all()
+    from core.access import accessible_projects
+    projects = accessible_projects(request.user).order_by('name')
+    change_orders = ChangeOrder.objects.select_related('project').filter(
+        project__in=projects
+    ).order_by('project__name', 'id')
     cost_codes = CostCode.objects.filter(active=True).order_by('code')
     
     return render(request, "core/expense_form.html", {
@@ -174,8 +178,12 @@ def expense_edit_view(request, expense_id):
         form = ExpenseForm(instance=expense)
     
     # Pass projects and change_orders for dynamic filtering (same as create view)
-    projects = Project.objects.all().order_by('name')
-    change_orders = ChangeOrder.objects.select_related('project').all().order_by('project__name', 'id')
+    # SECURITY (Phase 9): scope to user's accessible projects.
+    from core.access import accessible_projects
+    projects = accessible_projects(request.user).order_by('name')
+    change_orders = ChangeOrder.objects.select_related('project').filter(
+        project__in=projects
+    ).order_by('project__name', 'id')
     cost_codes = CostCode.objects.filter(active=True).order_by('code')
     
     return render(request, "core/expense_form.html", {
@@ -497,11 +505,13 @@ def unassigned_timeentries_view(request):
     paginator = Paginator(qs, page_size)
     page_obj = paginator.get_page(request.GET.get("page"))
 
-    projects = Project.objects.all().order_by("name")
+    # SECURITY (Phase 9): scope to user's accessible projects.
+    from core.access import accessible_projects
+    projects = accessible_projects(request.user).order_by("name")
     employees = Employee.objects.filter(is_active=True).order_by("last_name")
-    change_orders = ChangeOrder.objects.filter(status__in=["pending", "approved", "sent"]).select_related("project").order_by(
-        "-date_created"
-    )
+    change_orders = ChangeOrder.objects.filter(
+        status__in=["pending", "approved", "sent"], project__in=projects
+    ).select_related("project").order_by("-date_created")
     if project_id:
         change_orders = change_orders.filter(project_id=project_id)
     change_orders = change_orders[:200]

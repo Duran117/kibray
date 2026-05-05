@@ -252,7 +252,12 @@ def test_employee_cannot_checkin_to_unassigned_project():
         'notes': 'Trying unauthorized work'
     })
     
-    assert response.status_code == 302  # Redirects with error
+    # Phase 9: ClockInForm now scopes project choices to user.accessible_projects.
+    # Unassigned project is rejected at form validation → 200 (re-render with
+    # form errors) instead of the previous 302 (downstream redirect with
+    # message). Both outcomes mean the entry is NOT created — the security
+    # invariant is the line below.
+    assert response.status_code in (200, 302)
     assert not TimeEntry.objects.filter(employee=jose, project=project_b).exists()
 
 

@@ -249,8 +249,11 @@ def project_list(request):
         else:
             projects = Project.objects.none()
     else:
-        # Staff, admin, PM - show all projects
-        projects = Project.objects.all().order_by("id")
+        # Staff, admin, PM - delegate to canonical access layer.
+        # Phase 9: previously was Project.objects.all() — leaked all projects
+        # to PMs even if they were only assigned to a subset.
+        from core.access import accessible_projects
+        projects = accessible_projects(request.user).order_by("id")
     
     return render(request, "core/project_list.html", {"projects": projects})
 

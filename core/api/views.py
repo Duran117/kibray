@@ -2693,6 +2693,19 @@ class ProjectViewSet(viewsets.ModelViewSet):
         "total_expenses",
     ]
 
+    def get_queryset(self):
+        """SECURITY (Phase 9): scope by user role.
+
+        - admin/staff/superuser: all projects (preserves current behavior).
+        - PM: only assigned projects.
+        - employee: only projects with their assignments/time entries.
+        - client: only projects via active ClientProjectAccess (or legacy
+                  text-match on Project.client field).
+        Anonymous users return an empty queryset.
+        """
+        from core.access import accessible_projects
+        return accessible_projects(self.request.user).order_by("-created_at")
+
     def get_serializer_class(self):
         if self.action == "list":
             return ProjectListSerializer
@@ -3969,6 +3982,24 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
     ]
     ordering_fields = ["date", "start_time", "end_time", "hours_worked"]
     ordering = ["-date", "-start_time"]
+
+    def get_queryset(self):
+        """SECURITY (Phase 9): scope time entries by project access.
+
+        - admin/staff/superuser: all entries.
+        - everyone else: only entries on accessible projects, plus entries
+          with no project (work-in-progress) where the employee is the user.
+        """
+        from core.access import accessible_projects, is_admin
+        user = self.request.user
+        base = TimeEntry.objects.all().select_related("employee", "project", "task")
+        if not user or not user.is_authenticated:
+            return base.none()
+        if user.is_superuser or user.is_staff or is_admin(user):
+            return base
+        project_ids = list(accessible_projects(user).values_list("pk", flat=True))
+        own_q = Q(project_id__in=project_ids) | Q(employee__user=user)
+        return base.filter(own_q).distinct()
 
     @action(detail=True, methods=["post"])
     def stop(self, request, pk=None):
@@ -5469,13 +5500,18 @@ class FinancialDashboardView(APIView):
         from django.db.models import Q, Sum
 
         from core.models import Project
+        from core.access import accessible_projects
 
         # Filters
         project_id = request.query_params.get("project")
         date_from = request.query_params.get("date_from")
         date_to = request.query_params.get("date_to")
 
-        qs = Project.objects.all()
+        # SECURITY (Phase 9): scope to user's accessible projects.
+        # Currently gated to IsStaffOrAdmin which → all projects, but we
+        # delegate to the canonical layer so any future permission relaxation
+        # cannot leak data.
+        qs = accessible_projects(request.user)
         if project_id:
             qs = qs.filter(id=project_id)
 

@@ -49,7 +49,9 @@ def assignment_hub(request):
     can_assign = _user_can_assign(request.user)
 
     employees = Employee.objects.filter(is_active=True).order_by("first_name", "last_name")
-    projects = Project.objects.all().order_by("name")
+    # SECURITY (Phase 9): scope project choices to user's accessible projects.
+    from core.access import accessible_projects
+    projects = accessible_projects(request.user).order_by("name")
     form.fields["employee"].queryset = employees
     form.fields["project"].queryset = projects
 
@@ -135,7 +137,9 @@ def assignment_edit(request, pk: int):
 
     # Limit choices and keep disabled if needed
     employees = Employee.objects.filter(is_active=True).order_by("first_name", "last_name")
-    projects = Project.objects.all().order_by("name")
+    # SECURITY (Phase 9): scope to user's accessible projects.
+    from core.access import accessible_projects
+    projects = accessible_projects(request.user).order_by("name")
     form.fields["employee"].queryset = employees
     form.fields["project"].queryset = projects
 
