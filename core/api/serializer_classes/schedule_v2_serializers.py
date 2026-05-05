@@ -9,6 +9,8 @@ from core.models import (
     TaskChecklistItem,
 )
 
+from .access_fields import AccessibleProjectField
+
 
 class TaskChecklistItemSerializer(serializers.ModelSerializer):
     class Meta:
@@ -204,8 +206,8 @@ class ProjectMinimalSerializer(serializers.ModelSerializer):
 
 
 class ScheduleItemV2WriteSerializer(serializers.ModelSerializer):
-    project = serializers.PrimaryKeyRelatedField(
-        queryset=Project.objects.all(),
+    # SECURITY (Phase 9 G3): scope project choices to the request user.
+    project = AccessibleProjectField(
         required=False,
         allow_null=True,
     )

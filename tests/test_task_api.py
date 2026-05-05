@@ -17,7 +17,11 @@ def api_client(db):
 
 @pytest.fixture
 def user(db, django_user_model):
-    return django_user_model.objects.create_user(username="apiuser", password="pass12345")
+    # Phase 9 Commit D: needs is_staff so AccessibleProjectField allows the
+    # test project (otherwise generic users can't write to any project).
+    return django_user_model.objects.create_user(
+        username="apiuser", password="pass12345", is_staff=True
+    )
 
 
 @pytest.fixture

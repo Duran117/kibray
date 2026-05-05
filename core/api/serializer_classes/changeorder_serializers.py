@@ -8,6 +8,8 @@ from rest_framework import serializers
 
 from core.models import ChangeOrder, Project
 
+from .access_fields import AccessibleProjectField
+
 
 class ChangeOrderListSerializer(serializers.ModelSerializer):
     """List serializer for change orders"""
@@ -72,7 +74,8 @@ class ChangeOrderDetailSerializer(ChangeOrderListSerializer):
 class ChangeOrderCreateUpdateSerializer(serializers.ModelSerializer):
     """Serializer for creating and updating change orders"""
 
-    project = serializers.PrimaryKeyRelatedField(queryset=Project.objects.all())
+    # SECURITY (Phase 9 G3): scope project choices to the request user.
+    project = AccessibleProjectField()
 
     class Meta:
         model = ChangeOrder

@@ -8,6 +8,7 @@ from rest_framework import serializers
 
 from core.models import Employee, Project, Task
 
+from .access_fields import AccessibleProjectField
 from .user_serializers import UserMinimalSerializer
 
 
@@ -100,7 +101,8 @@ class TaskDetailSerializer(TaskListSerializer):
 class TaskCreateUpdateSerializer(serializers.ModelSerializer):
     """Serializer for creating and updating tasks"""
 
-    project = serializers.PrimaryKeyRelatedField(queryset=Project.objects.all())
+    # SECURITY (Phase 9 G3): scope project choices to the request user.
+    project = AccessibleProjectField()
     assigned_to = serializers.PrimaryKeyRelatedField(
         queryset=Employee.objects.all(), required=False, allow_null=True
     )
