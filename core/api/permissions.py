@@ -1,143 +1,133 @@
 """
-Custom permissions for the Kibray API
+Custom DRF permissions for the Kibray API.
 
-Role hierarchy:
-- Owner: Full access to everything
-- PM (Project Manager): Access to assigned projects + financial data
-- Superintendent: Field management (change orders, daily logs, schedules)
-- Employee: Time entries, tasks, limited project view
-- Client: Read-only access to their projects
+THIN WRAPPERS over core.access — the canonical authorization layer.
+
+Phase 9 fix (G1): the legacy implementations of IsOwnerOrPM,
+IsOwnerOrPMOrSuperintendent, and CanAccessProject compared
+``profile.role`` against the literal string ``"pm"``, but Profile.role
+choices use ``"project_manager"``. Result: every Project Manager was
+silently denied access to API endpoints protected by these classes.
+
+All classes now delegate to ``core.access`` — the single source of truth.
+Backwards-compatible: same class names, same behavior contract; just no
+longer broken for PMs.
 """
-
 from rest_framework import permissions
 
-from core.models import ClientProjectAccess, Profile
+from core import access
 
 
 class IsOwner(permissions.BasePermission):
-    """
-    Only users with 'owner' role can access
-    """
+    """Only Profile.role == 'owner' (or admin/superuser)."""
+
+    message = "Owner role required."
 
     def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
+        user = request.user
+        if not user or not user.is_authenticated:
             return False
-        try:
-            return request.user.profile.role == "owner"
-        except Profile.DoesNotExist:
-            return False
+        return access.is_admin(user) or access.is_owner(user)
 
 
 class IsOwnerOrPM(permissions.BasePermission):
-    """
-    Owner or Project Manager can access
-    """
+    """Owner OR Project Manager (or admin/superuser)."""
+
+    message = "Owner or Project Manager role required."
 
     def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
+        user = request.user
+        if not user or not user.is_authenticated:
             return False
-        try:
-            return request.user.profile.role in ["owner", "pm"]
-        except Profile.DoesNotExist:
-            return False
+        if access.is_admin(user) or user.is_superuser:
+            return True
+        return access.is_owner(user) or access.is_pm(user)
 
 
 class IsOwnerOrPMOrSuperintendent(permissions.BasePermission):
-    """
-    Owner, PM, or Superintendent can access
-    """
+    """Owner, PM, or Superintendent (or admin/superuser)."""
+
+    message = "Owner, Project Manager, or Superintendent role required."
 
     def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
+        user = request.user
+        if not user or not user.is_authenticated:
             return False
-        try:
-            return request.user.profile.role in ["owner", "pm", "superintendent"]
-        except Profile.DoesNotExist:
-            return False
+        if access.is_admin(user) or user.is_superuser:
+            return True
+        return (
+            access.is_owner(user)
+            or access.is_pm(user)
+            or access.is_superintendent(user)
+        )
 
 
 class CanAccessProject(permissions.BasePermission):
+    """Object-level: user has access to this specific project.
+
+    Works on either a Project instance or any object with a ``.project``
+    attribute (Task, TimeEntry, ChangeOrder, etc.). NOTE the legacy
+    implementation had a bug: ``obj if hasattr(obj, "project") else obj``
+    always returned obj itself. This version correctly resolves the related
+    Project instance.
     """
-    User has access to this specific project
-    - Owner/PM: All projects
-    - Superintendent: Assigned projects
-    - Employee: Projects they have time entries on
-    - Client: Projects explicitly granted access via ClientProjectAccess
-    """
+
+    message = "You do not have access to this project."
 
     def has_object_permission(self, request, view, obj):
-        user = request.user
-        project = obj if hasattr(obj, "project") else obj
-
-        try:
-            profile = user.profile
-
-            # Owner and PM have access to all projects
-            if profile.role in ["owner", "pm"]:
-                return True
-
-            # Superintendent: Check if assigned to project
-            if profile.role == "superintendent":
-                # Add logic here when superintendent assignment is implemented
-                return True
-
-            # Client: Check ClientProjectAccess
-            if profile.role == "client":
-                return ClientProjectAccess.objects.filter(
-                    user=user, project=project, is_active=True
-                ).exists()
-
-            # Employee: Has time entries or tasks on this project
-            if profile.role == "employee":
-                from core.models import Task, TimeEntry
-
-                has_time = TimeEntry.objects.filter(employee__user=user, project=project).exists()
-                has_tasks = Task.objects.filter(assigned_to=user, project=project).exists()
-                return has_time or has_tasks
-
-            return False
-        except Profile.DoesNotExist:
-            return False
+        from core.models import Project
+        if isinstance(obj, Project):
+            project = obj
+        else:
+            project = getattr(obj, "project", None)
+            if project is None:
+                pid = getattr(obj, "project_id", None)
+                if pid is None:
+                    return False
+                project = Project.objects.filter(pk=pid).first()
+        return access.can_view_project(request.user, project)
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
-    """
-    Owner can edit, others can only read
-    Useful for financial data, cost codes, etc.
-    """
+    """Read for any authenticated user; write only for Owner/admin."""
+
+    message = "Only Owner can modify this resource."
 
     def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
+        user = request.user
+        if not user or not user.is_authenticated:
             return False
-
-        # Read permissions for any authenticated user
         if request.method in permissions.SAFE_METHODS:
             return True
-
-        # Write permissions only for owner
-        try:
-            return request.user.profile.role == "owner"
-        except Profile.DoesNotExist:
-            return False
+        return access.is_admin(user) or access.is_owner(user)
 
 
 class IsAdminOrPM(permissions.BasePermission):
+    """Admin/Owner/PM gate (used for sensitive data like Payroll).
+
+    Django ``is_staff`` and ``is_superuser`` always pass.
     """
-    Only Admin (owner, admin, superuser) or Project Manager can access
-    Used for sensitive data like Payroll
-    """
+
+    message = "Admin, Owner, or Project Manager role required."
 
     def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
+        user = request.user
+        if not user or not user.is_authenticated:
             return False
-
-        # Check if user is staff (Django admin)
-        if request.user.is_staff or request.user.is_superuser:
+        if user.is_staff or user.is_superuser:
             return True
+        return (
+            access.is_admin(user)
+            or access.is_owner(user)
+            or access.is_pm(user)
+        )
 
-        # Check profile role
-        try:
-            profile = request.user.profile
-            return profile.role in ["admin", "superuser", "project_manager", "owner"]
-        except Profile.DoesNotExist:
-            return False
+
+__all__ = [
+    "IsOwner",
+    "IsOwnerOrPM",
+    "IsOwnerOrPMOrSuperintendent",
+    "CanAccessProject",
+    "IsOwnerOrReadOnly",
+    "IsAdminOrPM",
+]
