@@ -31,8 +31,9 @@ from django.utils.translation import gettext_lazy as _  # noqa: F811
 @login_required
 def dashboard_client(request):
     """Client visual dashboard with progress, photos, invoices"""
+    from core.access import ROLE_CLIENT, get_role  # Phase 9 Commit F
     profile = getattr(request.user, "profile", None)
-    if not profile or profile.role != "client":
+    if get_role(request.user) != ROLE_CLIENT:
         messages.error(request, _("Access restricted to clients only."))
         return redirect("dashboard")
 

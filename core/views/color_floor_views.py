@@ -100,8 +100,10 @@ def color_sample_detail(request, sample_id):
         return redirect(redirect_url or "dashboard")
     
     # Additional check for clients: verify explicit project access
+    # Phase 9 Commit F: centralized helper.
+    from core.access import ROLE_CLIENT, get_role
     profile = getattr(request.user, "profile", None)
-    if profile and profile.role == "client":
+    if get_role(request.user) == ROLE_CLIENT:
         has_access = ClientProjectAccess.objects.filter(
             user=request.user, project=project
         ).exists() or project.client == request.user.username
@@ -127,9 +129,11 @@ def color_sample_review(request, sample_id):
     project = sample.project
     profile = getattr(request.user, "profile", None)
     # Permissions: clients, PM and designers can leave notes and move to 'review'; only staff can approve/reject
+    # Phase 9 Commit F: centralized helpers.
+    from core.access import ROLE_CLIENT, ROLE_DESIGNER, ROLE_PM, get_role
     if not (
         request.user.is_staff
-        or (profile and profile.role in ["client", "project_manager", "designer"])
+        or get_role(request.user) in {ROLE_CLIENT, ROLE_PM, ROLE_DESIGNER}
     ):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
@@ -224,13 +228,16 @@ def color_sample_client_feedback(request, sample_id):
     project = sample.project
     
     # Check access - client must have access to this project
+    # Phase 9 Commit F: centralized helper.
+    from core.access import ROLE_CLIENT, ROLE_DESIGNER, ROLE_PM, get_role
     profile = getattr(request.user, "profile", None)
-    if not profile:
+    role = get_role(request.user)
+    if role is None and not request.user.is_staff:
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
-    
+
     # Allow clients, PMs, and staff
-    if profile.role == "client":
+    if role == ROLE_CLIENT:
         from core.models import ClientProjectAccess
         has_access = ClientProjectAccess.objects.filter(
             user=request.user, project=project
@@ -238,7 +245,7 @@ def color_sample_client_feedback(request, sample_id):
         if not has_access:
             messages.error(request, _("You don't have access to this project."))
             return redirect("dashboard_client")
-    elif profile.role not in ["project_manager", "designer"] and not request.user.is_staff:
+    elif role not in {ROLE_PM, ROLE_DESIGNER} and not request.user.is_staff:
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
     
@@ -289,7 +296,9 @@ def color_sample_edit(request, sample_id):
     project = sample.project
     profile = getattr(request.user, "profile", None)
 
-    if not (request.user.is_staff or (profile and profile.role in ["client", "project_manager"])):
+    # Phase 9 Commit F: centralized helpers.
+    from core.access import ROLE_CLIENT, ROLE_PM, get_role
+    if not (request.user.is_staff or get_role(request.user) in {ROLE_CLIENT, ROLE_PM}):
         messages.error(request, _("Access denied."))
         return redirect("color_sample_detail", sample_id=sample_id)
 
@@ -321,7 +330,9 @@ def color_sample_delete(request, sample_id):
     project = sample.project
     profile = getattr(request.user, "profile", None)
 
-    if not (request.user.is_staff or (profile and profile.role == "project_manager")):
+    # Phase 9 Commit F: centralized helper.
+    from core.access import is_pm
+    if not (request.user.is_staff or is_pm(request.user)):
         messages.error(request, _("Access denied."))
         return redirect("color_sample_detail", sample_id=sample_id)
 
@@ -571,7 +582,9 @@ def floor_plan_edit(request, plan_id):
     plan = get_object_or_404(FloorPlan, id=plan_id)
     project = plan.project
     profile = getattr(request.user, "profile", None)
-    if not (request.user.is_staff or (profile and profile.role in ["project_manager"])):
+    # Phase 9 Commit F: centralized helper.
+    from core.access import is_pm
+    if not (request.user.is_staff or is_pm(request.user)):
         messages.error(request, _("Acceso denegado."))
         return redirect("floor_plan_detail", plan_id=plan.id)
     if request.method == "POST":
@@ -600,7 +613,9 @@ def floor_plan_delete(request, plan_id):
     plan = get_object_or_404(FloorPlan, id=plan_id)
     project = plan.project
     profile = getattr(request.user, "profile", None)
-    if not (request.user.is_staff or (profile and profile.role in ["project_manager"])):
+    # Phase 9 Commit F: centralized helper.
+    from core.access import is_pm
+    if not (request.user.is_staff or is_pm(request.user)):
         messages.error(request, _("Acceso denegado."))
         return redirect("floor_plan_detail", plan_id=plan.id)
     if request.method == "POST":

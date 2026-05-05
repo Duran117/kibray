@@ -288,7 +288,9 @@ def client_documents_view(request, project_id):
             request.user.username.lower(),
         )
     
-    if profile and profile.role == "client":
+    # Phase 9 Commit F: centralized helper.
+    from core.access import ROLE_CLIENT, get_role
+    if get_role(request.user) == ROLE_CLIENT:
         if not (has_explicit_access or is_project_client):
             messages.error(request, _("You don't have access to this project."))
             return redirect("dashboard_client")
@@ -391,7 +393,9 @@ def client_financials_view(request, project_id):
         user=request.user, project=project
     ).exists()
     
-    if profile and profile.role == "client":
+    # Phase 9 Commit F: centralized helper.
+    from core.access import ROLE_CLIENT, get_role
+    if get_role(request.user) == ROLE_CLIENT:
         if not (has_explicit_access or project.client == request.user.username):
             messages.error(request, _("You don't have access to this project."))
             return redirect("dashboard_client")

@@ -1,4 +1,5 @@
 """Client & organization management views — extracted from legacy_views.py in Phase 8."""
+from core.access import ROLE_CLIENT, get_role  # Phase 9 Commit F
 from core.views._helpers import *  # noqa: F401, F403
 from core.views._helpers import (
     _check_user_project_access,
@@ -129,7 +130,7 @@ def client_detail(request, user_id):
     client = get_object_or_404(User, id=user_id)
 
     # Verificar que es un cliente
-    if not hasattr(client, "profile") or client.profile.role != "client":
+    if get_role(client) != ROLE_CLIENT:  # Phase 9 Commit F
         messages.error(request, _("Este usuario no es un cliente."))
         return redirect("client_list")
 
@@ -191,7 +192,7 @@ def client_edit(request, user_id):
     client = get_object_or_404(User, id=user_id)
 
     # Verificar que es un cliente
-    if not hasattr(client, "profile") or client.profile.role != "client":
+    if get_role(client) != ROLE_CLIENT:  # Phase 9 Commit F
         messages.error(request, _("Este usuario no es un cliente."))
         return redirect("client_list")
 
@@ -222,7 +223,7 @@ def client_delete(request, user_id):
     client = get_object_or_404(User, id=user_id)
 
     # Verificar que es un cliente
-    if not hasattr(client, "profile") or client.profile.role != "client":
+    if get_role(client) != ROLE_CLIENT:  # Phase 9 Commit F
         messages.error(request, _("Este usuario no es un cliente."))
         return redirect("client_list")
 
@@ -298,7 +299,7 @@ def client_reset_password(request, user_id):
 
     client = get_object_or_404(User, id=user_id)
 
-    if not hasattr(client, "profile") or client.profile.role != "client":
+    if get_role(client) != ROLE_CLIENT:  # Phase 9 Commit F
         messages.error(request, _("Este usuario no es un cliente."))
         return redirect("client_list")
 
@@ -351,7 +352,7 @@ def client_assign_project(request, user_id):
 
     client = get_object_or_404(User, id=user_id)
 
-    if not hasattr(client, "profile") or client.profile.role != "client":
+    if get_role(client) != ROLE_CLIENT:  # Phase 9 Commit F
         messages.error(request, _("Este usuario no es un cliente."))
         return redirect("client_list")
 

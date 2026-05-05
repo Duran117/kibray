@@ -224,8 +224,11 @@ def touchup_plan_detail(request, plan_id):
         return redirect("project_overview", project.id)
 
     # Get touchups - filter by assigned user if employee
+    # Phase 9 Commit F: centralized role constant + helper.
+    from core.access import ROLE_EMPLOYEE, get_role
     touchups = TouchUpPin.objects.filter(plan=plan)
-    if profile and profile.role in ["employee", "painter"] and not request.user.is_staff:
+    role = get_role(request.user)
+    if role in {ROLE_EMPLOYEE, "painter"} and not request.user.is_staff:
         touchups = touchups.filter(assigned_to=request.user)
 
     touchups = touchups.select_related("assigned_to", "created_by", "approved_color", "closed_by")

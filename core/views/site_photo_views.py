@@ -48,8 +48,9 @@ def site_photo_list(request, project_id):
         photos = photos.filter(photo_type=photo_type)
     
     # Determine if user is a client
-    profile = getattr(request.user, "profile", None)
-    is_client_user = profile and profile.role == "client"
+    # Phase 9 Commit F: centralized helper.
+    from core.access import ROLE_CLIENT, get_role
+    is_client_user = get_role(request.user) == ROLE_CLIENT
     
     return render(request, "core/site_photo_list.html", {
         "project": project, 
@@ -105,7 +106,9 @@ def site_photo_detail(request, photo_id):
     next_photo_id = all_photos[current_index - 1] if current_index > 0 else None
     
     profile = getattr(request.user, "profile", None)
-    is_client_user = profile and profile.role == "client"
+    # Phase 9 Commit F: centralized helper.
+    from core.access import ROLE_CLIENT, get_role
+    is_client_user = get_role(request.user) == ROLE_CLIENT
     
     return render(request, "core/site_photo_detail.html", {
         "photo": photo,

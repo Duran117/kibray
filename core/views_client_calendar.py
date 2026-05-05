@@ -24,17 +24,20 @@ def _has_project_access(user, project):
     3. Client with explicit ClientProjectAccess
     4. Legacy: client CharField match
     """
+    # Phase 9 Commit F: use centralized helpers.
+    from core.access import ROLE_CLIENT, ROLE_PM, get_role
+
     if user.is_staff or user.is_superuser:
         return True
 
-    profile = getattr(user, "profile", None)
-    if not profile:
+    role = get_role(user)
+    if role is None:
         return False
 
-    if profile.role == "project_manager":
+    if role == ROLE_PM:
         return project.pm_assignments.filter(user=user).exists()
 
-    if profile.role == "client":
+    if role == ROLE_CLIENT:
         if ClientProjectAccess.objects.filter(user=user, project=project).exists():
             return True
         if project.client and project.client.strip().lower() in (

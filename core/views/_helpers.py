@@ -191,8 +191,9 @@ def _check_user_project_access(user, project):
     if hasattr(project, 'assigned_to') and project.assigned_to.filter(id=user.id).exists():
         return True, None
 
-    profile = getattr(user, "profile", None)
-    if profile and profile.role == "client":
+    # Phase 9 Commit F: use centralized helper.
+    from core.access import ROLE_CLIENT, get_role
+    if get_role(user) == ROLE_CLIENT:
         return False, "dashboard_client"
     return False, "dashboard"
 

@@ -17,6 +17,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from .access import is_admin, is_pm  # Phase 9 Commit F: centralized authz
 from .models import (
     ChangeOrder,
     Employee,
@@ -27,6 +28,11 @@ from .models import (
     Project,
     TimeEntry,
 )
+
+
+def _is_admin_or_pm(user):
+    """Phase 9 Commit F: admin OR PM. Replaces inline role-string checks."""
+    return is_admin(user) or is_pm(user)
 
 # ===========================
 # FINANCIAL EXECUTIVE DASHBOARD
@@ -41,7 +47,7 @@ def financial_dashboard(request):
     SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
     # Solo admin/superuser puede acceder
-    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
+    if not is_admin(request.user):
         messages.error(request, "You don't have permission to access this feature.")
         return redirect("dashboard")
     
@@ -225,7 +231,7 @@ def invoice_aging_report(request):
     Invoice aging report showing unpaid invoices by age buckets.
     Buckets: Current (0-30), 31-60, 61-90, 90+ days
     """
-    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role in ('admin', 'project_manager'))):
+    if not _is_admin_or_pm(request.user):
         messages.error(request, "You don't have permission to access this feature.")
         return redirect("dashboard")
     today = timezone.now().date()
@@ -294,7 +300,7 @@ def productivity_dashboard(request):
     SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
     # Solo admin/superuser puede acceder
-    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
+    if not is_admin(request.user):
         messages.error(request, "You don't have permission to access this feature.")
         return redirect("dashboard")
     
@@ -409,7 +415,7 @@ def export_financial_data(request):
     Export financial data to CSV for importing into QuickBooks or Excel.
     Formats: Income, Expenses, Invoices
     """
-    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role in ('admin', 'project_manager'))):
+    if not _is_admin_or_pm(request.user):
         messages.error(request, "You don't have permission to access this feature.")
         return redirect("dashboard")
     export_type = request.GET.get("type", "expenses")  # expenses, income, invoices
@@ -543,7 +549,7 @@ def employee_performance_review(request, employee_id=None):
     SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
     # Solo admin/superuser puede acceder
-    if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
+    if not is_admin(request.user):
         messages.error(request, "You don't have permission to access this feature.")
         return redirect("dashboard")
     

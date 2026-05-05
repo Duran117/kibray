@@ -11,15 +11,15 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from core.access import is_admin as _access_is_admin, is_owner  # Phase 9 Commit F
 from core.models import ROLE_CHOICES, Profile
 
 logger = logging.getLogger(__name__)
 
 
 def is_admin(user):
-    return user.is_superuser or (
-        hasattr(user, "profile") and user.profile.role in ["admin", "owner"]
-    )
+    # Phase 9 Commit F: delegate to centralized helpers (admin OR owner).
+    return _access_is_admin(user) or is_owner(user)
 
 
 @login_required

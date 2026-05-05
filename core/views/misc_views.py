@@ -520,8 +520,9 @@ def analytics_dashboard(request):
     SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
     # Solo admin/superuser puede acceder
-    profile = getattr(request.user, 'profile', None)
-    if not (request.user.is_superuser or (profile and profile.role == 'admin')):
+    # Phase 9 Commit F: centralized helper.
+    from core.access import is_admin
+    if not is_admin(request.user):
         messages.error(request, _("You don't have permission to access Analytics."))
         return redirect("dashboard")
     

@@ -119,18 +119,20 @@ def recent_projects(request):
 
     try:
         from core.models import Project
+        from core.access import ROLE_CLIENT, ROLE_EMPLOYEE, get_role  # Phase 9 Commit F
 
         profile = getattr(request.user, "profile", None)
-        
+        role = get_role(request.user)
+
         # If user is a client, only show their projects
-        if profile and profile.role == "client":
+        if role == ROLE_CLIENT:
             # Get projects via ClientProjectAccess
             access_projects = Project.objects.filter(client_accesses__user=request.user)
             # Get projects via legacy client field
             legacy_projects = Project.objects.filter(client=request.user.username)
             # Combine both querysets and get recent ones
             projects = list(access_projects.union(legacy_projects).order_by("-start_date")[:5])
-        elif profile and profile.role == "employee" and not request.user.is_staff:
+        elif role == ROLE_EMPLOYEE and not request.user.is_staff:
             # Employees only see projects they are assigned to
             from core.models import ResourceAssignment
             employee = getattr(request.user, "employee_profile", None)

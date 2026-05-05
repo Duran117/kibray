@@ -32,9 +32,9 @@ from django.utils.translation import gettext_lazy as _  # noqa: F811
 def dashboard_designer(request):
     """Dashboard for designers - read-only access to projects, plans, color samples, chat."""
     from django.db import models as db_models
+    from core.access import is_designer as _is_designer  # Phase 9 Commit F
 
-    profile = getattr(request.user, "profile", None)
-    is_designer = profile and profile.role == "designer"
+    is_designer = _is_designer(request.user)
     if not is_designer and not request.user.is_superuser:
         return HttpResponseForbidden("Access restricted to designers")
 

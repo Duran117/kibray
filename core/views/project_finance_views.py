@@ -41,8 +41,10 @@ def project_financials_hub(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     
     # Determinar si es PM (no admin)
-    profile = getattr(request.user, 'profile', None)
-    is_pm = profile and profile.role == 'pm' if profile else False
+    # Phase 9 Commit F + G1 fix: was profile.role == 'pm' which never matched
+    # (constant is 'project_manager'). Use centralized helper.
+    from core.access import is_pm as _is_pm
+    is_pm = _is_pm(request.user)
     
     # Calcular totales
     budget_lines = project.budget_lines.select_related('cost_code').all()

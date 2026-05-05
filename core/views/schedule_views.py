@@ -47,7 +47,9 @@ def project_schedule_view(request, project_id: int):
     profile = getattr(request.user, "profile", None)
 
     # Si es cliente, redirigir a la vista hermosa
-    if profile and profile.role == "client":
+    # Phase 9 Commit F: centralized helper.
+    from core.access import ROLE_CLIENT, get_role
+    if get_role(request.user) == ROLE_CLIENT:
         return redirect(reverse("client_project_calendar", kwargs={"project_id": project_id}))
 
     # Para PM/Admin: Vista completa

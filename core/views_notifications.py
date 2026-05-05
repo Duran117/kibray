@@ -9,6 +9,7 @@ from django.db import models
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
 
+from core.access import ROLE_CLIENT, get_role  # Phase 9 Commit F
 from core.models import Notification
 
 
@@ -21,7 +22,7 @@ def notifications_list(request):
     qs = user.notifications.all()
     
     # For clients, ensure they only see notifications for their assigned projects
-    if hasattr(user, 'profile') and user.profile and user.profile.role == 'client':
+    if get_role(user) == ROLE_CLIENT:
         # Get projects the client has access to via ClientProjectAccess
         client_project_ids = list(
             user.project_accesses.filter(is_active=True).values_list('project_id', flat=True)

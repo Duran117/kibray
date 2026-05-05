@@ -211,8 +211,9 @@ def damage_report_update_status(request, report_id):
     report = get_object_or_404(DamageReport, id=report_id)
 
     # Check permission (staff or superintendent)
-    profile = getattr(request.user, "profile", None)
-    if not (request.user.is_staff or (profile and profile.role == "superintendent")):
+    # Phase 9 Commit F: centralized helper.
+    from core.access import is_superintendent
+    if not (request.user.is_staff or is_superintendent(request.user)):
         return JsonResponse({"error": gettext("Permission denied")}, status=403)
 
     if request.method == "POST":

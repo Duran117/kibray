@@ -231,8 +231,10 @@ def file_download(request, file_id):
     file_obj = get_object_or_404(ProjectFile, id=file_id)
 
     # Check permissions - client can only download public files from their projects
+    # Phase 9 Commit F: centralized helper.
+    from core.access import ROLE_CLIENT, get_role
     profile = getattr(request.user, "profile", None)
-    if profile and profile.role == "client":
+    if get_role(request.user) == ROLE_CLIENT:
         if not file_obj.is_public:
             return HttpResponseForbidden("You don't have permission to download this file")
         # Also verify client has access to this project
@@ -371,7 +373,8 @@ def file_details_api(request, file_id):
     
     # === ACCESS CONTROL ===
     profile = getattr(request.user, "profile", None)
-    is_client = profile and profile.role == "client"
+    from core.access import ROLE_CLIENT, get_role  # Phase 9 Commit F
+    is_client = get_role(request.user) == ROLE_CLIENT
     
     if is_client:
         # Client can only see public files from their projects
@@ -546,7 +549,8 @@ def file_toggle_favorite(request, file_id):
     
     # === ACCESS CONTROL ===
     profile = getattr(request.user, "profile", None)
-    is_client = profile and profile.role == "client"
+    from core.access import ROLE_CLIENT, get_role  # Phase 9 Commit F
+    is_client = get_role(request.user) == ROLE_CLIENT
     
     if is_client:
         # Client can only favorite public files from their projects

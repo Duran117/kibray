@@ -223,11 +223,13 @@ def agregar_comentario(request, project_id):
     project = get_object_or_404(Project, id=project_id)
 
     # Verificar acceso
+    # Phase 9 Commit F: centralized helper.
+    from core.access import ROLE_CLIENT, get_role
     profile = getattr(request.user, "profile", None)
     from core.models import ClientProjectAccess
 
     has_access = ClientProjectAccess.objects.filter(user=request.user, project=project).exists()
-    if profile and profile.role == "client":
+    if get_role(request.user) == ROLE_CLIENT:
         if not (has_access or project.client == request.user.username):
             messages.error(request, _("You don't have access to this project."))
             return redirect("dashboard_client")

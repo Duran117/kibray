@@ -103,8 +103,8 @@ def dashboard_view(request):
 @login_required
 def dashboard_superintendent(request):
     """Dashboard for superintendents - manage damage reports, touch-ups, task assignments."""
-    profile = getattr(request.user, "profile", None)
-    if not profile or profile.role != "superintendent":
+    from core.access import is_superintendent  # Phase 9 Commit F
+    if not is_superintendent(request.user):
         return HttpResponseForbidden("Acceso restringido a superintendentes")
 
     employee = Employee.objects.filter(user=request.user).first()
