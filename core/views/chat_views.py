@@ -110,7 +110,7 @@ def project_chat_premium(request, project_id, channel_id=None):
         channel = get_object_or_404(ChatChannel, id=channel_id, project=project)
         # Access control
         if not (request.user.is_staff or channel.participants.filter(id=request.user.id).exists()):
-            messages.error(request, _("No tienes acceso a este canal."))
+            messages.error(request, _("You don't have access to this channel."))
             return redirect("project_chat_premium", project_id=project.id)
     else:
         # Default to group channel
@@ -148,7 +148,7 @@ def project_chat_premium(request, project_id, channel_id=None):
                 messages.success(request, f"Canal '{channel_name}' creado.")
                 return redirect("project_chat_premium_channel", project_id=project.id, channel_id=new_channel.id)
             else:
-                messages.error(request, _("El nombre del canal es requerido."))
+                messages.error(request, _("Channel name is required."))
         
         elif action == "invite":
             username = (request.POST.get("username") or "").strip()
@@ -229,7 +229,7 @@ def agregar_comentario(request, project_id):
     has_access = ClientProjectAccess.objects.filter(user=request.user, project=project).exists()
     if profile and profile.role == "client":
         if not (has_access or project.client == request.user.username):
-            messages.error(request, _("No tienes acceso a este proyecto."))
+            messages.error(request, _("You don't have access to this project."))
             return redirect("dashboard_client")
     elif not request.user.is_staff and not has_access:
         messages.error(request, _("Acceso denegado."))
@@ -240,14 +240,14 @@ def agregar_comentario(request, project_id):
         image = request.FILES.get("image")
 
         if not text and not image:
-            messages.error(request, _("Debes agregar texto o imagen."))
+            messages.error(request, _("You must add text or an image."))
             return redirect("client_project_view", project_id=project_id)
 
         Comment.objects.create(
             project=project, user=request.user, text=text or "Imagen adjunta", image=image
         )
 
-        messages.success(request, _("Comentario agregado exitosamente."))
+        messages.success(request, _("Comment added successfully."))
         return redirect("client_project_view", project_id=project_id)
 
     return render(request, "core/agregar_comentario.html", {"project": project})

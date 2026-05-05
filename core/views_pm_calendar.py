@@ -45,12 +45,12 @@ def pm_calendar_view(request):
             and not user.is_staff
             and not user.is_superuser
         ):
-            messages.error(request, "Vista solo disponible para Project Managers")
+            messages.error(request, "View only available for Project Managers")
             return redirect("dashboard")
     except Profile.DoesNotExist:
         # If no profile, check if staff/superuser
         if not user.is_staff and not user.is_superuser:
-            messages.error(request, "Vista solo disponible para Project Managers")
+            messages.error(request, "View only available for Project Managers")
             return redirect("dashboard")
 
     today = timezone.localdate()
@@ -266,10 +266,10 @@ def pm_block_day(request):
             and not request.user.is_staff
             and not request.user.is_superuser
         ):
-            return JsonResponse({"success": False, "error": "Permiso denegado"}, status=403)
+            return JsonResponse({"success": False, "error": "Permission denied"}, status=403)
     except Profile.DoesNotExist:
         if not request.user.is_staff and not request.user.is_superuser:
-            return JsonResponse({"success": False, "error": "Permiso denegado"}, status=403)
+            return JsonResponse({"success": False, "error": "Permission denied"}, status=403)
 
     date_str = request.POST.get("date")
     reason = request.POST.get("reason", "vacation")
@@ -288,7 +288,7 @@ def pm_block_day(request):
             return JsonResponse(
                 {
                     "success": False,
-                    "error": f"El día {date_str} ya está bloqueado como {existing.get_reason_display()}",
+                    "error": f"Day {date_str} is already blocked as {existing.get_reason_display()}",
                 },
                 status=400,
             )
@@ -306,7 +306,7 @@ def pm_block_day(request):
         return JsonResponse(
             {
                 "success": True,
-                "message": f"Día {date_str} bloqueado correctamente",
+                "message": f"Day {date_str} blocked successfully",
                 "blocked_day": {
                     "id": blocked_day.id,
                     "date": str(blocked_day.date),
@@ -333,12 +333,12 @@ def pm_unblock_day(request, blocked_day_id):
         and not request.user.is_staff
         and not request.user.is_superuser
     ):
-        return JsonResponse({"success": False, "error": "Permiso denegado"}, status=403)
+        return JsonResponse({"success": False, "error": "Permission denied"}, status=403)
 
     date_str = str(blocked_day.date)
     blocked_day.delete()
 
-    return JsonResponse({"success": True, "message": f"Día {date_str} desbloqueado correctamente"})
+    return JsonResponse({"success": True, "message": f"Day {date_str} unblocked successfully"})
 
 
 @login_required
@@ -354,10 +354,10 @@ def pm_calendar_api_data(request):
             and not request.user.is_staff
             and not request.user.is_superuser
         ):
-            return JsonResponse({"error": "Permiso denegado"}, status=403)
+            return JsonResponse({"error": "Permission denied"}, status=403)
     except Profile.DoesNotExist:
         if not request.user.is_staff and not request.user.is_superuser:
-            return JsonResponse({"error": "Permiso denegado"}, status=403)
+            return JsonResponse({"error": "Permission denied"}, status=403)
 
     user = request.user
     today = timezone.localdate()

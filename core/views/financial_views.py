@@ -299,7 +299,7 @@ def invoice_builder_view(request, project_id):
 
         messages.success(
             request,
-            f"✅ Factura {invoice.invoice_number} creada con {lines_created} líneas. Total: ${invoice.total_amount:,.2f}",
+            f"✅ Invoice {invoice.invoice_number} created with {lines_created} lines. Total: ${invoice.total_amount:,.2f}",
         )
         return redirect("invoice_detail", pk=invoice.id)
 
@@ -886,14 +886,14 @@ def invoice_cancel(request, invoice_id):
     if invoice.status == "PAID":
         messages.error(
             request,
-            _("⚠️ No se puede cancelar una factura que ya está PAGADA."),
+            _("⚠️ Cannot cancel an invoice that is already PAID."),
         )
         return redirect("invoice_detail", pk=invoice.id)
     
     if invoice.status == "CANCELLED":
         messages.warning(
             request,
-            _("La factura ya está cancelada."),
+            _("The invoice is already cancelled."),
         )
         return redirect("invoice_detail", pk=invoice.id)
     
@@ -998,15 +998,15 @@ def project_profit_dashboard(request, project_id):
     alerts = []
     if margin_pct < 10:
         alerts.append(
-            {"type": "danger", "message": f"Margen crítico: {margin_pct:.1f}% (meta: >25%)"}
+            {"type": "danger", "message": f"Critical margin: {margin_pct:.1f}% (target: >25%)"}
         )
     elif margin_pct < 25:
         alerts.append(
-            {"type": "warning", "message": f"Margen bajo: {margin_pct:.1f}% (meta: >25%)"}
+            {"type": "warning", "message": f"Low margin: {margin_pct:.1f}% (target: >25%)"}
         )
     if outstanding > budgeted_revenue * Decimal("0.3") and outstanding > 0:
         alerts.append(
-            {"type": "warning", "message": f"Alto saldo pendiente: ${outstanding:,.2f}"}
+            {"type": "warning", "message": f"High outstanding balance: ${outstanding:,.2f}"}
         )
     if total_actual_cost > budgeted_revenue and budgeted_revenue > 0:
         alerts.append(
@@ -1489,9 +1489,9 @@ def estimate_send_email(request, estimate_id):
             subject = form.cleaned_data["subject"]
             message = form.cleaned_data["message"]
             recipient = form.cleaned_data["recipient"]
-            # Garantizar que el link está incluido
+            # Ensure the link is included
             if public_url not in message:
-                message = f"{message}\n\nVer y aprobar la cotización:\n{public_url}"
+                message = f"{message}\n\nView and approve the quote:\n{public_url}"
             sender = getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@example.com")
             error_msg = None
             success_flag = True
@@ -1501,7 +1501,7 @@ def estimate_send_email(request, estimate_id):
                     "<p>"
                     + message.replace("\n\n", "</p><p>").replace("\n", "<br>")
                     + "</p>"
-                    + f"<p><a href='{public_url}' style='display:inline-block;padding:12px 20px;background:#4CAF50;color:#fff;text-decoration:none;border-radius:6px;'>Ver y Aprobar Cotización</a></p>"
+                    + f"<p><a href='{public_url}' style='display:inline-block;padding:12px 20px;background:#4CAF50;color:#fff;text-decoration:none;border-radius:6px;'>View and Approve Quote</a></p>"
                 )
                 from core.services.email_service import KibrayEmailService
                 KibrayEmailService.send_html_email(
@@ -1511,11 +1511,11 @@ def estimate_send_email(request, estimate_id):
                     html_content=html_body,
                     fail_silently=False
                 )
-                messages.success(request, _("Propuesta enviada correctamente al cliente."))
+                messages.success(request, _("Proposal sent successfully to the client."))
             except Exception as e:
                 success_flag = False
                 error_msg = str(e)
-                messages.error(request, _("Error enviando correo: %(error)s") % {"error": e})
+                messages.error(request, _("Error sending email: %(error)s") % {"error": e})
 
             # Log persistente
             from core.models import ProposalEmailLog
@@ -1532,13 +1532,13 @@ def estimate_send_email(request, estimate_id):
                 )
             return redirect("estimate_detail", estimate_id=est.id)
     else:
-        client_name = est.project.client or "Cliente"
-        subject = f"Cotización {getattr(est, 'code', '')} - {est.project.name}".strip()
+        client_name = est.project.client or "Client"
+        subject = f"Quote {getattr(est, 'code', '')} - {est.project.name}".strip()
         message = (
-            f"Hola {client_name},\n\n"
-            "Adjunto encontrarás la cotización detallada para tu revisión.\n\n"
-            f"Puedes verla y aprobarla aquí:\n{public_url}\n\n"
-            "Saludos,\nTu Empresa"
+            f"Hi {client_name},\n\n"
+            "Attached you will find the detailed quote for your review.\n\n"
+            f"You can view and approve it here:\n{public_url}\n\n"
+            "Best regards,\nYour Company"
         )
         form = ProposalEmailForm(
             initial={

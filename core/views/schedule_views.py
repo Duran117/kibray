@@ -129,7 +129,7 @@ def schedule_generator_view(request, project_id):
                 phase = form.save(commit=False)
                 phase.project = project
                 phase.save()
-                messages.success(request, f'Fase "{phase.name}" creada.')
+                messages.success(request, f'Fase "{phase.name}" created.')
                 return redirect("schedule_generator", project_id=project.id)
             else:
                 messages.error(request, _("Error al crear fase."))
@@ -170,9 +170,9 @@ def schedule_generator_view(request, project_id):
                     status="planned",
                     progress=0,
                 )
-                messages.success(request, f'Ítem "{item.name}" creado.')
+                messages.success(request, f'Item "{item.name}" created.')
             else:
-                messages.error(request, _("Error al crear ítem. Verifica los campos."))
+                messages.error(request, _("Failed to create item. Check the fields."))
             return redirect("schedule_generator", project_id=project.id)
 
         # Update item progress
@@ -268,10 +268,10 @@ def _generate_schedule_from_estimate(request, project, estimate):
 
             messages.success(
                 request,
-                f"Generado: {len(created_phases)} fases y {created_items} ítems desde el estimado {estimate.code}.",
+                f"Generated: {len(created_phases)} phases and {created_items} items from estimate {estimate.code}.",
             )
     except Exception as e:
-        messages.error(request, _("Error al generar cronograma: %(error)s") % {"error": str(e)})
+        messages.error(request, _("Error generating schedule: %(error)s") % {"error": str(e)})
 
     return redirect("schedule_generator", project_id=project.id)
 
@@ -343,7 +343,7 @@ def schedule_item_edit(request, item_id):
         form = ScheduleItemForm(request.POST, instance=item, project=project)
         if form.is_valid():
             form.save()
-            messages.success(request, f'Ítem "{item.title}" actualizado.')
+            messages.success(request, f'Item "{item.title}" updated.')
             return redirect("schedule_generator", project_id=project.id)
     else:
         form = ScheduleItemForm(instance=item, project=project)
@@ -371,7 +371,7 @@ def schedule_item_delete(request, item_id):
     if request.method == "POST":
         item_title = item.title
         item.delete()
-        messages.success(request, f'Ítem "{item_title}" eliminado.')
+        messages.success(request, f'Item "{item_title}" deleted.')
         return redirect("schedule_generator", project_id=project.id)
 
     return render(
@@ -438,7 +438,7 @@ def schedule_gantt_react_view(request, project_id):
     )
 
     if not can_manage:
-        return HttpResponseForbidden("No tienes permisos para ver este cronograma.")
+        return HttpResponseForbidden("You don't have permission to view this schedule.")
 
     # Get team members for task assignment (only actual employees, not clients)
     team_members = Employee.objects.filter(

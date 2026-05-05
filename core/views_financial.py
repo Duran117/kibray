@@ -42,7 +42,7 @@ def financial_dashboard(request):
     """
     # Solo admin/superuser puede acceder
     if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
-        messages.error(request, "No tienes permiso para acceder a esta función.")
+        messages.error(request, "You don't have permission to access this feature.")
         return redirect("dashboard")
     
     today = timezone.now().date()
@@ -146,9 +146,9 @@ def financial_dashboard(request):
         alerts.append(
             {
                 "type": "warning",
-                "message": f"{overdue_invoices.count()} facturas vencidas (>{30} días) - Total: ${total_overdue:,.2f}",
+                "message": f"{overdue_invoices.count()} overdue invoices (>{30} days) - Total: ${total_overdue:,.2f}",
                 "action_url": "/invoices/?status=overdue",
-                "action_text": "Ver facturas",
+                "action_text": "View invoices",
             }
         )
 
@@ -175,9 +175,9 @@ def financial_dashboard(request):
         alerts.append(
             {
                 "type": "danger",
-                "message": f"{len(over_budget_projects)} proyectos sobre presupuesto",
+                "message": f"{len(over_budget_projects)} projects over budget",
                 "action_url": "/projects/",
-                "action_text": "Ver proyectos",
+                "action_text": "View projects",
             }
         )
 
@@ -188,9 +188,9 @@ def financial_dashboard(request):
         alerts.append(
             {
                 "type": "info",
-                "message": f"{pending_cos} órdenes de cambio pendientes de aprobación",
+                "message": f"{pending_cos} change orders pending approval",
                 "action_url": "/changeorders/",
-                "action_text": "Revisar",
+                "action_text": "Review",
             }
         )
 
@@ -226,7 +226,7 @@ def invoice_aging_report(request):
     Buckets: Current (0-30), 31-60, 61-90, 90+ days
     """
     if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role in ('admin', 'project_manager'))):
-        messages.error(request, "No tienes permiso para acceder a esta función.")
+        messages.error(request, "You don't have permission to access this feature.")
         return redirect("dashboard")
     today = timezone.now().date()
 
@@ -295,7 +295,7 @@ def productivity_dashboard(request):
     """
     # Solo admin/superuser puede acceder
     if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
-        messages.error(request, "No tienes permiso para acceder a esta función.")
+        messages.error(request, "You don't have permission to access this feature.")
         return redirect("dashboard")
     
     # Filter by date range (default: this month)
@@ -410,7 +410,7 @@ def export_financial_data(request):
     Formats: Income, Expenses, Invoices
     """
     if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role in ('admin', 'project_manager'))):
-        messages.error(request, "No tienes permiso para acceder a esta función.")
+        messages.error(request, "You don't have permission to access this feature.")
         return redirect("dashboard")
     export_type = request.GET.get("type", "expenses")  # expenses, income, invoices
     start_date = request.GET.get("start_date")
@@ -544,7 +544,7 @@ def employee_performance_review(request, employee_id=None):
     """
     # Solo admin/superuser puede acceder
     if not (request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')):
-        messages.error(request, "No tienes permiso para acceder a esta función.")
+        messages.error(request, "You don't have permission to access this feature.")
         return redirect("dashboard")
     
     year = int(request.GET.get("year", timezone.now().year))

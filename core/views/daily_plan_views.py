@@ -18,7 +18,7 @@ def daily_plan_fetch_weather(request, plan_id):
         return JsonResponse({"error": gettext("POST required")}, status=405)
 
     if not _is_staffish(request.user):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": gettext("Permission denied")}, status=403)
 
     plan = get_object_or_404(DailyPlan, id=plan_id)
 
@@ -37,7 +37,7 @@ def daily_plan_fetch_weather(request, plan_id):
         )
     else:
         return JsonResponse(
-            {"error": gettext("No se pudo obtener el clima. Verifique la ubicación del proyecto.")},
+            {"error": gettext("Could not retrieve weather. Please verify the project location.")},
             status=400,
         )
 
@@ -49,7 +49,7 @@ def daily_plan_convert_activities(request, plan_id):
         return JsonResponse({"error": gettext("POST required")}, status=405)
 
     if not _is_staffish(request.user):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": gettext("Permission denied")}, status=403)
 
     plan = get_object_or_404(DailyPlan, id=plan_id)
 
@@ -653,7 +653,7 @@ def daily_plan_edit(request, plan_id):
         if form.is_valid() and formset.is_valid():
             form.save()  # Handles weather fetch + estimated hours recalculation
             formset.save()
-            messages.success(request, _("Plan actualizado"))
+            messages.success(request, _("Plan updated"))
             # Workflow quick actions via hidden field 'transition'
             transition = request.POST.get("transition")
             if transition:
@@ -669,11 +669,11 @@ def daily_plan_edit(request, plan_id):
                     if desired != current and desired in allowed.get(current, []):
                         plan.status = desired
                         plan.save(update_fields=["status"])
-                        messages.success(request, _("Transición de estado exitosa"))
+                        messages.success(request, _("Status transition successful"))
                     else:
-                        messages.warning(request, _("Transición inválida"))
+                        messages.warning(request, _("Invalid transition"))
                 except Exception:
-                    messages.error(request, _("Error aplicando transición de estado"))
+                    messages.error(request, _("Error applying state transition"))
             return redirect("daily_plan_edit", plan_id=plan.id)
         else:
             messages.error(request, _("Revisa errores en el formulario"))
@@ -1060,7 +1060,7 @@ def sop_create_wizard(request, template_id=None):
             for f in uploaded_files:
                 SOPReferenceFile.objects.create(sop=sop, file=f)
 
-        messages.success(request, _("✨ SOP creado exitosamente!"))
+        messages.success(request, _("✨ SOP created successfully!"))
         return redirect("sop_library")
 
     # GET request - show wizard

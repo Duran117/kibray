@@ -578,7 +578,7 @@ def floor_plan_edit(request, plan_id):
         form = FloorPlanForm(request.POST, request.FILES, instance=plan)
         if form.is_valid():
             form.save()
-            messages.success(request, _("Plano actualizado."))
+            messages.success(request, _("Floor plan updated."))
             return redirect("floor_plan_detail", plan_id=plan.id)
     else:
         form = FloorPlanForm(instance=plan)
@@ -606,7 +606,7 @@ def floor_plan_delete(request, plan_id):
     if request.method == "POST":
         project_id = project.id
         plan.delete()
-        messages.success(request, _("Plano eliminado."))
+        messages.success(request, _("Floor plan deleted."))
         return redirect("floor_plan_list", project_id=project_id)
     return render(
         request,
@@ -670,7 +670,7 @@ def floor_plan_add_pin(request, plan_id):
             x = Decimal(request.POST.get("x"))
             y = Decimal(request.POST.get("y"))
         except Exception:
-            messages.error(request, _("Coordenadas inválidas."))
+            messages.error(request, _("Invalid coordinates."))
             return redirect("floor_plan_detail", plan_id=plan.id)
 
         # Capturar datos de trayectoria multipunto si existen

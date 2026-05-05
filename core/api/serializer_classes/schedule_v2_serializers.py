@@ -315,7 +315,7 @@ class ScheduleTaskV2WriteSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         status = attrs.get("status")
         if status and status not in dict(ScheduleTaskV2._meta.get_field("status").choices):
-            raise serializers.ValidationError({"status": "status inválido"})
+            raise serializers.ValidationError({"status": "invalid status"})
         
         # Validate weight_percent doesn't exceed remaining
         weight_percent = attrs.get("weight_percent")
@@ -353,6 +353,6 @@ class ScheduleDependencyV2WriteSerializer(serializers.ModelSerializer):
 
         dep_type = attrs.get("dependency_type", "FS")
         if dep_type not in dict(ScheduleDependencyV2._meta.get_field("dependency_type").choices):
-            raise serializers.ValidationError({"dependency_type": "Tipo de dependencia inválido"})
+            raise serializers.ValidationError({"dependency_type": "Invalid dependency type"})
 
         return attrs

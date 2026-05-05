@@ -96,14 +96,14 @@ def project_activation_view(request, project_id):
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"]:
-        messages.error(request, _("No tienes permisos para activar proyectos"))
+        messages.error(request, _("You don't have permission to activate projects"))
         return redirect("dashboard")
 
     # Get approved estimate
     estimate = project.estimates.filter(approved=True).order_by("-version").first()
 
     if not estimate:
-        messages.error(request, _("No hay estimado aprobado para este proyecto"))
+        messages.error(request, _("No approved estimate for this project"))
         return redirect("project_overview", project_id=project.id)
 
     # Check if already activated
@@ -151,23 +151,23 @@ def project_activation_view(request, project_id):
 
                 # Build success message
                 summary = result["summary"]
-                msg_parts = ["Proyecto activado exitosamente:"]
+                msg_parts = ["Project activated successfully:"]
 
                 if summary["schedule_items_count"] > 0:
                     msg_parts.append(
-                        f"✓ {summary['schedule_items_count']} ítems de cronograma creados"
+                        f"✓ {summary['schedule_items_count']} schedule items created"
                     )
 
                 if summary["budget_lines_count"] > 0:
                     msg_parts.append(
-                        f"✓ {summary['budget_lines_count']} líneas de presupuesto creadas"
+                        f"✓ {summary['budget_lines_count']} budget lines created"
                     )
 
                 if summary["tasks_count"] > 0:
-                    msg_parts.append(f"✓ {summary['tasks_count']} tareas operativas creadas")
+                    msg_parts.append(f"✓ {summary['tasks_count']} operational tasks created")
 
                 if summary["invoice_created"]:
-                    msg_parts.append(f"✓ Factura de anticipo creada (${summary['invoice_amount']})")
+                    msg_parts.append(f"✓ Deposit invoice created (${summary['invoice_amount']})")
 
                 messages.success(request, _(" | ").join(msg_parts))
 
@@ -178,7 +178,7 @@ def project_activation_view(request, project_id):
                     return redirect("project_overview", project_id=project.id)
 
             except ValueError as e:
-                messages.error(request, _("Error de validación: %(error)s") % {"error": str(e)})
+                messages.error(request, _("Validation error: %(error)s") % {"error": str(e)})
             except Exception as e:
                 messages.error(
                     request, _("Error al activar proyecto: %(error)s") % {"error": str(e)}

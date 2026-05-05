@@ -205,7 +205,7 @@ def client_edit(request, user_id):
                 user.profile.language = form.cleaned_data.get("language", "en")
                 user.profile.save()
 
-            messages.success(request, _("Información del cliente actualizada exitosamente."))
+            messages.success(request, _("Client information updated successfully."))
             return redirect("client_detail", user_id=user.id)
     else:
         form = ClientEditForm(instance=client)
@@ -321,18 +321,18 @@ def client_reset_password(request, user_id):
                 if email_sent:
                     messages.success(
                         request,
-                        _("Contraseña actualizada y email enviado a %(email)s")
+                        _("Password updated and email sent to %(email)s")
                         % {"email": client.email},
                     )
                 else:
                     messages.warning(
                         request,
-                        _("Contraseña actualizada pero hubo un error al enviar el email.")
+                        _("Password updated but there was an error sending the email.")
                     )
             except Exception as e:
                 messages.warning(
                     request,
-                    _("Contraseña actualizada pero hubo un error al enviar el email: %(error)s")
+                    _("Password updated but there was an error sending the email: %(error)s")
                     % {"error": str(e)},
                 )
 
@@ -392,7 +392,7 @@ def client_assign_project(request, user_id):
             if deleted_count > 0:
                 messages.success(request, f'Acceso al proyecto "{project.name}" removido.')
             else:
-                messages.info(request, _("El cliente no tenía acceso a ese proyecto."))
+                messages.info(request, _("The client did not have access to that project."))
         
         elif action == "update_role":
             # Update existing access role
@@ -583,7 +583,7 @@ def organization_create(request):
             org = form.save(commit=False)
             org.created_by = request.user
             org.save()
-            messages.success(request, f'Organización "{org.name}" creada exitosamente.')
+            messages.success(request, f'Organization "{org.name}" created exitosamente.')
             return redirect("organization_detail", org_id=org.id)
     else:
         form = ClientOrganizationForm()
@@ -627,7 +627,7 @@ def organization_edit(request, org_id):
         form = ClientOrganizationForm(request.POST, instance=org)
         if form.is_valid():
             form.save()
-            messages.success(request, f'Organización "{org.name}" actualizada exitosamente.')
+            messages.success(request, f'Organization "{org.name}" updated successfully.')
             return redirect("organization_detail", org_id=org.id)
     else:
         form = ClientOrganizationForm(instance=org)
@@ -659,7 +659,7 @@ def organization_delete(request, org_id):
         if action == "deactivate":
             org.is_active = False
             org.save()
-            messages.success(request, f'Organización "{org.name}" desactivada exitosamente.')
+            messages.success(request, f'Organization "{org.name}" deactivated successfully.')
         elif action == "delete":
             # Verificar dependencias
             contact_count = ClientContact.objects.filter(organization=org).count()
@@ -668,15 +668,15 @@ def organization_delete(request, org_id):
             if contact_count > 0 or project_count > 0:
                 messages.error(
                     request,
-                    f"❌ No se puede eliminar esta organización porque tiene: "
-                    f"{contact_count} contactos y {project_count} proyectos vinculados. "
-                    f'Usa "Desactivar" para preservar la integridad de los datos.',
+                    f"❌ This organization cannot be deleted because it has: "
+                    f"{contact_count} contacts and {project_count} linked projects. "
+                    f'Use "Deactivate" to preserve data integrity.',
                 )
                 return redirect("organization_detail", org_id=org.id)
 
             org_name = org.name
             org.delete()
-            messages.success(request, f'Organización "{org_name}" eliminada permanentemente.')
+            messages.success(request, f'Organization "{org_name}" permanently deleted.')
             return redirect("organization_list")
 
         return redirect("organization_detail", org_id=org.id)

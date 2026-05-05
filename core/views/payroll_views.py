@@ -240,7 +240,7 @@ def payroll_weekly_review(request):
                 except (ValueError, InvalidOperation) as e:
                     messages.warning(request, f"Error procesando pago para {emp.first_name}: {str(e)}")
 
-            messages.success(request, _("Nómina actualizada correctamente."))
+            messages.success(request, _("Payroll updated successfully."))
             return redirect(f"{request.path}?week_start={week_start.isoformat()}")
 
     # Preparar datos de cada empleado
@@ -439,7 +439,7 @@ def payroll_record_payment(request, record_id):
             # Redirigir de vuelta a la revisión semanal
             return redirect("payroll_weekly_review")
         else:
-            messages.error(request, _("Monto y fecha de pago son requeridos."))
+            messages.error(request, _("Amount and payment date are required."))
 
     return render(
         request,

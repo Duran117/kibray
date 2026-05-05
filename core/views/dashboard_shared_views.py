@@ -164,10 +164,10 @@ def dashboard_superintendent(request):
         count = len(damages)
         morning_briefing.append(
             {
-                "text": f"Hay {count} {'reporte de daño' if count == 1 else 'reportes de daño'} en progreso",
+                "text": f"There {'is' if count == 1 else 'are'} {count} damage report{'' if count == 1 else 's'} in progress",
                 "severity": "danger" if count > 3 else "warning",
                 "action_url": "#",
-                "action_label": "Ver reportes",
+                "action_label": "View reports",
                 "category": "issues",
             }
         )
@@ -177,10 +177,10 @@ def dashboard_superintendent(request):
         count = len(unassigned_touchups)
         morning_briefing.append(
             {
-                "text": f"Hay {count} {'reparación' if count == 1 else 'reparaciones'} sin asignar",
+                "text": f"There {'is' if count == 1 else 'are'} {count} unassigned touch-up{'' if count == 1 else 's'}",
                 "severity": "warning",
                 "action_url": "#",
-                "action_label": "Asignar",
+                "action_label": "Assign",
                 "category": "tasks",
             }
         )
@@ -190,10 +190,10 @@ def dashboard_superintendent(request):
         count = len(touchups)
         morning_briefing.append(
             {
-                "text": f"Tú tienes {count} {'reparación' if count == 1 else 'reparaciones'} asignada{'s' if count > 1 else ''}",
+                "text": f"You have {count} touch-up{'' if count == 1 else 's'} assigned",
                 "severity": "info",
                 "action_url": "#",
-                "action_label": "Ver mis reparaciones",
+                "action_label": "View my touch-ups",
                 "category": "progress",
             }
         )

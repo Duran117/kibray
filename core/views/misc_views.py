@@ -44,7 +44,7 @@ def client_request_create(request, project_id):
         title = request.POST.get("title")
         description = request.POST.get("description", "")
         if not title:
-            messages.error(request, _("Título es requerido"))
+            messages.error(request, _("Title is required"))
         else:
             from core.models import ClientRequest
 
@@ -522,7 +522,7 @@ def analytics_dashboard(request):
     # Solo admin/superuser puede acceder
     profile = getattr(request.user, 'profile', None)
     if not (request.user.is_superuser or (profile and profile.role == 'admin')):
-        messages.error(request, _("No tienes permiso para acceder a Analytics."))
+        messages.error(request, _("You don't have permission to access Analytics."))
         return redirect("dashboard")
     
     today = timezone.now().date()

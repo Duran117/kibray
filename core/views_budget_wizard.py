@@ -60,7 +60,7 @@ def budget_wizard_view(request, project_id):
         # Verificar si es PM del proyecto
         is_pm = hasattr(project, 'pm') and project.pm == request.user
         if not is_pm:
-            messages.error(request, _("No tienes permisos para editar este presupuesto."))
+            messages.error(request, _("You don't have permission to edit this budget."))
             return redirect("project_overview", project_id=project.id)
     
     # Export CSV
@@ -112,7 +112,7 @@ def handle_add_line(request, project):
     try:
         cost_code_id = request.POST.get("cost_code")
         if not cost_code_id:
-            messages.error(request, _("Debes seleccionar un cost code."))
+            messages.error(request, _("You must select a cost code."))
             return
         
         cost_code = CostCode.objects.get(pk=cost_code_id)
@@ -132,12 +132,12 @@ def handle_add_line(request, project):
             planned_finish=request.POST.get("planned_finish") or None,
         )
         
-        messages.success(request, _(f"✓ Línea '{cost_code.code}' agregada al presupuesto."))
+        messages.success(request, _(f"✓ Line '{cost_code.code}' added to budget."))
         
     except CostCode.DoesNotExist:
-        messages.error(request, _("Cost code no encontrado."))
+        messages.error(request, _("Cost code not found."))
     except Exception as e:
-        messages.error(request, _(f"Error al agregar línea: {str(e)}"))
+        messages.error(request, _(f"Failed to add line: {str(e)}"))
 
 
 def handle_edit_line(request, project):
@@ -163,12 +163,12 @@ def handle_edit_line(request, project):
         line.planned_finish = request.POST.get("planned_finish") or None
         
         line.save()
-        messages.success(request, _("✓ Línea actualizada."))
+        messages.success(request, _("✓ Line updated."))
         
     except BudgetLine.DoesNotExist:
-        messages.error(request, _("Línea no encontrada."))
+        messages.error(request, _("Line not found."))
     except Exception as e:
-        messages.error(request, _(f"Error al editar: {str(e)}"))
+        messages.error(request, _(f"Failed to edit: {str(e)}"))
 
 
 def handle_delete_line(request, project):
@@ -178,9 +178,9 @@ def handle_delete_line(request, project):
         line = BudgetLine.objects.get(pk=line_id, project=project)
         code = line.cost_code.code
         line.delete()
-        messages.success(request, _(f"✓ Línea '{code}' eliminada."))
+        messages.success(request, _(f"✓ Line '{code}' deleted."))
     except BudgetLine.DoesNotExist:
-        messages.error(request, _("Línea no encontrada."))
+        messages.error(request, _("Line not found."))
 
 
 def handle_template(request, project):
@@ -189,7 +189,7 @@ def handle_template(request, project):
     template_lines = BUDGET_TEMPLATES.get(template_type, [])
     
     if not template_lines:
-        messages.error(request, _("Template no encontrado."))
+        messages.error(request, _("Template not found."))
         return
     
     created_count = 0
@@ -218,9 +218,9 @@ def handle_template(request, project):
             created_count += 1
     
     if created_count > 0:
-        messages.success(request, _(f"✓ {created_count} líneas creadas desde template '{template_type}'."))
+        messages.success(request, _(f"✓ {created_count} lines created from template '{template_type}'."))
     else:
-        messages.info(request, _("No se crearon líneas (ya existen en el presupuesto)."))
+        messages.info(request, _("No lines were created (they already exist in the budget)."))
 
 
 def export_budget_csv(project):

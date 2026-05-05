@@ -136,7 +136,7 @@ def touchup_quick_update(request, task_id):
     employee = Employee.objects.filter(user=request.user).first()
     is_assigned = employee and task.assigned_to == employee
     if not (request.user.is_staff or is_assigned or task.project.client == request.user.username):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": gettext("Permission denied")}, status=403)
 
     action = request.POST.get("action")
 
@@ -161,7 +161,7 @@ def touchup_quick_update(request, task_id):
             task.save()
             return JsonResponse({"success": True, "assigned_to": "Sin asignar"})
 
-    return JsonResponse({"error": gettext("Acción inválida")}, status=400)
+    return JsonResponse({"error": gettext("Invalid action")}, status=400)
 
 
 
@@ -179,7 +179,7 @@ def touchup_plans_list(request, project_id):
         or profile.role
         not in ["project_manager", "admin", "superuser", "client", "designer", "owner"]
     ):
-        messages.error(request, _("No tienes permiso para gestionar touch-ups"))
+        messages.error(request, _("You don't have permission to manage touch-ups"))
         return redirect("project_overview", project_id)
 
     # Get plans with active touch-ups
@@ -220,7 +220,7 @@ def touchup_plan_detail(request, plan_id):
         "owner",
     ]
     if not request.user.is_staff and (not profile or profile.role not in allowed_roles):
-        messages.error(request, _("No tienes permiso para ver touch-ups"))
+        messages.error(request, _("You don't have permission to view touch-ups"))
         return redirect("project_overview", project.id)
 
     # Get touchups - filter by assigned user if employee
@@ -280,7 +280,7 @@ def touchup_create(request, plan_id):
                 }
             )
         else:
-            return JsonResponse({"error": "Formulario inválido", "errors": form.errors}, status=400)
+            return JsonResponse({"error": "Invalid form", "errors": form.errors}, status=400)
 
     # GET - return form
     form = TouchUpPinForm(initial={"plan": plan}, project=project)
@@ -365,12 +365,12 @@ def touchup_update(request, touchup_id):
         form = TouchUpPinForm(request.POST, instance=touchup, project=touchup.plan.project)
         if form.is_valid():
             form.save()
-            messages.success(request, _("Touch-up actualizado"))
-            return JsonResponse({"success": True, "message": gettext("Touch-up actualizado")})
+            messages.success(request, _("Touch-up updated"))
+            return JsonResponse({"success": True, "message": gettext("Touch-up updated")})
         else:
-            return JsonResponse({"error": "Formulario inválido", "errors": form.errors}, status=400)
+            return JsonResponse({"error": "Invalid form", "errors": form.errors}, status=400)
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": gettext("Method not allowed")}, status=405)
 
 
 
@@ -394,7 +394,7 @@ def touchup_complete(request, touchup_id):
         photos = request.FILES.getlist("photos")
 
         if not photos:
-            return JsonResponse({"error": gettext("Debes subir al menos una foto")}, status=400)
+            return JsonResponse({"error": gettext("You must upload at least one photo")}, status=400)
 
         # Save completion photos with annotations
         for idx, photo in enumerate(photos):
@@ -424,7 +424,7 @@ def touchup_complete(request, touchup_id):
             {"success": True, "message": gettext("Touch-up completado exitosamente")}
         )
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": gettext("Method not allowed")}, status=405)
 
 
 
@@ -447,7 +447,7 @@ def touchup_delete(request, touchup_id):
         messages.success(request, f'Touch-up "{task_name}" eliminado')
         return JsonResponse({"success": True, "redirect": f"/plans/{plan_id}/touchups/"})
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": gettext("Method not allowed")}, status=405)
 
 
 
@@ -471,9 +471,9 @@ def touchup_approve(request, touchup_id):
         touchup.save()
 
         messages.success(request, f'Touch-up "{touchup.task_name}" aprobado')
-        return JsonResponse({"success": True, "message": gettext("Touch-up aprobado exitosamente")})
+        return JsonResponse({"success": True, "message": gettext("Touch-up approved successfully")})
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": gettext("Method not allowed")}, status=405)
 
 
 
@@ -509,7 +509,7 @@ def touchup_reject(request, touchup_id):
             {"success": True, "message": gettext("Touch-up rechazado, el empleado debe corregirlo")}
         )
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": gettext("Method not allowed")}, status=405)
 
 
 
@@ -636,10 +636,10 @@ def pin_update(request, pin_id):
 
         pin.save()
 
-        messages.success(request, _("Pin actualizado exitosamente"))
+        messages.success(request, _("Pin updated successfully"))
         return JsonResponse({"success": True, "message": gettext("Pin actualizado")})
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": gettext("Method not allowed")}, status=405)
 
 
 
@@ -696,7 +696,7 @@ def pin_add_photo(request, pin_id):
             }
         )
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": gettext("Method not allowed")}, status=405)
 
 
 
@@ -726,7 +726,7 @@ def pin_delete_photo(request, attachment_id):
 
         return JsonResponse({"success": True, "message": gettext("Foto eliminada")})
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": gettext("Method not allowed")}, status=405)
 
 
 # --- TOUCHUP BOARD REACT ---

@@ -114,7 +114,7 @@
         {% if can_edit_progress %}
           <form method="post" action="{% url 'delete_progress' project.id p.id %}" style="display:inline">
             {% csrf_token %}
-            <button class="btn btn-danger btn-xs" onclick="return confirm('Eliminar progreso?')">Delete</button>
+            <button class="btn btn-danger btn-xs" onclick="return confirm('Delete progress?')">Delete</button>
           </form>
         {% endif %}
       </td>

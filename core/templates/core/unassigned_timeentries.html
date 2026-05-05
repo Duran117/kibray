@@ -193,12 +193,12 @@ function recalcSelection(){
 function submitCreateAssign(){
   const boxes=[...document.querySelectorAll('input[name=selected]:checked')];
   let projects=[...new Set(boxes.map(b=>b.dataset.project).filter(Boolean))];
-  if(projects.length!==1){alert('Selecciona filas de un solo proyecto para crear CO.');return;}
+  if(projects.length!==1){alert('Select rows from a single project to create a CO.');return;}
   document.getElementById('bulk-action').value='create_and_assign';
   document.getElementById('bulk-form').submit();
 }
 function quickAssign(id){
-  const co=document.getElementById('co-select').value; if(!co){alert('Selecciona un CO primero');return;}
+  const co=document.getElementById('co-select').value; if(!co){alert('Select a CO first');return;}
   // Crear un form dinámico para solo ese id
   const f=document.createElement('form'); f.method='POST'; f.style.display='none'; f.innerHTML=`${document.querySelector('#bulk-form [name=csrfmiddlewaretoken]').outerHTML}<input name="action" value="assign"/><input name="change_order_id" value="${co}"/><input name="selected" value="${id}"/>`; document.body.appendChild(f); f.submit();
 }

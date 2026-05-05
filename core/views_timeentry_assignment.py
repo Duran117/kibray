@@ -28,7 +28,7 @@ def timeentry_assignment_hub(request):
     profile = getattr(request.user, "profile", None)
     role = getattr(profile, "role", "employee")
     if role not in ["admin", "superuser", "project_manager"]:
-        messages.error(request, "No tienes permisos para acceder a esta página.")
+        messages.error(request, "You don't have permission to access this page.")
         return redirect("dashboard")
 
     # Filtros
@@ -129,7 +129,7 @@ def timeentry_assignment_hub(request):
                 )
                 messages.success(request, f"✓ {updated} entradas actualizadas.")
             else:
-                messages.warning(request, "Selecciona entradas y un proyecto.")
+                messages.warning(request, "Select entries and a project.")
             
             return redirect(request.get_full_path())
 

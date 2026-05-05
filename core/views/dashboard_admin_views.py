@@ -323,27 +323,27 @@ def dashboard_admin(request):
             )
             alerts = []
 
-            # SPI < 0.9: retraso en cronograma
+            # SPI < 0.9: schedule delay
             if metrics and metrics.get("SPI") and metrics["SPI"] < 0.9:
-                alerts.append(("danger", f"Retraso crítico (SPI: {metrics['SPI']})"))
+                alerts.append(("danger", f"Critical schedule delay (SPI: {metrics['SPI']})"))
             elif metrics and metrics.get("SPI") and metrics["SPI"] < 1.0:
-                alerts.append(("warning", f"Leve retraso (SPI: {metrics['SPI']})"))
+                alerts.append(("warning", f"Slight schedule delay (SPI: {metrics['SPI']})"))
 
-            # CPI < 0.9: sobrecosto
+            # CPI < 0.9: cost overrun
             if metrics and metrics.get("CPI") and metrics["CPI"] < 0.9:
-                alerts.append(("danger", f"Sobrecosto crítico (CPI: {metrics['CPI']})"))
+                alerts.append(("danger", f"Critical cost overrun (CPI: {metrics['CPI']})"))
             elif metrics and metrics.get("CPI") and metrics["CPI"] < 1.0:
-                alerts.append(("warning", f"Leve sobrecosto (CPI: {metrics['CPI']})"))
+                alerts.append(("warning", f"Slight cost overrun (CPI: {metrics['CPI']})"))
 
-            # Presupuesto casi agotado
+            # Budget nearly exhausted
             if project.budget_total > 0:
                 remaining_pct = (project.budget_remaining / project.budget_total) * 100
                 if remaining_pct < 10:
                     alerts.append(
-                        ("danger", f"Presupuesto crítico ({remaining_pct:.1f}% restante)")
+                        ("danger", f"Critical budget ({remaining_pct:.1f}% remaining)")
                     )
                 elif remaining_pct < 20:
-                    alerts.append(("warning", f"Presupuesto bajo ({remaining_pct:.1f}% restante)"))
+                    alerts.append(("warning", f"Low budget ({remaining_pct:.1f}% remaining)"))
 
             if alerts:
                 projects_with_alerts.append(
@@ -562,7 +562,7 @@ def executive_bi_dashboard(request):
     Supports cache invalidation via ?refresh query parameter.
     """
     if not (request.user.is_superuser or request.user.is_staff):
-        messages.error(request, _("Acceso solo para Admin/Staff."))
+        messages.error(request, _("Access restricted to Admin/Staff."))
         return redirect("dashboard")
 
     # Check if refresh is requested
@@ -615,7 +615,7 @@ def master_schedule_center(request):
     Requires admin/staff access. Data loaded via /api/v1/gantt/v2/master/.
     """
     if not (request.user.is_superuser or request.user.is_staff):
-        messages.error(request, _("Acceso solo para Admin/Staff."))
+        messages.error(request, _("Access restricted to Admin/Staff."))
         return redirect("dashboard")
 
     from django.contrib.auth import get_user_model

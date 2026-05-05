@@ -58,7 +58,7 @@ class Project(models.Model):
     total_expenses = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     reflection_notes = models.TextField(
         blank=True,
-        help_text=_("Notas sobre aprendizajes, errores o mejoras para próximos proyectos"),
+        help_text=_("Notes on learnings, mistakes or improvements for upcoming projects"),
     )
     created_at = models.DateTimeField(auto_now_add=True)
     # Presupuesto
@@ -369,7 +369,7 @@ class Income(models.Model):
     category = models.CharField(
         max_length=100, blank=True, null=True, verbose_name=_("Categoría (opcional)")
     )
-    description = models.TextField(blank=True, null=True, verbose_name=_("Descripción (opcional)"))
+    description = models.TextField(blank=True, null=True, verbose_name=_("Description (optional)"))
     invoice = models.FileField(
         upload_to="incomes/", blank=True, null=True, verbose_name=_("Factura o comprobante")
     )

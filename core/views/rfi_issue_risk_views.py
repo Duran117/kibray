@@ -70,7 +70,7 @@ def rfi_edit_view(request, rfi_id):
         form = RFIForm(request.POST, instance=rfi)
         if form.is_valid():
             form.save()
-            messages.success(request, _("RFI actualizado."))
+            messages.success(request, _("RFI updated."))
             return redirect("rfi_list", project_id=rfi.project_id)
     else:
         form = RFIForm(instance=rfi)
@@ -91,7 +91,7 @@ def rfi_delete_view(request, rfi_id):
     project_id = rfi.project_id
     if request.method == "POST":
         rfi.delete()
-        messages.success(request, _("RFI eliminado."))
+        messages.success(request, _("RFI deleted."))
         return redirect("rfi_list", project_id=project_id)
     return render(request, "core/rfi_confirm_delete.html", {"rfi": rfi})
 
@@ -127,7 +127,7 @@ def issue_edit_view(request, issue_id):
         form = IssueForm(request.POST, instance=issue)
         if form.is_valid():
             form.save()
-            messages.success(request, _("Issue actualizado."))
+            messages.success(request, _("Issue updated."))
             return redirect("issue_list", project_id=issue.project_id)
     else:
         form = IssueForm(instance=issue)
@@ -150,7 +150,7 @@ def issue_delete_view(request, issue_id):
     project_id = issue.project_id
     if request.method == "POST":
         issue.delete()
-        messages.success(request, _("Issue eliminado."))
+        messages.success(request, _("Issue deleted."))
         return redirect("issue_list", project_id=project_id)
     return render(request, "core/issue_confirm_delete.html", {"issue": issue})
 
@@ -186,7 +186,7 @@ def risk_edit_view(request, risk_id):
         form = RiskForm(request.POST, instance=risk)
         if form.is_valid():
             form.save()
-            messages.success(request, _("Risk actualizado."))
+            messages.success(request, _("Risk updated."))
             return redirect("risk_list", project_id=risk.project_id)
     else:
         form = RiskForm(instance=risk)
@@ -209,7 +209,7 @@ def risk_delete_view(request, risk_id):
     project_id = risk.project_id
     if request.method == "POST":
         risk.delete()
-        messages.success(request, _("Risk eliminado."))
+        messages.success(request, _("Risk deleted."))
         return redirect("risk_list", project_id=project_id)
     return render(request, "core/risk_confirm_delete.html", {"risk": risk})
 

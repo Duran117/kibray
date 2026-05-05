@@ -68,7 +68,7 @@ def daily_log_view(request, project_id):
                 )
                 dl.photos.add(photo)
 
-            messages.success(request, _("Daily Log creado para %(date)s") % {"date": dl.date})
+            messages.success(request, _("Daily Log created for %(date)s") % {"date": dl.date})
             return redirect("daily_log_detail", log_id=dl.id)
     else:
         form = DailyLogForm(project=project) if can_create else None
@@ -117,7 +117,7 @@ def daily_log_detail(request, log_id):
 
     # Empleados no pueden ver
     if role == "employee":
-        messages.error(request, _("No tienes permiso para ver Daily Logs"))
+        messages.error(request, _("You don't have permission to view Daily Logs"))
         return redirect("dashboard_employee")
 
     # Clientes: verificar acceso al proyecto Y que esté publicado
@@ -127,7 +127,7 @@ def daily_log_detail(request, log_id):
             messages.error(request, _("You don't have access to this project."))
             return redirect("dashboard_client")
         if not log.is_published:
-            messages.error(request, _("Este Daily Log no está disponible"))
+            messages.error(request, _("This Daily Log is not available"))
             return redirect("dashboard_client")
 
     # POST: Agregar más fotos

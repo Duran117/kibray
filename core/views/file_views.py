@@ -139,9 +139,9 @@ def file_category_create(request, project_id):
         category.project = project
         category.created_by = request.user
         category.save()
-        messages.success(request, f'Categoría "{category.name}" creada')
+        messages.success(request, f'Category "{category.name}" created')
     else:
-        messages.error(request, _("Error al crear categoría"))
+        messages.error(request, _("Failed to create category"))
 
     return redirect("project_files", project_id=project_id)
 
@@ -155,7 +155,7 @@ def file_upload(request, project_id, category_id):
 
     # Security: Only staff can upload files
     if not request.user.is_staff:
-        return JsonResponse({"error": gettext("No tienes permiso para subir archivos")}, status=403)
+        return JsonResponse({"error": gettext("You don't have permission to upload files")}, status=403)
 
     project = get_object_or_404(Project, id=project_id)
     
@@ -208,7 +208,7 @@ def file_delete(request, file_id):
 
     # Check permission
     if not (request.user.is_staff or request.user == file_obj.uploaded_by):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": gettext("Permission denied")}, status=403)
 
     # Delete file from storage
     if file_obj.file:
@@ -234,7 +234,7 @@ def file_download(request, file_id):
     profile = getattr(request.user, "profile", None)
     if profile and profile.role == "client":
         if not file_obj.is_public:
-            return HttpResponseForbidden("No tienes permiso para descargar este archivo")
+            return HttpResponseForbidden("You don't have permission to download this file")
         # Also verify client has access to this project
         from core.models import ClientProjectAccess
         has_access = ClientProjectAccess.objects.filter(
@@ -249,7 +249,7 @@ def file_download(request, file_id):
                 request.user.username.lower(),
             )
         if not (has_access or is_project_client):
-            return HttpResponseForbidden("No tienes acceso a este proyecto")
+            return HttpResponseForbidden("You don't have access to this project")
 
     # Serve file
     if file_obj.file:
@@ -326,7 +326,7 @@ def file_download(request, file_id):
                 except Exception as regen_error:
                     logger.error(f"Failed to regenerate ColorSample PDF: {regen_error}")
             
-            return HttpResponseNotFound("El archivo no está disponible. Por favor contacte al administrador.")
+            return HttpResponseNotFound("The file is not available. Please contact the administrator.")
         except Exception as e:
             logger.error(f"File download error: {e}")
             return HttpResponseNotFound("Error al descargar. Por favor contacte al administrador.")
@@ -343,7 +343,7 @@ def file_edit_metadata(request, file_id):
 
     # Check permission
     if not (request.user.is_staff or request.user == file_obj.uploaded_by):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": gettext("Permission denied")}, status=403)
 
     if request.method == "POST":
         file_obj.name = request.POST.get("name", file_obj.name)
@@ -359,7 +359,7 @@ def file_edit_metadata(request, file_id):
 
         return redirect("project_files", project_id=file_obj.project.id)
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": gettext("Method not allowed")}, status=405)
 
 
 @login_required
@@ -376,7 +376,7 @@ def file_details_api(request, file_id):
     if is_client:
         # Client can only see public files from their projects
         if not file_obj.is_public:
-            return JsonResponse({"error": "No tienes permiso"}, status=403)
+            return JsonResponse({"error": "You don't have permission"}, status=403)
         
         # Verify client has access to this project
         has_access = ClientProjectAccess.objects.filter(
@@ -391,7 +391,7 @@ def file_details_api(request, file_id):
                 request.user.username.lower(),
             )
         if not (has_access or is_project_client):
-            return JsonResponse({"error": "No tienes acceso a este proyecto"}, status=403)
+            return JsonResponse({"error": "You don't have access to this project"}, status=403)
     
     # Icon color mapping
     icon_colors = {
@@ -484,7 +484,7 @@ def file_regenerate_pdf(request, file_id):
             ).first()
     
     if not estimate:
-        return JsonResponse({"error": gettext("No se encontró el estimado asociado a este archivo")}, status=404)
+        return JsonResponse({"error": gettext("No estimate found associated with this file")}, status=404)
     
     try:
         if estimate.approved:
@@ -551,7 +551,7 @@ def file_toggle_favorite(request, file_id):
     if is_client:
         # Client can only favorite public files from their projects
         if not file_obj.is_public:
-            return JsonResponse({"error": "No tienes permiso"}, status=403)
+            return JsonResponse({"error": "You don't have permission"}, status=403)
         
         has_access = ClientProjectAccess.objects.filter(
             user=request.user, project=file_obj.project
@@ -565,7 +565,7 @@ def file_toggle_favorite(request, file_id):
                 request.user.username.lower(),
             )
         if not (has_access or is_project_client):
-            return JsonResponse({"error": "No tienes acceso"}, status=403)
+            return JsonResponse({"error": "You don't have access"}, status=403)
     
     file_obj.is_favorited = not file_obj.is_favorited
     file_obj.save(update_fields=["is_favorited"])
@@ -584,7 +584,7 @@ def file_toggle_public(request, file_id):
 
     # Only staff can change public status
     if not request.user.is_staff:
-        return JsonResponse({"error": "Solo staff puede cambiar estado público"}, status=403)
+        return JsonResponse({"error": "Only staff can change public status"}, status=403)
 
     file_obj = get_object_or_404(ProjectFile, id=file_id)
     file_obj.is_public = not file_obj.is_public
@@ -619,7 +619,7 @@ def file_generate_share_link(request, file_id):
     
     # Check permission
     if not (request.user.is_staff or request.user == file_obj.uploaded_by):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": gettext("Permission denied")}, status=403)
     
     # Get expiration days from request (default 7)
     try:
@@ -661,7 +661,7 @@ def file_revoke_share_link(request, file_id):
     
     # Check permission
     if not (request.user.is_staff or request.user == file_obj.uploaded_by):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": gettext("Permission denied")}, status=403)
     
     file_obj.share_token = ""
     file_obj.share_expires = None
@@ -741,7 +741,7 @@ def folder_generate_share_link(request, category_id):
     
     # Check permission
     if not (request.user.is_staff or request.user == folder.created_by):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": gettext("Permission denied")}, status=403)
     
     # Get options from request
     try:
@@ -807,12 +807,12 @@ def folder_public_upload(request, token):
     # Handle file upload
     uploaded_file = request.FILES.get("file")
     if not uploaded_file:
-        return JsonResponse({"error": gettext("No se recibió archivo")}, status=400)
+        return JsonResponse({"error": gettext("No file received")}, status=400)
 
     # SECURITY: Validate file size (max 25 MB)
     max_size = 25 * 1024 * 1024  # 25 MB
     if uploaded_file.size > max_size:
-        return JsonResponse({"error": gettext("El archivo excede el tamaño máximo de 25 MB")}, status=400)
+        return JsonResponse({"error": gettext("File exceeds the 25 MB maximum size")}, status=400)
 
     # SECURITY: Validate file extension
     import os
@@ -915,7 +915,7 @@ def workflow_start(request, file_id):
 
     # Only staff can start workflows
     if not request.user.is_staff:
-        return JsonResponse({"error": gettext("No tienes permiso para iniciar workflows")}, status=403)
+        return JsonResponse({"error": gettext("You don't have permission to start workflows")}, status=403)
 
     file_obj = get_object_or_404(ProjectFile, id=file_id)
     
@@ -973,9 +973,9 @@ def workflow_detail(request, workflow_id):
     if not request.user.is_staff:
         file_obj = workflow.file
         if not file_obj.is_public:
-            return JsonResponse({"error": gettext("No tienes acceso a este archivo")}, status=403)
+            return JsonResponse({"error": gettext("You don't have access to this file")}, status=403)
         if not file_obj.project.clients.filter(id=request.user.id).exists():
-            return JsonResponse({"error": gettext("No tienes acceso a este proyecto")}, status=403)
+            return JsonResponse({"error": gettext("You don't have access to this project")}, status=403)
     
     # Get all steps with their actions
     steps_data = []
@@ -1027,10 +1027,10 @@ def workflow_action(request, workflow_id):
     if not request.user.is_staff:
         file_obj = workflow.file
         if not file_obj.is_public:
-            return JsonResponse({"error": gettext("No tienes acceso a este archivo")}, status=403)
+            return JsonResponse({"error": gettext("You don't have access to this file")}, status=403)
         # Check they have access to the project
         if not file_obj.project.clients.filter(id=request.user.id).exists():
-            return JsonResponse({"error": gettext("No tienes acceso a este proyecto")}, status=403)
+            return JsonResponse({"error": gettext("You don't have access to this project")}, status=403)
     
     if workflow.status not in ["pending", "in_progress"]:
         return JsonResponse({"error": gettext("Workflow ya finalizado")}, status=400)
@@ -1109,13 +1109,13 @@ def file_workflow_status(request, file_id):
     # Security: Non-staff can only see workflows for public files they have access to
     if not request.user.is_staff:
         if not file_obj.is_public:
-            return JsonResponse({"error": gettext("No tienes acceso a este archivo")}, status=403)
+            return JsonResponse({"error": gettext("You don't have access to this file")}, status=403)
         # Check client access via ClientProjectAccess
         has_access = ClientProjectAccess.objects.filter(
             user=request.user, project=file_obj.project
         ).exists()
         if not has_access:
-            return JsonResponse({"error": gettext("No tienes acceso a este proyecto")}, status=403)
+            return JsonResponse({"error": gettext("You don't have access to this project")}, status=403)
     
     # Get active or latest workflow
     workflow = DocumentWorkflow.objects.filter(file=file_obj).order_by("-initiated_at").first()

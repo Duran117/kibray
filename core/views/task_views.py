@@ -262,7 +262,7 @@ def task_detail(request, task_id: int):
 def task_edit_view(request, task_id: int):
     task = get_object_or_404(Task, pk=task_id)
     if not request.user.is_staff:
-        messages.error(request, _("Solo staff puede editar tareas."))
+        messages.error(request, _("Only staff can edit tasks."))
         return redirect("task_detail", task_id=task.id)
     from core.forms import TaskForm
 
@@ -283,7 +283,7 @@ def task_edit_view(request, task_id: int):
 def task_delete_view(request, task_id: int):
     task = get_object_or_404(Task, pk=task_id)
     if not request.user.is_staff:
-        messages.error(request, _("Solo staff puede eliminar tareas."))
+        messages.error(request, _("Only staff can delete tasks."))
         return redirect("task_detail", task_id=task.id)
     if request.method == "POST":
         project_id = task.project_id
@@ -526,7 +526,7 @@ def task_start_tracking(request, task_id):
 
     # Check permission
     if not (request.user.is_staff or (employee and task.assigned_to == employee)):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": gettext("Permission denied")}, status=403)
 
     # Check if task can start (dependencies)
     if not task.can_start():
@@ -565,7 +565,7 @@ def task_stop_tracking(request, task_id):
 
     # Check permission
     if not (request.user.is_staff or (employee and task.assigned_to == employee)):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": gettext("Permission denied")}, status=403)
 
     # Stop tracking
     elapsed = task.stop_tracking()

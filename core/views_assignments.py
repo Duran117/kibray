@@ -59,7 +59,7 @@ def assignment_hub(request):
 
     if request.method == "POST":
         if not can_assign:
-            messages.error(request, _("Solo PM o admin pueden crear asignaciones."))
+            messages.error(request, _("Only PM or admin can create assignments."))
         elif form.is_valid():
             assignment: ResourceAssignment = form.save(commit=False)
             assignment.created_by = request.user
@@ -68,7 +68,7 @@ def assignment_hub(request):
                 and not request.user.is_staff
                 and not request.user.is_superuser
             ):
-                messages.error(request, _("Solo Admin puede asignar diseñadores."))
+                messages.error(request, _("Only Admin can assign designers."))
             else:
                 assignment.save()
                 messages.success(
@@ -110,7 +110,7 @@ def assignment_edit(request, pk: int):
     assignment = get_object_or_404(ResourceAssignment, pk=pk)
     can_assign = _user_can_assign(request.user)
     if not can_assign:
-        messages.error(request, _("Solo PM o admin pueden editar asignaciones."))
+        messages.error(request, _("Only PM or admin can edit assignments."))
         return redirect("assignment_hub")
 
     if request.method == "POST":
@@ -122,11 +122,11 @@ def assignment_edit(request, pk: int):
                 and not request.user.is_staff
                 and not request.user.is_superuser
             ):
-                messages.error(request, _("Solo Admin puede asignar diseñadores."))
+                messages.error(request, _("Only Admin can assign designers."))
             else:
                 updated.created_by = assignment.created_by or request.user
                 updated.save()
-                messages.success(request, _("Asignación actualizada."))
+                messages.success(request, _("Assignment updated."))
                 return redirect("assignment_hub")
         else:
             messages.error(request, _("Revisa los errores del formulario."))
@@ -152,9 +152,9 @@ def assignment_delete(request, pk: int):
     if request.method != "POST":
         return redirect("assignment_hub")
     if not _user_can_assign(request.user):
-        messages.error(request, _("Solo PM o admin pueden eliminar asignaciones."))
+        messages.error(request, _("Only PM or admin can delete assignments."))
         return redirect("assignment_hub")
 
     assignment.delete()
-    messages.success(request, _("Asignación eliminada."))
+    messages.success(request, _("Assignment deleted."))
     return redirect("assignment_hub")

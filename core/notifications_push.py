@@ -279,8 +279,8 @@ def notify_payroll_ready(employee, payroll_entry):
     url = reverse("dashboard")
     PushNotificationService.send_notification(
         user_ids=[employee.id],
-        heading="💵 Nómina Disponible",
-        content=f"Tu pago de ${payroll_entry.amount} está listo para procesar",
+        heading="💵 Payroll Available",
+        content=f"Your payment of ${payroll_entry.amount} is ready to be processed",
         url=url,
         data={"type": "payroll", "entry_id": payroll_entry.id},
     )

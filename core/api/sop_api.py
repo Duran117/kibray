@@ -55,7 +55,7 @@ def generate_sop_with_ai(request):
 
     if not task_description:
         return Response(
-            {"success": False, "error": _("La descripción de la tarea es requerida")},
+            {"success": False, "error": _("Task description is required")},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -282,7 +282,7 @@ def save_sop(request):
         logger.info(f"SOP created: {sop.name} (ID: {sop.id}) by user {request.user.id}")
 
         return Response(
-            {"success": True, "sop_id": sop.id, "message": _("¡SOP creado exitosamente!")},
+            {"success": True, "sop_id": sop.id, "message": _("SOP created successfully!")},
             status=status.HTTP_201_CREATED,
         )
 

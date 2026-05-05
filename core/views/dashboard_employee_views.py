@@ -35,7 +35,7 @@ def dashboard_employee(request):
     # Obtener empleado ligado al usuario
     employee = Employee.objects.filter(user=request.user).first()
     if not employee:
-        messages.error(request, _("Tu usuario no está vinculado a un empleado."))
+        messages.error(request, _("Your user is not linked to an employee."))
         # NOTE: keep legacy template only (clean template was removed)
         return render(
             request,
@@ -404,10 +404,10 @@ def dashboard_employee(request):
         count = len(my_touchups)
         morning_briefing.append(
             {
-                "text": f"Tienes {count} {'reparación' if count == 1 else 'reparaciones'} pendiente{'s' if count > 1 else ''}",
+                "text": f"You have {count} pending touch-up{'' if count == 1 else 's'}",
                 "severity": "warning" if count > 2 else "info",
                 "action_url": "#",
-                "action_label": "Ver reparaciones",
+                "action_label": "View touch-ups",
                 "category": "tasks",
             }
         )

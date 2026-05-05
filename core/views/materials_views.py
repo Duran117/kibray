@@ -174,7 +174,7 @@ def materials_request_view(request, project_id):
             messages.success(
                 request,
                 (
-                    "Solicitud registrada. El material quedó guardado en el catálogo del proyecto."
+                    "Request submitted. Material has been saved in the project catalog."
                     if cleaned.get("save_to_catalog")
                     else "Solicitud registrada."
                 ),
@@ -398,11 +398,11 @@ def materials_receive_ticket_view(request, request_id):
 
         # Validar
         if not items_data:
-            messages.error(request, _("Selecciona al menos un ítem con cantidad > 0."))
+            messages.error(request, _("Select at least one item with quantity greater than 0."))
             return redirect("materials_receive_ticket", request_id=mat_request.id)
 
         if not no_expense and (not store_name or not total or Decimal(total) <= 0):
-            messages.error(request, _("Completa tienda y total o marca 'Sin gasto'."))
+            messages.error(request, _("Complete store and total, or check 'No expense'."))
             return redirect("materials_receive_ticket", request_id=mat_request.id)
 
         # Crear Expense (si aplica)
@@ -458,7 +458,7 @@ def materials_receive_ticket_view(request, request_id):
 
         messages.success(
             request,
-            _("Ticket procesado. %(count)s ítem(s) recibido(s).") % {"count": len(items_data)},
+            _("Ticket processed. %(count)s item(s) received.") % {"count": len(items_data)},
         )
         return redirect("materials_request_detail", request_id=mat_request.id)
 
@@ -507,11 +507,11 @@ def materials_direct_purchase_view(request, project_id):
 
         # Validar
         if not items_data:
-            messages.error(request, _("Agrega al menos un ítem con cantidad > 0."))
+            messages.error(request, _("Add at least one item with quantity greater than 0."))
             return redirect("materials_direct_purchase", project_id=project.id)
 
         if not no_expense and (not store_name or not total or Decimal(total) <= 0):
-            messages.error(request, _("Completa tienda y total o marca 'Sin gasto'."))
+            messages.error(request, _("Complete store and total, or check 'No expense'."))
             return redirect("materials_direct_purchase", project_id=project.id)
 
         # Crear Expense (si aplica)
@@ -581,7 +581,7 @@ def materials_direct_purchase_view(request, project_id):
 
         messages.success(
             request,
-            _("Compra directa registrada. %(count)s ítem(s) agregado(s) al inventario.")
+            _("Direct purchase recorded. %(count)s item(s) added to inventory.")
             % {"count": len(items_data)},
         )
         return redirect("inventory_view", project_id=project.id)
@@ -707,13 +707,13 @@ def materials_request_submit(request, request_id):
 
     # Verify user can submit
     if mat_request.requested_by != request.user and not request.user.is_staff:
-        messages.error(request, _("No tienes permiso para enviar esta solicitud"))
+        messages.error(request, _("You don't have permission to submit this request"))
         return redirect("materials_request_detail", request_id=request_id)
 
     if mat_request.submit_for_approval(request.user):
-        messages.success(request, _("Solicitud enviada para aprobación"))
+        messages.success(request, _("Request submitted for approval"))
     else:
-        messages.warning(request, _("La solicitud no está en estado borrador"))
+        messages.warning(request, _("Request is not in draft status"))
 
     return redirect("materials_request_detail", request_id=request_id)
 
@@ -726,9 +726,9 @@ def materials_request_approve(request, request_id):
     mat_request = get_object_or_404(MaterialRequest, pk=request_id)
 
     if mat_request.approve(request.user):
-        messages.success(request, _("Solicitud #%(id)s aprobada") % {"id": mat_request.id})
+        messages.success(request, _("Request #%(id)s approved") % {"id": mat_request.id})
     else:
-        messages.warning(request, _("La solicitud no está pendiente de aprobación"))
+        messages.warning(request, _("Request is not pending approval"))
 
     return redirect("materials_request_detail", request_id=request_id)
 
@@ -746,7 +746,7 @@ def materials_request_reject(request, request_id):
         mat_request.notes = (mat_request.notes or "") + f"\n[Rechazada]: {reason}"
     mat_request.save()
 
-    messages.success(request, _("Solicitud #%(id)s rechazada") % {"id": mat_request.id})
+    messages.success(request, _("Request #%(id)s rejected") % {"id": mat_request.id})
     return redirect("materials_requests_list_all")
 
 
@@ -803,7 +803,7 @@ def materials_create_expense(request, request_id):
 
     total_amount_str = request.POST.get("total_amount")
     if not total_amount_str:
-        messages.error(request, _("Debes especificar el monto total"))
+        messages.error(request, _("You must specify the total amount"))
         return redirect("materials_request_detail", request_id=request_id)
 
     try:
@@ -814,7 +814,7 @@ def materials_create_expense(request, request_id):
             _("Gasto #%(id)s creado por $%(amount)s") % {"id": expense.id, "amount": total_amount},
         )
     except (ValueError, InvalidOperation):
-        messages.error(request, _("Monto inválido"))
+        messages.error(request, _("Invalid amount"))
     except Exception as e:
         messages.error(request, _("Error al crear gasto: %(error)s") % {"error": str(e)})
 
@@ -865,7 +865,7 @@ def inventory_adjust(request, item_id, location_id):
     reason = request.POST.get("reason", "")
 
     if not quantity_str or not reason:
-        messages.error(request, _("Cantidad y razón son requeridos"))
+        messages.error(request, _("Quantity and reason are required"))
         return redirect("inventory_view", project_id=location.project_id)
 
     try:
@@ -887,7 +887,7 @@ def inventory_adjust(request, item_id, location_id):
             % {"quantity": quantity, "unit": item.unit},
         )
     except (ValueError, InvalidOperation) as e:
-        messages.error(request, _("Cantidad inválida: %(error)s") % {"error": str(e)})
+        messages.error(request, _("Invalid quantity: %(error)s") % {"error": str(e)})
     except Exception as e:
         messages.error(request, _("Error: %(error)s") % {"error": str(e)})
 

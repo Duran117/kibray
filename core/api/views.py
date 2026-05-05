@@ -4471,7 +4471,7 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
         location = self._get_project_location(project_id)
         if not location:
             return Response(
-                {"success": False, "error": "Proyecto sin ubicación de inventario"}, status=404
+                {"success": False, "error": "Project has no inventory location"}, status=404
             )
         stocks = (
             ProjectInventory.objects.select_related("item")
@@ -4519,7 +4519,7 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
         try:
             quantity = Decimal(str(qty_raw))
         except (InvalidOperation, TypeError, ValueError):
-            return Response({"success": False, "error": "Cantidad inválida"}, status=400)
+            return Response({"success": False, "error": "Invalid quantity"}, status=400)
         if quantity <= 0:
             return Response({"success": False, "error": "La cantidad debe ser > 0"}, status=400)
         try:
@@ -4529,7 +4529,7 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
         location = self._get_project_location(project_id)
         if not location:
             return Response(
-                {"success": False, "error": "Proyecto sin ubicación de inventario"}, status=404
+                {"success": False, "error": "Project has no inventory location"}, status=404
             )
         movement_kwargs = {
             "item": item,
@@ -4611,7 +4611,7 @@ class FieldMaterialsViewSet(viewsets.ViewSet):
         try:
             quantity = Decimal(str(qty_raw))
         except (InvalidOperation, TypeError, ValueError):
-            return Response({"success": False, "error": "Cantidad inválida"}, status=400)
+            return Response({"success": False, "error": "Invalid quantity"}, status=400)
         if quantity <= 0:
             return Response({"success": False, "error": "La cantidad debe ser > 0"}, status=400)
         needed_when = (

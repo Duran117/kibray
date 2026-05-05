@@ -788,7 +788,7 @@ def changeorder_update_status(request, co_id):
         role = getattr(profile, "role", "employee")
 
         if role not in ["admin", "superuser", "project_manager"]:
-            return JsonResponse({"success": False, "error": "Sin permisos"}, status=403)
+            return JsonResponse({"success": False, "error": "Permission denied"}, status=403)
 
         # Parse request
         data = json.loads(request.body)
@@ -797,7 +797,7 @@ def changeorder_update_status(request, co_id):
         # Validate status
         valid_statuses = ["pending", "approved", "sent", "billed", "paid"]
         if new_status not in valid_statuses:
-            return JsonResponse({"success": False, "error": "Estado inválido"}, status=400)
+            return JsonResponse({"success": False, "error": "Invalid status"}, status=400)
 
         # Update status
         old_status = co.status
@@ -815,7 +815,7 @@ def changeorder_update_status(request, co_id):
         )
 
     except json.JSONDecodeError:
-        return JsonResponse({"success": False, "error": "JSON inválido"}, status=400)
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except Exception as e:
         logger.exception("Error updating change order status")
         return JsonResponse({"success": False, "error": "Error interno del servidor"}, status=500)
@@ -834,7 +834,7 @@ def changeorder_send_to_client(request, co_id):
         role = getattr(profile, "role", "employee")
 
         if role not in ["admin", "superuser", "project_manager"]:
-            return JsonResponse({"success": False, "error": "Sin permisos"}, status=403)
+            return JsonResponse({"success": False, "error": "Permission denied"}, status=403)
 
         # Validate current status
         if co.status in ["billed", "paid"]:

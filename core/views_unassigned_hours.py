@@ -95,7 +95,7 @@ def unassigned_hours_hub(request):
     if request.method == "POST":
         action = request.POST.get("action")
         if not can_manage:
-            messages.error(request, _("Solo PM o admin pueden corregir horas."))
+            messages.error(request, _("Only PM or admin can correct hours."))
             return redirect("unassigned_hours_hub")
 
         if action == "create":
@@ -109,7 +109,7 @@ def unassigned_hours_hub(request):
             if create_form.is_valid():
                 entry = create_form.save(commit=False)
                 entry.save()
-                messages.success(request, _("Horas registradas correctamente."))
+                messages.success(request, _("Hours recorded successfully."))
                 return redirect("unassigned_hours_hub")
             else:
                 messages.error(request, _("Revisa los errores del formulario."))
@@ -136,7 +136,7 @@ def unassigned_hours_hub(request):
             messages.success(request, _("Entrada eliminada."))
             return redirect("unassigned_hours_hub")
         else:
-            messages.error(request, _("Acción no reconocida."))
+            messages.error(request, _("Unknown action."))
 
     create_form = TimeEntryForm(initial={"date": week_start})
     if employee_profile:

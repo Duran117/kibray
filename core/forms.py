@@ -118,7 +118,7 @@ class ExpenseForm(forms.ModelForm):
             "amount": forms.NumberInput(attrs={"class": "form-control modern-input", "step": "0.01", "min": "0", "placeholder": "0.00"}),
             "date": forms.DateInput(attrs={"class": "form-control modern-input", "type": "date"}),
             "category": forms.Select(attrs={"class": "form-select modern-input"}),
-            "description": forms.Textarea(attrs={"class": "form-control modern-input", "rows": 3, "placeholder": "Descripción del gasto..."}),
+            "description": forms.Textarea(attrs={"class": "form-control modern-input", "rows": 3, "placeholder": "Expense description..."}),
             "receipt": forms.FileInput(attrs={"class": "form-control", "accept": "image/*,.pdf"}),
             "invoice": forms.FileInput(attrs={"class": "form-control", "accept": "image/*,.pdf"}),
             "change_order": forms.Select(attrs={"class": "form-select modern-input", "id": "id_change_order"}),
@@ -271,7 +271,7 @@ class InvoiceLineForm(forms.ModelForm):
         fields = ["description", "amount"]
         widgets = {
             "description": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": _("Descripción")}
+                attrs={"class": "form-control", "placeholder": _("Description")}
             ),
             "amount": forms.NumberInput(
                 attrs={"step": "0.01", "class": "form-control", "placeholder": _("Monto")}
@@ -471,7 +471,7 @@ class DailyLogPhotoForm(forms.ModelForm):
         widgets = {
             "image": forms.FileInput(attrs={"class": "form-control", "accept": "image/*"}),
             "caption": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": _("Descripción de la foto...")}
+                attrs={"class": "form-control", "placeholder": _("Photo description...")}
             ),
         }
 
@@ -559,14 +559,14 @@ class DamageReportForm(forms.ModelForm):
             "title": forms.TextInput(
                 attrs={
                     "class": "form-control",
-                    "placeholder": _("Ej: Grieta en pared del baño principal"),
+                    "placeholder": _("E.g.: Crack in main bathroom wall"),
                 }
             ),
             "description": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "rows": 4,
-                    "placeholder": _("Describe el daño con el mayor detalle posible..."),
+                    "placeholder": _("Describe the damage in as much detail as possible..."),
                 }
             ),
             "category": forms.Select(attrs={"class": "form-select"}),
@@ -579,7 +579,7 @@ class DamageReportForm(forms.ModelForm):
                 attrs={"class": "form-control", "placeholder": _("Ej: Cocina - Pared Norte")}
             ),
             "root_cause": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": _("Causa raíz (opcional)")}
+                attrs={"class": "form-control", "placeholder": _("Root cause (optional)")}
             ),
             "plan": forms.Select(attrs={"class": "form-select"}),
             "pin": forms.Select(attrs={"class": "form-select"}),
@@ -618,11 +618,11 @@ class DamageReportForm(forms.ModelForm):
         self.fields["linked_co"].empty_label = _("Sin CO vinculado")
 
         # Add help texts
-        self.fields["category"].help_text = _("Tipo de daño reportado")
-        self.fields["severity"].help_text = _("Nivel de urgencia del daño")
-        self.fields["estimated_cost"].help_text = _("Costo estimado de reparación (opcional)")
-        self.fields["plan"].help_text = _("Plano donde se encuentra el daño (opcional)")
-        self.fields["pin"].help_text = _("Pin específico si aplica (opcional)")
+        self.fields["category"].help_text = _("Type of damage reported")
+        self.fields["severity"].help_text = _("Damage urgency level")
+        self.fields["estimated_cost"].help_text = _("Estimated repair cost (optional)")
+        self.fields["plan"].help_text = _("Plan where the damage is located (optional)")
+        self.fields["pin"].help_text = _("Specific pin if applicable (optional)")
         self.fields["linked_touchup"].help_text = _("Touch-up relacionado (opcional)")
         self.fields["linked_co"].help_text = _("Change Order relacionado (opcional)")
 
@@ -659,7 +659,7 @@ class TaskForm(forms.ModelForm):
     due_date = forms.DateField(
         required=False,
         widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
-        help_text=_("Fecha límite opcional"),
+        help_text=_("Optional deadline"),
     )
     priority = forms.ChoiceField(
         required=True,
@@ -681,7 +681,7 @@ class TaskForm(forms.ModelForm):
         initial=0,
         widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "0-100"}),
         label=_("Contribution %"),
-        help_text=_("Porcentaje de contribución al item del Gantt"),
+        help_text=_("Percent contribution to the Gantt item"),
     )
     dependencies = forms.ModelMultipleChoiceField(
         queryset=Task.objects.all(),
@@ -708,7 +708,7 @@ class TaskForm(forms.ModelForm):
         ]
         widgets = {
             "project": forms.Select(attrs={"class": "form-control"}),
-            "title": forms.TextInput(attrs={"class": "form-control", "placeholder": _("Título")}),
+            "title": forms.TextInput(attrs={"class": "form-control", "placeholder": _("Title")}),
             "description": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
             "status": forms.Select(attrs={"class": "form-control"}),
             "assigned_to": forms.Select(attrs={"class": "form-control"}),
@@ -840,7 +840,7 @@ class ChangeOrderPhotoForm(forms.ModelForm):
         widgets = {
             "image": forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*"}),
             "description": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Descripción de la foto"}
+                attrs={"class": "form-control", "placeholder": "Photo description"}
             ),
             "order": forms.NumberInput(attrs={"class": "form-control", "value": 0}),
         }
@@ -878,7 +878,7 @@ class BudgetProgressForm(forms.ModelForm):
             try:
                 p = Decimal(percent)
             except Exception as e:
-                raise forms.ValidationError("Percent complete inválido.") from e
+                raise forms.ValidationError("Invalid percent complete.") from e
             if p < 0 or p > 100:
                 self.add_error("percent_complete", "Debe estar entre 0 y 100.")
 
@@ -999,7 +999,7 @@ class ClockInForm(forms.Form):
         """Validación explícita del campo project"""
         project = self.cleaned_data.get("project")
         if not project:
-            raise forms.ValidationError("Debes seleccionar un proyecto para marcar entrada")
+            raise forms.ValidationError("You must select a project to clock in")
         return project
 
     def clean(self):
@@ -1009,13 +1009,13 @@ class ClockInForm(forms.Form):
         budget_line = cleaned.get("budget_line")
 
         if not project:
-            raise forms.ValidationError("Debes seleccionar un proyecto antes de marcar entrada")
+            raise forms.ValidationError("You must select a project before clocking in")
 
         if co and co.project_id != project.id:
-            raise forms.ValidationError("El CO seleccionado no pertenece al proyecto elegido.")
+            raise forms.ValidationError("The selected CO does not belong to the chosen project.")
 
         if budget_line and budget_line.project_id != project.id:
-            raise forms.ValidationError("La fase seleccionada no pertenece al proyecto elegido.")
+            raise forms.ValidationError("The selected phase does not belong to the chosen project.")
 
         # Si hay CO, limpiar budget_line (COs son costos extras, no del contrato base)
         if co:
@@ -1025,20 +1025,20 @@ class ClockInForm(forms.Form):
 
 
 class MaterialsRequestForm(forms.Form):
-    catalog_item = forms.ChoiceField(required=False, label="Material del catálogo")
+    catalog_item = forms.ChoiceField(required=False, label="Catalog material")
     approved_color = forms.ChoiceField(required=False, label="Colores aprobados del proyecto")
     product_preset = forms.ChoiceField(required=False, label="Producto sugerido")
 
-    category = forms.ChoiceField(choices=MaterialRequestItem.CATEGORY_CHOICES, label="Categoría")
+    category = forms.ChoiceField(choices=MaterialRequestItem.CATEGORY_CHOICES, label="Category")
     brand = forms.ChoiceField(choices=MaterialRequestItem.BRAND_CHOICES, label="Marca")
     brand_other = forms.CharField(required=False, label="Marca (especificar)")
-    product_name = forms.CharField(required=False, label="Producto / Línea")
+    product_name = forms.CharField(required=False, label="Product / Line")
     color_name = forms.CharField(required=False, label="Nombre del color")
-    color_code = forms.CharField(required=False, label="Código")
+    color_code = forms.CharField(required=False, label="Code")
     finish = forms.CharField(required=False, label="Acabado")
     gloss = forms.CharField(required=False, label="Brillo (si aplica)")
     formula = forms.CharField(
-        widget=forms.Textarea(attrs={"rows": 2}), required=False, label="Fórmula (si aplica)"
+        widget=forms.Textarea(attrs={"rows": 2}), required=False, label="Formula (if applicable)"
     )
     reference_image = forms.FileField(required=False, label="Imagen / muestra")
 
@@ -1049,14 +1049,14 @@ class MaterialsRequestForm(forms.Form):
     )
 
     needed_when = forms.ChoiceField(
-        choices=MaterialRequest.NEEDED_WHEN_CHOICES, label="Cuándo se ocupa"
+        choices=MaterialRequest.NEEDED_WHEN_CHOICES, label="When needed"
     )
     needed_date = forms.DateField(
         required=False, widget=forms.DateInput(attrs={"type": "date"}), label="Fecha requerida"
     )
 
     save_to_catalog = forms.BooleanField(
-        required=False, initial=True, label="Guardar este material en el catálogo del proyecto"
+        required=False, initial=True, label="Save this material to the project catalog"
     )
 
     def __init__(self, *args, colors=None, presets=None, catalog=None, **kwargs):
@@ -1223,7 +1223,7 @@ class InventoryMovementForm(forms.Form):
                 self.add_error(None, "Origen y destino deben ser distintos.")
         # Validación UX gasto
         if c.get("add_expense") and c.get("no_expense"):
-            self.add_error(None, "Elige una opción: agregar gasto o marcar sin gasto, no ambas.")
+            self.add_error(None, "Choose one option: add expense or mark as no expense, not both.")
         return c
 
 
@@ -1301,7 +1301,7 @@ class FloorPlanForm(forms.ModelForm):
             "name": forms.TextInput(
                 attrs={
                     "class": "form-control",
-                    "placeholder": "Ej: Planta Baja, Primer Piso, Ático...",
+                    "placeholder": "E.g.: Ground Floor, First Floor, Attic...",
                 }
             ),
             "level": forms.NumberInput(
@@ -1316,7 +1316,7 @@ class FloorPlanForm(forms.ModelForm):
             "image": forms.FileInput(attrs={"class": "form-control", "accept": "image/*"}),
         }
         help_texts = {
-            "level": "Número del nivel: 0=Planta Baja, 1=Nivel 1, -1=Sótano 1, etc.",
+            "level": "Level number: 0=Ground Floor, 1=Level 1, -1=Basement 1, etc.",
             "level_identifier": "Identificador adicional opcional para este nivel",
         }
 
@@ -1344,7 +1344,7 @@ class SchedulePhaseForm(forms.ModelForm):
         fields = ["name", "order", "color"]
         widgets = {
             "name": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Ej: Preparación"}
+                attrs={"class": "form-control", "placeholder": "E.g.: Preparation"}
             ),
             "order": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
             "color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
@@ -1457,7 +1457,7 @@ class DailyPlanForm(forms.ModelForm):
         }
         help_texts = {
             "estimated_hours_total": _("Suma manual (se recalcula al guardar si hay actividades)."),
-            "actual_hours_worked": _("Horas reales del día (se puede llenar al finalizar)."),
+            "actual_hours_worked": _("Actual hours for the day (can be filled out when finishing)."),
         }
 
     def __init__(self, *args, **kwargs):
@@ -1523,7 +1523,7 @@ class DailyPlanForm(forms.ModelForm):
         )
         if deadline and plan_date and deadline.date() >= plan_date:
             # Deadline debe ser antes de plan_date
-            raise ValidationError(_("Deadline debe ser antes del día planificado."))
+            raise ValidationError(_("Deadline must be before the planned day."))
         return deadline
 
     def clean(self):
@@ -1531,7 +1531,7 @@ class DailyPlanForm(forms.ModelForm):
         status = cleaned.get("status")
         reason = cleaned.get("no_planning_reason")
         if status == "SKIPPED" and not reason:
-            self.add_error("no_planning_reason", _("Debes indicar motivo si el día se omite."))
+            self.add_error("no_planning_reason", _("You must provide a reason if the day is skipped."))
         return cleaned
 
     def save(self, commit=True):
@@ -1567,7 +1567,7 @@ class PlannedActivityForm(forms.ModelForm):
             }
         ),
         help_text=_(
-            "Una línea por material. Formato opcional cantidad al final (ej: Paint:Brand:2gal)."
+            "One line per material. Optional quantity at the end (e.g.: Paint:Brand:2gal)."
         ),
     )
 
@@ -1697,7 +1697,7 @@ class FileCategoryForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 3,
-                    "placeholder": "Descripción de esta categoría...",
+                    "placeholder": "Description of this category...",
                 }
             ),
             "icon": forms.TextInput(attrs={"class": "form-control", "placeholder": "bi-folder"}),
@@ -1728,7 +1728,7 @@ class ProjectFileForm(forms.ModelForm):
                 attrs={"class": "form-control", "placeholder": "Nombre del archivo..."}
             ),
             "description": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3, "placeholder": "Descripción opcional..."}
+                attrs={"class": "form-control", "rows": 3, "placeholder": "Optional description..."}
             ),
             "file": forms.FileInput(attrs={"class": "form-control"}),
             "tags": forms.TextInput(
@@ -1786,7 +1786,7 @@ class TouchUpPinForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 3,
-                    "placeholder": "Descripción detallada del touch-up...",
+                    "placeholder": "Detailed description of the touch-up...",
                 }
             ),
             "approved_color": forms.Select(attrs={"class": "form-select"}),
@@ -1860,10 +1860,10 @@ class TouchUpCompletionForm(forms.Form):
             attrs={
                 "class": "form-control",
                 "rows": 3,
-                "placeholder": "Notas sobre la finalización del trabajo (opcional)...",
+                "placeholder": "Notes about the work completion (optional)...",
             }
         ),
-        label="Notas de Finalización",
+        label="Completion Notes",
     )
     photos = forms.FileField(
         required=True,
@@ -1873,7 +1873,7 @@ class TouchUpCompletionForm(forms.Form):
                 "accept": "image/*",
             }
         ),
-        label="Fotos de Finalización",
+        label="Completion Photos",
         help_text="Sube al menos una foto mostrando el trabajo completado",
     )
 
@@ -1887,7 +1887,7 @@ class ClientCreationForm(forms.ModelForm):
         widget=forms.EmailInput(
             attrs={"class": "form-control", "placeholder": "correo@ejemplo.com"}
         ),
-        label="Correo Electrónico",
+        label="Email",
     )
     first_name = forms.CharField(
         max_length=30,
@@ -1905,16 +1905,16 @@ class ClientCreationForm(forms.ModelForm):
         max_length=20,
         required=False,
         widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "(123) 456-7890"}),
-        label="Teléfono",
+        label="Phone",
     )
     # Campo de organización (opcional - para clientes corporativos)
     organization = forms.ModelChoiceField(
         queryset=None,  # Se inicializa en __init__
         required=False,
         widget=forms.Select(attrs={"class": "form-control"}),
-        label="Organización (Compañía)",
-        help_text="Selecciona una organización existente o deja vacío para cliente individual",
-        empty_label="-- Cliente Individual (Sin organización) --",
+        label="Organization (Company)",
+        help_text="Select an existing organization or leave empty for an individual client",
+        empty_label="-- Individual Client (No organization) --",
     )
     # Rol dentro de la organización
     client_role = forms.ChoiceField(
@@ -1928,13 +1928,13 @@ class ClientCreationForm(forms.ModelForm):
         initial="project_lead",
         required=False,
         widget=forms.Select(attrs={"class": "form-control"}),
-        label="Rol en la Organización",
+        label="Role in the Organization",
     )
     job_title = forms.CharField(
         max_length=100,
         required=False,
         widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Ej: Director de Operaciones"}),
-        label="Cargo/Título",
+        label="Job Title",
     )
     language = forms.ChoiceField(
         choices=[("en", "English"), ("es", "Español")],
@@ -1969,7 +1969,7 @@ class ClientCreationForm(forms.ModelForm):
         email = self.cleaned_data.get("email")
 
         if not email:
-            raise ValidationError("El correo electrónico es obligatorio.")
+            raise ValidationError("Email is required.")
 
         # Normalizar: lowercase y eliminar whitespace
         email = email.lower().strip()
@@ -1979,11 +1979,11 @@ class ClientCreationForm(forms.ModelForm):
 
         email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if not re.match(email_regex, email):
-            raise ValidationError("Formato de correo electrónico inválido.")
+            raise ValidationError("Invalid email format.")
 
         # Verificar duplicados (case-insensitive)
         if User.objects.filter(email__iexact=email).exists():
-            raise ValidationError("Ya existe un usuario con este correo electrónico.")
+            raise ValidationError("A user with this email already exists.")
 
         # Validación adicional: rechazar emails desechables comunes
         disposable_domains = [
@@ -1994,7 +1994,7 @@ class ClientCreationForm(forms.ModelForm):
         ]
         domain = email.split("@")[1]
         if domain in disposable_domains:
-            raise ValidationError("No se permiten correos electrónicos desechables.")
+            raise ValidationError("Disposable email addresses are not allowed.")
 
         return email
 
@@ -2070,7 +2070,7 @@ class ClientEditForm(forms.ModelForm):
         max_length=20,
         required=False,
         widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "(123) 456-7890"}),
-        label="Teléfono",
+        label="Phone",
     )
     company = forms.CharField(
         max_length=100,
@@ -2083,9 +2083,9 @@ class ClientEditForm(forms.ModelForm):
     address = forms.CharField(
         required=False,
         widget=forms.Textarea(
-            attrs={"class": "form-control", "rows": 2, "placeholder": "Dirección completa"}
+            attrs={"class": "form-control", "rows": 2, "placeholder": "Full address"}
         ),
-        label="Dirección",
+        label="Address",
     )
     language = forms.ChoiceField(
         choices=[("en", "English"), ("es", "Español")],
@@ -2103,9 +2103,9 @@ class ClientEditForm(forms.ModelForm):
         queryset=None,  # Se inicializa en __init__
         required=False,
         widget=forms.Select(attrs={"class": "form-control"}),
-        label="Organización (Compañía)",
-        help_text="Selecciona una organización o deja vacío para cliente individual",
-        empty_label="-- Cliente Individual (Sin organización) --",
+        label="Organization (Company)",
+        help_text="Select an organization or leave empty for an individual client",
+        empty_label="-- Individual Client (No organization) --",
     )
     client_role = forms.ChoiceField(
         choices=[
@@ -2118,13 +2118,13 @@ class ClientEditForm(forms.ModelForm):
         initial="project_lead",
         required=False,
         widget=forms.Select(attrs={"class": "form-control"}),
-        label="Rol en la Organización",
+        label="Role in the Organization",
     )
     job_title = forms.CharField(
         max_length=100,
         required=False,
         widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Ej: Director de Operaciones"}),
-        label="Cargo/Título",
+        label="Job Title",
     )
 
     class Meta:
@@ -2215,16 +2215,16 @@ class ClientPasswordResetForm(forms.Form):
 
     new_password = forms.CharField(
         widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": "Nueva contraseña"}
+            attrs={"class": "form-control", "placeholder": "New password"}
         ),
-        label="Nueva Contraseña",
+        label="New Password",
         min_length=8,
     )
     confirm_password = forms.CharField(
         widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": "Confirmar contraseña"}
+            attrs={"class": "form-control", "placeholder": "Confirm password"}
         ),
-        label="Confirmar Contraseña",
+        label="Confirm Password",
     )
 
     def clean(self):
@@ -2233,7 +2233,7 @@ class ClientPasswordResetForm(forms.Form):
         confirm = cleaned_data.get("confirm_password")
 
         if password and confirm and password != confirm:
-            raise ValidationError("Las contraseñas no coinciden.")
+            raise ValidationError("Passwords do not match.")
 
         return cleaned_data
 
@@ -2262,7 +2262,7 @@ class ClientOrganizationForm(forms.ModelForm):
         ]
         widgets = {
             "name": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Nombre de la compañía"}
+                attrs={"class": "form-control", "placeholder": "Company name"}
             ),
             "legal_name": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Nombre legal (para facturas)"}
@@ -2271,7 +2271,7 @@ class ClientOrganizationForm(forms.ModelForm):
                 attrs={"class": "form-control", "placeholder": "EIN / Tax ID"}
             ),
             "billing_address": forms.Textarea(
-                attrs={"class": "form-control", "rows": 2, "placeholder": "Dirección de facturación"}
+                attrs={"class": "form-control", "rows": 2, "placeholder": "Billing address"}
             ),
             "billing_city": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Ciudad"}
@@ -2280,7 +2280,7 @@ class ClientOrganizationForm(forms.ModelForm):
                 attrs={"class": "form-control", "placeholder": "Estado"}
             ),
             "billing_zip": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Código postal"}
+                attrs={"class": "form-control", "placeholder": "ZIP code"}
             ),
             "billing_email": forms.EmailInput(
                 attrs={"class": "form-control", "placeholder": "email@empresa.com"}
@@ -2300,19 +2300,19 @@ class ClientOrganizationForm(forms.ModelForm):
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
         labels = {
-            "name": "Nombre de la Compañía",
+            "name": "Company Name",
             "legal_name": "Nombre Legal",
             "tax_id": "Tax ID / EIN",
-            "billing_address": "Dirección de Facturación",
+            "billing_address": "Billing Address",
             "billing_city": "Ciudad",
             "billing_state": "Estado",
-            "billing_zip": "Código Postal",
-            "billing_email": "Email de Facturación",
-            "billing_phone": "Teléfono",
-            "payment_terms_days": "Términos de Pago (días)",
+            "billing_zip": "ZIP Code",
+            "billing_email": "Billing Email",
+            "billing_phone": "Phone",
+            "payment_terms_days": "Payment Terms (days)",
             "website": "Sitio Web",
             "notes": "Notas Internas",
-            "is_active": "Organización Activa",
+            "is_active": "Active Organization",
         }
 
     def clean_billing_email(self):
@@ -2324,7 +2324,7 @@ class ClientOrganizationForm(forms.ModelForm):
     def clean_name(self):
         name = self.cleaned_data.get("name")
         if not name or not name.strip():
-            raise ValidationError("El nombre de la compañía es obligatorio.")
+            raise ValidationError("Company name is required.")
         return name.strip()
 
 
@@ -2337,9 +2337,9 @@ class ProjectCreateForm(forms.ModelForm):
         queryset=None,  # Se inicializa en __init__
         required=False,
         widget=forms.Select(attrs={"class": "form-control"}),
-        label="Organización de Facturación",
-        help_text="Selecciona la empresa cliente para facturación",
-        empty_label="-- Sin organización (cliente individual) --",
+        label="Billing Organization",
+        help_text="Select the client company for billing",
+        empty_label="-- No organization (individual client) --",
     )
     project_lead = forms.ModelChoiceField(
         queryset=None,  # Se inicializa en __init__
@@ -2378,7 +2378,7 @@ class ProjectCreateForm(forms.ModelForm):
                 attrs={"class": "form-control", "placeholder": "Nombre del cliente"}
             ),
             "address": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Dirección completa del proyecto"}
+                attrs={"class": "form-control", "placeholder": "Full project address"}
             ),
             "start_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "end_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
@@ -2386,7 +2386,7 @@ class ProjectCreateForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 3,
-                    "placeholder": "Descripción del proyecto",
+                    "placeholder": "Project description",
                 }
             ),
             "budget_total": forms.NumberInput(
@@ -2412,7 +2412,7 @@ class ProjectCreateForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 2,
-                    "placeholder": "Códigos de pintura específicos",
+                    "placeholder": "Specific paint codes",
                 }
             ),
             "stains_or_finishes": forms.Textarea(
@@ -2468,7 +2468,7 @@ class ProjectCreateForm(forms.ModelForm):
 
         if start_date and end_date and end_date < start_date:
             raise ValidationError(
-                "La fecha de finalización no puede ser anterior a la fecha de inicio."
+                "End date cannot be earlier than start date."
             )
 
         # Validar presupuestos
@@ -2497,7 +2497,7 @@ class ProjectEditForm(ProjectCreateForm):
             attrs={
                 "class": "form-control",
                 "rows": 3,
-                "placeholder": "Notas sobre aprendizajes, errores o mejoras para próximos proyectos",
+                "placeholder": "Notes on learnings, mistakes or improvements for upcoming projects",
             }
         )
 
@@ -2546,7 +2546,7 @@ class ProposalEmailForm(forms.Form):
     def clean_message(self):
         m = self.cleaned_data.get("message", "").strip()
         if not m:
-            raise ValidationError("El mensaje no puede estar vacío.")
+            raise ValidationError("Message cannot be empty.")
         # Recomendación básica: incluir saludo y link
         return m
 
@@ -2613,11 +2613,11 @@ class ActivationWizardForm(forms.Form):
     )
 
     items_to_schedule = forms.ModelMultipleChoiceField(
-        label="Líneas del estimado a incluir en cronograma",
+        label="Estimate lines to include in the schedule",
         queryset=EstimateLine.objects.none(),
         required=False,
         widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
-        help_text="Deja vacío para incluir todas las líneas",
+        help_text="Leave empty to include all lines",
     )
 
     def __init__(self, *args, **kwargs):
@@ -2651,7 +2651,7 @@ class ActivationWizardForm(forms.Form):
 
         # Tasks require schedule
         if create_tasks and not create_schedule:
-            raise ValidationError("Para crear tareas operativas, primero debes crear el cronograma")
+            raise ValidationError("You must create the schedule before adding operational tasks")
 
         # At least one action must be selected
         if not any(
@@ -2662,7 +2662,7 @@ class ActivationWizardForm(forms.Form):
             ]
         ):
             raise ValidationError(
-                "Debes seleccionar al menos una acción (cronograma, presupuesto o anticipo)"
+                "You must select at least one action (schedule, budget or deposit)"
             )
 
         return cleaned_data
@@ -2683,7 +2683,7 @@ class QuickAddProjectOwnerForm(forms.Form):
                 "autocomplete": "email"
             }
         ),
-        label="Correo Electrónico",
+        label="Email",
     )
     first_name = forms.CharField(
         max_length=30,
@@ -2719,7 +2719,7 @@ class QuickAddProjectOwnerForm(forms.Form):
                 "autocomplete": "tel"
             }
         ),
-        label="Teléfono",
+        label="Phone",
     )
     access_role = forms.ChoiceField(
         choices=[
@@ -2742,7 +2742,7 @@ class QuickAddProjectOwnerForm(forms.Form):
         """Validar email y verificar si ya existe"""
         email = self.cleaned_data.get("email")
         if not email:
-            raise ValidationError("El correo electrónico es obligatorio.")
+            raise ValidationError("Email is required.")
         
         email = email.lower().strip()
         
@@ -2750,7 +2750,7 @@ class QuickAddProjectOwnerForm(forms.Form):
         import re
         email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if not re.match(email_regex, email):
-            raise ValidationError("Formato de correo electrónico inválido.")
+            raise ValidationError("Invalid email format.")
         
         return email
 

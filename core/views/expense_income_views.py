@@ -112,7 +112,7 @@ def income_edit_view(request, income_id):
         form = IncomeForm(request.POST, request.FILES, instance=income)
         if form.is_valid():
             form.save()
-            messages.success(request, _("Ingreso actualizado."))
+            messages.success(request, _("Income updated."))
             return redirect("income_list")
     else:
         form = IncomeForm(instance=income)
@@ -132,7 +132,7 @@ def income_delete_view(request, income_id):
         return redirect("income_list")
     if request.method == "POST":
         income.delete()
-        messages.success(request, _("Ingreso eliminado."))
+        messages.success(request, _("Income deleted."))
         return redirect("income_list")
     return render(request, "core/income_confirm_delete.html", {"income": income})
 
@@ -168,7 +168,7 @@ def expense_edit_view(request, expense_id):
         form = ExpenseForm(request.POST, request.FILES, instance=expense)
         if form.is_valid():
             form.save()
-            messages.success(request, _("Gasto actualizado."))
+            messages.success(request, _("Expense updated."))
             return redirect("expense_list")
     else:
         form = ExpenseForm(instance=expense)
@@ -200,7 +200,7 @@ def expense_delete_view(request, expense_id):
         return redirect("expense_list")
     if request.method == "POST":
         expense.delete()
-        messages.success(request, _("Gasto eliminado."))
+        messages.success(request, _("Expense deleted."))
         return redirect("expense_list")
     return render(request, "core/expense_confirm_delete.html", {"expense": expense})
 
@@ -222,7 +222,7 @@ def timeentry_create_view(request):
                 emp = Employee.objects.filter(user=request.user).first()
             entry.employee = emp
             entry.save()
-            messages.success(request, _("Horas registradas."))
+            messages.success(request, _("Hours recorded."))
             return redirect("dashboard")
     else:
         form = TimeEntryForm()
@@ -250,7 +250,7 @@ def timeentry_edit_view(request, entry_id: int):
         form = TimeEntryForm(request.POST, instance=entry)
         if form.is_valid():
             form.save()
-            messages.success(request, _("Registro de horas actualizado."))
+            messages.success(request, _("Time entry updated."))
             return redirect("dashboard")
     else:
         form = TimeEntryForm(instance=entry)
@@ -275,7 +275,7 @@ def timeentry_delete_view(request, entry_id: int):
 
     if request.method == "POST":
         entry.delete()
-        messages.success(request, _("Registro de horas eliminado."))
+        messages.success(request, _("Time entry deleted."))
         return redirect("dashboard")
     return render(request, "core/timeentry_confirm_delete.html", {"timeentry": entry})
 
@@ -464,7 +464,7 @@ def unassigned_timeentries_view(request):
                     .exists()
                 )
                 if mixed:
-                    messages.error(request, _("Para crear CO, selecciona filas de un solo proyecto."))
+                    messages.error(request, _("To create a CO, select rows from a single project."))
                     return redirect(request.get_full_path())
                 description = request.POST.get("new_co_description", "Trabajo adicional")
                 amount = request.POST.get("new_co_amount") or "0"

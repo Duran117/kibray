@@ -35,7 +35,7 @@ def proposal_public_view(request, token):
     try:
         proposal = Proposal.objects.select_related("estimate__project").get(client_view_token=token)
     except Proposal.DoesNotExist:
-        return HttpResponseNotFound("Propuesta no encontrada o enlace inválido.")
+        return HttpResponseNotFound("Proposal not found or invalid link.")
 
     estimate = proposal.estimate
     project = estimate.project

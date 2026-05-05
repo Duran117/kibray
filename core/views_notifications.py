@@ -72,5 +72,5 @@ def notifications_mark_all_read(request):
     """Marcar todas las notificaciones como leídas."""
     if request.method == "POST":
         request.user.notifications.filter(is_read=False).update(is_read=True)
-        messages.success(request, _("Todas las notificaciones marcadas como leídas."))
+        messages.success(request, _("All notifications marked as read."))
     return redirect("notifications_list")

@@ -40,7 +40,7 @@ def project_ev_view(request, project_id):
 
     # BLOQUEA POST si no tiene permiso (antes de tocar datos)
     if request.method == "POST" and not _is_staffish(request.user):
-        messages.error(request, _("No tienes permisos para agregar progreso."))
+        messages.error(request, _("You don't have permission to add progress."))
         return redirect("project_ev", project_id=project_id)
 
     # Form de progreso (solo staff puede crear; coherente con tests que esperan redirect 302)
@@ -262,7 +262,7 @@ def download_progress_sample(request, project_id):
 def upload_project_progress(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     if not _is_staffish(request.user):
-        messages.error(request, _("No tienes permisos para importar progreso."))
+        messages.error(request, _("You don't have permission to import progress."))
         return redirect("project_ev", project_id=project.id)
     context = {"project": project, "result": None, "errors": []}
 
@@ -272,7 +272,7 @@ def upload_project_progress(request, project_id):
         if not f:
             return HttpResponseBadRequest("Falta archivo CSV.")
         if f.size and f.size > 2_000_000:
-            context["errors"].append("El archivo es demasiado grande (máx. 2 MB).")
+            context["errors"].append("File is too large (max 2 MB).")
             return render(request, "core/upload_progress.html", context)
 
         text = f.read().decode("utf-8", errors="ignore").lstrip("\ufeff")
@@ -378,11 +378,11 @@ def upload_project_progress(request, project_id):
 @require_POST
 def delete_progress(request, project_id, pk):
     if not _is_staffish(request.user):
-        messages.error(request, _("No tienes permisos para borrar progreso."))
+        messages.error(request, _("You don't have permission to delete progress."))
         return redirect("project_ev", project_id=project_id)
     prog = get_object_or_404(BudgetProgress, pk=pk, budget_line__project_id=project_id)
     prog.delete()
-    messages.success(request, _("Progreso eliminado."))
+    messages.success(request, _("Progress deleted."))
     return redirect("project_ev", project_id=project_id)
 
 
@@ -404,7 +404,7 @@ def edit_progress(request, project_id, pk):
         form = BudgetProgressEditForm(request.POST, instance=prog)
         if form.is_valid():
             form.save()
-            messages.success(request, _("Progreso actualizado."))
+            messages.success(request, _("Progress updated."))
             as_of = request.POST.get("as_of")
             url = reverse("project_ev", args=[project_id])
             if as_of:
@@ -424,7 +424,7 @@ def edit_progress(request, project_id, pk):
 @staff_required
 def project_progress_csv(request, project_id):
     if not _is_staffish(request.user):
-        messages.error(request, _("No tienes permisos para exportar progreso."))
+        messages.error(request, _("You don't have permission to export progress."))
         return redirect("project_ev", project_id=project_id)
 
     project = get_object_or_404(Project, pk=project_id)

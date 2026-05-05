@@ -36,7 +36,7 @@ def dashboard_designer(request):
     profile = getattr(request.user, "profile", None)
     is_designer = profile and profile.role == "designer"
     if not is_designer and not request.user.is_superuser:
-        return HttpResponseForbidden("Acceso restringido a diseñadores")
+        return HttpResponseForbidden("Access restricted to designers")
 
     # Projects the designer is involved with (via ColorSample, FloorPlan, or chat)
     projects = (
@@ -103,10 +103,10 @@ def dashboard_designer(request):
     if schedules:
         morning_briefing.append(
             {
-                "text": f"Tienes {len(schedules)} reunión{'es' if len(schedules) > 1 else ''} programada{'s' if len(schedules) > 1 else ''}",
+                "text": f"You have {len(schedules)} scheduled meeting{'' if len(schedules) == 1 else 's'}",
                 "severity": "info",
                 "action_url": "#",
-                "action_label": "Ver calendario",
+                "action_label": "View calendar",
                 "category": "schedule",
             }
         )

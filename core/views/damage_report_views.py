@@ -121,7 +121,7 @@ def damage_report_edit(request, report_id):
         form = DamageReportForm(project, request.POST, request.FILES, instance=report)
         if form.is_valid():
             form.save()
-            messages.success(request, _("Reporte actualizado."))
+            messages.success(request, _("Report updated."))
             return redirect("damage_report_detail", report_id=report.id)
     else:
         form = DamageReportForm(project, instance=report)
@@ -157,7 +157,7 @@ def damage_report_delete(request, report_id):
     if request.method == "POST":
         project_id = project.id
         report.delete()
-        messages.success(request, _("Reporte de daño eliminado."))
+        messages.success(request, _("Damage report deleted."))
         return redirect("damage_report_list", project_id=project_id)
     return render(
         request,
@@ -179,7 +179,7 @@ def damage_report_add_photos(request, report_id):
 
     # Check permission
     if not (request.user.is_staff or request.user == report.reported_by):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": gettext("Permission denied")}, status=403)
 
     if request.method == "POST":
         photos = request.FILES.getlist("photos")
@@ -201,7 +201,7 @@ def damage_report_add_photos(request, report_id):
             }
         )
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": gettext("Method not allowed")}, status=405)
 
 
 
@@ -213,7 +213,7 @@ def damage_report_update_status(request, report_id):
     # Check permission (staff or superintendent)
     profile = getattr(request.user, "profile", None)
     if not (request.user.is_staff or (profile and profile.role == "superintendent")):
-        return JsonResponse({"error": gettext("Sin permiso")}, status=403)
+        return JsonResponse({"error": gettext("Permission denied")}, status=403)
 
     if request.method == "POST":
         new_status = request.POST.get("status")
@@ -235,6 +235,6 @@ def damage_report_update_status(request, report_id):
             }
         )
 
-    return JsonResponse({"error": gettext("Método no permitido")}, status=405)
+    return JsonResponse({"error": gettext("Method not allowed")}, status=405)
 
 
