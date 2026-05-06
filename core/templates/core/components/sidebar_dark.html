@@ -2,9 +2,11 @@
 {% load static %}
 
 {% with prof=request.user.profile|default_if_none:'' role=request.user.profile.role|default:'employee' is_staffish=request.user.is_staff is_admin=request.user.is_superuser %}
-{# SECURITY: derive a strict client/employee flag — used to hide menu sections that
-   would otherwise leak the existence of staff-only features (Daily Plans, Strategic,
-   Tasks, Materials, Issues, Damages, Touch-ups, CO Board, Resident Portal, Financiero…). #}
+{% comment %}
+SECURITY: derive a strict client/employee flag — used to hide menu sections that
+would otherwise leak the existence of staff-only features (Daily Plans, Strategic,
+Tasks, Materials, Issues, Damages, Touch-ups, CO Board, Resident Portal, Financiero…).
+{% endcomment %}
 
 {# Dark Modern Sidebar - Asana Style #}
 {# Detects project context: if a Project model instance is in context, show project navigation #}
