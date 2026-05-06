@@ -69,6 +69,7 @@ TEMPLATES = [
                 "core.context_processors.notification_badges",
                 "core.context_processors.legacy_shell",
                 "core.context_processors.recent_projects",
+                "core.nav.phase9_nav",
             ],
         },
     },
@@ -186,6 +187,12 @@ BI_TOP_PERFORMERS_LIMIT = int(os.getenv("BI_TOP_PERFORMERS_LIMIT", "5"))
 
 # Feature Flags
 TOUCHUP_PIN_ENABLED = False
+
+# Phase 9 Commit G — opt-in to the new role-aware sidebar driven by core/nav.py.
+# Set PHASE9_NEW_SIDEBAR=1 in env to render core/components/sidebar_phase9.html
+# instead of the legacy sidebar_dark.html. Default off; Commit H flips it on
+# after staging QA.
+PHASE9_NEW_SIDEBAR = os.environ.get("PHASE9_NEW_SIDEBAR", "0") == "1"
 
 # Crispy Forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"

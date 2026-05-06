@@ -1,0 +1,68 @@
+{% load i18n %}
+{% load static %}
+{% comment %}
+Phase 9 Commit G — role-aware sidebar driven by core/nav.py.
+
+Renders ``phase9_nav_sections`` from context (populated by
+``core.nav.phase9_nav`` context processor when settings.PHASE9_NEW_SIDEBAR
+is True). Until that flag is flipped (Commit H), this template is unused
+and the legacy sidebar_dark.html still renders.
+
+Design:
+  - Zero authorization logic in template — that all happens in
+    core/nav.py and core/access.py.
+  - Empty list → empty <aside> (still renders the chrome so layout
+    stays consistent).
+{% endcomment %}
+<aside id="kb-sidebar"
+       class="fixed left-0 top-14 bottom-0 w-64 bg-[#1e1f21] border-r border-white/10 z-40 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col"
+       aria-label="{% trans 'Primary navigation' %}"
+       data-sidebar="phase9">
+
+    {# Mobile Close Button #}
+    <div class="flex items-center justify-between px-4 py-3 border-b border-white/10 lg:hidden flex-shrink-0">
+        <span class="text-white font-semibold">{% trans "Menu" %}</span>
+        <button id="kb-sidebar-close"
+                aria-label="{% trans 'Close navigation' %}"
+                class="p-2 rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    {# Navigation #}
+    <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-6 dark-scroll" aria-label="{% trans 'Sidebar' %}">
+        {% for section in phase9_nav_sections %}
+            {% if section.items %}
+                <div class="mb-2">
+                    <h3 class="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                        {{ section.title }}
+                    </h3>
+                    <div class="space-y-0.5">
+                        {% for item in section.items %}
+                            <a href="{{ item.url }}"
+                               class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition text-sm{% if request.resolver_match.url_name == item.url_name %} active bg-white/10 text-white{% endif %}">
+                                <i class="bi {{ item.icon }} text-[15px] w-4 text-center"></i>
+                                <span class="truncate">{{ item.label }}</span>
+                                {% if item.badge_key and badges %}
+                                    {% with count=badges|default_if_none:0 %}
+                                        {# We don't have dict.get in templates; rely on caller to set discrete keys #}
+                                    {% endwith %}
+                                {% endif %}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% empty %}
+            {# No sections (anonymous user, or feature flag returned []). #}
+            <div class="px-3 py-4 text-xs text-slate-500">
+                {% trans "No menu available." %}
+            </div>
+        {% endfor %}
+    </nav>
+
+    {# Footer #}
+    <div class="border-t border-white/10 px-4 py-3 text-[11px] text-slate-500 flex-shrink-0">
+        Kibray · v2.0 · phase9-nav
+    </div>
+</aside>
