@@ -1,7 +1,7 @@
 """Daily planning, SOP & activity views — extracted from legacy_views.py in Phase 8."""
 from core.views._helpers import *  # noqa: F401, F403
+from core.access import is_admin_or_pm
 from core.views._helpers import (
-    _is_staffish,
     logger,
 )
 from django.utils.translation import gettext_lazy as _  # noqa: F811
@@ -14,7 +14,7 @@ def daily_plan_fetch_weather(request, plan_id):
     if request.method != "POST":
         return JsonResponse({"error": gettext("POST required")}, status=405)
 
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return JsonResponse({"error": gettext("Permission denied")}, status=403)
 
     plan = get_object_or_404(DailyPlan, id=plan_id)
@@ -45,7 +45,7 @@ def daily_plan_convert_activities(request, plan_id):
     if request.method != "POST":
         return JsonResponse({"error": gettext("POST required")}, status=405)
 
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return JsonResponse({"error": gettext("Permission denied")}, status=403)
 
     plan = get_object_or_404(DailyPlan, id=plan_id)
@@ -98,7 +98,7 @@ def daily_plan_productivity(request, plan_id):
 @login_required
 def daily_plan_list(request):
     """List daily plans with optional status filter (Module 12.7)."""
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return HttpResponseForbidden("Access denied")
     status = request.GET.get("status")
     qs = DailyPlan.objects.select_related("project", "created_by").order_by("-plan_date")
@@ -120,7 +120,7 @@ def daily_plan_detail(request, plan_id):
     plan = get_object_or_404(DailyPlan.objects.select_related("project", "created_by"), pk=plan_id)
 
     # Allow staff OR any employee assigned to activities in this plan
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         is_assigned = plan.activities.filter(
             assigned_employees__user=request.user
         ).exists()
@@ -161,7 +161,7 @@ def daily_plan_detail(request, plan_id):
 @login_required
 def daily_plan_delete(request, plan_id):
     """Delete a daily plan (staff/PM only). Shows confirm page."""
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return HttpResponseForbidden("Access denied")
 
     plan = get_object_or_404(DailyPlan.objects.select_related("project"), pk=plan_id)
@@ -187,7 +187,7 @@ def daily_planning_dashboard(request):
     Redesigned Dec 2025: node-based timeline with branches, team panel,
     voice/text input, material prep, weather integration.
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return HttpResponseForbidden("Access denied")
 
     today = timezone.now().date()
@@ -322,7 +322,7 @@ def daily_plan_create(request, project_id):
     GET: Shows form with suggested schedule items for the target date
     POST: Creates plan and optionally imports activities from schedule items
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return HttpResponseForbidden("Access denied")
 
     project = get_object_or_404(Project, pk=project_id)
@@ -437,7 +437,7 @@ def daily_plan_create(request, project_id):
 @login_required
 def daily_plan_edit(request, plan_id):
     """Edit a daily plan and its activities using forms and inline formset (Modules 12.5-12.7)."""
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return HttpResponseForbidden("Access denied")
 
     from django.utils.translation import gettext as _
@@ -717,7 +717,7 @@ def daily_plan_delete_activity(request, activity_id):
     """
     Delete a planned activity
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return HttpResponseForbidden("Access denied")
 
     activity = get_object_or_404(PlannedActivity, pk=activity_id)
@@ -896,7 +896,7 @@ def sop_library(request):
     """
     Browse and search Activity Templates (SOPs) - Q13.3 enhanced search
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return HttpResponseForbidden("Access denied")
 
     category = request.GET.get("category", "")
@@ -947,7 +947,7 @@ def sop_create_edit(request, template_id=None):
     """
     Create or edit an Activity Template (SOP)
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return HttpResponseForbidden("Access denied")
 
     instance = None
@@ -989,7 +989,7 @@ def sop_create_wizard(request, template_id=None):
     """
     Wizard-style SOP creator with step-by-step guidance (NEW IMPROVED VERSION)
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return HttpResponseForbidden("Access denied")
 
     instance = None
@@ -1081,7 +1081,7 @@ def sop_create_wizard(request, template_id=None):
 @login_required
 def daily_plan_timeline(request, plan_id):
     """Timeline view for a daily plan (Module 12.8)."""
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return HttpResponseForbidden("Access denied")
 
     from core.api.serializers import PlannedActivitySerializer

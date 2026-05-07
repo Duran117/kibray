@@ -1,8 +1,8 @@
 """Project progress & Earned Value views."""
 from core.views._helpers import *  # noqa: F401, F403
+from core.access import is_admin_or_pm
 from core.views._helpers import (
     _generate_basic_pdf_from_html,
-    _is_staffish,
     _parse_date,
     _ensure_inventory_item,
     staff_required,
@@ -19,7 +19,7 @@ from django.utils.translation import gettext_lazy as _  # noqa: F811
 # --- PROJECT EV ---
 @login_required
 def project_ev_view(request, project_id):
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return redirect("dashboard")
     project = get_object_or_404(Project, pk=project_id)
 
@@ -31,13 +31,13 @@ def project_ev_view(request, project_id):
             as_of = datetime.strptime(as_of_str, "%Y-%m-%d").date()
 
     # BLOQUEA POST si no tiene permiso (antes de tocar datos)
-    if request.method == "POST" and not _is_staffish(request.user):
+    if request.method == "POST" and not is_admin_or_pm(request.user):
         messages.error(request, _("You don't have permission to add progress."))
         return redirect("project_ev", project_id=project_id)
 
     # Form de progreso (solo staff puede crear; coherente con tests que esperan redirect 302)
     if request.method == "POST":
-        if _is_staffish(request.user):
+        if is_admin_or_pm(request.user):
             form = BudgetProgressForm(request.POST)
             form.fields["budget_line"].queryset = BudgetLine.objects.filter(project=project)
             if form.is_valid():
@@ -141,7 +141,7 @@ def project_ev_view(request, project_id):
         "as_of": as_of,
         "SPI": summary.get("SPI") or 0,
         "CPI": summary.get("CPI") or 0,
-        "can_edit_progress": _is_staffish(request.user),
+        "can_edit_progress": is_admin_or_pm(request.user),
     }
     return render(request, "core/project_ev.html", context)
 
@@ -149,7 +149,7 @@ def project_ev_view(request, project_id):
 
 @login_required
 def project_ev_series(request, project_id):
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return JsonResponse({"error": "forbidden"}, status=403)
     project = get_object_or_404(Project, pk=project_id)
     days = int(request.GET.get("days", 30))
@@ -179,7 +179,7 @@ def project_ev_series(request, project_id):
 
 @login_required
 def project_ev_csv(request, project_id):
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return redirect("dashboard")
     project = get_object_or_404(Project, pk=project_id)
     days = int(request.GET.get("days", 45))
@@ -239,7 +239,7 @@ def budget_line_plan_view(request, line_id):
 def download_progress_sample(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     # SECURITY: Only staff can download project data
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return HttpResponseForbidden(_("Access denied"))
     resp = HttpResponse(content_type="text/csv")
     resp["Content-Disposition"] = f'attachment; filename="progress_sample_project_{project.id}.csv"'
@@ -253,7 +253,7 @@ def download_progress_sample(request, project_id):
 @staff_required
 def upload_project_progress(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("You don't have permission to import progress."))
         return redirect("project_ev", project_id=project.id)
     context = {"project": project, "result": None, "errors": []}
@@ -369,7 +369,7 @@ def upload_project_progress(request, project_id):
 @staff_required
 @require_POST
 def delete_progress(request, project_id, pk):
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("You don't have permission to delete progress."))
         return redirect("project_ev", project_id=project_id)
     prog = get_object_or_404(BudgetProgress, pk=pk, budget_line__project_id=project_id)
@@ -415,7 +415,7 @@ def edit_progress(request, project_id, pk):
 @login_required
 @staff_required
 def project_progress_csv(request, project_id):
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("You don't have permission to export progress."))
         return redirect("project_ev", project_id=project_id)
 

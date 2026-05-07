@@ -1,8 +1,7 @@
 """Touch-up V2 views — extracted from legacy_views.py in Phase 8."""
 from core.views._helpers import *  # noqa: F401, F403
-from core.access import check_project_access
+from core.access import check_project_access, is_admin_or_pm
 from core.views._helpers import (
-    _is_pm_or_admin,
     logger,
 )
 from django.utils.translation import gettext_lazy as _  # noqa: F811
@@ -26,7 +25,7 @@ def touchup_list(request, project_id):
         messages.error(request, _("You don't have access to this project."))
         return redirect(redirect_url)
 
-    is_pm_admin = _is_pm_or_admin(request.user)
+    is_pm_admin = is_admin_or_pm(request.user)
 
     # Employees can see touch-ups assigned to them; PM/Admin see all
     if is_pm_admin:
@@ -135,7 +134,7 @@ def touchup_v2_create(request, project_id):
 
     project = get_object_or_404(Project, id=project_id)
 
-    if not _is_pm_or_admin(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Only PMs and Admins can create touch-ups."))
         return redirect("touchup_list", project_id=project.id)
 
@@ -275,7 +274,7 @@ def touchup_v2_detail(request, project_id, touchup_id):
             messages.error(request, _("You don't have access to this project."))
             return redirect(redirect_url)
 
-    is_pm_admin = _is_pm_or_admin(request.user)
+    is_pm_admin = is_admin_or_pm(request.user)
     can_edit = is_pm_admin
 
     # Employees can update their own touchup status (open→in_progress→review)
@@ -336,7 +335,7 @@ def touchup_v2_update(request, project_id, touchup_id):
     project = get_object_or_404(Project, id=project_id)
     touchup = get_object_or_404(TouchUp, pk=touchup_id, project=project)
 
-    is_pm_admin = _is_pm_or_admin(request.user)
+    is_pm_admin = is_admin_or_pm(request.user)
 
     # Check if user is the assigned employee
     is_assigned_employee = False
@@ -552,7 +551,7 @@ def touchup_v2_close(request, project_id, touchup_id):
     project = get_object_or_404(Project, id=project_id)
     touchup = get_object_or_404(TouchUp, pk=touchup_id, project=project)
 
-    if not _is_pm_or_admin(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Only PMs and Admins can close touch-ups."))
         return redirect("touchup_v2_detail", project_id=project.id, touchup_id=touchup.id)
 
@@ -617,7 +616,7 @@ def touchup_v2_reopen(request, project_id, touchup_id):
     project = get_object_or_404(Project, id=project_id)
     touchup = get_object_or_404(TouchUp, pk=touchup_id, project=project)
 
-    if not _is_pm_or_admin(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Only PMs and Admins can reopen touch-ups."))
         return redirect("touchup_v2_detail", project_id=project.id, touchup_id=touchup.id)
 
@@ -650,7 +649,7 @@ def touchup_v2_delete(request, project_id, touchup_id):
     project = get_object_or_404(Project, id=project_id)
     touchup = get_object_or_404(TouchUp, pk=touchup_id, project=project)
 
-    if not _is_pm_or_admin(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Only PMs and Admins can delete touch-ups."))
         return redirect("touchup_v2_detail", project_id=project.id, touchup_id=touchup.id)
 

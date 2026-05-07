@@ -267,14 +267,12 @@ def is_staffish(user):
     """
     Check if user has staff-level permissions (admin, PM, or Django staff).
 
-    DEPRECATED — Phase 9 Commit J. Now a thin shim around
-    ``core.access`` primitives:
-        is_admin(user) OR is_pm(user) OR user.is_staff
-
-    Note: this matches ``core.views._helpers._is_staffish`` and is
-    intentionally NARROWER than ``core.access.is_staffish`` (which also
-    includes the 'owner' role). Prefer the canonical helper at new call
-    sites; this shim is kept for back-compat.
+    DEPRECATED — Phase 9 Commit J / Commit N. Now a one-line forwarder
+    to the canonical ``core.access.is_admin_or_pm``. Note: this matches
+    ``core.views._helpers._is_staffish`` and is intentionally NARROWER
+    than ``core.access.is_staffish`` (which also includes the 'owner'
+    role). Prefer the canonical helper at new call sites; this shim
+    is kept for back-compat.
 
     Args:
         user: Django User object
@@ -282,5 +280,5 @@ def is_staffish(user):
     Returns:
         bool: True if user has staff permissions
     """
-    from core.access import is_admin, is_pm
-    return is_admin(user) or is_pm(user) or bool(getattr(user, "is_staff", False))
+    from core.access import is_admin_or_pm
+    return is_admin_or_pm(user)

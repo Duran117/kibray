@@ -1,7 +1,7 @@
 """Invoice, estimate, cost code & financial views — extracted from legacy_views.py in Phase 8."""
 from core.views._helpers import *  # noqa: F401, F403
+from core.access import is_admin_or_pm
 from core.views._helpers import (
-    _is_staffish,
     _generate_basic_pdf_from_html,
     logger,
     pisa,
@@ -343,7 +343,7 @@ def invoice_list(request):
     """
     Invoice list view with filtering by status and project.
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
     invoices = (
@@ -409,7 +409,7 @@ def invoice_detail(request, pk):
     Modern Invoice Detail View with full financial integration.
     Shows invoice details, payment history, related COs, and actions.
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
     invoice = get_object_or_404(
@@ -471,7 +471,7 @@ def invoice_detail(request, pk):
 
 @login_required
 def invoice_pdf(request, pk):
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
     invoice = get_object_or_404(Invoice, pk=pk)
@@ -494,7 +494,7 @@ def invoice_pdf(request, pk):
 
 @login_required
 def changeorders_ajax(request):
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return JsonResponse({"error": "Access denied"}, status=403)
     project_id = request.GET.get("project_id")
     status_filter = request.GET.get("status", "all")
@@ -528,7 +528,7 @@ def changeorders_ajax(request):
 
 @login_required
 def changeorder_lines_ajax(request):
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return JsonResponse({"error": "Access denied"}, status=403)
     ids = request.GET.getlist("ids[]")
     qs = ChangeOrder.objects.filter(id__in=ids)
@@ -542,7 +542,7 @@ def invoice_payment_dashboard(request):
     Dashboard showing SENT invoices awaiting payment.
     Allows quick payment recording with check/transfer details.
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
     # Show invoices that are SENT, VIEWED, APPROVED, PARTIAL, or OVERDUE (not DRAFT, PAID, CANCELLED)
@@ -577,7 +577,7 @@ def record_invoice_payment(request, invoice_id):
     Quick payment recording form.
     Creates InvoicePayment, updates Invoice.amount_paid, triggers status update.
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
     invoice = get_object_or_404(Invoice, pk=invoice_id)
@@ -626,7 +626,7 @@ def record_invoice_payment(request, invoice_id):
 @transaction.atomic
 def invoice_mark_sent(request, invoice_id):
     """Mark invoice as SENT and record sent_date and sent_by."""
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
     invoice = get_object_or_404(Invoice, pk=invoice_id)
@@ -674,7 +674,7 @@ def invoice_mark_sent(request, invoice_id):
 @transaction.atomic
 def invoice_mark_approved(request, invoice_id):
     """Mark invoice as APPROVED by client."""
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
     invoice = get_object_or_404(Invoice, pk=invoice_id)
@@ -712,7 +712,7 @@ def invoice_edit(request, invoice_id):
       - new_description[] / new_amount[]                 → add manual lines
       - remove_co_<co_id>=on                             → unlink CO and revert its status
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
 
@@ -828,7 +828,7 @@ def invoice_delete(request, invoice_id):
     """
     Delete an invoice. Only allowed for DRAFT or CANCELLED invoices.
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
     invoice = get_object_or_404(Invoice, pk=invoice_id)
@@ -875,7 +875,7 @@ def invoice_cancel(request, invoice_id):
     """
     Cancel an invoice. Changes status to CANCELLED.
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
     invoice = get_object_or_404(Invoice, pk=invoice_id)
@@ -1042,7 +1042,7 @@ def project_profit_dashboard(request, project_id):
 @login_required
 def costcode_list_view(request):
     """Cost Code management view with full CRUD operations."""
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return redirect("dashboard")
     codes = CostCode.objects.all().order_by("category", "code")
     

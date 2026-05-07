@@ -133,16 +133,38 @@ def is_internal(user) -> bool:
 
 
 def is_staffish(user) -> bool:
-    """Broad staff-like gate: admin OR pm OR Django is_staff/superuser.
+    """Broad staff-like gate: admin OR pm OR owner OR Django is_staff/superuser.
 
     Use this for "can see internal-tools menu". Do NOT use this for
     object-level access — use can_view_project() instead.
+
+    NOTE: This includes ROLE_OWNER. If you need the narrower predicate
+    that excludes owners (legacy behavior of ``_is_staffish`` /
+    ``_is_pm_or_admin``), use :func:`is_admin_or_pm` instead.
     """
     if not _authed(user):
         return False
     if user.is_superuser or user.is_staff:
         return True
     return get_role(user) in {ROLE_ADMIN, ROLE_PM, ROLE_OWNER}
+
+
+def is_admin_or_pm(user) -> bool:
+    """Narrow staff gate: admin OR pm OR Django is_staff/superuser.
+
+    Excludes ROLE_OWNER on purpose — promoted in Phase 9 Commit N from
+    the legacy ``_is_staffish`` / ``_is_pm_or_admin`` helpers in
+    ``core/views/_helpers.py``. Use this when the original code path
+    intended "internal operational role" and an external project owner
+    must NOT have access (e.g. financial review, change-order
+    approval, daily-plan editing, payroll). For the broader gate that
+    includes external owners, use :func:`is_staffish` instead.
+    """
+    if not _authed(user):
+        return False
+    if user.is_superuser or user.is_staff:
+        return True
+    return get_role(user) in {ROLE_ADMIN, ROLE_PM}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -571,7 +593,7 @@ __all__ = [
     # Layer 1
     "get_role", "is_admin", "is_owner", "is_pm", "is_employee",
     "is_client", "is_designer", "is_superintendent",
-    "is_internal", "is_staffish",
+    "is_internal", "is_staffish", "is_admin_or_pm",
     # Layer 2
     "accessible_projects", "can_view_project", "can_edit_project",
     "get_client_access",

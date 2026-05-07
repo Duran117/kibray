@@ -1,7 +1,7 @@
 """Materials, inventory & supply chain views — extracted from legacy_views.py in Phase 8."""
 from core.views._helpers import *  # noqa: F401, F403
+from core.access import is_admin_or_pm
 from core.views._helpers import (
-    _is_staffish,
     _ensure_inventory_item,
     logger,
 )
@@ -678,7 +678,7 @@ def materials_request_detail_view(request, request_id):
     )
     items = mat_request.items.select_related("inventory_item").all()
 
-    can_manage = _is_staffish(request.user)
+    can_manage = is_admin_or_pm(request.user)
 
     return render(
         request,

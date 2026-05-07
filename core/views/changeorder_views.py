@@ -1,8 +1,8 @@
 """Change Order views — CRUD, signatures, board, PDF."""
 from core.views._helpers import *  # noqa: F401, F403
+from core.access import is_admin_or_pm
 from core.views._helpers import (
     _generate_basic_pdf_from_html,
-    _is_staffish,
     _parse_date,
     _ensure_inventory_item,
     staff_required,
@@ -19,7 +19,7 @@ from django.utils.translation import gettext_lazy as _  # noqa: F811
 # --- CHANGE ORDER ---
 @login_required
 def changeorder_detail_view(request, changeorder_id):
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
     changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
@@ -88,7 +88,7 @@ def changeorder_billing_history_view(request, changeorder_id):
     Shows all InvoiceLines with breakdown of labor vs materials.
     Admin/PM only.
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
     changeorder = get_object_or_404(ChangeOrder, id=changeorder_id)
@@ -162,7 +162,7 @@ def changeorder_cost_breakdown_view(request, changeorder_id):
     Vista estilo factura para mostrar el desglose de costos de un Change Order.
     Separa Materiales vs Mano de Obra para fácil envío al cliente.
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
     from decimal import Decimal
@@ -485,7 +485,7 @@ def changeorder_contractor_signature_view(request, changeorder_id):
 
 @login_required
 def changeorder_create_view(request):
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return redirect("dashboard")
     if request.method == "POST":
         form = ChangeOrderForm(request.POST, request.FILES)
@@ -532,7 +532,7 @@ def changeorder_create_view(request):
 @login_required
 def changeorder_edit_view(request, co_id):
     """Editar un Change Order existente"""
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return redirect("dashboard")
     changeorder = get_object_or_404(ChangeOrder, id=co_id)
     if request.method == "POST":
@@ -581,7 +581,7 @@ def changeorder_edit_view(request, co_id):
 @login_required
 def changeorder_delete_view(request, co_id):
     """Eliminar un Change Order"""
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return redirect("dashboard")
     changeorder = get_object_or_404(ChangeOrder, id=co_id)
     if request.method == "POST":
@@ -604,7 +604,7 @@ def changeorder_split_view(request, co_id):
     The new CO inherits project, pricing_type, billing rates, markup from
     the original.  Selected items are **moved** (FK re-pointed), not copied.
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return redirect("dashboard")
 
     original = get_object_or_404(ChangeOrder, id=co_id)
@@ -739,7 +739,7 @@ def changeorder_split_view(request, co_id):
 
 @login_required
 def changeorder_board_view(request):
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
     qs = ChangeOrder.objects.select_related("project").order_by("-date_created")

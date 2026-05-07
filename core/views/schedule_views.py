@@ -1,8 +1,7 @@
 """Schedule views — extracted from legacy_views.py in Phase 8."""
 from core.views._helpers import *  # noqa: F401, F403
-from core.access import check_project_access
+from core.access import check_project_access, is_admin_or_pm
 from core.views._helpers import (
-    _is_staffish,
     logger,
 )
 from django.utils.translation import gettext_lazy as _  # noqa: F811
@@ -54,12 +53,12 @@ def project_schedule_view(request, project_id: int):
     # Para PM/Admin: Vista completa
     if ScheduleForm:
         form = ScheduleForm(request.POST or None)
-        if request.method == "POST" and _is_staffish(request.user) and form.is_valid():
+        if request.method == "POST" and is_admin_or_pm(request.user) and form.is_valid():
             s = form.save(commit=False)
             s.project = project
             s.save()
             return redirect("project_schedule", project_id=project.id)
-        elif request.method == "POST" and not _is_staffish(request.user):
+        elif request.method == "POST" and not is_admin_or_pm(request.user):
             messages.error(request, _("Only staff can modify the schedule."))
             return redirect("project_schedule", project_id=project.id)
     else:
@@ -101,7 +100,7 @@ def schedule_generator_view(request, project_id):
     project = get_object_or_404(Project, id=project_id)
 
     # SECURITY: Only staff or project managers can access schedule generator
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
 

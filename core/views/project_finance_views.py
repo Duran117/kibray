@@ -1,8 +1,8 @@
 """Project financial views — financials hub, budget, cost codes, estimates, invoices."""
 from core.views._helpers import *  # noqa: F401, F403
+from core.access import is_admin_or_pm
 from core.views._helpers import (
     _generate_basic_pdf_from_html,
-    _is_staffish,
     _parse_date,
     _ensure_inventory_item,
     staff_required,
@@ -28,7 +28,7 @@ def project_financials_hub(request, project_id):
     Para PM (no admin): muestra Working Budget (-30%) 
     Para Admin/Superuser: muestra Budget real completo
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return redirect("dashboard")
     project = get_object_or_404(Project, pk=project_id)
     
@@ -126,7 +126,7 @@ def project_budget_detail(request, project_id):
     Vista de detalle del budget con capacidad de agregar/editar/eliminar líneas.
     Solo staff/admin puede editar.
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return redirect("dashboard")
     project = get_object_or_404(Project, pk=project_id)
     
@@ -223,7 +223,7 @@ def project_cost_codes(request, project_id):
     Gestión de Cost Codes - códigos para categorizar costos.
     Solo admin puede crear/editar.
     """
-    if not _is_staffish(request.user):
+    if not is_admin_or_pm(request.user):
         return redirect("dashboard")
     project = get_object_or_404(Project, pk=project_id)
     

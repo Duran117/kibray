@@ -225,24 +225,28 @@ def _require_roles(request, allowed_roles, *, allow_staff=True):
 def _is_staffish(user):
     """Return True for admin, superuser, or project_manager roles.
 
-    DEPRECATED — Phase 9 Commit J. This helper is now a thin shim
-    around ``core.access`` primitives:
-        is_admin(user) OR is_pm(user) OR user.is_staff
-    Note: this is intentionally NARROWER than ``core.access.is_staffish``
-    which also includes 'owner'. Preserved exactly for back-compat —
-    if you want owner included, call ``core.access.is_staffish`` directly.
+    DEPRECATED — Phase 9 Commit J. Phase 9 Commit N promoted the
+    canonical implementation to ``core.access.is_admin_or_pm`` (note
+    the new name explicitly signals that ROLE_OWNER is excluded — the
+    pre-Phase-9 ``_is_staffish`` semantics, NOT the broader
+    ``core.access.is_staffish`` which includes owner). This shim now
+    forwards to the canonical name; new code should use
+    ``core.access.is_admin_or_pm`` directly.
     """
-    from core.access import is_admin, is_pm
-    return is_admin(user) or is_pm(user) or bool(getattr(user, "is_staff", False))
+    from core.access import is_admin_or_pm
+    return is_admin_or_pm(user)
 
 
 def _is_pm_or_admin(user):
     """Return True for PM or admin roles.
 
-    DEPRECATED — Phase 9 Commit J. Identical semantics to ``_is_staffish``
-    above; kept as a separate name for callsite readability.
+    DEPRECATED — Phase 9 Commit J / Commit N. Identical semantics to
+    ``_is_staffish`` above; both forward to ``core.access.is_admin_or_pm``.
+    Kept as a separate name only for back-compat with callers that
+    still spell it this way.
     """
-    return _is_staffish(user)
+    from core.access import is_admin_or_pm
+    return is_admin_or_pm(user)
 
 
 def _parse_date(s):
