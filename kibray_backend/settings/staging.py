@@ -32,4 +32,11 @@ if SENTRY_DSN:  # noqa: F405
         traces_sample_rate=0.5,  # Sample more transactions in staging
     )
 
+# ──────────────────────────────────────────────────────────────────────
+# Phase 9 Commit H — Enable the new role-aware sidebar in staging by
+# default so QA exercises it before the production flip. Override with
+# env var PHASE9_NEW_SIDEBAR=0 to roll back instantly without a deploy.
+# ──────────────────────────────────────────────────────────────────────
+PHASE9_NEW_SIDEBAR = os.environ.get("PHASE9_NEW_SIDEBAR", "1") == "1"
+
 print(f"🧪 Loaded STAGING settings (DEBUG={DEBUG})")

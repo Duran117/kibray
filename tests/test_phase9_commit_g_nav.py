@@ -139,6 +139,30 @@ class TestGlobalNav:
         assert "Administration" not in titles
         assert "Finance" not in titles
 
+    def test_pm_sees_recent_projects_with_their_assignment(self, db, world):
+        """Feature parity with legacy sidebar: staff/PM/admin must see
+        recent project names in the global nav so they can jump
+        straight in. Without this, project navigation regresses for
+        staff users.
+        """
+        sections = build_global_nav(world["pm"])
+        titles = [s.title for s in sections]
+        assert "Recent Projects" in titles
+        recent = next(s for s in sections if s.title == "Recent Projects")
+        labels = [i.label for i in recent.items]
+        # PM sees only projects they're assigned to.
+        assert world["p_a"].name in labels
+        assert world["p_b"].name not in labels
+
+    def test_admin_sees_all_recent_projects(self, db, world):
+        sections = build_global_nav(world["admin"])
+        recent = next((s for s in sections if s.title == "Recent Projects"), None)
+        assert recent is not None
+        labels = [i.label for i in recent.items]
+        # Admin sees every project.
+        assert world["p_a"].name in labels
+        assert world["p_b"].name in labels
+
     def test_employee_sees_minimal_menu(self, db, world):
         sections = build_global_nav(world["emp"])
         titles = [s.title for s in sections]

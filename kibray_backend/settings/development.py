@@ -151,4 +151,12 @@ X_FRAME_OPTIONS = "SAMEORIGIN"
 # WebSocket - Accept all in dev
 WEBSOCKET_ACCEPT_ALL = True
 
+# ──────────────────────────────────────────────────────────────────────
+# Phase 9 Commit H — Enable the new role-aware sidebar in development
+# by default. Local devs always see the new sidebar so we catch any
+# render regression before staging. Override with PHASE9_NEW_SIDEBAR=0
+# if you specifically want to test against the legacy sidebar.
+# ──────────────────────────────────────────────────────────────────────
+PHASE9_NEW_SIDEBAR = os.environ.get("PHASE9_NEW_SIDEBAR", "1") == "1"
+
 print(f"🚀 Loaded DEVELOPMENT settings (DEBUG={DEBUG})")

@@ -233,6 +233,25 @@ def build_global_nav(user) -> List[NavSection]:
         NavItem("Projects", "project_list", icon="bi-folder2-open"),
     ]))
 
+    # Recent Projects — feature parity with the legacy sidebar's
+    # "Recent Projects" widget. Without this, staff users browsing the
+    # global view lose direct access to the most recent projects, which
+    # had been the de-facto navigation pattern for years.
+    try:
+        from core.models import Project
+        recent = list(
+            accessible_projects(user)
+            .filter(is_archived=False)
+            .order_by("-start_date")[:5]
+        )
+    except Exception:
+        recent = []
+    if recent:
+        sections.append(NavSection("Recent Projects", [
+            NavItem(p.name, "project_overview", (p.id,), icon="bi-folder")
+            for p in recent
+        ]))
+
     if is_staffish(user) or is_pm(user):
         sections.append(NavSection("Planning", [
             NavItem("Daily Planning", "daily_planning_dashboard", icon="bi-calendar-check"),
