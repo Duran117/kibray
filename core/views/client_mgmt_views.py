@@ -2,9 +2,6 @@
 from core.access import ROLE_CLIENT, get_role  # Phase 9 Commit F
 from core.views._helpers import *  # noqa: F401, F403
 from core.views._helpers import (
-    _check_user_project_access,
-    _is_admin_user,
-    _require_admin_or_redirect,
     logger,
 )
 from django.utils.translation import gettext_lazy as _  # noqa: F811

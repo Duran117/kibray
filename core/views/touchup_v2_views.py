@@ -3,7 +3,6 @@ from core.views._helpers import *  # noqa: F401, F403
 from core.views._helpers import (
     _check_user_project_access,
     _is_pm_or_admin,
-    _is_staffish,
     logger,
 )
 from django.utils.translation import gettext_lazy as _  # noqa: F811
