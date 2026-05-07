@@ -318,4 +318,22 @@ if SENTRY_DSN:
 # WebSocket - Strict validation in production
 WEBSOCKET_ACCEPT_ALL = False
 
+# ──────────────────────────────────────────────────────────────────────
+# Phase 9 Commit K — Production flag flip.
+#
+# After staging soak (Commit H), enable the new role-aware sidebar
+# (core/templates/core/components/sidebar_phase9.html) for production
+# users by default. The legacy sidebar_dark.html is removed in this
+# same commit, so the flag now exists ONLY as an emergency kill-switch:
+# setting env var PHASE9_NEW_SIDEBAR=0 will fall back to the no-sidebar
+# rendering path in core/nav.py / base_modern.html (NOT to the deleted
+# template).
+#
+# Once one full release cycle confirms zero regressions in production,
+# this flag and its related branches in core/nav.py + base_modern.html
+# can be deleted entirely.
+# ──────────────────────────────────────────────────────────────────────
+PHASE9_NEW_SIDEBAR = os.environ.get("PHASE9_NEW_SIDEBAR", "1") == "1"
+
 print(f"🔒 Loaded PRODUCTION settings (DEBUG={DEBUG})")
+print(f"🧭 PHASE9_NEW_SIDEBAR = {PHASE9_NEW_SIDEBAR}")

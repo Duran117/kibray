@@ -2,11 +2,15 @@
 {% load static %}
 {% comment %}
 Phase 9 Commit G — role-aware sidebar driven by core/nav.py.
+Phase 9 Commit K made this the ONLY sidebar template (legacy
+sidebar_dark.html was deleted).
 
 Renders ``phase9_nav_sections`` from context (populated by
 ``core.nav.phase9_nav`` context processor when settings.PHASE9_NEW_SIDEBAR
-is True). Until that flag is flipped (Commit H), this template is unused
-and the legacy sidebar_dark.html still renders.
+is True). When the flag is False (kill-switch), the context processor
+returns ``{}`` and the loop below renders the empty-state message
+instead of any menu items — the sidebar chrome still renders so layout
+stays consistent.
 
 Design:
   - Zero authorization logic in template — that all happens in

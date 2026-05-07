@@ -166,12 +166,13 @@
         
         {# Sidebar - shown unless legacy_shell or explicitly hidden #}
         {% if not legacy_shell|default:False and show_sidebar|default:True %}
-            {% if phase9_nav_enabled %}
-                {# Phase 9 Commit G: new role-aware sidebar (opt-in via PHASE9_NEW_SIDEBAR setting). #}
-                {% include "core/components/sidebar_phase9.html" %}
-            {% else %}
-                {% include "core/components/sidebar_dark.html" %}
-            {% endif %}
+            {# Phase 9 Commit K: the role-aware sidebar is now the only sidebar.
+               The legacy sidebar_dark.html was removed in this commit. The
+               PHASE9_NEW_SIDEBAR flag still gates whether the context
+               processor populates `phase9_nav_sections` (kill-switch) — when
+               disabled, the template renders an empty shell instead of the
+               deleted legacy include. #}
+            {% include "core/components/sidebar_phase9.html" %}
         {% endif %}
         
         {# Main Content Area #}

@@ -1,5 +1,6 @@
 """
-core/nav.py — Phase 9 Commit G
+core/nav.py — Phase 9 Commit G (sidebar builder); Phase 9 Commit K
+made ``sidebar_phase9.html`` the only sidebar template.
 
 Single source of truth for sidebar / navigation menu structure.
 
@@ -16,17 +17,16 @@ Design rules:
     visibility predicate. Missing predicate → hidden.
   - Order is deterministic.
 
-Behind a feature flag (``settings.PHASE9_NEW_SIDEBAR``):
-  - False (default): the legacy template renders as before.
-  - True: ``core/components/sidebar_phase9.html`` renders the
-    structure built here.
-
-The flag is set in environment-specific settings only after Commit H
-has visually QA'd the new sidebar in staging.
+Feature flag ``settings.PHASE9_NEW_SIDEBAR`` (kill-switch only after
+Commit K — the legacy template no longer exists):
+  - True (default in production): the context processor populates
+    ``phase9_nav_sections`` with the structure built here.
+  - False (default in tests/dev unless overridden): the context
+    processor returns ``{}`` so the sidebar renders an empty shell.
 
 See:
   docs/security/PHASE9_AUDIT.md         — pre-refactor leak inventory
-  docs/security/PHASE9_ARCHITECTURE.md  — rollout plan A→J
+  docs/security/PHASE9_ARCHITECTURE.md  — rollout plan A→K
 """
 from __future__ import annotations
 

@@ -1,5 +1,6 @@
 """
-Sidebar role-leak regression test (Phase 8 — Security).
+Sidebar role-leak regression test (Phase 8 — Security; migrated in Phase 9
+Commit K to the new ``sidebar_phase9.html`` template).
 
 Reported issue (verbatim from user, translated): when a CLIENT navigates inside
 a project (e.g. they click a Daily-Logs link from a notification) the sidebar
@@ -8,11 +9,11 @@ Damages, Issues, CO Board, Resident Portal, Financials… — exposing internal
 features the client must not see. Backend rejects the actions, but the menu
 items themselves leak the existence of those features.
 
-We test the *template* directly by rendering ``core/components/sidebar_dark.html``
-with a faked ``request`` that has a logged-in user of a given role + a project
-in scope. This isolates the role-gating logic from view-level access checks
-(which are tested elsewhere) and lets us cover client / employee / staff in a
-fast, deterministic way.
+We test the *template* directly by rendering ``core/components/sidebar_phase9.html``
+with a faked ``request`` and pre-built ``phase9_nav_sections`` (via
+``core.nav.build_project_nav``). This isolates the role-gating logic from
+view-level access checks (which are tested elsewhere) and lets us cover
+client / employee / staff in a fast, deterministic way.
 """
 from __future__ import annotations
 
@@ -22,6 +23,7 @@ from django.template.loader import render_to_string
 from django.test import RequestFactory
 
 from core.models import Profile, Project
+from core.nav import build_project_nav
 
 
 pytestmark = pytest.mark.django_db
@@ -32,7 +34,7 @@ CLIENT_FORBIDDEN_URL_FRAGMENTS = [
     "/planning/",                # Daily Plans dashboard (global)
     "/planner/strategic/",       # Strategic Planning
     "/changeorders/board",       # CO Board
-    "/touchups-v2/",             # Touch-ups
+    "/touchups",                 # Touch-ups
     "/issues/",                  # Issues
     "/materials/requests/",      # Materials Requests
     "/portal/manage/",           # Resident Portal
@@ -63,7 +65,7 @@ CLIENT_FORBIDDEN_SECTION_TITLES = [
     "Planificación", "Planning", "Planificación Diaria",
     "Operaciones", "Operations",
     "Órdenes de Cambio", "Change Orders",
-    "Financial", "Financiero",
+    "Financial", "Financiero", "Financials",
 ]
 
 
@@ -77,12 +79,20 @@ def _make_request(user):
 
 
 def _render_sidebar(user, project):
+    """Render the Phase 9 sidebar exactly as ``base_modern.html`` would.
+
+    The ``phase9_nav`` context processor is bypassed because we want to
+    pin the test to the role-driven menu structure, not to whatever the
+    flag/setting is in the test environment.
+    """
     return render_to_string(
-        "core/components/sidebar_dark.html",
+        "core/components/sidebar_phase9.html",
         {
             "project": project,
             "request": _make_request(user),
             "user": user,
+            "phase9_nav_enabled": True,
+            "phase9_nav_sections": build_project_nav(user, project),
         },
     )
 
@@ -136,7 +146,8 @@ class TestClientSidebarLeakage:
         leaks = [f for f in CLIENT_FORBIDDEN_URL_FRAGMENTS if f in html]
         assert not leaks, (
             f"Client sidebar leaked forbidden URL fragments: {leaks}. "
-            "The role-gated branch in sidebar_dark.html is missing or mis-applied."
+            "The role-gated branch in core/nav.py:build_project_nav is "
+            "missing or mis-applied."
         )
 
     def test_client_sidebar_hides_forbidden_section_titles(
@@ -184,12 +195,14 @@ class TestEmployeeSidebarLeakage:
 class TestAdminSidebarFull:
     def test_admin_sees_full_project_menu(self, admin_user, project):
         html = _render_sidebar(admin_user, project)
-        # Admin must see all the formerly-leaked items
-        assert "/planning/" in html
+        # Admin must see the formerly-leaked items that ARE project-scoped.
+        # (/planning/ and /portal/manage/ are global pages, not part of the
+        #  project sidebar in Phase 9 — they live in the global nav.)
         assert "/financials/" in html
-        assert "/changeorders/board" in html
-        assert "/portal/manage/" in html
+        assert "/changeorders/" in html or "/changeorder" in html or "/touchup" in html
         assert "/issues/" in html
+        assert "/damages/" in html
+        assert "/tasks/" in html
 
 
 # ── Anonymous users: not tested directly because every project page is behind

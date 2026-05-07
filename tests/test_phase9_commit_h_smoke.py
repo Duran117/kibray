@@ -153,19 +153,35 @@ class TestNewSidebarRendersForAllRoles:
 
 
 @pytest.mark.usefixtures("flag_off")
-class TestLegacySidebarStillRendersWhenFlagOff:
-    """Belt-and-braces: with the flag off, the legacy sidebar must
-    still render. This protects production until Commit H is shipped
-    there.
+class TestKillSwitchWhenFlagOff:
+    """Phase 9 Commit K removed the legacy sidebar_dark.html template.
+    The flag now acts as a *kill-switch* on the data layer: when
+    ``PHASE9_NEW_SIDEBAR`` is False the context processor returns ``{}``
+    so the sidebar still renders its chrome but with NO menu items.
+    This protects production by allowing instant rollback without
+    redeploying.
     """
 
-    def test_admin_dashboard_uses_legacy_when_flag_off(self, client, db):
+    def test_admin_dashboard_renders_empty_sidebar_when_flag_off(self, client, db):
         admin = _mk("h_admin_off", role="admin", is_superuser=True, is_staff=True)
         client.login(username="h_admin_off", password="x")
         resp = client.get(reverse("dashboard"), follow=True)
         assert resp.status_code == 200
-        # The new sidebar marker must be absent.
-        assert b'data-sidebar="phase9"' not in resp.content
+        # The phase9 sidebar chrome IS present (it's the only template).
+        assert b'data-sidebar="phase9"' in resp.content, (
+            "After Commit K, sidebar_phase9.html is the only sidebar — "
+            "its chrome must render even when the flag is off."
+        )
+        # …but the menu items must be empty (kill-switch active).
+        assert b"No menu available." in resp.content or (
+            # Belt-and-braces: typical staff sections must be absent.
+            b"Administration" not in resp.content
+            and b"Finance" not in resp.content
+            and b"Operations" not in resp.content
+        ), (
+            "Kill-switch failed: flag is off but sidebar still has items. "
+            "core.nav.phase9_nav should return {} when the flag is False."
+        )
 
 
 # ─────────────── DEV / STAGING settings sanity ───────────────
@@ -206,23 +222,22 @@ class TestDevAndStagingDefaultFlagOn:
             "staging.py must default PHASE9_NEW_SIDEBAR=True (env default '1')"
         )
 
-    def test_production_settings_default_flag_off(self):
-        """Production must NOT auto-enable until a separate commit
-        explicitly flips it after staging soak.
+    def test_production_settings_default_flag_on(self):
+        """Phase 9 Commit K flipped the production default to ON.
+        production.py reads ``os.environ.get("PHASE9_NEW_SIDEBAR", "1")``
+        so any production deploy without an explicit env override gets
+        the role-aware sidebar.
         """
-        import importlib
-        import os
-
-        prev = os.environ.pop("PHASE9_NEW_SIDEBAR", None)
-        try:
-            # production.py reads from base.py which defaults False;
-            # production.py itself must not override that to True.
-            import kibray_backend.settings.base as base_mod
-            importlib.reload(base_mod)
-            assert base_mod.PHASE9_NEW_SIDEBAR is False, (
-                "base.py / production must default PHASE9_NEW_SIDEBAR=False "
-                "until staging soak completes."
-            )
-        finally:
-            if prev is not None:
-                os.environ["PHASE9_NEW_SIDEBAR"] = prev
+        from pathlib import Path
+        src = (
+            Path(__file__).resolve().parent.parent
+            / "kibray_backend" / "settings" / "production.py"
+        ).read_text(encoding="utf-8")
+        assert (
+            'PHASE9_NEW_SIDEBAR = os.environ.get("PHASE9_NEW_SIDEBAR", "1") == "1"'
+            in src
+        ), (
+            "production.py must default PHASE9_NEW_SIDEBAR=True after "
+            "Phase 9 Commit K. Setting env var PHASE9_NEW_SIDEBAR=0 "
+            "remains the kill-switch."
+        )

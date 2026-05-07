@@ -188,10 +188,13 @@ BI_TOP_PERFORMERS_LIMIT = int(os.getenv("BI_TOP_PERFORMERS_LIMIT", "5"))
 # Feature Flags
 TOUCHUP_PIN_ENABLED = False
 
-# Phase 9 Commit G — opt-in to the new role-aware sidebar driven by core/nav.py.
-# Set PHASE9_NEW_SIDEBAR=1 in env to render core/components/sidebar_phase9.html
-# instead of the legacy sidebar_dark.html. Default off; Commit H flips it on
-# after staging QA.
+# Phase 9 Commit K — kill-switch for the role-aware sidebar.
+# After K, sidebar_phase9.html is the ONLY sidebar (legacy sidebar_dark.html
+# was deleted). This flag now controls whether the ``core.nav.phase9_nav``
+# context processor populates ``phase9_nav_sections``: when False the
+# sidebar still renders its chrome but with an empty section list (graceful
+# kill-switch). Production overrides this to True in production.py; tests
+# and dev keep the safe default OFF unless explicitly enabled.
 PHASE9_NEW_SIDEBAR = os.environ.get("PHASE9_NEW_SIDEBAR", "0") == "1"
 
 # Crispy Forms

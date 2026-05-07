@@ -304,17 +304,43 @@ class TestPhase9NavContextProcessor:
             assert forbidden not in titles
 
 
-# ─────────────── REGRESSION: legacy template still default ───────────────
-def test_default_settings_keep_legacy_sidebar(settings):
-    """Until Commit H, the new sidebar must remain OPT-IN.
-    Setting must default to False so production keeps rendering
-    sidebar_dark.html.
+# ─────────────── REGRESSION: flag still defaults OFF in test/dev base ──
+def test_base_settings_default_phase9_flag_off():
+    """The base settings module must keep ``PHASE9_NEW_SIDEBAR`` defaulting
+    OFF so that test runs (and any environment inheriting only base.py)
+    render an *empty* sidebar shell instead of one populated with whatever
+    role the request happens to carry.
+
+    Phase 9 Commit K removed the legacy sidebar_dark.html and made
+    sidebar_phase9.html the only sidebar; the flag is now a kill-switch
+    for the *data* layer (whether ``phase9_nav_sections`` is populated),
+    not for *which template* renders. Production explicitly flips it ON.
     """
-    # Reload setting from base.py — pytest-django may have overridden it.
     import importlib
+
     import kibray_backend.settings.base as base
     importlib.reload(base)
     assert base.PHASE9_NEW_SIDEBAR is False, (
-        "PHASE9_NEW_SIDEBAR must default OFF until Commit H flips it "
-        "after staging QA."
+        "PHASE9_NEW_SIDEBAR must default OFF in base.py so test/dev "
+        "runs that don't override it get an empty sidebar (kill-switch "
+        "behavior). Production overrides this to True in production.py."
+    )
+
+
+def test_production_settings_default_phase9_flag_on(monkeypatch):
+    """Phase 9 Commit K: production must default the flag to ON.
+
+    We can't import production.py directly (it requires DJANGO_SECRET_KEY +
+    DATABASE_URL at import time), so we read the file and assert the
+    default in the os.environ.get(...) call.
+    """
+    from pathlib import Path
+    prod_path = Path(__file__).resolve().parent.parent / (
+        "kibray_backend/settings/production.py"
+    )
+    src = prod_path.read_text()
+    assert 'os.environ.get("PHASE9_NEW_SIDEBAR", "1")' in src, (
+        "production.py must default PHASE9_NEW_SIDEBAR to '1' "
+        "(env override still allowed for kill-switch). Phase 9 Commit K "
+        "flipped this; do not regress."
     )
