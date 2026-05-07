@@ -29,11 +29,27 @@ from django.utils.translation import gettext_lazy as _  # noqa: F811
 
 @login_required
 def project_overview(request, project_id: int):
-    if not request.user.is_staff:
-        messages.error(request, _("Access restricted to PM/Staff."))
-        return redirect("dashboard_employee")
-
     project = get_object_or_404(Project, pk=project_id)
+
+    # Phase 9 Commit I: gate via the canonical access layer instead of
+    # a raw ``is_staff`` check. The old gate locked PMs (without
+    # is_staff), employees, and clients out of overviews of projects
+    # they legitimately had access to. ``can_view_project`` consults
+    # the full Phase 9 model:
+    #   - admin/superuser/is_staff → always allowed
+    #   - PM → must have ProjectManagerAssignment for this project
+    #   - employee → must have a ResourceAssignment or TimeEntry
+    #   - client → must have an active ClientProjectAccess
+    from core.access import can_view_project  # local import to avoid cycles
+    if not can_view_project(request.user, project):
+        messages.error(request, _("You do not have access to this project."))
+        # Route the user to a role-appropriate landing page instead of
+        # always bouncing them to dashboard_employee (the previous
+        # hard-coded destination silently misled non-employees).
+        from core.access import is_client
+        if is_client(request.user):
+            return redirect("dashboard_client")
+        return redirect("dashboard")
 
     # Get Gantt progress first (used for progress bar)
     from core.services.schedule_unified import get_project_progress
