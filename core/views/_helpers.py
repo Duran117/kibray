@@ -167,47 +167,53 @@ def _generate_basic_pdf_from_html(html: str) -> bytes:
 
 
 def _check_user_project_access(user, project):
-    """SECURITY: Verify if a user has access to a specific project."""
-    from core.models import ClientProjectAccess
+    """SECURITY: Verify if a user has access to a specific project.
 
-    if user.is_staff or user.is_superuser:
+    DEPRECATED — Phase 9 Commit J. Returns ``(bool, redirect_url_name)``.
+    The boolean is now sourced from ``core.access.can_view_project`` so
+    that PM project assignments and employee TimeEntry/ResourceAssignment
+    coverage are honored consistently with the rest of the app. The
+    legacy text-match fallback (``project.client == username/email/full
+    name``) is preserved by the canonical layer's
+    ``accessible_projects`` for clients.
+
+    The redirect_url_name is preserved as the ROLE-aware destination
+    so existing callers' messages-then-redirect flow keeps working.
+    """
+    from core.access import can_view_project, is_client
+
+    if can_view_project(user, project):
         return True, None
 
-    has_explicit_access = ClientProjectAccess.objects.filter(
-        user=user, project=project
-    ).exists()
-    if has_explicit_access:
+    # Pre-Phase-9 callers also accepted users referenced by
+    # project.assigned_to (a many-to-many on some projects). Honor
+    # that explicitly so we don't lose the back-compat surface.
+    if hasattr(project, "assigned_to") and project.assigned_to.filter(id=user.id).exists():
         return True, None
 
-    if project.client:
-        client_text = project.client.strip().lower()
-        if client_text and (
-            client_text == user.email.lower()
-            or client_text == user.get_full_name().lower()
-            or client_text == user.username.lower()
-        ):
-            return True, None
-
-    if hasattr(project, 'assigned_to') and project.assigned_to.filter(id=user.id).exists():
-        return True, None
-
-    # Phase 9 Commit F: use centralized helper.
-    from core.access import ROLE_CLIENT, get_role
-    if get_role(user) == ROLE_CLIENT:
-        return False, "dashboard_client"
-    return False, "dashboard"
+    return (False, "dashboard_client" if is_client(user) else "dashboard")
 
 
 def _is_admin_user(user):
-    """Return True if user is superuser or has admin role."""
-    if user.is_superuser or user.is_staff:
-        return True
-    profile = getattr(user, "profile", None)
-    return profile and getattr(profile, "role", None) in ROLES_ADMIN
+    """Return True if user is superuser or has admin role.
+
+    DEPRECATED — Phase 9 Commit J. Prefer ``core.access.is_admin(user)``
+    for the strict canonical check (superuser OR Profile.role=='admin').
+    This shim additionally accepts ``is_staff`` users for back-compat
+    with pre-Phase-9 callers that conflated 'admin' with 'staff'.
+    Equivalent to: ``core.access.is_admin(user) or user.is_staff``.
+    """
+    from core.access import is_admin
+    return is_admin(user) or bool(getattr(user, "is_staff", False))
 
 
 def _require_admin_or_redirect(request):
-    """SECURITY: Guard for admin-only views. Returns None if admin, redirect otherwise."""
+    """SECURITY: Guard for admin-only views. Returns None if admin, redirect otherwise.
+
+    DEPRECATED — Phase 9 Commit J. Prefer ``core.access.is_admin`` plus
+    explicit redirect logic so the destination is visible at the call
+    site. Kept as a shim for the ~96 existing call sites.
+    """
     if not _is_admin_user(request.user):
         messages.error(request, _("You don't have permission to access this feature."))
         return redirect("dashboard")
@@ -215,7 +221,14 @@ def _require_admin_or_redirect(request):
 
 
 def _require_roles(request, allowed_roles, *, allow_staff=True):
-    """SECURITY: Guard for role-restricted views. Returns None if allowed, redirect otherwise."""
+    """SECURITY: Guard for role-restricted views. Returns None if allowed, redirect otherwise.
+
+    DEPRECATED — Phase 9 Commit J. Prefer composing
+    ``core.access.get_role(user)`` and the per-role ``is_*`` predicates
+    at the call site. This shim is preserved unchanged because its
+    role-string-membership semantics differ from the canonical
+    capability checks (callers historically pass ad-hoc role sets).
+    """
     if allow_staff and (request.user.is_superuser or request.user.is_staff):
         return None
     profile = getattr(request.user, "profile", None)
@@ -227,19 +240,26 @@ def _require_roles(request, allowed_roles, *, allow_staff=True):
 
 
 def _is_staffish(user):
-    """Return True for admin, superuser, or project_manager roles."""
-    if user.is_superuser or user.is_staff:
-        return True
-    profile = getattr(user, "profile", None)
-    return profile and getattr(profile, "role", None) in ROLES_STAFF
+    """Return True for admin, superuser, or project_manager roles.
+
+    DEPRECATED — Phase 9 Commit J. This helper is now a thin shim
+    around ``core.access`` primitives:
+        is_admin(user) OR is_pm(user) OR user.is_staff
+    Note: this is intentionally NARROWER than ``core.access.is_staffish``
+    which also includes 'owner'. Preserved exactly for back-compat —
+    if you want owner included, call ``core.access.is_staffish`` directly.
+    """
+    from core.access import is_admin, is_pm
+    return is_admin(user) or is_pm(user) or bool(getattr(user, "is_staff", False))
 
 
 def _is_pm_or_admin(user):
-    """Return True for PM or admin roles."""
-    if user.is_superuser or user.is_staff:
-        return True
-    profile = getattr(user, "profile", None)
-    return profile and getattr(profile, "role", None) in ROLES_STAFF
+    """Return True for PM or admin roles.
+
+    DEPRECATED — Phase 9 Commit J. Identical semantics to ``_is_staffish``
+    above; kept as a separate name for callsite readability.
+    """
+    return _is_staffish(user)
 
 
 def _parse_date(s):

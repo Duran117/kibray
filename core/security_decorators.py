@@ -19,6 +19,14 @@ def require_role(*allowed_roles):
     """
     Decorator to restrict view access based on user role from Profile model.
 
+    DEPRECATED — Phase 9 Commit J. Prefer composing
+    ``core.access.get_role(user)`` and the per-role ``is_*`` predicates
+    at the call site, or use Django's ``user_passes_test`` wrapping a
+    capability function from ``core.access``. The role-string-membership
+    semantics here predate Phase 9 and don't compose cleanly with the
+    capability layer; kept unchanged for back-compat with existing
+    decorated views.
+
     Usage:
         @require_role('admin', 'project_manager')
         def my_view(request):
@@ -87,6 +95,14 @@ def ajax_csrf_protect(view_func):
 def require_project_access(param_name="project_id"):
     """
     Decorator to verify user has access to specified project.
+
+    DEPRECATED — Phase 9 Commit J. Prefer
+    ``core.access.can_view_project(user, project)`` at the call site
+    (it is the single source of truth for project-level access in
+    Phase 9, covering admin/staff/PM/employee/client uniformly). This
+    decorator's hand-rolled per-role logic is kept unchanged for
+    back-compat with views that already use it.
+
     Checks:
     - Staff/superuser: always allowed
     - Client role: must have ClientProjectAccess or match project.client
@@ -251,18 +267,20 @@ def is_staffish(user):
     """
     Check if user has staff-level permissions (admin, PM, or Django staff).
 
+    DEPRECATED — Phase 9 Commit J. Now a thin shim around
+    ``core.access`` primitives:
+        is_admin(user) OR is_pm(user) OR user.is_staff
+
+    Note: this matches ``core.views._helpers._is_staffish`` and is
+    intentionally NARROWER than ``core.access.is_staffish`` (which also
+    includes the 'owner' role). Prefer the canonical helper at new call
+    sites; this shim is kept for back-compat.
+
     Args:
         user: Django User object
 
     Returns:
         bool: True if user has staff permissions
     """
-    if user.is_superuser or user.is_staff:
-        return True
-
-    profile = getattr(user, "profile", None)
-    if profile:
-        role = getattr(profile, "role", None)
-        return role in ("admin", "project_manager")
-
-    return False
+    from core.access import is_admin, is_pm
+    return is_admin(user) or is_pm(user) or bool(getattr(user, "is_staff", False))
