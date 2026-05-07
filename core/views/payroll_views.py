@@ -1,7 +1,7 @@
 """Payroll views — extracted from legacy_views.py in Phase 8."""
 from core.views._helpers import *  # noqa: F401, F403
+from core.access import require_admin_or_redirect
 from core.views._helpers import (
-    _require_admin_or_redirect,
     logger,
 )
 from django.utils.translation import gettext_lazy as _  # noqa: F811
@@ -16,7 +16,7 @@ def payroll_weekly_review(request):
     
     SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
-    guard = _require_admin_or_redirect(request)
+    guard = require_admin_or_redirect(request)
     if guard:
         return guard
 
@@ -374,7 +374,7 @@ def payroll_record_payment(request, record_id):
     Soporta pagos con ahorro - el empleado puede llevarse menos y dejar el resto.
     SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
-    guard = _require_admin_or_redirect(request)
+    guard = require_admin_or_redirect(request)
     if guard:
         return guard
 
@@ -454,7 +454,7 @@ def payroll_payment_history(request, employee_id=None):
     Historial de pagos de nómina. Si se especifica employee_id, muestra solo ese empleado.
     SOLO ACCESIBLE POR ADMIN/SUPERUSER
     """
-    guard = _require_admin_or_redirect(request)
+    guard = require_admin_or_redirect(request)
     if guard:
         return guard
 
@@ -497,7 +497,7 @@ def employee_savings_ledger(request, employee_id=None):
     from core.models import EmployeeSavings
     from decimal import Decimal
     
-    guard = _require_admin_or_redirect(request)
+    guard = require_admin_or_redirect(request)
     if guard:
         return guard
     

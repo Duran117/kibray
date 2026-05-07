@@ -169,29 +169,13 @@ def _generate_basic_pdf_from_html(html: str) -> bytes:
 def _check_user_project_access(user, project):
     """SECURITY: Verify if a user has access to a specific project.
 
-    DEPRECATED — Phase 9 Commit J. Returns ``(bool, redirect_url_name)``.
-    The boolean is now sourced from ``core.access.can_view_project`` so
-    that PM project assignments and employee TimeEntry/ResourceAssignment
-    coverage are honored consistently with the rest of the app. The
-    legacy text-match fallback (``project.client == username/email/full
-    name``) is preserved by the canonical layer's
-    ``accessible_projects`` for clients.
-
-    The redirect_url_name is preserved as the ROLE-aware destination
-    so existing callers' messages-then-redirect flow keeps working.
+    DEPRECATED — Phase 9 Commit J. Phase 9 Commit M promoted the
+    canonical implementation to ``core.access.check_project_access``.
+    This shim is now a one-line forwarder; new callers should import
+    from ``core.access`` directly.
     """
-    from core.access import can_view_project, is_client
-
-    if can_view_project(user, project):
-        return True, None
-
-    # Pre-Phase-9 callers also accepted users referenced by
-    # project.assigned_to (a many-to-many on some projects). Honor
-    # that explicitly so we don't lose the back-compat surface.
-    if hasattr(project, "assigned_to") and project.assigned_to.filter(id=user.id).exists():
-        return True, None
-
-    return (False, "dashboard_client" if is_client(user) else "dashboard")
+    from core.access import check_project_access
+    return check_project_access(user, project)
 
 
 def _is_admin_user(user):
@@ -210,14 +194,13 @@ def _is_admin_user(user):
 def _require_admin_or_redirect(request):
     """SECURITY: Guard for admin-only views. Returns None if admin, redirect otherwise.
 
-    DEPRECATED — Phase 9 Commit J. Prefer ``core.access.is_admin`` plus
-    explicit redirect logic so the destination is visible at the call
-    site. Kept as a shim for the ~96 existing call sites.
+    DEPRECATED — Phase 9 Commit J. Phase 9 Commit M promoted the
+    canonical implementation to ``core.access.require_admin_or_redirect``.
+    This shim is now a one-line forwarder; new callers should import
+    from ``core.access`` directly.
     """
-    if not _is_admin_user(request.user):
-        messages.error(request, _("You don't have permission to access this feature."))
-        return redirect("dashboard")
-    return None
+    from core.access import require_admin_or_redirect
+    return require_admin_or_redirect(request)
 
 
 def _require_roles(request, allowed_roles, *, allow_staff=True):

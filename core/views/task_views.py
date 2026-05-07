@@ -1,8 +1,8 @@
 """Task views — CRUD, wizard, command center, time tracking."""
 from core.views._helpers import *  # noqa: F401, F403
+from core.access import check_project_access
 from core.views._helpers import (
     _generate_basic_pdf_from_html,
-    _check_user_project_access,
     _parse_date,
     _ensure_inventory_item,
     staff_required,
@@ -145,7 +145,7 @@ def task_list_view(request, project_id: int):
     project = get_object_or_404(Project, pk=project_id)
     
     # SECURITY: Check project access
-    has_access, redirect_url = _check_user_project_access(request.user, project)
+    has_access, redirect_url = check_project_access(request.user, project)
     if not has_access:
         messages.error(request, _("Access denied."))
         return redirect(redirect_url or "dashboard")

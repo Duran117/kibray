@@ -1,7 +1,7 @@
 """Touch-up V2 views — extracted from legacy_views.py in Phase 8."""
 from core.views._helpers import *  # noqa: F401, F403
+from core.access import check_project_access
 from core.views._helpers import (
-    _check_user_project_access,
     _is_pm_or_admin,
     logger,
 )
@@ -21,7 +21,7 @@ def touchup_list(request, project_id):
 
     project = get_object_or_404(Project, id=project_id)
 
-    has_access, redirect_url = _check_user_project_access(request.user, project)
+    has_access, redirect_url = check_project_access(request.user, project)
     if not has_access:
         messages.error(request, _("You don't have access to this project."))
         return redirect(redirect_url)
@@ -263,7 +263,7 @@ def touchup_v2_detail(request, project_id, touchup_id):
         project=project,
     )
 
-    has_access, redirect_url = _check_user_project_access(request.user, project)
+    has_access, redirect_url = check_project_access(request.user, project)
     if not has_access:
         # Allow if the touch-up is assigned to this user's employee profile
         try:

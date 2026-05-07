@@ -1,8 +1,8 @@
 """Expense, income, and time entry views — CRUD."""
 from core.views._helpers import *  # noqa: F401, F403
+from core.access import require_admin_or_redirect
 from core.views._helpers import (
     _generate_basic_pdf_from_html,
-    _require_admin_or_redirect,
     _parse_date,
     _ensure_inventory_item,
     staff_required,
@@ -293,7 +293,7 @@ def manual_timeentry_create(request):
     from decimal import Decimal
     from datetime import datetime
     
-    guard = _require_admin_or_redirect(request)
+    guard = require_admin_or_redirect(request)
     if guard:
         return guard
     

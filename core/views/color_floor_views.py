@@ -1,7 +1,7 @@
 """Color sample, floor plan & pin views — extracted from legacy_views.py in Phase 8."""
 from core.views._helpers import *  # noqa: F401, F403
+from core.access import check_project_access
 from core.views._helpers import (
-    _check_user_project_access,
     logger,
 )
 from django.utils.translation import gettext_lazy as _  # noqa: F811
@@ -13,7 +13,7 @@ def color_sample_list(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     
     # SECURITY: Check project access
-    has_access, redirect_url = _check_user_project_access(request.user, project)
+    has_access, redirect_url = check_project_access(request.user, project)
     if not has_access:
         messages.error(request, _("You don't have access to this project."))
         return redirect(redirect_url)
@@ -57,7 +57,7 @@ def color_sample_create(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     
     # SECURITY: Check project access
-    has_access, redirect_url = _check_user_project_access(request.user, project)
+    has_access, redirect_url = check_project_access(request.user, project)
     if not has_access:
         messages.error(request, _("You don't have access to this project."))
         return redirect(redirect_url)
@@ -91,7 +91,7 @@ def color_sample_detail(request, sample_id):
     project = sample.project
     
     # SECURITY: Check project access for all users
-    has_access, redirect_url = _check_user_project_access(request.user, project)
+    has_access, redirect_url = check_project_access(request.user, project)
     if not has_access:
         messages.error(request, _("You don't have access to this project."))
         return redirect(redirect_url or "dashboard")
@@ -357,7 +357,7 @@ def floor_plan_list(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     
     # SECURITY: Check project access
-    has_access, redirect_url = _check_user_project_access(request.user, project)
+    has_access, redirect_url = check_project_access(request.user, project)
     if not has_access:
         messages.error(request, _("You don't have access to this project."))
         return redirect(redirect_url)
@@ -398,7 +398,7 @@ def floor_plan_create(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     
     # SECURITY: Check project access
-    has_access, redirect_url = _check_user_project_access(request.user, project)
+    has_access, redirect_url = check_project_access(request.user, project)
     if not has_access:
         messages.error(request, _("You don't have access to this project."))
         return redirect(redirect_url)

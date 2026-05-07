@@ -502,6 +502,67 @@ def filter_by_project_access(user, qs, project_field: str = "project"):
     return qs.filter(**{f"{project_field}_id__in": project_ids})
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# View-helper conveniences (promoted from core/views/_helpers.py in Phase 9
+# Commit M). These return Django primitives (HttpResponse / tuples) rather
+# than booleans so view callers can drop them in directly.
+# ─────────────────────────────────────────────────────────────────────────────
+def check_project_access(user, project):
+    """Project-access check that returns ``(ok, redirect_destination)``.
+
+    Used by view modules that follow the pattern::
+
+        ok, dest = check_project_access(request.user, project)
+        if not ok:
+            messages.error(request, "Access denied.")
+            return redirect(dest)
+
+    The boolean comes from :func:`can_view_project`. The legacy
+    ``project.assigned_to`` many-to-many is honored as a back-compat
+    fallback so users explicitly attached to a project keep access
+    even if no other relationship exists.
+
+    The redirect destination is role-aware:
+      - ``"dashboard_client"`` for client-role users
+      - ``"dashboard"`` otherwise
+    """
+    if can_view_project(user, project):
+        return True, None
+    if (
+        project is not None
+        and hasattr(project, "assigned_to")
+        and project.assigned_to.filter(id=user.id).exists()
+    ):
+        return True, None
+    return False, ("dashboard_client" if is_client(user) else "dashboard")
+
+
+def require_admin_or_redirect(request):
+    """Guard for admin-only function-based views.
+
+    Returns ``None`` when the request user is admin-like (canonical
+    :func:`is_admin` OR ``user.is_staff`` for back-compat with internal
+    employees who have an admin login). Otherwise flashes an error
+    message and returns a ``redirect("dashboard")`` response that the
+    view should ``return`` directly::
+
+        guard = require_admin_or_redirect(request)
+        if guard is not None:
+            return guard
+    """
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    from django.utils.translation import gettext as _
+
+    user = request.user
+    if is_admin(user) or bool(getattr(user, "is_staff", False)):
+        return None
+    messages.error(
+        request, _("You don't have permission to access this feature.")
+    )
+    return redirect("dashboard")
+
+
 __all__ = [
     # Constants
     "ROLE_ADMIN", "ROLE_OWNER", "ROLE_PM", "ROLE_EMPLOYEE",
@@ -529,4 +590,6 @@ __all__ = [
     "can_access_client_portal", "can_view_client_safe_data",
     # Convenience
     "assert_can_view_project", "filter_by_project_access",
+    # View-helper conveniences (Phase 9 Commit M)
+    "check_project_access", "require_admin_or_redirect",
 ]

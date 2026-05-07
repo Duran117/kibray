@@ -1,8 +1,8 @@
 """Miscellaneous views — client requests, analytics, PDF downloads, etc."""
 from core.views._helpers import *  # noqa: F401, F403
+from core.access import check_project_access
 from core.views._helpers import (
     _generate_basic_pdf_from_html,
-    _check_user_project_access,
     _parse_date,
     _ensure_inventory_item,
     staff_required,
@@ -27,7 +27,7 @@ def client_request_create(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     
     # SECURITY: Check project access
-    has_access, redirect_url = _check_user_project_access(request.user, project)
+    has_access, redirect_url = check_project_access(request.user, project)
     if not has_access:
         messages.error(request, _("You don't have access to this project."))
         return redirect(redirect_url)
@@ -57,7 +57,7 @@ def client_requests_list(request, project_id=None):
         project = get_object_or_404(Project, id=project_id)
         
         # SECURITY: Check project access
-        has_access, redirect_url = _check_user_project_access(request.user, project)
+        has_access, redirect_url = check_project_access(request.user, project)
         if not has_access:
             messages.error(request, _("You don't have access to this project."))
             return redirect(redirect_url)
@@ -292,7 +292,7 @@ def get_approved_colors(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     
     # SECURITY: Check project access
-    has_access, redirect_url = _check_user_project_access(request.user, project)
+    has_access, redirect_url = check_project_access(request.user, project)
     if not has_access:
         return JsonResponse({"error": "Access denied"}, status=403)
     

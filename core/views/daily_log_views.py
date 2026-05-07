@@ -1,8 +1,8 @@
 """Daily log views — CRUD."""
 from core.views._helpers import *  # noqa: F401, F403
+from core.access import check_project_access
 from core.views._helpers import (
     _generate_basic_pdf_from_html,
-    _check_user_project_access,
     _parse_date,
     _ensure_inventory_item,
     staff_required,
@@ -30,7 +30,7 @@ def daily_log_view(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     
     # SECURITY: Check project access
-    has_access, redirect_url = _check_user_project_access(request.user, project)
+    has_access, redirect_url = check_project_access(request.user, project)
     if not has_access:
         messages.error(request, _("You don't have access to this project."))
         return redirect(redirect_url or "dashboard_client")
@@ -115,7 +115,7 @@ def daily_log_detail(request, log_id):
 
     # Clientes: verificar acceso al proyecto Y que esté publicado
     if role == "client":
-        has_access, redirect_url = _check_user_project_access(request.user, log.project)
+        has_access, redirect_url = check_project_access(request.user, log.project)
         if not has_access:
             messages.error(request, _("You don't have access to this project."))
             return redirect("dashboard_client")

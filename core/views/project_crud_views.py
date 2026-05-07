@@ -1,8 +1,8 @@
 """Project CRUD views — list, create, edit, delete, activation, status, PDF."""
 from core.views._helpers import *  # noqa: F401, F403
+from core.access import check_project_access
 from core.views._helpers import (
     _generate_basic_pdf_from_html,
-    _check_user_project_access,
     _parse_date,
     _ensure_inventory_item,
     staff_required,
@@ -24,7 +24,7 @@ def project_pdf_view(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     
     # SECURITY: Check project access
-    has_access, redirect_url = _check_user_project_access(request.user, project)
+    has_access, redirect_url = check_project_access(request.user, project)
     if not has_access:
         messages.error(request, _("You don't have access to this project."))
         return redirect(redirect_url)
@@ -256,7 +256,7 @@ def project_list(request):
 def pickup_view(request, project_id: int):
     project = get_object_or_404(Project, pk=project_id)
     # SECURITY: Check project access
-    has_access, redirect_url = _check_user_project_access(request.user, project)
+    has_access, redirect_url = check_project_access(request.user, project)
     if not has_access:
         messages.error(request, _("Access denied."))
         return redirect(redirect_url or "dashboard")
