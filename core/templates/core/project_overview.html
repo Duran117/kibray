@@ -444,13 +444,17 @@
       <span class="nav-text">{% trans "Issues" %}</span>
     </a>
     
-    <!-- Resident Portal -->
-    <div class="section-title">{% trans "Portal" %}</div>
+    <!-- Client Access -->
+    <div class="section-title">{% trans "Client Access" %}</div>
+    <a href="{% url 'project_add_owner' project.id %}" class="nav-item">
+      <i class="bi bi-person-plus"></i>
+      <span class="nav-text">{% trans "Invite Client" %}</span>
+    </a>
     <a href="{% url 'portal_manage' project.id %}" class="nav-item">
       <i class="bi bi-door-open"></i>
       <span class="nav-text">{% trans "Resident Portal" %}{% if portal_touchup_count %} <span class="badge bg-info rounded-pill ms-1">{{ portal_touchup_count }}</span>{% endif %}</span>
     </a>
-    
+
     <!-- Change Orders -->
     <div class="section-title">{% trans "Change Orders" %}</div>
     <a href="{% url 'changeorder_board' %}" class="nav-item">
@@ -625,13 +629,17 @@
         <span class="nav-text">{% trans "Risks" %}</span>
       </a>
       
-      <!-- Resident Portal -->
-      <div class="section-title">{% trans "Portal" %}</div>
+      <!-- Client Access -->
+      <div class="section-title">{% trans "Client Access" %}</div>
+      <a href="{% url 'project_add_owner' project.id %}" class="nav-item">
+        <i class="bi bi-person-plus"></i>
+        <span class="nav-text">{% trans "Invite Client" %}</span>
+      </a>
       <a href="{% url 'portal_manage' project.id %}" class="nav-item">
         <i class="bi bi-door-open"></i>
         <span class="nav-text">{% trans "Resident Portal" %}{% if portal_touchup_count %} <span class="badge bg-info rounded-pill ms-1" style="font-size: .65rem;">{{ portal_touchup_count }}</span>{% endif %}</span>
       </a>
-      
+
       <!-- Change Orders -->
       <div class="section-title">{% trans "Change Orders" %}</div>
       <a href="{% url 'changeorder_board' %}" class="nav-item">
@@ -744,10 +752,10 @@
           <i class="bi bi-diagram-3"></i>
           {% trans "Abrir Gantt" %}
         </a>
-        <!-- Add Owner/Client Button -->
-        <a href="{% url 'project_add_owner' project.id %}" class="inline-flex items-center gap-2 px-3 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm font-medium" title="{% trans 'Add Owner/Client' %}">
+        <!-- Invite Client / Add Owner Button -->
+        <a href="{% url 'project_add_owner' project.id %}" class="inline-flex items-center gap-2 px-3 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm font-medium" title="{% trans 'Invite Client to Dashboard' %}">
           <i class="bi bi-person-plus"></i>
-          <span class="hidden lg:inline">{% trans "Add Owner" %}</span>
+          <span class="hidden lg:inline">{% trans "Invite Client" %}</span>
         </a>
         <!-- More Options Dropdown (Bootstrap) -->
         <div class="dropdown">
@@ -758,7 +766,7 @@
             <li>
               <a href="{% url 'project_add_owner' project.id %}" class="dropdown-item">
                 <i class="bi bi-person-plus text-amber-500 me-2"></i>
-                {% trans "Add Owner/Client" %}
+                {% trans "Invite Client to Dashboard" %}
               </a>
             </li>
             <li>
