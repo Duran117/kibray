@@ -445,35 +445,65 @@ def project_add_owner(request, project_id):
             # Enviar email con credenciales si es nuevo usuario y se solicitó
             send_credentials = form.cleaned_data.get("send_credentials", True)
             if is_new_user and temp_password and send_credentials:
-                try:
-                    email_sent = KibrayEmailService.send_welcome_credentials(
-                        to_email=user.email,
-                        first_name=user.first_name,
-                        email=user.email,
-                        temp_password=temp_password,
-                        login_url=request.build_absolute_uri('/login/'),
-                        project_name=project.name,
-                        sender_name=request.user.get_full_name() or request.user.username,
-                        fail_silently=False
-                    )
-                    if email_sent:
-                        messages.success(
-                            request, 
-                            f'Usuario "{user.get_full_name()}" creado y asignado al proyecto. '
-                            f'Se enviaron las credenciales a {user.email}.'
-                        )
-                    else:
-                        messages.warning(
-                            request,
-                            f'Usuario creado pero hubo un error al enviar el email. '
-                            f'Contraseña temporal: {temp_password}'
-                        )
-                except Exception as e:
+                # Detect environments where the email will obviously NOT
+                # be delivered, so the admin gets a clear up-front message
+                # instead of "everything looks fine but nothing arrived".
+                from django.conf import settings as _settings
+                _backend = getattr(_settings, "EMAIL_BACKEND", "")
+                _host = getattr(_settings, "EMAIL_HOST", None)
+                _is_console = _backend.endswith("console.EmailBackend")
+                _smtp_unconfigured = (
+                    _backend.endswith("smtp.EmailBackend") and not _host
+                )
+
+                if _is_console:
                     messages.warning(
                         request,
-                        f'Usuario creado pero hubo un error al enviar el email: {e}. '
+                        f'Usuario "{user.get_full_name()}" creado y asignado. '
+                        f'⚠️ El backend de email es "console" (modo dev): el '
+                        f'mensaje se imprimió en los logs del servidor pero '
+                        f'NO se envió a {user.email}. '
                         f'Contraseña temporal: {temp_password}'
                     )
+                elif _smtp_unconfigured:
+                    messages.warning(
+                        request,
+                        f'Usuario "{user.get_full_name()}" creado y asignado. '
+                        f'⚠️ SMTP está activo pero faltan las variables '
+                        f'EMAIL_HOST / EMAIL_HOST_USER / EMAIL_HOST_PASSWORD '
+                        f'en Railway — el correo NO se envió. '
+                        f'Contraseña temporal: {temp_password}'
+                    )
+                else:
+                    try:
+                        email_sent = KibrayEmailService.send_welcome_credentials(
+                            to_email=user.email,
+                            first_name=user.first_name,
+                            email=user.email,
+                            temp_password=temp_password,
+                            login_url=request.build_absolute_uri('/login/'),
+                            project_name=project.name,
+                            sender_name=request.user.get_full_name() or request.user.username,
+                            fail_silently=False
+                        )
+                        if email_sent:
+                            messages.success(
+                                request,
+                                f'Usuario "{user.get_full_name()}" creado y asignado al proyecto. '
+                                f'Se enviaron las credenciales a {user.email}.'
+                            )
+                        else:
+                            messages.warning(
+                                request,
+                                f'Usuario creado pero el servidor SMTP no aceptó el mensaje. '
+                                f'Contraseña temporal: {temp_password}'
+                            )
+                    except Exception as e:
+                        messages.warning(
+                            request,
+                            f'Usuario creado pero hubo un error al enviar el email: {e}. '
+                            f'Contraseña temporal: {temp_password}'
+                        )
             elif is_new_user:
                 messages.success(
                     request, 

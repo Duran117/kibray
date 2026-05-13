@@ -65,6 +65,43 @@ class KibrayEmailService:
         Returns:
             bool: True if email was sent successfully
         """
+        # ── Pre-flight diagnostics ───────────────────────────────────
+        # Catch the #1 cause of "the invitation never arrived":
+        # SMTP backend is configured but EMAIL_HOST is empty (Railway
+        # env vars not set). With the SMTP backend Django would just
+        # fail with an obscure socket error; with the console backend
+        # the email "succeeds" but only goes to stdout.
+        backend = getattr(settings, "EMAIL_BACKEND", "")
+        host = getattr(settings, "EMAIL_HOST", None)
+        is_console = backend.endswith("console.EmailBackend")
+        is_dummy = backend.endswith("dummy.EmailBackend")
+        is_smtp = backend.endswith("smtp.EmailBackend")
+
+        if is_console:
+            logger.warning(
+                "EMAIL: console backend is active — email to %s will be "
+                "printed to stdout, NOT delivered. Set "
+                "EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend "
+                "+ EMAIL_HOST/USER/PASSWORD to actually send.",
+                to_emails,
+            )
+        elif is_dummy:
+            logger.error(
+                "EMAIL: dummy backend is active — email to %s will be "
+                "silently dropped.", to_emails,
+            )
+        elif is_smtp and not host:
+            msg = (
+                "EMAIL: SMTP backend is configured but EMAIL_HOST is "
+                "empty. Set EMAIL_HOST, EMAIL_HOST_USER and "
+                "EMAIL_HOST_PASSWORD env vars (e.g. SendGrid: "
+                "smtp.sendgrid.net / apikey / <SENDGRID_API_KEY>)."
+            )
+            logger.error(msg + f" — recipient: {to_emails}")
+            if not fail_silently:
+                raise RuntimeError(msg)
+            return False
+
         try:
             # Render HTML content
             html_content = render_to_string(template_name, context)
@@ -84,13 +121,25 @@ class KibrayEmailService:
             email.attach_alternative(html_content, "text/html")
             
             # Send
-            email.send(fail_silently=fail_silently)
-            
-            logger.info(f"Email sent successfully to {to_emails}: {subject}")
-            return True
-            
+            sent = email.send(fail_silently=fail_silently)
+
+            if sent:
+                logger.info(
+                    f"Email sent successfully to {to_emails}: {subject}"
+                )
+                return True
+            # send() returned 0 → backend accepted nothing.
+            logger.warning(
+                f"Email backend returned 0 for {to_emails}: {subject} "
+                f"(backend={backend}, host={host or 'UNSET'})"
+            )
+            return False
+
         except Exception as e:
-            logger.error(f"Failed to send email to {to_emails}: {e}")
+            logger.error(
+                f"Failed to send email to {to_emails} via {backend} "
+                f"(host={host or 'UNSET'}): {e}"
+            )
             if not fail_silently:
                 raise
             return False
