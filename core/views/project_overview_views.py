@@ -22,6 +22,17 @@ from django.utils.translation import gettext_lazy as _  # noqa: F811
 def project_overview(request, project_id: int):
     project = get_object_or_404(Project, pk=project_id)
 
+    # Phase 9 Commit O (2026-05-17 hotfix): clients must never land on
+    # the admin/PM workspace — even if they have ClientProjectAccess
+    # and `can_view_project` returns True. Force them onto the
+    # read-only `client_project_view`. This is a defense-in-depth
+    # redirect that protects against every `{% url 'project_overview' %}`
+    # link scattered across the templates (sidebar, breadcrumbs,
+    # back-buttons, etc.) leaking the internal dashboard to clients.
+    from core.access import is_client
+    if is_client(request.user):
+        return redirect("client_project_view", project_id=project.id)
+
     # Phase 9 Commit I: gate via the canonical access layer instead of
     # a raw ``is_staff`` check. The old gate locked PMs (without
     # is_staff), employees, and clients out of overviews of projects
@@ -37,7 +48,6 @@ def project_overview(request, project_id: int):
         # Route the user to a role-appropriate landing page instead of
         # always bouncing them to dashboard_employee (the previous
         # hard-coded destination silently misled non-employees).
-        from core.access import is_client
         if is_client(request.user):
             return redirect("dashboard_client")
         return redirect("dashboard")

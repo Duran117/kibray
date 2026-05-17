@@ -199,10 +199,15 @@ def build_global_nav(user) -> List[NavSection]:
                     icon="bi-bell", badge_key="unread_notifications_count"),
         ]))
         # Their own projects (cap at 8 to avoid huge sidebars).
+        # NOTE: clients land on `client_project_view` (read-only,
+        # client-facing) — NOT `project_overview` (the admin/PM
+        # workspace). Routing them to project_overview leaked the
+        # internal dashboard to clients; locked in by the bug report
+        # of 2026-05-17.
         proj_items = []
         for p in accessible_projects(user)[:8]:
             proj_items.append(NavItem(
-                p.name, "project_overview", (p.id,), icon="bi-folder",
+                p.name, "client_project_view", (p.id,), icon="bi-folder",
             ))
         if proj_items:
             sections.append(NavSection("My Projects", proj_items))
