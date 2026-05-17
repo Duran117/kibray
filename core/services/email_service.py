@@ -120,8 +120,25 @@ class KibrayEmailService:
             )
             email.attach_alternative(html_content, "text/html")
             
-            # Send
-            sent = email.send(fail_silently=fail_silently)
+            # Send. We always pass fail_silently=True to email.send() so the
+            # SMTP backend's own exceptions (socket.timeout, OSError,
+            # SMTPException, etc.) cannot escape and trigger a 500 / kill
+            # the gunicorn worker. We translate the result into our own
+            # return value below and re-raise only if our caller explicitly
+            # opted out via fail_silently=False.
+            try:
+                sent = email.send(fail_silently=True)
+            except Exception as send_exc:
+                # Belt-and-suspenders: even with fail_silently=True some
+                # backends still raise on configuration errors.
+                logger.error(
+                    f"email.send() raised {type(send_exc).__name__} for "
+                    f"{to_emails} via {backend} (host={host or 'UNSET'}): "
+                    f"{send_exc}"
+                )
+                if not fail_silently:
+                    raise
+                return False
 
             if sent:
                 logger.info(
@@ -133,6 +150,11 @@ class KibrayEmailService:
                 f"Email backend returned 0 for {to_emails}: {subject} "
                 f"(backend={backend}, host={host or 'UNSET'})"
             )
+            if not fail_silently:
+                raise RuntimeError(
+                    f"Email backend returned 0 for {to_emails} via "
+                    f"{backend} (host={host or 'UNSET'})"
+                )
             return False
 
         except Exception as e:

@@ -126,6 +126,12 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@kibray.com")
+# Hard timeout on the SMTP socket so a hung connection (e.g. Resend
+# briefly unreachable from Railway egress) does NOT exceed the
+# gunicorn worker timeout and kill the whole request with a 500.
+# 10s is plenty for a healthy SMTP handshake; if it takes longer
+# the view's try/except surfaces a clean warning instead.
+EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "10"))
 
 # CORS - Specific origins only
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
