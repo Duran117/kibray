@@ -559,6 +559,28 @@
                 </div>
             {% endif %}
             
+            <!-- Reference Attachments (proposal PDF, plans, etc.) -->
+            {% if attachments %}
+            <div class="terms-section" style="background:#f0f9ff;border:1px solid #bae6fd;">
+                <h4><i class="bi bi-paperclip me-2"></i>Reference Documents</h4>
+                <p class="text-muted" style="font-size:.9rem;margin-bottom:.75rem;">
+                    Please review these documents before signing:
+                </p>
+                <ul style="list-style:none;padding:0;margin:0;">
+                    {% for att in attachments %}
+                    <li style="margin-bottom:.5rem;">
+                        <a href="{{ att.file.url }}" target="_blank" rel="noopener"
+                           style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem .75rem;background:white;border:1px solid #bae6fd;border-radius:.5rem;text-decoration:none;color:#0369a1;font-weight:600;">
+                            <i class="bi bi-file-earmark-arrow-down"></i>
+                            {{ att.display_name }}
+                            <span style="font-size:.75rem;color:#64748b;font-weight:400;">({{ att.size_kb }} KB)</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
             <!-- Terms & Conditions Summary -->
             <div class="terms-section">
                 <h4><i class="bi bi-file-text me-2"></i>Terms & Conditions</h4>

@@ -1,0 +1,122 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Contract Signed" %} — Kibray Painting</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 1rem;
+        }
+        .card-closed {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(5, 150, 105, 0.15);
+            max-width: 520px;
+            width: 100%;
+            padding: 2.5rem 2rem;
+            text-align: center;
+        }
+        .check-icon {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: #10b981;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+        }
+        h1 {
+            color: #065f46;
+            font-weight: 700;
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .lead {
+            color: #047857;
+            font-size: 1.05rem;
+            margin-bottom: 1.75rem;
+        }
+        .info-grid {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #d1fae5;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-row .label { color: #047857; font-weight: 500; }
+        .info-row .value { color: #064e3b; font-weight: 600; }
+        .footer-note {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            line-height: 1.55;
+        }
+        .footer-note strong { color: #374151; }
+    </style>
+</head>
+<body>
+    <div class="card-closed">
+        <div class="check-icon">
+            <i class="bi bi-check2"></i>
+        </div>
+        <h1>{% trans "Contract Already Signed" %}</h1>
+        <p class="lead">
+            {% trans "Thank you — this contract has been signed and the signing link is now closed." %}
+        </p>
+
+        <div class="info-grid">
+            <div class="info-row">
+                <span class="label">{% trans "Project" %}</span>
+                <span class="value">{{ project.name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">{% trans "Contract" %}</span>
+                <span class="value">{{ contract.contract_number }}</span>
+            </div>
+            {% if signed_by %}
+            <div class="info-row">
+                <span class="label">{% trans "Signed by" %}</span>
+                <span class="value">{{ signed_by }}</span>
+            </div>
+            {% endif %}
+            {% if signed_at %}
+            <div class="info-row">
+                <span class="label">{% trans "Signed on" %}</span>
+                <span class="value">{{ signed_at|date:"F d, Y" }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <p class="footer-note">
+            {% blocktrans trimmed %}
+            A signed copy of your contract was emailed to you and saved to
+            your project files. If you need another copy or have questions,
+            please contact us — we are happy to help.
+            {% endblocktrans %}
+        </p>
+    </div>
+</body>
+</html>

@@ -204,6 +204,11 @@ class ContractService:
         # Update status
         contract.status = 'signed'
 
+        # Close the public signing link — see Contract.signing_link_active.
+        # Prevents the same /contracts/<token>/ URL from being re-used
+        # to render the contract again or trigger a duplicate signature.
+        contract.signing_link_active = False
+
         # Auto-countersign by staff if provided
         if user and user.is_staff:
             contract.contractor_signed_at = timezone.now()

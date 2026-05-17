@@ -3612,6 +3612,26 @@ class Contract(models.Model):
         blank=True,
         help_text="UUID token for client access without login"
     )
+
+    # Link lifecycle — flipped to False after the contract is signed
+    # so the public /contracts/<token>/ URL stops accepting new
+    # signatures (avoids duplicate or accidental re-signings).
+    signing_link_active = models.BooleanField(
+        default=True,
+        help_text="If False, the public signing link returns a "
+                  "'closed' page and the signature form is hidden."
+    )
+
+    # Email tracking — used by 'Send by Email' button in admin view
+    last_sent_to_email = models.EmailField(
+        blank=True,
+        help_text="Last email address the signing link was sent to."
+    )
+    last_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the signing link was last emailed."
+    )
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -3718,12 +3738,57 @@ class Contract(models.Model):
     @property
     def can_be_signed(self) -> bool:
         """Check if contract is in a state where it can be signed."""
-        return self.status == 'pending_signature'
-    
+        return self.status == 'pending_signature' and self.signing_link_active
+
     def get_client_url(self) -> str:
         """Get the URL for client to view/sign contract."""
         from django.urls import reverse
         return reverse('contract_client_view', kwargs={'token': self.client_view_token})
+
+
+class ContractAttachment(models.Model):
+    """Reference files attached to a Contract (proposal PDF, plans,
+    inspiration photos, etc.) — shown to the client on the public
+    signing page so they have all the context before signing.
+    """
+    contract = models.ForeignKey(
+        Contract,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+    )
+    file = models.FileField(upload_to="contracts/attachments/%Y/%m/")
+    label = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Friendly name shown to the client (e.g. 'Original Proposal').",
+    )
+    uploaded_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="uploaded_contract_attachments",
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-uploaded_at"]
+        verbose_name = "Contract Attachment"
+        verbose_name_plural = "Contract Attachments"
+
+    def __str__(self):
+        return self.label or self.file.name.rsplit("/", 1)[-1]
+
+    @property
+    def display_name(self) -> str:
+        return self.label or self.file.name.rsplit("/", 1)[-1]
+
+    @property
+    def size_kb(self) -> int:
+        try:
+            return int(self.file.size / 1024)
+        except Exception:
+            return 0
 
 
 # --- Field Communication ---

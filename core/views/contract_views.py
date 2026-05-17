@@ -241,7 +241,118 @@ def contract_edit_view(request, contract_id):
                 contract.status = 'pending_signature'
                 contract.save(update_fields=["status", "updated_at"])
             messages.success(request, _("Contract ready for client signature."))
-        
+
+        elif action == "send_link_email":
+            # Email the signing link directly to the client (Resend).
+            # Designed for elderly / non-tech-savvy clients who would
+            # struggle to log into a portal: they get a one-tap link.
+            from core.services.email_service import KibrayEmailService
+
+            recipient = (request.POST.get("recipient_email") or "").strip()
+            recipient_name = (request.POST.get("recipient_name") or "").strip()
+
+            if not recipient:
+                messages.error(request, _("Please enter the client's email address."))
+            elif not contract.signing_link_active:
+                messages.warning(
+                    request,
+                    _("This contract is already signed — its public link is closed.")
+                )
+            else:
+                # Auto-promote draft → pending_signature so the client
+                # can actually sign once they click the link.
+                if contract.status == "draft":
+                    contract.status = "pending_signature"
+
+                signing_url = request.build_absolute_uri(
+                    f"/contracts/{contract.client_view_token}/"
+                )
+                try:
+                    ok = KibrayEmailService.send_simple_notification(
+                        to_emails=[recipient],
+                        subject=_("Contract ready to sign — %(project)s") % {
+                            "project": project.name,
+                        },
+                        greeting=_("Hello %(name)s,") % {
+                            "name": recipient_name or _("client"),
+                        },
+                        message=_(
+                            "Your contract for %(project)s is ready for "
+                            "your review and signature. No account or "
+                            "login is required — simply click the button "
+                            "below, review the terms, type your name and "
+                            "sign with your finger or mouse."
+                        ) % {"project": project.name},
+                        button_url=signing_url,
+                        button_text=_("Review & Sign Contract"),
+                        details={
+                            str(_("Contract")): contract.contract_number,
+                            str(_("Project")): project.name,
+                            str(_("Total")): f"${contract.total_amount:,.2f}",
+                        },
+                        closing=_("If you have any questions, just reply to this email."),
+                        fail_silently=False,
+                    )
+                except Exception as e:
+                    logger.error(
+                        "Failed to email contract link for %s to %s: %s",
+                        contract.contract_number, recipient, e,
+                    )
+                    messages.error(
+                        request,
+                        _("Could not send the email: %(err)s") % {"err": str(e)[:120]},
+                    )
+                else:
+                    if ok:
+                        from django.utils import timezone
+                        contract.last_sent_to_email = recipient
+                        contract.last_sent_at = timezone.now()
+                        contract.save(update_fields=[
+                            "status", "last_sent_to_email",
+                            "last_sent_at", "updated_at",
+                        ])
+                        messages.success(
+                            request,
+                            _("Signing link emailed to %(email)s.") % {"email": recipient},
+                        )
+                    else:
+                        messages.warning(
+                            request,
+                            _("Email could not be delivered. Double-check SMTP settings."),
+                        )
+
+        elif action == "upload_attachment":
+            from core.models import ContractAttachment
+
+            f = request.FILES.get("attachment_file")
+            label = (request.POST.get("attachment_label") or "").strip()
+
+            if not f:
+                messages.error(request, _("Please choose a file to upload."))
+            elif f.size > 25 * 1024 * 1024:  # 25 MB cap
+                messages.error(request, _("File is too large (max 25 MB)."))
+            else:
+                ContractAttachment.objects.create(
+                    contract=contract,
+                    file=f,
+                    label=label,
+                    uploaded_by=request.user,
+                )
+                messages.success(request, _("Attachment uploaded."))
+
+        elif action == "delete_attachment":
+            from core.models import ContractAttachment
+
+            att_id = request.POST.get("attachment_id")
+            try:
+                att = ContractAttachment.objects.get(id=att_id, contract=contract)
+            except ContractAttachment.DoesNotExist:
+                messages.error(request, _("Attachment not found."))
+            else:
+                att.file.delete(save=False)
+                att.delete()
+                messages.success(request, _("Attachment removed."))
+
         return redirect("contract_edit", contract_id=contract.id)
     
     # GET: Display edit form
@@ -252,6 +363,7 @@ def contract_edit_view(request, contract_id):
         "lines": estimate.lines.select_related("cost_code").all(),
         "client_url": request.build_absolute_uri(f"/contracts/{contract.client_view_token}/"),
         "payment_schedule_json": json.dumps(contract.payment_schedule or []),
+        "attachments": contract.attachments.all(),
     }
     
     return render(request, "core/contract_edit.html", context)
@@ -276,7 +388,22 @@ def contract_client_view(request, token):
     
     if not contract:
         return HttpResponseNotFound("Contract not found or invalid link.")
-    
+
+    # ── Link lifecycle gate ───────────────────────────────────────
+    # Once the client has signed, we hard-close the public link so
+    # the same URL cannot be re-used to render the full contract
+    # again, request another signature, or generate a duplicate
+    # signed PDF. Staff who need to see the signed contract should
+    # use the authenticated admin view; the client gets their copy
+    # by email at signing time.
+    if (not contract.signing_link_active) or contract.is_signed:
+        return render(request, "core/contract_link_closed.html", {
+            "contract": contract,
+            "project": contract.project,
+            "signed_at": contract.client_signed_at,
+            "signed_by": contract.client_signed_name,
+        }, status=410)  # 410 Gone — semantically correct
+
     estimate = contract.estimate
     project = contract.project
     lines = estimate.lines.select_related("cost_code").all()
@@ -416,6 +543,7 @@ def contract_client_view(request, token):
         "is_signed": contract.is_signed,
         "can_be_signed": contract.can_be_signed,
         "status": contract.status,
+        "attachments": contract.attachments.all(),
     }
     
     return render(request, "core/contract_client_view.html", context)

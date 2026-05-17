@@ -391,27 +391,137 @@
             <h2><i class="bi bi-link-45deg me-2"></i>{% trans "Client Signing Link" %}</h2>
         </div>
         <div class="card-body">
+            {% if not contract.signing_link_active or contract.client_signed_at %}
+            <!-- Signed → link is closed -->
+            <div class="p-4 bg-green-50 border border-green-200 rounded-lg" style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:.5rem;padding:1rem;">
+                <p class="text-green-800" style="color:#065f46;margin:0 0 .5rem 0;">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <strong>{% trans "Contract signed — public link is now closed." %}</strong>
+                </p>
+                <p style="font-size:.85rem;color:#047857;margin:0;">
+                    <strong>{% trans "Signed by:" %}</strong> {{ contract.client_signed_name }}<br>
+                    <strong>{% trans "Date:" %}</strong> {{ contract.client_signed_at|date:"M d, Y H:i" }}<br>
+                    {% if contract.client_ip_address %}<strong>{% trans "IP:" %}</strong> {{ contract.client_ip_address }}<br>{% endif %}
+                </p>
+                {% if contract.signed_pdf_file %}
+                <a href="{{ contract.signed_pdf_file.file.url }}" target="_blank" class="btn btn-primary mt-3" style="margin-top:.75rem;">
+                    <i class="bi bi-file-pdf"></i> {% trans "Download Signed PDF" %}
+                </a>
+                {% endif %}
+            </div>
+            {% else %}
+            <!-- Active link → share UI -->
             <div class="client-link-box">
                 <p class="text-sm text-green-800">
                     <i class="bi bi-shield-check me-1"></i>
-                    {% trans "Share this secure link with your client to view and sign the contract:" %}
+                    {% trans "Share this secure link with your client. No login required — they just open it, type their name and sign." %}
                 </p>
                 <div class="url" id="client-url">{{ client_url }}</div>
-                <button type="button" class="btn btn-outline" onclick="copyClientUrl()">
-                    <i class="bi bi-clipboard"></i> {% trans "Copy Link" %}
-                </button>
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+                    <button type="button" class="btn btn-outline" onclick="copyClientUrl()">
+                        <i class="bi bi-clipboard"></i> {% trans "Copy Link" %}
+                    </button>
+                    <a id="whatsapp-share" href="#" target="_blank" rel="noopener" class="btn btn-outline" style="border-color:#25D366;color:#25D366;">
+                        <i class="bi bi-whatsapp"></i> {% trans "Send by WhatsApp" %}
+                    </a>
+                    <a href="{{ client_url }}" target="_blank" class="btn btn-outline">
+                        <i class="bi bi-eye"></i> {% trans "Preview" %}
+                    </a>
+                </div>
             </div>
-            
-            {% if contract.client_signed_at %}
-            <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p class="text-green-800">
-                    <i class="bi bi-check-circle-fill me-2"></i>
-                    <strong>{% trans "Signed by:" %}</strong> {{ contract.client_signed_name }}<br>
-                    <strong>{% trans "Date:" %}</strong> {{ contract.client_signed_at|date:"M d, Y H:i" }}<br>
-                    <strong>{% trans "IP:" %}</strong> {{ contract.client_ip_address }}
+
+            <!-- Send by Email -->
+            <form method="post" style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px dashed #d1d5db;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="send_link_email">
+                <h3 style="font-size:.9rem;font-weight:600;color:#111827;margin-bottom:.75rem;">
+                    <i class="bi bi-envelope-paper me-2"></i>{% trans "Send signing link by email" %}
+                </h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:.5rem;align-items:end;">
+                    <div class="form-group" style="margin:0;">
+                        <label>{% trans "Client name" %}</label>
+                        <input type="text" name="recipient_name" class="form-control"
+                               placeholder="{% trans 'e.g. John Smith' %}"
+                               value="{{ project.client|default:'' }}">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label>{% trans "Email address" %} <span style="color:#dc2626;">*</span></label>
+                        <input type="email" name="recipient_email" class="form-control"
+                               placeholder="client@example.com"
+                               value="{{ contract.last_sent_to_email|default:'' }}" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i> {% trans "Send" %}
+                    </button>
+                </div>
+                {% if contract.last_sent_at %}
+                <p style="font-size:.75rem;color:#6b7280;margin-top:.5rem;">
+                    <i class="bi bi-clock-history"></i>
+                    {% blocktrans with email=contract.last_sent_to_email when=contract.last_sent_at|date:"M d, Y H:i" %}Last sent to <strong>{{ email }}</strong> on {{ when }}{% endblocktrans %}
                 </p>
-            </div>
+                {% endif %}
+            </form>
             {% endif %}
+        </div>
+    </div>
+
+    <!-- Reference Attachments -->
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="bi bi-paperclip me-2"></i>{% trans "Reference Attachments" %}</h2>
+        </div>
+        <div class="card-body">
+            <p style="font-size:.85rem;color:#6b7280;margin-top:0;">
+                {% trans "Add reference files (proposal PDF, plans, inspiration photos, etc.). The client will see them on the signing page." %}
+            </p>
+
+            {% if attachments %}
+            <ul style="list-style:none;padding:0;margin:.5rem 0 1rem 0;">
+                {% for att in attachments %}
+                <li style="display:flex;align-items:center;gap:.75rem;padding:.6rem .75rem;background:#f9fafb;border-radius:.5rem;margin-bottom:.4rem;">
+                    <i class="bi bi-file-earmark-text" style="font-size:1.4rem;color:#059669;"></i>
+                    <div style="flex:1;min-width:0;">
+                        <a href="{{ att.file.url }}" target="_blank" style="font-weight:600;color:#111827;text-decoration:none;">
+                            {{ att.display_name }}
+                        </a>
+                        <div style="font-size:.7rem;color:#6b7280;">
+                            {{ att.size_kb }} KB · {{ att.uploaded_at|date:"M d, Y" }}
+                            {% if att.uploaded_by %}· {{ att.uploaded_by.get_full_name|default:att.uploaded_by.username }}{% endif %}
+                        </div>
+                    </div>
+                    <form method="post" style="margin:0;" onsubmit="return confirm('{% trans "Remove this attachment?" %}');">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete_attachment">
+                        <input type="hidden" name="attachment_id" value="{{ att.id }}">
+                        <button type="submit" class="btn btn-secondary" style="padding:.3rem .6rem;color:#dc2626;">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" style="display:grid;grid-template-columns:1fr 1fr auto;gap:.5rem;align-items:end;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="upload_attachment">
+                <div class="form-group" style="margin:0;">
+                    <label>{% trans "Label (optional)" %}</label>
+                    <input type="text" name="attachment_label" class="form-control"
+                           placeholder="{% trans 'e.g. Original Proposal' %}">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label>{% trans "File" %} <span style="color:#dc2626;">*</span></label>
+                    <input type="file" name="attachment_file" class="form-control" required
+                           accept=".pdf,.png,.jpg,.jpeg,.webp,.heic,.doc,.docx">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-upload"></i> {% trans "Upload" %}
+                </button>
+            </form>
+            <p style="font-size:.7rem;color:#9ca3af;margin-top:.4rem;">
+                {% trans "Max 25 MB. PDF, images and Word documents accepted." %}
+            </p>
         </div>
     </div>
     
@@ -443,12 +553,27 @@
 
 <script>
 function copyClientUrl() {
-    const url = document.getElementById('client-url').textContent;
+    const el = document.getElementById('client-url');
+    if (!el) return;
+    const url = el.textContent.trim();
     navigator.clipboard.writeText(url).then(() => {
         alert('{% trans "Link copied to clipboard!" %}');
     }).catch(err => {
         console.error('Failed to copy:', err);
     });
 }
+
+// Build the WhatsApp share link (wa.me) with a pre-filled, friendly
+// message so the staff can just tap "Send by WhatsApp" and the
+// recipient's phone opens WhatsApp with the link ready to send.
+(function buildWhatsAppLink() {
+    const wa = document.getElementById('whatsapp-share');
+    const urlEl = document.getElementById('client-url');
+    if (!wa || !urlEl) return;
+    const url = urlEl.textContent.trim();
+    const project = "{{ project.name|escapejs }}";
+    const msg = `Hello! Here is your contract for ${project}. Please review and sign — no login needed: ${url}`;
+    wa.href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+})();
 </script>
 {% endblock %}
