@@ -31,6 +31,40 @@
                         {% trans "Enter the owner or client's information. If the user doesn't exist, a new account will be created automatically with a temporary password." %}
                     </p>
 
+                    {% if existing_clients %}
+                    <!-- Existing client picker (2026-05-19 UX) -->
+                    <div class="mb-4 p-3 rounded" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+                        <label for="existing-client-picker" class="form-label fw-semibold mb-2" style="color:#065f46;">
+                            <i class="bi bi-person-check me-1"></i>
+                            {% trans "Pick an existing client" %}
+                            <span class="text-muted fw-normal" style="font-size:.8rem;">
+                                ({% blocktrans count counter=existing_clients|length %}{{ counter }} available{% plural %}{{ counter }} available{% endblocktrans %})
+                            </span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input list="existing-clients-list" id="existing-client-picker"
+                                   class="form-control"
+                                   placeholder="{% trans 'Type to search by name or email...' %}"
+                                   autocomplete="off">
+                            <button type="button" class="btn btn-outline-secondary" id="clear-picker-btn">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        <datalist id="existing-clients-list">
+                            {% for c in existing_clients %}
+                            <option value="{{ c.name }} — {{ c.email }}" data-id="{{ c.id }}"></option>
+                            {% endfor %}
+                        </datalist>
+                        <small class="text-muted d-block mt-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            {% trans "Selecting a client auto-fills the form. Or just type new information below to create a new client." %}
+                        </small>
+                    </div>
+                    {% endif %}
+
                     <form method="post" id="addOwnerForm">
                         {% csrf_token %}
                         
@@ -249,6 +283,66 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show initial description
         updateRoleDescription();
     }
+
+    // ─── Existing-client picker (auto-fill form fields) ────────────
+    // The datalist below shows entries in the form "Name — email" so
+    // staff can search by either. When the user picks one (or types
+    // an exact match), we parse the entry, find the matching record
+    // in EXISTING_CLIENTS and pre-fill first_name / last_name /
+    // email.  The form's view-side logic already handles the
+    // "user with this email already exists" case (re-uses the user
+    // and just adds project access), so picking an existing client
+    // ends up calling the same code path — no extra wiring needed.
+    const EXISTING_CLIENTS = {{ existing_clients_json|default:"[]"|safe }};
+    const picker = document.getElementById('existing-client-picker');
+    const clearBtn = document.getElementById('clear-picker-btn');
+
+    function findClientByDisplay(displayValue) {
+        if (!displayValue) return null;
+        // datalist sends us back the option's "value" attribute,
+        // which is "<name> — <email>".  Match on the email half
+        // (more reliable than the name).
+        const parts = displayValue.split('—');
+        const email = (parts[parts.length - 1] || '').trim().toLowerCase();
+        if (!email) return null;
+        return EXISTING_CLIENTS.find(c => (c.email || '').toLowerCase() === email) || null;
+    }
+
+    function fillFormFromClient(c) {
+        const fn = document.getElementById('{{ form.first_name.id_for_label }}');
+        const ln = document.getElementById('{{ form.last_name.id_for_label }}');
+        const em = document.getElementById('{{ form.email.id_for_label }}');
+        if (fn) fn.value = c.first_name || '';
+        if (ln) ln.value = c.last_name || '';
+        if (em) em.value = c.email || '';
+        // Flash highlight so the user sees what happened
+        [fn, ln, em].forEach(el => {
+            if (!el) return;
+            el.style.transition = 'background-color .4s ease';
+            el.style.backgroundColor = '#dcfce7';
+            setTimeout(() => { el.style.backgroundColor = ''; }, 900);
+        });
+    }
+
+    function clearForm() {
+        const fn = document.getElementById('{{ form.first_name.id_for_label }}');
+        const ln = document.getElementById('{{ form.last_name.id_for_label }}');
+        const em = document.getElementById('{{ form.email.id_for_label }}');
+        const ph = document.getElementById('{{ form.phone.id_for_label }}');
+        [fn, ln, em, ph].forEach(el => { if (el) el.value = ''; });
+        if (picker) picker.value = '';
+        if (fn) fn.focus();
+    }
+
+    if (picker) {
+        // 'change' fires when the user picks an option from the
+        // datalist (also fires on blur — that's fine for us).
+        picker.addEventListener('change', function () {
+            const c = findClientByDisplay(picker.value);
+            if (c) fillFormFromClient(c);
+        });
+    }
+    if (clearBtn) clearBtn.addEventListener('click', clearForm);
 });
 </script>
 {% endblock %}

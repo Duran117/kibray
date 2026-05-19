@@ -1,4 +1,6 @@
 """Client & organization management views — extracted from legacy_views.py in Phase 8."""
+import json
+
 from core.access import ROLE_CLIENT, get_role  # Phase 9 Commit F
 from core.views._helpers import *  # noqa: F401, F403
 from core.views._helpers import (
@@ -544,13 +546,42 @@ def project_add_owner(request, project_id):
     current_accesses = ClientProjectAccess.objects.filter(
         project=project
     ).select_related("user").order_by("-granted_at")
-    
+
+    # ── Picker de clientes existentes ────────────────────────────
+    # UX improvement (2026-05-19): instead of forcing staff to retype
+    # name / email / phone for clients that are already in the
+    # system, expose a searchable picker at the top of the form that
+    # auto-fills the fields. Excludes users that already have access
+    # to this project.
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    already_assigned_ids = current_accesses.values_list("user_id", flat=True)
+    existing_clients_qs = (
+        User.objects
+        .filter(profile__role="client", is_active=True)
+        .exclude(id__in=already_assigned_ids)
+        .order_by("first_name", "last_name", "email")
+    )
+    existing_clients = [
+        {
+            "id": u.id,
+            "name": (u.get_full_name() or u.username).strip(),
+            "email": u.email or "",
+            "first_name": u.first_name or "",
+            "last_name": u.last_name or "",
+        }
+        for u in existing_clients_qs
+        if u.email  # need an email to be useful for the form
+    ]
+
     context = {
         "project": project,
         "form": form,
         "current_accesses": current_accesses,
+        "existing_clients": existing_clients,
+        "existing_clients_json": json.dumps(existing_clients),
     }
-    
+
     return render(request, "core/project_add_owner.html", context)
 
 
