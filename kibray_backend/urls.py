@@ -1010,6 +1010,12 @@ urlpatterns = [
         views.project_add_owner,
         name="project_add_owner",
     ),
+    # Send/resend invitation email to a specific project member
+    path(
+        "project/<int:project_id>/access/<int:access_id>/send-invitation/",
+        views.project_send_invitation,
+        name="project_send_invitation",
+    ),
     # ===== GESTIÓN DE ORGANIZACIONES DE CLIENTES =====
     path("organizations/", views.organization_list, name="organization_list"),
     path("organizations/create/", views.organization_create, name="organization_create"),

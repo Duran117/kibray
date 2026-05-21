@@ -515,10 +515,45 @@ def project_add_owner(request, project_id):
             else:
                 access_role = form.cleaned_data.get("access_role", "client")
                 role_display = dict(ClientProjectAccess.ROLE_CHOICES).get(access_role, access_role)
-                messages.success(
-                    request, 
-                    f'Usuario existente "{user.get_full_name()}" asignado al proyecto como {role_display}.'
-                )
+                # Existing user being added to a new project. If staff
+                # ticked "Send credentials by email" we send the
+                # "project access granted" notification (no password —
+                # they already have one).
+                if send_credentials and user.email:
+                    try:
+                        notified = KibrayEmailService.send_project_access_notification(
+                            to_email=user.email,
+                            first_name=user.first_name or user.username,
+                            email=user.email,
+                            login_url=request.build_absolute_uri('/login/'),
+                            project_name=project.name,
+                            sender_name=request.user.get_full_name() or request.user.username,
+                            access_role_display=role_display,
+                            fail_silently=False,
+                        )
+                    except Exception as e:  # noqa: BLE001
+                        notified = False
+                        logger.error(
+                            "project_add_owner: notify existing user failed: %s", e
+                        )
+                    if notified:
+                        messages.success(
+                            request,
+                            f'Usuario existente "{user.get_full_name()}" asignado como {role_display}. '
+                            f'📧 Se notificó por email a {user.email}.'
+                        )
+                    else:
+                        messages.warning(
+                            request,
+                            f'Usuario existente "{user.get_full_name()}" asignado como {role_display}, '
+                            f'pero no se pudo enviar el email de notificación. '
+                            f'Puedes reintentar con el botón “Send invitation” en la lista.'
+                        )
+                else:
+                    messages.success(
+                        request,
+                        f'Usuario existente "{user.get_full_name()}" asignado al proyecto como {role_display}.'
+                    )
             
             # Si es AJAX (modal), retornar JSON
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -753,5 +788,119 @@ def organization_delete(request, org_id):
 # ========================================
 # GESTIÓN DE PROYECTOS
 # ========================================
+
+
+@login_required
+@staff_member_required
+@require_POST
+def project_send_invitation(request, project_id, access_id):
+    """Send (or re-send) the project access invitation email to a client.
+
+    Lets staff prepare a project's dashboard first (photos, schedule,
+    estimate, etc.) and then notify the client on-demand. Two behaviours:
+
+    * If the user has **never logged in** (``last_login is None``) we
+      treat them as a brand-new account: regenerate a temporary
+      password and send the full "Welcome + credentials" email.
+    * Otherwise the user already has a password they know; we send the
+      "Project access granted" notification with a sign-in link.
+    """
+    import secrets
+    import string
+
+    from core.models import ClientProjectAccess
+    from core.services.email_service import KibrayEmailService
+
+    project = get_object_or_404(Project, id=project_id)
+    access = get_object_or_404(
+        ClientProjectAccess, id=access_id, project=project
+    )
+    user = access.user
+
+    if not user.email:
+        messages.error(
+            request,
+            f'No se puede enviar la invitación: "{user.get_full_name() or user.username}" no tiene un email registrado.',
+        )
+        return redirect("project_add_owner", project_id=project.id)
+
+    login_url = request.build_absolute_uri("/login/")
+    sender_name = request.user.get_full_name() or request.user.username
+    role_display = dict(ClientProjectAccess.ROLE_CHOICES).get(
+        access.role, access.role
+    )
+
+    is_first_invite = user.last_login is None
+
+    try:
+        if is_first_invite:
+            # Brand-new account — issue a fresh temporary password so
+            # staff don't need to know the original one (which might
+            # have been generated weeks ago when the client was first
+            # added).
+            alphabet = string.ascii_letters + string.digits + "!@#$%&*"
+            temp_password = "".join(secrets.choice(alphabet) for _ in range(12))
+            while not (
+                any(c.isupper() for c in temp_password)
+                and any(c.islower() for c in temp_password)
+                and any(c.isdigit() for c in temp_password)
+            ):
+                temp_password = "".join(
+                    secrets.choice(alphabet) for _ in range(12)
+                )
+            user.set_password(temp_password)
+            user.save(update_fields=["password"])
+
+            ok = KibrayEmailService.send_welcome_credentials(
+                to_email=user.email,
+                first_name=user.first_name or user.username,
+                email=user.email,
+                temp_password=temp_password,
+                login_url=login_url,
+                project_name=project.name,
+                sender_name=sender_name,
+                fail_silently=False,
+            )
+        else:
+            ok = KibrayEmailService.send_project_access_notification(
+                to_email=user.email,
+                first_name=user.first_name or user.username,
+                email=user.email,
+                login_url=login_url,
+                project_name=project.name,
+                sender_name=sender_name,
+                access_role_display=role_display,
+                fail_silently=False,
+            )
+    except Exception as e:  # noqa: BLE001
+        logger.error(
+            "project_send_invitation: SMTP error for user=%s project=%s: %s",
+            user.email, project.id, e,
+        )
+        messages.error(
+            request,
+            f"Error al enviar la invitación a {user.email}: {e}",
+        )
+        return redirect("project_add_owner", project_id=project.id)
+
+    if ok:
+        if is_first_invite:
+            messages.success(
+                request,
+                f"📧 Invitación enviada a {user.email} con nuevas credenciales (acceso a “{project.name}”).",
+            )
+        else:
+            messages.success(
+                request,
+                f"📧 Notificación enviada a {user.email}: acceso al proyecto “{project.name}”.",
+            )
+    else:
+        messages.warning(
+            request,
+            f"El servidor SMTP no aceptó el mensaje para {user.email}. Revisa los logs y vuelve a intentar.",
+        )
+
+    return redirect("project_add_owner", project_id=project.id)
+
 
 

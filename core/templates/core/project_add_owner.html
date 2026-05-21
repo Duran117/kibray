@@ -222,6 +222,13 @@
                                         </small>
                                     </td>
                                     <td class="text-end">
+                                        <form method="post" action="{% url 'project_send_invitation' project.id access.id %}" class="d-inline" onsubmit="return confirm('{% if access.user.last_login %}{% trans "Send project access notification to" %}{% else %}{% trans "Send invitation with new credentials to" %}{% endif %} {{ access.user.email }}?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="{% if access.user.last_login %}{% trans 'Send project access notification' %}{% else %}{% trans 'Send invitation with credentials' %}{% endif %}"{% if not access.user.email %} disabled{% endif %}>
+                                                <i class="bi bi-envelope-paper"></i>
+                                                {% if access.user.last_login %}{% trans "Notify" %}{% else %}{% trans "Invite" %}{% endif %}
+                                            </button>
+                                        </form>
                                         <a href="{% url 'client_detail' access.user.id %}" class="btn btn-sm btn-outline-primary" title="{% trans 'View Client' %}">
                                             <i class="bi bi-eye"></i>
                                         </a>

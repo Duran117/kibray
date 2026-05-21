@@ -206,7 +206,43 @@ class KibrayEmailService:
             to_emails=[to_email],
             fail_silently=fail_silently
         )
-    
+
+    @classmethod
+    def send_project_access_notification(
+        cls,
+        to_email: str,
+        first_name: str,
+        email: str,
+        login_url: str,
+        project_name: str,
+        sender_name: str = "Kibray Painting",
+        access_role_display: Optional[str] = None,
+        fail_silently: bool = True,
+    ) -> bool:
+        """
+        Notify an EXISTING user that they have been granted access to a
+        new project. Does NOT include a password — the user already has
+        one. Used when staff assigns an existing client to a project from
+        the "Add Owner/Client" picker or via the "Send invitation" button
+        on the project dashboard.
+        """
+        context = {
+            'first_name': first_name,
+            'email': email,
+            'login_url': login_url,
+            'project_name': project_name,
+            'sender_name': sender_name,
+            'access_role_display': access_role_display,
+        }
+        subject = f"You've been granted access to: {project_name}"
+        return cls._send_email(
+            subject=subject,
+            template_name='emails/project_access_granted.html',
+            context=context,
+            to_emails=[to_email],
+            fail_silently=fail_silently,
+        )
+
     @classmethod
     def send_password_reset(
         cls,
