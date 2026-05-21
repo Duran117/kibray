@@ -1,0 +1,86 @@
+{% extends "core/base_modern.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Request a Color Sample" %} - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a href="{% url 'color_sample_list' project.id %}" class="text-sm text-indigo-600 hover:underline">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Color Samples" %}
+        </a>
+        <h1 class="text-2xl font-bold text-slate-900 mt-2 flex items-center gap-3">
+            <i class="bi bi-palette-fill text-purple-500"></i>
+            {% trans "Request a Color Sample" %}
+        </h1>
+        <p class="text-slate-600 mt-1">{{ project.name }}</p>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 p-6 mb-4">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="px-3 py-1.5 rounded-full text-xs font-semibold {% if remaining == 0 %}bg-red-100 text-red-700{% elif remaining == 1 %}bg-amber-100 text-amber-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">
+                <i class="bi bi-bar-chart"></i>
+                {{ remaining }} / {{ limit }} {% trans "requests remaining" %}
+            </div>
+            {% if pending_count > 0 %}
+            <p class="text-xs text-slate-500">{{ pending_count }} {% trans "still pending review by staff" %}</p>
+            {% endif %}
+        </div>
+
+        {% if remaining == 0 %}
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+            <p class="text-sm text-amber-800">
+                <i class="bi bi-exclamation-triangle"></i>
+                {% blocktrans with limit=limit %}You have reached the maximum of {{ limit }} pending sample requests. Please wait for our team to review them before submitting more.{% endblocktrans %}
+            </p>
+        </div>
+        {% else %}
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    {% trans "Color description" %} <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="title" required maxlength="200"
+                       placeholder="{% trans 'e.g. Warm beige for the living room walls' %}"
+                       class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                <p class="text-xs text-slate-500 mt-1">{% trans "Brand, code, or just a short description — anything helps." %}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    {% trans "Additional details" %}
+                </label>
+                <textarea name="description" rows="4"
+                          placeholder="{% trans 'Rooms where this color will be applied, finish (matte, satin, gloss), reference photos URL, etc.' %}"
+                          class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></textarea>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <a href="{% url 'color_sample_list' project.id %}"
+                   class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm">
+                    {% trans "Cancel" %}
+                </a>
+                <button type="submit"
+                        class="px-5 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-medium text-sm shadow">
+                    <i class="bi bi-send"></i> {% trans "Submit request" %}
+                </button>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+
+    {% if pending_requests %}
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <h2 class="font-semibold text-slate-900 mb-3">{% trans "Your pending requests" %}</h2>
+        <ul class="divide-y divide-slate-100">
+            {% for r in pending_requests %}
+            <li class="py-3">
+                <p class="text-sm font-medium text-slate-800">{{ r.title }}</p>
+                {% if r.description %}<p class="text-xs text-slate-500 mt-1">{{ r.description|truncatewords:30 }}</p>{% endif %}
+                <p class="text-xs text-slate-400 mt-1">{{ r.created_at|date:"M d, Y H:i" }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

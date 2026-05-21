@@ -57,9 +57,60 @@ def client_project_view(request, project_id):
     color_samples = project.color_samples.all().order_by("-created_at")[:8]
 
     # === SCHEDULE PRÓXIMO ===
-    upcoming_schedules = Schedule.objects.filter(
-        project=project, start_datetime__gte=timezone.now()
-    ).order_by("start_datetime")[:5]
+    # 2026-05-21 fix: previously only queried the legacy Schedule model,
+    # so projects planned via the Gantt V2 showed an empty "Upcoming
+    # Events" panel. Merge both sources, normalise to a common shape,
+    # sort by date, and cap at 5.
+    from datetime import datetime, time as _dtime
+
+    class _EventProxy:
+        """Duck-typed proxy so the template can use
+        ``schedule.title``, ``.start_datetime`` and ``.status``
+        regardless of which model the row originated from."""
+        __slots__ = ("title", "start_datetime", "status")
+
+        def __init__(self, title, start_datetime, status=""):
+            self.title = title
+            self.start_datetime = start_datetime
+            self.status = status
+
+    _events: list = []
+    _now = timezone.now()
+    _today = timezone.localdate()
+
+    for s in Schedule.objects.filter(
+        project=project, start_datetime__gte=_now
+    ).order_by("start_datetime")[:10]:
+        _events.append(_EventProxy(
+            title=s.title,
+            start_datetime=s.start_datetime,
+            status=getattr(s, "status", "") or "",
+        ))
+
+    try:
+        from core.models import ScheduleItemV2
+        gantt_qs = (
+            ScheduleItemV2.objects
+            .filter(project=project, end_date__gte=_today)
+            .order_by("start_date")[:10]
+        )
+        for item in gantt_qs:
+            start_dt = datetime.combine(item.start_date, _dtime.min)
+            start_dt = timezone.make_aware(
+                start_dt, timezone.get_current_timezone()
+            ) if timezone.is_naive(start_dt) else start_dt
+            _events.append(_EventProxy(
+                title=item.name,
+                start_datetime=start_dt,
+                status=item.status or "",
+            ))
+    except Exception:
+        # ScheduleItemV2 missing in some test envs → ignore
+        pass
+
+    upcoming_schedules = sorted(
+        _events, key=lambda e: e.start_datetime
+    )[:5]
 
     # === TAREAS Y TOUCH-UPS ===
     # Tasks incluyen touch-ups que el cliente puede agregar

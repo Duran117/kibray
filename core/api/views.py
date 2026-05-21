@@ -2188,6 +2188,33 @@ class ColorSampleViewSet(viewsets.ModelViewSet):
 
     # Use pagination by default; tests rely on paginated shape for some cases
 
+    def _block_clients_on_write(self, request):
+        """2026-05-21: clients use the 'Request a sample' flow, not the
+        REST API. Block create/update/delete + the workflow actions
+        (approve/reject/request_changes) for users with role=client."""
+        from core.access import is_client
+        if is_client(request.user):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied(
+                "Clients cannot modify color samples. Use the 'Request a sample' option from the project dashboard."
+            )
+
+    def create(self, request, *args, **kwargs):
+        self._block_clients_on_write(request)
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        self._block_clients_on_write(request)
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        self._block_clients_on_write(request)
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        self._block_clients_on_write(request)
+        return super().destroy(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         """Auto-set created_by and trigger sample_number generation"""
         serializer.save(created_by=self.request.user)

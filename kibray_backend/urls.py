@@ -275,6 +275,11 @@ urlpatterns = [
         views.color_sample_create,
         name="color_sample_create",
     ),
+    path(
+        "projects/<int:project_id>/colors/request/",
+        views.color_sample_request,
+        name="color_sample_request",
+    ),
     path("colors/sample/<int:sample_id>/", views.color_sample_detail, name="color_sample_detail"),
     path("colors/sample/<int:sample_id>/edit/", views.color_sample_edit, name="color_sample_edit"),
     path(

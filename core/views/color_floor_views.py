@@ -62,6 +62,17 @@ def color_sample_create(request, project_id):
         messages.error(request, _("You don't have access to this project."))
         return redirect(redirect_url)
 
+    # Phase 9 (2026-05-21): clients cannot create samples directly.
+    # They get a separate "Request a sample" flow with a per-project
+    # quota so staff can curate what actually becomes a real sample.
+    from core.access import is_client
+    if is_client(request.user):
+        messages.info(
+            request,
+            _("Clients cannot create color samples directly. Use the “Request a sample” option instead."),
+        )
+        return redirect("color_sample_request", project_id=project_id)
+
     if request.method == "POST":
         form = ColorSampleForm(request.POST, request.FILES)
         if form.is_valid():
@@ -294,8 +305,10 @@ def color_sample_edit(request, sample_id):
     profile = getattr(request.user, "profile", None)
 
     # Phase 9 Commit F: centralized helpers.
-    from core.access import ROLE_CLIENT, ROLE_PM, get_role
-    if not (request.user.is_staff or get_role(request.user) in {ROLE_CLIENT, ROLE_PM}):
+    # 2026-05-21: clients can no longer edit samples — they only
+    # request new ones via color_sample_request.
+    from core.access import ROLE_PM, get_role
+    if not (request.user.is_staff or get_role(request.user) == ROLE_PM):
         messages.error(request, _("Access denied."))
         return redirect("color_sample_detail", sample_id=sample_id)
 
@@ -745,3 +758,82 @@ def floor_plan_add_pin(request, plan_id):
     )
 
 
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Client "Request a sample" flow (2026-05-21)
+# ─────────────────────────────────────────────────────────────────────────────
+@login_required
+def color_sample_request(request, project_id):
+    """Client-facing form to request a new color sample.
+
+    Creates a ClientRequest with request_type='color_sample' instead of
+    a ColorSample directly, so staff curate what becomes a real sample.
+    Limited to ClientRequest.COLOR_SAMPLE_REQUEST_LIMIT pending requests
+    per project to prevent spam.
+    """
+    from core.models import ClientRequest
+
+    project = get_object_or_404(Project, id=project_id)
+
+    # SECURITY: project access required (clients with access OR staff).
+    has_access, redirect_url = check_project_access(request.user, project)
+    if not has_access:
+        messages.error(request, _("You don't have access to this project."))
+        return redirect(redirect_url)
+
+    pending_qs = ClientRequest.objects.filter(
+        project=project,
+        request_type="color_sample",
+        status="pending",
+        created_by=request.user,
+    )
+    pending_count = pending_qs.count()
+    limit = ClientRequest.COLOR_SAMPLE_REQUEST_LIMIT
+    remaining = max(0, limit - pending_count)
+
+    if request.method == "POST":
+        if pending_count >= limit:
+            messages.warning(
+                request,
+                _("You already have %(count)d pending sample requests (max %(limit)d). Please wait for staff to process them.") % {
+                    "count": pending_count, "limit": limit,
+                },
+            )
+            return redirect("color_sample_list", project_id=project.id)
+
+        title = (request.POST.get("title") or "").strip()
+        description = (request.POST.get("description") or "").strip()
+        if not title:
+            messages.error(request, _("Please describe the color you want (title is required)."))
+            return redirect("color_sample_request", project_id=project.id)
+        if len(title) > 200:
+            title = title[:200]
+
+        ClientRequest.objects.create(
+            project=project,
+            title=f"[Color Sample] {title}",
+            description=description,
+            request_type="color_sample",
+            created_by=request.user,
+            status="pending",
+        )
+        messages.success(
+            request,
+            _("Your sample request has been submitted. You have %(left)d request(s) left.") % {
+                "left": max(0, limit - pending_count - 1),
+            },
+        )
+        return redirect("color_sample_list", project_id=project.id)
+
+    return render(
+        request,
+        "core/color_sample_request.html",
+        {
+            "project": project,
+            "pending_count": pending_count,
+            "limit": limit,
+            "remaining": remaining,
+            "pending_requests": pending_qs.order_by("-created_at"),
+        },
+    )

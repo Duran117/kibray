@@ -20,11 +20,19 @@
             <i class="bi bi-arrow-left"></i>
             <span class="hidden sm:inline">{% trans "Back to Project" %}</span>
         </a>
+        {% if user.profile.role == "client" and not user.is_staff %}
+        <a href="{% url 'color_sample_request' project.id %}" 
+           class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-lg shadow-lg hover:shadow-xl transition font-medium">
+            <i class="bi bi-send"></i>
+            {% trans "Request a Sample" %}
+        </a>
+        {% else %}
         <a href="{% url 'color_sample_create' project.id %}" 
            class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-lg shadow-lg hover:shadow-xl transition font-medium">
             <i class="bi bi-plus-lg"></i>
             {% trans "New Sample" %}
         </a>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
@@ -233,11 +241,19 @@
             <p class="text-slate-500 mb-6 max-w-md mx-auto">
                 {% trans "Start by creating your first color sample for this project. You can upload photos, add color codes, and request client approval." %}
             </p>
+            {% if user.profile.role == "client" and not user.is_staff %}
+            <a href="{% url 'color_sample_request' project.id %}" 
+               class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg shadow-lg hover:shadow-xl transition font-medium">
+                <i class="bi bi-send"></i>
+                {% trans "Request a Sample" %}
+            </a>
+            {% else %}
             <a href="{% url 'color_sample_create' project.id %}" 
                class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg shadow-lg hover:shadow-xl transition font-medium">
                 <i class="bi bi-plus-lg"></i>
                 {% trans "Create First Sample" %}
             </a>
+            {% endif %}
         </div>
     </div>
     {% endfor %}

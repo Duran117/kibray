@@ -4530,7 +4530,11 @@ class ClientRequest(models.Model):
         ("material", "Material"),
         ("change_order", "Cambio"),
         ("info", "Información"),
+        ("color_sample", "Color Sample"),
     ]
+    # Per-project quota of pending color-sample requests so clients
+    # cannot spam the staff inbox.
+    COLOR_SAMPLE_REQUEST_LIMIT = 3
     STATUS_CHOICES = [
         ("pending", "Pending"),
         ("approved", "Aprobada"),
