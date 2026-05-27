@@ -105,6 +105,7 @@
                                             <th class="text-center">{% trans "Billed" %}</th>
                                             <th class="text-center">{% trans "Remaining" %}</th>
                                             <th style="width:120px;" class="text-center">{% trans "% New" %}</th>
+                                            <th style="width:130px;" class="text-end">{% trans "Amount to Bill" %}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -112,7 +113,7 @@
                                         <tr>
                                             <td><code class="small">{{ line.code }}</code></td>
                                             <td class="small">{{ line.description|default:"(sin desc)" }}</td>
-                                            <td class="text-end">${{ line.direct_cost|floatformat:2 }}</td>
+                                            <td class="text-end" data-direct-cost="{{ line.direct_cost }}">${{ line.direct_cost|floatformat:2 }}</td>
                                             <td class="text-center">
                                                 {% if line.already_pct > 0 %}
                                                     <span class="badge bg-info">{{ line.already_pct|floatformat:2 }}%</span>
@@ -129,14 +130,29 @@
                                             </td>
                                             <td class="text-center">
                                                 {% if line.remaining_pct > 0 %}
-                                                    <input type="number" step="0.01" min="0" max="{{ line.remaining_pct|floatformat:2 }}" name="prog_pct_{{ line.id }}" class="form-control form-control-sm text-center" placeholder="0.00" style="font-size: 14px;">
+                                                    <input type="number" step="0.01" min="0" max="{{ line.remaining_pct|floatformat:2 }}"
+                                                           name="prog_pct_{{ line.id }}"
+                                                           class="form-control form-control-sm text-center prog-pct-input"
+                                                           data-line-id="{{ line.id }}"
+                                                           data-direct-cost="{{ line.direct_cost }}"
+                                                           data-max-pct="{{ line.remaining_pct|floatformat:2 }}"
+                                                           placeholder="0.00" style="font-size: 14px;">
                                                 {% else %}
                                                     <input type="number" class="form-control form-control-sm text-center" disabled value="0" title="{% trans 'Completely billed' %}">
                                                 {% endif %}
                                             </td>
+                                            <td class="text-end">
+                                                <span class="prog-amount-display fw-bold text-success" data-line-id="{{ line.id }}">$0.00</span>
+                                            </td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <td colspan="5" class="text-end fw-bold">{% trans "Progressive subtotal" %}:</td>
+                                            <td class="text-end fw-bold text-success" id="progressive-subtotal">$0.00</td>
+                                        </tr>
+                                    </tfoot>
                                 </table>
                             </div>
                             
@@ -174,11 +190,21 @@
                                             <div class="col-4">
                                                 <div class="small text-muted">{% trans "% New" %}</div>
                                                 {% if line.remaining_pct > 0 %}
-                                                    <input type="number" step="0.01" min="0" max="{{ line.remaining_pct|floatformat:2 }}" name="prog_pct_{{ line.id }}" class="form-control form-control-sm text-center" placeholder="0.00" style="min-height: 38px; font-size: 16px;">
+                                                    <input type="number" step="0.01" min="0" max="{{ line.remaining_pct|floatformat:2 }}"
+                                                           name="prog_pct_{{ line.id }}"
+                                                           class="form-control form-control-sm text-center prog-pct-input"
+                                                           data-line-id="{{ line.id }}"
+                                                           data-direct-cost="{{ line.direct_cost }}"
+                                                           data-max-pct="{{ line.remaining_pct|floatformat:2 }}"
+                                                           placeholder="0.00" style="min-height: 38px; font-size: 16px;">
                                                 {% else %}
                                                     <input type="number" class="form-control form-control-sm text-center" disabled value="0">
                                                 {% endif %}
                                             </div>
+                                        </div>
+                                        <div class="mt-2 text-end small">
+                                            <span class="text-muted">{% trans "Amount to bill" %}:</span>
+                                            <span class="prog-amount-display fw-bold text-success ms-1" data-line-id="{{ line.id }}">$0.00</span>
                                         </div>
                                     </div>
                                 </div>
@@ -324,9 +350,13 @@
                         <table class="table table-sm">
                             <tbody>
                                 {% if estimate %}
-                                <tr id="summary-estimate" class="estimate-summary">
-                                    <td>{% trans "Base Contract" %}</td>
-                                    <td class="text-end"><strong>${{ estimate_total|floatformat:2 }}</strong></td>
+                                <tr id="summary-estimate" class="estimate-summary" style="display:none;">
+                                    <td>{% trans "Base Contract (full)" %}</td>
+                                    <td class="text-end"><strong id="summary-estimate-amount" data-amount="{{ estimate_total }}">${{ estimate_total|floatformat:2 }}</strong></td>
+                                </tr>
+                                <tr id="summary-progressive" style="display:none;">
+                                    <td>{% trans "Progressive Billing" %}</td>
+                                    <td class="text-end"><strong class="text-success" id="summary-progressive-amount">$0.00</strong></td>
                                 </tr>
                                 {% endif %}
                                 
@@ -384,21 +414,119 @@
 </div>
 
 <script>
-// Simple dynamic total update (optional enhancement)
+// Live invoice builder calculations
 document.addEventListener('DOMContentLoaded', function() {
-    const estimateCheckbox = document.querySelector('.estimate-checkbox');
-    const coCheckboxes = document.querySelectorAll('.co-checkbox');
-    const timeCheckbox = document.querySelector('.time-checkbox');
-    const timeCoCheckboxes = document.querySelectorAll('.time-co-checkbox');
-    
-    // Show/hide summary rows based on checkboxes
-    if (estimateCheckbox) {
-        estimateCheckbox.addEventListener('change', function() {
-            document.getElementById('summary-estimate').style.display = this.checked ? '' : 'none';
+    const estimateCheckbox = document.getElementById('include_estimate');
+    const estimateRow      = document.getElementById('summary-estimate');
+    const progressiveRow   = document.getElementById('summary-progressive');
+    const progressiveAmtEl = document.getElementById('summary-progressive-amount');
+    const progressiveFootEl= document.getElementById('progressive-subtotal');
+    const grandTotalEl     = document.getElementById('grand-total');
+
+    const fmt = n => '$' + (Math.round(n * 100) / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+    // Build a map line-id -> array of inputs (desktop + mobile share name & data-line-id)
+    const allInputs = document.querySelectorAll('.prog-pct-input');
+
+    function recompute() {
+        // Per-line: take MAX of desktop/mobile input value (last touched) — they share data-line-id so sync them
+        const perLineAmount = {}; // line-id -> amount
+        const seen = {};
+
+        allInputs.forEach(inp => {
+            const id = inp.dataset.lineId;
+            const cost = parseFloat(inp.dataset.directCost) || 0;
+            const maxPct = parseFloat(inp.dataset.maxPct) || 0;
+            let pct = parseFloat(inp.value) || 0;
+            if (pct < 0) pct = 0;
+            if (pct > maxPct) { pct = maxPct; inp.value = maxPct.toFixed(2); }
+            // If duplicate (desktop+mobile share id), keep the last non-zero value
+            if (!(id in seen) || pct > 0) {
+                seen[id] = pct;
+                perLineAmount[id] = cost * (pct / 100);
+            }
+        });
+
+        // Sync display spans
+        let progressiveTotal = 0;
+        Object.keys(perLineAmount).forEach(id => {
+            const amt = perLineAmount[id];
+            progressiveTotal += amt;
+            document.querySelectorAll('.prog-amount-display[data-line-id="' + id + '"]').forEach(el => {
+                el.textContent = fmt(amt);
+                el.classList.toggle('text-muted', amt === 0);
+                el.classList.toggle('text-success', amt > 0);
+            });
+        });
+
+        if (progressiveFootEl) progressiveFootEl.textContent = fmt(progressiveTotal);
+        if (progressiveAmtEl)  progressiveAmtEl.textContent  = fmt(progressiveTotal);
+
+        // Show progressive row only when > 0
+        if (progressiveRow) progressiveRow.style.display = progressiveTotal > 0 ? '' : 'none';
+
+        // Estimate row: show full only when include_estimate checked AND no progressive (progressive overrides full per backend rules)
+        const includeFull = estimateCheckbox && estimateCheckbox.checked;
+        if (estimateRow) estimateRow.style.display = (includeFull && progressiveTotal === 0) ? '' : 'none';
+
+        // Grand total
+        let total = 0;
+        if (includeFull && progressiveTotal === 0) {
+            const amtEl = document.getElementById('summary-estimate-amount');
+            total += parseFloat(amtEl?.dataset.amount || '0');
+        } else {
+            total += progressiveTotal;
+        }
+        // Add other summary rows that aren't progressive/estimate
+        document.querySelectorAll('#summary-cos strong, #summary-time-general strong, #summary-time-cos strong').forEach(el => {
+            // Each row stays visible if its checkbox is checked
+            const row = el.closest('tr');
+            if (row && row.style.display !== 'none') {
+                const txt = el.textContent.replace(/[^0-9.\-]/g, '');
+                total += parseFloat(txt) || 0;
+            }
+        });
+
+        if (grandTotalEl) grandTotalEl.textContent = fmt(total);
+    }
+
+    // Sync paired inputs (desktop <-> mobile share data-line-id)
+    allInputs.forEach(inp => {
+        inp.addEventListener('input', function() {
+            const id = this.dataset.lineId;
+            document.querySelectorAll('.prog-pct-input[data-line-id="' + id + '"]').forEach(other => {
+                if (other !== this) other.value = this.value;
+            });
+            // If user enters a progressive %, auto-check include_estimate so backend processes it
+            if (estimateCheckbox && parseFloat(this.value) > 0 && !estimateCheckbox.checked) {
+                estimateCheckbox.checked = true;
+            }
+            recompute();
+        });
+    });
+
+    if (estimateCheckbox) estimateCheckbox.addEventListener('change', recompute);
+
+    // Toggle row visibility for CO/time checkboxes
+    function bindCheckboxRow(checkboxSelector, rowId) {
+        document.querySelectorAll(checkboxSelector).forEach(cb => {
+            cb.addEventListener('change', () => {
+                const row = document.getElementById(rowId);
+                if (row) {
+                    // Show if any checkbox in group is checked
+                    const anyChecked = Array.from(document.querySelectorAll(checkboxSelector)).some(c => c.checked);
+                    row.style.display = anyChecked ? '' : 'none';
+                }
+                recompute();
+            });
         });
     }
-    
-    // You can add more interactivity here to update grand total dynamically
+    bindCheckboxRow('.co-checkbox', 'summary-cos');
+    bindCheckboxRow('.time-checkbox', 'summary-time-general');
+    bindCheckboxRow('.time-co-checkbox', 'summary-time-cos');
+
+    // Initial render
+    recompute();
 });
 </script>
 {% endblock %}
