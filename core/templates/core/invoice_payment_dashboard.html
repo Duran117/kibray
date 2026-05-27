@@ -2,14 +2,14 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}Panel de Pagos - Facturas{% endblock %}
+{% block title %}{% trans "Payments Dashboard" %}{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-12">
-            <h2>💰 Panel de Pagos de Facturas</h2>
-            <p class="text-muted">Registra pagos de clientes (cheques, transferencias, etc.)</p>
+            <h2>💰 {% trans "Invoice Payments Dashboard" %}</h2>
+            <p class="text-muted">{% trans "Record customer payments (checks, transfers, etc.)" %}</p>
         </div>
     </div>
 
@@ -18,7 +18,7 @@
         <div class="col-12">
             <div class="card mb-4">
                 <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0">📋 Facturas Pendientes de Pago ({{ pending_invoices.count }})</h5>
+                    <h5 class="mb-0">📋 {% trans "Invoices Pending Payment" %} ({{ pending_invoices.count }})</h5>
                 </div>
                 <div class="card-body">
                     {% if pending_invoices %}
@@ -26,16 +26,16 @@
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>Factura #</th>
-                                    <th>Proyecto</th>
-                                    <th>Cliente</th>
-                                    <th>Fecha Emisión</th>
-                                    <th>Vencimiento</th>
-                                    <th>Total</th>
-                                    <th>Pagado</th>
-                                    <th>Saldo</th>
-                                    <th>Status</th>
-                                    <th>Acción</th>
+                                    <th>{% trans "Invoice #" %}</th>
+                                    <th>{% trans "Project" %}</th>
+                                    <th>{% trans "Client" %}</th>
+                                    <th>{% trans "Issue Date" %}</th>
+                                    <th>{% trans "Due Date" %}</th>
+                                    <th>{% trans "Total" %}</th>
+                                    <th>{% trans "Paid" %}</th>
+                                    <th>{% trans "Balance" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Action" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -57,12 +57,12 @@
                                     ">{{ invoice.get_status_display }}</span></td>
                                     <td>
                                         <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal{{ invoice.id }}">
-                                            💵 Registrar Pago
+                                            💵 {% trans "Record Payment" %}
                                         </button>
-                                        <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-sm btn-outline-secondary">Ver</a>
+                                        <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-sm btn-outline-secondary">{% trans "View" %}</a>
                                     </td>
                                 </tr>
-                                
+
                                 <!-- Payment Modal -->
                                 <div class="modal fade" id="paymentModal{{ invoice.id }}" tabindex="-1">
                                     <div class="modal-dialog">
@@ -70,41 +70,41 @@
                                             <form method="post" action="{% url 'record_invoice_payment' invoice.id %}">
                                                 {% csrf_token %}
                                                 <div class="modal-header bg-success text-white">
-                                                    <h5 class="modal-title">💵 Registrar Pago - {{ invoice.invoice_number }}</h5>
+                                                    <h5 class="modal-title">💵 {% trans "Record Payment" %} — {{ invoice.invoice_number }}</h5>
                                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <p><strong>Saldo pendiente:</strong> ${{ invoice.balance_due|floatformat:2 }}</p>
+                                                    <p><strong>{% trans "Outstanding balance:" %}</strong> ${{ invoice.balance_due|floatformat:2 }}</p>
                                                     <div class="mb-3">
-                                                        <label class="form-label">Monto Recibido *</label>
+                                                        <label class="form-label">{% trans "Amount Received" %} *</label>
                                                         <input type="number" step="0.01" name="amount" class="form-control" value="{{ invoice.balance_due }}" required>
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label">Fecha de Pago *</label>
+                                                        <label class="form-label">{% trans "Payment Date" %} *</label>
                                                         <input type="date" name="payment_date" class="form-control" value="{% now 'Y-m-d' %}" required>
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label">Método de Pago *</label>
+                                                        <label class="form-label">{% trans "Payment Method" %} *</label>
                                                         <select name="payment_method" class="form-select" required>
-                                                            <option value="CHECK">Cheque</option>
-                                                            <option value="TRANSFER">Transferencia</option>
-                                                            <option value="CASH">Efectivo</option>
-                                                            <option value="CARD">Tarjeta</option>
-                                                            <option value="OTHER">Otro</option>
+                                                            <option value="CHECK">{% trans "Check" %}</option>
+                                                            <option value="TRANSFER">{% trans "Bank Transfer" %}</option>
+                                                            <option value="CASH">{% trans "Cash" %}</option>
+                                                            <option value="CARD">{% trans "Card" %}</option>
+                                                            <option value="OTHER">{% trans "Other" %}</option>
                                                         </select>
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label">Referencia (Check #, Transfer ID, etc.)</label>
-                                                        <input type="text" name="reference" class="form-control" placeholder="Ej: Check #12345">
+                                                        <label class="form-label">{% trans "Reference (Check #, Transfer ID, etc.)" %}</label>
+                                                        <input type="text" name="reference" class="form-control" placeholder="{% trans 'e.g. Check #12345' %}">
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label">Notas</label>
+                                                        <label class="form-label">{% trans "Notes" %}</label>
                                                         <textarea name="notes" class="form-control" rows="2"></textarea>
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                    <button type="submit" class="btn btn-success">✅ Registrar Pago</button>
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                                                    <button type="submit" class="btn btn-success">✅ {% trans "Record Payment" %}</button>
                                                 </div>
                                             </form>
                                         </div>
@@ -115,7 +115,7 @@
                         </table>
                     </div>
                     {% else %}
-                    <p class="text-muted">✅ No hay facturas pendientes de pago.</p>
+                    <p class="text-muted">✅ {% trans "No invoices pending payment." %}</p>
                     {% endif %}
                 </div>
             </div>
@@ -127,7 +127,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">✅ Pagadas Recientemente (últimas 10)</h5>
+                    <h5 class="mb-0">✅ {% trans "Recently Paid (last 10)" %}</h5>
                 </div>
                 <div class="card-body">
                     {% if recently_paid %}
@@ -135,11 +135,11 @@
                         <table class="table table-sm">
                             <thead>
                                 <tr>
-                                    <th>Factura #</th>
-                                    <th>Proyecto</th>
-                                    <th>Cliente</th>
-                                    <th>Total</th>
-                                    <th>Fecha Pago</th>
+                                    <th>{% trans "Invoice #" %}</th>
+                                    <th>{% trans "Project" %}</th>
+                                    <th>{% trans "Client" %}</th>
+                                    <th>{% trans "Total" %}</th>
+                                    <th>{% trans "Payment Date" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -156,7 +156,7 @@
                         </table>
                     </div>
                     {% else %}
-                    <p class="text-muted">No hay facturas pagadas recientemente.</p>
+                    <p class="text-muted">{% trans "No recently paid invoices." %}</p>
                     {% endif %}
                 </div>
             </div>
@@ -164,8 +164,8 @@
     </div>
 
     <div class="mt-3">
-        <a href="{% url 'invoice_list' %}" class="btn btn-outline-primary">📋 Ver Todas las Facturas</a>
-        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">🏠 Dashboard</a>
+        <a href="{% url 'invoice_list' %}" class="btn btn-outline-primary">📋 {% trans "View All Invoices" %}</a>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">🏠 {% trans "Dashboard" %}</a>
     </div>
 </div>
 {% endblock %}

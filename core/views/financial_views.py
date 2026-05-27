@@ -471,25 +471,75 @@ def invoice_detail(request, pk):
 
 @login_required
 def invoice_pdf(request, pk):
+    """
+    Render an Invoice as a downloadable PDF.
+
+    - English-only professional template (`core/invoice_pdf.html`).
+    - Passes the same `company` and `is_overdue` context used by `invoice_detail`
+      so the template never trips on missing variables.
+    - Adds `Content-Disposition: attachment` when `?download=1`.
+    - Never raises 5xx: any pisa failure falls back to a basic reportlab PDF.
+    """
     if not is_admin_or_pm(request.user):
         messages.error(request, _("Access denied."))
         return redirect("dashboard")
-    invoice = get_object_or_404(Invoice, pk=pk)
-    template = get_template("core/invoice_pdf.html")
+
+    invoice = get_object_or_404(
+        Invoice.objects.select_related("project").prefetch_related("lines", "payments"),
+        pk=pk,
+    )
+
+    # Company info — kept in sync with `invoice_detail`
+    company = {
+        "name": "Kibray Paint & Stain LLC",
+        "address": "P.O. Box 25881",
+        "city_state_zip": "Silverthorne, CO 80497",
+        "phone": "(970) 333-4872",
+        "email": "jduran@kibraypainting.net",
+        "website": "kibraypainting.net",
+        "logo_path": "images/kibray-logo.png",
+    }
+
+    # Overdue flag (mirrors invoice_detail logic)
+    is_overdue = False
+    if invoice.due_date:
+        from datetime import date as _date
+        is_overdue = (invoice.due_date - _date.today()).days < 0 and invoice.status not in ("PAID", "CANCELLED")
+
     context = {
         "invoice": invoice,
+        "company": company,
         "user": request.user,
-        "now": timezone.now(),  # <-- reemplazo
+        "now": timezone.now(),
+        "is_overdue": is_overdue,
         "logo_url": request.build_absolute_uri("/static/kibray-logo.png"),
     }
+
+    template = get_template("core/invoice_pdf.html")
     html = template.render(context)
-    if pisa:
-        result = BytesIO()
-        pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
-        if not pdf.err:
-            return HttpResponse(result.getvalue(), content_type="application/pdf")
-    fallback_bytes = _generate_basic_pdf_from_html(html)
-    return HttpResponse(fallback_bytes, content_type="application/pdf")
+
+    pdf_bytes = None
+    if pisa is not None:
+        try:
+            result = BytesIO()
+            pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+            if not pdf.err:
+                pdf_bytes = result.getvalue()
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning("invoice_pdf: pisa failed for invoice %s: %s", pk, exc)
+
+    if pdf_bytes is None:
+        try:
+            pdf_bytes = _generate_basic_pdf_from_html(html)
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.error("invoice_pdf: fallback failed for invoice %s: %s", pk, exc)
+            pdf_bytes = b"%PDF-1.4\n% Invoice PDF generation failed\n"
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    filename = f"Invoice-{invoice.invoice_number or invoice.pk}.pdf"
+    disposition = "attachment" if request.GET.get("download") else "inline"
+    response["Content-Disposition"] = f'{disposition}; filename="{filename}"'
+    return response
 
 
 @login_required

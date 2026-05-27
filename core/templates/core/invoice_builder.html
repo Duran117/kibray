@@ -196,7 +196,7 @@
                 <!-- CHANGE ORDERS -->
                 <div class="card mb-3">
                     <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">🔧 {% trans "Change Orders (Sin Facturar)" %}</h5>
+                        <h5 class="mb-0">🔧 {% trans "Change Orders (Unbilled)" %}</h5>
                     </div>
                     <div class="card-body">
                         {% if unbilled_cos %}
@@ -208,12 +208,12 @@
                                         <span class="badge bg-{{ co.status|default:'secondary' }}">{{ co.get_status_display }}</span>
                                     </label>
                                     <div class="ms-4 small">
-                                        💵 {% trans "Monto" %}: <strong>${{ co.amount|floatformat:2 }}</strong> | {{ co.date_created|date:"M d, Y" }}
+                                        💵 {% trans "Amount" %}: <strong>${{ co.amount|floatformat:2 }}</strong> | {{ co.date_created|date:"M d, Y" }}
                                     </div>
                                 </div>
                             {% endfor %}
                         {% else %}
-                            <p class="text-muted mb-0">✅ {% trans "No hay change orders pendientes de facturar." %}</p>
+                            <p class="text-muted mb-0">✅ {% trans "No change orders pending billing." %}</p>
                         {% endif %}
                     </div>
                 </div>
@@ -221,29 +221,29 @@
                 <!-- TIME & MATERIALS (General) -->
                 <div class="card mb-3">
                     <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">⏱️ {% trans "Tiempo & Materiales (General)" %}</h5>
+                        <h5 class="mb-0">⏱️ {% trans "Time & Materials (General)" %}</h5>
                     </div>
                     <div class="card-body">
                         {% if time_general %}
                             <div class="form-check mb-2">
                                 <input class="form-check-input time-checkbox" type="checkbox" name="include_time_general" id="include_time_general" checked>
                                 <label class="form-check-label" for="include_time_general">
-                                    <strong>{{ general_hours }} {% trans "horas" %}</strong> {% trans "de trabajo no vinculadas a COs" %}
+                                    <strong>{{ general_hours }} {% trans "hours" %}</strong> {% trans "of work not linked to change orders" %}
                                 </label>
                                 <div class="ms-4 small">
-                                    💵 {% trans "Facturar" %}: <strong>${{ time_general_total|floatformat:2 }}</strong> ({{ general_hours }} {% trans "hrs" %} × ${{ tm_rate }}/{% trans "hr" %})
+                                    💵 {% trans "Bill" %}: <strong>${{ time_general_total|floatformat:2 }}</strong> ({{ general_hours }} {% trans "hrs" %} × ${{ tm_rate }}/{% trans "hr" %})
                                 </div>
                             </div>
                             <div class="ms-4 mt-2">
                                 <details>
-                                    <summary class="small text-muted" style="cursor: pointer;">{% trans "Ver detalle de entradas" %} ({{ time_general|length }})</summary>
+                                    <summary class="small text-muted" style="cursor: pointer;">{% trans "View entry details" %} ({{ time_general|length }})</summary>
                                     <table class="table table-sm table-bordered mt-2">
                                         <thead>
                                             <tr>
-                                                <th>{% trans "Fecha" %}</th>
-                                                <th>{% trans "Empleado" %}</th>
-                                                <th>{% trans "Horas" %}</th>
-                                                <th>{% trans "Costo Labor" %}</th>
+                                                <th>{% trans "Date" %}</th>
+                                                <th>{% trans "Employee" %}</th>
+                                                <th>{% trans "Hours" %}</th>
+                                                <th>{% trans "Labor Cost" %}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -260,7 +260,7 @@
                                 </details>
                             </div>
                         {% else %}
-                            <p class="text-muted mb-0">✅ {% trans "No hay tiempo general sin facturar." %}</p>
+                            <p class="text-muted mb-0">✅ {% trans "No unbilled general time." %}</p>
                         {% endif %}
                     </div>
                 </div>
@@ -269,7 +269,7 @@
                 {% if time_by_co %}
                 <div class="card mb-3">
                     <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">⏱️ {% trans "Tiempo Extra en Change Orders" %}</h5>
+                        <h5 class="mb-0">⏱️ {% trans "Extra Time on Change Orders" %}</h5>
                     </div>
                     <div class="card-body">
                         {% for co_data in time_by_co %}
@@ -279,19 +279,19 @@
                                     <strong>{% trans "CO" %} #{{ co_data.co.id }}</strong>: {{ co_data.co.description|truncatewords:10 }}
                                 </label>
                                 <div class="ms-4 small">
-                                    ⏱️ {{ co_data.total_hours }} {% trans "horas" %} | 💵 {% trans "Facturar" %}: <strong>${{ co_data.billable_amount|floatformat:2 }}</strong>
+                                    ⏱️ {{ co_data.total_hours }} {% trans "hours" %} | 💵 {% trans "Bill" %}: <strong>${{ co_data.billable_amount|floatformat:2 }}</strong>
                                 </div>
                             </div>
                             <div class="ms-4 mt-1 mb-3">
                                 <details>
-                                    <summary class="small text-muted" style="cursor: pointer;">{% blocktrans with count=co_data.entries|length %}Ver {{ count }} entradas de tiempo{% endblocktrans %}</summary>
+                                    <summary class="small text-muted" style="cursor: pointer;">{% blocktrans with count=co_data.entries|length %}View {{ count }} time entries{% endblocktrans %}</summary>
                                     <table class="table table-sm table-bordered mt-2">
                                         <thead>
                                             <tr>
-                                                <th>{% trans "Fecha" %}</th>
-                                                <th>{% trans "Empleado" %}</th>
-                                                <th>{% trans "Horas" %}</th>
-                                                <th>{% trans "Notas" %}</th>
+                                                <th>{% trans "Date" %}</th>
+                                                <th>{% trans "Employee" %}</th>
+                                                <th>{% trans "Hours" %}</th>
+                                                <th>{% trans "Notes" %}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -318,14 +318,14 @@
             <div class="col-md-4">
                 <div class="card sticky-top" style="top: 20px;">
                     <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0">💰 {% trans "Resumen de Factura" %}</h5>
+                        <h5 class="mb-0">💰 {% trans "Invoice Summary" %}</h5>
                     </div>
                     <div class="card-body">
                         <table class="table table-sm">
                             <tbody>
                                 {% if estimate %}
                                 <tr id="summary-estimate" class="estimate-summary">
-                                    <td>{% trans "Contrato Base" %}</td>
+                                    <td>{% trans "Base Contract" %}</td>
                                     <td class="text-end"><strong>${{ estimate_total|floatformat:2 }}</strong></td>
                                 </tr>
                                 {% endif %}
@@ -359,22 +359,22 @@
                         </table>
 
                         <div class="mb-3">
-                            <label for="due_date" class="form-label">{% trans "Fecha de Vencimiento" %}</label>
+                            <label for="due_date" class="form-label">{% trans "Due Date" %}</label>
                             <input type="date" class="form-control" name="due_date" id="due_date" value="{{ due_date|default:'' }}">
-                            <small class="text-muted">{% trans "Default: Net 30 días" %}</small>
+                            <small class="text-muted">{% trans "Default: Net 30 days" %}</small>
                         </div>
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-success btn-lg">
-                                ✅ {% trans "Generar Factura" %}
+                                ✅ {% trans "Generate Invoice" %}
                             </button>
                             <a href="{% url 'project_overview' project.id %}" class="btn btn-outline-secondary">
-                                {% trans "Cancelar" %}
+                                {% trans "Cancel" %}
                             </a>
                         </div>
 
                         <div class="alert alert-info mt-3 small">
-                            <strong>💡 {% trans "Nota:" %}</strong> {% trans "Esta factura se creará en estado Borrador. Podrás editarla y marcarla como \"Enviada\" después." %}
+                            <strong>💡 {% trans "Note:" %}</strong> {% trans "This invoice will be created in Draft status. You can edit it and mark it as "Sent" later." %}
                         </div>
                     </div>
                 </div>
