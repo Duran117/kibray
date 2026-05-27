@@ -94,16 +94,24 @@ def proposal_public_view(request, token):
                 from core.tasks import auto_save_pdf_async
 
                 est_id = estimate.id
+
+                def _enqueue_legacy_estimate_pdf():
+                    try:
+                        auto_save_pdf_async.delay(
+                            doc_kind="estimate",
+                            doc_id=est_id,
+                            user_id=None,
+                            as_contract=True,
+                            overwrite=True,
+                        )
+                    except Exception as inner_exc:
+                        logger.warning(
+                            "Estimate PDF enqueue failed for est %s (broker?): %s",
+                            est_id, inner_exc,
+                        )
+
                 # Defer to Celery so client-facing approval response is fast.
-                transaction.on_commit(
-                    lambda: auto_save_pdf_async.delay(
-                        doc_kind="estimate",
-                        doc_id=est_id,
-                        user_id=None,
-                        as_contract=True,
-                        overwrite=True,
-                    )
-                )
+                transaction.on_commit(_enqueue_legacy_estimate_pdf)
             except Exception as e:
                 logger.warning(f"Failed to enqueue Estimate PDF auto-save: {e}")
             

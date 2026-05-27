@@ -751,14 +751,23 @@ def invoice_mark_sent(request, invoice_id):
 
             invoice_id = invoice.id
             user_id = request.user.id
-            transaction.on_commit(
-                lambda: auto_save_pdf_async.delay(
-                    doc_kind="invoice",
-                    doc_id=invoice_id,
-                    user_id=user_id,
-                    overwrite=True,
-                )
-            )
+
+            def _enqueue_auto_save():
+                # Wrapped: never let broker outage 500 the mark-sent request.
+                try:
+                    auto_save_pdf_async.delay(
+                        doc_kind="invoice",
+                        doc_id=invoice_id,
+                        user_id=user_id,
+                        overwrite=True,
+                    )
+                except Exception as inner_exc:  # broker down, network issue, etc.
+                    logger.warning(
+                        "Invoice %s PDF auto-save enqueue failed (broker?): %s",
+                        invoice_id, inner_exc,
+                    )
+
+            transaction.on_commit(_enqueue_auto_save)
         except Exception as e:
             logger.warning(f"Failed to enqueue Invoice PDF auto-save: {e}")
         
@@ -1433,15 +1442,23 @@ def estimate_detail_view(request, estimate_id):
 
                 est_id = est.id
                 user_id = request.user.id
-                transaction.on_commit(
-                    lambda: auto_save_pdf_async.delay(
-                        doc_kind="estimate",
-                        doc_id=est_id,
-                        user_id=user_id,
-                        as_contract=True,
-                        overwrite=True,
-                    )
-                )
+
+                def _enqueue_legacy_contract():
+                    try:
+                        auto_save_pdf_async.delay(
+                            doc_kind="estimate",
+                            doc_id=est_id,
+                            user_id=user_id,
+                            as_contract=True,
+                            overwrite=True,
+                        )
+                    except Exception as inner_exc:
+                        logger.warning(
+                            "Legacy contract PDF enqueue failed for est %s (broker?): %s",
+                            est_id, inner_exc,
+                        )
+
+                transaction.on_commit(_enqueue_legacy_contract)
                 messages.info(request, _("Contract PDF queued for background generation (legacy format)."))
         else:
             messages.info(request, _("Estimate was already approved."))
@@ -1489,15 +1506,23 @@ def estimate_detail_view(request, estimate_id):
 
                 est_id = est.id
                 user_id = request.user.id
-                transaction.on_commit(
-                    lambda: auto_save_pdf_async.delay(
-                        doc_kind="estimate",
-                        doc_id=est_id,
-                        user_id=user_id,
-                        as_contract=False,
-                        overwrite=True,
-                    )
-                )
+
+                def _enqueue_estimate_pdf():
+                    try:
+                        auto_save_pdf_async.delay(
+                            doc_kind="estimate",
+                            doc_id=est_id,
+                            user_id=user_id,
+                            as_contract=False,
+                            overwrite=True,
+                        )
+                    except Exception as inner_exc:
+                        logger.warning(
+                            "Estimate PDF enqueue failed for est %s (broker?): %s",
+                            est_id, inner_exc,
+                        )
+
+                transaction.on_commit(_enqueue_estimate_pdf)
                 messages.success(request, _("Estimate PDF regeneration queued in background."))
         except Exception as e:
             logger.error(f"Failed to regenerate PDF: {e}")
