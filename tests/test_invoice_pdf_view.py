@@ -153,3 +153,42 @@ def test_invoice_pdf_rendered_body_has_no_spanish(client, staff_user, invoice):
                  "Contrato Base", "Estimado v", "para CO #", "horas @"]:
         assert word not in body_text, f"Spanish word leaked into PDF: {word!r}"
 
+
+@pytest.mark.django_db
+def test_invoice_pdf_small_invoice_fits_single_page(client, staff_user, invoice):
+    """A typical small invoice (a handful of line items) must render on 1 page."""
+    pypdf = pytest.importorskip("pypdf")
+    import io
+
+    client.force_login(staff_user)
+    resp = client.get(reverse("invoice_pdf", args=[invoice.id]))
+    assert resp.status_code == 200
+
+    reader = pypdf.PdfReader(io.BytesIO(resp.content))
+    assert len(reader.pages) == 1, (
+        f"Small invoice should fit on a single page, got {len(reader.pages)} pages"
+    )
+
+
+@pytest.mark.django_db
+def test_invoice_pdf_uses_english_locale(client, staff_user, invoice):
+    """PDF must render dates in English and use a dot as decimal separator."""
+    pypdf = pytest.importorskip("pypdf")
+    import io
+
+    client.force_login(staff_user)
+    resp = client.get(reverse("invoice_pdf", args=[invoice.id]))
+    reader = pypdf.PdfReader(io.BytesIO(resp.content))
+    text = "\n".join((p.extract_text() or "") for p in reader.pages).lower()
+
+    # No Spanish month names
+    spanish_months = ("enero", "febrero", "marzo", "abril", "mayo", "junio",
+                      "julio", "agosto", "septiembre", "octubre", "noviembre",
+                      "diciembre")
+    leaked = [m for m in spanish_months if m in text]
+    assert not leaked, f"Spanish month names leaked into PDF: {leaked}"
+
+    # Decimal separator is a dot, not a comma (e.g. $1500.00, not $1.500,00)
+    assert "$1500,00" not in text and "$1.500,00" not in text, (
+        "Comma decimal separator leaked into PDF (locale not forced to en)"
+    )
