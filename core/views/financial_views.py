@@ -1,4 +1,5 @@
 """Invoice, estimate, cost code & financial views — extracted from legacy_views.py in Phase 8."""
+from decimal import ROUND_HALF_UP
 from core.views._helpers import *  # noqa: F401, F403
 from core.access import is_admin_or_pm
 from core.views._helpers import (
@@ -183,16 +184,20 @@ def invoice_builder_view(request, project_id):
                     continue
                 progressive_used = True
                 # Compute amount using direct cost proportionally (note: markups are handled in base total; here we bill direct portion)
-                amount = (eline.direct_cost() or Decimal("0")) * (pct / Decimal("100"))
+                raw_amount = (eline.direct_cost() or Decimal("0")) * (pct / Decimal("100"))
+                # Quantize to 2 decimals to satisfy DecimalField(max_digits=10, decimal_places=2)
+                amount = raw_amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                # Also quantize the percentage to 2 decimals (DecimalField max_digits=5, decimal_places=2)
+                pct_q = pct.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
                 il = InvoiceLine.objects.create(
                     invoice=invoice,
-                    description=f"Estimate Progress: {eline.cost_code.code} - {eline.description[:60]} ({pct}%)",
+                    description=f"Estimate Progress: {eline.cost_code.code} - {eline.description[:60]} ({pct_q}%)",
                     amount=amount,
                 )
                 InvoiceLineEstimate.objects.create(
                     invoice_line=il,
                     estimate_line=eline,
-                    percentage_billed=pct,
+                    percentage_billed=pct_q,
                     amount=amount,
                 )
                 lines_created += 1
