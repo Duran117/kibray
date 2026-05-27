@@ -137,6 +137,12 @@
                                                            data-direct-cost="{{ line.direct_cost }}"
                                                            data-max-pct="{{ line.remaining_pct|floatformat:2 }}"
                                                            placeholder="0.00" style="font-size: 14px;">
+                                                    <div class="btn-group btn-group-sm mt-1 w-100" role="group">
+                                                        <button type="button" class="btn btn-outline-secondary py-0 px-1 prog-quick-btn" data-line-id="{{ line.id }}" data-pct="25" style="font-size:10px;">25%</button>
+                                                        <button type="button" class="btn btn-outline-secondary py-0 px-1 prog-quick-btn" data-line-id="{{ line.id }}" data-pct="50" style="font-size:10px;">50%</button>
+                                                        <button type="button" class="btn btn-outline-secondary py-0 px-1 prog-quick-btn" data-line-id="{{ line.id }}" data-pct="75" style="font-size:10px;">75%</button>
+                                                        <button type="button" class="btn btn-outline-primary py-0 px-1 prog-quick-btn" data-line-id="{{ line.id }}" data-pct="max" style="font-size:10px;">MAX</button>
+                                                    </div>
                                                 {% else %}
                                                     <input type="number" class="form-control form-control-sm text-center" disabled value="0" title="{% trans 'Completely billed' %}">
                                                 {% endif %}
@@ -202,6 +208,14 @@
                                                 {% endif %}
                                             </div>
                                         </div>
+                                        {% if line.remaining_pct > 0 %}
+                                        <div class="btn-group btn-group-sm mt-2 w-100" role="group">
+                                            <button type="button" class="btn btn-outline-secondary prog-quick-btn" data-line-id="{{ line.id }}" data-pct="25">25%</button>
+                                            <button type="button" class="btn btn-outline-secondary prog-quick-btn" data-line-id="{{ line.id }}" data-pct="50">50%</button>
+                                            <button type="button" class="btn btn-outline-secondary prog-quick-btn" data-line-id="{{ line.id }}" data-pct="75">75%</button>
+                                            <button type="button" class="btn btn-outline-primary prog-quick-btn" data-line-id="{{ line.id }}" data-pct="max">MAX</button>
+                                        </div>
+                                        {% endif %}
                                         <div class="mt-2 text-end small">
                                             <span class="text-muted">{% trans "Amount to bill" %}:</span>
                                             <span class="prog-amount-display fw-bold text-success ms-1" data-line-id="{{ line.id }}">$0.00</span>
@@ -506,6 +520,27 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     if (estimateCheckbox) estimateCheckbox.addEventListener('change', recompute);
+
+    // Quick-pick buttons (25/50/75/MAX)
+    document.querySelectorAll('.prog-quick-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.lineId;
+            const pctArg = this.dataset.pct;
+            // Find any input for this line to read max
+            const anyInput = document.querySelector('.prog-pct-input[data-line-id="' + id + '"]');
+            if (!anyInput) return;
+            const maxPct = parseFloat(anyInput.dataset.maxPct) || 0;
+            let target = (pctArg === 'max') ? maxPct : Math.min(parseFloat(pctArg), maxPct);
+            // Apply to all inputs for this line (desktop + mobile)
+            document.querySelectorAll('.prog-pct-input[data-line-id="' + id + '"]').forEach(inp => {
+                inp.value = target.toFixed(2);
+            });
+            if (estimateCheckbox && target > 0 && !estimateCheckbox.checked) {
+                estimateCheckbox.checked = true;
+            }
+            recompute();
+        });
+    });
 
     // Toggle row visibility for CO/time checkboxes
     function bindCheckboxRow(checkboxSelector, rowId) {
