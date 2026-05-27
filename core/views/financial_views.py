@@ -186,7 +186,7 @@ def invoice_builder_view(request, project_id):
                 amount = (eline.direct_cost() or Decimal("0")) * (pct / Decimal("100"))
                 il = InvoiceLine.objects.create(
                     invoice=invoice,
-                    description=f"Progreso Estimado: {eline.cost_code.code} - {eline.description[:60]} ({pct}%)",
+                    description=f"Estimate Progress: {eline.cost_code.code} - {eline.description[:60]} ({pct}%)",
                     amount=amount,
                 )
                 InvoiceLineEstimate.objects.create(
@@ -201,7 +201,7 @@ def invoice_builder_view(request, project_id):
             if not progressive_used:
                 InvoiceLine.objects.create(
                     invoice=invoice,
-                    description=f"Contrato Base - Estimado v{latest_estimate.version}",
+                    description=f"Base Contract - Estimate v{latest_estimate.version}",
                     amount=total,
                 )
                 lines_created += 1
@@ -216,7 +216,7 @@ def invoice_builder_view(request, project_id):
                 if co.pricing_type == "FIXED":
                     InvoiceLine.objects.create(
                         invoice=invoice,
-                        description=f"CO #{co.id} (Fijo): {co.description[:90]}",
+                        description=f"CO #{co.id} (Fixed): {co.description[:90]}",
                         amount=co.amount,
                     )
                     lines_created += 1
@@ -227,7 +227,7 @@ def invoice_builder_view(request, project_id):
                     labor_line = InvoiceLine.objects.create(
                         invoice=invoice,
                         description=(
-                            f"Mano de Obra CO #{co.id}: {breakdown['labor_hours']} hrs @ ${breakdown['billing_rate']}/hr"
+                            f"Labor CO #{co.id}: {breakdown['labor_hours']} hrs @ ${breakdown['billing_rate']}/hr"
                         ),
                         amount=breakdown["labor_total"],
                     )
@@ -237,7 +237,7 @@ def invoice_builder_view(request, project_id):
                         material_line = InvoiceLine.objects.create(
                             invoice=invoice,
                             description=(
-                                f"Materiales CO #{co.id}: costo ${breakdown['raw_material_cost']} + {breakdown['material_markup_pct']}%"
+                                f"Materials CO #{co.id}: cost ${breakdown['raw_material_cost']} + {breakdown['material_markup_pct']}% markup"
                             ),
                             amount=breakdown["material_total"],
                         )
@@ -264,7 +264,7 @@ def invoice_builder_view(request, project_id):
             total_billed = general_hours * tm_hourly_rate
             InvoiceLine.objects.create(
                 invoice=invoice,
-                description=f"Tiempo & Materiales - {general_hours} horas @ ${tm_hourly_rate}/hr",
+                description=f"Time & Materials - {general_hours} hours @ ${tm_hourly_rate}/hr",
                 amount=total_billed,
             )
             # Link time entries to this line (optional - for tracking)
@@ -283,7 +283,7 @@ def invoice_builder_view(request, project_id):
 
                     InvoiceLine.objects.create(
                         invoice=invoice,
-                        description=f"T&M para CO #{co.id}: {co.description[:80]} - {hours} hrs @ ${tm_hourly_rate}/hr",
+                        description=f"T&M for CO #{co.id}: {co.description[:80]} - {hours} hrs @ ${tm_hourly_rate}/hr",
                         amount=total_billed,
                     )
                     lines_created += 1

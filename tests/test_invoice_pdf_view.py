@@ -119,3 +119,37 @@ def test_invoice_pdf_permission_required(client, normal_user, invoice):
     assert resp.status_code in (302, 403)
     if resp.status_code == 302:
         assert "dashboard" in resp["Location"]
+
+
+@pytest.mark.django_db
+def test_invoice_pdf_rendered_body_has_no_spanish(client, staff_user, invoice):
+    """End-to-end check: a real PDF for a real invoice must not include
+    any of the legacy Spanish strings that used to leak from line items."""
+    from core.models import InvoiceLine
+
+    # Add lines using the NEW English descriptions emitted by the fixed view
+    InvoiceLine.objects.create(
+        invoice=invoice,
+        description="Labor CO #99: 5.0 hrs @ $50.00/hr",
+        amount=250,
+    )
+    InvoiceLine.objects.create(
+        invoice=invoice,
+        description="Materials CO #99: cost $80.00 + 15.0% markup",
+        amount=92,
+    )
+    InvoiceLine.objects.create(
+        invoice=invoice,
+        description="CO #100 (Fixed): exterior chinking",
+        amount=300,
+    )
+
+    client.force_login(staff_user)
+    resp = client.get(reverse("invoice_pdf", args=[invoice.id]))
+    assert resp.status_code == 200
+    # Decode latin-1 just to scan for ASCII Spanish leftovers in the PDF stream
+    body_text = resp.content.decode("latin-1", errors="ignore")
+    for word in ["Mano de Obra", "Materiales CO", "(Fijo)", "Tiempo &",
+                 "Contrato Base", "Estimado v", "para CO #", "horas @"]:
+        assert word not in body_text, f"Spanish word leaked into PDF: {word!r}"
+
