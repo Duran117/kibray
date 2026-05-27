@@ -106,7 +106,7 @@ def test_invoice_pdf_template_is_english(invoice):
         assert word not in html, f"Spanish word found in PDF template: {word!r}"
     # Sanity: required English labels present
     assert "INVOICE" in html
-    assert "Bill To" in html
+    assert ("Bill To" in html) or ("BILL TO" in html)
     assert "BALANCE DUE" in html
     assert "Payment Information" in html
 
