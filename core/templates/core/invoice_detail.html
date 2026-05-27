@@ -63,8 +63,16 @@
                             <i class="bi bi-person"></i> {% trans "Bill To" %}
                         </div>
                         <div class="text-lg font-bold text-slate-900">
-                            {% if invoice.project.client %}{{ invoice.project.client.name }}{% else %}{{ invoice.project.name }}{% endif %}
+                            {{ bill_to.name|default:invoice.project.client|default:invoice.project.name }}
                         </div>
+                        {% if bill_to.address or bill_to.city_state_zip or bill_to.email or bill_to.phone %}
+                        <div class="text-sm text-slate-600 mt-1 leading-snug">
+                            {% if bill_to.address %}{{ bill_to.address }}<br>{% endif %}
+                            {% if bill_to.city_state_zip %}{{ bill_to.city_state_zip }}<br>{% endif %}
+                            {% if bill_to.email %}<i class="bi bi-envelope text-xs me-1"></i>{{ bill_to.email }}<br>{% endif %}
+                            {% if bill_to.phone %}<i class="bi bi-telephone text-xs me-1"></i>{{ bill_to.phone }}{% endif %}
+                        </div>
+                        {% endif %}
                     </div>
                     <div class="bg-slate-50 rounded-lg p-4 border border-slate-100">
                         <div class="flex items-center gap-2 text-sm font-semibold text-slate-500 mb-2">

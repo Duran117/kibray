@@ -10,6 +10,55 @@ from core.views._helpers import (
 from django.utils.translation import gettext_lazy as _  # noqa: F811
 
 
+def _resolve_bill_to(project):
+    """
+    Build a Bill To dict for an invoice, resolving from the richest source first:
+      1) project.billing_organization  (preferred — has full billing address)
+      2) project.project_lead          (ClientContact → User)
+      3) project.client                (legacy CharField)
+    Returns a dict with keys: name, address, city_state_zip, email, phone.
+    Empty strings when a field is unavailable.
+    """
+    bill = {"name": "", "address": "", "city_state_zip": "", "email": "", "phone": ""}
+    if project is None:
+        return bill
+
+    org = getattr(project, "billing_organization", None)
+    if org:
+        bill["name"] = org.legal_name or org.name or ""
+        bill["address"] = org.billing_address or ""
+        city = org.billing_city or ""
+        state = org.billing_state or ""
+        zip_code = org.billing_zip or ""
+        parts = []
+        if city:
+            parts.append(city)
+        if state or zip_code:
+            parts.append(f"{state} {zip_code}".strip())
+        bill["city_state_zip"] = ", ".join(parts)
+        bill["email"] = org.billing_email or ""
+        bill["phone"] = org.billing_phone or ""
+        if bill["name"]:
+            return bill
+
+    lead = getattr(project, "project_lead", None)
+    if lead and getattr(lead, "user", None):
+        u = lead.user
+        full = (u.get_full_name() or u.username or "").strip()
+        if full:
+            bill["name"] = full
+        bill["email"] = bill["email"] or (u.email or "")
+        bill["phone"] = bill["phone"] or (lead.phone_direct or lead.phone_mobile or "")
+        if bill["name"]:
+            return bill
+
+    # Legacy fallback: free-text CharField
+    legacy = (project.client or "").strip() if getattr(project, "client", None) else ""
+    if legacy:
+        bill["name"] = legacy
+    return bill
+
+
 
 @login_required
 def payroll_summary_view(request):
@@ -470,6 +519,7 @@ def invoice_detail(request, pk):
         "days_until_due": days_until_due,
         "is_overdue": is_overdue,
         "status_color": status_color,
+        "bill_to": _resolve_bill_to(invoice.project),
     }
     return render(request, "core/invoice_detail.html", context)
 
@@ -518,6 +568,7 @@ def invoice_pdf(request, pk):
         "now": timezone.now(),
         "is_overdue": is_overdue,
         "logo_url": request.build_absolute_uri("/static/kibray-logo.png"),
+        "bill_to": _resolve_bill_to(invoice.project),
     }
 
     template = get_template("core/invoice_pdf.html")

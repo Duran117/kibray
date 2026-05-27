@@ -138,11 +138,12 @@
         <tr>
             <td class="party-cell">
                 <div class="label">Bill To</div>
-                <div class="party-name">{{ invoice.project.client|default:"&mdash;" }}</div>
+                <div class="party-name">{{ bill_to.name|default:invoice.project.client|default:"&mdash;" }}</div>
                 <div class="party-details">
-                    {% if invoice.project.client_address %}{{ invoice.project.client_address }}<br>{% endif %}
-                    {% if invoice.project.client_email %}{{ invoice.project.client_email }}<br>{% endif %}
-                    {% if invoice.project.client_phone %}{{ invoice.project.client_phone }}{% endif %}
+                    {% if bill_to.address %}{{ bill_to.address }}<br>{% endif %}
+                    {% if bill_to.city_state_zip %}{{ bill_to.city_state_zip }}<br>{% endif %}
+                    {% if bill_to.email %}{{ bill_to.email }}<br>{% endif %}
+                    {% if bill_to.phone %}{{ bill_to.phone }}{% endif %}
                 </div>
             </td>
             <td class="party-cell last">
