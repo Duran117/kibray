@@ -1432,17 +1432,19 @@ class PayrollPeriodViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def generate_expenses(self, request, pk=None):
         period = self.get_object()
-        period.generate_expense_records()
+        try:
+            period.generate_expense_records()
+        except ValueError as e:
+            return Response({"error": str(e)}, status=400)
         return Response({"status": "ok"})
 
     @action(detail=True, methods=["post"])
     def recompute(self, request, pk=None):
         """Recompute payroll records and totals for a period."""
-        from core.services.payroll_recompute import recompute_period
-
         period = self.get_object()
         force = request.data.get("force") in (True, "true", "1", 1)
         try:
+            from core.services.payroll_recompute import recompute_period
             count = recompute_period(period, force=bool(force))
             return Response({"status": "recomputed", "records_updated": count})
         except Exception as e:
@@ -1465,7 +1467,7 @@ class PayrollPeriodViewSet(viewsets.ModelViewSet):
             "week_start": str(period.week_start),
             "week_end": str(period.week_end),
             "status": period.status,
-            "locked": period.locked,
+            "locked": getattr(period, "locked", False),
             "total_payroll": float(period.total_payroll()),
             "total_paid": float(period.total_paid()),
             "records": [
@@ -1543,15 +1545,25 @@ class PayrollRecordViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def create_expense(self, request, pk=None):
         record = self.get_object()
-        exp = record.create_expense_record()
+        try:
+            exp = record.create_expense_record()
+        except ValueError as e:
+            # E.g. "no project found for <employee> week ..." — surface as 400.
+            return Response({"error": str(e)}, status=400)
         return Response({"expense_id": exp.id})
 
     @action(detail=True, methods=["get"])
     def audit(self, request, pk=None):
         """Gap B: Retrieve audit trail for this payroll record."""
-        from core.api.serializers import PayrollRecordAuditSerializer
-
         record = self.get_object()
+        try:
+            from core.api.serializers import PayrollRecordAuditSerializer
+        except ImportError:
+            # Audit serializer hasn't been implemented yet; degrade gracefully.
+            return Response(
+                {"error": "Audit serializer not available in this build."},
+                status=501,
+            )
         audits = record.audits.all()
         serializer = PayrollRecordAuditSerializer(audits, many=True)
         return Response(serializer.data)

@@ -1006,6 +1006,16 @@ def sop_create_wizard(request, template_id=None):
         video_url = request.POST.get("video_url", "")
         is_active = request.POST.get("is_active") == "on"
 
+        # Required-field guard: name is NOT NULL on ActivityTemplate, so block
+        # empty submissions before they hit the database.
+        if not (name or "").strip():
+            messages.error(request, _("Name is required to create an SOP."))
+            return render(
+                request,
+                "core/sop_creator_wizard.html",
+                {"instance": instance, "form_data": request.POST},
+            )
+
         # Parse JSON fields
         import json
 

@@ -252,6 +252,10 @@ def daily_log_create(request, project_id):
 
             messages.success(request, _("Daily Log created successfully"))
             return redirect("daily_log_detail", log_id=dl.id)
+        else:
+            # Form invalid on POST: still need a formset to re-render the page.
+            schedule_formset = DailyLogScheduleProgressFormSet(request.POST, prefix='schedule')
+            configure_formset_querysets(schedule_formset, project)
     else:
         # Default values
         initial = {

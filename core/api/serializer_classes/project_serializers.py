@@ -156,8 +156,21 @@ class ProjectDetailSerializer(ProjectListSerializer):
                 }
             )
 
-        # Sort by timestamp and return last 5
-        activities.sort(key=lambda x: x["timestamp"], reverse=True)
+        # Sort by timestamp and return last 5.
+        # Some sources return datetime, others date; some are tz-aware, others
+        # are naive. Normalize everything to a tz-aware datetime for safe compare.
+        from datetime import datetime, date, time
+        from django.utils import timezone as _tz
+
+        def _ts_key(item):
+            ts = item.get("timestamp")
+            if isinstance(ts, datetime):
+                return _tz.make_aware(ts) if _tz.is_naive(ts) else ts
+            if isinstance(ts, date):
+                return _tz.make_aware(datetime.combine(ts, time.min))
+            return _tz.make_aware(datetime.min)
+
+        activities.sort(key=_ts_key, reverse=True)
         return activities[:5]
 
 

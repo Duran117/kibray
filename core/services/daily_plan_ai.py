@@ -15,6 +15,7 @@ Features:
 
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional
 
 from django.db.models import Sum
 from django.utils import timezone
