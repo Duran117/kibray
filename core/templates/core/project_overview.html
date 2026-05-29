@@ -48,10 +48,20 @@
     z-index: 50; /* Higher than global nav (40) */
     overflow-y: auto;
     overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
     display: flex;
     flex-direction: column;
     border-right: none; /* Remove any border that might cause the white line */
   }
+  .project-sidebar::-webkit-scrollbar { width: 8px; }
+  .project-sidebar::-webkit-scrollbar-track { background: transparent; }
+  .project-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.18);
+    border-radius: 4px;
+  }
+  .project-sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.32); }
   
   /* Collapsed state */
   .project-sidebar.collapsed { width: 56px; }
@@ -74,11 +84,14 @@
   /* Nav sections */
   .nav-section { padding: 0.5rem 0; }
   
-  /* Navigation container - flex grow to fill space */
+  /* Navigation container - grow to fill space.
+     NOTE: do NOT set overflow-y here; the parent .project-sidebar is the
+     single scroll container. A nested overflow:auto here was capturing
+     wheel events and preventing scroll when the cursor was over the menu. */
   .project-sidebar > nav {
-    flex: 1;
-    overflow-y: auto;
+    flex: 1 0 auto;
     padding-bottom: 0.5rem;
+    min-height: 0;
   }
   .section-title {
     font-size: 11px;

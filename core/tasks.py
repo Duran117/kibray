@@ -1073,7 +1073,7 @@ def process_signature_post_tasks(document_type: str, document_id: int, signer_na
                         project_name=project_name,
                         signed_by=signer_name,
                         signed_at=timezone.localtime(document.client_signed_at).strftime('%Y-%m-%d %H:%M:%S') if document.client_signed_at else '',
-                        client_ip=document.client_signed_ip or '',
+                        client_ip=document.approval_ip or '',
                         location=document.room_location or 'N/A',
                     )
                     logger.info(f"Color Sample #{document_id}: Notification sent to {recipient_email}")
@@ -1096,16 +1096,15 @@ def process_signature_post_tasks(document_type: str, document_id: int, signer_na
                     logger.warning(f"Color Sample #{document_id}: Failed to send customer email: {e}")
             
             # --- PDF Generation ---
+            # ColorSample has no signed_pdf field of its own; the PDF is
+            # persisted via auto_save_colorsample_pdf -> ProjectFile below,
+            # which is the source of truth for signed Color Sample PDFs.
             try:
-                from core.services.pdf_service import generate_signed_color_sample_pdf
-                
-                pdf_bytes = generate_signed_color_sample_pdf(document)
+                from core.services.pdf_service import generate_signed_colorsample_pdf
+
+                pdf_bytes = generate_signed_colorsample_pdf(document)
                 if pdf_bytes:
-                    document.signed_pdf = ContentFile(
-                        pdf_bytes, name=f"color_sample_{document.id}_signed.pdf"
-                    )
-                    document.save(update_fields=["signed_pdf"])
-                    logger.info(f"Color Sample #{document_id}: Signed PDF generated")
+                    logger.info(f"Color Sample #{document_id}: Signed PDF generated ({len(pdf_bytes)} bytes)")
             except Exception as e:
                 logger.warning(f"Color Sample #{document_id}: PDF generation failed: {e}")
             
