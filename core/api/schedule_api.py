@@ -615,7 +615,7 @@ def create_schedule_phase_v2(request):
     denied = _reject_readonly(request)
     if denied:
         return denied
-    serializer = SchedulePhaseV2WriteSerializer(data=request.data)
+    serializer = SchedulePhaseV2WriteSerializer(data=request.data, context={"request": request})
     serializer.is_valid(raise_exception=True)
     phase = serializer.save()
     return Response(SchedulePhaseV2Serializer(phase).data, status=201)
@@ -635,7 +635,7 @@ def update_schedule_phase_v2(request, phase_id: int):
         phase.delete()
         return Response(status=204)
     
-    serializer = SchedulePhaseV2WriteSerializer(phase, data=request.data, partial=True)
+    serializer = SchedulePhaseV2WriteSerializer(phase, data=request.data, partial=True, context={"request": request})
     serializer.is_valid(raise_exception=True)
     phase = serializer.save()
     return Response(SchedulePhaseV2Serializer(phase).data)
@@ -647,7 +647,7 @@ def create_schedule_item_v2(request):
     denied = _reject_readonly(request)
     if denied:
         return denied
-    serializer = ScheduleItemV2WriteSerializer(data=request.data)
+    serializer = ScheduleItemV2WriteSerializer(data=request.data, context={"request": request})
     serializer.is_valid(raise_exception=True)
     item = serializer.save()
     return Response(ScheduleItemV2Serializer(item).data, status=201)
@@ -667,7 +667,7 @@ def update_schedule_item_v2(request, item_id: int):
         item.delete()
         return Response(status=204)
     
-    serializer = ScheduleItemV2WriteSerializer(item, data=request.data, partial=True)
+    serializer = ScheduleItemV2WriteSerializer(item, data=request.data, partial=True, context={"request": request})
     serializer.is_valid(raise_exception=True)
     item = serializer.save()
     return Response(ScheduleItemV2Serializer(item).data)
@@ -679,7 +679,7 @@ def create_schedule_task_v2(request):
     denied = _reject_readonly(request)
     if denied:
         return denied
-    serializer = ScheduleTaskV2WriteSerializer(data=request.data)
+    serializer = ScheduleTaskV2WriteSerializer(data=request.data, context={"request": request})
     serializer.is_valid(raise_exception=True)
     task = serializer.save()
     return Response(ScheduleTaskV2Serializer(task).data, status=201)
@@ -699,7 +699,7 @@ def update_schedule_task_v2(request, task_id: int):
         task.delete()
         return Response(status=204)
     
-    serializer = ScheduleTaskV2WriteSerializer(task, data=request.data, partial=True)
+    serializer = ScheduleTaskV2WriteSerializer(task, data=request.data, partial=True, context={"request": request})
     serializer.is_valid(raise_exception=True)
     task = serializer.save()
     return Response(ScheduleTaskV2Serializer(task).data)
@@ -711,7 +711,7 @@ def create_schedule_dependency_v2(request):
     denied = _reject_readonly(request)
     if denied:
         return denied
-    serializer = ScheduleDependencyV2WriteSerializer(data=request.data)
+    serializer = ScheduleDependencyV2WriteSerializer(data=request.data, context={"request": request})
     serializer.is_valid(raise_exception=True)
     dep = serializer.save()
     return Response(ScheduleDependencyV2Serializer(dep).data, status=201)
