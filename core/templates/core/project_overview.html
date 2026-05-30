@@ -1052,22 +1052,51 @@ function toggleSidebar() {
 }
 
 // ===== Mobile Drawer Functions =====
+// iOS Safari does NOT honor `body { overflow: hidden }` — touches on
+// fixed-positioned overlays still scroll the document underneath. The
+// only reliable cross-browser lock is `position: fixed` on <body> with
+// the current scrollY preserved as a negative `top`. We restore on close.
+let _kbDrawerSavedScrollY = 0;
+
+function _kbLockBodyScroll() {
+  _kbDrawerSavedScrollY = window.scrollY || window.pageYOffset || 0;
+  const body = document.body;
+  body.style.position = 'fixed';
+  body.style.top = `-${_kbDrawerSavedScrollY}px`;
+  body.style.left = '0';
+  body.style.right = '0';
+  body.style.width = '100%';
+  body.style.overflow = 'hidden';
+}
+
+function _kbUnlockBodyScroll() {
+  const body = document.body;
+  body.style.position = '';
+  body.style.top = '';
+  body.style.left = '';
+  body.style.right = '';
+  body.style.width = '';
+  body.style.overflow = '';
+  // Restore the previous scroll position (iOS jumped it to 0 otherwise)
+  window.scrollTo(0, _kbDrawerSavedScrollY);
+}
+
 function openMobileDrawer() {
   const drawer = document.getElementById('mobileDrawer');
   const overlay = document.getElementById('mobileDrawerOverlay');
-  
+
   drawer.classList.add('open');
   overlay.classList.add('active');
-  document.body.style.overflow = 'hidden'; // Prevent background scroll
+  _kbLockBodyScroll();
 }
 
 function closeMobileDrawer() {
   const drawer = document.getElementById('mobileDrawer');
   const overlay = document.getElementById('mobileDrawerOverlay');
-  
+
   drawer.classList.remove('open');
   overlay.classList.remove('active');
-  document.body.style.overflow = ''; // Restore scroll
+  _kbUnlockBodyScroll();
 }
 
 // Close drawer on escape key
