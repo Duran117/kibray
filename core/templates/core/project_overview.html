@@ -230,11 +230,27 @@
     z-index: 60;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
+    /* Single scroll container for the drawer. iOS Safari needs both
+       overscroll-behavior:contain (so scroll doesn't bleed to <body>) and
+       -webkit-overflow-scrolling:touch for momentum. */
     overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     display: flex;
     flex-direction: column;
   }
   .mobile-drawer.open { transform: translateX(0); }
+
+  /* The inner <nav> must NOT be another scroll container — that was
+     trapping touch events and preventing scroll on mobile. Let it grow
+     with its content and let .mobile-drawer handle scrolling. */
+  .mobile-drawer > nav {
+    flex: 1 0 auto;
+    min-height: 0;
+    /* Defensive: in case Tailwind's overflow-y-auto leaks in via a class,
+       force it off here. */
+    overflow: visible !important;
+  }
   
   .mobile-drawer .drawer-header {
     padding: 1rem;
@@ -353,7 +369,7 @@
     </button>
   </div>
   
-  <nav class="flex-1 py-2 overflow-y-auto">
+  <nav class="flex-1 py-2">
     <!-- Overview -->
     <a href="{% url 'project_overview' project.id %}" class="nav-item active">
       <i class="bi bi-house-door"></i>
