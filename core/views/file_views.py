@@ -269,62 +269,115 @@ def file_download(request, file_id):
                 filename=file_obj.name
             )
             return response
-        except FileNotFoundError:
-            # File doesn't exist on disk - try to regenerate if it's a signed document
-            logger.warning(f"File not found on disk: {file_obj.name}, attempting regeneration...")
-            
-            # Try to regenerate CO or ColorSample PDFs
-            if file_obj.name.startswith("CO_") or file_obj.name.startswith("ChangeOrder_"):
+        except (FileNotFoundError, OSError, ValueError) as exc:
+            # File doesn't exist on disk (ephemeral storage on Railway, file
+            # deleted, etc.) - try to regenerate if it's a signed document.
+            logger.warning(
+                f"File not found on disk: {file_obj.name} ({exc}); "
+                f"attempting regeneration..."
+            )
+            from django.core.files.base import ContentFile
+            from django.db.models import Q
+
+            def _send_regen(pdf_bytes: bytes) -> HttpResponse:
+                # Replace the old (missing) file blob with the freshly
+                # generated one so subsequent downloads hit disk directly.
+                try:
+                    if file_obj.file:
+                        file_obj.file.delete(save=False)
+                except Exception:
+                    pass
+                file_obj.file.save(file_obj.name, ContentFile(pdf_bytes), save=False)
+                file_obj.file_size = len(pdf_bytes)
+                file_obj.save(update_fields=["file", "file_size"])
+                resp = HttpResponse(pdf_bytes, content_type="application/pdf")
+                resp["Content-Disposition"] = (
+                    f'attachment; filename="{file_obj.name}"'
+                )
+                return resp
+
+            # ---- ChangeOrder PDFs (CO_<id>_... or ChangeOrder_<id>_...) ----
+            if (
+                file_obj.name.startswith("CO_")
+                or file_obj.name.startswith("ChangeOrder_")
+            ):
                 try:
                     from core.models import ChangeOrder
-                    from core.services.pdf_service import generate_signed_changeorder_pdf
-                    from django.core.files.base import ContentFile
-                    
-                    # Extract CO ID from filename (CO_13_xxx or ChangeOrder_13_xxx)
+                    from core.services.pdf_service import (
+                        generate_signed_changeorder_pdf,
+                    )
+
                     parts = file_obj.name.split("_")
-                    co_id = int(parts[1])
-                    co = ChangeOrder.objects.get(id=co_id)
-                    
-                    if co.signed_at:
+                    co = None
+                    # parts[1] should be the numeric id; fall back to scanning
+                    # all numeric tokens in case the filename format changes.
+                    for tok in parts[1:]:
+                        if tok.isdigit():
+                            co = ChangeOrder.objects.filter(
+                                id=int(tok), project=file_obj.project
+                            ).first()
+                            if co:
+                                break
+                    if co and co.signed_at:
                         pdf_bytes = generate_signed_changeorder_pdf(co)
-                        # Save regenerated file
-                        file_obj.file.save(file_obj.name, ContentFile(pdf_bytes), save=True)
                         logger.info(f"Regenerated CO PDF: {file_obj.name}")
-                        
-                        response = HttpResponse(pdf_bytes, content_type='application/pdf')
-                        response['Content-Disposition'] = f'attachment; filename="{file_obj.name}"'
-                        return response
+                        return _send_regen(pdf_bytes)
+                    logger.warning(
+                        f"Cannot regenerate CO PDF '{file_obj.name}': "
+                        f"co_found={bool(co)} signed={bool(co and co.signed_at)}"
+                    )
                 except Exception as regen_error:
-                    logger.error(f"Failed to regenerate CO PDF: {regen_error}")
-            
+                    logger.error(
+                        f"Failed to regenerate CO PDF: {regen_error}",
+                        exc_info=True,
+                    )
+
+            # ---- ColorSample PDFs (ColorSample_<sample_num>_<code>_...) ----
             elif file_obj.name.startswith("ColorSample_"):
                 try:
                     from core.models import ColorSample
-                    from core.services.pdf_service import generate_signed_colorsample_pdf
-                    from django.core.files.base import ContentFile
-                    
-                    # Extract sample ID from filename (ColorSample_XX_code_project.pdf)
+                    from core.services.pdf_service import (
+                        generate_signed_colorsample_pdf,
+                    )
+
                     parts = file_obj.name.split("_")
-                    sample_id = parts[1]
-                    # Could be ID or sample_number
-                    cs = ColorSample.objects.filter(
-                        models.Q(id=sample_id) | models.Q(sample_number=sample_id),
-                        project=file_obj.project
-                    ).first()
-                    
+                    cs = None
+                    # parts[1] is sample_number (string like "KPISM00004").
+                    # Try sample_number first, then any numeric token as id.
+                    if len(parts) >= 2 and parts[1]:
+                        cs = ColorSample.objects.filter(
+                            project=file_obj.project,
+                            sample_number=parts[1],
+                        ).first()
+                    if cs is None:
+                        for tok in parts[1:]:
+                            if tok.isdigit():
+                                cs = ColorSample.objects.filter(
+                                    id=int(tok), project=file_obj.project
+                                ).first()
+                                if cs:
+                                    break
                     if cs and cs.client_signed_at:
                         pdf_bytes = generate_signed_colorsample_pdf(cs)
-                        # Save regenerated file
-                        file_obj.file.save(file_obj.name, ContentFile(pdf_bytes), save=True)
-                        logger.info(f"Regenerated ColorSample PDF: {file_obj.name}")
-                        
-                        response = HttpResponse(pdf_bytes, content_type='application/pdf')
-                        response['Content-Disposition'] = f'attachment; filename="{file_obj.name}"'
-                        return response
+                        logger.info(
+                            f"Regenerated ColorSample PDF: {file_obj.name} "
+                            f"(sample id={cs.id}, {len(pdf_bytes)} bytes)"
+                        )
+                        return _send_regen(pdf_bytes)
+                    logger.warning(
+                        f"Cannot regenerate ColorSample PDF '{file_obj.name}': "
+                        f"cs_found={bool(cs)} "
+                        f"signed={bool(cs and cs.client_signed_at)}"
+                    )
                 except Exception as regen_error:
-                    logger.error(f"Failed to regenerate ColorSample PDF: {regen_error}")
-            
-            return HttpResponseNotFound("The file is not available. Please contact the administrator.")
+                    logger.error(
+                        f"Failed to regenerate ColorSample PDF: {regen_error}",
+                        exc_info=True,
+                    )
+
+            return HttpResponseNotFound(
+                "The file is not available. Please contact the administrator."
+            )
         except Exception as e:
             logger.error(f"File download error: {e}")
             return HttpResponseNotFound("Error al descargar. Por favor contacte al administrador.")
