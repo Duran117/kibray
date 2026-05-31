@@ -215,6 +215,10 @@
     z-index: 55;
     opacity: 0;
     transition: opacity 0.3s ease;
+    /* iOS Safari: stop touch gestures from passing through to the
+       page underneath while the drawer is open. */
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
   }
   .mobile-drawer-overlay.active { display: block; opacity: 1; }
   
@@ -230,25 +234,25 @@
     z-index: 60;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
-    /* Single scroll container for the drawer. iOS Safari needs both
-       overscroll-behavior:contain (so scroll doesn't bleed to <body>) and
-       -webkit-overflow-scrolling:touch for momentum. */
+    /* Single scroll container for the drawer. */
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    /* Allow only vertical scrolling gestures inside the drawer — this
+       also opts in to iOS Safari's native scroll handling, which is
+       what unblocks the drag-to-scroll there. */
+    touch-action: pan-y;
     display: flex;
     flex-direction: column;
   }
   .mobile-drawer.open { transform: translateX(0); }
 
   /* The inner <nav> must NOT be another scroll container — that was
-     trapping touch events and preventing scroll on mobile. Let it grow
-     with its content and let .mobile-drawer handle scrolling. */
+     trapping touch events. Let it grow with its content and let
+     .mobile-drawer handle scrolling. */
   .mobile-drawer > nav {
     flex: 1 0 auto;
     min-height: 0;
-    /* Defensive: in case Tailwind's overflow-y-auto leaks in via a class,
-       force it off here. */
     overflow: visible !important;
   }
   
@@ -299,6 +303,16 @@
     /* Ensure the main content wrapper is block on mobile */
     [data-layout-root] > .flex,
     .project-layout-wrapper { display: block !important; }
+  }
+
+  /* Background scroll lock while the mobile drawer is open.
+     Applied to BOTH html and body — iOS Safari ignores overflow:hidden
+     when set on just one element. Touch-gesture blocking is handled by
+     the overlay's touch-action:none (a child element), so we MUST NOT
+     set touch-action here or it would also block the drawer's scroll. */
+  html.kb-drawer-lock,
+  body.kb-drawer-lock {
+    overflow: hidden !important;
   }
 </style>
 {% endblock %}
@@ -1052,34 +1066,17 @@ function toggleSidebar() {
 }
 
 // ===== Mobile Drawer Functions =====
-// iOS Safari does NOT honor `body { overflow: hidden }` — touches on
-// fixed-positioned overlays still scroll the document underneath. The
-// only reliable cross-browser lock is `position: fixed` on <body> with
-// the current scrollY preserved as a negative `top`. We restore on close.
-let _kbDrawerSavedScrollY = 0;
-
-function _kbLockBodyScroll() {
-  _kbDrawerSavedScrollY = window.scrollY || window.pageYOffset || 0;
-  const body = document.body;
-  body.style.position = 'fixed';
-  body.style.top = `-${_kbDrawerSavedScrollY}px`;
-  body.style.left = '0';
-  body.style.right = '0';
-  body.style.width = '100%';
-  body.style.overflow = 'hidden';
-}
-
-function _kbUnlockBodyScroll() {
-  const body = document.body;
-  body.style.position = '';
-  body.style.top = '';
-  body.style.left = '';
-  body.style.right = '';
-  body.style.width = '';
-  body.style.overflow = '';
-  // Restore the previous scroll position (iOS jumped it to 0 otherwise)
-  window.scrollTo(0, _kbDrawerSavedScrollY);
-}
+// Scroll lock strategy:
+//   * touch-action:none on the overlay (CSS) stops touch gestures from
+//     bleeding through to the page underneath on iOS Safari.
+//   * touch-action:pan-y on the drawer (CSS) opts into native iOS
+//     vertical scrolling so the menu drags smoothly.
+//   * A .kb-drawer-lock class on <html> and <body> applies
+//     overflow:hidden to both, which iOS Safari respects WHEN set on
+//     both elements together (body alone is not enough).
+// We deliberately do NOT use the position:fixed body trick — on this
+// app's layout (body has min-h-screen + Tailwind utilities) it made the
+// drawer itself untouchable on iOS.
 
 function openMobileDrawer() {
   const drawer = document.getElementById('mobileDrawer');
@@ -1087,7 +1084,8 @@ function openMobileDrawer() {
 
   drawer.classList.add('open');
   overlay.classList.add('active');
-  _kbLockBodyScroll();
+  document.documentElement.classList.add('kb-drawer-lock');
+  document.body.classList.add('kb-drawer-lock');
 }
 
 function closeMobileDrawer() {
@@ -1096,7 +1094,8 @@ function closeMobileDrawer() {
 
   drawer.classList.remove('open');
   overlay.classList.remove('active');
-  _kbUnlockBodyScroll();
+  document.documentElement.classList.remove('kb-drawer-lock');
+  document.body.classList.remove('kb-drawer-lock');
 }
 
 // Close drawer on escape key
