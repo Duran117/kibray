@@ -29,7 +29,9 @@ def project_pdf_view(request, project_id):
         messages.error(request, _("You don't have access to this project."))
         return redirect(redirect_url)
     
-    incomes = Income.objects.filter(project=project).select_related("change_order")
+    # Income has no `change_order` FK (only project, invoice_link, payment_link);
+    # Expense does. Keep select_related accurate to avoid FieldError at render time.
+    incomes = Income.objects.filter(project=project).select_related("project")
     expenses = Expense.objects.filter(project=project).select_related("change_order", "cost_code")
     time_entries = TimeEntry.objects.filter(project=project).select_related("employee")
     schedules = Schedule.objects.filter(project=project).order_by("start_datetime")
