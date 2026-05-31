@@ -1115,6 +1115,19 @@ document.getElementById('mobileDrawer')?.querySelectorAll('a').forEach(link => {
 
 // ===== Restore sidebar state on desktop =====
 document.addEventListener('DOMContentLoaded', function() {
+  // Re-parent mobile drawer + overlay to <body> to escape the
+  // `#main-content > div { position:relative; z-index:1 }` stacking trap
+  // defined in base_modern.html (see lines 98 and 217-260 for the same
+  // workaround applied to Bootstrap modals). Without this, on iOS the
+  // drawer is trapped inside z-index:1 and .mobile-bottom-nav (z:100)
+  // intercepts touches, blocking both scroll and tap on menu links.
+  ['mobileDrawer', 'mobileDrawerOverlay'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el && el.parentElement !== document.body) {
+      document.body.appendChild(el);
+    }
+  });
+
   const collapsed = localStorage.getItem('projectSidebarCollapsed') === 'true';
   if (collapsed) {
     document.getElementById('projectSidebar')?.classList.add('collapsed');
