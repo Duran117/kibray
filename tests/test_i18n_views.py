@@ -55,13 +55,21 @@ def test_damage_report_photos_pluralization(client):
 
     detail_url = reverse("damage_report_detail", args=[report.id])
 
+    # UserLanguageMiddleware activates request.user.profile.language on every
+    # request (post-AuthenticationMiddleware), so to assert each locale we set
+    # the profile language for that branch — `with override(...)` is a thread-
+    # local activation that the middleware will overwrite from the profile.
+    user.profile.language = "es"
+    user.profile.save()
     with override("es"):
         resp_es = client.get(detail_url)
     html_es = resp_es.content.decode()
     assert resp_es.status_code == 200
     assert "Foto" in html_es  # singular/plural handled
 
-    # Activate English similar to admin test to ensure LocaleMiddleware + session interplay
+    # Switch to English via the same per-user mechanism the middleware honors.
+    user.profile.language = "en"
+    user.profile.save()
     translation.activate("en")
     session = client.session
     session["lang"] = "en"

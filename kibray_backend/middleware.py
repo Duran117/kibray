@@ -21,6 +21,52 @@ class LanguageQueryMiddleware:
         return response
 
 
+class UserLanguageMiddleware:
+    """
+    Activate the authenticated user's preferred language (``Profile.language``)
+    on every request.
+
+    Must be placed AFTER ``AuthenticationMiddleware`` (so ``request.user`` is
+    available) and AFTER ``LocaleMiddleware`` (so we override whatever locale
+    LocaleMiddleware chose from session/cookie/Accept-Language).
+
+    Without this middleware, ``Profile.language='en'`` is silently ignored on
+    every page except the few views (e.g. ``dashboard_client_views``) that
+    manually call ``translation.activate``. That caused client-facing pages
+    to render in Spanish even though the user requested English.
+
+    Skipped for anonymous users, ``?lang=`` query overrides (handled by
+    LanguageQueryMiddleware earlier in the chain), and static/admin assets.
+    """
+
+    SKIP_PREFIXES = ("/static/", "/media/", "/favicon.ico")
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Don't touch static/media; don't override explicit ?lang= override.
+        if any(request.path.startswith(p) for p in self.SKIP_PREFIXES):
+            return self.get_response(request)
+        if request.GET.get("lang") or request.headers.get("X-Language"):
+            return self.get_response(request)
+
+        user = getattr(request, "user", None)
+        if user is not None and getattr(user, "is_authenticated", False):
+            lang = None
+            try:
+                profile = getattr(user, "profile", None)
+                if profile is not None:
+                    lang = getattr(profile, "language", None)
+            except Exception:
+                lang = None
+            if lang:
+                translation.activate(lang)
+                request.LANGUAGE_CODE = translation.get_language()
+
+        return self.get_response(request)
+
+
 class SingleSessionMiddleware:
     """
     Enforce one active session per user at a time.

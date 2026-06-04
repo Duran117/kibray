@@ -47,6 +47,10 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # MUST come AFTER AuthenticationMiddleware: activates request.user.profile.language
+    # so per-user English preference is honored on every view (not just the
+    # handful that called translation.activate() manually).
+    "kibray_backend.middleware.UserLanguageMiddleware",
     "kibray_backend.middleware.SingleSessionMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
