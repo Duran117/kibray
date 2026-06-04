@@ -120,23 +120,32 @@ class KibrayEmailService:
             )
             email.attach_alternative(html_content, "text/html")
             
-            # Send. We always pass fail_silently=True to email.send() so the
-            # SMTP backend's own exceptions (socket.timeout, OSError,
-            # SMTPException, etc.) cannot escape and trigger a 500 / kill
-            # the gunicorn worker. We translate the result into our own
-            # return value below and re-raise only if our caller explicitly
-            # opted out via fail_silently=False.
+            # Send. We forward the caller's `fail_silently` to email.send():
+            #   * fail_silently=True  (default for most callers) → Django's
+            #     SMTP backend swallows its own exceptions (socket.timeout,
+            #     OSError, SMTPException, etc.) and returns 0, so nothing can
+            #     escape and trigger a 500 / kill the gunicorn worker.
+            #   * fail_silently=False (callers that need diagnostics, e.g.
+            #     the admin password-reset action) → the backend RAISES the
+            #     real SMTP error (e.g. Resend "domain is not verified"),
+            #     which we catch below, log in full, and re-raise so the
+            #     real reason reaches the operator instead of a generic
+            #     "backend returned 0". Forwarding (not hardcoding True) is
+            #     what un-masks the actual provider error.
             try:
-                sent = email.send(fail_silently=True)
+                sent = email.send(fail_silently=fail_silently)
             except Exception as send_exc:
-                # Belt-and-suspenders: even with fail_silently=True some
-                # backends still raise on configuration errors.
+                # Backend raised (fail_silently=False path, or a backend that
+                # raises on config errors even when fail_silently=True). Log
+                # the REAL error with full detail so it is diagnosable.
                 logger.error(
                     f"email.send() raised {type(send_exc).__name__} for "
                     f"{to_emails} via {backend} (host={host or 'UNSET'}): "
                     f"{send_exc}"
                 )
                 if not fail_silently:
+                    # Re-raise the ORIGINAL exception so the caller sees the
+                    # provider's actual reason, not a generic message.
                     raise
                 return False
 
