@@ -125,7 +125,12 @@ EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@kibray.com")
+# DEFAULT_FROM_EMAIL MUST use a domain verified in Resend, otherwise Resend
+# rejects the message (SMTP returns 0 / 550 "domain is not verified").
+# The verified domain is kibraypainting.us, so the safe fallback uses it.
+# If the Railway env var is set it overrides this — it MUST also be an
+# address @kibraypainting.us (e.g. noreply@kibraypainting.us).
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@kibraypainting.us")
 # Hard timeout on the SMTP socket so a hung connection (e.g. Resend
 # briefly unreachable from Railway egress) does NOT exceed the
 # gunicorn worker timeout and kill the whole request with a 500.
