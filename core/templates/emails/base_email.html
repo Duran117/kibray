@@ -189,27 +189,28 @@
         
         /* Footer */
         .email-footer {
-            background-color: #f8f9fa;
-            padding: 30px 40px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 42px 40px 36px 40px;
             text-align: center;
-            border-top: 1px solid #eee;
         }
         .footer-text {
             font-size: 13px;
-            color: #888888;
+            color: rgba(255, 255, 255, 0.78);
             margin: 0;
             line-height: 1.6;
         }
         .footer-link {
-            color: #1a1a2e;
+            color: #ffffff;
             text-decoration: none;
             font-weight: 500;
         }
         .footer-company {
-            font-size: 14px;
-            font-weight: 600;
-            color: #1a1a2e;
-            margin-bottom: 8px;
+            font-size: 17px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
         }
         
         /* Responsive */
@@ -255,11 +256,40 @@
                     
                     <!-- Footer -->
                     <tr>
-                        <td class="email-footer" style="background-color: #f8f9fa; padding: 30px 40px; text-align: center; border-top: 1px solid #eee;">
-                            <p class="footer-company" style="font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 8px;">Kibray Painting</p>
-                            <p class="footer-text" style="font-size: 13px; color: #888888; margin: 0; line-height: 1.6;">
+                        <td class="email-footer" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 42px 40px 36px 40px; text-align: center;">
+
+                            <!-- Brand mark -->
+                            <p style="font-size: 17px; font-weight: 700; color: #ffffff; letter-spacing: 4px; text-transform: uppercase; margin: 0 0 6px 0;">Kibray</p>
+                            <p style="font-size: 10px; font-weight: 500; color: rgba(255, 255, 255, 0.5); letter-spacing: 3px; text-transform: uppercase; margin: 0 0 26px 0;">Professional Painting Services</p>
+
+                            <!-- Accent divider -->
+                            <table role="presentation" align="center" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto 26px auto;">
+                                <tr><td style="width: 40px; height: 2px; line-height: 2px; font-size: 0; background-color: rgba(255, 255, 255, 0.3);">&nbsp;</td></tr>
+                            </table>
+
+                            <!-- Contact details -->
+                            <p style="font-size: 13px; color: rgba(255, 255, 255, 0.78); line-height: 1.95; margin: 0 0 20px 0;">
+                                P.O. Box 25881 &nbsp;&middot;&nbsp; Silverthorne, CO 80497<br>
+                                <a href="tel:+19703334872" style="color: #ffffff; text-decoration: none; font-weight: 500;">(970)&nbsp;333&#8209;4872</a>
+                                <span style="color: rgba(255, 255, 255, 0.3);">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+                                <a href="mailto:jduran@kibraypainting.net" style="color: #ffffff; text-decoration: none; font-weight: 500;">jduran@kibraypainting.net</a>
+                            </p>
+
+                            <!-- Website pill -->
+                            <p style="margin: 0 0 26px 0;">
+                                <a href="https://kibraypainting.net" style="display: inline-block; font-size: 11px; font-weight: 600; color: #ffffff; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 50px; padding: 11px 28px;">kibraypainting.net</a>
+                            </p>
+
+                            <!-- Hairline -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 0 0 20px 0;">
+                                <tr><td style="height: 1px; line-height: 1px; font-size: 0; background-color: rgba(255, 255, 255, 0.12);">&nbsp;</td></tr>
+                            </table>
+
+                            <!-- Notes: per-email security extras + automated note + copyright -->
+                            <p style="font-size: 11px; color: rgba(255, 255, 255, 0.45); line-height: 1.7; margin: 0;">
                                 {% block footer_extra %}{% endblock %}
-                                This is an automated message. Please do not reply to this email.
+                                This is an automated message &mdash; please do not reply to this email.<br>
+                                &copy; {% now "Y" %} Kibray Painting. All rights reserved.
                             </p>
                         </td>
                     </tr>

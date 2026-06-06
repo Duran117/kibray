@@ -1617,27 +1617,28 @@ def estimate_send_email(request, estimate_id):
             subject = form.cleaned_data["subject"]
             message = form.cleaned_data["message"]
             recipient = form.cleaned_data["recipient"]
-            # Ensure the link is included
+            # Provide the approval link as a copy/paste fallback so it works
+            # in plain-text clients and if the branded button can't be tapped.
             if public_url not in message:
-                message = f"{message}\n\nView and approve the quote:\n{public_url}"
+                message = (
+                    f"{message}\n\n"
+                    f"If the button doesn't work, copy and paste this link:\n{public_url}"
+                )
             sender = getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@example.com")
             error_msg = None
             success_flag = True
             try:
-                # Construir versión HTML simple
-                html_body = (
-                    "<p>"
-                    + message.replace("\n\n", "</p><p>").replace("\n", "<br>")
-                    + "</p>"
-                    + f"<p><a href='{public_url}' style='display:inline-block;padding:12px 20px;background:#4CAF50;color:#fff;text-decoration:none;border-radius:6px;'>View and Approve Quote</a></p>"
-                )
+                # Send using the branded Kibray email template (header banner,
+                # navy CTA button and corporate signature) instead of raw HTML
+                # so the proposal looks professionally designed, not generic.
                 from core.services.email_service import KibrayEmailService
-                KibrayEmailService.send_html_email(
-                    to_email=recipient,
+                KibrayEmailService.send_simple_notification(
+                    to_emails=[recipient],
                     subject=subject,
-                    text_content=message,
-                    html_content=html_body,
-                    fail_silently=False
+                    message=message,
+                    button_url=public_url,
+                    button_text=_("View and Approve Quote"),
+                    fail_silently=False,
                 )
                 messages.success(request, _("Proposal sent successfully to the client."))
             except Exception as e:
