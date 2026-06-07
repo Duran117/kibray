@@ -38,6 +38,8 @@ MEDIA_ROOT = BASE_DIR / "media"  # noqa: F405
 # Email - Console backend for development
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "noreply@kibray.local"
+# Office mailbox BCC'd on outbound invoice emails (see production.py).
+OFFICE_EMAIL = "office@kibray.local"
 
 # CORS - Allow all origins in development
 CORS_ALLOWED_ORIGINS = [

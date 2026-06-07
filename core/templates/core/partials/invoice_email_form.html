@@ -1,0 +1,94 @@
+{% load i18n %}
+{# Invoice email editor — loaded into the Bootstrap modal on invoice_detail. #}
+{% if messages %}
+  {% for message in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2.5 text-sm
+                {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+                {% elif message.tags == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200
+                {% else %}bg-slate-50 text-slate-700 border border-slate-200{% endif %}">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" action="{% url 'invoice_send_email' pk=invoice.pk %}" class="space-y-4">
+  {% csrf_token %}
+
+  {# Attached PDF banner — reassures the sender the document is included. #}
+  <div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-600">
+        <i class="bi bi-file-earmark-pdf-fill text-xl"></i>
+      </div>
+      <div class="min-w-0">
+        <div class="text-xs font-semibold uppercase tracking-wide text-slate-400">{% trans "Attached" %}</div>
+        <div class="truncate text-sm font-semibold text-slate-800">{{ pdf_filename }}</div>
+      </div>
+    </div>
+    <a href="{{ pdf_url }}" target="_blank" rel="noopener"
+       class="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100">
+      <i class="bi bi-eye"></i> {% trans "Preview" %}
+    </a>
+  </div>
+
+  {% if form.non_field_errors %}
+    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
+      {{ form.non_field_errors }}
+    </div>
+  {% endif %}
+
+  <div>
+    <label for="{{ form.recipient.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">
+      {% trans "To" %} <span class="text-red-500">*</span>
+    </label>
+    {{ form.recipient }}
+    {% if form.recipient.errors %}<p class="mt-1 text-xs text-red-600">{{ form.recipient.errors|striptags }}</p>{% endif %}
+  </div>
+
+  <div>
+    <label for="{{ form.cc.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">
+      {% trans "CC" %} <span class="font-normal text-slate-400">({% trans "client's project manager" %})</span>
+    </label>
+    {{ form.cc }}
+    <p class="mt-1 text-xs text-slate-400">{{ form.cc.help_text }}</p>
+    {% if form.cc.errors %}<p class="mt-1 text-xs text-red-600">{{ form.cc.errors|striptags }}</p>{% endif %}
+  </div>
+
+  {% if office_email %}
+  {# Reassure the sender that accounting always keeps a copy on file. #}
+  <div class="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+    <i class="bi bi-shield-check"></i>
+    <span>{% blocktrans %}A copy is sent to the office ({{ office_email }}) automatically.{% endblocktrans %}</span>
+  </div>
+  {% endif %}
+
+  <div>
+    <label for="{{ form.subject.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">
+      {% trans "Subject" %} <span class="text-red-500">*</span>
+    </label>
+    {{ form.subject }}
+    {% if form.subject.errors %}<p class="mt-1 text-xs text-red-600">{{ form.subject.errors|striptags }}</p>{% endif %}
+  </div>
+
+  <div>
+    <label for="{{ form.message.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">
+      {% trans "Message" %} <span class="text-red-500">*</span>
+    </label>
+    {{ form.message }}
+    <p class="mt-1 text-xs text-slate-400">
+      {% trans "The branded Kibray header, button and signature are added automatically." %}
+    </p>
+    {% if form.message.errors %}<p class="mt-1 text-xs text-red-600">{{ form.message.errors|striptags }}</p>{% endif %}
+  </div>
+
+  <div class="flex items-center justify-end gap-2 border-t border-slate-100 pt-4">
+    <button type="button" data-bs-dismiss="modal"
+            class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50">
+      {% trans "Cancel" %}
+    </button>
+    <button type="submit"
+            class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-indigo-700 hover:to-purple-700">
+      <i class="bi bi-send-fill"></i> {% trans "Send Invoice" %}
+    </button>
+  </div>
+</form>

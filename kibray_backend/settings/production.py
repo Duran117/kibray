@@ -138,6 +138,12 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@kibraypainting.us"
 # the view's try/except surfaces a clean warning instead.
 EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "10"))
 
+# Office/accounting mailbox that is BCC'd on every invoice emailed to a
+# client, so the office always keeps a copy of the sent invoice + PDF.
+# Override per-deploy via the OFFICE_EMAIL env var; defaults to the company
+# billing address used on the invoice document itself.
+OFFICE_EMAIL = os.getenv("OFFICE_EMAIL", "jduran@kibraypainting.net")
+
 # CORS - Specific origins only
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ALLOWED_ORIGINS if origin.strip()]

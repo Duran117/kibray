@@ -1,7 +1,7 @@
 """Invoice, estimate, cost code & financial views — extracted from legacy_views.py in Phase 8."""
 from decimal import ROUND_HALF_UP
 from core.views._helpers import *  # noqa: F401, F403
-from core.access import is_admin_or_pm
+from core.access import is_admin_or_pm, is_admin, is_owner
 from core.views._helpers import (
     _generate_basic_pdf_from_html,
     logger,
@@ -57,6 +57,62 @@ def _resolve_bill_to(project):
     if legacy:
         bill["name"] = legacy
     return bill
+
+
+
+def _resolve_invoice_cc(project, exclude_email=""):
+    """Suggested CC list for an invoice email: the CLIENT-SIDE project
+    manager(s) — i.e. the PM we work *for*, NOT a Kibray internal PM — so the
+    admin doesn't have to type them by hand.
+
+    The primary "To" is the client's office/invoices mailbox
+    (``ClientOrganization.billing_email``); the CC is the client's project
+    lead/PM who should be kept in the loop.
+
+    Sources, in order:
+      1) project.project_lead         (ClientContact → User.email)
+      2) billing_organization.contacts with role in {project_lead, project_manager}
+
+    The address already used as the "To" (``exclude_email``) is removed so it is
+    never both To and CC. Returns a de-duplicated list, preserving order.
+    """
+    exclude = (exclude_email or "").strip().lower()
+    emails, seen = [], set()
+
+    def _add(addr):
+        addr = (addr or "").strip()
+        if not addr:
+            return
+        key = addr.lower()
+        if key == exclude or key in seen:
+            return
+        seen.add(key)
+        emails.append(addr)
+
+    if project is None:
+        return emails
+
+    lead = getattr(project, "project_lead", None)
+    if lead and getattr(lead, "user", None):
+        _add(lead.user.email)
+
+    org = getattr(project, "billing_organization", None)
+    if org is not None:
+        try:
+            pm_contacts = (
+                org.contacts.filter(
+                    is_active=True,
+                    role__in=["project_lead", "project_manager"],
+                )
+                .select_related("user")
+            )
+            for c in pm_contacts:
+                if getattr(c, "user", None):
+                    _add(c.user.email)
+        except Exception:  # pragma: no cover - defensive (org without contacts rel)
+            pass
+
+    return emails
 
 
 
@@ -524,6 +580,72 @@ def invoice_detail(request, pk):
     return render(request, "core/invoice_detail.html", context)
 
 
+def _invoice_company_info():
+    """Single source of truth for the company block on invoice documents."""
+    return {
+        "name": "Kibray Paint & Stain LLC",
+        "address": "P.O. Box 25881",
+        "city_state_zip": "Silverthorne, CO 80497",
+        "phone": "(970) 333-4872",
+        "email": "jduran@kibraypainting.net",
+        "website": "kibraypainting.net",
+        "logo_path": "images/kibray-logo.png",
+    }
+
+
+def _render_invoice_pdf_bytes(invoice, request=None):
+    """Render an Invoice to PDF bytes.
+
+    Shared by `invoice_pdf` (HTTP download/inline) and `invoice_send_email`
+    (email attachment) so both produce an identical document. Never raises:
+    falls back to a basic reportlab PDF, then to a stub, so a PDF problem can
+    never 500 the caller.
+    """
+    is_overdue = False
+    if invoice.due_date:
+        from datetime import date as _date
+        is_overdue = (
+            (invoice.due_date - _date.today()).days < 0
+            and invoice.status not in ("PAID", "CANCELLED")
+        )
+
+    logo_url = (
+        request.build_absolute_uri("/static/kibray-logo.png")
+        if request is not None
+        else "/static/kibray-logo.png"
+    )
+    context = {
+        "invoice": invoice,
+        "company": _invoice_company_info(),
+        "user": getattr(request, "user", None),
+        "now": timezone.now(),
+        "is_overdue": is_overdue,
+        "logo_url": logo_url,
+        "bill_to": _resolve_bill_to(invoice.project),
+    }
+
+    template = get_template("core/invoice_pdf.html")
+    html = template.render(context)
+
+    pdf_bytes = None
+    if pisa is not None:
+        try:
+            result = BytesIO()
+            pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+            if not pdf.err:
+                pdf_bytes = result.getvalue()
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning("invoice pdf: pisa failed for invoice %s: %s", invoice.pk, exc)
+
+    if pdf_bytes is None:
+        try:
+            pdf_bytes = _generate_basic_pdf_from_html(html)
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.error("invoice pdf: fallback failed for invoice %s: %s", invoice.pk, exc)
+            pdf_bytes = b"%PDF-1.4\n% Invoice PDF generation failed\n"
+    return pdf_bytes
+
+
 @login_required
 def invoice_pdf(request, pk):
     """
@@ -544,58 +666,198 @@ def invoice_pdf(request, pk):
         pk=pk,
     )
 
-    # Company info — kept in sync with `invoice_detail`
-    company = {
-        "name": "Kibray Paint & Stain LLC",
-        "address": "P.O. Box 25881",
-        "city_state_zip": "Silverthorne, CO 80497",
-        "phone": "(970) 333-4872",
-        "email": "jduran@kibraypainting.net",
-        "website": "kibraypainting.net",
-        "logo_path": "images/kibray-logo.png",
-    }
-
-    # Overdue flag (mirrors invoice_detail logic)
-    is_overdue = False
-    if invoice.due_date:
-        from datetime import date as _date
-        is_overdue = (invoice.due_date - _date.today()).days < 0 and invoice.status not in ("PAID", "CANCELLED")
-
-    context = {
-        "invoice": invoice,
-        "company": company,
-        "user": request.user,
-        "now": timezone.now(),
-        "is_overdue": is_overdue,
-        "logo_url": request.build_absolute_uri("/static/kibray-logo.png"),
-        "bill_to": _resolve_bill_to(invoice.project),
-    }
-
-    template = get_template("core/invoice_pdf.html")
-    html = template.render(context)
-
-    pdf_bytes = None
-    if pisa is not None:
-        try:
-            result = BytesIO()
-            pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
-            if not pdf.err:
-                pdf_bytes = result.getvalue()
-        except Exception as exc:  # pragma: no cover - defensive
-            logger.warning("invoice_pdf: pisa failed for invoice %s: %s", pk, exc)
-
-    if pdf_bytes is None:
-        try:
-            pdf_bytes = _generate_basic_pdf_from_html(html)
-        except Exception as exc:  # pragma: no cover - defensive
-            logger.error("invoice_pdf: fallback failed for invoice %s: %s", pk, exc)
-            pdf_bytes = b"%PDF-1.4\n% Invoice PDF generation failed\n"
+    pdf_bytes = _render_invoice_pdf_bytes(invoice, request)
 
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     filename = f"Invoice-{invoice.invoice_number or invoice.pk}.pdf"
     disposition = "attachment" if request.GET.get("download") else "inline"
     response["Content-Disposition"] = f'{disposition}; filename="{filename}"'
     return response
+
+
+@login_required
+def invoice_send_email(request, pk):
+    """Pre-edit and email an Invoice (with its PDF attached) to the client.
+
+    GET:  returns the email editor (To / CC / Subject / Message), pre-filled,
+          for loading into the modal on the invoice detail page.
+    POST: validates, generates the invoice PDF, sends a branded email with the
+          PDF attached + optional CC, marks a DRAFT invoice as SENT, then
+          redirects back to the invoice detail page.
+
+    Access policy: client-facing, so restricted to ADMIN / OWNER only. Internal
+    Kibray PMs (ROLE_PM) are intentionally excluded — for now they must not
+    contact clients directly.
+    """
+    if not (is_admin(request.user) or is_owner(request.user)):
+        messages.error(
+            request,
+            _("Access denied. Only an admin can email invoices to clients."),
+        )
+        return redirect("dashboard")
+
+    from core.forms import InvoiceEmailForm
+
+    invoice = get_object_or_404(
+        Invoice.objects.select_related("project").prefetch_related("lines", "payments"),
+        pk=pk,
+    )
+    bill_to = _resolve_bill_to(invoice.project)
+    pdf_filename = f"Invoice-{invoice.invoice_number or invoice.pk}.pdf"
+    pdf_url = request.build_absolute_uri(
+        reverse("invoice_pdf", kwargs={"pk": invoice.pk}) + "?download=1"
+    )
+
+    if request.method == "POST":
+        form = InvoiceEmailForm(request.POST)
+        # AJAX submit (from the invoice-detail modal) keeps the user in context:
+        # success → JSON redirect; validation/send error → re-rendered partial.
+        is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+        if form.is_valid():
+            subject = form.cleaned_data["subject"]
+            message = form.cleaned_data["message"]
+            recipient = form.cleaned_data["recipient"]
+            cc = form.cleaned_data["cc"]  # already a cleaned list of addresses
+
+            # Always BCC the office mailbox so accounting keeps a copy of the
+            # sent invoice + PDF, without exposing that address to the client.
+            # Skipped only if the office address is missing or equals the
+            # recipient (avoids a pointless duplicate send to the same inbox).
+            office_email = getattr(settings, "OFFICE_EMAIL", "") or ""
+            bcc = []
+            if office_email and office_email.lower() != recipient.lower():
+                bcc.append(office_email)
+
+            # Build the PDF and attach it so the client can download/print it.
+            pdf_bytes = _render_invoice_pdf_bytes(invoice, request)
+
+            send_ok = True
+            try:
+                from core.services.email_service import KibrayEmailService
+
+                KibrayEmailService.send_simple_notification(
+                    to_emails=[recipient],
+                    subject=subject,
+                    message=message,
+                    cc=cc or None,
+                    bcc=bcc or None,
+                    attachments=[(pdf_filename, pdf_bytes, "application/pdf")],
+                    button_url=pdf_url,
+                    button_text=_("Download Invoice PDF"),
+                    fail_silently=False,
+                )
+            except Exception as e:
+                send_ok = False
+                logger.error("invoice_send_email failed for invoice %s: %s", invoice.pk, e)
+                messages.error(
+                    request,
+                    _("Error sending invoice email: %(error)s") % {"error": e},
+                )
+
+            if send_ok:
+                # Mark DRAFT → SENT on a successful send (best-effort, non-fatal).
+                if invoice.status == "DRAFT":
+                    invoice.status = "SENT"
+                    invoice.sent_date = timezone.now()
+                    invoice.sent_by = request.user
+                    with contextlib.suppress(Exception):
+                        invoice.save(update_fields=["status", "sent_date", "sent_by"])
+
+                to_label = recipient + (_(" (+%(n)d CC)") % {"n": len(cc)} if cc else "")
+                if bcc:
+                    messages.success(
+                        request,
+                        _("✅ Invoice emailed to %(to)s with the PDF attached. "
+                          "The office (%(office)s) was copied.")
+                        % {"to": to_label, "office": office_email},
+                    )
+                else:
+                    messages.success(
+                        request,
+                        _("✅ Invoice emailed to %(to)s with the PDF attached.")
+                        % {"to": to_label},
+                    )
+                redirect_url = reverse("invoice_detail", kwargs={"pk": invoice.pk})
+                if is_ajax:
+                    return JsonResponse({"ok": True, "redirect": redirect_url})
+                return redirect("invoice_detail", pk=invoice.pk)
+
+            # Send failed: non-AJAX redirects (legacy); AJAX falls through to
+            # re-render the modal partial so the error banner stays in context.
+            if not is_ajax:
+                return redirect("invoice_detail", pk=invoice.pk)
+        # Invalid form (or AJAX send error) falls through to re-render the
+        # partial with errors. AJAX validation errors get a 400 so the client
+        # script knows to re-inject the modal body instead of redirecting.
+        elif is_ajax:
+            return render(
+                request,
+                "core/partials/invoice_email_form.html",
+                {
+                    "form": form,
+                    "invoice": invoice,
+                    "pdf_url": pdf_url,
+                    "pdf_filename": pdf_filename,
+                    "bill_to": bill_to,
+                    "office_email": getattr(settings, "OFFICE_EMAIL", ""),
+                },
+                status=400,
+            )
+    else:
+        client_name = bill_to.get("name") or invoice.project.name or "Client"
+        subject = f"Invoice #{invoice.invoice_number} - Kibray Paint & Stain LLC"
+        due = invoice.due_date.strftime("%B %d, %Y") if invoice.due_date else None
+        body_lines = [
+            f"Hi {client_name},",
+            "",
+            f"Please find attached invoice #{invoice.invoice_number} "
+            f"for {invoice.project.name}.",
+        ]
+        try:
+            if invoice.total_amount is not None:
+                amount_line = f"Total: ${invoice.total_amount:,.2f}"
+                if due:
+                    amount_line += f" — due by {due}"
+                body_lines.append(amount_line + ".")
+            elif due:
+                body_lines.append(f"Due by {due}.")
+        except Exception:  # pragma: no cover - defensive formatting guard
+            pass
+        body_lines += [
+            "",
+            "You can review and download the PDF using the button below, "
+            "or from the attachment.",
+            "",
+            "Thank you for your business!",
+            "Kibray Paint & Stain LLC",
+        ]
+        # Pre-fill CC with the client-side project manager(s) so the admin
+        # doesn't have to type them by hand. The office/invoices address used
+        # as the "To" is excluded to avoid a duplicate.
+        cc_suggestions = _resolve_invoice_cc(
+            invoice.project, exclude_email=bill_to.get("email") or ""
+        )
+        form = InvoiceEmailForm(
+            initial={
+                "subject": subject,
+                "recipient": bill_to.get("email") or "",
+                "cc": ", ".join(cc_suggestions),
+                "message": "\n".join(body_lines),
+            }
+        )
+
+    return render(
+        request,
+        "core/partials/invoice_email_form.html",
+        {
+            "form": form,
+            "invoice": invoice,
+            "pdf_url": pdf_url,
+            "pdf_filename": pdf_filename,
+            "bill_to": bill_to,
+            "office_email": getattr(settings, "OFFICE_EMAIL", ""),
+        },
+    )
 
 
 @login_required

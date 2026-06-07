@@ -537,6 +537,7 @@ urlpatterns = [
     path("invoices/<int:invoice_id>/edit/", views.invoice_edit, name="invoice_edit"),
     path("invoices/<int:pk>/", views.invoice_detail, name="invoice_detail"),
     path("invoices/<int:pk>/pdf/", views.invoice_pdf, name="invoice_pdf"),
+    path("invoices/<int:pk>/send/", views.invoice_send_email, name="invoice_send_email"),
     path("ajax/changeorders/", views.changeorders_ajax, name="changeorders_ajax"),
     path("ajax/changeorder_lines/", views.changeorder_lines_ajax, name="changeorder_lines_ajax"),
     # Change Order API endpoints

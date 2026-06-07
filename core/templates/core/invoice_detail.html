@@ -234,6 +234,12 @@
                 <h3 class="text-base font-semibold text-slate-900">{% trans "Actions" %}</h3>
             </div>
             <div class="p-5 space-y-2">
+                {% if invoice.status != 'CANCELLED' %}
+                <button type="button" data-bs-toggle="modal" data-bs-target="#invoiceEmailModal"
+                    class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold rounded-lg transition shadow-sm">
+                    <i class="bi bi-envelope-paper-fill"></i> {% trans "Email to Client" %}
+                </button>
+                {% endif %}
                 {% if invoice.status == 'DRAFT' %}
                 <a href="{% url 'invoice_edit' invoice.id %}" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-semibold rounded-lg transition shadow-sm">
                     <i class="bi bi-pencil-square"></i> {% trans "Edit Invoice" %}
@@ -317,4 +323,102 @@
         .shadow-sm, .shadow-lg { box-shadow: none !important; }
     }
 </style>
+
+{# ── Email Invoice Modal ───────────────────────────────────────────── #}
+{% if invoice.status != 'CANCELLED' %}
+<div class="modal fade" id="invoiceEmailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-envelope-paper"></i>
+          {% trans "Email Invoice" %} #{{ invoice.invoice_number }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="invoiceEmailModalBody">
+        <div class="py-5 text-center text-slate-400">
+          <div class="spinner-border" role="status"></div>
+          <p class="mt-3 mb-0 text-sm">{% trans "Loading form..." %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if invoice.status != 'CANCELLED' %}
+<script>
+(function () {
+  var modal = document.getElementById('invoiceEmailModal');
+  if (!modal) return;
+  var body = document.getElementById('invoiceEmailModalBody');
+  var url = "{% url 'invoice_send_email' pk=invoice.pk %}?partial=1";
+  var loaded = false;
+
+  // Load the editable email form into the modal the first time it opens.
+  modal.addEventListener('show.bs.modal', function () {
+    if (loaded) return;  // load once; preserve any edits if reopened
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (r) { return r.text(); })
+      .then(function (html) { body.innerHTML = html; loaded = true; })
+      .catch(function () {
+        body.innerHTML =
+          '<div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">'
+          + '{% trans "Error loading the form. Please try again." %}</div>';
+      });
+  });
+
+  // Submit the form via AJAX so the user stays inside the modal:
+  //  • success           → JSON { ok, redirect } → navigate to invoice detail
+  //  • validation error  → 400 HTML partial      → re-inject (errors shown)
+  //  • send error (SMTP) → 200 HTML partial       → re-inject (banner shown)
+  // Event delegation on the stable `body` keeps working after re-injection.
+  body.addEventListener('submit', function (ev) {
+    var form = ev.target.closest('form');
+    if (!form) return;
+    ev.preventDefault();
+
+    var btn = form.querySelector('button[type="submit"]');
+    if (btn) {
+      btn.disabled = true;
+      btn.dataset.kbOrig = btn.innerHTML;
+      btn.innerHTML =
+        '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> '
+        + '{% trans "Sending..." %}';
+    }
+
+    fetch(form.action, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      body: new FormData(form)
+    })
+      .then(function (r) {
+        var ct = r.headers.get('content-type') || '';
+        if (ct.indexOf('application/json') !== -1) {
+          return r.json().then(function (data) {
+            window.location.href = (data && data.redirect)
+              ? data.redirect
+              : window.location.href;
+          });
+        }
+        return r.text().then(function (html) { body.innerHTML = html; });
+      })
+      .catch(function () {
+        if (btn) {
+          btn.disabled = false;
+          if (btn.dataset.kbOrig) btn.innerHTML = btn.dataset.kbOrig;
+        }
+        var warn = document.createElement('div');
+        warn.className =
+          'mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700';
+        warn.textContent = '{% trans "Network error. Please try again." %}';
+        body.insertBefore(warn, body.firstChild);
+      });
+  });
+})();
+</script>
+{% endif %}
 {% endblock %}

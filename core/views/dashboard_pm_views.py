@@ -224,42 +224,33 @@ def dashboard_pm(request):
                 if target_id:
                     try:
                         new_project = Project.objects.get(id=target_id)
-                        
-                        # Si es switch instantáneo (< 1 min), solo actualizar la entrada actual
-                        if is_instant_switch():
-                            logger.info(f"[PM Switch Project] Instant switch - updating current entry {open_entry.id}")
-                            open_entry.project = new_project
-                            open_entry.change_order = None
-                            open_entry.budget_line = None
-                            open_entry.notes = f"Quick switch to project: {new_project.name} (was: {old_project.name})"
-                            open_entry.save()
-                            messages.success(
-                                request,
-                                _("✓ Switched to %(proj)s (instant). Previously: %(old)s")
-                                % {"proj": new_project.name, "old": old_project.name},
-                            )
-                        else:
-                            # Cerrar entrada actual
-                            open_entry.end_time = current_time
-                            open_entry.save()
-                            ensure_hours_calculated(open_entry, "PM Switch Project")
-                            
-                            TimeEntry.objects.create(
-                                employee=employee,
-                                project=new_project,
-                                change_order=None,
-                                budget_line=None,
-                                date=today,
-                                start_time=current_time,
-                                end_time=None,
-                                notes=f"Switched from project: {old_project.name}",
-                                cost_code=None,
-                            )
-                            messages.success(
-                                request,
-                                _("✓ Entry closed (%(hours)s hrs on %(old)s). Now on %(proj)s")
-                                % {"hours": open_entry.hours_worked, "old": old_project.name, "proj": new_project.name},
-                            )
+
+                        # IMPORTANTE: un switch de PROYECTO SIEMPRE cierra la
+                        # entrada actual y crea una nueva. Nunca sobrescribir el
+                        # proyecto de la entrada abierta — eso borraba el primer
+                        # registro ("no se guardó el primer registro") y movía las
+                        # horas al proyecto equivocado. Cerrar + crear preserva
+                        # las horas de cada proyecto por separado.
+                        open_entry.end_time = current_time
+                        open_entry.save()
+                        ensure_hours_calculated(open_entry, "PM Switch Project")
+
+                        TimeEntry.objects.create(
+                            employee=employee,
+                            project=new_project,
+                            change_order=None,
+                            budget_line=None,
+                            date=today,
+                            start_time=current_time,
+                            end_time=None,
+                            notes=f"Switched from project: {old_project.name}",
+                            cost_code=None,
+                        )
+                        messages.success(
+                            request,
+                            _("✓ Entry closed (%(hours)s hrs on %(old)s). Now on %(proj)s")
+                            % {"hours": open_entry.hours_worked, "old": old_project.name, "proj": new_project.name},
+                        )
                     except Project.DoesNotExist:
                         messages.error(request, _("Project not found."))
 
@@ -474,8 +465,14 @@ def dashboard_pm(request):
     # === SWITCH OPTIONS (para cambiar proyecto/CO cuando hay entrada abierta) ===
     switch_options = {"other_projects": [], "available_cos": [], "current_project_cos": [], "can_switch_to_base": False}
     if open_entry:
-        # Otros proyectos (PM puede ver todos, excluir el actual)
-        other_projects = Project.objects.filter(is_archived=False).exclude(id=open_entry.project_id)[:10]
+        # Otros proyectos (PM puede ver TODOS los activos, excluir el actual).
+        # Sin límite [:10] y ordenados por nombre — antes solo mostraba 10
+        # proyectos en orden arbitrario, ocultando el resto al hacer switch.
+        other_projects = (
+            Project.objects.filter(is_archived=False)
+            .exclude(id=open_entry.project_id)
+            .order_by("name")
+        )
         switch_options["other_projects"] = [
             {"id": p.id, "name": p.name}
             for p in other_projects

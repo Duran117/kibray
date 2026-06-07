@@ -5,6 +5,7 @@ from django import forms
 from django.apps import apps
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.validators import EmailValidator
 from django.db.models import Sum
 from django.forms import inlineformset_factory
 from django.utils.translation import gettext_lazy as _
@@ -2562,6 +2563,94 @@ class ProposalEmailForm(forms.Form):
             raise ValidationError("Message cannot be empty.")
         # Recomendación básica: incluir saludo y link
         return m
+
+
+class InvoiceEmailForm(forms.Form):
+    """Form to email an Invoice (with the PDF attached) to the client.
+
+    Fields:
+      - subject:   Email subject line.
+      - recipient: Primary recipient (the client) email.
+      - cc:        Optional comma/semicolon-separated CC addresses.
+      - message:   Editable plain-text body.
+    """
+
+    _input = (
+        "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm "
+        "focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+    )
+
+    subject = forms.CharField(
+        label="Subject",
+        max_length=200,
+        widget=forms.TextInput(attrs={"class": _input, "placeholder": "Invoice subject"}),
+    )
+    recipient = forms.EmailField(
+        label="To",
+        widget=forms.EmailInput(
+            attrs={"class": _input, "placeholder": "client@email.com"}
+        ),
+    )
+    cc = forms.CharField(
+        label="CC (optional)",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": _input,
+                "placeholder": "name@email.com, another@email.com",
+            }
+        ),
+        help_text="Separate multiple addresses with commas.",
+    )
+    message = forms.CharField(
+        label="Message",
+        widget=forms.Textarea(
+            attrs={
+                "class": _input,
+                "rows": 9,
+                "placeholder": "Edit the message before sending...",
+                "style": "resize:vertical;",
+            }
+        ),
+    )
+
+    def clean_subject(self):
+        s = self.cleaned_data.get("subject", "").strip()
+        if not s:
+            raise ValidationError("Subject is required.")
+        return s
+
+    def clean_message(self):
+        m = self.cleaned_data.get("message", "").strip()
+        if not m:
+            raise ValidationError("Message cannot be empty.")
+        return m
+
+    def clean_cc(self):
+        """Parse, validate and de-duplicate the comma/semicolon-separated CC."""
+        raw = (self.cleaned_data.get("cc") or "").strip()
+        if not raw:
+            return []
+        validator = EmailValidator()
+        emails, seen, invalid = [], set(), []
+        for token in raw.replace(";", ",").split(","):
+            addr = token.strip()
+            if not addr:
+                continue
+            try:
+                validator(addr)
+            except ValidationError:
+                invalid.append(addr)
+                continue
+            key = addr.lower()
+            if key not in seen:
+                seen.add(key)
+                emails.append(addr)
+        if invalid:
+            raise ValidationError(
+                "Invalid CC address(es): %(bad)s" % {"bad": ", ".join(invalid)}
+            )
+        return emails
 
 
 # ========================================================================================

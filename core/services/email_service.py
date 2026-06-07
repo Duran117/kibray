@@ -49,7 +49,10 @@ class KibrayEmailService:
         context: dict,
         to_emails: list,
         from_email: Optional[str] = None,
-        fail_silently: bool = True
+        fail_silently: bool = True,
+        cc: Optional[list] = None,
+        bcc: Optional[list] = None,
+        attachments: Optional[list] = None,
     ) -> bool:
         """
         Internal method to send email with HTML template.
@@ -61,6 +64,9 @@ class KibrayEmailService:
             to_emails: List of recipient email addresses
             from_email: Sender email (defaults to DEFAULT_FROM_EMAIL)
             fail_silently: If True, suppress exceptions
+            cc: Optional list of CC email addresses
+            bcc: Optional list of BCC email addresses (hidden recipients)
+            attachments: Optional list of (filename, content, mimetype) tuples
             
         Returns:
             bool: True if email was sent successfully
@@ -116,9 +122,24 @@ class KibrayEmailService:
                 subject=subject,
                 body=text_content,
                 from_email=from_email or cls._get_default_from_email(),
-                to=to_emails
+                to=to_emails,
+                cc=cc or None,
+                bcc=bcc or None,
             )
             email.attach_alternative(html_content, "text/html")
+
+            # Optional file attachments: each item is a
+            # (filename, content_bytes, mimetype) tuple. Malformed entries are
+            # logged and skipped so one bad attachment can't abort the send.
+            for att in (attachments or []):
+                try:
+                    filename, content, mimetype = att
+                    email.attach(filename, content, mimetype)
+                except Exception as att_exc:
+                    logger.error(
+                        "Skipping malformed email attachment for %s: %s",
+                        to_emails, att_exc,
+                    )
             
             # Send. We forward the caller's `fail_silently` to email.send():
             #   * fail_silently=True  (default for most callers) → Django's
@@ -401,7 +422,10 @@ class KibrayEmailService:
         button_text: Optional[str] = None,
         details: Optional[dict] = None,
         closing: Optional[str] = None,
-        fail_silently: bool = True
+        fail_silently: bool = True,
+        cc: Optional[list] = None,
+        bcc: Optional[list] = None,
+        attachments: Optional[list] = None,
     ) -> bool:
         """
         Send a notification email with Kibray branding.
@@ -416,6 +440,9 @@ class KibrayEmailService:
             details: Optional dict of key-value pairs to show in info box
             closing: Optional closing message
             fail_silently: If True, suppress exceptions
+            cc: Optional list of CC email addresses
+            bcc: Optional list of BCC email addresses (hidden recipients)
+            attachments: Optional list of (filename, content, mimetype) tuples
         
         Returns:
             bool: True if email was sent successfully
@@ -435,7 +462,10 @@ class KibrayEmailService:
             template_name='emails/simple_notification.html',
             context=context,
             to_emails=to_emails,
-            fail_silently=fail_silently
+            fail_silently=fail_silently,
+            cc=cc,
+            bcc=bcc,
+            attachments=attachments,
         )
 
     @classmethod

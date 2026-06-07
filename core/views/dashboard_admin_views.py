@@ -451,8 +451,14 @@ def dashboard_admin(request):
     # === SWITCH OPTIONS (para cambiar proyecto/CO cuando hay entrada abierta) ===
     switch_options = {"other_projects": [], "available_cos": [], "current_project_cos": [], "can_switch_to_base": False}
     if open_entry:
-        # Otros proyectos (Admin puede ver todos, excluir el actual)
-        other_projects = Project.objects.filter(is_archived=False).exclude(id=open_entry.project_id)[:10]
+        # Otros proyectos (Admin puede ver TODOS los activos, excluir el actual).
+        # Sin límite [:10] y ordenados por nombre — antes solo mostraba 10
+        # proyectos en orden arbitrario, ocultando el resto al hacer switch.
+        other_projects = (
+            Project.objects.filter(is_archived=False)
+            .exclude(id=open_entry.project_id)
+            .order_by("name")
+        )
         switch_options["other_projects"] = [
             {"id": p.id, "name": p.name}
             for p in other_projects
