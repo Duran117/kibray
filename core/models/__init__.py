@@ -95,6 +95,14 @@ class Project(models.Model):
         help_text=_("Tarifa por hora por defecto para Change Orders en este proyecto"),
     )
 
+    # Profit-share (socios) — additive flag. Default False so ALL existing
+    # projects stay OUT of the new distribution system. A project only enters
+    # the "list" when a director explicitly marks it True.
+    in_profit_share = models.BooleanField(
+        default=False,
+        help_text=_("If True, this project participates in the profit-share distribution."),
+    )
+
     # Navigation System - Phase 1: Client Organization fields
     billing_organization = models.ForeignKey(
         "ClientOrganization",
@@ -10445,6 +10453,14 @@ from .focus_workflow import DailyFocusSession, FocusTask
 # PWA Push Notifications
 from .push_notifications import PushSubscription
 
+# Profit-share module (socios) — Phase 2 (Jun 2026)
+from .profit_share import (
+    LedgerEntry,
+    PartnerAccount,
+    ProjectAccrualState,
+    RateConfig,
+)
+
 # Strategic Future Planning (Phase A1 - Dec 2025)
 from .strategic_future_planning import (
     StrategicDay,
@@ -10467,6 +10483,11 @@ from .strategic_planning import (
 
 __all__ = [
     "PushSubscription",
+    # Profit-share module (socios)
+    "RateConfig",
+    "PartnerAccount",
+    "LedgerEntry",
+    "ProjectAccrualState",
     "DailyFocusSession",
     "FocusTask",
     "LifeVision",
