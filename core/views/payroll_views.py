@@ -149,7 +149,47 @@ def payroll_weekly_review(request):
                 record.calculate_total_pay()
                 record.reviewed = True
                 record.save()
-                
+
+                # === ACCIÓN EXPLÍCITA: "AHORRAR TODO" (cheque completo a savings) ===
+                # Campo oculto pay_action_<id>: "pay" (normal) | "save_all" (todo a ahorro).
+                # Se procesa ANTES del pago normal y hace `continue` para evitar
+                # cualquier doble acción sobre el mismo empleado en el mismo submit.
+                pay_action = (request.POST.get(f"pay_action_{emp_id}") or "pay").strip()
+                if pay_action == "save_all":
+                    remaining_to_save = record.balance_due()
+                    # GUARDA 1: si ya está saldado (pagado o ahorrado), no hacer nada.
+                    # Evita doble-ahorro en doble-submit y bloquea ahorrar algo ya saldado.
+                    if remaining_to_save <= 0:
+                        messages.info(
+                            request,
+                            f"{emp.first_name} {emp.last_name}: "
+                            + str(_("nothing pending to save (already settled).")),
+                        )
+                        continue
+                    save_date = request.POST.get(f"pay_date_{emp_id}") or week_end.isoformat()
+                    sa_check = request.POST.get(f"check_{emp_id}", "").strip()
+                    # GUARDA 2: registrar el movimiento completo como ahorro.
+                    # amount_taken=0 (no se lleva nada), amount_saved=remaining (todo a ahorro).
+                    # PayrollPayment.save() crea automáticamente el EmployeeSavings (deposit),
+                    # ligado a ESTE pago (update_or_create por payroll_payment) → sin duplicados.
+                    PayrollPayment.objects.create(
+                        payroll_record=record,
+                        amount=remaining_to_save,
+                        amount_taken=Decimal("0"),
+                        amount_saved=remaining_to_save,
+                        payment_date=save_date,
+                        payment_method="check" if sa_check else "cash",
+                        check_number=sa_check,
+                        notes=f"Cheque completo a ahorro: ${remaining_to_save}",
+                        recorded_by=request.user,
+                    )
+                    messages.success(
+                        request,
+                        f"{emp.first_name} {emp.last_name}: 💰 ${remaining_to_save} "
+                        + str(_("saved (full check to savings).")),
+                    )
+                    continue  # No procesar pago normal para este empleado
+
                 # Procesar pago si se proporcionó cantidad pagada y fecha
                 paid_amount_str = request.POST.get(f"paid_{emp_id}")
                 check_number = request.POST.get(f"check_{emp_id}", "").strip()
@@ -602,6 +642,53 @@ def employee_savings_ledger(request, employee_id=None):
                 
                 return redirect("employee_savings_ledger")
         
+        elif action == "deposit":
+            # Depósito manual directo (dinero que el empleado deja a guardar
+            # FUERA del ciclo de nómina, ej. efectivo entregado). No se liga a
+            # ningún PayrollPayment, así que no hay riesgo de doble conteo con los
+            # depósitos automáticos de la nómina.
+            emp_id = request.POST.get("employee_id")
+            amount = request.POST.get("amount")
+            notes = request.POST.get("notes", "")
+            deposit_date = request.POST.get("date")
+
+            if emp_id and amount and deposit_date:
+                try:
+                    emp = Employee.objects.get(id=emp_id)
+                    deposit_amount = Decimal(amount)
+                    # GUARDA: el depósito debe ser positivo (los ajustes negativos
+                    # se manejan con la acción "adjustment").
+                    if deposit_amount <= 0:
+                        messages.error(
+                            request, _("Deposit amount must be greater than zero.")
+                        )
+                        return redirect("employee_savings_ledger")
+
+                    EmployeeSavings.objects.create(
+                        employee=emp,
+                        amount=deposit_amount,
+                        transaction_type="deposit",
+                        date=deposit_date,
+                        notes=notes or "Manual deposit",
+                        recorded_by=request.user,
+                    )
+                    new_balance = EmployeeSavings.get_employee_balance(emp)
+                    messages.success(
+                        request,
+                        _("Deposit of $%(amount)s recorded for %(employee)s. Balance: $%(balance)s")
+                        % {
+                            "amount": deposit_amount,
+                            "employee": f"{emp.first_name} {emp.last_name}",
+                            "balance": new_balance,
+                        },
+                    )
+                except Employee.DoesNotExist:
+                    messages.error(request, _("Employee not found."))
+                except Exception as e:
+                    messages.error(request, f"Error: {str(e)}")
+
+                return redirect("employee_savings_ledger")
+
         elif action == "adjustment":
             emp_id = request.POST.get("employee_id")
             amount = request.POST.get("amount")
@@ -674,6 +761,7 @@ def employee_savings_ledger(request, employee_id=None):
         "all_employees": all_employees,
         "employee_balances": employee_balances,
         "selected_employee": selected_employee,
+        "today": timezone.localdate(),
     }
     
     return render(request, "core/employee_savings_ledger.html", context)

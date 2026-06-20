@@ -1000,6 +1000,10 @@
                             <td class="total-pay-cell">${{ data.record.total_pay|floatformat:2 }}</td>
                             
                             <td>
+                                <input type="hidden"
+                                       name="pay_action_{{ data.employee.id }}"
+                                       id="pay_action_{{ data.employee.id }}"
+                                       value="pay">
                                 <input type="number" 
                                        name="paid_{{ data.employee.id }}" 
                                        value=""
@@ -1007,10 +1011,22 @@
                                        step="0.01"
                                        min="0"
                                        class="amount-input paid-input"
+                                       id="paid_input_{{ data.employee.id }}"
                                        data-total="{{ data.record.balance_due|floatformat:2 }}"
                                        data-employee="{{ data.employee.id }}"
                                        style="width: 90px;"
                                        {% if data.record.balance_due <= 0 %}disabled{% endif %}>
+                                {% if data.record.balance_due > 0 %}
+                                <button type="button"
+                                        class="save-all-btn"
+                                        id="save_all_btn_{{ data.employee.id }}"
+                                        data-employee="{{ data.employee.id }}"
+                                        data-amount="{{ data.record.balance_due|floatformat:2 }}"
+                                        title="{% trans 'Send the full check to savings' %}"
+                                        style="margin-top:4px; font-size:10px; padding:3px 8px; border:1px solid #10b981; background:#ecfdf5; color:#047857; border-radius:6px; cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
+                                    <i class="bi bi-piggy-bank"></i> {% trans "Save All" %}
+                                </button>
+                                {% endif %}
                                 {% if data.savings_balance > 0 %}
                                 <div style="font-size: 10px; color: #10b981; margin-top: 2px;">
                                     💰 ${{ data.savings_balance|floatformat:2 }}
@@ -1190,8 +1206,43 @@ document.querySelectorAll('.paid-input').forEach(input => {
 });
 
 // ============================================================================
-// Entry Edit Modal Functions
+// "Save All" toggle: send the full check to savings (1 click)
 // ============================================================================
+// Anti-conflict design:
+//   - A hidden field pay_action_<id> carries the intent ("pay" | "save_all").
+//   - When "save_all" is active, the paid input is CLEARED + DISABLED so it is
+//     NOT submitted, removing any ambiguity between "paid" and "saved".
+//   - The button toggles, so the admin can UNDO before saving.
+//   - Backend processes save_all first and `continue`s, so a paid value can
+//     never be double-counted with a save_all on the same employee.
+document.querySelectorAll('.save-all-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const empId = this.dataset.employee;
+        const amount = parseFloat(this.dataset.amount) || 0;
+        const actionField = document.getElementById('pay_action_' + empId);
+        const paidInput = document.getElementById('paid_input_' + empId);
+        if (!actionField || !paidInput) return;
+
+        const isActive = actionField.value === 'save_all';
+        if (!isActive) {
+            // Activate "save all"
+            actionField.value = 'save_all';
+            paidInput.value = '';
+            paidInput.disabled = true;
+            paidInput.classList.remove('has-savings');
+            this.style.background = '#10b981';
+            this.style.color = '#ffffff';
+            this.innerHTML = '<i class="bi bi-check-circle"></i> {% trans "Saving All" %} ($' + amount.toFixed(2) + ')';
+        } else {
+            // Undo → back to normal pay
+            actionField.value = 'pay';
+            paidInput.disabled = false;
+            this.style.background = '#ecfdf5';
+            this.style.color = '#047857';
+            this.innerHTML = '<i class="bi bi-piggy-bank"></i> {% trans "Save All" %}';
+        }
+    });
+});
 
 let modalData = {
     employeeId: null,

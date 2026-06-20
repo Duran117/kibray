@@ -151,6 +151,15 @@
     background: #dc2626;
 }
 
+.btn-success {
+    background: var(--savings-success, #10b981);
+    color: white;
+}
+
+.btn-success:hover {
+    background: #059669;
+}
+
 .btn-secondary {
     background: var(--savings-gray-200);
     color: var(--savings-gray-700);
@@ -457,6 +466,9 @@
         </div>
         
         <div class="action-buttons">
+            <button class="btn btn-success" onclick="openModal('depositModal')">
+                <i class="bi bi-piggy-bank"></i> {% trans "Record Deposit" %}
+            </button>
             <button class="btn btn-danger" onclick="openModal('withdrawalModal')">
                 <i class="bi bi-cash-stack"></i> {% trans "Record Withdrawal" %}
             </button>
@@ -592,6 +604,50 @@
             </div>
         </div>
         {% endfor %}
+    </div>
+</div>
+
+<!-- Deposit Modal -->
+<div class="modal-overlay" id="depositModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="bi bi-piggy-bank"></i> {% trans "Record Deposit" %}</h3>
+            <button class="modal-close" onclick="closeModal('depositModal')">&times;</button>
+        </div>
+        <form method="post" id="depositForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="deposit">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="deposit_employee">{% trans "Employee" %}</label>
+                    <select name="employee_id" id="deposit_employee" required onchange="updateDepositBalance()">
+                        <option value="">{% trans "Select employee..." %}</option>
+                        {% for emp in all_employees %}
+                        <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div id="deposit_balance_info" style="margin-top:8px; display:none;">
+                        <span style="font-size:13px; padding:4px 10px; border-radius:6px; font-weight:600; background:#ecfdf5; color:#047857;" id="deposit_balance_badge"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="deposit_amount">{% trans "Amount" %}</label>
+                    <input type="number" name="amount" id="deposit_amount" step="0.01" min="0.01" required placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="deposit_date">{% trans "Date" %}</label>
+                    <input type="date" name="date" id="deposit_date" required value="{{ today|date:'Y-m-d' }}">
+                </div>
+                <div class="form-group">
+                    <label for="deposit_notes">{% trans "Notes" %}</label>
+                    <textarea name="notes" id="deposit_notes" rows="2" placeholder="{% trans 'Reason for deposit (e.g. cash handed to hold)...' %}"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('depositModal')">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-success">{% trans "Record Deposit" %}</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -788,6 +844,30 @@ function updateWithdrawalBalance() {
     }
 
     checkOverdraft();
+}
+
+function updateDepositBalance() {
+    const select = document.getElementById('deposit_employee');
+    const empId = select.value;
+    const infoDiv = document.getElementById('deposit_balance_info');
+    const badge = document.getElementById('deposit_balance_badge');
+
+    if (!empId) {
+        infoDiv.style.display = 'none';
+        return;
+    }
+
+    const balance = employeeBalances[empId] || 0;
+    infoDiv.style.display = 'block';
+    if (balance < 0) {
+        badge.style.background = 'rgba(239, 68, 68, 0.1)';
+        badge.style.color = '#ef4444';
+        badge.innerHTML = '<i class="bi bi-exclamation-triangle"></i> {% trans "Current balance" %}: -$' + Math.abs(balance).toFixed(2) + ' ({% trans "owes" %})';
+    } else {
+        badge.style.background = 'rgba(16, 185, 129, 0.1)';
+        badge.style.color = '#047857';
+        badge.innerHTML = '<i class="bi bi-piggy-bank"></i> {% trans "Current balance" %}: $' + balance.toFixed(2);
+    }
 }
 
 function checkOverdraft() {
