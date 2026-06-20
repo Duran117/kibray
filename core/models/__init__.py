@@ -3228,6 +3228,24 @@ class InvoicePayment(models.Model):
                 self.income = income
                 super().save(update_fields=["income"])
 
+            # Profit-share accrual (Phase 4). Only fires for projects explicitly
+            # opted into the distribution; for every other project (i.e. all
+            # legacy ones) this is a cheap no-op. Wrapped defensively so an
+            # accrual issue can NEVER break payment recording.
+            project = self.invoice.project
+            if getattr(project, "in_profit_share", False):
+                try:
+                    from core.services.profit_share_service import accrue_for_project
+
+                    accrue_for_project(project)
+                except Exception:  # pragma: no cover - safety net
+                    import logging
+
+                    logging.getLogger("core.profit_share").exception(
+                        "Profit-share accrual failed for project %s after payment %s",
+                        getattr(project, "id", None), self.pk,
+                    )
+
     def __str__(self):
         return f"Payment ${self.amount} for {self.invoice.invoice_number} on {self.payment_date}"
 

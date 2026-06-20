@@ -29,6 +29,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
+from django.db import transaction
 from django.db.models import DecimalField, ExpressionWrapper, F, Q, Sum
 
 from core.access import ROLE_OWNER, ROLE_PARTNER
@@ -283,4 +284,163 @@ def compute_project_financials(
         active_socios=active_socios,
         direction_overhead_destination=rate_config.direction_overhead_destination,
         can_accrue=True,
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Accrual (Phase 4) — IDEMPOTENT. Posts only the delta vs. ProjectAccrualState.
+# ─────────────────────────────────────────────────────────────────────────────
+@dataclass
+class AccrualResult:
+    """Outcome of an accrual run (for transparency/testing)."""
+
+    posted: bool
+    reason: str = ""
+    fraction: Decimal = ZERO
+    net_realized: Decimal = ZERO
+    entries_created: int = 0
+
+
+def _qualifying_payments_total(project, start_date) -> Decimal:
+    """Σ InvoicePayment.amount for this project on/after the cutoff date.
+
+    This reuses the EXISTING payment model — there is no parallel ledger of
+    "amount collected". Payments before the cutoff never qualify.
+    """
+    from core.models import InvoicePayment
+
+    total = InvoicePayment.objects.filter(
+        invoice__project=project, payment_date__gte=start_date
+    ).aggregate(t=Sum("amount"))["t"]
+    return _q(total)
+
+
+def accrue_for_project(project) -> AccrualResult:
+    """Recompute and post profit-share accrual for a project (idempotent).
+
+    Flow:
+        skip if not project.in_profit_share
+        skip if contract_amount <= 0
+        qualifying = Σ payments(project, date >= start_date)
+        fraction   = min(qualifying / contract, 1.0)        # clamp [0,1]
+        net_realized = net(use_actuals = project closed) × fraction
+        for each account (director, active socios, business/director overhead):
+            target = full_share × fraction
+            delta  = target − ProjectAccrualState.accrued
+            if delta != 0: post LedgerEntry(ACCRUAL, delta); balance += delta
+
+    Idempotency: re-running on the same payments yields delta=0 everywhere, so
+    NO duplicate entries are created. Posting the delta (not the absolute) is
+    what makes repeated calls / double-submits safe.
+
+    Concurrency: the whole posting runs inside a transaction with row locks on
+    the touched ProjectAccrualState / PartnerAccount rows.
+    """
+    from core.models import (
+        LedgerEntry,
+        PartnerAccount,
+        ProjectAccrualState,
+        RateConfig,
+    )
+
+    if not getattr(project, "in_profit_share", False):
+        return AccrualResult(posted=False, reason="not_in_profit_share")
+
+    cfg = RateConfig.load()
+    contract = compute_contract_amount(project)
+    if contract <= 0:
+        return AccrualResult(posted=False, reason="contract_non_positive")
+
+    qualifying = _qualifying_payments_total(project, cfg.profit_share_start_date)
+    if qualifying <= 0:
+        return AccrualResult(posted=False, reason="no_qualifying_payments")
+
+    raw_fraction = qualifying / contract
+    fraction = raw_fraction if raw_fraction < Decimal("1") else Decimal("1")
+
+    use_actuals = project.end_date is not None
+
+    with transaction.atomic():
+        # Lock the active socio accounts so the count + per_socio are consistent
+        # with what we post, even under concurrent payments.
+        socio_accounts = list(
+            PartnerAccount.objects.select_for_update().filter(
+                is_business=False, is_active_socio=True, owner__isnull=False
+            )
+        )
+        active_socios = len(socio_accounts)
+
+        fin = compute_project_financials(
+            project,
+            use_actuals=use_actuals,
+            rate_config=cfg,
+            active_socios=active_socios,
+        )
+        if not fin.can_accrue:
+            return AccrualResult(posted=False, reason="cannot_accrue")
+
+        net_realized = _q(fin.net * fraction)
+
+        # Build target accruals per account.
+        targets: list[tuple[PartnerAccount, Decimal]] = []
+
+        director = PartnerAccount.director()
+        if director is not None:
+            director = PartnerAccount.objects.select_for_update().get(pk=director.pk)
+            targets.append((director, _q(fin.director_share * fraction)))
+
+        for acc in socio_accounts:
+            targets.append((acc, _q(fin.per_socio * fraction)))
+
+        overhead_realized = _q(fin.direction_overhead * fraction)
+        if cfg.direction_overhead_destination == RateConfig.DESTINATION_BUSINESS:
+            biz = PartnerAccount.objects.select_for_update().get(
+                pk=PartnerAccount.business().pk
+            )
+            targets.append((biz, overhead_realized))
+        elif director is not None:
+            # Direction overhead also goes to the director account.
+            targets.append((director, overhead_realized))
+
+        # Aggregate targets per account (director may appear twice).
+        per_account: dict[int, tuple[PartnerAccount, Decimal]] = {}
+        for acc, amount in targets:
+            if acc.pk in per_account:
+                existing_acc, existing_amt = per_account[acc.pk]
+                per_account[acc.pk] = (existing_acc, _q(existing_amt + amount))
+            else:
+                per_account[acc.pk] = (acc, amount)
+
+        entries_created = 0
+        for acc, target in per_account.values():
+            state, _created = ProjectAccrualState.objects.select_for_update().get_or_create(
+                project=project, account=acc
+            )
+            delta = _q(target - state.accrued)
+            if delta == 0:
+                continue
+            new_balance = _q(acc.balance + delta)
+            LedgerEntry.objects.create(
+                account=acc,
+                project=project,
+                type=LedgerEntry.TYPE_ACCRUAL,
+                amount=delta,
+                running_balance=new_balance,
+                note=(
+                    f"Accrual {project.name}: {fraction:.4f} collected"
+                    f"{' (actuals)' if use_actuals else ' (estimate)'}"
+                ),
+            )
+            acc.balance = new_balance
+            acc.save(update_fields=["balance"])
+            state.accrued = target
+            state.save(update_fields=["accrued"])
+            entries_created += 1
+
+    return AccrualResult(
+        posted=entries_created > 0,
+        reason="ok" if entries_created > 0 else "no_change",
+        fraction=_q(fraction),
+        net_realized=net_realized,
+        entries_created=entries_created,
     )
