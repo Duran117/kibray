@@ -1995,6 +1995,7 @@ ROLE_CHOICES = [
     ("client", "Client"),
     ("designer", "Designer"),
     ("superintendent", "Superintendent"),
+    ("partner", "Partner"),
 ]
 
 

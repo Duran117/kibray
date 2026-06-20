@@ -41,13 +41,20 @@ ROLE_EMPLOYEE = "employee"
 ROLE_CLIENT = "client"
 ROLE_DESIGNER = "designer"
 ROLE_SUPERINTENDENT = "superintendent"
+#: Profit-share partner (socio). Earns a % of each included project's net
+#: instead of an hourly wage. DELIBERATELY excluded from INTERNAL_ROLES so a
+#: partner never inherits broad internal/financial access. Partner capabilities
+#: (see own earnings, view breakdowns of included projects) are granted by
+#: explicit capability helpers only — never by role membership.
+ROLE_PARTNER = "partner"
 
 ALL_ROLES = frozenset({
     ROLE_ADMIN, ROLE_OWNER, ROLE_PM, ROLE_EMPLOYEE,
-    ROLE_CLIENT, ROLE_DESIGNER, ROLE_SUPERINTENDENT,
+    ROLE_CLIENT, ROLE_DESIGNER, ROLE_SUPERINTENDENT, ROLE_PARTNER,
 })
 
 #: Internal-staff roles: have access to operational tools (not just their own work).
+#: NOTE: ROLE_PARTNER is intentionally NOT here (see note above).
 INTERNAL_ROLES = frozenset({
     ROLE_ADMIN, ROLE_OWNER, ROLE_PM, ROLE_DESIGNER, ROLE_SUPERINTENDENT,
 })
@@ -120,6 +127,17 @@ def is_designer(user) -> bool:
 
 def is_superintendent(user) -> bool:
     return _authed(user) and get_role(user) == ROLE_SUPERINTENDENT
+
+
+def is_partner(user) -> bool:
+    """True for profit-share partners (socios).
+
+    Partners earn a share of project net instead of an hourly wage. This is an
+    IDENTITY check only — it grants NO access on its own. Partner capabilities
+    (view own earnings, view breakdowns of included projects, metric check-in)
+    are granted by explicit capability helpers, never by INTERNAL_ROLES.
+    """
+    return _authed(user) and get_role(user) == ROLE_PARTNER
 
 
 def is_internal(user) -> bool:
@@ -588,7 +606,7 @@ def require_admin_or_redirect(request):
 __all__ = [
     # Constants
     "ROLE_ADMIN", "ROLE_OWNER", "ROLE_PM", "ROLE_EMPLOYEE",
-    "ROLE_CLIENT", "ROLE_DESIGNER", "ROLE_SUPERINTENDENT",
+    "ROLE_CLIENT", "ROLE_DESIGNER", "ROLE_SUPERINTENDENT", "ROLE_PARTNER",
     "ALL_ROLES", "INTERNAL_ROLES", "ADMIN_LIKE_ROLES",
     # Layer 1
     "get_role", "is_admin", "is_owner", "is_pm", "is_employee",
