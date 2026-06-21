@@ -444,3 +444,56 @@ def accrue_for_project(project) -> AccrualResult:
         net_realized=net_realized,
         entries_created=entries_created,
     )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Advances / withdrawals (Phase 5) — director-authorized money OUT.
+# ─────────────────────────────────────────────────────────────────────────────
+@dataclass
+class AdvanceResult:
+    entry_id: int
+    new_balance: Decimal
+    left_negative: bool
+
+
+def record_advance(account, amount, *, note: str = "", recorded_by=None) -> AdvanceResult:
+    """Record an advance/withdrawal (money OUT) on a partner account.
+
+    A single mechanic covers both cases:
+      - Withdrawal: the partner takes available balance (stays >= 0).
+      - Advance/loan: the director lets the balance go NEGATIVE.
+
+    The amount is supplied positive and posted as a negative ``LedgerEntry``
+    (type ADVANCE). Negative balances are allowed by design; future accruals
+    pay them down automatically (Phase 4 adds positive deltas to the balance).
+
+    ``left_negative`` lets the UI warn "this leaves the account at −$X".
+
+    NOTE: authorization (director-only) is enforced at the endpoint/view layer
+    (Phase 7), not here — this is the pure ledger primitive.
+    """
+    from core.models import LedgerEntry, PartnerAccount
+
+    amount = _q(amount)
+    if amount <= 0:
+        raise ValueError("Advance amount must be greater than zero.")
+
+    with transaction.atomic():
+        acc = PartnerAccount.objects.select_for_update().get(pk=account.pk)
+        new_balance = _q(acc.balance - amount)
+        entry = LedgerEntry.objects.create(
+            account=acc,
+            project=None,
+            type=LedgerEntry.TYPE_ADVANCE,
+            amount=_q(-amount),
+            running_balance=new_balance,
+            note=note or "Advance / withdrawal",
+        )
+        acc.balance = new_balance
+        acc.save(update_fields=["balance"])
+
+    return AdvanceResult(
+        entry_id=entry.pk,
+        new_balance=new_balance,
+        left_negative=new_balance < 0,
+    )
