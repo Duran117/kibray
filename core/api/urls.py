@@ -29,6 +29,16 @@ from . import schedule_api, sop_api
 from .bulk_views import BulkTaskUpdateAPIView, BulkTaskAssignAPIView, TaskDetailAPIView
 from .dashboard_extra import ClientDashboardView, ProjectDashboardView
 from .focus_api import DailyFocusSessionViewSet, FocusTaskViewSet
+from .profit_share_api import (
+    AccountAdvanceView,
+    MyEarningsByProjectView,
+    MyEarningsLedgerView,
+    MyEarningsSummaryView,
+    ProfitShareProjectsListView,
+    ProjectBreakdownView,
+    RateConfigView,
+    SetProfitShareView,
+)
 from .views import (
     AdminDashboardView,
     AISuggestionViewSet,  # AI Enhancement (Dec 2025)
@@ -365,6 +375,47 @@ urlpatterns = [
         "gantt/v2/dependencies/<int:dependency_id>/",
         schedule_api.delete_schedule_dependency_v2,
         name="api-gantt-v2-dependency-delete",
+    ),
+    # Profit-share (Reparto de Ganancias) API
+    path(
+        "profit-share/projects/",
+        ProfitShareProjectsListView.as_view(),
+        name="api-profit-share-projects",
+    ),
+    path(
+        "profit-share/projects/<int:project_id>/breakdown/",
+        ProjectBreakdownView.as_view(),
+        name="api-profit-share-project-breakdown",
+    ),
+    path(
+        "profit-share/projects/<int:project_id>/set/",
+        SetProfitShareView.as_view(),
+        name="api-profit-share-project-set",
+    ),
+    path(
+        "profit-share/accounts/<int:account_id>/advance/",
+        AccountAdvanceView.as_view(),
+        name="api-profit-share-account-advance",
+    ),
+    path(
+        "profit-share/me/summary/",
+        MyEarningsSummaryView.as_view(),
+        name="api-profit-share-me-summary",
+    ),
+    path(
+        "profit-share/me/by-project/",
+        MyEarningsByProjectView.as_view(),
+        name="api-profit-share-me-by-project",
+    ),
+    path(
+        "profit-share/me/ledger/",
+        MyEarningsLedgerView.as_view(),
+        name="api-profit-share-me-ledger",
+    ),
+    path(
+        "profit-share/rates/",
+        RateConfigView.as_view(),
+        name="api-profit-share-rates",
     ),
     # Include router URLs
     path("", include(router.urls)),
