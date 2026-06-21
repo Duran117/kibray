@@ -101,10 +101,9 @@ def client_request_convert_to_co(request, request_id):
         return redirect("client_requests_list", project_id=cr.project.id)
     if request.method == "POST":
         description = request.POST.get("description") or cr.description or cr.title
-        amount_str = request.POST.get("amount") or "0"
         try:
-            amt = Decimal(amount_str)
-        except Exception:
+            amt = parse_money(request.POST.get("amount"), allow_blank=True) or Decimal("0")
+        except ValidationError:
             amt = Decimal("0")
         co = ChangeOrder.objects.create(
             project=cr.project, description=description, amount=amt, status="pending"

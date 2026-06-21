@@ -3105,8 +3105,6 @@ class Invoice(models.Model):
         return self.status
 
     def save(self, *args, **kwargs):
-        creating = self._state.adding
-
         if not self.invoice_number:
             # Si existe una Estimate aprobada más reciente, usar su código como prefijo
             approved_estimate = getattr(
@@ -3180,6 +3178,18 @@ class InvoicePayment(models.Model):
         ("OTHER", "Otro"),
     ]
 
+    #: Map this model's (English) payment-method codes to the codes the
+    #: ``Income`` model accepts (Spanish). Without this, the auto-created Income
+    #: stored an out-of-choices value (e.g. "CHECK"), corrupting income reports
+    #: and breaking any later form/serializer validation of that row.
+    INCOME_METHOD_MAP = {
+        "CHECK": "CHEQUE",
+        "CASH": "EFECTIVO",
+        "TRANSFER": "TRANSFERENCIA",
+        "CARD": "OTRO",   # Income has no CARD; closest neutral bucket
+        "OTHER": "OTRO",
+    }
+
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="payments")
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_date = models.DateField()
@@ -3220,7 +3230,9 @@ class InvoicePayment(models.Model):
                     project_name=f"Pago Factura {self.invoice.invoice_number}",
                     amount=self.amount,
                     date=self.payment_date,
-                    payment_method=self.payment_method,
+                    payment_method=self.INCOME_METHOD_MAP.get(
+                        self.payment_method, "OTRO"
+                    ),
                     category="PAYMENT",
                     source="INVOICE_PAYMENT",
                     description=f"Pago de ${self.amount} para factura {self.invoice.invoice_number}. Ref: {self.reference}",

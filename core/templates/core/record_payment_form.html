@@ -1,5 +1,6 @@
 {% extends "core/base_modern.html" %}
 {% load i18n %}
+{% load l10n %}
 {% load static %}
 
 {% block title %}{% trans "Record Payment" %} - {{ invoice.invoice_number }}{% endblock %}
@@ -30,7 +31,7 @@
                             <label class="form-label">{% trans "Amount Received" %} *</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" step="0.01" name="amount" class="form-control" value="{{ invoice.balance_due }}" required>
+                                <input type="number" step="0.01" inputmode="decimal" name="amount" class="form-control" value="{{ invoice.balance_due|unlocalize }}" required>
                             </div>
                             <small class="text-muted">{% trans "Enter the full or partial amount received" %}</small>
                         </div>

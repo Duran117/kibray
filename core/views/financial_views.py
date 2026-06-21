@@ -951,37 +951,66 @@ def record_invoice_payment(request, invoice_id):
     invoice = get_object_or_404(Invoice, pk=invoice_id)
 
     if request.method == "POST":
-        amount = request.POST.get("amount")
-        payment_date = request.POST.get("payment_date")
+        raw_amount = request.POST.get("amount")
+        payment_date = (request.POST.get("payment_date") or "").strip()
         payment_method = request.POST.get("payment_method", "CHECK")
         reference = request.POST.get("reference", "")
         notes = request.POST.get("notes", "")
 
+        # Parse the amount tolerantly (handles the Spanish locale comma decimal
+        # separator, e.g. "1.234,56", which previously raised InvalidOperation
+        # → HTTP 500). Empty date falls back to today.
         try:
-            amount_decimal = Decimal(amount)
+            amount_decimal = parse_money(raw_amount)
+        except ValidationError as e:
+            messages.error(request, _("Invalid amount: %(error)s") % {"error": "; ".join(e.messages)})
+            return redirect("record_invoice_payment", invoice_id=invoice.id)
 
-            # Create payment record (this auto-updates invoice via model save)
-            from core.models import InvoicePayment
+        if amount_decimal <= 0:
+            messages.error(request, _("The payment amount must be greater than zero."))
+            return redirect("record_invoice_payment", invoice_id=invoice.id)
 
-            InvoicePayment.objects.create(
-                invoice=invoice,
-                amount=amount_decimal,
-                payment_date=payment_date,
-                payment_method=payment_method,
-                reference=reference,
-                notes=notes,
-                recorded_by=request.user,
-            )
+        if not payment_date:
+            payment_date = timezone.now().date().isoformat()
 
-            messages.success(
-                request,
-                f"✅ Pago de ${amount_decimal:,.2f} registrado. Status: {invoice.get_status_display()}",
-            )
-            return redirect("invoice_payment_dashboard")
-
+        from core.models import InvoicePayment
+        try:
+            # Inner savepoint: if the write fails (e.g. a DB-level error), it
+            # rolls back cleanly WITHOUT poisoning the outer @transaction.atomic,
+            # so the redirect below still works instead of 500-ing.
+            with transaction.atomic():
+                InvoicePayment.objects.create(
+                    invoice=invoice,
+                    amount=amount_decimal,
+                    payment_date=payment_date,
+                    payment_method=payment_method,
+                    reference=reference,
+                    notes=notes,
+                    recorded_by=request.user,
+                )
         except (ValueError, ValidationError) as e:
             messages.error(request, _("Error: %(error)s") % {"error": e})
             return redirect("invoice_detail", pk=invoice.id)
+        except Exception:  # noqa: BLE001 — never 500 the payment form
+            logger.exception(
+                "record_invoice_payment failed for invoice %s", invoice.id
+            )
+            messages.error(
+                request,
+                _("The payment could not be saved due to an unexpected error. "
+                  "Please verify the data and try again."),
+            )
+            return redirect("invoice_detail", pk=invoice.id)
+
+        messages.success(
+            request,
+            _("✅ Payment of $%(amount)s recorded. Status: %(status)s")
+            % {
+                "amount": f"{amount_decimal:,.2f}",
+                "status": invoice.get_status_display(),
+            },
+        )
+        return redirect("invoice_payment_dashboard")
 
     # GET: show form
     context = {

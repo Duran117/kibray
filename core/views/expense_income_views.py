@@ -468,10 +468,11 @@ def unassigned_timeentries_view(request):
                     messages.error(request, _("To create a CO, select rows from a single project."))
                     return redirect(request.get_full_path())
                 description = request.POST.get("new_co_description", "Trabajo adicional")
-                amount = request.POST.get("new_co_amount") or "0"
                 try:
-                    amt = Decimal(amount)
-                except Exception:
+                    amt = parse_money(
+                        request.POST.get("new_co_amount"), allow_blank=True
+                    ) or Decimal("0")
+                except ValidationError:
                     amt = Decimal("0")
                 co = ChangeOrder.objects.create(
                     project=project_for_new, description=description, amount=amt, status="pending"

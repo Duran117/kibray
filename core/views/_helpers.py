@@ -141,6 +141,71 @@ ROLES_CLIENT_SIDE = {"client", "designer", "owner"}
 ROLES_PROJECT_ACCESS = ROLES_STAFF | ROLES_CLIENT_SIDE
 
 
+def parse_money(raw, *, allow_blank=False):
+    """Parse a user/locale-entered money string into a :class:`Decimal`.
+
+    The UI runs in a Spanish locale, so Django localizes Decimals in templates
+    using a COMMA decimal separator (e.g. ``Decimal('500.00')`` renders as
+    ``'500,00'``). That value, once submitted, used to be fed straight into
+    ``Decimal(...)`` which raises ``InvalidOperation`` on the comma → HTTP 500
+    (the invoice "record payment" bug). This helper accepts every shape a real
+    user submits and never trips on the separator:
+
+        '1234.56'   '1,234.56' (en)   '1.234,56' (es)   '500,00' (es)
+        '$1,234.56'   '1 234,56'   '-50'
+
+    When both ``.`` and ``,`` are present, the RIGHTMOST is treated as the
+    decimal separator and the other as a thousands separator. A lone ``,`` is
+    treated as the decimal separator (matches this app's locale and the form
+    defaults). Currency symbols and spaces are stripped.
+
+    Args:
+        raw: the raw POST value (str or None).
+        allow_blank: when True, empty/None returns ``None`` instead of raising.
+
+    Returns:
+        A ``Decimal``.
+
+    Raises:
+        ValidationError: on empty (unless ``allow_blank``) or unparseable input,
+        with a user-friendly, translated message.
+    """
+    if raw is None:
+        if allow_blank:
+            return None
+        raise ValidationError(_("Enter an amount."))
+
+    s = str(raw).strip().replace("\xa0", "").replace(" ", "")
+    for sym in ("$", "€", "£", "USD", "usd"):
+        s = s.replace(sym, "")
+    if s == "":
+        if allow_blank:
+            return None
+        raise ValidationError(_("Enter an amount."))
+
+    neg = s.startswith("-")
+    if neg:
+        s = s[1:]
+
+    has_dot = "." in s
+    has_comma = "," in s
+    if has_dot and has_comma:
+        if s.rfind(",") > s.rfind("."):  # es: '.' thousands, ',' decimal
+            s = s.replace(".", "").replace(",", ".")
+        else:  # en: ',' thousands, '.' decimal
+            s = s.replace(",", "")
+    elif has_comma:  # lone comma → decimal separator (Spanish)
+        s = s.replace(",", ".")
+
+    try:
+        value = Decimal(s)
+    except (InvalidOperation, ValueError):
+        raise ValidationError(
+            _("“%(val)s” is not a valid amount.") % {"val": raw}
+        )
+    return -value if neg else value
+
+
 def _generate_basic_pdf_from_html(html: str) -> bytes:
     """Very small fallback: strip tags and render lines into a single-page PDF."""
     try:
