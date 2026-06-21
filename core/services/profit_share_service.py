@@ -153,6 +153,18 @@ def _count_active_socios() -> int:
     ).count()
 
 
+def exclude_profit_share_members(employee_qs):
+    """Exclude socios (partner) and the director (owner) from an Employee qs.
+
+    These members no longer draw an hourly wage and must NOT appear in payroll
+    or savings. Their TimeEntry check-ins are untouched (metrics only). Plain
+    crew (no linked user, or any non partner/owner role) is always kept.
+    """
+    return employee_qs.exclude(
+        user__profile__role__in=[ROLE_PARTNER, ROLE_OWNER]
+    )
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Result container
 # ─────────────────────────────────────────────────────────────────────────────

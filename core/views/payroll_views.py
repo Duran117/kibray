@@ -1,6 +1,7 @@
 """Payroll views — extracted from legacy_views.py in Phase 8."""
 from core.views._helpers import *  # noqa: F401, F403
 from core.access import require_admin_or_redirect
+from core.services.profit_share_service import exclude_profit_share_members
 from core.views._helpers import (
     logger,
 )
@@ -55,8 +56,11 @@ def payroll_weekly_review(request):
         week_start=week_start, week_end=week_end, defaults={"created_by": request.user}
     )
 
-    # Obtener todos los empleados activos
-    employees = Employee.objects.filter(is_active=True).order_by("last_name", "first_name")
+    # Obtener todos los empleados activos (excluyendo socios/director: ya no
+    # cobran por hora y no deben aparecer en la nómina; su check-in sigue igual)
+    employees = exclude_profit_share_members(
+        Employee.objects.filter(is_active=True)
+    ).order_by("last_name", "first_name")
 
     # POST: Actualizar registros
     if request.method == "POST":
@@ -552,8 +556,10 @@ def employee_savings_ledger(request, employee_id=None):
             'ledger': EmployeeSavings.get_employee_ledger(employee),
         }]
     else:
-        # Mostrar todos los empleados activos con ahorros
-        employees = Employee.objects.filter(is_active=True).order_by('last_name', 'first_name')
+        # Mostrar todos los empleados activos con ahorros (sin socios/director)
+        employees = exclude_profit_share_members(
+            Employee.objects.filter(is_active=True)
+        ).order_by('last_name', 'first_name')
         employees_data = []
         
         for emp in employees:
@@ -738,7 +744,9 @@ def employee_savings_ledger(request, employee_id=None):
                 return redirect("employee_savings_ledger")
     
     # Get all active employees for dropdown (with balances for withdrawal modal)
-    all_employees = Employee.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    all_employees = exclude_profit_share_members(
+        Employee.objects.filter(is_active=True)
+    ).order_by('last_name', 'first_name')
     employee_balances = {}
     for emp in all_employees:
         employee_balances[emp.id] = float(EmployeeSavings.get_employee_balance(emp))
