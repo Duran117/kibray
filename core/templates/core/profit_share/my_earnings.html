@@ -85,13 +85,14 @@
         <thead><tr>
           <th>{% trans "Date" %}</th>
           <th>{% trans "Type" %}</th>
+          <th>{% trans "Method" %}</th>
           <th>{% trans "Project" %}</th>
           <th class="num">{% trans "Amount" %}</th>
           <th class="num">{% trans "Balance" %}</th>
           <th>{% trans "Note" %}</th>
         </tr></thead>
         <tbody id="ps-ledger">
-          <tr><td colspan="6" class="ps-muted">{% trans "Loading…" %}</td></tr>
+          <tr><td colspan="7" class="ps-muted">{% trans "Loading…" %}</td></tr>
         </tbody>
       </table>
     </div>
@@ -156,19 +157,31 @@
       .then(function (d) {
         var tb = document.getElementById('ps-ledger');
         if (!d.results.length) {
-          tb.innerHTML = '<tr><td colspan="6" class="ps-muted">{% trans "No movements yet." %}</td></tr>';
+          tb.innerHTML = '<tr><td colspan="7" class="ps-muted">{% trans "No movements yet." %}</td></tr>';
           return;
         }
         tb.innerHTML = d.results.slice().reverse().map(function (e) {
           var amtCls = parseFloat(e.amount) < 0 ? 'neg' : 'pos';
           return '<tr><td>' + (e.date || '').slice(0, 10) + '</td>' +
             '<td>' + escapeHtml(e.type) + '</td>' +
+            '<td>' + methodLabel(e) + '</td>' +
             '<td>' + escapeHtml(e.project || '—') + '</td>' +
             '<td class="num ps-amount ' + amtCls + '">' + money(e.amount) + '</td>' +
             '<td class="num">' + money(e.running_balance) + '</td>' +
             '<td>' + escapeHtml(e.note || '') + '</td></tr>';
         }).join('');
       });
+  }
+
+  var METHOD_LABELS = {
+    CHECK: '{% trans "Check" %}', ZELLE: 'Zelle',
+    TRANSFER: '{% trans "Bank transfer" %}', CASH: '{% trans "Cash" %}',
+    OTHER: '{% trans "Other" %}'
+  };
+  function methodLabel(e) {
+    if (!e.payment_method) return '—';
+    var lbl = METHOD_LABELS[e.payment_method] || escapeHtml(e.payment_method);
+    return e.payment_reference ? (lbl + ' · ' + escapeHtml(e.payment_reference)) : lbl;
   }
 
   function escapeHtml(s) {

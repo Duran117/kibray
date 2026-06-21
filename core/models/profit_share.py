@@ -225,6 +225,21 @@ class LedgerEntry(models.Model):
         (TYPE_ADJUSTMENT, "Adjustment"),
     ]
 
+    #: How an advance/withdrawal (money OUT) was actually paid. Blank for
+    #: accruals (money IN) which have no payment method.
+    METHOD_CHECK = "CHECK"
+    METHOD_ZELLE = "ZELLE"
+    METHOD_TRANSFER = "TRANSFER"
+    METHOD_CASH = "CASH"
+    METHOD_OTHER = "OTHER"
+    PAYMENT_METHOD_CHOICES = [
+        (METHOD_CHECK, "Check"),
+        (METHOD_ZELLE, "Zelle"),
+        (METHOD_TRANSFER, "Bank transfer"),
+        (METHOD_CASH, "Cash"),
+        (METHOD_OTHER, "Other"),
+    ]
+
     account = models.ForeignKey(
         PartnerAccount, on_delete=models.CASCADE, related_name="entries"
     )
@@ -240,6 +255,15 @@ class LedgerEntry(models.Model):
     )
     date = models.DateTimeField(default=timezone.now)
     note = models.CharField(max_length=255, blank=True)
+    payment_method = models.CharField(
+        max_length=12, blank=True, choices=PAYMENT_METHOD_CHOICES,
+        help_text="How an advance/withdrawal was paid (check/Zelle/...). "
+                  "Blank for accruals.",
+    )
+    payment_reference = models.CharField(
+        max_length=120, blank=True,
+        help_text="Check number / Zelle confirmation / transfer reference.",
+    )
     running_balance = models.DecimalField(
         max_digits=14, decimal_places=2, default=Decimal("0.00"),
         help_text="Account balance immediately after this entry.",

@@ -475,7 +475,15 @@ class AdvanceResult:
     left_negative: bool
 
 
-def record_advance(account, amount, *, note: str = "", recorded_by=None) -> AdvanceResult:
+def record_advance(
+    account,
+    amount,
+    *,
+    note: str = "",
+    recorded_by=None,
+    payment_method: str = "",
+    payment_reference: str = "",
+) -> AdvanceResult:
     """Record an advance/withdrawal (money OUT) on a partner account.
 
     A single mechanic covers both cases:
@@ -485,6 +493,10 @@ def record_advance(account, amount, *, note: str = "", recorded_by=None) -> Adva
     The amount is supplied positive and posted as a negative ``LedgerEntry``
     (type ADVANCE). Negative balances are allowed by design; future accruals
     pay them down automatically (Phase 4 adds positive deltas to the balance).
+
+    ``payment_method`` / ``payment_reference`` record HOW the money went out
+    (e.g. a check number or a Zelle confirmation); both are optional because
+    the channel "va variando".
 
     ``left_negative`` lets the UI warn "this leaves the account at −$X".
 
@@ -507,6 +519,8 @@ def record_advance(account, amount, *, note: str = "", recorded_by=None) -> Adva
             amount=_q(-amount),
             running_balance=new_balance,
             note=note or "Advance / withdrawal",
+            payment_method=payment_method or "",
+            payment_reference=payment_reference or "",
         )
         acc.balance = new_balance
         acc.save(update_fields=["balance"])

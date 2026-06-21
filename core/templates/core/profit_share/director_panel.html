@@ -103,6 +103,23 @@
             <input type="text" id="adv-note" maxlength="255" placeholder="{% trans 'optional' %}">
           </div>
         </div>
+        <div class="ps-row2">
+          <div class="ps-field">
+            <label for="adv-method">{% trans "Payment method" %}</label>
+            <select id="adv-method">
+              <option value="">{% trans "— select —" %}</option>
+              <option value="CHECK">{% trans "Check" %}</option>
+              <option value="ZELLE">{% trans "Zelle" %}</option>
+              <option value="TRANSFER">{% trans "Bank transfer" %}</option>
+              <option value="CASH">{% trans "Cash" %}</option>
+              <option value="OTHER">{% trans "Other" %}</option>
+            </select>
+          </div>
+          <div class="ps-field">
+            <label for="adv-reference">{% trans "Reference (check # / Zelle)" %}</label>
+            <input type="text" id="adv-reference" maxlength="120" placeholder="{% trans 'optional' %}">
+          </div>
+        </div>
         <button class="ps-btn primary" id="adv-submit">{% trans "Record advance" %}</button>
         <div class="ps-msg" id="adv-msg"></div>
       </div>
@@ -274,6 +291,8 @@
     var accId = document.getElementById('adv-account').value;
     var amount = document.getElementById('adv-amount').value;
     var note = document.getElementById('adv-note').value;
+    var method = document.getElementById('adv-method').value;
+    var reference = document.getElementById('adv-reference').value;
     var msg = document.getElementById('adv-msg');
     if (!accId || !(parseFloat(amount) > 0)) {
       setMsg(msg, '{% trans "Enter a positive amount." %}', false);
@@ -295,7 +314,7 @@
     fetch('/api/v1/profit-share/accounts/' + accId + '/advance/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
-      body: JSON.stringify({ amount: amount, note: note })
+      body: JSON.stringify({ amount: amount, note: note, payment_method: method, payment_reference: reference })
     })
       .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
       .then(function (res) {
@@ -310,6 +329,8 @@
         }
         document.getElementById('adv-amount').value = '';
         document.getElementById('adv-note').value = '';
+        document.getElementById('adv-method').value = '';
+        document.getElementById('adv-reference').value = '';
       })
       .catch(function () { setMsg(msg, '{% trans "Network error." %}', false); })
       .finally(function () { btn.disabled = false; });

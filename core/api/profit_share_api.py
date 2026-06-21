@@ -297,12 +297,29 @@ class AccountAdvanceView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         note = (request.data.get("note") or "").strip()
-        result = record_advance(account, amount, note=note, recorded_by=request.user)
+        method = (request.data.get("payment_method") or "").strip().upper()
+        reference = (request.data.get("payment_reference") or "").strip()
+        valid_methods = {m for m, _ in LedgerEntry.PAYMENT_METHOD_CHOICES}
+        if method and method not in valid_methods:
+            return Response(
+                {"detail": "Invalid payment_method."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        result = record_advance(
+            account,
+            amount,
+            note=note,
+            recorded_by=request.user,
+            payment_method=method,
+            payment_reference=reference,
+        )
         return Response(
             {
                 "entry_id": result.entry_id,
                 "new_balance": str(result.new_balance),
                 "left_negative": result.left_negative,
+                "payment_method": method,
+                "payment_reference": reference,
             },
             status=status.HTTP_201_CREATED,
         )
@@ -443,6 +460,8 @@ class MyEarningsLedgerView(APIView):
                 "project": e.project.name if e.project_id else None,
                 "date": e.date.isoformat(),
                 "note": e.note,
+                "payment_method": e.payment_method,
+                "payment_reference": e.payment_reference,
             }
             for e in entries
         ]
