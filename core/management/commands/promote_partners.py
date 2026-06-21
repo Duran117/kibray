@@ -4,9 +4,9 @@ Profit-share Phase 1.5. Designed to be run in PRODUCTION to flag the real
 partners by username or email WITHOUT hardcoding names anywhere in the code.
 
 Usage:
-    python manage.py promote_partners --user jluis --user jmanuel
-    python manage.py promote_partners --email jose.luis@... --email jose.manuel@...
-    python manage.py promote_partners --user jluis --dry-run
+    python manage.py promote_partners --user <username> --user <username2>
+    python manage.py promote_partners --email <email1> --email <email2>
+    python manage.py promote_partners --user <username> --dry-run
 
 Guarantees:
   - Idempotent: re-running is a no-op for users already 'partner'.

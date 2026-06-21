@@ -109,14 +109,14 @@ class TestPromotePartnersCommand:
     """Idempotent promote_partners management command."""
 
     def test_promote_by_username(self):
-        u = _mk_user("cmd_jluis", role=access.ROLE_EMPLOYEE)
-        call_command("promote_partners", "--user", "cmd_jluis")
+        u = _mk_user("cmd_partner_a", role=access.ROLE_EMPLOYEE)
+        call_command("promote_partners", "--user", "cmd_partner_a")
         u.profile.refresh_from_db()
         assert u.profile.role == access.ROLE_PARTNER
 
     def test_promote_by_email(self):
-        u = _mk_user("cmd_jmanuel", role=access.ROLE_EMPLOYEE, email="jm@example.com")
-        call_command("promote_partners", "--email", "jm@example.com")
+        u = _mk_user("cmd_partner_b", role=access.ROLE_EMPLOYEE, email="pb@example.com")
+        call_command("promote_partners", "--email", "pb@example.com")
         u.profile.refresh_from_db()
         assert u.profile.role == access.ROLE_PARTNER
 
