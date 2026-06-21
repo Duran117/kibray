@@ -45,11 +45,6 @@ from core.services.profit_share_service import (
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers & permissions
 # ─────────────────────────────────────────────────────────────────────────────
-def _is_director(user) -> bool:
-    """Director = admin or owner. The only role that configures/marks/advances."""
-    return access.is_admin(user) or access.is_owner(user)
-
-
 def _resolve_account(user):
     """The PartnerAccount owned by this user (socio or director), or None."""
     if not user or not user.is_authenticated:
@@ -61,7 +56,7 @@ class IsDirector(permissions.BasePermission):
     message = "Director (owner/admin) role required."
 
     def has_permission(self, request, view):
-        return _is_director(request.user)
+        return access.is_director(request.user)
 
 
 class IsPartnerOrDirector(permissions.BasePermission):
@@ -71,7 +66,7 @@ class IsPartnerOrDirector(permissions.BasePermission):
 
     def has_permission(self, request, view):
         u = request.user
-        return _is_director(u) or access.is_partner(u)
+        return access.is_director(u) or access.is_partner(u)
 
 
 def _project_status(project) -> str:
@@ -112,7 +107,7 @@ class ProjectBreakdownView(APIView):
 
     def get(self, request, project_id):
         project = get_object_or_404(Project, pk=project_id)
-        director = _is_director(request.user)
+        director = access.is_director(request.user)
 
         # Partners may only see INCLUDED projects.
         if not director and not project.in_profit_share:
@@ -122,6 +117,13 @@ class ProjectBreakdownView(APIView):
             )
 
         use_actuals = project.end_date is not None
+        # Director-only toggle for the cascade calculator: force estimado/real.
+        # Partners always get the automatic per-project behavior (no override),
+        # so the displayed numbers can never be quietly reframed for them.
+        if director:
+            override = request.query_params.get("use_actuals")
+            if override is not None:
+                use_actuals = str(override).lower() in ("1", "true", "yes", "real")
         fin = compute_project_financials(project, use_actuals=use_actuals)
 
         payload = {
@@ -131,6 +133,7 @@ class ProjectBreakdownView(APIView):
                 "status": _project_status(project),
                 "in_profit_share": project.in_profit_share,
             },
+            "mode": "real" if use_actuals else "estimado",
             "cascade": {
                 "contract_amount": str(fin.contract_amount),
                 "materials": str(fin.materials),

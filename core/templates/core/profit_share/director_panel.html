@@ -1,0 +1,302 @@
+{% extends 'core/base_modern.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Profit-share — Director" %} | Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ps-wrap { padding:24px; max-width:1200px; margin:0 auto; }
+  .ps-wrap h1 { font-size:1.6rem; font-weight:700; margin:0 0 4px; }
+  .ps-sub { color:#6b7280; margin:0 0 24px; }
+  .ps-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width: 900px){ .ps-grid { grid-template-columns:1fr; } }
+  .ps-card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.06); overflow:hidden; margin-bottom:20px; }
+  .ps-card h2 { font-size:1.02rem; margin:0; padding:15px 20px; border-bottom:1px solid #f0f0f0; }
+  table.ps-tbl { width:100%; border-collapse:collapse; }
+  table.ps-tbl th, table.ps-tbl td { padding:11px 18px; font-size:.9rem; text-align:left; border-bottom:1px solid #f3f4f6; }
+  table.ps-tbl th { color:#6b7280; font-weight:600; background:#fafafa; }
+  table.ps-tbl td.num, table.ps-tbl th.num { text-align:right; font-variant-numeric:tabular-nums; }
+  .ps-badge { display:inline-block; font-size:.72rem; padding:2px 8px; border-radius:999px; font-weight:600; }
+  .ps-badge.real { background:#dcfce7; color:#166534; }
+  .ps-badge.estimado { background:#fef9c3; color:#854d0e; }
+  .ps-badge.on { background:#dcfce7; color:#166534; }
+  .ps-badge.off { background:#f3f4f6; color:#6b7280; }
+  .ps-amount.neg { color:#ef4444; }
+  .ps-amount.pos { color:#10b981; }
+  .ps-btn { border:1px solid #d1d5db; background:#fff; border-radius:8px; padding:6px 12px; cursor:pointer; font-size:.82rem; }
+  .ps-btn.primary { background:#6366f1; color:#fff; border-color:#6366f1; }
+  .ps-btn:disabled { opacity:.5; cursor:default; }
+  .ps-field { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  .ps-field label { font-size:.78rem; text-transform:uppercase; color:#6b7280; letter-spacing:.03em; }
+  .ps-field input, .ps-field select { padding:9px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:.92rem; }
+  .ps-row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .ps-form-pad { padding:18px 20px; }
+  .ps-msg { font-size:.85rem; margin-top:10px; min-height:18px; }
+  .ps-msg.ok { color:#10b981; }
+  .ps-msg.err { color:#ef4444; }
+  .ps-projects-scroll { max-height:360px; overflow:auto; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ps-wrap">
+  {% csrf_token %}
+  <h1>{% trans "Profit-share — Director" %}</h1>
+  <p class="ps-sub">{% trans "Configure rates, include projects, track balances and post advances." %}</p>
+
+  <div class="ps-grid">
+    <!-- Account balances -->
+    <div class="ps-card">
+      <h2>{% trans "Account balances" %}</h2>
+      <table class="ps-tbl">
+        <thead><tr>
+          <th>{% trans "Account" %}</th>
+          <th>{% trans "Type" %}</th>
+          <th class="num">{% trans "Balance" %}</th>
+        </tr></thead>
+        <tbody>
+          {% for a in accounts %}
+            <tr>
+              <td>
+                {% if a.is_business %}{% trans "Business (Caja)" %}
+                {% elif a.owner %}{{ a.owner.get_full_name|default:a.owner.username }}
+                {% else %}#{{ a.pk }}{% endif %}
+              </td>
+              <td>
+                {% if a.is_business %}<span class="ps-badge off">{% trans "Business" %}</span>
+                {% elif a.is_active_socio %}<span class="ps-badge on">{% trans "Active socio" %}</span>
+                {% else %}<span class="ps-badge off">{% trans "Inactive" %}</span>{% endif %}
+              </td>
+              <td class="num ps-amount" data-balance-for="{{ a.pk }}">{{ a.balance }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3" style="color:#9ca3af;">{% trans "No accounts yet." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Post advance -->
+    <div class="ps-card">
+      <h2>{% trans "Post an advance / withdrawal" %}</h2>
+      <div class="ps-form-pad">
+        <div class="ps-field">
+          <label for="adv-account">{% trans "Account" %}</label>
+          <select id="adv-account">
+            {% for a in accounts %}
+              <option value="{{ a.pk }}">
+                {% if a.is_business %}{% trans "Business (Caja)" %}{% elif a.owner %}{{ a.owner.get_full_name|default:a.owner.username }}{% else %}#{{ a.pk }}{% endif %}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="ps-row2">
+          <div class="ps-field">
+            <label for="adv-amount">{% trans "Amount" %}</label>
+            <input type="number" id="adv-amount" step="0.01" min="0.01" placeholder="0.00">
+          </div>
+          <div class="ps-field">
+            <label for="adv-note">{% trans "Note" %}</label>
+            <input type="text" id="adv-note" maxlength="255" placeholder="{% trans 'optional' %}">
+          </div>
+        </div>
+        <button class="ps-btn primary" id="adv-submit">{% trans "Record advance" %}</button>
+        <div class="ps-msg" id="adv-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Projects inclusion -->
+  <div class="ps-card">
+    <h2>{% trans "Projects in the profit-share" %}</h2>
+    <div class="ps-projects-scroll">
+      <table class="ps-tbl">
+        <thead><tr>
+          <th>{% trans "Project" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Included" %}</th>
+          <th></th>
+        </tr></thead>
+        <tbody>
+          {% for p in projects %}
+            <tr data-project="{{ p.id }}">
+              <td>{{ p.name }}</td>
+              <td><span class="ps-badge {{ p.status }}">{{ p.status }}</span></td>
+              <td>
+                <span class="ps-badge {% if p.in_profit_share %}on{% else %}off{% endif %}" data-inc-badge>
+                  {% if p.in_profit_share %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}
+                </span>
+              </td>
+              <td>
+                <button class="ps-btn" data-toggle-inc data-state="{{ p.in_profit_share|yesno:'true,false' }}">
+                  {% if p.in_profit_share %}{% trans "Remove" %}{% else %}{% trans "Include" %}{% endif %}
+                </button>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" style="color:#9ca3af;">{% trans "No projects." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Rate configuration -->
+  <div class="ps-card">
+    <h2>{% trans "Rate configuration" %}</h2>
+    <div class="ps-form-pad">
+      <div class="ps-row2">
+        <div class="ps-field">
+          <label for="r-company">{% trans "Company overhead %" %}</label>
+          <input type="number" id="r-company" step="0.01" value="{{ rate_config.company_overhead_pct }}">
+        </div>
+        <div class="ps-field">
+          <label for="r-overhead">{% trans "Overhead %" %}</label>
+          <input type="number" id="r-overhead" step="0.01" value="{{ rate_config.direction_overhead_pct }}">
+        </div>
+        <div class="ps-field">
+          <label for="r-callback">{% trans "Callback reserve %" %}</label>
+          <input type="number" id="r-callback" step="0.01" value="{{ rate_config.callback_reserve_pct }}">
+        </div>
+        <div class="ps-field">
+          <label for="r-baddebt">{% trans "Bad-debt reserve %" %}</label>
+          <input type="number" id="r-baddebt" step="0.01" value="{{ rate_config.bad_debt_reserve_pct }}">
+        </div>
+        <div class="ps-field">
+          <label for="r-director">{% trans "Director split %" %}</label>
+          <input type="number" id="r-director" step="0.01" value="{{ rate_config.director_split_pct }}">
+        </div>
+        <div class="ps-field">
+          <label for="r-dest">{% trans "Overhead destination" %}</label>
+          <select id="r-dest">
+            <option value="BUSINESS" {% if rate_config.direction_overhead_destination == 'BUSINESS' %}selected{% endif %}>{% trans "Business" %}</option>
+            <option value="DIRECTOR" {% if rate_config.direction_overhead_destination == 'DIRECTOR' %}selected{% endif %}>{% trans "Director" %}</option>
+          </select>
+        </div>
+        <div class="ps-field">
+          <label for="r-start">{% trans "Start date (cutoff)" %}</label>
+          <input type="date" id="r-start" value="{{ rate_config.profit_share_start_date|date:'Y-m-d' }}">
+        </div>
+      </div>
+      <button class="ps-btn primary" id="rates-save">{% trans "Save configuration" %}</button>
+      <div class="ps-msg" id="rates-msg"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  function csrf() {
+    var el = document.querySelector('[name=csrfmiddlewaretoken]');
+    return el ? el.value : '';
+  }
+  function money(v) {
+    var n = parseFloat(v);
+    if (isNaN(n)) return v;
+    return n.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+  }
+  function setMsg(el, text, ok) {
+    el.textContent = text;
+    el.className = 'ps-msg ' + (ok ? 'ok' : 'err');
+  }
+
+  // Render initial balances as currency.
+  Array.prototype.forEach.call(document.querySelectorAll('[data-balance-for]'), function (td) {
+    var v = parseFloat(td.textContent);
+    td.textContent = money(v);
+    td.classList.add(v < 0 ? 'neg' : 'pos');
+  });
+
+  // ── Advance ──
+  document.getElementById('adv-submit').addEventListener('click', function () {
+    var btn = this;
+    var accId = document.getElementById('adv-account').value;
+    var amount = document.getElementById('adv-amount').value;
+    var note = document.getElementById('adv-note').value;
+    var msg = document.getElementById('adv-msg');
+    if (!accId || !(parseFloat(amount) > 0)) {
+      setMsg(msg, '{% trans "Enter a positive amount." %}', false);
+      return;
+    }
+    btn.disabled = true;
+    fetch('/api/v1/profit-share/accounts/' + accId + '/advance/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
+      body: JSON.stringify({ amount: amount, note: note })
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (!res.ok) { setMsg(msg, res.d.detail || '{% trans "Error" %}', false); return; }
+        var warn = res.d.left_negative ? ' ⚠ {% trans "account is now negative" %}' : '';
+        setMsg(msg, '{% trans "Recorded. New balance:" %} ' + money(res.d.new_balance) + warn, true);
+        var cell = document.querySelector('[data-balance-for="' + accId + '"]');
+        if (cell) {
+          cell.textContent = money(res.d.new_balance);
+          cell.classList.remove('neg', 'pos');
+          cell.classList.add(parseFloat(res.d.new_balance) < 0 ? 'neg' : 'pos');
+        }
+        document.getElementById('adv-amount').value = '';
+        document.getElementById('adv-note').value = '';
+      })
+      .catch(function () { setMsg(msg, '{% trans "Network error." %}', false); })
+      .finally(function () { btn.disabled = false; });
+  });
+
+  // ── Toggle project inclusion ──
+  Array.prototype.forEach.call(document.querySelectorAll('[data-toggle-inc]'), function (btn) {
+    btn.addEventListener('click', function () {
+      var row = btn.closest('tr');
+      var pid = row.getAttribute('data-project');
+      var current = btn.getAttribute('data-state') === 'true';
+      var next = !current;
+      btn.disabled = true;
+      fetch('/api/v1/profit-share/projects/' + pid + '/set/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
+        body: JSON.stringify({ in_profit_share: next })
+      })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
+        .then(function (d) {
+          btn.setAttribute('data-state', d.in_profit_share ? 'true' : 'false');
+          btn.textContent = d.in_profit_share ? '{% trans "Remove" %}' : '{% trans "Include" %}';
+          var badge = row.querySelector('[data-inc-badge]');
+          badge.textContent = d.in_profit_share ? '{% trans "Yes" %}' : '{% trans "No" %}';
+          badge.className = 'ps-badge ' + (d.in_profit_share ? 'on' : 'off');
+        })
+        .catch(function () { /* leave as-is */ })
+        .finally(function () { btn.disabled = false; });
+    });
+  });
+
+  // ── Save rates ──
+  document.getElementById('rates-save').addEventListener('click', function () {
+    var btn = this;
+    var msg = document.getElementById('rates-msg');
+    var payload = {
+      company_overhead_pct: document.getElementById('r-company').value,
+      direction_overhead_pct: document.getElementById('r-overhead').value,
+      callback_reserve_pct: document.getElementById('r-callback').value,
+      bad_debt_reserve_pct: document.getElementById('r-baddebt').value,
+      director_split_pct: document.getElementById('r-director').value,
+      direction_overhead_destination: document.getElementById('r-dest').value,
+      profit_share_start_date: document.getElementById('r-start').value
+    };
+    btn.disabled = true;
+    fetch('/api/v1/profit-share/rates/', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
+      body: JSON.stringify(payload)
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (!res.ok) { setMsg(msg, res.d.detail || '{% trans "Error" %}', false); return; }
+        setMsg(msg, '{% trans "Configuration saved." %}', true);
+      })
+      .catch(function () { setMsg(msg, '{% trans "Network error." %}', false); })
+      .finally(function () { btn.disabled = false; });
+  });
+})();
+</script>
+{% endblock %}

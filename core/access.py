@@ -140,6 +140,18 @@ def is_partner(user) -> bool:
     return _authed(user) and get_role(user) == ROLE_PARTNER
 
 
+def is_director(user) -> bool:
+    """True for the profit-share *director* (the business owner/admin).
+
+    Director is NOT a new role — it is the existing admin/owner. The director
+    is the only one who configures rates, marks projects into the profit-share,
+    posts advances, and sees the direction-overhead destination. Identified by
+    role only (no hardcoded names), so production can promote the real owner via
+    the normal role system.
+    """
+    return _authed(user) and (is_admin(user) or is_owner(user))
+
+
 def is_internal(user) -> bool:
     """Any internal role (admin/owner/pm/designer/superintendent) OR is_staff.
     Excludes plain employees and clients."""
@@ -603,6 +615,45 @@ def require_admin_or_redirect(request):
     return redirect("dashboard")
 
 
+def require_director_or_redirect(request):
+    """Guard for director-only profit-share pages (panel, calculator, rates).
+
+    Director = admin or owner (see :func:`is_director`). Plain ``is_staff`` is
+    NOT enough here — these pages expose money levers. Returns ``None`` when
+    allowed, otherwise a ``redirect`` the view should return directly.
+    """
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    from django.utils.translation import gettext as _
+
+    if is_director(request.user):
+        return None
+    messages.error(
+        request, _("You don't have permission to access this feature.")
+    )
+    return redirect("dashboard")
+
+
+def require_profit_share_access_or_redirect(request):
+    """Guard for the "My Earnings" page: partners OR the director.
+
+    A socio sees their own earnings; the director sees theirs too. Everyone
+    else (employees, clients, anonymous) is redirected. Returns ``None`` when
+    allowed, otherwise a ``redirect`` the view should return directly.
+    """
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    from django.utils.translation import gettext as _
+
+    user = request.user
+    if is_director(user) or is_partner(user):
+        return None
+    messages.error(
+        request, _("You don't have permission to access this feature.")
+    )
+    return redirect("dashboard")
+
+
 __all__ = [
     # Constants
     "ROLE_ADMIN", "ROLE_OWNER", "ROLE_PM", "ROLE_EMPLOYEE",
@@ -611,6 +662,7 @@ __all__ = [
     # Layer 1
     "get_role", "is_admin", "is_owner", "is_pm", "is_employee",
     "is_client", "is_designer", "is_superintendent",
+    "is_partner", "is_director",
     "is_internal", "is_staffish", "is_admin_or_pm",
     # Layer 2
     "accessible_projects", "can_view_project", "can_edit_project",
@@ -632,4 +684,6 @@ __all__ = [
     "assert_can_view_project", "filter_by_project_access",
     # View-helper conveniences (Phase 9 Commit M)
     "check_project_access", "require_admin_or_redirect",
+    # Profit-share guards
+    "require_director_or_redirect", "require_profit_share_access_or_redirect",
 ]

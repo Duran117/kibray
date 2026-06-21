@@ -28,6 +28,7 @@ from core import views_notifications as notif_views
 from core import views_planner as planner_views
 from core import views_pm_calendar as pm_calendar_views
 from core.views import portal_views
+from core.views import profit_share_views as ps_views
 from core.api.views import tasks_gantt_alias
 # from reports.api.views import ProjectCostSummaryView  # TODO: Module reports not created yet
 from signatures.api.views import SignatureViewSet
@@ -953,6 +954,22 @@ urlpatterns = [
     ),
     # NUEVAS FUNCIONALIDADES FINANCIERAS 2025
     path("financial/dashboard/", fin_views.financial_dashboard, name="financial_dashboard"),
+    # Profit-share (Reparto de Ganancias) — Phase 8 pages
+    path(
+        "profit-share/me/",
+        ps_views.profit_share_my_earnings,
+        name="profit_share_my_earnings",
+    ),
+    path(
+        "profit-share/director/",
+        ps_views.profit_share_director_panel,
+        name="profit_share_director_panel",
+    ),
+    path(
+        "profit-share/calculator/",
+        ps_views.profit_share_calculator,
+        name="profit_share_calculator",
+    ),
     path("financial/aging-report/", fin_views.invoice_aging_report, name="invoice_aging_report"),
     path(
         "financial/productivity/", fin_views.productivity_dashboard, name="productivity_dashboard"

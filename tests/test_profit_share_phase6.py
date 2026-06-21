@@ -36,19 +36,21 @@ def _emp(first, last, ssn, *, user=None):
 
 @pytest.fixture
 def crew(db):
-    return _emp("Crew", "Worker", "100-00-0001")  # no user → always payroll
+    # Distinctive sentinel names so body-substring assertions can't collide
+    # with unrelated UI chrome (e.g. the "Director Panel" nav item).
+    return _emp("CrewKeep", "Worker", "100-00-0001")  # no user → always payroll
 
 
 @pytest.fixture
 def socio_emp(db):
     u = _user("p6_socio", access.ROLE_PARTNER)
-    return _emp("Socio", "Partner", "100-00-0002", user=u)
+    return _emp("SocioHidden", "Partner", "100-00-0002", user=u)
 
 
 @pytest.fixture
 def director_emp(db):
     u = _user("p6_owner", access.ROLE_OWNER)
-    return _emp("Director", "Owner", "100-00-0003", user=u)
+    return _emp("DirectorHidden", "Owner", "100-00-0003", user=u)
 
 
 @pytest.fixture
@@ -92,9 +94,9 @@ class TestPayrollViewExcludesMembers:
         resp = client.get(reverse("payroll_weekly_review"))
         assert resp.status_code == 200
         body = resp.content.decode()
-        assert "Crew" in body            # crew is listed
-        assert "Socio" not in body       # socio excluded
-        assert "Director" not in body    # director excluded
+        assert "CrewKeep" in body            # crew is listed
+        assert "SocioHidden" not in body      # socio excluded
+        assert "DirectorHidden" not in body   # director excluded
 
     def test_savings_ledger_hides_socio(
         self, client, admin_user, crew, socio_emp
@@ -103,7 +105,7 @@ class TestPayrollViewExcludesMembers:
         resp = client.get(reverse("employee_savings_ledger"))
         assert resp.status_code == 200
         body = resp.content.decode()
-        assert "Socio" not in body
+        assert "SocioHidden" not in body
 
 
 @pytest.mark.django_db

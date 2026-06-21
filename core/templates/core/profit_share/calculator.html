@@ -1,0 +1,147 @@
+{% extends 'core/base_modern.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Profit-share Calculator" %} | Kibray{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ps-wrap { padding:24px; max-width:900px; margin:0 auto; }
+  .ps-wrap h1 { font-size:1.6rem; font-weight:700; margin:0 0 20px; }
+  .ps-controls { display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end; margin-bottom:24px; }
+  .ps-field { display:flex; flex-direction:column; gap:6px; }
+  .ps-field label { font-size:.78rem; text-transform:uppercase; color:#6b7280; letter-spacing:.04em; }
+  .ps-field select, .ps-field input { padding:10px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:.95rem; min-width:240px; }
+  .ps-toggle { display:inline-flex; border:1px solid #d1d5db; border-radius:8px; overflow:hidden; }
+  .ps-toggle button { border:0; background:#fff; padding:10px 16px; cursor:pointer; font-size:.9rem; }
+  .ps-toggle button.active { background:#6366f1; color:#fff; }
+  .ps-card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.06); overflow:hidden; }
+  .ps-card h2 { font-size:1.05rem; margin:0; padding:16px 20px; border-bottom:1px solid #f0f0f0; display:flex; justify-content:space-between; align-items:center; }
+  table.casc { width:100%; border-collapse:collapse; }
+  table.casc td { padding:11px 20px; font-size:.95rem; border-bottom:1px solid #f3f4f6; }
+  table.casc td.num { text-align:right; font-variant-numeric:tabular-nums; }
+  table.casc tr.minus td.num { color:#ef4444; }
+  table.casc tr.total td { font-weight:700; border-top:2px solid #e5e7eb; background:#fafafa; }
+  table.casc tr.dist td { background:#f5f3ff; }
+  .ps-badge { display:inline-block; font-size:.72rem; padding:2px 8px; border-radius:999px; font-weight:600; }
+  .ps-badge.real { background:#dcfce7; color:#166534; }
+  .ps-badge.estimado { background:#fef9c3; color:#854d0e; }
+  .ps-note { color:#9ca3af; font-size:.82rem; padding:12px 20px; }
+  .ps-hint { color:#9ca3af; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ps-wrap">
+  <h1>{% trans "Profit-share Calculator" %}</h1>
+
+  <div class="ps-controls">
+    <div class="ps-field">
+      <label for="proj">{% trans "Project" %}</label>
+      <select id="proj">
+        <option value="">{% trans "— Select a project —" %}</option>
+        {% for p in projects %}
+          <option value="{{ p.id }}">{{ p.name }}{% if p.in_profit_share %} ✓{% endif %}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="ps-field">
+      <label>{% trans "Mode" %}</label>
+      <div class="ps-toggle" id="mode">
+        <button type="button" data-mode="estimado" class="active">{% trans "Estimated" %}</button>
+        <button type="button" data-mode="real">{% trans "Actual" %}</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ps-card" id="result" style="display:none;">
+    <h2>
+      <span id="r-name">—</span>
+      <span class="ps-badge" id="r-mode"></span>
+    </h2>
+    <table class="casc">
+      <tbody>
+        <tr><td>{% trans "Contract amount" %}</td><td class="num" id="r-contract">—</td></tr>
+        <tr class="minus"><td>{% trans "Materials" %}</td><td class="num" id="r-materials">—</td></tr>
+        <tr class="minus"><td>{% trans "Other labor" %}</td><td class="num" id="r-labor">—</td></tr>
+        <tr class="minus"><td>{% trans "Company overhead" %}</td><td class="num" id="r-coh">—</td></tr>
+        <tr class="minus"><td>{% trans "Overhead" %}</td><td class="num" id="r-oh">—</td></tr>
+        <tr class="minus"><td>{% trans "Callback reserve" %}</td><td class="num" id="r-cb">—</td></tr>
+        <tr class="minus"><td>{% trans "Bad-debt reserve" %}</td><td class="num" id="r-bd">—</td></tr>
+        <tr class="total"><td>{% trans "Net" %}</td><td class="num" id="r-net">—</td></tr>
+        <tr class="dist"><td>{% trans "Director share" %}</td><td class="num" id="r-dir">—</td></tr>
+        <tr class="dist"><td>{% trans "Partner pool" %}</td><td class="num" id="r-pool">—</td></tr>
+        <tr class="dist"><td>{% trans "Per partner" %} (<span id="r-nsoc">0</span>)</td><td class="num" id="r-per">—</td></tr>
+      </tbody>
+    </table>
+    <div class="ps-note">{% trans "Taxes and reinvestment are not deducted here." %}</div>
+  </div>
+
+  <p class="ps-hint" id="hint">{% trans "Select a project to see its distribution breakdown." %}</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var mode = 'estimado';
+  var selectEl = document.getElementById('proj');
+  var modeEl = document.getElementById('mode');
+  var resultEl = document.getElementById('result');
+  var hintEl = document.getElementById('hint');
+
+  function money(v) {
+    var n = parseFloat(v);
+    if (isNaN(n)) return v;
+    return n.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+  }
+
+  function load() {
+    var id = selectEl.value;
+    if (!id) { resultEl.style.display = 'none'; hintEl.style.display = ''; return; }
+    var url = '/api/v1/profit-share/projects/' + id + '/breakdown/?use_actuals=' + (mode === 'real');
+    fetch(url, { headers: { 'Accept': 'application/json' } })
+      .then(function (r) {
+        if (!r.ok) return Promise.reject(r);
+        return r.json();
+      })
+      .then(function (d) {
+        hintEl.style.display = 'none';
+        resultEl.style.display = '';
+        document.getElementById('r-name').textContent = d.project.name;
+        var badge = document.getElementById('r-mode');
+        badge.textContent = d.mode;
+        badge.className = 'ps-badge ' + d.mode;
+        var c = d.cascade, dist = d.distribution;
+        document.getElementById('r-contract').textContent = money(c.contract_amount);
+        document.getElementById('r-materials').textContent = '− ' + money(c.materials);
+        document.getElementById('r-labor').textContent = '− ' + money(c.other_labor);
+        document.getElementById('r-coh').textContent = '− ' + money(c.company_overhead);
+        document.getElementById('r-oh').textContent = '− ' + money(c.overhead);
+        document.getElementById('r-cb').textContent = '− ' + money(c.callback_reserve);
+        document.getElementById('r-bd').textContent = '− ' + money(c.bad_debt_reserve);
+        document.getElementById('r-net').textContent = money(c.net);
+        document.getElementById('r-dir').textContent = money(dist.director_share);
+        document.getElementById('r-pool').textContent = money(dist.partner_pool);
+        document.getElementById('r-per').textContent = money(dist.per_socio);
+        document.getElementById('r-nsoc').textContent = dist.active_socios;
+      })
+      .catch(function () {
+        hintEl.style.display = '';
+        hintEl.textContent = '{% trans "Could not load this project's breakdown." %}';
+        resultEl.style.display = 'none';
+      });
+  }
+
+  selectEl.addEventListener('change', load);
+  modeEl.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-mode]');
+    if (!btn) return;
+    mode = btn.getAttribute('data-mode');
+    Array.prototype.forEach.call(modeEl.querySelectorAll('button'), function (b) {
+      b.classList.toggle('active', b === btn);
+    });
+    load();
+  });
+})();
+</script>
+{% endblock %}

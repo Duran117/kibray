@@ -42,6 +42,8 @@ from core.access import (
     get_role,
     is_admin,
     is_client,
+    is_director,
+    is_partner,
     is_pm,
     is_staffish,
 )
@@ -291,6 +293,20 @@ def build_global_nav(user) -> List[NavSection]:
             NavItem("Analytics", "analytics_dashboard", icon="bi-graph-up"),
             NavItem("Productivity", "productivity_dashboard", icon="bi-speedometer2"),
             NavItem("BI Dashboard", "dashboard_bi", icon="bi-bar-chart"),
+        ]))
+
+    # ─────────── PROFIT-SHARE (Reparto de Ganancias) ───────────
+    # Director sees the cockpit + calculator + their own earnings; a socio sees
+    # only "My Earnings". Everyone else gets nothing here.
+    if is_director(user):
+        sections.append(NavSection("Profit Share", [
+            NavItem("Director Panel", "profit_share_director_panel", icon="bi-people"),
+            NavItem("Calculator", "profit_share_calculator", icon="bi-calculator"),
+            NavItem("My Earnings", "profit_share_my_earnings", icon="bi-piggy-bank"),
+        ]))
+    elif is_partner(user):
+        sections.append(NavSection("Profit Share", [
+            NavItem("My Earnings", "profit_share_my_earnings", icon="bi-piggy-bank"),
         ]))
 
     return sections
