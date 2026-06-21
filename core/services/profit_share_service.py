@@ -30,7 +30,7 @@ from dataclasses import asdict, dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
 from django.db import transaction
-from django.db.models import DecimalField, ExpressionWrapper, F, Q, Sum
+from django.db.models import DecimalField, ExpressionWrapper, F, Sum
 
 from core.access import ROLE_OWNER, ROLE_PARTNER
 
@@ -113,9 +113,10 @@ def _actual_materials(project) -> Decimal:
 def _crew_labor_cost(project) -> Decimal:
     """Hourly crew labor for the project: Σ hours × employee.hourly_rate.
 
-    CRITICAL: excludes any employee whose linked user is a SOCIO (partner) or
-    the OWNER — socios are never a project cost. Employees without a linked
-    user (plain crew) are always included.
+    CRITICAL: excludes any employee whose linked user is a profit-share SOCIO
+    (an ACTIVE PartnerAccount, or the legacy ``partner`` role) or the OWNER —
+    socios are never a project cost. Employees without a linked user (plain
+    crew) are always included.
     """
     cost_expr = ExpressionWrapper(
         F("hours_worked") * F("employee__hourly_rate"),
@@ -124,6 +125,7 @@ def _crew_labor_cost(project) -> Decimal:
     qs = (
         project.timeentry_set.filter(hours_worked__isnull=False)
         .exclude(employee__user__profile__role__in=[ROLE_PARTNER, ROLE_OWNER])
+        .exclude(employee__user__partner_account__is_active_socio=True)
     )
     total = qs.aggregate(t=Sum(cost_expr))["t"]
     return _q(total)
@@ -154,14 +156,19 @@ def _count_active_socios() -> int:
 
 
 def exclude_profit_share_members(employee_qs):
-    """Exclude socios (partner) and the director (owner) from an Employee qs.
+    """Exclude socios (profit-share members) and the director from an Employee qs.
 
-    These members no longer draw an hourly wage and must NOT appear in payroll
-    or savings. Their TimeEntry check-ins are untouched (metrics only). Plain
-    crew (no linked user, or any non partner/owner role) is always kept.
+    A member is identified by EITHER an ACTIVE, non-business ``PartnerAccount``
+    (account-based — the current mechanism, which lets a PM keep their role) OR
+    the legacy ``partner`` role. The director (``owner`` role) is always
+    excluded. These members no longer draw an hourly wage and must NOT appear in
+    payroll or savings. Their TimeEntry check-ins are untouched (metrics only).
+    Plain crew (no linked user, or a non-member role) is always kept.
     """
-    return employee_qs.exclude(
-        user__profile__role__in=[ROLE_PARTNER, ROLE_OWNER]
+    return (
+        employee_qs
+        .exclude(user__profile__role__in=[ROLE_PARTNER, ROLE_OWNER])
+        .exclude(user__partner_account__is_active_socio=True)
     )
 
 

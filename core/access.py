@@ -152,6 +152,31 @@ def is_director(user) -> bool:
     return _authed(user) and (is_admin(user) or is_owner(user))
 
 
+def is_profit_share_member(user) -> bool:
+    """True if the user is PAID via profit-share instead of an hourly wage.
+
+    Source of truth is the :class:`PartnerAccount`, NOT a role: a Project
+    Manager keeps their PM role (and every PM permission/view) while being
+    compensated as a socio. True when the user owns an ACTIVE, non-business
+    ``PartnerAccount``. The legacy ``partner`` role is still honored for
+    backward compatibility (data promoted before the account-based switch).
+
+    This gates the "My Earnings" page, the profit-share nav entry, and the
+    payroll / project-cost exclusions (a socio is never an hourly wage cost).
+    It deliberately grants NO operational access on its own — a PM's existing
+    role keeps providing that.
+    """
+    if not _authed(user):
+        return False
+    if get_role(user) == ROLE_PARTNER:  # legacy / pre-account data
+        return True
+    from core.models import PartnerAccount
+
+    return PartnerAccount.objects.filter(
+        owner=user, is_business=False, is_active_socio=True
+    ).exists()
+
+
 def is_internal(user) -> bool:
     """Any internal role (admin/owner/pm/designer/superintendent) OR is_staff.
     Excludes plain employees and clients."""
@@ -646,7 +671,7 @@ def require_profit_share_access_or_redirect(request):
     from django.utils.translation import gettext as _
 
     user = request.user
-    if is_director(user) or is_partner(user):
+    if is_director(user) or is_profit_share_member(user):
         return None
     messages.error(
         request, _("You don't have permission to access this feature.")
@@ -662,7 +687,7 @@ __all__ = [
     # Layer 1
     "get_role", "is_admin", "is_owner", "is_pm", "is_employee",
     "is_client", "is_designer", "is_superintendent",
-    "is_partner", "is_director",
+    "is_partner", "is_director", "is_profit_share_member",
     "is_internal", "is_staffish", "is_admin_or_pm",
     # Layer 2
     "accessible_projects", "can_view_project", "can_edit_project",

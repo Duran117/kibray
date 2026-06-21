@@ -43,7 +43,7 @@ from core.access import (
     is_admin,
     is_client,
     is_director,
-    is_partner,
+    is_profit_share_member,
     is_pm,
     is_staffish,
 )
@@ -304,7 +304,7 @@ def build_global_nav(user) -> List[NavSection]:
             NavItem("Calculator", "profit_share_calculator", icon="bi-calculator"),
             NavItem("My Earnings", "profit_share_my_earnings", icon="bi-piggy-bank"),
         ]))
-    elif is_partner(user):
+    elif is_profit_share_member(user):
         sections.append(NavSection("Profit Share", [
             NavItem("My Earnings", "profit_share_my_earnings", icon="bi-piggy-bank"),
         ]))
