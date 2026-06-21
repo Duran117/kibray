@@ -181,28 +181,31 @@ class PartnerAccount(models.Model):
 
     @classmethod
     def director(cls):
-        """Fetch/create the DIRECTOR account (the owner-role user's account).
+        """Fetch/create the DIRECTOR account (the owner/admin user's account).
 
-        The director receives the 40% director_share and, when configured,
-        the direction overhead. Identified by the single user with role
-        'owner' (no hardcoded names). Returns ``None`` if no owner user
-        exists yet. The director is NOT a pool socio, so is_active_socio
-        defaults to False here.
+        The director receives the 40% director_share and, when configured, the
+        direction overhead. The director is the business owner/admin — the SAME
+        identity as :func:`core.access.is_director` (owner OR admin). We resolve
+        them by role with no hardcoded names: an explicit ``owner`` role first,
+        then ``admin``, then any superuser as a last resort. This keeps a single
+        director account even when the shop runs as "admin = director" (no
+        separate owner user). Returns ``None`` only if no such user exists yet.
+        The director is NOT a pool socio, so is_active_socio defaults to False.
         """
         from django.contrib.auth import get_user_model
 
-        from core.access import ROLE_OWNER
+        from core.access import ROLE_ADMIN, ROLE_OWNER
 
-        owner_user = (
-            get_user_model()
-            .objects.filter(profile__role=ROLE_OWNER)
-            .order_by("id")
-            .first()
+        User = get_user_model()
+        director_user = (
+            User.objects.filter(profile__role=ROLE_OWNER).order_by("id").first()
+            or User.objects.filter(profile__role=ROLE_ADMIN).order_by("id").first()
+            or User.objects.filter(is_superuser=True).order_by("id").first()
         )
-        if owner_user is None:
+        if director_user is None:
             return None
         obj, _ = cls.objects.get_or_create(
-            owner=owner_user,
+            owner=director_user,
             defaults={"is_business": False, "is_active_socio": False},
         )
         return obj

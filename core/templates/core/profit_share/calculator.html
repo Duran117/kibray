@@ -63,6 +63,7 @@
         <tr><td>{% trans "Contract amount" %}</td><td class="num" id="r-contract">—</td></tr>
         <tr class="minus"><td>{% trans "Materials" %}</td><td class="num" id="r-materials">—</td></tr>
         <tr class="minus"><td>{% trans "Other labor" %}</td><td class="num" id="r-labor">—</td></tr>
+        <tr class="minus"><td>{% trans "Other expenses" %}</td><td class="num" id="r-other-expenses">—</td></tr>
         <tr class="minus"><td>{% trans "Company overhead" %}</td><td class="num" id="r-coh">—</td></tr>
         <tr class="minus"><td>{% trans "Overhead" %}</td><td class="num" id="r-oh">—</td></tr>
         <tr class="minus"><td>{% trans "Callback reserve" %}</td><td class="num" id="r-cb">—</td></tr>
@@ -115,6 +116,7 @@
         document.getElementById('r-contract').textContent = money(c.contract_amount);
         document.getElementById('r-materials').textContent = '− ' + money(c.materials);
         document.getElementById('r-labor').textContent = '− ' + money(c.other_labor);
+        document.getElementById('r-other-expenses').textContent = '− ' + money(c.other_expenses);
         document.getElementById('r-coh').textContent = '− ' + money(c.company_overhead);
         document.getElementById('r-oh').textContent = '− ' + money(c.overhead);
         document.getElementById('r-cb').textContent = '− ' + money(c.callback_reserve);

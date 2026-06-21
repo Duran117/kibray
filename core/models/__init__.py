@@ -394,6 +394,28 @@ class Income(models.Model):
         return f"{self.project_name} - ${self.amount}"
 
 
+def _accrue_profit_share_safe(project):
+    """Re-run profit-share accrual for ``project`` — safely and lazily.
+
+    No-op unless the project opted into the distribution. Wrapped so an accrual
+    issue can NEVER break the action that triggered it (saving an expense or a
+    payment). Imported lazily to avoid a circular import at module load.
+    """
+    if project is None or not getattr(project, "in_profit_share", False):
+        return
+    try:
+        from core.services.profit_share_service import accrue_for_project
+
+        accrue_for_project(project)
+    except Exception:  # pragma: no cover - safety net
+        import logging
+
+        logging.getLogger("core.profit_share").exception(
+            "Profit-share accrual failed for project %s",
+            getattr(project, "id", None),
+        )
+
+
 # ---------------------
 # Modelo de Gasto
 # ---------------------
@@ -434,6 +456,21 @@ class Expense(models.Model):
 
     def __str__(self):
         return f"{self.project_name} - {self.category} - ${self.amount}"
+
+    def save(self, *args, **kwargs):
+        # Persist first, then re-accrue: a new/edited expense changes the
+        # project's real cost, so everyone's share must update the same day
+        # (live), not only when the project closes.
+        super().save(*args, **kwargs)
+        _accrue_profit_share_safe(self.project)
+
+    def delete(self, *args, **kwargs):
+        # Capture the project before the row is gone; removing an expense
+        # raises the net, so shares must be recomputed upward too.
+        project = self.project
+        result = super().delete(*args, **kwargs)
+        _accrue_profit_share_safe(project)
+        return result
 
 
 # ---------------------
@@ -3240,23 +3277,11 @@ class InvoicePayment(models.Model):
                 self.income = income
                 super().save(update_fields=["income"])
 
-            # Profit-share accrual (Phase 4). Only fires for projects explicitly
-            # opted into the distribution; for every other project (i.e. all
-            # legacy ones) this is a cheap no-op. Wrapped defensively so an
-            # accrual issue can NEVER break payment recording.
-            project = self.invoice.project
-            if getattr(project, "in_profit_share", False):
-                try:
-                    from core.services.profit_share_service import accrue_for_project
-
-                    accrue_for_project(project)
-                except Exception:  # pragma: no cover - safety net
-                    import logging
-
-                    logging.getLogger("core.profit_share").exception(
-                        "Profit-share accrual failed for project %s after payment %s",
-                        getattr(project, "id", None), self.pk,
-                    )
+            # Profit-share accrual (Phase 4): a client payment changes the
+            # collected fraction, so re-accrue now. No-op for projects not in
+            # the distribution; the helper swallows errors so payment recording
+            # can never break.
+            _accrue_profit_share_safe(self.invoice.project)
 
     def __str__(self):
         return f"Payment ${self.amount} for {self.invoice.invoice_number} on {self.payment_date}"

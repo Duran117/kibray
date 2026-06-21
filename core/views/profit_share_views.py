@@ -47,6 +47,12 @@ def profit_share_my_earnings(request):
     if guard is not None:
         return guard
 
+    # The director IS the admin/owner here: make sure their profit-share account
+    # exists so their 40% has a home and this page shows it (the detail that
+    # slipped when "admin" wasn't the "owner" role).
+    if access.is_director(request.user):
+        PartnerAccount.director()
+
     has_account = PartnerAccount.objects.filter(owner=request.user).exists()
     context = {
         "is_director": access.is_director(request.user),
@@ -62,6 +68,12 @@ def profit_share_director_panel(request):
     guard = access.require_director_or_redirect(request)
     if guard is not None:
         return guard
+
+    # Ensure the two singleton accounts exist so they always show in the
+    # balances list: the company "Caja" and the director's own account (where
+    # the 40% lands). The director IS the admin/owner here.
+    PartnerAccount.business()
+    director_account = PartnerAccount.director()
 
     accounts = (
         PartnerAccount.objects.select_related("owner")
@@ -84,6 +96,7 @@ def profit_share_director_panel(request):
         "projects": project_rows,
         "rate_config": RateConfig.load(),
         "business_account": PartnerAccount.business(),
+        "director_account_id": director_account.pk if director_account else None,
         "candidate_users": _socio_candidates(),
     }
     return render(request, "core/profit_share/director_panel.html", context)

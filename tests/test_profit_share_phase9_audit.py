@@ -21,6 +21,7 @@ from rest_framework.test import APIClient
 from core import access
 from core.models import (
     Employee,
+    Expense,
     Invoice,
     InvoicePayment,
     LedgerEntry,
@@ -80,7 +81,19 @@ def _project(in_share=True, **kw):
         in_profit_share=in_share,
     )
     defaults.update(kw)
-    return Project.objects.create(**defaults)
+    p = Project.objects.create(**defaults)
+    # Live-actuals model: real costs come from logged expenses, not the budget.
+    # Mirror the budget as real expenses (20k materials + 30k labor) so the
+    # cascade math is unchanged. No qualifying payment yet → no accrual here.
+    Expense.objects.create(
+        project=p, project_name=p.name, amount=Decimal("20000.00"),
+        date=date.today(), category="MATERIALES",
+    )
+    Expense.objects.create(
+        project=p, project_name=p.name, amount=Decimal("30000.00"),
+        date=date.today(), category="MANO_OBRA",
+    )
+    return p
 
 
 def _invoice(project, total="100000.00"):

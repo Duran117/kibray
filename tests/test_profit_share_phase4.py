@@ -64,7 +64,20 @@ def _project(in_share=True, **kw):
         in_profit_share=in_share,
     )
     defaults.update(kw)
-    return Project.objects.create(**defaults)
+    p = Project.objects.create(**defaults)
+    # Costs now come from REAL expenses logged on the project (live-actuals
+    # model), not the budget estimates. Mirror the old budget figures as real
+    # expenses so the cascade math is identical: 20k materials + 30k labor.
+    # (No qualifying payment exists yet, so this does not accrue anything.)
+    Expense.objects.create(
+        project=p, project_name=p.name, amount=Decimal("20000.00"),
+        date=date.today(), category="MATERIALES",
+    )
+    Expense.objects.create(
+        project=p, project_name=p.name, amount=Decimal("30000.00"),
+        date=date.today(), category="MANO_OBRA",
+    )
+    return p
 
 
 def _invoice(project, total="100000.00"):
@@ -86,7 +99,7 @@ def _balances(setup):
 @pytest.mark.django_db
 class TestAccrualMath:
     def test_partial_payment_prorata(self, setup_accounts):
-        """50% collected → half of each full share (open project = estimate)."""
+        """50% collected → half of each full share (real logged costs)."""
         p = _project()
         inv = _invoice(p)
         # Payment via the hook (in_profit_share=True triggers accrual).

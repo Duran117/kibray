@@ -3,8 +3,9 @@
 Computes, for a project, the exact distribution cascade:
 
     net = contract_amount
-        − materials
-        − other_labor          (hourly crew only; SOCIOS are never a cost)
+        − materials             (actual: Σ Expense(MATERIALES))
+        − other_labor           (hourly crew only; SOCIOS are never a cost)
+        − other_expenses        (EVERY other project Expense, any category)
         − company_overhead      (contract × company_overhead_pct)
         − direction_overhead    (contract × direction_overhead_pct)
         − callback_reserve      (contract × callback_reserve_pct)
@@ -14,15 +15,23 @@ Computes, for a project, the exact distribution cascade:
     partner_pool   = net − director_share            (the 60%)
     per_socio      = partner_pool / (active socios)
 
+Cost rule (owner): per-project expenses are REAL deductions regardless of
+category; company-wide fixed costs live in the % rates above. So materials,
+subcontract labor and ``other_expenses`` together cover EVERY Expense logged
+on the project, each counted exactly once.
+
 Sources (reusing existing models — no new cost tables):
     contract_amount = approved Estimate total (Σ EstimateLine.total_price)
                       or project.budget_total fallback, PLUS approved COs.
-    materials  → est: project.budget_materials | actual: Σ Expense(MATERIALES)
-    other_labor→ est: project.budget_labor     | actual: crew TimeEntry cost
-                 (hours × rate, EXCLUDING socios/owner) + Σ Expense(MANO_OBRA)
+    materials   → est: project.budget_materials | actual: Σ Expense(MATERIALES)
+    other_labor → est: project.budget_labor     | actual: crew TimeEntry cost
+                  (hours × rate, EXCLUDING socios/owner) + Σ Expense(MANO_OBRA)
+    other_expenses → actual only: Σ Expense(every other category)
 
 Overhead label is neutral ("overhead"). This module performs NO accrual and
-touches NO ledger; Phase 4 consumes these numbers and posts deltas.
+touches NO ledger; Phase 4 consumes these numbers and posts deltas. The
+accrual runs on real (live) costs so every new expense lowers shares the same
+day, not only at project close.
 """
 from __future__ import annotations
 
@@ -147,6 +156,22 @@ def _actual_other_labor(project) -> Decimal:
     return _q(_crew_labor_cost(project) + _subcontract_labor(project))
 
 
+def _actual_other_expenses(project) -> Decimal:
+    """Every OTHER project Expense (not MATERIALES, not MANO_OBRA).
+
+    Captures food, insurance, storage, office, 'other' — and any future or
+    blank category — so that EVERY expense logged on a project reduces its net,
+    regardless of category (the owner's rule). Materials and subcontract labor
+    are summed separately, so excluding them here keeps each expense counted
+    exactly once (no double-count). Company-wide fixed costs stay in the % rates.
+    """
+    total = (
+        project.expenses.exclude(category__in=[MATERIAL_CATEGORY, LABOR_CATEGORY])
+        .aggregate(t=Sum("amount"))["t"]
+    )
+    return _q(total)
+
+
 def _count_active_socios() -> int:
     from core.models import PartnerAccount
 
@@ -181,6 +206,7 @@ class ProjectFinancials:
     contract_amount: Decimal
     materials: Decimal
     other_labor: Decimal
+    other_expenses: Decimal
     company_overhead: Decimal
     direction_overhead: Decimal
     callback_reserve: Decimal
@@ -240,9 +266,11 @@ def compute_project_financials(
     if use_actuals:
         materials = _actual_materials(project)
         other_labor = _actual_other_labor(project)
+        other_expenses = _actual_other_expenses(project)
     else:
         materials = _q(getattr(project, "budget_materials", ZERO))
         other_labor = _q(getattr(project, "budget_labor", ZERO))
+        other_expenses = ZERO
 
     def pct(p) -> Decimal:
         return _q(contract * (p / Decimal("100")))
@@ -260,6 +288,7 @@ def compute_project_financials(
             contract_amount=contract,
             materials=materials,
             other_labor=other_labor,
+            other_expenses=other_expenses,
             company_overhead=ZERO,
             direction_overhead=ZERO,
             callback_reserve=ZERO,
@@ -277,6 +306,7 @@ def compute_project_financials(
         contract
         - materials
         - other_labor
+        - other_expenses
         - company_overhead
         - direction_overhead
         - callback_reserve
@@ -292,6 +322,7 @@ def compute_project_financials(
         contract_amount=contract,
         materials=materials,
         other_labor=other_labor,
+        other_expenses=other_expenses,
         company_overhead=company_overhead,
         direction_overhead=direction_overhead,
         callback_reserve=callback_reserve,
@@ -377,7 +408,10 @@ def accrue_for_project(project) -> AccrualResult:
     raw_fraction = qualifying / contract
     fraction = raw_fraction if raw_fraction < Decimal("1") else Decimal("1")
 
-    use_actuals = project.end_date is not None
+    # Costs apply LIVE (per day), not only at close: always use the project's
+    # real expenses + crew labor, so each new expense lowers everyone's share
+    # right away. (Display elsewhere still labels open projects "estimado".)
+    use_actuals = True
 
     with transaction.atomic():
         # Lock the active socio accounts so the count + per_socio are consistent
@@ -447,7 +481,7 @@ def accrue_for_project(project) -> AccrualResult:
                 running_balance=new_balance,
                 note=(
                     f"Accrual {project.name}: {fraction:.4f} collected"
-                    f"{' (actuals)' if use_actuals else ' (estimate)'}"
+                    f"{' (closed)' if project.end_date else ' (live)'}"
                 ),
             )
             acc.balance = new_balance

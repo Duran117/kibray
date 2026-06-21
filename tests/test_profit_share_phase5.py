@@ -13,6 +13,7 @@ from django.contrib.auth import get_user_model
 
 from core import access
 from core.models import (
+    Expense,
     Invoice,
     InvoicePayment,
     LedgerEntry,
@@ -86,11 +87,20 @@ class TestFutureAccrualPaysDownNegative:
         record_advance(socio_account, Decimal("1000.00"))
         assert PartnerAccount.objects.get(pk=socio_account.pk).balance == Decimal("-1000.00")
 
-        # A project pays 50% → socio accrues 4,275 (open/estimate, 2 socios).
+        # A project pays 50% → socio accrues 4,275 (real costs, 2 socios).
         p = Project.objects.create(
             name="PS5 Project", budget_total=Decimal("100000.00"),
             budget_materials=Decimal("20000.00"), budget_labor=Decimal("30000.00"),
             in_profit_share=True,
+        )
+        # Real logged costs drive the net now (live-actuals): 20k + 30k.
+        Expense.objects.create(
+            project=p, project_name=p.name, amount=Decimal("20000.00"),
+            date=date.today(), category="MATERIALES",
+        )
+        Expense.objects.create(
+            project=p, project_name=p.name, amount=Decimal("30000.00"),
+            date=date.today(), category="MANO_OBRA",
         )
         inv = Invoice.objects.create(
             project=p, total_amount=Decimal("100000.00"),

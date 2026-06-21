@@ -227,8 +227,11 @@
           ' <span class="ps-badge ' + p.status + '">' + p.status + '</span></div>' +
           '<table class="ps-tbl ps-dist-tbl"><tbody>' +
           '<tr><td>{% trans "Contract" %}</td><td class="num">' + money(b.cascade.contract_amount) + '</td></tr>' +
-          '<tr><td>{% trans "Company deduction" %}</td><td class="num">' + money(b.cascade.company_overhead) + '</td></tr>' +
-          '<tr><td>{% trans "Overhead" %}</td><td class="num">' + money(b.cascade.overhead) + '</td></tr>' +
+          '<tr><td>{% trans "Materials" %}</td><td class="num">− ' + money(b.cascade.materials) + '</td></tr>' +
+          '<tr><td>{% trans "Labor (crew)" %}</td><td class="num">− ' + money(b.cascade.other_labor) + '</td></tr>' +
+          '<tr><td>{% trans "Other expenses" %}</td><td class="num">− ' + money(b.cascade.other_expenses) + '</td></tr>' +
+          '<tr><td>{% trans "Company deduction" %}</td><td class="num">− ' + money(b.cascade.company_overhead) + '</td></tr>' +
+          '<tr><td>{% trans "Overhead" %}</td><td class="num">− ' + money(b.cascade.overhead) + '</td></tr>' +
           '<tr><td><strong>{% trans "Net" %}</strong></td><td class="num"><strong>' + money(b.cascade.net) + '</strong></td></tr>' +
           '<tr><td>{% trans "Director share" %}</td><td class="num">' + money(b.distribution.director_share) + '</td></tr>' +
           '<tr><td>{% trans "Socios pool" %}</td><td class="num">' + money(b.distribution.partner_pool) + '</td></tr>' +

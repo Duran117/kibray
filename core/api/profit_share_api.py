@@ -200,6 +200,7 @@ class ProjectBreakdownView(APIView):
                 "contract_amount": str(fin.contract_amount),
                 "materials": str(fin.materials),
                 "other_labor": str(fin.other_labor),
+                "other_expenses": str(fin.other_expenses),
                 "company_overhead": str(fin.company_overhead),
                 "overhead": str(fin.direction_overhead),  # neutral label
                 "callback_reserve": str(fin.callback_reserve),
