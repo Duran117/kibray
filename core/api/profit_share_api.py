@@ -61,13 +61,18 @@ class IsDirector(permissions.BasePermission):
 
 
 class IsPartnerOrDirector(permissions.BasePermission):
-    """Read access for the transparency views: partners and the director."""
+    """Read access for the transparency views: profit-share members + director.
+
+    Membership is account-based (``is_profit_share_member``), so a Project
+    Manager who is a socio reaches these endpoints while KEEPING their PM role.
+    The legacy ``partner`` role still works via that helper's fallback.
+    """
 
     message = "Partner or director role required."
 
     def has_permission(self, request, view):
         u = request.user
-        return access.is_director(u) or access.is_partner(u)
+        return access.is_director(u) or access.is_profit_share_member(u)
 
 
 def _project_status(project) -> str:
@@ -91,6 +96,42 @@ def _safe_accrue(project) -> dict:
         }
     except Exception as exc:  # pragma: no cover - defensive
         return {"posted": False, "reason": "error", "error": str(exc)}
+
+
+def _project_socios(project, me_user) -> list:
+    """Per-project transparency roster: each ACTIVE socio (the 60% pool) with
+    what they've accrued ON THIS project so far.
+
+    This is intentionally per-PROJECT distribution data (the "reparto") — never
+    global balances and never anyone's withdrawals/advances, which stay private
+    to each member's own "My Earnings". The director (40%) and the business
+    account (company deduction) are surfaced elsewhere in the payload, so they
+    are excluded here to keep this strictly the pool of socios.
+    """
+    accrued_by_acc = {
+        s.account_id: s.accrued
+        for s in ProjectAccrualState.objects.filter(project=project)
+    }
+    socio_accounts = (
+        PartnerAccount.objects.filter(
+            is_business=False, is_active_socio=True, owner__isnull=False
+        )
+        .select_related("owner")
+        .order_by("owner__first_name", "owner__last_name", "owner__username")
+    )
+    roster = []
+    for acc in socio_accounts:
+        owner = acc.owner
+        if access.is_director(owner):
+            continue  # the director's 40% is shown separately as director_share
+        roster.append(
+            {
+                "name": owner.get_full_name() or owner.username,
+                "accrued": str(accrued_by_acc.get(acc.id, Decimal("0.00"))),
+                "is_me": owner.id == getattr(me_user, "id", None),
+            }
+        )
+    return roster
 
 
 
@@ -171,6 +212,7 @@ class ProjectBreakdownView(APIView):
                 "per_socio": str(fin.per_socio),
                 "active_socios": fin.active_socios,
             },
+            "socios": _project_socios(project, request.user),
             "note": "Taxes and reinvestment are not deducted here.",
         }
         # Director-only detail: where the overhead goes.

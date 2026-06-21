@@ -27,6 +27,11 @@
   .ps-empty { padding:40px 20px; text-align:center; color:#9ca3af; }
   .ps-amount.pos { color:#10b981; }
   .ps-amount.neg { color:#ef4444; }
+  .ps-dist-card { border:1px solid #eef0f3; border-radius:10px; padding:14px 16px; margin-bottom:14px; }
+  .ps-dist-h { font-weight:600; margin-bottom:8px; }
+  .ps-dist-sub { font-size:.74rem; text-transform:uppercase; color:#6b7280; letter-spacing:.03em; margin:12px 0 4px; }
+  table.ps-dist-tbl th, table.ps-dist-tbl td { padding:7px 10px; }
+  tr.ps-me td { background:#f0fdf4; }
 </style>
 {% endblock %}
 
@@ -89,6 +94,14 @@
           <tr><td colspan="6" class="ps-muted">{% trans "Loading…" %}</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <div class="ps-section">
+      <h2>{% trans "Distribution by project (transparency)" %}</h2>
+      <p class="ps-muted" style="padding:0 20px 12px;">{% trans "How each included project's net is split: company deduction, director share, and every socio's share. Withdrawals stay private — you only ever see your own." %}</p>
+      <div id="ps-distribution" style="padding:0 20px 12px;">
+        <p class="ps-muted">{% trans "Loading…" %}</p>
+      </div>
     </div>
   {% endif %}
 </div>
@@ -164,9 +177,64 @@
     });
   }
 
+  // ── Transparency: per-project distribution (company / director / each socio).
+  // Strictly per-project "reparto" — never anyone's global balance or
+  // withdrawals (those stay in each member's private ledger above).
+  function loadDistribution() {
+    var host = document.getElementById('ps-distribution');
+    fetch('/api/v1/profit-share/projects/', { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
+      .then(function (d) {
+        if (!d.results || !d.results.length) {
+          host.innerHTML = '<p class="ps-muted">{% trans "No included projects yet." %}</p>';
+          return;
+        }
+        host.innerHTML = '';
+        d.results.forEach(function (p) { loadOneBreakdown(p, host); });
+      })
+      .catch(function () { host.innerHTML = '<p class="ps-muted">{% trans "Could not load." %}</p>'; });
+  }
+
+  function loadOneBreakdown(p, host) {
+    var block = document.createElement('div');
+    block.className = 'ps-dist-card';
+    block.innerHTML = '<div class="ps-dist-h">' + escapeHtml(p.name) + '</div>' +
+      '<div class="ps-muted" style="font-size:.82rem;">{% trans "Loading…" %}</div>';
+    host.appendChild(block);
+    fetch('/api/v1/profit-share/projects/' + p.id + '/breakdown/', { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
+      .then(function (b) {
+        var rows = (b.socios || []).map(function (s) {
+          return '<tr' + (s.is_me ? ' class="ps-me"' : '') + '><td>' + escapeHtml(s.name) +
+            (s.is_me ? ' <span class="ps-badge real">{% trans "You" %}</span>' : '') + '</td>' +
+            '<td class="num">' + money(s.accrued) + '</td></tr>';
+        }).join('');
+        block.innerHTML =
+          '<div class="ps-dist-h">' + escapeHtml(p.name) +
+          ' <span class="ps-badge ' + p.status + '">' + p.status + '</span></div>' +
+          '<table class="ps-tbl ps-dist-tbl"><tbody>' +
+          '<tr><td>{% trans "Contract" %}</td><td class="num">' + money(b.cascade.contract_amount) + '</td></tr>' +
+          '<tr><td>{% trans "Company deduction" %}</td><td class="num">' + money(b.cascade.company_overhead) + '</td></tr>' +
+          '<tr><td>{% trans "Overhead" %}</td><td class="num">' + money(b.cascade.overhead) + '</td></tr>' +
+          '<tr><td><strong>{% trans "Net" %}</strong></td><td class="num"><strong>' + money(b.cascade.net) + '</strong></td></tr>' +
+          '<tr><td>{% trans "Director share" %}</td><td class="num">' + money(b.distribution.director_share) + '</td></tr>' +
+          '<tr><td>{% trans "Socios pool" %}</td><td class="num">' + money(b.distribution.partner_pool) + '</td></tr>' +
+          '</tbody></table>' +
+          '<div class="ps-dist-sub">{% trans "Socios — accrued on this project" %}</div>' +
+          '<table class="ps-tbl ps-dist-tbl"><thead><tr><th>{% trans "Member" %}</th><th class="num">{% trans "Accrued" %}</th></tr></thead><tbody>' +
+          (rows || '<tr><td colspan="2" class="ps-muted">{% trans "No socios yet." %}</td></tr>') +
+          '</tbody></table>';
+      })
+      .catch(function () {
+        block.innerHTML = '<div class="ps-dist-h">' + escapeHtml(p.name) +
+          '</div><div class="ps-muted">{% trans "Could not load." %}</div>';
+      });
+  }
+
   loadSummary();
   loadByProject();
   loadLedger();
+  loadDistribution();
 })();
 </script>
 {% endblock %}
