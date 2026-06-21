@@ -222,3 +222,54 @@ class TestNegativePathsConsolidated:
         )
         assert self._zero_balances(world)
         assert accrue_for_project(p).reason == "contract_non_positive"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4) R1/R4 — including a project (or recalc) picks up HISTORICAL payments
+# ─────────────────────────────────────────────────────────────────────────────
+@pytest.mark.django_db
+class TestIncludeAccruesHistorical:
+    def test_marking_included_accrues_past_payment(self, world):
+        """A project that already collected BEFORE being included should accrue
+        the moment the director includes it (R1) — not wait for a new payment."""
+        # Start excluded; the payment hook must NOT accrue.
+        p = _project(in_share=False)
+        inv = _invoice(p)
+        InvoicePayment.objects.create(
+            invoice=inv, amount=Decimal("100000.00"), payment_date=date.today(),
+        )
+        a1 = PartnerAccount.objects.get(pk=world["a1"].pk)
+        assert a1.balance == Decimal("0.00")  # excluded → nothing yet
+
+        # Director includes it via the API → R1 accrues historical payment now.
+        api = APIClient()
+        api.force_authenticate(world["owner"])
+        resp = api.post(
+            reverse("api-profit-share-project-set", args=[p.id]),
+            {"in_profit_share": True},
+            format="json",
+        )
+        assert resp.status_code == 200
+        assert resp.data["accrual"]["posted"] is True
+        a1.refresh_from_db()
+        assert a1.balance == Decimal("8550.00")  # full per_socio, 100% collected
+
+    def test_recalc_is_idempotent(self, world):
+        """Recalc on an already-current project posts nothing new (R4 safe)."""
+        p = _project()
+        inv = _invoice(p)
+        InvoicePayment.objects.create(
+            invoice=inv, amount=Decimal("100000.00"), payment_date=date.today(),
+        )
+        entries_before = LedgerEntry.objects.count()
+
+        api = APIClient()
+        api.force_authenticate(world["owner"])
+        resp = api.post(
+            reverse("api-profit-share-project-recalc", args=[p.id]), {}, format="json"
+        )
+        assert resp.status_code == 200
+        assert resp.data["accrual"]["posted"] is False
+        assert resp.data["accrual"]["reason"] == "no_change"
+        assert LedgerEntry.objects.count() == entries_before  # no duplicates
+

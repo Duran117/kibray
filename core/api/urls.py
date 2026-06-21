@@ -37,6 +37,7 @@ from .profit_share_api import (
     ProfitShareProjectsListView,
     ProjectBreakdownView,
     RateConfigView,
+    RecalcProjectView,
     SetProfitShareView,
 )
 from .views import (
@@ -391,6 +392,11 @@ urlpatterns = [
         "profit-share/projects/<int:project_id>/set/",
         SetProfitShareView.as_view(),
         name="api-profit-share-project-set",
+    ),
+    path(
+        "profit-share/projects/<int:project_id>/recalc/",
+        RecalcProjectView.as_view(),
+        name="api-profit-share-project-recalc",
     ),
     path(
         "profit-share/accounts/<int:account_id>/advance/",

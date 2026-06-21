@@ -37,6 +37,7 @@ from core.models import (
     RateConfig,
 )
 from core.services.profit_share_service import (
+    accrue_for_project,
     compute_project_financials,
     record_advance,
 )
@@ -71,6 +72,26 @@ class IsPartnerOrDirector(permissions.BasePermission):
 
 def _project_status(project) -> str:
     return "real" if project.end_date is not None else "estimado"
+
+
+def _safe_accrue(project) -> dict:
+    """Run accrual and return a small JSON-safe summary.
+
+    Never raises: accrual must not be able to break the flag toggle / recalc
+    request. On failure we report it instead of 500-ing the endpoint.
+    """
+    try:
+        result = accrue_for_project(project)
+        return {
+            "posted": result.posted,
+            "reason": result.reason,
+            "entries_created": result.entries_created,
+            "fraction": str(result.fraction),
+            "net_realized": str(result.net_realized),
+        }
+    except Exception as exc:  # pragma: no cover - defensive
+        return {"posted": False, "reason": "error", "error": str(exc)}
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -161,7 +182,14 @@ class ProjectBreakdownView(APIView):
 
 
 class SetProfitShareView(APIView):
-    """Director-only: mark/unmark a project as part of the profit-share."""
+    """Director-only: mark/unmark a project as part of the profit-share.
+
+    When a project is INCLUDED, we immediately run the (idempotent) accrual so
+    any payments it already collected on/after the cutoff are reflected at once.
+    Without this, including a project that has historical payments would show
+    nothing until the *next* payment — which looks broken to the partners. The
+    accrual is wrapped so it can never block the flag toggle itself.
+    """
 
     permission_classes = [IsDirector]
 
@@ -170,9 +198,39 @@ class SetProfitShareView(APIView):
         included = bool(request.data.get("in_profit_share", True))
         project.in_profit_share = included
         project.save(update_fields=["in_profit_share"])
+
+        accrual = None
+        if included:
+            accrual = _safe_accrue(project)
         return Response(
-            {"id": project.id, "in_profit_share": project.in_profit_share}
+            {
+                "id": project.id,
+                "in_profit_share": project.in_profit_share,
+                "accrual": accrual,
+            }
         )
+
+
+class RecalcProjectView(APIView):
+    """Director-only: re-run the idempotent accrual for an included project.
+
+    Useful after editing rates / the cutoff date, or to pick up historical
+    payments. Because accrual posts only the delta vs. what was already accrued,
+    re-running is always safe (no duplicates); a rate change simply trues the
+    balances up or down.
+    """
+
+    permission_classes = [IsDirector]
+
+    def post(self, request, project_id):
+        project = get_object_or_404(Project, pk=project_id)
+        if not project.in_profit_share:
+            return Response(
+                {"detail": "This project is not part of the profit-share."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response({"accrual": _safe_accrue(project)})
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -220,6 +220,31 @@ class TestSetProfitShare:
         assert api.post(self._url(excluded_project), {}).status_code == 403
 
 
+@pytest.mark.django_db
+class TestRecalcPermissions:
+    def _url(self, project):
+        return reverse("api-profit-share-project-recalc", args=[project.id])
+
+    def test_director_recalc_included_ok(self, api, cfg, director, included_project):
+        api.force_authenticate(director)
+        resp = api.post(self._url(included_project), {})
+        assert resp.status_code == 200
+        assert "accrual" in resp.data
+
+    def test_director_recalc_excluded_rejected(self, api, director, excluded_project):
+        api.force_authenticate(director)
+        assert api.post(self._url(excluded_project), {}).status_code == 400
+
+    def test_socio_forbidden(self, api, socio_a, included_project):
+        api.force_authenticate(socio_a.owner)
+        assert api.post(self._url(included_project), {}).status_code == 403
+
+    def test_employee_forbidden(self, api, employee, included_project):
+        api.force_authenticate(employee)
+        assert api.post(self._url(included_project), {}).status_code == 403
+
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Advances — director-only money movement
 # ─────────────────────────────────────────────────────────────────────────────
