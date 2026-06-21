@@ -31,6 +31,7 @@ from .dashboard_extra import ClientDashboardView, ProjectDashboardView
 from .focus_api import DailyFocusSessionViewSet, FocusTaskViewSet
 from .profit_share_api import (
     AccountAdvanceView,
+    MemberSetView,
     MyEarningsByProjectView,
     MyEarningsLedgerView,
     MyEarningsSummaryView,
@@ -402,6 +403,11 @@ urlpatterns = [
         "profit-share/accounts/<int:account_id>/advance/",
         AccountAdvanceView.as_view(),
         name="api-profit-share-account-advance",
+    ),
+    path(
+        "profit-share/members/set/",
+        MemberSetView.as_view(),
+        name="api-profit-share-member-set",
     ),
     path(
         "profit-share/me/summary/",

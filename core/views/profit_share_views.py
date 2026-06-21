@@ -14,11 +14,29 @@ Pages:
 """
 from __future__ import annotations
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 from core import access
 from core.models import PartnerAccount, Project, RateConfig
+
+
+def _socio_candidates():
+    """Users the director can add as socios: Project Managers who are not
+    already active socios.
+
+    A PM keeps their role when made a socio (only their pay model changes), so
+    the natural candidate pool is the PMs. Anyone with an inactive ex-account is
+    still listed here so they can be reactivated; active socios are excluded
+    (they already appear in the balances/socios list with a toggle).
+    """
+    return (
+        get_user_model()
+        .objects.filter(profile__role=access.ROLE_PM)
+        .exclude(partner_account__is_active_socio=True)
+        .order_by("first_name", "last_name", "username")
+    )
 
 
 @login_required
@@ -66,6 +84,7 @@ def profit_share_director_panel(request):
         "projects": project_rows,
         "rate_config": RateConfig.load(),
         "business_account": PartnerAccount.business(),
+        "candidate_users": _socio_candidates(),
     }
     return render(request, "core/profit_share/director_panel.html", context)
 

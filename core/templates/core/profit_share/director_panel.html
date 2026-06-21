@@ -109,6 +109,58 @@
     </div>
   </div>
 
+  <!-- Socios (membership) -->
+  <div class="ps-card">
+    <h2>{% trans "Socios (profit-share members)" %}</h2>
+    <p class="ps-sub" style="padding:14px 20px 0;">{% trans "A socio keeps their role and permissions; only their pay changes (hourly wage → share of project net). Deactivating preserves their balance and history." %}</p>
+    <table class="ps-tbl">
+      <thead><tr>
+        <th>{% trans "Member" %}</th>
+        <th>{% trans "Status" %}</th>
+        <th class="num">{% trans "Balance" %}</th>
+        <th></th>
+      </tr></thead>
+      <tbody>
+        {% for a in accounts %}
+          {% if not a.is_business and a.owner %}
+          <tr data-member-user="{{ a.owner.id }}">
+            <td>{{ a.owner.get_full_name|default:a.owner.username }}</td>
+            <td>
+              {% if a.is_active_socio %}<span class="ps-badge on">{% trans "Active socio" %}</span>
+              {% else %}<span class="ps-badge off">{% trans "Inactive" %}</span>{% endif %}
+            </td>
+            <td class="num">{{ a.balance }}</td>
+            <td style="white-space:nowrap;">
+              <button class="ps-btn" data-member-toggle data-state="{{ a.is_active_socio|yesno:'true,false' }}">
+                {% if a.is_active_socio %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}
+              </button>
+            </td>
+          </tr>
+          {% endif %}
+        {% empty %}
+          <tr><td colspan="4" style="color:#9ca3af;">{% trans "No socios yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="ps-form-pad">
+      <div class="ps-row2">
+        <div class="ps-field">
+          <label for="member-add-select">{% trans "Add a socio (Project Manager)" %}</label>
+          <select id="member-add-select">
+            <option value="">{% trans "— select a PM —" %}</option>
+            {% for u in candidate_users %}
+              <option value="{{ u.id }}">{{ u.get_full_name|default:u.username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="ps-field" style="justify-content:flex-end;">
+          <button class="ps-btn primary" id="member-add-btn">{% trans "Add as socio" %}</button>
+        </div>
+      </div>
+      <div class="ps-msg" id="member-msg"></div>
+    </div>
+  </div>
+
   <!-- Projects inclusion -->
   <div class="ps-card">
     <h2>{% trans "Projects in the profit-share" %}</h2>
@@ -371,6 +423,54 @@
       .catch(function () { setMsg(msg, '{% trans "Network error." %}', false); })
       .finally(function () { btn.disabled = false; });
   });
+
+  // ── Socio membership (activate / deactivate / add) ──
+  function memberSet(userId, isSocio) {
+    return fetch('/api/v1/profit-share/members/set/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
+      body: JSON.stringify({ user_id: userId, is_socio: isSocio })
+    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); });
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-member-toggle]'), function (btn) {
+    btn.addEventListener('click', function () {
+      var row = btn.closest('tr');
+      var userId = row.getAttribute('data-member-user');
+      var next = btn.getAttribute('data-state') !== 'true';
+      var msg = document.getElementById('member-msg');
+      var verb = next ? '{% trans "activate" %}' : '{% trans "deactivate" %}';
+      if (!window.confirm('{% trans "Are you sure you want to" %} ' + verb +
+                          ' {% trans "this socio? This changes how they get paid." %}')) { return; }
+      btn.disabled = true;
+      memberSet(userId, next)
+        .then(function (res) {
+          if (!res.ok) { setMsg(msg, res.d.detail || '{% trans "Error" %}', false); btn.disabled = false; return; }
+          window.location.reload();
+        })
+        .catch(function () { setMsg(msg, '{% trans "Network error." %}', false); btn.disabled = false; });
+    });
+  });
+
+  var memberAddBtn = document.getElementById('member-add-btn');
+  if (memberAddBtn) {
+    memberAddBtn.addEventListener('click', function () {
+      var sel = document.getElementById('member-add-select');
+      var userId = sel.value;
+      var msg = document.getElementById('member-msg');
+      if (!userId) { setMsg(msg, '{% trans "Select a PM first." %}', false); return; }
+      var name = sel.options[sel.selectedIndex].text.trim();
+      if (!window.confirm('{% trans "Make" %} ' + name +
+                          ' {% trans "a profit-share socio? They keep their PM role; only their pay changes." %}')) { return; }
+      memberAddBtn.disabled = true;
+      memberSet(userId, true)
+        .then(function (res) {
+          if (!res.ok) { setMsg(msg, res.d.detail || '{% trans "Error" %}', false); memberAddBtn.disabled = false; return; }
+          window.location.reload();
+        })
+        .catch(function () { setMsg(msg, '{% trans "Network error." %}', false); memberAddBtn.disabled = false; });
+    });
+  }
 })();
 </script>
 {% endblock %}

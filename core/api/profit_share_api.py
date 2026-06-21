@@ -267,6 +267,59 @@ class AccountAdvanceView(APIView):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Membership (director-only) — make a user a socio WITHOUT changing their role
+# ─────────────────────────────────────────────────────────────────────────────
+class MemberSetView(APIView):
+    """Director-only: turn a user into a profit-share socio, or stop them being one.
+
+    Activating creates (or reactivates) the user's ``PartnerAccount`` with
+    ``is_active_socio=True``. The user KEEPS their existing role (e.g. a Project
+    Manager stays a PM with every permission/view) — only how they are paid
+    changes. Deactivating sets ``is_active_socio=False`` but PRESERVES the
+    account, its balance and its ledger history, so past earnings/withdrawals
+    remain auditable and a future reactivation resumes the same account.
+
+    Adding/removing a socio changes the size of the 60% pool for FUTURE
+    accruals; it does NOT retroactively re-split already-accrued projects. The
+    director can true a specific project up/down with the per-project Recalc.
+    """
+
+    permission_classes = [IsDirector]
+
+    def post(self, request):
+        from django.contrib.auth import get_user_model
+
+        user_id = request.data.get("user_id")
+        is_socio = bool(request.data.get("is_socio", True))
+        target = get_object_or_404(get_user_model(), pk=user_id)
+
+        # The director's split is separate from the 60% socio pool — never put
+        # the director (owner/admin) into the pool by mistake.
+        if access.is_director(target):
+            return Response(
+                {"detail": "The director is not a pool socio."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        account, _created = PartnerAccount.objects.get_or_create(
+            owner=target,
+            defaults={"is_business": False, "is_active_socio": is_socio},
+        )
+        if account.is_active_socio != is_socio:
+            account.is_active_socio = is_socio
+            account.save(update_fields=["is_active_socio"])
+
+        return Response(
+            {
+                "user_id": target.id,
+                "account_id": account.id,
+                "is_active_socio": account.is_active_socio,
+                "balance": str(account.balance),
+            }
+        )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # "My earnings" — ALWAYS scoped to request.user (no cross-member leakage)
 # ─────────────────────────────────────────────────────────────────────────────
 class MyEarningsSummaryView(APIView):
