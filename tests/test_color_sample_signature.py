@@ -241,3 +241,69 @@ class ColorApprovalModelTests(TestCase):
 
         approvals = ColorApproval.objects.filter(project=self.project)
         assert approvals.count() == 2
+
+
+@pytest.mark.django_db
+class ColorSampleRejectByTokenTests(TestCase):
+    """Public 'decline with reason' flow through the shareable token link.
+
+    An external owner/designer opens the copied link (no login) and either
+    approves or says "this isn't the right color". These tests cover the
+    reject branch added to the public signing view.
+    """
+
+    def setUp(self):
+        self.project = Project.objects.create(
+            name="Reject Token Project",
+            address="123 Test St",
+            start_date=date(2025, 1, 1),
+        )
+        self.sample = ColorSample.objects.create(
+            project=self.project,
+            name="Test Green",
+            code="GREEN-001",
+            brand="Benjamin Moore",
+            finish="Matte",
+            status="review",
+        )
+        self.token = self.sample.generate_signature_token()
+        self.url = reverse(
+            "color_sample_client_signature_token",
+            args=[self.sample.id, self.token],
+        )
+
+    def test_reject_with_reason_sets_status_and_renders_feedback(self):
+        """A valid reason rejects the sample and shows the feedback page."""
+        resp = self.client.post(self.url, {"action": "reject", "reason": "Too dark"})
+
+        assert resp.status_code == 200
+        self.sample.refresh_from_db()
+        assert self.sample.status == "rejected"
+        assert "Too dark" in (self.sample.rejection_reason or "")
+        # Reason is also mirrored into the timeline notes for the PM.
+        assert "Too dark" in (self.sample.client_notes or "")
+        # Standalone English feedback page is rendered (not the form).
+        assert b"Thanks for the feedback" in resp.content
+        assert b"Too dark" in resp.content
+
+    def test_reject_without_reason_rerenders_form_with_error(self):
+        """No reason = nothing happens; the form re-renders with a prompt."""
+        resp = self.client.post(self.url, {"action": "reject", "reason": ""})
+
+        assert resp.status_code == 200
+        self.sample.refresh_from_db()
+        # Status untouched — we never reject without a reason.
+        assert self.sample.status == "review"
+        assert b"Please pick a reason" in resp.content
+
+    def test_reject_with_invalid_token_is_forbidden(self):
+        """A tampered token cannot reject the sample."""
+        bad_url = reverse(
+            "color_sample_client_signature_token",
+            args=[self.sample.id, "not-the-real-token"],
+        )
+        resp = self.client.post(bad_url, {"action": "reject", "reason": "Too dark"})
+
+        assert resp.status_code == 403
+        self.sample.refresh_from_db()
+        assert self.sample.status == "review"

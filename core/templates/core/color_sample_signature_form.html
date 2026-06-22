@@ -1,223 +1,281 @@
-{% extends "core/base_modern.html" %}
-{% load i18n static %}
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Approval — {{ color_sample.project.name }}</title>
 
-{% block title %}{% trans "Sign Color Sample" %} - {{ color_sample.name|default:color_sample.code }}{% endblock %}
+    {# Standalone page: no app chrome, so the client sees a clean, focused screen. #}
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body { background: #f1f5f9; -webkit-font-smoothing: antialiased; }
+        .chip.selected { background: #ede9fe; border-color: #8b5cf6; color: #6d28d9; }
+        canvas { touch-action: none; }
+    </style>
+</head>
+<body class="min-h-screen py-6 px-4">
+    <div class="max-w-xl mx-auto">
 
-{% block content %}
-<div class="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 py-8 px-4">
-    <div class="max-w-2xl mx-auto">
-        <!-- Header Card -->
-        <div class="bg-white rounded-t-2xl shadow-lg overflow-hidden">
-            <div class="bg-gradient-to-r from-violet-600 to-purple-600 p-6 text-white">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
-                        <i class="bi bi-pen-fill text-2xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-bold">{% trans "Color Sample Approval" %}</h1>
-                        <p class="text-white/80">{{ color_sample.project.name }}</p>
-                    </div>
-                </div>
+        <!-- Brand / Project -->
+        <div class="text-center mb-5">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-violet-600 text-white shadow-lg mb-3">
+                <i class="bi bi-palette-fill text-2xl"></i>
             </div>
-            
-            <!-- Sample Preview -->
-            <div class="p-6 border-b border-slate-200">
-                <div class="flex flex-col sm:flex-row gap-6">
-                    {% if color_sample.sample_image %}
-                    <div class="sm:w-1/3">
-                        <img src="{{ color_sample.sample_image.url }}" alt="{{ color_sample.name }}" 
-                             class="w-full rounded-xl shadow-md">
-                    </div>
+            <h1 class="text-xl font-bold text-slate-900">Color Approval</h1>
+            <p class="text-sm text-slate-500">{{ color_sample.project.name }}</p>
+        </div>
+
+        <!-- Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+            <!-- Color preview (the hero) -->
+            <div class="p-5 border-b border-slate-100">
+                {% if color_sample.sample_image %}
+                <div class="rounded-xl overflow-hidden bg-slate-100 mb-4">
+                    <img src="{{ color_sample.sample_image.url }}" alt="{{ color_sample.name|default:'Color sample' }}"
+                         class="w-full max-h-72 object-contain">
+                </div>
+                {% endif %}
+                <h2 class="text-lg font-bold text-slate-900">{{ color_sample.name|default:"Color sample" }}</h2>
+                <div class="flex flex-wrap gap-2 mt-3">
+                    {% if color_sample.code %}
+                    <span class="inline-flex items-center gap-1 text-xs font-medium bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full">
+                        <i class="bi bi-upc-scan"></i> {{ color_sample.code }}
+                    </span>
                     {% endif %}
-                    <div class="flex-1">
-                        <h2 class="text-xl font-bold text-slate-900 mb-2">
-                            {{ color_sample.name|default:"Color Sample" }}
-                        </h2>
-                        <div class="space-y-2 text-sm">
-                            {% if color_sample.code %}
-                            <p class="flex items-center gap-2">
-                                <span class="text-slate-500">{% trans "Code" %}:</span>
-                                <span class="font-mono font-semibold bg-slate-100 px-2 py-0.5 rounded">{{ color_sample.code }}</span>
-                            </p>
-                            {% endif %}
-                            {% if color_sample.brand %}
-                            <p class="flex items-center gap-2">
-                                <span class="text-slate-500">{% trans "Brand" %}:</span>
-                                <span class="font-medium">{{ color_sample.brand }}</span>
-                            </p>
-                            {% endif %}
-                            {% if color_sample.finish %}
-                            <p class="flex items-center gap-2">
-                                <span class="text-slate-500">{% trans "Finish" %}:</span>
-                                <span class="font-medium">{{ color_sample.finish }}</span>
-                            </p>
-                            {% endif %}
-                            {% if color_sample.room_location %}
-                            <p class="flex items-center gap-2">
-                                <span class="text-slate-500">{% trans "Location" %}:</span>
-                                <span class="font-medium">{{ color_sample.room_location }}</span>
-                            </p>
-                            {% endif %}
-                        </div>
-                    </div>
+                    {% if color_sample.brand %}
+                    <span class="inline-flex items-center gap-1 text-xs font-medium bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full">
+                        <i class="bi bi-tag"></i> {{ color_sample.brand }}
+                    </span>
+                    {% endif %}
+                    {% if color_sample.finish %}
+                    <span class="inline-flex items-center gap-1 text-xs font-medium bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full">
+                        <i class="bi bi-brush"></i> {{ color_sample.finish }}
+                    </span>
+                    {% endif %}
+                    {% if color_sample.room_location %}
+                    <span class="inline-flex items-center gap-1 text-xs font-medium bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full">
+                        <i class="bi bi-geo-alt"></i> {{ color_sample.room_location }}
+                    </span>
+                    {% endif %}
                 </div>
             </div>
-        </div>
-        
-        <!-- Error Message -->
-        {% if error %}
-        <div class="bg-rose-100 border border-rose-200 text-rose-800 px-4 py-3 flex items-center gap-3">
-            <i class="bi bi-exclamation-circle-fill text-xl"></i>
-            <p>{{ error }}</p>
-        </div>
-        {% endif %}
-        
-        <!-- Signature Form -->
-        <div class="bg-white rounded-b-2xl shadow-lg overflow-hidden">
-            <form method="post" id="signatureForm" class="p-6">
+
+            <!-- Error banner -->
+            {% if error %}
+            <div class="mx-5 mt-5 bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl flex items-center gap-2 text-sm">
+                <i class="bi bi-exclamation-circle-fill"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <!-- STEP 1: Decision -->
+            <div id="step-decide" class="p-5">
+                <p class="text-center text-slate-600 mb-4">Do you approve this color for your project?</p>
+                <div class="grid gap-3">
+                    <button type="button" onclick="showStep('approve')"
+                            class="w-full flex items-center justify-center gap-2 px-5 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-lg shadow-sm transition">
+                        <i class="bi bi-check-circle-fill"></i> Approve this color
+                    </button>
+                    <button type="button" onclick="showStep('reject')"
+                            class="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-white border-2 border-slate-200 hover:border-rose-300 hover:bg-rose-50 text-slate-700 rounded-xl font-semibold transition">
+                        <i class="bi bi-hand-thumbs-down"></i> This isn't the right color
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 2: Approve (signature) -->
+            <form method="post" id="approveForm" class="p-5 hidden">
                 {% csrf_token %}
-                
-                <!-- Full Name -->
-                <div class="mb-6">
-                    <label for="signed_name" class="block text-sm font-semibold text-slate-700 mb-2">
-                        {% trans "Your Full Name" %} <span class="text-rose-500">*</span>
-                    </label>
-                    <input type="text" name="signed_name" id="signed_name" required
-                           class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-lg"
-                           placeholder="{% trans 'Enter your full name' %}">
-                    <p class="mt-1 text-xs text-slate-500">{% trans "Name of the person authorizing this color sample" %}</p>
+                <input type="hidden" name="action" value="approve">
+
+                <button type="button" onclick="showStep('decide')"
+                        class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-4">
+                    <i class="bi bi-arrow-left"></i> Back
+                </button>
+
+                <!-- Name -->
+                <label for="signed_name" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Your full name <span class="text-rose-500">*</span>
+                </label>
+                <input type="text" name="signed_name" id="signed_name" required
+                       class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 mb-4"
+                       placeholder="e.g. John Smith" autocomplete="name">
+
+                <!-- Email (optional) -->
+                <label for="customer_email" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Your email <span class="text-slate-400 text-xs font-normal">(optional)</span>
+                </label>
+                <input type="email" name="customer_email" id="customer_email"
+                       class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 mb-1"
+                       placeholder="you@email.com" autocomplete="email">
+                <p class="text-xs text-slate-500 mb-4">We'll email you a copy of the signed approval.</p>
+
+                <!-- Signature -->
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Sign below <span class="text-rose-500">*</span>
+                </label>
+                <div class="border-2 border-slate-300 rounded-xl overflow-hidden bg-white">
+                    <canvas id="signaturePad" class="w-full" style="height: 180px;"></canvas>
                 </div>
-                
-                <!-- Email for Confirmation Copy -->
-                <div class="mb-6">
-                    <label for="customer_email" class="block text-sm font-semibold text-slate-700 mb-2">
-                        {% trans "Your Email" %} <span class="text-slate-400 text-xs font-normal">({% trans "optional" %})</span>
-                    </label>
-                    <input type="email" name="customer_email" id="customer_email"
-                           class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-lg"
-                           placeholder="{% trans 'your@email.com' %}" autocomplete="email">
-                    <p class="mt-1 text-xs text-slate-500">{% trans "We'll send you a confirmation copy of this signed color sample" %}</p>
+                <div class="flex items-center justify-between mt-2 mb-4">
+                    <p class="text-xs text-slate-500">Use your mouse, trackpad, or finger.</p>
+                    <button type="button" onclick="clearSignature()"
+                            class="text-sm text-violet-600 hover:text-violet-800 font-medium">
+                        <i class="bi bi-arrow-counterclockwise"></i> Clear
+                    </button>
                 </div>
-                
-                <!-- Signature Pad -->
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">
-                        {% trans "Your Signature" %} <span class="text-rose-500">*</span>
-                    </label>
-                    <div class="border-2 border-slate-300 rounded-xl overflow-hidden bg-white">
-                        <canvas id="signaturePad" class="w-full touch-none" style="height: 200px;"></canvas>
-                    </div>
-                    <div class="flex items-center justify-between mt-2">
-                        <p class="text-xs text-slate-500">
-                            {% trans "Draw your signature above using your mouse, trackpad, or finger" %}
-                        </p>
-                        <button type="button" onclick="clearSignature()" 
-                                class="text-sm text-violet-600 hover:text-violet-800 font-medium">
-                            <i class="bi bi-arrow-counterclockwise"></i> {% trans "Clear" %}
-                        </button>
-                    </div>
-                </div>
-                
                 <input type="hidden" name="signature_data" id="signature_data">
-                
+
                 <!-- Agreement -->
-                <div class="mb-6 p-4 bg-slate-50 rounded-xl">
-                    <label class="flex items-start gap-3 cursor-pointer">
-                        <input type="checkbox" id="agreement" required 
-                               class="w-5 h-5 mt-0.5 rounded border-slate-300 text-violet-600 focus:ring-violet-500">
-                        <span class="text-sm text-slate-700">
-                            {% trans "I confirm that the color sample shown above is correct and I authorize its use in this project. I understand this is a legally binding digital signature." %}
-                        </span>
-                    </label>
-                </div>
-                
-                <!-- Submit -->
-                <button type="submit" id="submitBtn"
-                        class="w-full py-4 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-xl shadow-lg hover:shadow-xl transition font-semibold text-lg flex items-center justify-center gap-2">
-                    <i class="bi bi-check-circle-fill"></i>
-                    {% trans "Confirm & Sign" %}
+                <label class="flex items-start gap-3 cursor-pointer bg-slate-50 rounded-xl p-3 mb-4">
+                    <input type="checkbox" id="agreement" required
+                           class="w-5 h-5 mt-0.5 rounded border-slate-300 text-violet-600 focus:ring-violet-500">
+                    <span class="text-sm text-slate-600">
+                        I approve this color and authorize its use in this project. This is a binding digital signature.
+                    </span>
+                </label>
+
+                <button type="submit" id="approveSubmit"
+                        class="w-full flex items-center justify-center gap-2 px-5 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-lg shadow-sm transition">
+                    <i class="bi bi-check-circle-fill"></i> Confirm &amp; sign
                 </button>
             </form>
-            
-            <!-- Security Note -->
-            <div class="px-6 pb-6">
-                <div class="bg-slate-50 rounded-xl p-4 text-center">
-                    <p class="text-xs text-slate-500 flex items-center justify-center gap-2">
-                        <i class="bi bi-shield-lock-fill text-slate-400"></i>
-                        {% trans "Your signature is secure and legally binding. We record your name, date, time, and IP address for verification purposes." %}
-                    </p>
+
+            <!-- STEP 2 (alt): Reject (reason) -->
+            <form method="post" id="rejectForm" class="p-5 hidden">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reject">
+                <input type="hidden" name="reason" id="reason">
+
+                <button type="button" onclick="showStep('decide')"
+                        class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-4">
+                    <i class="bi bi-arrow-left"></i> Back
+                </button>
+
+                <p class="text-sm font-semibold text-slate-700 mb-1">No problem — what's off about it?</p>
+                <p class="text-xs text-slate-500 mb-3">Pick what applies. This helps us get the next sample right.</p>
+
+                <!-- Quick reason chips -->
+                <div id="reasonChips" class="flex flex-wrap gap-2 mb-4">
+                    <button type="button" class="chip text-sm font-medium border border-slate-200 text-slate-700 px-3 py-1.5 rounded-full hover:border-violet-300 transition" data-reason="Too dark">Too dark</button>
+                    <button type="button" class="chip text-sm font-medium border border-slate-200 text-slate-700 px-3 py-1.5 rounded-full hover:border-violet-300 transition" data-reason="Too light">Too light</button>
+                    <button type="button" class="chip text-sm font-medium border border-slate-200 text-slate-700 px-3 py-1.5 rounded-full hover:border-violet-300 transition" data-reason="Too warm / brown">Too warm / brown</button>
+                    <button type="button" class="chip text-sm font-medium border border-slate-200 text-slate-700 px-3 py-1.5 rounded-full hover:border-violet-300 transition" data-reason="Too red">Too red</button>
+                    <button type="button" class="chip text-sm font-medium border border-slate-200 text-slate-700 px-3 py-1.5 rounded-full hover:border-violet-300 transition" data-reason="Wrong sheen / finish">Wrong sheen / finish</button>
+                    <button type="button" class="chip text-sm font-medium border border-slate-200 text-slate-700 px-3 py-1.5 rounded-full hover:border-violet-300 transition" data-reason="Other">Other</button>
                 </div>
-            </div>
+
+                <!-- Optional comment -->
+                <label for="reject_comment" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Anything to add? <span class="text-slate-400 text-xs font-normal">(optional)</span>
+                </label>
+                <textarea id="reject_comment" rows="3"
+                          class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 mb-4"
+                          placeholder="e.g. A bit lighter, closer to a warm beige."></textarea>
+
+                <button type="submit" id="rejectSubmit"
+                        class="w-full flex items-center justify-center gap-2 px-5 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold text-lg shadow-sm transition">
+                    <i class="bi bi-send"></i> Send feedback
+                </button>
+            </form>
+
         </div>
+
+        <!-- Security note -->
+        <p class="text-center text-xs text-slate-400 mt-4 flex items-center justify-center gap-1.5">
+            <i class="bi bi-shield-lock"></i>
+            Secure approval. We record your name, date, time, and IP for verification.
+        </p>
     </div>
-</div>
 
-<!-- Signature Pad Library -->
-<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    <!-- Signature Pad library -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    <script>
+        var signaturePad = null;
+        var canvas = document.getElementById('signaturePad');
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const canvas = document.getElementById('signaturePad');
-    const signaturePad = new SignaturePad(canvas, {
-        penColor: '#1e293b',
-        backgroundColor: 'rgba(255, 255, 255, 1)',
-        minWidth: 1,
-        maxWidth: 3
-    });
-    
-    // Resize canvas to fit container
-    function resizeCanvas() {
-        const ratio = Math.max(window.devicePixelRatio || 1, 1);
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width * ratio;
-        canvas.height = rect.height * ratio;
-        canvas.getContext('2d').scale(ratio, ratio);
-        signaturePad.clear(); // Clear on resize
-    }
-    
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-    
-    // Clear signature
-    window.clearSignature = function() {
-        signaturePad.clear();
-    };
-    
-    // Form submission
-    document.getElementById('signatureForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Validate name
-        const signedName = document.getElementById('signed_name').value.trim();
-        if (!signedName) {
-            alert('{% trans "Please enter your full name" %}');
-            return;
+        function resizeCanvas() {
+            if (!canvas || canvas.offsetParent === null) return; // hidden → skip
+            var ratio = Math.max(window.devicePixelRatio || 1, 1);
+            var rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * ratio;
+            canvas.height = rect.height * ratio;
+            canvas.getContext('2d').scale(ratio, ratio);
+            if (signaturePad) signaturePad.clear();
         }
-        
-        // Validate signature
-        if (signaturePad.isEmpty()) {
-            alert('{% trans "Please draw your signature" %}');
-            return;
+
+        function initSignaturePad() {
+            if (signaturePad || !canvas) return;
+            signaturePad = new SignaturePad(canvas, {
+                penColor: '#1e293b',
+                backgroundColor: 'rgba(255,255,255,1)',
+                minWidth: 1, maxWidth: 3
+            });
         }
-        
-        // Validate agreement
-        if (!document.getElementById('agreement').checked) {
-            alert('{% trans "Please accept the agreement" %}');
-            return;
+
+        function clearSignature() { if (signaturePad) signaturePad.clear(); }
+
+        function showStep(name) {
+            document.getElementById('step-decide').classList.toggle('hidden', name !== 'decide');
+            document.getElementById('approveForm').classList.toggle('hidden', name !== 'approve');
+            document.getElementById('rejectForm').classList.toggle('hidden', name !== 'reject');
+            if (name === 'approve') {
+                initSignaturePad();
+                setTimeout(resizeCanvas, 30); // canvas must be visible before sizing
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-        
-        // Get signature data
-        const signatureData = signaturePad.toDataURL('image/png');
-        document.getElementById('signature_data').value = signatureData;
-        
-        // Disable button to prevent double submission
-        const btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i> {% trans "Processing..." %}';
-        
-        // Submit form
-        this.submit();
-    });
-});
-</script>
-{% endblock %}
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // Reason chips (multi-select)
+        document.querySelectorAll('#reasonChips .chip').forEach(function (btn) {
+            btn.addEventListener('click', function () { btn.classList.toggle('selected'); });
+        });
+
+        function collectReason() {
+            var chips = Array.prototype.slice.call(document.querySelectorAll('#reasonChips .chip.selected'))
+                .map(function (c) { return c.getAttribute('data-reason'); });
+            var comment = document.getElementById('reject_comment').value.trim();
+            var parts = [];
+            if (chips.length) parts.push(chips.join(', '));
+            if (comment) parts.push(comment);
+            return parts.join(' — ');
+        }
+
+        // Approve submit validation
+        document.getElementById('approveForm').addEventListener('submit', function (e) {
+            if (!document.getElementById('signed_name').value.trim()) {
+                e.preventDefault(); alert('Please enter your full name.'); return;
+            }
+            if (!signaturePad || signaturePad.isEmpty()) {
+                e.preventDefault(); alert('Please draw your signature.'); return;
+            }
+            if (!document.getElementById('agreement').checked) {
+                e.preventDefault(); alert('Please check the approval box.'); return;
+            }
+            document.getElementById('signature_data').value = signaturePad.toDataURL('image/png');
+            var btn = document.getElementById('approveSubmit');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Processing…';
+        });
+
+        // Reject submit validation
+        document.getElementById('rejectForm').addEventListener('submit', function (e) {
+            var reason = collectReason();
+            if (!reason) {
+                e.preventDefault();
+                alert('Please pick a reason or add a short comment.');
+                return;
+            }
+            document.getElementById('reason').value = reason;
+            var btn = document.getElementById('rejectSubmit');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Sending…';
+        });
+    </script>
+</body>
+</html>

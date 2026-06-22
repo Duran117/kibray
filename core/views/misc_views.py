@@ -353,6 +353,39 @@ def color_sample_client_signature_view(request, sample_id, token=None):
         from django.core.files.base import ContentFile
         from django.utils import timezone
 
+        # --- Decline / request a different color (same public link) ---
+        # A client who opens the shared link can either approve (sign) or say
+        # "this isn't the right color" with a short reason. Reusing this view
+        # keeps the token check in one place — no separate authenticated route.
+        if request.POST.get("action") == "reject":
+            reason = request.POST.get("reason", "").strip()
+            if not reason:
+                return render(
+                    request,
+                    "core/color_sample_signature_form.html",
+                    {
+                        "color_sample": color_sample,
+                        "error": "Please pick a reason or add a short comment.",
+                    },
+                )
+            # Anonymous (token) signers have no user row; pass None so the
+            # nullable FKs stay clean and the notifier labels it "Client".
+            signer = request.user if request.user.is_authenticated else None
+            # Also surface the reason in the detail timeline (client_notes),
+            # not just the rejection_reason field, so the PM sees it at a glance.
+            ts = timezone.now().strftime("%Y-%m-%d %H:%M")
+            note = f"[{ts}] Client declined — reason: {reason}"
+            color_sample.client_notes = (
+                f"{note}\n\n{color_sample.client_notes}".strip()
+                if color_sample.client_notes else note
+            )
+            color_sample.reject(user=signer, reason=reason)  # sets status + saves + notifies
+            return render(
+                request,
+                "core/color_sample_signature_feedback_sent.html",
+                {"color_sample": color_sample, "reason": reason},
+            )
+
         signature_data = request.POST.get("signature_data")
         signed_name = request.POST.get("signed_name", "").strip()
 

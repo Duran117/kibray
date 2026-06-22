@@ -109,22 +109,34 @@ def color_sample_detail(request, sample_id):
     
     # Additional check for clients: verify explicit project access
     # Phase 9 Commit F: centralized helper.
-    from core.access import ROLE_CLIENT, get_role
-    profile = getattr(request.user, "profile", None)
-    if get_role(request.user) == ROLE_CLIENT:
+    from core.access import ROLE_CLIENT, ROLE_DESIGNER, ROLE_PM, get_role
+    role = get_role(request.user)
+    if role == ROLE_CLIENT:
         has_access = ClientProjectAccess.objects.filter(
             user=request.user, project=project
         ).exists() or project.client == request.user.username
         if not has_access:
             messages.error(request, _("You don't have access to this project."))
             return redirect("dashboard_client")
-    
+
+    # Build a PUBLIC, token-based approval link that internal users (staff / PM /
+    # designer) can copy and send to the owner or designer to sign — WITHOUT
+    # forcing them to log in. The token route is the only shareable one; the
+    # plain route requires authentication. Only generated for non-approved
+    # samples and never exposed to client viewers.
+    is_internal_viewer = request.user.is_staff or role in {ROLE_PM, ROLE_DESIGNER}
+    share_path = ""
+    if is_internal_viewer and sample.status not in ("approved", "archived"):
+        share_path = sample.get_signature_url()  # generates token if missing
+
     return render(
         request,
         "core/color_sample_detail.html",
         {
             "sample": sample,
             "project": project,
+            "is_internal_viewer": is_internal_viewer,
+            "share_path": share_path,
         },
     )
 

@@ -1,29 +1,34 @@
-{% extends "core/base_modern.html" %}
-{% load i18n static %}
-
-{% block title %}{% trans "Signature Confirmed" %} - {{ color_sample.name|default:color_sample.code }}{% endblock %}
-
-{% block content %}
-<div class="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 py-12 px-4">
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approval Confirmed — {{ color_sample.project.name }}</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>body { background: #ecfdf5; -webkit-font-smoothing: antialiased; }</style>
+</head>
+<body class="min-h-screen py-10 px-4">
     <div class="max-w-lg mx-auto">
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <!-- Success Header -->
-            <div class="bg-gradient-to-r from-emerald-500 to-green-500 p-8 text-white text-center">
+            <div class="bg-emerald-600 p-8 text-white text-center">
                 <div class="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
                     <i class="bi bi-check-circle-fill text-5xl"></i>
                 </div>
-                <h1 class="text-2xl font-bold mb-2">{% trans "Signature Confirmed!" %}</h1>
-                <p class="text-white/80">{% trans "Your approval has been recorded successfully" %}</p>
+                <h1 class="text-2xl font-bold mb-1">Approved — thank you!</h1>
+                <p class="text-white/80">Your approval has been recorded.</p>
             </div>
-            
+
             <!-- Confirmation Details -->
             <div class="p-6 space-y-6">
                 <!-- Sample Info -->
                 <div class="bg-slate-50 rounded-xl p-4">
-                    <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">{% trans "Color Sample" %}</h3>
+                    <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Color sample</h3>
                     <div class="flex items-center gap-4">
                         {% if color_sample.sample_image %}
-                        <img src="{{ color_sample.sample_image.url }}" alt="{{ color_sample.name }}" 
+                        <img src="{{ color_sample.sample_image.url }}" alt="{{ color_sample.name }}"
                              class="w-16 h-16 rounded-lg object-cover shadow">
                         {% else %}
                         <div class="w-16 h-16 rounded-lg bg-violet-100 flex items-center justify-center">
@@ -31,7 +36,7 @@
                         </div>
                         {% endif %}
                         <div>
-                            <p class="font-semibold text-slate-900">{{ color_sample.name|default:"Color Sample" }}</p>
+                            <p class="font-semibold text-slate-900">{{ color_sample.name|default:"Color sample" }}</p>
                             {% if color_sample.code %}
                             <p class="text-sm text-slate-500 font-mono">{{ color_sample.code }}</p>
                             {% endif %}
@@ -39,72 +44,76 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Signature Details -->
                 <div class="space-y-3">
                     <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                        <span class="text-slate-500">{% trans "Signed By" %}</span>
+                        <span class="text-slate-500">Signed by</span>
                         <span class="font-semibold text-slate-900">{{ color_sample.client_signed_name }}</span>
                     </div>
                     <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                        <span class="text-slate-500">{% trans "Date & Time" %}</span>
+                        <span class="text-slate-500">Date &amp; time</span>
                         <span class="font-semibold text-slate-900">{{ color_sample.client_signed_at|date:"F d, Y - H:i" }}</span>
                     </div>
-                    <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                        <span class="text-slate-500">{% trans "Status" %}</span>
+                    <div class="flex justify-between items-center py-2">
+                        <span class="text-slate-500">Status</span>
                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                            <i class="bi bi-check-circle-fill"></i> {% trans "Approved" %}
+                            <i class="bi bi-check-circle-fill"></i> Approved
                         </span>
                     </div>
                 </div>
-                
+
                 <!-- Signature Preview -->
                 {% if color_sample.client_signature %}
                 <div class="text-center">
-                    <p class="text-xs text-slate-500 mb-2">{% trans "Your Signature" %}</p>
+                    <p class="text-xs text-slate-500 mb-2">Your signature</p>
                     <div class="inline-block bg-slate-50 border border-slate-200 rounded-lg p-3">
                         <img src="{{ color_sample.client_signature.url }}" alt="Signature" class="max-h-24">
                     </div>
                 </div>
                 {% endif %}
-                
+
                 <!-- Confirmation Badge -->
                 <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
                     <div class="flex items-center justify-center gap-2 text-emerald-700">
                         <i class="bi bi-shield-fill-check text-xl"></i>
-                        <span class="font-medium">{% trans "Approval ID" %}: #{{ color_sample.id }}</span>
+                        <span class="font-medium">Approval ID: #{{ color_sample.id }}</span>
                     </div>
                 </div>
-                
+
                 <!-- Download PDF Button -->
                 {% if download_token %}
                 <div class="text-center pt-2">
-                    <a href="{% url 'colorsample_public_pdf_download' sample_id=color_sample.id token=download_token %}" 
-                       class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl shadow-lg transition font-medium">
+                    <a href="{% url 'colorsample_public_pdf_download' sample_id=color_sample.id token=download_token %}"
+                       class="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl shadow-sm transition font-medium">
                         <i class="bi bi-file-pdf"></i>
-                        {% trans "Download Approval Document" %}
+                        Download approval document
                     </a>
                 </div>
                 {% endif %}
-                
+
                 <!-- Actions -->
-                <div class="text-center pt-4">
-                    <a href="{% url 'client_project_view' color_sample.project.id %}" 
-                       class="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-lg transition font-medium">
+                {% if request.user.is_authenticated %}
+                <div class="text-center pt-2">
+                    <a href="{% url 'client_project_view' color_sample.project.id %}"
+                       class="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-sm transition font-medium">
                         <i class="bi bi-arrow-left"></i>
-                        {% trans "Back to Project" %}
+                        Back to project
                     </a>
                 </div>
+                {% else %}
+                <p class="text-center text-sm text-slate-400">You can safely close this window.</p>
+                {% endif %}
             </div>
-            
+
             <!-- Footer Note -->
             <div class="bg-slate-50 px-6 py-4 text-center">
                 <p class="text-xs text-slate-500">
                     <i class="bi bi-envelope mr-1"></i>
-                    {% trans "A confirmation has been sent to the project manager." %}
+                    A confirmation has been sent to the project manager.
                 </p>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+</body>
+</html>
