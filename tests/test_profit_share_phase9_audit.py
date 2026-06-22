@@ -196,6 +196,99 @@ class TestSocioNeverACostInvariant:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# 2b) Invariant: the DIRECTOR (admin/owner/superuser) is NEVER a project cost
+# ─────────────────────────────────────────────────────────────────────────────
+@pytest.mark.django_db
+class TestDirectorNeverACostInvariant:
+    """The director is the admin — and is NEVER crew labor.
+
+    Real-world trigger ("19 Evans Ct"): the admin user is ALSO linked to an
+    Employee just so they can clock in (metrics), so their TimeEntry hours must
+    add ZERO to project labor. The director is paid via the 40% share, never as
+    crew. Before the fix, only ``owner``/``partner`` roles and active socios
+    were excluded, so an ``admin``-role director leaked into labor.
+    """
+
+    def _crew_baseline(self, project) -> Decimal:
+        crew = Employee.objects.create(
+            first_name="CrewB", last_name="Worker",
+            social_security_number="900-00-0010",
+            hourly_rate=Decimal("40.00"), is_active=True,
+        )
+        TimeEntry.objects.create(
+            employee=crew, project=project, date=date.today(),
+            start_time=time(8, 0), end_time=time(16, 0),
+        )
+        return compute_project_financials(project, use_actuals=True).other_labor
+
+    def test_admin_role_hours_do_not_increase_other_labor(self, world):
+        p = _project()
+        baseline = self._crew_baseline(p)
+        assert baseline > 0  # plain crew counts
+
+        admin = User.objects.create_user("ps9_admin", password="x")
+        admin.profile.role = access.ROLE_ADMIN
+        admin.profile.save()
+        admin_emp = Employee.objects.create(
+            first_name="Jesus", last_name="Duran",
+            social_security_number="900-00-0011",
+            hourly_rate=Decimal("40.00"), is_active=True, user=admin,
+        )
+        TimeEntry.objects.create(
+            employee=admin_emp, project=p, date=date.today(),
+            start_time=time(8, 0), end_time=time(16, 0),
+        )
+        after = compute_project_financials(p, use_actuals=True).other_labor
+        assert after == baseline  # admin/director hours are NOT a cost
+
+    def test_superuser_hours_do_not_increase_other_labor(self, world):
+        p = _project()
+        baseline = self._crew_baseline(p)
+        assert baseline > 0
+
+        su = User.objects.create_superuser("ps9_su", "su@example.com", "x")
+        su_emp = Employee.objects.create(
+            first_name="Root", last_name="Admin",
+            social_security_number="900-00-0012",
+            hourly_rate=Decimal("40.00"), is_active=True, user=su,
+        )
+        TimeEntry.objects.create(
+            employee=su_emp, project=p, date=date.today(),
+            start_time=time(8, 0), end_time=time(16, 0),
+        )
+        after = compute_project_financials(p, use_actuals=True).other_labor
+        assert after == baseline  # superuser-director hours are NOT a cost
+
+    def test_all_socios_project_has_zero_crew_labor(self, world):
+        """The reported case: only the director + socios worked → labor = 0."""
+        p = Project.objects.create(
+            name="19 Evans Ct (sim)",
+            budget_total=Decimal("23100.00"),
+            in_profit_share=True,
+        )
+        admin = User.objects.create_user("ps9_admin2", password="x")
+        admin.profile.role = access.ROLE_ADMIN
+        admin.profile.save()
+        # Director (admin) + the two active socios each clock a full day.
+        for u, ssn in (
+            (admin, "900-00-0020"),
+            (world["s1"], "900-00-0021"),
+            (world["s2"], "900-00-0022"),
+        ):
+            emp = Employee.objects.create(
+                first_name="P", last_name=ssn[-2:],
+                social_security_number=ssn,
+                hourly_rate=Decimal("50.00"), is_active=True, user=u,
+            )
+            TimeEntry.objects.create(
+                employee=emp, project=p, date=date.today(),
+                start_time=time(8, 0), end_time=time(16, 0),
+            )
+        fin = compute_project_financials(p, use_actuals=True)
+        assert fin.other_labor == Decimal("0.00")  # no crew → no labor cost
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # 3) Negative paths: nothing accrues when it must not
 # ─────────────────────────────────────────────────────────────────────────────
 @pytest.mark.django_db

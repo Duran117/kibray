@@ -4,7 +4,7 @@ Computes, for a project, the exact distribution cascade:
 
     net = contract_amount
         − materials             (actual: Σ Expense(MATERIALES))
-        − other_labor           (hourly crew only; SOCIOS are never a cost)
+        − other_labor           (hourly crew only; SOCIOS & the DIRECTOR are never a cost)
         − other_expenses        (EVERY other project Expense, any category)
         − company_overhead      (contract × company_overhead_pct)
         − direction_overhead    (contract × direction_overhead_pct)
@@ -25,7 +25,7 @@ Sources (reusing existing models — no new cost tables):
                       or project.budget_total fallback, PLUS approved COs.
     materials   → est: project.budget_materials | actual: Σ Expense(MATERIALES)
     other_labor → est: project.budget_labor     | actual: crew TimeEntry cost
-                  (hours × rate, EXCLUDING socios/owner) + Σ Expense(MANO_OBRA)
+                  (hours × rate, EXCLUDING socios & the director) + Σ Expense(MANO_OBRA)
     other_expenses → actual only: Σ Expense(every other category)
 
 Overhead label is neutral ("overhead"). This module performs NO accrual and
@@ -41,7 +41,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from django.db import transaction
 from django.db.models import DecimalField, ExpressionWrapper, F, Sum
 
-from core.access import ROLE_OWNER, ROLE_PARTNER
+from core.access import ROLE_ADMIN, ROLE_OWNER, ROLE_PARTNER
 
 CENTS = Decimal("0.01")
 ZERO = Decimal("0.00")
@@ -54,6 +54,38 @@ CONTRACT_CO_STATUSES = ("approved", "sent", "billed", "paid")
 #: office, food, storage…) is intentionally absorbed by company_overhead.
 MATERIAL_CATEGORY = "MATERIALES"
 LABOR_CATEGORY = "MANO_OBRA"
+
+#: Roles whose linked employees are NEVER counted as hourly crew. This mirrors
+#: core.access.is_director (admin/owner) so the director — who is the admin —
+#: is excluded even when their admin user is ALSO linked to an Employee for
+#: check-ins. ROLE_PARTNER (socio) is here too; active socios are also caught by
+#: the PartnerAccount filter below (covers PMs paid as socios who keep their
+#: role). Superusers are excluded separately (is_director treats them as the
+#: director). Net effect: neither the director nor any socio inflates labor.
+_NON_CREW_ROLES = [ROLE_PARTNER, ROLE_OWNER, ROLE_ADMIN]
+
+
+def _exclude_directors_and_socios(qs, *, user_path: str):
+    """Drop rows whose linked user is the director or a profit-share socio.
+
+    Single source of truth for "who is never crew labor", reused by the crew
+    cost calc (TimeEntry) and payroll/savings filtering (Employee). It mirrors
+    :func:`core.access.is_director` (admin/owner/superuser) and
+    :func:`core.access.is_profit_share_member` (legacy ``partner`` role OR an
+    ACTIVE, non-business ``PartnerAccount``). Rows with no linked user — plain
+    crew — are always kept (a NULL relation never matches an ``exclude``).
+
+    Args:
+        user_path: ORM path from the queryset's model to the ``User``, with a
+            trailing ``"__"``. Use ``"user__"`` for an Employee queryset or
+            ``"employee__user__"`` for a TimeEntry queryset.
+    """
+    return (
+        qs
+        .exclude(**{f"{user_path}profile__role__in": _NON_CREW_ROLES})
+        .exclude(**{f"{user_path}partner_account__is_active_socio": True})
+        .exclude(**{f"{user_path}is_superuser": True})
+    )
 
 
 def _q(value) -> Decimal:
@@ -123,18 +155,18 @@ def _crew_labor_cost(project) -> Decimal:
     """Hourly crew labor for the project: Σ hours × employee.hourly_rate.
 
     CRITICAL: excludes any employee whose linked user is a profit-share SOCIO
-    (an ACTIVE PartnerAccount, or the legacy ``partner`` role) or the OWNER —
-    socios are never a project cost. Employees without a linked user (plain
-    crew) are always included.
+    (an ACTIVE PartnerAccount or the legacy ``partner`` role) OR the DIRECTOR
+    (admin/owner/superuser — the director is the admin, who may ALSO be linked
+    to an Employee just to check in). Neither is ever a project cost. Employees
+    without a linked user (plain crew) are always included.
     """
     cost_expr = ExpressionWrapper(
         F("hours_worked") * F("employee__hourly_rate"),
         output_field=DecimalField(max_digits=14, decimal_places=2),
     )
-    qs = (
-        project.timeentry_set.filter(hours_worked__isnull=False)
-        .exclude(employee__user__profile__role__in=[ROLE_PARTNER, ROLE_OWNER])
-        .exclude(employee__user__partner_account__is_active_socio=True)
+    qs = _exclude_directors_and_socios(
+        project.timeentry_set.filter(hours_worked__isnull=False),
+        user_path="employee__user__",
     )
     total = qs.aggregate(t=Sum(cost_expr))["t"]
     return _q(total)
@@ -185,16 +217,14 @@ def exclude_profit_share_members(employee_qs):
 
     A member is identified by EITHER an ACTIVE, non-business ``PartnerAccount``
     (account-based — the current mechanism, which lets a PM keep their role) OR
-    the legacy ``partner`` role. The director (``owner`` role) is always
-    excluded. These members no longer draw an hourly wage and must NOT appear in
-    payroll or savings. Their TimeEntry check-ins are untouched (metrics only).
-    Plain crew (no linked user, or a non-member role) is always kept.
+    the legacy ``partner`` role. The director (admin/owner/superuser) is always
+    excluded too — the director is the admin, who may also be linked to an
+    Employee just to check in. These members no longer draw an hourly wage and
+    must NOT appear in payroll or savings. Their TimeEntry check-ins are
+    untouched (metrics only). Plain crew (no linked user, or a non-member role)
+    is always kept.
     """
-    return (
-        employee_qs
-        .exclude(user__profile__role__in=[ROLE_PARTNER, ROLE_OWNER])
-        .exclude(user__partner_account__is_active_socio=True)
-    )
+    return _exclude_directors_and_socios(employee_qs, user_path="user__")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
